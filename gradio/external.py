@@ -11,13 +11,13 @@ import requests
 import gradio
 from gradio import components, utils
 
+####################################################
+# Create a Blocks or Interface from a HF Repo
+####################################################
 
-####################################################
-# Create a Blocks or Interface from a HF Repo 
-####################################################
 
 def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
-    """ Creates and returns a Blocks instance from several kinds of Hugging Face repos:
+    """Creates and returns a Blocks instance from several kinds of Hugging Face repos:
     1) A model repo
     2) A Spaces repo running Gradio 2.x
     3) A Spaces repo running Gradio 3.x
@@ -31,7 +31,9 @@ def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
         ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
         src = tokens[0]
         name = "/".join(tokens[1:])
-    assert src.lower() in factory_methods, "parameter: src must be one of {}".format(factory_methods.keys())
+    assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
+        factory_methods.keys()
+    )
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
 
@@ -328,9 +330,10 @@ def get_spaces(model_name, api_key, alias, **kwargs):
     except AttributeError:
         raise ValueError("Could not load the Space: {}".format(model_name))
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
-        return get_spaces_interface(model_name, config, alias, **kwargs)      
-    else: # Create a Blcoks for Gradio 3.x Spaces
+        return get_spaces_interface(model_name, config, alias, **kwargs)
+    else:  # Create a Blcoks for Gradio 3.x Spaces
         return gradio.Blocks.from_config(config)
+
 
 def get_spaces_interface(model_name, config, alias, **kwargs):
     config = streamline_interface_config(config)
@@ -371,8 +374,9 @@ factory_methods: Dict[str, Callable] = {
 
 
 ####################################################
-# Create an Interface from a transformers.pipeline 
+# Create an Interface from a transformers.pipeline
 ####################################################
+
 
 def load_from_pipeline(pipeline):
     """

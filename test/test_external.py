@@ -2,9 +2,10 @@ import os
 import pathlib
 import unittest
 
+import gradio as gr
+
 # import transformers
 
-import gradio as gr
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -33,9 +34,7 @@ class TestLoadInterface(unittest.TestCase):
     def test_question_answering(self):
         model_type = "image-classification"
         interface = gr.Blocks.load(
-            name="lysandre/tiny-vit-random",
-            src="models",
-            alias=model_type
+            name="lysandre/tiny-vit-random", src="models", alias=model_type
         )
         self.assertEqual(interface.predict[0].__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Image)
@@ -43,10 +42,7 @@ class TestLoadInterface(unittest.TestCase):
 
     def test_text_generation(self):
         model_type = "text_generation"
-        interface = gr.Interface.load(
-            "models/gpt2", 
-            alias=model_type
-        )
+        interface = gr.Interface.load("models/gpt2", alias=model_type)
         self.assertEqual(interface.predict[0].__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
@@ -195,16 +191,12 @@ class TestLoadInterface(unittest.TestCase):
         self.assertLess(output["Survives"], 0.5)
 
     def test_speech_recognition_model(self):
-        io = gr.Interface.load(
-            "models/facebook/wav2vec2-base-960h"
-        )
+        io = gr.Interface.load("models/facebook/wav2vec2-base-960h")
         output = io("gradio/test_data/test_audio.wav")
         self.assertIsNotNone(output)
 
     def test_text_to_image_model(self):
-        io = gr.Interface.load(
-            "models/osanseviero/BigGAN-deep-128"
-        )
+        io = gr.Interface.load("models/osanseviero/BigGAN-deep-128")
         filename = io("chest")
         self.assertTrue(filename.endswith(".jpg") or filename.endswith(".jpeg"))
 

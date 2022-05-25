@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, external, networking, queueing, strings, utils, routes
+from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import delete_none
@@ -33,7 +33,7 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
-    
+
     def render(self):
         """
         Adds self into appropriate BlockContext
@@ -236,7 +236,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.loaded_externally: bool = False
         self.external_config: str = None
-    
+
     @classmethod
     def from_config(cls, config: str) -> Blocks:
         """Factory method that creates a Blocks object with only a config."""
@@ -340,7 +340,7 @@ class Blocks(BlockContext):
     def get_config_file(self):
         if self.loaded_externally:
             return self.external_config
-        
+
         config = {
             "version": routes.VERSION,
             "mode": "blocks",
@@ -351,7 +351,7 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
-        
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -389,24 +389,24 @@ class Blocks(BlockContext):
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-   
+
     @class_or_instancemethod
     def load(
-        self_or_cls, 
-        fn: Optional[Callable] = None, 
-        inputs: Optional[List[Component]] = None, 
+        self_or_cls,
+        fn: Optional[Callable] = None,
+        inputs: Optional[List[Component]] = None,
         outputs: Optional[List[Component]] = None,
         *,
         name: Optional[str] = None,
         src: Optional[str] = None,
         api_key: Optional[str] = None,
-        alias: Optional[str] = None, 
-        **kwargs,       
+        alias: Optional[str] = None,
+        **kwargs,
     ) -> Blocks | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
-        
+
         Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
         Parameters:
             name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
@@ -415,7 +415,7 @@ class Blocks(BlockContext):
             alias (str | None): optional string used as the name of the loaded model instead of the default name
             type (str): the type of the Blocks, either a standard `blocks` or `column`
         Returns: Blocks instance
-        
+
         Instance method: adds an event for when the demo loads in the browser.
         Parameters:
             fn: Callable function
@@ -425,7 +425,9 @@ class Blocks(BlockContext):
         """
         if isinstance(self_or_cls, type):
             if name is None:
-                raise ValueError("Blocks.load() requires passing `name` as a keyword argument")
+                raise ValueError(
+                    "Blocks.load() requires passing `name` as a keyword argument"
+                )
             if fn is not None:
                 kwargs["fn"] = fn
             if inputs is not None:
