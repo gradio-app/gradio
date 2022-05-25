@@ -1,3 +1,15 @@
+name: gradio-sizewatcher
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "**"
+  pull_request:
+    paths:
+      - "**"
+
 jobs:
   build:
     runs-on: ubuntu-latest
