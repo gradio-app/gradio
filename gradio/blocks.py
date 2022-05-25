@@ -260,9 +260,20 @@ class Blocks(BlockContext):
         BlockFunctions."""
         blocks = Blocks()
         blocks.loaded_from_config = True
-        blocks.config = config
-        blocks.fns = fns
-        blocks.dependencies = config["dependencies"]
+        if Context.root_block is None:
+            blocks.config = config
+            blocks.fns = fns
+            blocks.dependencies = config["dependencies"]
+        else:
+            pass
+            # Each component ID needs to be offset by Context.id
+            # Each dependency's inputs, targets, and outputs needs to be offset by Context.id
+            # Each layout's id needs to be offset by Context.id
+            # Context.id needs to be incremented by the max component id
+            # Context.root_blocks.fns needs to be extended by fns
+            # Context.dependencies needs to be extended by dependencies
+            # Context.root_block.blocks needs be updated by blocks
+             
         return blocks
 
     def render(self):
