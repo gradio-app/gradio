@@ -3,7 +3,6 @@ type BoolOrTuple = boolean | BoolTuple;
 
 export interface Styles {
 	rounded?: BoolOrTuple;
-	margin?: BoolOrTuple;
 	border?: BoolOrTuple;
 	container?: boolean;
 	grid?: number | Array<number>;
@@ -12,6 +11,9 @@ export interface Styles {
 	equal_height?: boolean;
 	mobile_collapse?: boolean;
 	visible?: boolean;
+	item_container?: boolean;
+	color_map?: Record<string, string>;
+	label_container?: boolean;
 }
 
 type PartialRecord<K extends keyof any, T> = {
@@ -63,13 +65,7 @@ const style_handlers: StyleHandlers = {
 			["lg", "none"]
 		);
 	},
-	margin(margin) {
-		let _style: BoolTuple = Array.isArray(margin)
-			? margin
-			: bool_to_tuple(margin);
 
-		return tuple_to_class(_style, "!m-", ["t", "r", "b", "l"], [false, "0"]);
-	},
 	border(border) {
 		let _style: BoolTuple = Array.isArray(border)
 			? border
@@ -84,8 +80,13 @@ const style_handlers: StyleHandlers = {
 	},
 	container(container_visible) {
 		return container_visible
-			? `!p-0 !m-0 !border-0 !shadow-none !overflow-visible`
-			: "";
+			? ""
+			: `!p-0 !m-0 !border-0 !shadow-none !overflow-visible !bg-transparent`;
+	},
+	label_container(visible) {
+		return visible
+			? ""
+			: `!border-0 !shadow-none !overflow-visible !bg-transparent`;
 	},
 	grid(grid) {
 		let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
@@ -112,6 +113,9 @@ const style_handlers: StyleHandlers = {
 	},
 	visible(visible) {
 		return visible ? "!hidden" : "";
+	},
+	item_container(visible) {
+		return visible ? "" : "!border-none";
 	}
 } as const;
 

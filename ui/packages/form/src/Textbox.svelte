@@ -75,7 +75,7 @@
 		};
 	}
 
-	const { classes } = get_styles(style, ["rounded", "margin", "border"]);
+	const { classes } = get_styles(style, ["rounded", "border"]);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->

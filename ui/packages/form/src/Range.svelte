@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { create_classes, get_styles } from "@gradio/utils";
+	import { create_classes } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
@@ -22,11 +22,9 @@
 	const dispatch = createEventDispatcher<{ change: number }>();
 
 	$: dispatch("change", value);
-
-	const { margin } = get_styles(style, ["margin"]);
 </script>
 
-<div class="w-full flex flex-col {margin}">
+<div class="w-full flex flex-col ">
 	<div class="flex justify-between">
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>

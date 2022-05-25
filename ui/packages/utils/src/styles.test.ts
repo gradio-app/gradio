@@ -89,9 +89,8 @@ describe("get_styles", () => {
 			classes: " !rounded-tl-lg !rounded-tr-lg !rounded-br-lg !rounded-bl-lg "
 		});
 
-		assert.deepEqual(get_styles(styles, ["rounded", "margin"]), {
+		assert.deepEqual(get_styles(styles, ["rounded"]), {
 			rounded: " !rounded-tl-lg !rounded-tr-lg !rounded-br-lg !rounded-bl-lg ",
-			margin: "  ",
 			classes: " !rounded-tl-lg !rounded-tr-lg !rounded-br-lg !rounded-bl-lg "
 		});
 	});

@@ -124,9 +124,10 @@ Nothing
 
 ## Chatbot
 
-| name      | type                                 | description             |
-| --------- | ------------------------------------ | ----------------------- |
-| `rounded` | `bool` or `(bool, bool, bool, bool)` | corners of chat bubbles |
+| name        | type                                 | description                                      |
+| ----------- | ------------------------------------ | ------------------------------------------------ |
+| `rounded`   | `bool` or `(bool, bool, bool, bool)` | corners of chat bubbles                          |
+| `color_map` | `Dict[str, str]`                     | color map of user and bot color for chat bubbles |
 
 ## Model3D
 

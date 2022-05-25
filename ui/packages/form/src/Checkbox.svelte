@@ -16,17 +16,13 @@
 		value = !value;
 	}
 
-	const { margin, rounded, border } = get_styles(style, [
-		"margin",
-		"rounded",
-		"border"
-	]);
+	const { rounded, border } = get_styles(style, ["rounded", "border"]);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label
 	class:!cursor-not-allowed={disabled}
-	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent {margin}"
+	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent "
 >
 	<input
 		bind:checked={value}

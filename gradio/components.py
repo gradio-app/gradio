@@ -1241,6 +1241,16 @@ class Dropdown(Radio):
             **kwargs,
         )
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(
+            self, rounded=rounded, border=border, container=container
+        )
+
 
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
@@ -2930,7 +2940,7 @@ class JSON(Changeable, IOComponent):
         return json.loads(data)
 
     def style(self, container: Optional[bool] = None):
-        return IOComponent.style(container=container)
+        return IOComponent.style(self, container=container)
 
 
 class HTML(Changeable, IOComponent):

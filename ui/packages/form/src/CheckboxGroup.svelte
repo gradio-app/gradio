@@ -23,10 +23,10 @@
 		value = value;
 	};
 
-	const { margin, rounded, border } = get_styles(style, [
-		"margin",
+	const { rounded, border, item_container } = get_styles(style, [
 		"rounded",
-		"border"
+		"border",
+		"item_container"
 	]);
 </script>
 
@@ -36,7 +36,7 @@
 	{#each choices as choice, i}
 		<label
 			class:!cursor-not-allowed={disabled}
-			class="flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner {margin}"
+			class="flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner {item_container}"
 		>
 			<input
 				{disabled}

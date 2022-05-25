@@ -15,14 +15,10 @@
 
 	$: dispatch("change", value);
 
-	const { rounded, margin, border } = get_styles(style, [
-		"rounded",
-		"margin",
-		"border"
-	]);
+	const { rounded, border } = get_styles(style, ["rounded", "border"]);
 </script>
 
-<label class={margin}>
+<label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<select
 		class="gr-box gr-input w-full disabled:cursor-not-allowed {rounded} {border}"

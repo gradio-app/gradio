@@ -50,14 +50,16 @@
 		: "";
 
 	const { classes } = explicit_call
-		? get_styles(style, ["container"])
-		: get_styles(style, ["rounded", "margin", "border"]);
-	$: console.log(style);
+		? get_styles(style, ["rounded", "border"])
+		: disable
+		? get_styles({ container: false }, ["container"])
+		: { classes: "" };
+
 	$: rounded =
 		typeof style.rounded !== "boolean" ||
 		(typeof style.rounded === "boolean" && style.rounded);
 
-	$: console.log(rounded);
+	$: rounded_style = get_styles({ rounded: rounded }, ["rounded"]).classes;
 </script>
 
 <svelte:element
@@ -66,7 +68,7 @@
 	id={elem_id}
 	class="w-full overflow-hidden {styles[variant]} {rounded
 		? styles[color]
-		: ''} {form_class} {classes}"
+		: ''} {form_class} {classes} {rounded_style}"
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:gr-box-unrounded={!rounded && form_position}
