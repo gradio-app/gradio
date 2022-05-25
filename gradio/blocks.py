@@ -234,6 +234,16 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
+        self.loaded_externally: bool = False
+        self.external_config: str = None
+    
+    @classmethod
+    def from_config(cls, config: str) -> Blocks:
+        """Factory method that creates a Blocks object with only a config."""
+        blocks = Blocks()
+        blocks.loaded_externally = True
+        blocks.external_config = config
+        return blocks
 
     def render(self):
         if Context.root_block is not None:
@@ -328,6 +338,9 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
+        if self.loaded_externally:
+            return self.external_config
+        
         config = {
             "version": routes.VERSION,
             "mode": "blocks",
@@ -338,7 +351,7 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
-
+        
         for _id, block in self.blocks.items():
             config["components"].append(
                 {

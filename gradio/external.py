@@ -330,7 +330,7 @@ def get_spaces(model_name, api_key, alias, **kwargs):
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return get_spaces_interface(model_name, config, alias, **kwargs)      
     else: # Create a Blcoks for Gradio 3.x Spaces
-        raise NotImplementedError("Gradio 3.x Spaces are not yet supported.")
+        return gradio.Blocks.from_config(config)
 
 def get_spaces_interface(model_name, config, alias, **kwargs):
     config = streamline_interface_config(config)
