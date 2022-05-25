@@ -40,7 +40,7 @@ bash scripts/create_test_requirements.sh
 bash scripts/install_test_requirements.sh
 ```
 
-* You can run gradio scripts in developer reload mode which will follow the changes in the gradio folder
+* You can run gradio scripts in developer reload mode which will watch for changes in the `gradio` folder and reload the app if changes are made.
 ```
 gradio-dev app.py
 ```
