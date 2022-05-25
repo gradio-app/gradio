@@ -12,4 +12,4 @@
 	$: label, dispatch("change");
 </script>
 
-<Markdown {value} on:change />
+<Markdown {value} {elem_id} {visible} on:change />

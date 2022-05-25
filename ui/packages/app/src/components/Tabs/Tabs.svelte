@@ -5,6 +5,6 @@
 	export let visible: boolean = true;
 </script>
 
-<Tabs on:change>
+<Tabs {elem_id} {visible} on:change>
 	<slot />
 </Tabs>
