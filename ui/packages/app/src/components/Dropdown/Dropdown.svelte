@@ -6,6 +6,7 @@
 
 	export let label: string = "Dropdown";
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: string = "";
 	export let choices: Array<string>;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -17,7 +18,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position} {elem_id} {style}>
+<Block {form_position} {elem_id} {visible} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Dropdown

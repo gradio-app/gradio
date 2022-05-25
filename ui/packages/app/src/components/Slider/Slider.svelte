@@ -5,6 +5,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: number = 0;
 	export let label: string = "Slider";
 	export let style: Record<string, any> = {};
@@ -19,7 +20,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} {elem_id} {style}>
+<Block {form_position} {elem_id} {visible} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Range

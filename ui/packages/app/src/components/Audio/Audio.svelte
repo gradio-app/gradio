@@ -15,6 +15,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
@@ -41,6 +42,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

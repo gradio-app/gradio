@@ -3,6 +3,7 @@
 	import { TABS } from "./Tabs.svelte";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let name: string;
 
 	const dispatch = createEventDispatcher<{ select: undefined }>();
@@ -22,6 +23,7 @@
 {#if $selected_tab === id}
 	<div
 		id={elem_id}
+		class:hidden={visible === false}
 		class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex"
 	>
 		<div
