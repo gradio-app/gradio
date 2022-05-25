@@ -16,7 +16,7 @@ setup(
     long_description_content_type='text/markdown',
     author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir",
     author_email="team@gradio.app",
-    url="https://github.com/gradio-app/gradio-UI",
+    url="https://github.com/gradio-app/gradio",
     packages=["gradio"],
     license="Apache License 2.0",
     keywords=["machine learning", "visualization", "reproducibility"],
@@ -40,6 +40,6 @@ setup(
         "Jinja2"
     ],
     entry_points={
-        'console_scripts': ['gradio=gradio.reload:user', 'gradio-dev=gradio.reload:dev']
+        'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
     },
 )
