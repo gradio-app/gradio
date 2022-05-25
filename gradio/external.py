@@ -293,29 +293,6 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
     return interface
 
 
-def streamline_interface_config(config_dict):
-    """Streamlines the interface config dictionary to remove unnecessary keys."""
-    config_dict["inputs"] = [
-        components.get_component_instance(component)
-        for component in config_dict["input_components"]
-    ]
-    config_dict["outputs"] = [
-        components.get_component_instance(component)
-        for component in config_dict["output_components"]
-    ]
-    parameters = {
-        "article",
-        "description",
-        "flagging_options",
-        "inputs",
-        "outputs",
-        "theme",
-        "title",
-    }
-    config_dict = {k: config_dict[k] for k in parameters}
-    return config_dict
-
-
 def get_spaces(model_name, api_key, alias, **kwargs):
     space_url = "https://huggingface.co/spaces/{}".format(model_name)
     print("Fetching interface from: {}".format(space_url))
@@ -336,35 +313,67 @@ def get_spaces(model_name, api_key, alias, **kwargs):
 
 
 def get_spaces_blocks(model_name, config):
+    def streamline_config(config: dict) -> dict:
+        """Streamlines the blocks config dictionary to fix components that don't render correctly."""
+        # TODO(abidlabs): Need a better way to fix relative paths in dataset component
+        for c, component in enumerate(config["components"]):
+            if component["type"] == "dataset":
+                config["components"][c]["props"]["visible"] = False
+        return config
+
+    config = streamline_config(config)
     api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
-    
+
     fns = []
     for dependency in config["dependencies"]:
         print(dependency["backend_fn"])
         if dependency["backend_fn"]:
+
             def fn(*data):
                 data = json.dumps({"data": data})
                 response = requests.post(api_url, headers=headers, data=data)
                 result = json.loads(response.content.decode("utf-8"))
                 output = result["data"]
-                if (
-                    len(dependency["outputs"]) == 1
-                ):
+                print(">>>")
+                if len(dependency["outputs"]) == 1:
+                    print(">>>>>>>")
                     output = output[0]
-                if len(dependency["outputs"]) == 1 and isinstance(
-                    output, list
-                ): 
+                if len(dependency["outputs"]) == 1 and isinstance(output, list):
+                    print(">>>>>>>>>>>>>>>>>")
                     output = output[0]
                 return output
-            fns.append(gradio.blocks.BlockFunction(fn, False, False))            
+
+            fns.append(gradio.blocks.BlockFunction(fn, False, False))
         else:
             fns.append(gradio.blocks.BlockFunction(None, False, False))
     return gradio.Blocks.from_config(config, fns)
-    
+
 
 def get_spaces_interface(model_name, config, alias, **kwargs):
-    config = streamline_interface_config(config)
+    def streamline_config(config: dict) -> dict:
+        """Streamlines the interface config dictionary to remove unnecessary keys."""
+        config["inputs"] = [
+            components.get_component_instance(component)
+            for component in config["input_components"]
+        ]
+        config["outputs"] = [
+            components.get_component_instance(component)
+            for component in config["output_components"]
+        ]
+        parameters = {
+            "article",
+            "description",
+            "flagging_options",
+            "inputs",
+            "outputs",
+            "theme",
+            "title",
+        }
+        config = {k: config[k] for k in parameters}
+        return config
+
+    config = streamline_config(config)
     api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
 
