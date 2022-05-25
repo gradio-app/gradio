@@ -331,9 +331,37 @@ def get_spaces(model_name, api_key, alias, **kwargs):
         raise ValueError("Could not load the Space: {}".format(model_name))
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
         return get_spaces_interface(model_name, config, alias, **kwargs)
-    else:  # Create a Blcoks for Gradio 3.x Spaces
-        return gradio.Blocks.from_config(config)
+    else:  # Create a Blocks for Gradio 3.x Spaces
+        return get_spaces_blocks(model_name, config)
 
+
+def get_spaces_blocks(model_name, config):
+    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
+    headers = {"Content-Type": "application/json"}
+    
+    fns = []
+    for dependency in config["dependencies"]:
+        print(dependency["backend_fn"])
+        if dependency["backend_fn"]:
+            def fn(*data):
+                data = json.dumps({"data": data})
+                response = requests.post(api_url, headers=headers, data=data)
+                result = json.loads(response.content.decode("utf-8"))
+                output = result["data"]
+                if (
+                    len(dependency["outputs"]) == 1
+                ):
+                    output = output[0]
+                if len(dependency["outputs"]) == 1 and isinstance(
+                    output, list
+                ): 
+                    output = output[0]
+                return output
+            fns.append(gradio.blocks.BlockFunction(fn, False, False))            
+        else:
+            fns.append(gradio.blocks.BlockFunction(None, False, False))
+    return gradio.Blocks.from_config(config, fns)
+    
 
 def get_spaces_interface(model_name, config, alias, **kwargs):
     config = streamline_interface_config(config)

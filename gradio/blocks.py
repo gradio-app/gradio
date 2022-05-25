@@ -251,15 +251,18 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.loaded_externally: bool = False
-        self.external_config: str = None
+        self.loaded_from_config: bool = False
+        self.config: Optional[str] = None
 
     @classmethod
-    def from_config(cls, config: str) -> Blocks:
-        """Factory method that creates a Blocks object with only a config."""
+    def from_config(cls, config: str, fns: List[BlockFunction]) -> Blocks:
+        """Factory method that creates a Blocks object with only a config and a list of
+        BlockFunctions."""
         blocks = Blocks()
-        blocks.loaded_externally = True
-        blocks.external_config = config
+        blocks.loaded_from_config = True
+        blocks.config = config
+        blocks.fns = fns
+        blocks.dependencies = config["dependencies"]
         return blocks
 
     def render(self):
@@ -371,8 +374,9 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        if self.loaded_externally:
-            return self.external_config
+        if self.loaded_from_config:
+            self.config["enable_queue"] = False
+            return self.config
 
         config = {
             "version": routes.VERSION,
