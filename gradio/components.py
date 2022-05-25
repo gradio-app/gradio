@@ -3733,13 +3733,3 @@ DataFrame = Dataframe
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
-
-
-def update(**kwargs) -> dict:
-    """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
-    """
-    kwargs["__type__"] = "generic_update"
-    return kwargs

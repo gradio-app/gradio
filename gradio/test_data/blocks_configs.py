@@ -2,6 +2,7 @@ import gradio
 
 XRAY_CONFIG = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,
@@ -197,6 +198,7 @@ XRAY_CONFIG = {
 
 XRAY_CONFIG_DIFF_IDS = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,
@@ -392,6 +394,7 @@ XRAY_CONFIG_DIFF_IDS = {
 
 XRAY_CONFIG_WITH_MISTAKE = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,

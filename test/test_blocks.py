@@ -25,7 +25,7 @@ class TestBlocks(unittest.TestCase):
         ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
-            gr.components.Markdown(
+            gr.Markdown(
                 """
             # Detect Disease From Scan
             With this model you can lorem ipsum
@@ -33,15 +33,15 @@ class TestBlocks(unittest.TestCase):
             - ipsum 2
             """
             )
-            disease = gr.components.CheckboxGroup(
+            disease = gr.CheckboxGroup(
                 choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
             )
 
             with gr.Tabs():
                 with gr.TabItem("X-ray"):
                     with gr.Row():
-                        xray_scan = gr.components.Image()
-                        xray_results = gr.components.JSON()
+                        xray_scan = gr.Image()
+                        xray_results = gr.JSON()
                     xray_run = gr.Button("Run")
                     xray_run.click(
                         xray_model, inputs=[disease, xray_scan], outputs=xray_results
@@ -49,13 +49,13 @@ class TestBlocks(unittest.TestCase):
 
                 with gr.TabItem("CT Scan"):
                     with gr.Row():
-                        ct_scan = gr.components.Image()
-                        ct_results = gr.components.JSON()
+                        ct_scan = gr.Image()
+                        ct_results = gr.JSON()
                     ct_run = gr.Button("Run")
                     ct_run.click(
                         ct_model, inputs=[disease, ct_scan], outputs=ct_results
                     )
-            textbox = gr.components.Textbox()
+            textbox = gr.Textbox()
             demo.load(fake_func, [], [textbox])
             config = demo.get_config_file()
             config.pop("version")  # remove version key
@@ -68,8 +68,8 @@ class TestBlocks(unittest.TestCase):
             return True
 
         with gr.Blocks() as demo:
-            text = gr.components.Textbox()
-            button = gr.components.Button()
+            text = gr.Textbox()
+            button = gr.Button()
             button.click(wait, [text], [text])
 
             body = PredictBody(data=1, fn_index=0)

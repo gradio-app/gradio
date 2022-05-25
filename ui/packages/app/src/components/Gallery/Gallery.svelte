@@ -10,6 +10,7 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> | null = null;
 	export let style: Record<string, unknown> = {};
 
@@ -86,7 +87,7 @@
 
 <svelte:window bind:innerHeight={window_height} />
 
-<Block variant="solid" color="grey" padding={false} {elem_id}>
+<Block variant="solid" color="grey" padding={false} {elem_id} {visible}>
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={Image} label={label || "Gallery"} />
 	{#if value === null}
