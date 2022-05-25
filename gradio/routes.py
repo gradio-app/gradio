@@ -9,9 +9,9 @@ import posixpath
 import secrets
 import traceback
 import urllib
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
-from copy import deepcopy
 
 import orjson
 import pkg_resources
