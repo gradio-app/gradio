@@ -2,6 +2,7 @@
 use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 import base64
+from copy import deepcopy
 import json
 import re
 from typing import Callable, Dict
@@ -326,24 +327,23 @@ def get_spaces_blocks(model_name, config):
     headers = {"Content-Type": "application/json"}
 
     fns = []
-    for dependency in config["dependencies"]:
-        print(dependency["backend_fn"])
-        if dependency["backend_fn"]:
-
-            def fn(*data):
-                data = json.dumps({"data": data})
-                response = requests.post(api_url, headers=headers, data=data)
-                result = json.loads(response.content.decode("utf-8"))
-                output = result["data"]
-                print(">>>")
-                if len(dependency["outputs"]) == 1:
-                    print(">>>>>>>")
-                    output = output[0]
-                if len(dependency["outputs"]) == 1 and isinstance(output, list):
-                    print(">>>>>>>>>>>>>>>>>")
-                    output = output[0]
-                return output
-
+    for _dependency in config["dependencies"]:
+        if _dependency["backend_fn"]:
+                        
+            def get_fn(dependency):
+                def fn(*data):
+                    data = json.dumps({"data": data})
+                    response = requests.post(api_url, headers=headers, data=data)
+                    result = json.loads(response.content.decode("utf-8"))
+                    output = result["data"]
+                    if len(dependency["outputs"]) == 1:
+                        output = output[0]
+                    if len(dependency["outputs"]) == 1 and isinstance(output, list):
+                        output = output[0]
+                    return output
+                return fn
+            
+            fn = get_fn(deepcopy(_dependency))
             fns.append(gradio.blocks.BlockFunction(fn, False, False))
         else:
             fns.append(gradio.blocks.BlockFunction(None, False, False))
