@@ -7,6 +7,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
@@ -21,7 +22,7 @@
 	$: value, dispatch("change");
 </script>
 
-<Block {elem_id}>
+<Block {elem_id} {visible}>
 	<StatusTracker {...loading_status} />
 	<BlockLabel Icon={LabelIcon} {label} />
 

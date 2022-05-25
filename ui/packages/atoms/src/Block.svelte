@@ -6,6 +6,7 @@
 
 	export let style: Record<string, any> = {};
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let color: "grey" | "green" = "grey";
 	export let padding: boolean = true;
@@ -53,6 +54,7 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
+	class:hidden={visible === false}
 	class={"w-full overflow-hidden " +
 		styles[variant] +
 		" " +

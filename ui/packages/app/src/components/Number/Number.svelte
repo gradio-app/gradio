@@ -6,6 +6,7 @@
 
 	export let label: string = "Number";
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let style: Record<string, any> = {};
 	export let value: number = 0;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -15,7 +16,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position} {elem_id} {style}>
+<Block {form_position} {elem_id} {visible} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Number
