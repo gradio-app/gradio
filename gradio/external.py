@@ -1,3 +1,6 @@
+"""This module should not be used directly as its API is subject to change. Instead, 
+use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
+
 import base64
 import json
 import re

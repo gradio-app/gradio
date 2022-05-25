@@ -411,6 +411,8 @@ class Blocks(BlockContext):
         Returns: None
         """
         if isinstance(self_or_cls, type):
+            if name is None:
+                raise ValueError("Blocks.load() requires passing `name` as a keyword argument")
             if fn is not None:
                 kwargs["fn"] = fn
             if inputs is not None:
