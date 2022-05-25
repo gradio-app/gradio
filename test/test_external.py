@@ -4,7 +4,7 @@ import unittest
 
 import gradio as gr
 
-# import transformers
+import transformers
 
 
 """
@@ -12,7 +12,7 @@ WARNING: These tests have an external dependency: namely that Hugging Face's
 Hub and Space APIs do not change, and they keep their most famous models up.
 So if, e.g. Spaces is down, then these test will not pass.
 
-These tests actually test gr.Interface.load() and gr.Blocks.load() but are 
+These tests actually test gr.Interface.load() and gr.Blocks.load() but are
 included in a separate file because of the above-mentioned dependency.
 """
 
