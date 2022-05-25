@@ -2,10 +2,9 @@ import os
 import pathlib
 import unittest
 
-import gradio as gr
-
 import transformers
 
+import gradio as gr
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
