@@ -234,14 +234,11 @@ class IOComponent(Component):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
         if rounded is not None:
             self._style["rounded"] = rounded
-        if margin is not None:
-            self._style["margin"] = margin
         if border is not None:
             self._style["border"] = border
         if container is not None:
@@ -759,12 +756,10 @@ class Slider(Changeable, IOComponent):
 
     def style(
         self,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
         return IOComponent.style(
             self,
-            margin=margin,
             container=container,
         )
 
@@ -1036,6 +1031,21 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
+    ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            container=container,
+        )
+
 
 class Radio(Changeable, IOComponent):
     """
@@ -1171,6 +1181,19 @@ class Radio(Changeable, IOComponent):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
+    def style(
+        self,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
+    ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
+        return IOComponent.style(
+            self,
+            container=container,
+        )
 
 
 class Dropdown(Radio):
@@ -2570,6 +2593,9 @@ class Variable(IOComponent):
             **IOComponent.get_config(self),
         }
 
+    def style(self):
+        return self
+
 
 ############################
 # Only Output Components
@@ -2964,6 +2990,9 @@ class HTML(Changeable, IOComponent):
             "__type__": "update",
         }
 
+    def style(self):
+        return self
+
 
 class Gallery(IOComponent):
     """
@@ -3047,10 +3076,8 @@ class Gallery(IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int] = None,
+        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
         height: Optional[str] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
         if grid is not None:
@@ -3459,6 +3486,9 @@ class Plot(Changeable, Clearable, IOComponent):
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
+    def style(self):
+        return self
+
 
 class Markdown(IOComponent, Changeable):
     """
@@ -3507,6 +3537,9 @@ class Markdown(IOComponent, Changeable):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 ############################
@@ -3564,7 +3597,6 @@ class Button(Clickable, Component):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         full_width: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         if full_width is not None:
@@ -3573,7 +3605,6 @@ class Button(Clickable, Component):
         return IOComponent.style(
             self,
             rounded=rounded,
-            margin=margin,
             border=border,
         )
 
@@ -3680,6 +3711,9 @@ class Interpretation(Component):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 class StatusTracker(Component):
