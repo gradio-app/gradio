@@ -350,7 +350,6 @@ class Blocks(BlockContext):
         else:
             processed_input = raw_input
         start = time.time()
-
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = await block_fn.fn(*processed_input)
         else:
