@@ -30,8 +30,15 @@ class Changeable(Block):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js,
-            preprocess=_preprocess, postprocess=_postprocess, queue=queue
+            "change",
+            fn,
+            inputs,
+            outputs,
+            status_tracker=status_tracker,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
         )
 
 
@@ -93,8 +100,15 @@ class Submittable(Block):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js,
-            preprocess=_preprocess, postprocess=_postprocess, queue=queue            
+            "submit",
+            fn,
+            inputs,
+            outputs,
+            status_tracker=status_tracker,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
         )
 
 
@@ -117,8 +131,16 @@ class Editable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("edit", fn, inputs, outputs, js=_js,
-                               preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "edit",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )
 
 
 class Clearable(Block):
@@ -140,8 +162,16 @@ class Clearable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs, js=_js,
-                                           preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "submit",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )
 
 
 class Playable(Block):
@@ -163,8 +193,16 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("play", fn, inputs, outputs, js=_js,
-                                           preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "play",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )
 
     def pause(
         self,
@@ -184,7 +222,16 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("pause", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "pause",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )
 
     def stop(
         self,
@@ -204,7 +251,16 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("stop", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "stop",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )
 
 
 class Streamable(Block):
@@ -227,4 +283,13 @@ class Streamable(Block):
         Returns: None
         """
         self.streaming = True
-        self.set_event_trigger("stream", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)
+        self.set_event_trigger(
+            "stream",
+            fn,
+            inputs,
+            outputs,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+            queue=queue,
+        )

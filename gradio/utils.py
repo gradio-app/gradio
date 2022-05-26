@@ -23,7 +23,7 @@ import requests
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Interface, Blocks
+    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 
@@ -277,15 +277,17 @@ def resolve_singleton(_list):
 
 def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     """
-    Returns the component, template, or layout class with the given class name, or 
+    Returns the component, template, or layout class with the given class name, or
     raises a ValueError if not found.
-    
+
     Parameters:
     cls_name (str): lower-case string class name of a component
-    Returns: 
+    Returns:
     cls: the component class
     """
-    import gradio.components, gradio.templates, gradio.layouts
+    import gradio.components
+    import gradio.layouts
+    import gradio.templates
 
     components = [
         (name, cls)
@@ -304,8 +306,8 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     ]
     for name, cls in components + templates + layouts:
         if name.lower() == cls_name.replace("_", "") and (
-            issubclass(cls, gradio.components.Component) or issubclass(cls, gradio.blocks.BlockContext)):
+            issubclass(cls, gradio.components.Component)
+            or issubclass(cls, gradio.blocks.BlockContext)
+        ):
             return cls
     raise ValueError(f"No such component or layout: {cls_name}")
-
-

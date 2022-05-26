@@ -2,9 +2,9 @@
 use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 import base64
-from copy import deepcopy
 import json
 import re
+from copy import deepcopy
 from typing import Callable, Dict
 
 import requests
@@ -329,7 +329,7 @@ def get_spaces_blocks(model_name, config):
     fns = []
     for _dependency in config["dependencies"]:
         if _dependency["backend_fn"]:
-                        
+
             def get_fn(dependency):
                 def fn(*data):
                     data = json.dumps({"data": data})
@@ -341,8 +341,9 @@ def get_spaces_blocks(model_name, config):
                     if len(dependency["outputs"]) == 1 and isinstance(output, list):
                         output = output[0]
                     return output
+
                 return fn
-            
+
             fns.append(get_fn(deepcopy(_dependency)))
         else:
             fns.append(None)
