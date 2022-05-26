@@ -3,15 +3,15 @@ from __future__ import annotations
 import getpass
 import inspect
 import os
+import random
 import sys
 import time
-import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, networking, queueing, strings, utils
+from gradio import encryptor, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import delete_none
@@ -167,6 +167,20 @@ class BlockFunction:
         self.total_runs = 0
 
 
+def update(**kwargs) -> dict:
+    """
+    Updates component parameters
+    @param kwargs: Updating component parameters
+    @return: Updated component parameters
+    """
+    kwargs["__type__"] = "generic_update"
+    return kwargs
+
+
+def skip() -> dict:
+    return update()
+
+
 class Blocks(BlockContext):
     """
     The Blocks class is a low-level API that allows you to create custom web
@@ -201,6 +215,7 @@ class Blocks(BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
+        self.share = False
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -228,6 +243,8 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
+        self.dev_mode = True
+        self.app_id = random.getrandbits(64)
 
     def render(self):
         if Context.root_block is not None:
@@ -275,6 +292,22 @@ class Blocks(BlockContext):
         duration = time.time() - start
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
+        if type(predictions) is dict and len(predictions) > 0:
+            keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+            if all(keys_are_blocks):
+                reordered_predictions = [skip() for _ in dependency["outputs"]]
+                for component, value in predictions.items():
+                    if component._id not in dependency["outputs"]:
+                        return ValueError(
+                            f"Returned component {component} not specified as output of function."
+                        )
+                    output_index = dependency["outputs"].index(component._id)
+                    reordered_predictions[output_index] = value
+                predictions = reordered_predictions
+            elif any(keys_are_blocks):
+                raise ValueError(
+                    "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
+                )
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
         if block_fn.postprocess:
@@ -324,6 +357,7 @@ class Blocks(BlockContext):
     def get_config_file(self):
         config = {
             "mode": "blocks",
+            "dev_mode": self.dev_mode,
             "components": [],
             "theme": self.theme,
             "css": self.css,
@@ -369,6 +403,7 @@ class Blocks(BlockContext):
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
+        self.app = routes.App.create_app(self)
 
     def load(
         self, fn: Callable, inputs: List[Component], outputs: List[Component]
@@ -415,6 +450,7 @@ class Blocks(BlockContext):
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        quiet: bool = False,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -440,11 +476,13 @@ class Blocks(BlockContext):
         ssl_keyfile (str | None): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str | None): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password (str | None): If a password is provided, will use this with the ssl certificate for https.
+        quiet (bool): If True, suppresses most print statements.
         Returns:
         app (FastAPI): FastAPI app object that is running the demo
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
+        self.dev_mode = False
         if (
             auth
             and not callable(auth)
@@ -474,9 +512,10 @@ class Blocks(BlockContext):
 
         if self.is_running:
             self.server_app.launchable = self
-            print(
-                "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
-            )
+            if not (quiet):
+                print(
+                    "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                )
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -499,7 +538,7 @@ class Blocks(BlockContext):
         is_colab = utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
             share = True
-            if is_colab:
+            if is_colab and not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
                 else:
@@ -517,7 +556,8 @@ class Blocks(BlockContext):
                     share_url = networking.setup_tunnel(self.server_port, None)
                     self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
-                print(strings.en["SHARE_LINK_MESSAGE"])
+                if not (quiet):
+                    print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
@@ -525,7 +565,8 @@ class Blocks(BlockContext):
                 share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
-            print(strings.en["PUBLIC_SHARE_TRUE"])
+            if not (quiet):
+                print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
         if inbrowser:

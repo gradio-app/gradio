@@ -8,6 +8,7 @@
 	export let label: string = "Number";
 	export let elem_id: string = "";
 	export let style: Styles = {};
+	export let visible: boolean = true;
 	export let value: number = 0;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
@@ -20,6 +21,7 @@
 	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

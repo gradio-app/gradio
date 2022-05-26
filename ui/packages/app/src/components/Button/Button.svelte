@@ -5,10 +5,11 @@
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: string;
 	export let variant: "primary" | "secondary" = "primary";
 </script>
 
-<Button {variant} {elem_id} {style} on:click>
+<Button {variant} {elem_id} {visible} {style} on:click>
 	{$_(value)}
 </Button>

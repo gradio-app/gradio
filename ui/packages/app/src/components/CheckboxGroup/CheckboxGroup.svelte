@@ -6,6 +6,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
 	export let style: Styles = {};
@@ -22,6 +23,7 @@
 	{elem_id}
 	type="fieldset"
 	disable={typeof style.container === "boolean" && !style.container}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

@@ -1,0 +1,27 @@
+report:
+  # to report a github commit status (will block PR if it fails)
+  # default: false
+  githubStatus: true
+  # to report a comment on the github PR
+  # default: true
+  githubComment: false
+
+# global thresholds when to warn or fail a build
+# note that one failing or warning comparator is enough to fail or warn
+# can be either
+# - percentage: "50%" ("-10%" for size decrease)
+# - absolute limit, as byte string: "10 MB", "5 KB"
+#   see https://www.npmjs.com/package/xbytes
+# - absolute limit, as byte number: 1000000
+limits:
+  # when to fail - default: 100%
+  fail: 10 MB
+  # when to warn - default: 30%
+  warn: 1 MB
+  # below the ok limit you will get a cheers for making it notably smaller
+  # default: -10%
+  ok: -1 MB
+
+comparators:
+  # set a comparator "false" to disable it
+  git: false

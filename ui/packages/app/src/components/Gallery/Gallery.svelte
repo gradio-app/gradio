@@ -4,14 +4,15 @@
 	import { tick } from "svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import ImageIcon from "./ImageIcon.svelte";
 	import type { Styles } from "@gradio/utils";
 	import { get_styles } from "@gradio/utils";
+	import { Image } from "@gradio/icons";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> | null = null;
 	export let style: Styles = {};
 
@@ -82,19 +83,20 @@
 	padding={false}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}
 		<BlockLabel
 			{show_label}
-			Icon={ImageIcon}
+			Icon={Image}
 			label={label || "Gallery"}
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
 	{#if value === null}
 		<div class="h-full min-h-[15rem] flex justify-center items-center">
-			<ImageIcon />
+			<div class="h-5 dark:text-white opacity-50"><Image /></div>
 		</div>
 	{:else}
 		{#if selected_image !== null}

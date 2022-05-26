@@ -9,6 +9,7 @@
 	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
 
+	export let label: string | null = null;
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -342,7 +343,7 @@
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
-			Array(col_count[0])
+			Array(data[0].length)
 				.fill(0)
 				.map((_, i) => {
 					const _id = `${data.length}-${i}`;
@@ -462,146 +463,158 @@
 	on:touchstart={handle_click_outside}
 />
 
-<div
-	class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
-	class:border-green-400={dragging}
->
-	<Upload
-		flex={false}
-		center={false}
-		boundedheight={false}
-		click={false}
-		on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
-		bind:dragging
-	>
-		<table
-			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity overflow-hidden "
-			class:opacity-40={dragging}
+<div class:mt-6={label && label.length !== 0}>
+	{#if label && label.length !== 0}
+		<p
+			class="text-gray-600 text-[0.855rem] mb-2 block dark:text-gray-200 relative z-40"
 		>
-			<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
-				<tr
-					class="border-b  dark:border-gray-700 divide-x dark:divide-gray-700 text-left"
-				>
-					{#each _headers as { value, id }, i (id)}
-						<th
-							bind:this={els[id].cell}
-							class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none {classes}"
-							class:bg-orange-50={header_edit === id}
-							class:dark:bg-transparent={header_edit === id}
-							class:rounded-tl-lg={i === 0}
-							class:rounded-tr-lg={i === _headers.length - 1}
-							aria-sort={get_sort_status(value, sort_by, sort_direction)}
-						>
-							<div class="min-h-[2.3rem] flex outline-none">
-								<EditableCell
-									{value}
-									bind:el={els[id].input}
-									edit={header_edit === id}
-									on:keydown={end_header_edit}
-									on:dblclick={() => edit_header(id)}
-									header
-								/>
-
-								<div
-									class="flex flex-none items-center justify-center p-2 cursor-pointer  leading-snug transform transition-all {sort_by !==
-									i
-										? 'text-gray-200 hover:text-gray-500'
-										: 'text-orange-500'} {sort_by === i &&
-									sort_direction === 'des'
-										? '-scale-y-[1]'
-										: ''}"
-									class:text-gray-200={sort_by !== i}
-									on:click={() => handle_sort(i)}
-								>
-									<svg
-										width="1em"
-										height="1em"
-										class="fill-current text-[10px]"
-										viewBox="0 0 9 7"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-									</svg>
-								</div>
-							</div>
-						</th>
-					{/each}
-				</tr>
-			</thead>
-
-			<tbody class="overflow-y-scroll">
-				{#each data as row, i (row)}
+			{label}
+		</p>
+	{/if}
+	<div
+		class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
+		class:border-green-400={dragging}
+	>
+		<Upload
+			flex={false}
+			center={false}
+			boundedheight={false}
+			click={false}
+			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
+			bind:dragging
+		>
+			<table
+				class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity overflow-hidden"
+				class:opacity-40={dragging}
+			>
+				{#if label && label.length !== 0}
+					<caption class="sr-only">{label}</caption>
+				{/if}
+				<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
 					<tr
-						class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+						class="border-b  dark:border-gray-700 divide-x dark:divide-gray-700 text-left"
 					>
-						{#each row as { value, id }, j (id)}
-							<td
-								tabindex="0"
+						{#each _headers as { value, id }, i (id)}
+							<th
 								bind:this={els[id].cell}
-								on:touchstart={() => start_edit(id)}
-								on:click={() => handle_cell_click(id)}
-								on:dblclick={() => start_edit(id)}
-								on:keydown={(e) => handle_keydown(e, i, j, id)}
-								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative {classes}"
+								class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none {classes}"
+								class:bg-orange-50={header_edit === id}
+								class:dark:bg-transparent={header_edit === id}
+								class:rounded-tl-lg={i === 0}
+								class:rounded-tr-lg={i === _headers.length - 1}
+								aria-sort={get_sort_status(value, sort_by, sort_direction)}
 							>
-								<div
-									class:border-transparent={selected !== id}
-									class="min-h-[2.3rem] h-full  outline-none flex items-center"
-								>
+								<div class="min-h-[2.3rem] flex outline-none">
 									<EditableCell
-										bind:value
+										{value}
 										bind:el={els[id].input}
-										edit={editing === id}
+										edit={header_edit === id}
+										on:keydown={end_header_edit}
+										on:dblclick={() => edit_header(id)}
+										header
 									/>
+
+									<div
+										class="flex flex-none items-center justify-center p-2 cursor-pointer  leading-snug transform transition-all {sort_by !==
+										i
+											? 'text-gray-200 hover:text-gray-500'
+											: 'text-orange-500'} {sort_by === i &&
+										sort_direction === 'des'
+											? '-scale-y-[1]'
+											: ''}"
+										class:text-gray-200={sort_by !== i}
+										on:click={() => handle_sort(i)}
+									>
+										<svg
+											width="1em"
+											height="1em"
+											class="fill-current text-[10px]"
+											viewBox="0 0 9 7"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+										</svg>
+									</div>
 								</div>
-							</td>
+							</th>
 						{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</Upload>
-</div>
-{#if editable}
-	<div class="flex justify-end space-x-1 pt-2 text-gray-800">
-		{#if row_count[1] === "dynamic"}
-			<button class="!flex-none gr-button group" on:click={() => add_row()}
-				><svg
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					aria-hidden="true"
-					role="img"
-					class="mr-1 group-hover:text-orange-500"
-					width="1em"
-					height="1em"
-					preserveAspectRatio="xMidYMid meet"
-					viewBox="0 0 32 32"
-					><path
-						fill="currentColor"
-						d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
-					/></svg
-				>New row</button
-			>
-		{/if}
-		{#if col_count[1] === "dynamic"}
-			<button class="!flex-none gr-button group" on:click={add_col}>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					aria-hidden="true"
-					role="img"
-					class="mr-1 group-hover:text-orange-500"
-					width="1em"
-					height="1em"
-					preserveAspectRatio="xMidYMid meet"
-					viewBox="0 0 32 32"
-					><path
-						fill="currentColor"
-						d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
-					/></svg
-				>
-				New column</button
-			>{/if}
+				</thead>
+
+				<tbody class="overflow-y-scroll">
+					{#each data as row, i (row)}
+						<tr
+							class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+						>
+							{#each row as { value, id }, j (id)}
+								<td
+									tabindex="0"
+									bind:this={els[id].cell}
+									on:touchstart={() => start_edit(id)}
+									on:click={() => handle_cell_click(id)}
+									on:dblclick={() => start_edit(id)}
+									on:keydown={(e) => handle_keydown(e, i, j, id)}
+									class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative {classes}"
+								>
+									<div
+										class:border-transparent={selected !== id}
+										class="min-h-[2.3rem] h-full  outline-none flex items-center"
+									>
+										<EditableCell
+											bind:value
+											bind:el={els[id].input}
+											edit={editing === id}
+										/>
+									</div>
+								</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</Upload>
 	</div>
-{/if}
+	{#if editable}
+		<div class="flex justify-end space-x-1 pt-2 text-gray-800">
+			{#if row_count[1] === "dynamic"}
+				<button class="!flex-none gr-button group" on:click={() => add_row()}
+					><svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						aria-hidden="true"
+						role="img"
+						class="mr-1 group-hover:text-orange-500"
+						width="1em"
+						height="1em"
+						preserveAspectRatio="xMidYMid meet"
+						viewBox="0 0 32 32"
+						><path
+							fill="currentColor"
+							d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
+						/></svg
+					>New row</button
+				>
+			{/if}
+			{#if col_count[1] === "dynamic"}
+				<button class="!flex-none gr-button group" on:click={add_col}>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						aria-hidden="true"
+						role="img"
+						class="mr-1 group-hover:text-orange-500"
+						width="1em"
+						height="1em"
+						preserveAspectRatio="xMidYMid meet"
+						viewBox="0 0 32 32"
+						><path
+							fill="currentColor"
+							d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
+						/></svg
+					>
+					New column</button
+				>{/if}
+		</div>
+	{/if}
+</div>

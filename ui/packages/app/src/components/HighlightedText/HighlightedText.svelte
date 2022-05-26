@@ -8,6 +8,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<[string, string | number]>;
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
@@ -29,6 +30,7 @@
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 	style={{ rounded: style.rounded }}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}

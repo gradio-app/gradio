@@ -11,6 +11,7 @@
 	export let style: Styles = {};
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
 	export let root: string;
@@ -32,6 +33,7 @@
 	padding={false}
 	{elem_id}
 	style={{ rounded: style.rounded }}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

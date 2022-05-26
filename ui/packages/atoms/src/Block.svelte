@@ -6,6 +6,7 @@
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let color: "grey" | "green" = "grey";
 	export let padding: boolean = true;
@@ -60,6 +61,7 @@
 		(typeof style.rounded === "boolean" && style.rounded);
 
 	$: rounded_style = get_styles({ rounded: rounded }, ["rounded"]).classes;
+	$: visible_style = get_styles({ visible }, ["visible"]);
 </script>
 
 <svelte:element
@@ -68,7 +70,7 @@
 	id={elem_id}
 	class="w-full overflow-hidden {styles[variant]} {rounded
 		? styles[color]
-		: ''} {form_class} {classes} {rounded_style}"
+		: ''} {form_class} {classes} {rounded_style} {visible_style}"
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:gr-box-unrounded={!rounded && form_position}

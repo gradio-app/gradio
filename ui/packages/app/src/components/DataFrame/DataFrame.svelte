@@ -10,12 +10,14 @@
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
 	export let style: Styles = {};
+	export let label: string | null = null;
 
 	$: {
 		if (!Array.isArray(value)) {
@@ -40,11 +42,13 @@
 
 <div
 	id={elem_id}
+	class:hidden={visible === false}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
 >
 	<StatusTracker {...loading_status} />
 	<Table
+		{label}
 		{row_count}
 		{col_count}
 		values={value}
