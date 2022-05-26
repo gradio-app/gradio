@@ -40,7 +40,6 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.external import load_interface
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
