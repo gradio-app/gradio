@@ -454,7 +454,7 @@
 
 	let dragging = false;
 
-	const { classes } = get_styles(style, ["rounded"]);
+	$: ({ classes } = get_styles(style, ["rounded"]));
 </script>
 
 <svelte:window

@@ -16,7 +16,7 @@
 		value = !value;
 	}
 
-	const { rounded, border } = get_styles(style, ["rounded", "border"]);
+	$: ({ rounded, border } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->

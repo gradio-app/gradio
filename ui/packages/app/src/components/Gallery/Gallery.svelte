@@ -66,11 +66,9 @@
 		});
 	}
 
-	let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
-
 	$: can_zoom = window_height >= height;
 
-	const { classes } = get_styles(style, ["grid"]);
+	$: ({ classes } = get_styles(style, ["grid"]));
 
 	let height = 0;
 	let window_height = 0;

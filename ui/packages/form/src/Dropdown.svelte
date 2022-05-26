@@ -15,7 +15,7 @@
 
 	$: dispatch("change", value);
 
-	const { rounded, border } = get_styles(style, ["rounded", "border"]);
+	$: ({ rounded, border } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <label>

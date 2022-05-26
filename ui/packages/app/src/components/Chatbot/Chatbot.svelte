@@ -11,6 +11,11 @@
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
+	export let color_map: Record<string, string> = {};
+
+	$: if (!style.color_map && Object.keys(color_map).length) {
+		style.color_map = color_map;
+	}
 
 	export let loading_status: LoadingStatus;
 </script>

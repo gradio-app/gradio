@@ -2768,6 +2768,7 @@ class HighlightedText(Changeable, IOComponent):
         self,
         value: str = "",
         *,
+        color_map: Dict[str, str] = None,
         show_legend: bool = False,
         combine_adjacent: bool = False,
         label: Optional[str] = None,
@@ -2785,6 +2786,12 @@ class HighlightedText(Changeable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.value = value
+        self.color_map = color_map
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
+                DeprecationWarning,
+            )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         IOComponent.__init__(
@@ -2798,6 +2805,7 @@ class HighlightedText(Changeable, IOComponent):
 
     def get_config(self):
         return {
+            "color_map": self.color_map,
             "show_legend": self.show_legend,
             "value": self.value,
             **IOComponent.get_config(self),
@@ -2806,12 +2814,14 @@ class HighlightedText(Changeable, IOComponent):
     @staticmethod
     def update(
         value: Optional[Any] = None,
+        color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         return {
+            "color_map": color_map,
             "show_legend": show_legend,
             "label": label,
             "show_label": show_label,
@@ -3215,6 +3225,7 @@ class Chatbot(Changeable, IOComponent):
     def __init__(
         self,
         value="",
+        color_map: Dict[str, str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3230,6 +3241,14 @@ class Chatbot(Changeable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.value = value
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
+                DeprecationWarning,
+            )
+
+        self.color_map = color_map
+
         IOComponent.__init__(
             self,
             label=label,
@@ -3242,17 +3261,20 @@ class Chatbot(Changeable, IOComponent):
     def get_config(self):
         return {
             "value": self.value,
+            "color_map": self.color_map,
             **IOComponent.get_config(self),
         }
 
     @staticmethod
     def update(
         value: Optional[Any] = None,
+        color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         return {
+            "color_map": color_map,
             "label": label,
             "show_label": show_label,
             "visible": visible,

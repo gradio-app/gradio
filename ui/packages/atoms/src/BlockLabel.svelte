@@ -6,9 +6,9 @@
 	export let show_label: boolean = true;
 	export let disable: boolean = false;
 
-	const { classes } = get_styles({ label_container: !disable }, [
+	$: ({ classes } = get_styles({ label_container: !disable }, [
 		"label_container"
-	]);
+	]));
 </script>
 
 <div

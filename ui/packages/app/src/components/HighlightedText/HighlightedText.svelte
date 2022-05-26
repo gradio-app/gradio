@@ -14,7 +14,7 @@
 	export let label: string;
 	export let style: Styles = {};
 
-	if (!style.color_map && Object.keys(color_map).length) {
+	$: if (!style.color_map && Object.keys(color_map).length) {
 		style.color_map = color_map;
 	}
 

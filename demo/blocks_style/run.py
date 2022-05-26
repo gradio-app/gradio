@@ -59,9 +59,9 @@ with gr.Blocks() as demo:
         label = gr.Label().style(
             container=False,
         )
-        highlight = gr.HighlightedText(show_label=False).style(
-            rounded=False, color_map={"+": "green", "-": "red"}, container=False
-        )
+        highlight = gr.HighlightedText(
+            "+ hello. - goodbye", show_label=False, color_map={"+": "green", "-": "red"}
+        ).style(rounded=False, container=False)
         json = gr.JSON().style(container=False)
         html = gr.HTML(show_label=False).style()
         gallery = gr.Gallery().style(
@@ -70,9 +70,8 @@ with gr.Blocks() as demo:
             height="auto",
             container=False,
         )
-        chat = gr.Chatbot().style(
+        chat = gr.Chatbot("hi", color_map=("pink", "blue")).style(
             rounded=False,
-            color_map={"user": "pink", "bot": "blue"},
         )
 
         model = gr.Model3D().style(

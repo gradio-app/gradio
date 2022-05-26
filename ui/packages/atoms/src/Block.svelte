@@ -49,11 +49,11 @@
 		? form_styles?.[(_parent as "column" | "row") || "column"][form_position]
 		: "";
 
-	const { classes } = explicit_call
+	$: ({ classes } = explicit_call
 		? get_styles(style, ["rounded", "border"])
 		: disable
 		? get_styles({ container: false }, ["container"])
-		: { classes: "" };
+		: { classes: "" });
 
 	$: rounded =
 		typeof style.rounded !== "boolean" ||

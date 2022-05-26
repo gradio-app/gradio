@@ -23,11 +23,11 @@
 		value = value;
 	};
 
-	const { rounded, border, item_container } = get_styles(style, [
+	$: ({ rounded, border, item_container } = get_styles(style, [
 		"rounded",
 		"border",
 		"item_container"
-	]);
+	]));
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>
