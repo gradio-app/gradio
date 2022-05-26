@@ -57,7 +57,7 @@ class TestBlocks(unittest.TestCase):
                     )
             textbox = gr.Textbox()
             demo.load(fake_func, [], [textbox])
-            
+
         config = demo.get_config_file()
         config.pop("version")  # remove version key
         self.assertDictEqual(XRAY_CONFIG, config)
