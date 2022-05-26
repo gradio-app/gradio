@@ -1,3 +1,5 @@
+import gradio
+
 XRAY_CONFIG = {
     "mode": "blocks",
     "dev_mode": True,

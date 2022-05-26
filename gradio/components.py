@@ -26,7 +26,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block
+from gradio.blocks import Block, BlockContext
 from gradio.events import (
     Changeable,
     Clearable,
@@ -36,6 +36,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.utils import component_or_layout_class
 
 
 class Component(Block):
@@ -3562,8 +3563,9 @@ class Dataset(Clickable, Component):
     def __init__(
         self,
         *,
-        components: List[Component],
+        components: List[Component] | List[str],
         samples: List[List[Any]],
+        headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
         elem_id: Optional[str] = None,
@@ -3571,15 +3573,16 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Which component types to show in this dataset widget
+        components (List[Component]): Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
         samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+        headers (List[str]): Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
         type (str): 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.components = components
+        self.components = [get_component_instance(c).unrender() for c in components]
         self.type = type
-        self.headers = [c.label for c in components]
+        self.headers = headers or [c.label for c in self.components]
         self.samples = samples
 
     def get_config(self):
@@ -3684,41 +3687,17 @@ class StatusTracker(Component):
         }
 
 
-def component_class(cls_name: str) -> Type[Component]:
-    """
-    Returns the component class with the given class name, or raises a ValueError if not found.
-    @param cls_name: lower-case string class name of a component
-    @return cls: the component class
-    """
-    import gradio.templates
-
-    components = [
-        (name, cls)
-        for name, cls in sys.modules[__name__].__dict__.items()
-        if isinstance(cls, type)
-    ]
-    templates = [
-        (name, cls)
-        for name, cls in gradio.templates.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    for name, cls in components + templates:
-        if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
-            return cls
-    raise ValueError(f"No such Component: {cls_name}")
-
-
 def component(cls_name: str) -> Component:
-    obj = component_class(cls_name)()
+    obj = component_or_layout_class(cls_name)()
     return obj
 
 
-def get_component_instance(comp: str | dict | Component):
+def get_component_instance(comp: str | dict | Component) -> Component:
     if isinstance(comp, str):
         return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component_class(name)
+        component_cls = component_or_layout_class(name)
         component_obj = component_cls(**comp)
         return component_obj
     elif isinstance(comp, Component):

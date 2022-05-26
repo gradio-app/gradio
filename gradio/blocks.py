@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, networking, queueing, routes, strings, utils
+from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.utils import delete_none
+from gradio.utils import component_or_layout_class, delete_none
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -167,6 +167,12 @@ class BlockFunction:
         self.total_runs = 0
 
 
+class class_or_instancemethod(classmethod):
+    def __get__(self, instance, type_):
+        descr_get = super().__get__ if instance is None else self.__func__.__get__
+        return descr_get(instance, type_)
+
+
 def update(**kwargs) -> dict:
     """
     Updates component parameters
@@ -245,6 +251,66 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+
+    @classmethod
+    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
+        """Factory method that creates a Blocks from a config and list of functions."""
+        components_config = config["components"]
+        original_mapping: Dict[int, Block] = {}
+
+        def get_block_instance(id: int) -> Block:
+            for block_config in components_config:
+                if block_config["id"] == id:
+                    break
+            else:
+                raise ValueError("Cannot find block with id {}".format(id))
+            cls = component_or_layout_class(block_config["type"])
+            block_config["props"].pop("type", None)
+            block_config["props"].pop("name", None)
+            style = block_config["props"].pop("style", None)
+            block = cls(**block_config["props"])
+            if style:
+                block.style(**style)
+            return block
+
+        def iterate_over_children(children_list):
+            for child_config in children_list:
+                id = child_config["id"]
+                block = get_block_instance(id)
+                original_mapping[id] = block
+
+                children = child_config.get("children")
+                if children is not None:
+                    with block:
+                        iterate_over_children(children)
+
+        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            iterate_over_children(config["layout"]["children"])
+
+            # add the event triggers
+            for dependency, fn in zip(config["dependencies"], fns):
+                targets = dependency.pop("targets")
+                trigger = dependency.pop("trigger")
+                dependency.pop("backend_fn")
+                dependency["inputs"] = [
+                    original_mapping[i] for i in dependency["inputs"]
+                ]
+                dependency["outputs"] = [
+                    original_mapping[o] for o in dependency["outputs"]
+                ]
+                if dependency.get("status_tracker", None) is not None:
+                    dependency["status_tracker"] = original_mapping[
+                        dependency["status_tracker"]
+                    ]
+                dependency["_js"] = dependency.pop("js", None)
+                dependency["_preprocess"] = False
+                dependency["_postprocess"] = False
+
+                for target in targets:
+                    event_method = getattr(original_mapping[target], trigger)
+                    event_method(fn=fn, **dependency)
+
+        return blocks
 
     def render(self):
         if Context.root_block is not None:
@@ -356,6 +422,7 @@ class Blocks(BlockContext):
 
     def get_config_file(self):
         config = {
+            "version": routes.VERSION,
             "mode": "blocks",
             "dev_mode": self.dev_mode,
             "components": [],
@@ -405,21 +472,55 @@ class Blocks(BlockContext):
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
 
+    @class_or_instancemethod
     def load(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
-    ) -> None:
+        self_or_cls,
+        fn: Optional[Callable] = None,
+        inputs: Optional[List[Component]] = None,
+        outputs: Optional[List[Component]] = None,
+        *,
+        name: Optional[str] = None,
+        src: Optional[str] = None,
+        api_key: Optional[str] = None,
+        alias: Optional[str] = None,
+        **kwargs,
+    ) -> Blocks | None:
         """
-        Adds an event for when the demo loads in the browser.
+        For reverse compatibility reasons, this is both a class method and an instance
+        method, the two of which, confusingly, do two completely different things.
 
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
+        Parameters:
+            name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key (str | None): optional api key for use with Hugging Face Hub
+            alias (str | None): optional string used as the name of the loaded model instead of the default name
+            type (str): the type of the Blocks, either a standard `blocks` or `column`
+        Returns: Blocks instance
+
+        Instance method: adds an event for when the demo loads in the browser.
         Parameters:
             fn: Callable function
             inputs: input list
             outputs: output list
         Returns: None
         """
-        self.set_event_trigger(
-            event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
-        )
+        if isinstance(self_or_cls, type):
+            if name is None:
+                raise ValueError(
+                    "Blocks.load() requires passing `name` as a keyword argument"
+                )
+            if fn is not None:
+                kwargs["fn"] = fn
+            if inputs is not None:
+                kwargs["inputs"] = inputs
+            if outputs is not None:
+                kwargs["outputs"] = outputs
+            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+        else:
+            self_or_cls.set_event_trigger(
+                event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+            )
 
     def clear(self):
         """Resets the layout of the Blocks object."""
