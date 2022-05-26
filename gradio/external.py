@@ -331,7 +331,10 @@ def get_spaces_blocks(model_name, config):
                     data = json.dumps({"data": data})
                     response = requests.post(api_url, headers=headers, data=data)
                     result = json.loads(response.content.decode("utf-8"))
-                    output = result["data"]
+                    try:
+                        output = result["data"]
+                    except KeyError:
+                        raise KeyError(f"Could not find 'data' key in response from external Space. Response received: {result}")
                     if len(dependency["outputs"]) == 1:
                         output = output[0]
                     if len(dependency["outputs"]) == 1 and isinstance(output, list):
