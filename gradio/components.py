@@ -3498,7 +3498,7 @@ class Button(Clickable, Component):
         self,
         value: str = "Run",
         *,
-        variant: str = "primary",
+        variant: str = "secondary",
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
