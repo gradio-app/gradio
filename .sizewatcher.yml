@@ -21,3 +21,7 @@ limits:
   # below the ok limit you will get a cheers for making it notably smaller
   # default: -10%
   ok: -1 MB
+
+comparators:
+  # set a comparator "false" to disable it
+  git: false
