@@ -14,7 +14,6 @@ interface CustomWindow extends Window {
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
-declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
 
 interface Component {
