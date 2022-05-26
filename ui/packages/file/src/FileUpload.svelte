@@ -5,7 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
-	import { prettyBytes } from "./utils";
+	import { display_file_name, download_files, display_file_size } from "./utils";
 
 	export let value: null | FileData | Array;
 
@@ -34,38 +34,6 @@
 		clear: undefined;
 		drag: boolean;
 	}>();
-
-	function display_file_name(value: FileData | Array<FileData>): string {
-		var str: string;
-		if (Array.isArray(value)) {
-			if (value.length > 1) {
-				return value.length + " files";
-			} else {
-				str = value[0].name;
-			}
-		} else {
-			str = value.name;
-		}
-		if (str.length > 30) {
-			return `${str.substr(0, 30)}...`;
-		} else return str;
-	}
-
-	function display_file_size(value: FileData | Array<FileData>): string {
-		var total_size = 0;
-		if (Array.isArray(value)) {
-			for (var file of value) {
-				total_size += file.size;
-			}
-		} else {
-			total_size = value.size;
-		}
-		return prettyBytes(total_size || 0);
-	}
-
-	function download_files(value: FileData | Array<FileData>): string {
-		return Array.isArray(value) ? value[0].data : value.data;
-	}
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
