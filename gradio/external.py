@@ -337,8 +337,6 @@ def get_spaces_blocks(model_name, config):
                         raise KeyError(f"Could not find 'data' key in response from external Space. Response received: {result}")
                     if len(dependency["outputs"]) == 1:
                         output = output[0]
-                    if len(dependency["outputs"]) == 1 and isinstance(output, list):
-                        output = output[0]
                     return output
 
                 return fn

@@ -287,24 +287,24 @@ class Blocks(BlockContext):
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
             iterate_over_children(config["layout"]["children"])
 
-        # add the event triggers
-        for dependency, fn in zip(config["dependencies"], fns):
-            targets = dependency.pop("targets")
-            trigger = dependency.pop("trigger")
-            dependency.pop("backend_fn")
-            dependency["inputs"] = [original_mapping[i] for i in dependency["inputs"]]
-            dependency["outputs"] = [original_mapping[o] for o in dependency["outputs"]]
-            if dependency.get("status_tracker", None) is not None:
-                dependency["status_tracker"] = original_mapping[
-                    dependency["status_tracker"]
-                ]
-            dependency["_js"] = dependency.pop("js", None)
-            dependency["_preprocess"] = False
-            dependency["_postprocess"] = False
+            # add the event triggers
+            for dependency, fn in zip(config["dependencies"], fns):
+                targets = dependency.pop("targets")
+                trigger = dependency.pop("trigger")
+                dependency.pop("backend_fn")
+                dependency["inputs"] = [original_mapping[i] for i in dependency["inputs"]]
+                dependency["outputs"] = [original_mapping[o] for o in dependency["outputs"]]
+                if dependency.get("status_tracker", None) is not None:
+                    dependency["status_tracker"] = original_mapping[
+                        dependency["status_tracker"]
+                    ]
+                dependency["_js"] = dependency.pop("js", None)
+                dependency["_preprocess"] = False
+                dependency["_postprocess"] = False
 
-            for target in targets:
-                event_method = getattr(original_mapping[target], trigger)
-                event_method(fn=fn, **dependency)
+                for target in targets:
+                    event_method = getattr(original_mapping[target], trigger)
+                    event_method(fn=fn, **dependency)
 
         return blocks
 
