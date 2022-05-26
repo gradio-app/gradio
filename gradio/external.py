@@ -334,7 +334,9 @@ def get_spaces_blocks(model_name, config):
                     try:
                         output = result["data"]
                     except KeyError:
-                        raise KeyError(f"Could not find 'data' key in response from external Space. Response received: {result}")
+                        raise KeyError(
+                            f"Could not find 'data' key in response from external Space. Response received: {result}"
+                        )
                     if len(dependency["outputs"]) == 1:
                         output = output[0]
                     return output
@@ -382,7 +384,9 @@ def get_spaces_interface(model_name, config, alias, **kwargs):
         try:
             output = result["data"]
         except KeyError:
-            raise KeyError(f"Could not find 'data' key in response from external Space. Response received: {result}")
+            raise KeyError(
+                f"Could not find 'data' key in response from external Space. Response received: {result}"
+            )
         if (
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it

@@ -292,8 +292,12 @@ class Blocks(BlockContext):
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
-                dependency["inputs"] = [original_mapping[i] for i in dependency["inputs"]]
-                dependency["outputs"] = [original_mapping[o] for o in dependency["outputs"]]
+                dependency["inputs"] = [
+                    original_mapping[i] for i in dependency["inputs"]
+                ]
+                dependency["outputs"] = [
+                    original_mapping[o] for o in dependency["outputs"]
+                ]
                 if dependency.get("status_tracker", None) is not None:
                     dependency["status_tracker"] = original_mapping[
                         dependency["status_tracker"]
