@@ -1572,21 +1572,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             raise ValueError("Image streaming only available if source is 'webcam'.")
         Streamable.stream(self, fn, inputs, outputs, _js)
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
-
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
