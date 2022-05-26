@@ -39,11 +39,16 @@ def run_in_reload_mode():
     print(
         f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
     )
-    if gradio_folder.strip() == "":
-        os.system(
-            f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning --reload-dir {os.path.dirname(original_path)}"
-        )
-    else:
-        os.system(
-            f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning --reload-dir {gradio_folder} --reload-dir {os.path.dirname(original_path)}"
-        )
+    command = f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning "
+    message = f"Watching: {filename}.py"
+    
+    if gradio_folder.strip():
+        command += f"--reload-dir {gradio_folder} "
+        message += f", {gradio_folder}"
+    
+    if os.path.dirname(original_path).strip():
+        command += f"--reload-dir {os.path.dirname(original_path)}"
+        message += f", {os.path.dirname(original_path)}"
+    
+    print(message)
+    os.system(command)
