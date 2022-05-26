@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
 
 		build: {
 			target: "esnext",
-			minify: false,
+			minify: production,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
