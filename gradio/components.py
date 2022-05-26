@@ -1309,7 +1309,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | PIL.Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1327,7 +1327,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Image component is going to take.
+        value (Optional[str | PIL.Image | np.narray]): A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1789,7 +1789,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Tuple[int, np.array]] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1803,7 +1803,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Audio component is going to take.
+        value (str | Tuple[int, numpy.array]): A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
         label (Optional[str]): component name in interface.
