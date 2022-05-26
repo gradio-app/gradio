@@ -12,10 +12,6 @@ import requests
 import gradio
 from gradio import components, utils
 
-####################################################
-# Create a Blocks or Interface from a HF Repo
-####################################################
-
 
 def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
     """Creates and returns a Blocks instance from several kinds of Hugging Face repos:
@@ -382,7 +378,10 @@ def get_spaces_interface(model_name, config, alias, **kwargs):
         data = json.dumps({"data": data})
         response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
-        output = result["data"]
+        try:
+            output = result["data"]
+        except KeyError:
+            raise KeyError(f"Could not find 'data' key in response from external Space. Response received: {result}")
         if (
             len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
@@ -408,11 +407,6 @@ factory_methods: Dict[str, Callable] = {
     "models": get_models_interface,
     "spaces": get_spaces,
 }
-
-
-####################################################
-# Create an Interface from a transformers.pipeline
-####################################################
 
 
 def load_from_pipeline(pipeline):
