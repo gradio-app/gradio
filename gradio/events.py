@@ -15,7 +15,10 @@ class Changeable(Block):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -27,7 +30,8 @@ class Changeable(Block):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js,
+            preprocess=_preprocess, postprocess=_postprocess, queue=queue
         )
 
 
@@ -74,7 +78,10 @@ class Submittable(Block):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -86,7 +93,8 @@ class Submittable(Block):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js,
+            preprocess=_preprocess, postprocess=_postprocess, queue=queue            
         )
 
 
@@ -96,7 +104,10 @@ class Editable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -106,7 +117,8 @@ class Editable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("edit", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("edit", fn, inputs, outputs, js=_js,
+                               preprocess=_preprocess, postprocess=_postprocess, queue=queue)
 
 
 class Clearable(Block):
@@ -115,7 +127,10 @@ class Clearable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -125,7 +140,8 @@ class Clearable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("submit", fn, inputs, outputs, js=_js,
+                                           preprocess=_preprocess, postprocess=_postprocess, queue=queue)
 
 
 class Playable(Block):
@@ -134,7 +150,10 @@ class Playable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -144,14 +163,18 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("play", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("play", fn, inputs, outputs, js=_js,
+                                           preprocess=_preprocess, postprocess=_postprocess, queue=queue)
 
     def pause(
         self,
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -161,14 +184,17 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("pause", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("pause", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)
 
     def stop(
         self,
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -178,7 +204,7 @@ class Playable(Block):
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("stop", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)
 
 
 class Streamable(Block):
@@ -187,7 +213,10 @@ class Streamable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        queue: Optional[bool] = None,
         _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         Parameters:
@@ -198,4 +227,4 @@ class Streamable(Block):
         Returns: None
         """
         self.streaming = True
-        self.set_event_trigger("stream", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("stream", fn, inputs, outputs, js=_js, preprocess=_preprocess, postprocess=_postprocess, queue=queue)

@@ -343,10 +343,9 @@ def get_spaces_blocks(model_name, config):
                     return output
                 return fn
             
-            fn = get_fn(deepcopy(_dependency))
-            fns.append(gradio.blocks.BlockFunction(fn, False, False))
+            fns.append(get_fn(deepcopy(_dependency)))
         else:
-            fns.append(gradio.blocks.BlockFunction(None, False, False))
+            fns.append(None)
     return gradio.Blocks.from_config(config, fns)
 
 

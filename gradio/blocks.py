@@ -14,7 +14,7 @@ from fastapi.concurrency import run_in_threadpool
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.utils import delete_none
+from gradio.utils import delete_none, component_or_layout_class
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -251,29 +251,60 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.loaded_from_config: bool = False
-        self.config: Optional[str] = None
 
     @classmethod
-    def from_config(cls, config: str, fns: List[BlockFunction]) -> Blocks:
-        """Factory method that creates a Blocks object with only a config and a list of
-        BlockFunctions."""
-        blocks = Blocks()
-        blocks.loaded_from_config = True
-        if Context.root_block is None:
-            blocks.config = config
-            blocks.fns = fns
-            blocks.dependencies = config["dependencies"]
-        else:
-            pass
-            # Each component ID needs to be offset by Context.id
-            # Each dependency's inputs, targets, and outputs needs to be offset by Context.id
-            # Each layout's id needs to be offset by Context.id
-            # Context.id needs to be incremented by the max component id
-            # Context.root_blocks.fns needs to be extended by fns
-            # Context.dependencies needs to be extended by dependencies
-            # Context.root_block.blocks needs be updated by blocks
-             
+    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
+        """Factory method that creates a Blocks from a config and list of functions."""
+        components_config = config["components"]
+        original_mapping: Dict[int, Block] = {} 
+        
+        def get_block_instance(id: int) -> Block:
+            for block_config in components_config:
+                if block_config["id"] == id:
+                    break
+            else:
+                raise ValueError("Cannot find block with id {}".format(id))  
+            cls = component_or_layout_class(block_config["type"])
+            block_config["props"].pop("type", None)
+            block_config["props"].pop("name", None)
+            style = block_config["props"].pop("style", None)
+            block = cls(**block_config["props"])
+            if style:
+                block.style(**style)
+            return block
+            
+        def iterate_over_children(children_list):
+            for child_config in children_list:
+                id = child_config["id"]
+                block = get_block_instance(id)
+                original_mapping[id] = block
+                
+                children = child_config.get("children")
+                if children is not None:
+                    with block:
+                        iterate_over_children(children)
+            
+        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            iterate_over_children(config["layout"]["children"])
+        
+        # add the event triggers
+        for dependency, fn in zip(config["dependencies"], fns):
+            targets = dependency.pop("targets")
+            trigger = dependency.pop("trigger")
+            dependency.pop("backend_fn")
+            dependency["inputs"] = [original_mapping[i] for i in dependency["inputs"]] 
+            dependency["outputs"] = [original_mapping[o] for o in dependency["outputs"]] 
+            if dependency.get("status_tracker", None) is not None:
+                dependency["status_tracker"] = original_mapping[
+                    dependency["status_tracker"]]
+            dependency["_js"] = dependency.pop("js", None)
+            dependency["_preprocess"] = False 
+            dependency["_postprocess"] = False 
+            
+            for target in targets:
+                event_method = getattr(original_mapping[target], trigger)
+                event_method(fn=fn, **dependency)
+        
         return blocks
 
     def render(self):
@@ -385,10 +416,6 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        if self.loaded_from_config:
-            self.config["enable_queue"] = False
-            return self.config
-
         config = {
             "version": routes.VERSION,
             "mode": "blocks",
