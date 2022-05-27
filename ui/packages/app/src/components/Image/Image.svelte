@@ -6,6 +6,7 @@
 	import { Component as StatusTracker } from "../StatusTracker/";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -32,6 +33,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
