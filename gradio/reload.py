@@ -2,10 +2,8 @@
 
 Contains the functions that run when `gradio` is called from the command line. Specifically, allows
 
-$ gradio app.py, to run app.py in user reload mode where any changes in the app.py reload the demo.
-$ gradio-dev app.py, to run app.py in developer reload mode where any changes in the Gradio library reloads the demo.
+$ gradio app.py, to run app.py in reload mode where any changes in the app.py file or Gradio library reloads the demo.
 $ gradio app.py my_demo, to use variable names other than "demo"
-$ gradio-dev app.py my_demo, to use variable names other than "demo"
 """
 import inspect
 import os
