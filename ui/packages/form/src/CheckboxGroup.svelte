@@ -29,7 +29,7 @@
 	{#each choices as choice, i}
 		<label
 			class:!cursor-not-allowed={disabled}
-			class={"flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner" +
+			class={"gr-input-label flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer shadow-sm checked:shadow-inner" +
 				create_classes(style)}
 		>
 			<input

@@ -1,0 +1,26 @@
+name: gradio-sizewatcher
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "**"
+  pull_request:
+    paths:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14'
+    # ---------- this runs sizewatcher ------------
+    - run: npx @adobe/sizewatcher
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

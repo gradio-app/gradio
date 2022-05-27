@@ -45,7 +45,7 @@
 }
 
 .gr-text-input {
-	@apply p-2.5;
+	@apply p-2.5 shadow-inner disabled:shadow-none;
 }
 
 .gr-check-radio {
@@ -54,6 +54,10 @@
 
 .gr-checkbox {
 	@apply rounded;
+}
+
+.gr-input-label {
+	@apply bg-gradient-to-t from-gray-50 to-white hover:from-gray-100 dark:from-gray-900 dark:to-gray-800 transition;
 }
 
 .gr-radio {
@@ -65,7 +69,7 @@
 }
 
 .gr-button-primary {
-	@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/90 text-orange-600 border-orange-200
+	@apply from-orange-200/70 to-orange-300/80 hover:from-orange-200/90 text-orange-600 border-orange-200
 	  	 dark:from-orange-700 dark:to-orange-700 dark:hover:to-orange-500 dark:text-white dark:border-orange-600;
 }
 
