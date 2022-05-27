@@ -1,6 +1,7 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 import gradio as gr
 
@@ -28,7 +29,7 @@ demo = gr.Interface(
     sales_projections,
     gr.Dataframe(
         headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"],
-        default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]],
+        value=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]],
     ),
     ["dataframe", "plot", "numpy"],
     description="Enter sales figures for employees to predict sales trajectory over year.",

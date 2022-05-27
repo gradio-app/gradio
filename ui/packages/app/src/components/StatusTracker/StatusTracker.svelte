@@ -6,6 +6,10 @@
 	let called = false;
 
 	async function scroll_into_view(el: HTMLDivElement) {
+		if (window.__gradio_mode__ === "website") {
+			return;
+		}
+
 		items.push(el);
 		if (!called) called = true;
 		else return;
@@ -37,14 +41,15 @@
 	import { onDestroy, onMount } from "svelte";
 	import Loader from "./Loader.svelte";
 
-	export let style: string = "";
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";
+	export let timer: boolean = true;
+	export let cover_all: boolean = false;
 
 	let el: HTMLDivElement;
 
-	let timer: boolean = false;
+	let _timer: boolean = false;
 	let timer_start = 0;
 	let timer_diff = 0;
 
@@ -65,7 +70,7 @@
 	const start_timer = () => {
 		timer_start = performance.now();
 		timer_diff = 0;
-		timer = true;
+		_timer = true;
 		run();
 		// timer = setInterval(, 100);
 	};
@@ -73,19 +78,19 @@
 	function run() {
 		requestAnimationFrame(() => {
 			timer_diff = (performance.now() - timer_start) / 1000;
-			if (timer) run();
+			if (_timer) run();
 		});
 	}
 
 	const stop_timer = () => {
 		timer_diff = 0;
 
-		if (!timer) return;
-		timer = false;
+		if (!_timer) return;
+		_timer = false;
 	};
 
 	onDestroy(() => {
-		if (timer) stop_timer();
+		if (_timer) stop_timer();
 	});
 
 	$: {
@@ -105,14 +110,14 @@
 </script>
 
 <div
-	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
+	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity"
 	class:opacity-0={!status || status === "complete"}
-	{style}
+	class:z-50={cover_all}
 	bind:this={el}
 >
 	{#if status === "pending"}
 		<div
-			class="absolute inset-0  origin-left bg-slate-100 top-0 left-0 z-10 opacity-80"
+			class="absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80"
 			style:transform="scaleX({progress || 0})"
 		/>
 		<div class="absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs">
@@ -122,10 +127,16 @@
 				processing |
 			{/if}
 
-			{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+			{#if timer}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+			{/if}
 		</div>
 
 		<Loader />
+
+		{#if !timer}
+			<p class="-translate-y-16">Loading...</p>
+		{/if}
 	{:else if status === "error"}
 		<span class="text-red-400 font-mono font-semibold text-lg">ERROR</span>
 	{/if}

@@ -6,5 +6,10 @@
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true
+	"private": true,
+	"dependencies": {
+		"@gradio/upload": "workspace:^0.0.1",
+		"d3-dsv": "^3.0.1",
+		"dequal": "^2.0.2"
+	}
 }

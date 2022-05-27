@@ -6,7 +6,6 @@
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
-	export let style: string = "";
 
 	let ctx: CanvasRenderingContext2D;
 
@@ -69,7 +68,7 @@
 	function handle_mouseover(label: string) {
 		active = label;
 	}
-	function handle_mouseout(label: string) {
+	function handle_mouseout() {
 		active = "";
 	}
 </script>
@@ -88,13 +87,13 @@
 
 {#if mode === "categories"}
 	{#if show_legend}
-		<div class="category-legend flex flex-wrap gap-1 mb-2">
+		<div class="category-legend flex flex-wrap gap-1 mb-2 text-black mt-7">
 			{#each Object.entries(_color_map) as [category, color], i}
 				<div
 					on:mouseover={() => handle_mouseover(category)}
 					on:focus={() => handle_mouseover(category)}
-					on:mouseout={() => handle_mouseout(category)}
-					on:blur={() => handle_mouseout(category)}
+					on:mouseout={() => handle_mouseout()}
+					on:blur={() => handle_mouseout()}
 					class="category-label px-2 rounded-sm font-semibold cursor-pointer"
 					style={"background-color:" + color.secondary}
 				>
@@ -104,20 +103,23 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-gray-800 rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7 mt-7"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan bg-opacity-10 rounded-sm inline-flex items-center px-1.5 space-x-1.5 transition-colors"
+				class="textspan rounded-sm px-1 transition-colors text-black  pb-[0.225rem] pt-[0.15rem]"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
+				class:dark:text-white={category === null ||
+					(active && active !== category)}
+				class:hl={category !== null}
 			>
-				<span class="text dark:text-white">{text}</span>
+				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
 					<span
-						class="inline-category text-xs text-white rounded-sm px-1 transition-colors"
+						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
@@ -132,7 +134,7 @@
 {:else}
 	{#if show_legend}
 		<div
-			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold"
+			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold mt-7"
 			style="background: -webkit-linear-gradient(to right,#8d83d6,(255,255,255,0),#eb4d4b); background: linear-gradient(to right,#8d83d6,rgba(255,255,255,0),#eb4d4b);"
 		>
 			<span>-1</span>
@@ -141,7 +143,7 @@
 		</div>
 	{/if}
 	<div
-		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word"
+		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, score]}
 			<span
@@ -155,3 +157,13 @@
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.hl + .hl {
+		@apply ml-1;
+	}
+
+	.textspan:last-child > .label {
+		@apply mr-0;
+	}
+</style>

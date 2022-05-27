@@ -10,8 +10,12 @@ export interface LoadingStatus {
 function create_loading_status_store() {
 	const store = writable<Record<string, Omit<LoadingStatus, "outputs">>>({});
 
+	const fn_inputs: Array<Array<number>> = [];
 	const fn_outputs: Array<Array<number>> = [];
 	const pending_outputs = new Map<number, number>();
+	const pending_inputs = new Map<number, number>();
+
+	const inputs_to_update = new Map<number, string>();
 	const fn_status: Array<LoadingStatus["status"]> = [];
 
 	function update(
@@ -21,6 +25,7 @@ function create_loading_status_store() {
 		eta: LoadingStatus["eta"]
 	) {
 		const outputs = fn_outputs[fn_index];
+		const inputs = fn_inputs[fn_index];
 		const last_status = fn_status[fn_index];
 
 		const outputs_to_update = outputs.map((id) => {
@@ -56,6 +61,22 @@ function create_loading_status_store() {
 			};
 		});
 
+		inputs.map((id) => {
+			const pending_count = pending_inputs.get(id) || 0;
+
+			// from (pending -> error) | complete - decrement pending count
+			if (last_status === "pending" && status !== "pending") {
+				let new_count = pending_count - 1;
+				pending_inputs.set(id, new_count < 0 ? 0 : new_count);
+				inputs_to_update.set(id, status);
+			} else if (last_status !== "pending" && status === "pending") {
+				pending_inputs.set(id, pending_count + 1);
+				inputs_to_update.set(id, status);
+			} else {
+				inputs_to_update.delete(id);
+			}
+		});
+
 		store.update((outputs) => {
 			outputs_to_update.forEach(({ id, queue_position, eta, status }) => {
 				outputs[id] = {
@@ -71,7 +92,12 @@ function create_loading_status_store() {
 		fn_status[fn_index] = status;
 	}
 
-	function register(index: number, outputs: Array<number>) {
+	function register(
+		index: number,
+		inputs: Array<number>,
+		outputs: Array<number>
+	) {
+		fn_inputs[index] = inputs;
 		fn_outputs[index] = outputs;
 	}
 
@@ -81,6 +107,9 @@ function create_loading_status_store() {
 		subscribe: store.subscribe,
 		get_status_for_fn(i: number) {
 			return fn_status[i];
+		},
+		get_inputs_to_update() {
+			return inputs_to_update;
 		}
 	};
 }

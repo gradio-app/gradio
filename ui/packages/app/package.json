@@ -4,7 +4,9 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
+		"build:cdn": "vite build --mode production:cdn",
+		"build:website": "vite build --mode production:website",
+		"build:local": "vite build --mode production:local",
 		"preview": "vite preview",
 		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpx playwright test test/ --debug --config=../../playwright.config.js"
@@ -20,17 +22,19 @@
 		"@gradio/form": "workspace:^0.0.1",
 		"@gradio/highlighted-text": "workspace:^0.0.1",
 		"@gradio/html": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/image": "workspace:^0.0.1",
 		"@gradio/json": "workspace:^0.0.1",
 		"@gradio/label": "workspace:^0.0.1",
 		"@gradio/markdown": "workspace:^0.0.1",
+		"@gradio/model3D": "workspace:^0.0.1",
+		"@gradio/plot": "workspace:^0.0.1",
 		"@gradio/table": "workspace:^0.0.1",
 		"@gradio/tabs": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1",
-		"@gradio/model3D": "workspace:^0.0.1",
-		"@gradio/plot": "workspace:^0.0.1",
 		"mime-types": "^2.1.34",
 		"svelte-i18n": "^3.3.13"
 	}

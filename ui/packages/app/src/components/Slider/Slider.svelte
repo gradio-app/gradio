@@ -4,12 +4,11 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
+	export let elem_id: string = "";
 	export let value: number = 0;
-
 	export let label: string = "Slider";
-	export let default_value: number;
+	export let style: Record<string, any> = {};
 
-	export let style: string = "";
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
@@ -18,21 +17,19 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-
-	if (default_value) value = default_value;
 </script>
 
-<Block {form_position}>
+<Block {form_position} {elem_id} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Range
 		bind:value
 		{label}
 		{show_label}
-		{style}
 		{minimum}
 		{maximum}
 		{step}
+		{style}
 		disabled={mode === "static"}
 		on:change
 	/>
