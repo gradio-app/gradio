@@ -228,41 +228,69 @@ class App(FastAPI):
         @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
         @app.get("/api/", response_class=HTMLResponse)
         def api_docs(request: Request):
-            inputs = [type(inp) for inp in app.blocks.input_components]
-            outputs = [type(out) for out in app.blocks.output_components]
-            input_types_doc, input_types = get_types(inputs, "input")
-            output_types_doc, output_types = get_types(outputs, "output")
-            input_names = [inp.get_block_name() for inp in app.blocks.input_components]
-            output_names = [
-                out.get_block_name() for out in app.blocks.output_components
-            ]
-            if app.blocks.examples is not None:
-                sample_inputs = app.blocks.examples[0]
-            else:
-                sample_inputs = [
-                    inp.generate_sample() for inp in app.blocks.input_components
-                ]
+            endpoints = []
+            for i, fn in enumerate(app.blocks.dependencies):
+                if fn["api_name"] is None:
+                    continue
+                endpoint = {}
+                endpoint["name"] = fn["api_name"]
+                if fn["api_name"] == "predict":
+                    endpoint["url"] = '/predict/'
+                else:
+                    endpoint["url"] = f'/predict/{fn["api_name"]}'
+                endpoint["len_inputs"] = len(fn["inputs"])
+                endpoint["len_outputs"] = len(fn["outputs"])
+                inputs_list = fn["inputs"]
+                outputs_list = fn["outputs"]
+                endpoint["inputs"] = []
+                endpoint["outputs"] = []
+                for input_id in inputs_list:
+                    input = {}
+                    cls = app.blocks.blocks[input_id]
+                    input["name"] = str(cls)
+                    if hasattr(cls, 'is_template') and cls.is_template:
+                        input["type"] = get_input_type(type(cls).__bases__[0])
+                        input["sample"] = cls.generate_sample()
+                    else:
+                        input["type"] = get_input_type(type(cls))
+                        input["sample"] = cls.generate_sample()
+                    endpoint["inputs"].append(input)
+                for output_id in outputs_list:
+                    output = {}
+                    cls = app.blocks.blocks[output_id]
+                    output["name"] = str(cls)
+                    if hasattr(cls, 'is_template') and cls.is_template:
+                        output["type"] = get_output_type(type(cls).__bases__[0])
+                    else:
+                        output["type"] = get_output_type(type(cls))
+                    endpoint["outputs"].append(output)
+                endpoint["len_components"] = endpoint["len_inputs"] + endpoint["len_outputs"]
+                endpoint["components"] = endpoint["inputs"] + endpoint["outputs"]
+                endpoints.append(endpoint)
+
             docs = {
-                "inputs": input_names,
-                "outputs": output_names,
-                "len_inputs": len(inputs),
-                "len_outputs": len(outputs),
-                "inputs_lower": [name.lower() for name in input_names],
-                "outputs_lower": [name.lower() for name in output_names],
-                "input_types": input_types,
-                "output_types": output_types,
-                "input_types_doc": input_types_doc,
-                "output_types_doc": output_types_doc,
-                "sample_inputs": sample_inputs,
                 "auth": app.blocks.auth,
                 "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
                 "local_api_url": urllib.parse.urljoin(
                     app.blocks.local_url, "api/predict"
                 ),
+                "endpoints": endpoints,
+                "len_endpoints": len(endpoints)
             }
             return templates.TemplateResponse(
                 "api_docs.html", {"request": request, **docs}
             )
+
+        @app.post("/api/predict/{api_name}", dependencies=[Depends(login_check)])
+        async def named_predict(api_name: str, body: PredictBody, username: str = Depends(get_current_user)):
+            body.fn_index = None
+            for i, fn in enumerate(app.blocks.dependencies):
+                if fn["api_name"] == api_name:
+                    body.fn_index = i
+                    break
+            if body.fn_index is None:
+                return JSONResponse(content={"error": "This demo has no such defined endpoint."}, status_code=500)
+            return await predict(body=body, username=username)
 
         @app.post("/api/predict/", dependencies=[Depends(login_check)])
         async def predict(body: PredictBody, username: str = Depends(get_current_user)):
@@ -324,19 +352,26 @@ def safe_join(directory: str, path: str) -> Optional[str]:
     return posixpath.join(directory, filename)
 
 
-def get_types(cls_set: List[Type], component: str):
+def get_types(cls_set: List[Type]):
     docset = []
     types = []
-    if component == "input":
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.preprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].split(":")[-1])
-            types.append(doc_lines[1].split(")")[0].split("(")[-1])
-    else:
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.postprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[-1].split(":")[-1])
-            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    for cls in cls_set:
+        doc = inspect.getdoc(cls)
+        doc_lines = doc.split("\n")
+        for line in doc_lines:
+            if "value (" in line:
+                types.append(line.split("value (")[1].split(")")[0])
+        docset.append(doc_lines[1].split(":")[-1])
     return docset, types
+
+
+def get_input_type(cls):
+    doc = inspect.getdoc(cls.preprocess)
+    if "Parameters:\nx (" in doc:
+        return doc.split("Parameters:\nx ")[1].split("\n")[0]
+
+
+def get_output_type(cls):
+    doc = inspect.getdoc(cls.postprocess)
+    if "Returns:\n" in doc:
+        return doc.split("Returns:\n")[1].split("\n")[0]

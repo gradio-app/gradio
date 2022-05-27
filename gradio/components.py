@@ -345,6 +345,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def preprocess(self, x: str | None) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
         """
         if x is None:
             return None
@@ -431,6 +435,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def postprocess(self, y: str | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
         """
         if y is None:
             return None
@@ -795,6 +803,10 @@ class Slider(Changeable, IOComponent):
     def postprocess(self, y: int | float | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (int | float | None): numeric output
+        Returns:
+        (int | float): numeric output or minimum number if None
         """
         return self.minimum if y is None else y
 
@@ -921,6 +933,10 @@ class Checkbox(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (bool): boolean output
+        Returns:
+        (bool): boolean output
         """
         return y
 
@@ -1080,6 +1096,10 @@ class CheckboxGroup(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (List[str]): List of selected choices
+        Returns:
+        (List[str]): List of selected choices
         """
         return [] if y is None else y
 
@@ -1225,6 +1245,10 @@ class Radio(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str): string of choice
+        Returns:
+        (str): string of choice
         """
         return (
             y if y is not None else self.choices[0] if len(self.choices) > 0 else None
@@ -3336,9 +3360,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         Parameters:
         y (str): path to the model
         Returns:
-        (str): file name
-        (str): file extension
-        (str): base64 url data
+        (Dict[name (str): file name, data (str): base64 url data] | None)
         """
         if y is None:
             return y
@@ -3414,8 +3436,7 @@ class Plot(Changeable, Clearable, IOComponent):
         Parameters:
         y (str): plot data
         Returns:
-        (str): plot type
-        (str): plot base64 or json
+        (Dict[type (str): plot type, plot (str): plot base64 | json] | None)
         """
         if y is None:
             return None

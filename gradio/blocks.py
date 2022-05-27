@@ -7,7 +7,7 @@ import random
 import sys
 import time
 import webbrowser
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, AnyStr
 
 from fastapi.concurrency import run_in_threadpool
 
@@ -83,6 +83,7 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        api_name: AnyStr = None,
         js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
@@ -97,6 +98,7 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
@@ -125,6 +127,7 @@ class Block:
                 if status_tracker is not None
                 else None,
                 "queue": queue,
+                "api_name": api_name
             }
         )
 

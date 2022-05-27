@@ -521,6 +521,7 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
+                    api_name="predict",
                     status_tracker=status_tracker,
                 )
             clear_btn.click(

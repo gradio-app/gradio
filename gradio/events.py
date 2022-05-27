@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, AnyStr
 
 from gradio.blocks import Block
 
@@ -15,6 +15,7 @@ class Changeable(Block):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -23,11 +24,12 @@ class Changeable(Block):
             inputs: List of inputs
             outputs: List of outputs
             status_tracker: StatusTracker to visualize function progress
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "change", fn, inputs, outputs, status_tracker=status_tracker, api_name=api_name, js=_js
         )
 
 
@@ -38,6 +40,7 @@ class Clickable(Block):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        api_name: AnyStr = None,
         queue=None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -49,6 +52,7 @@ class Clickable(Block):
             inputs: List of inputs
             outputs: List of outputs
             status_tracker: StatusTracker to visualize function progress
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
             _preprocess: If False, will not run preprocessing of component data before running 'fn'.
             _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
@@ -60,6 +64,7 @@ class Clickable(Block):
             inputs,
             outputs,
             status_tracker=status_tracker,
+            api_name=api_name,
             queue=queue,
             js=_js,
             preprocess=_preprocess,
@@ -74,6 +79,7 @@ class Submittable(Block):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -82,11 +88,12 @@ class Submittable(Block):
             inputs: List of inputs
             outputs: List of outputs
             status_tracker: StatusTracker to visualize function progress
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, api_name=api_name, js=_js
         )
 
 
@@ -96,6 +103,7 @@ class Editable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -103,10 +111,11 @@ class Editable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("edit", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("edit", fn, inputs, outputs, api_name=api_name, js=_js)
 
 
 class Clearable(Block):
@@ -115,6 +124,7 @@ class Clearable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -122,10 +132,11 @@ class Clearable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("submit", fn, inputs, outputs, api_name=api_name, js=_js)
 
 
 class Playable(Block):
@@ -134,6 +145,7 @@ class Playable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -141,16 +153,18 @@ class Playable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("play", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("play", fn, inputs, outputs, api_name=api_name, js=_js)
 
     def pause(
         self,
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+
         _js: Optional[str] = None,
     ):
         """
@@ -158,16 +172,18 @@ class Playable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("pause", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("pause", fn, inputs, outputs, api_name=api_name, js=_js)
 
     def stop(
         self,
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -175,10 +191,11 @@ class Playable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
-        self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("stop", fn, inputs, outputs, api_name=api_name, js=_js)
 
 
 class Streamable(Block):
@@ -187,6 +204,7 @@ class Streamable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        api_name: AnyStr = None,
         _js: Optional[str] = None,
     ):
         """
@@ -194,8 +212,9 @@ class Streamable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
         self.streaming = True
-        self.set_event_trigger("stream", fn, inputs, outputs, js=_js)
+        self.set_event_trigger("stream", fn, inputs, outputs, api_name=api_name, js=_js)
