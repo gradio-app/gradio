@@ -51,5 +51,5 @@ def run_in_reload_mode():
         command += f'--reload-dir "{os.path.dirname(abs_original_path)}"'
         message += f" [{os.path.dirname(abs_original_path)}]"
 
-    print(message + "\n")
+    print(message + " \n")
     os.system(command)
