@@ -1,16 +1,13 @@
 {
-  "version": "3.0.6",
   "mode": "blocks",
-  "dev_mode": true,
   "components": [
     {
       "id": 1,
       "type": "markdown",
       "props": {
-        "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+        "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
         "name": "markdown",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
@@ -22,20 +19,19 @@
           "Malaria",
           "Lung Cancer"
         ],
-        "value": [],
+        "default_value": [],
         "label": "Disease to Scan For",
         "show_label": true,
         "name": "checkboxgroup",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 3,
       "type": "tabs",
       "props": {
-        "visible": true,
-        "style": {}
+        "css": {},
+        "default_value": true
       }
     },
     {
@@ -43,8 +39,8 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
-        "visible": true,
-        "style": {}
+        "css": {},
+        "default_value": true
       }
     },
     {
@@ -52,8 +48,8 @@
       "type": "row",
       "props": {
         "type": "row",
-        "visible": true,
-        "style": {}
+        "css": {},
+        "default_value": true
       }
     },
     {
@@ -63,32 +59,28 @@
         "image_mode": "RGB",
         "source": "upload",
         "tool": "editor",
-        "streaming": false,
         "show_label": true,
         "name": "image",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 7,
       "type": "json",
       "props": {
+        "default_value": "\"\"",
         "show_label": true,
         "name": "json",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 8,
       "type": "button",
       "props": {
-        "value": "Run",
-        "variant": "secondary",
+        "default_value": "Run",
         "name": "button",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
@@ -97,8 +89,7 @@
       "props": {
         "cover_container": true,
         "name": "statustracker",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
@@ -106,8 +97,8 @@
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
-        "visible": true,
-        "style": {}
+        "css": {},
+        "default_value": true
       }
     },
     {
@@ -115,8 +106,8 @@
       "type": "row",
       "props": {
         "type": "row",
-        "visible": true,
-        "style": {}
+        "css": {},
+        "default_value": true
       }
     },
     {
@@ -126,32 +117,28 @@
         "image_mode": "RGB",
         "source": "upload",
         "tool": "editor",
-        "streaming": false,
         "show_label": true,
         "name": "image",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 13,
       "type": "json",
       "props": {
+        "default_value": "\"\"",
         "show_label": true,
         "name": "json",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 14,
       "type": "button",
       "props": {
-        "value": "Run",
-        "variant": "secondary",
+        "default_value": "Run",
         "name": "button",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
@@ -160,19 +147,16 @@
       "props": {
         "cover_container": true,
         "name": "statustracker",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
       "id": 16,
       "type": "button",
       "props": {
-        "value": "Upload Results",
-        "variant": "secondary",
+        "default_value": "Upload Results",
         "name": "button",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     },
     {
@@ -181,13 +165,11 @@
       "props": {
         "cover_container": false,
         "name": "statustracker",
-        "visible": true,
-        "style": {}
+        "css": {}
       }
     }
   ],
   "theme": "default",
-  "css": null,
   "enable_queue": false,
   "layout": {
     "id": 0,
