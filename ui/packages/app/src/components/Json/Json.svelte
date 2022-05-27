@@ -8,6 +8,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -17,7 +18,7 @@
 	$: value, dispatch("change");
 </script>
 
-<Block test_id="json" {elem_id}>
+<Block test_id="json" {elem_id} {visible}>
 	{#if label}
 		<BlockLabel Icon={JSONIcon} {label} />
 	{/if}

@@ -29,6 +29,7 @@
 	}
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: null | Data;
 	export let y: Array<string>;
 	export let x: string;
@@ -118,6 +119,7 @@
 	color={"grey"}
 	padding={false}
 	{elem_id}
+	{visible}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />

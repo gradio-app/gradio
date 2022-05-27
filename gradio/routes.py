@@ -9,6 +9,7 @@ import posixpath
 import secrets
 import traceback
 import urllib
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
 
@@ -297,7 +298,7 @@ class App(FastAPI):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
-                        _id: getattr(block, "value", None)
+                        _id: deepcopy(getattr(block, "value", None))
                         for _id, block in app.blocks.blocks.items()
                         if getattr(block, "stateful", False)
                     }
