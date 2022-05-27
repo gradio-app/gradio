@@ -43,13 +43,17 @@ def run_in_reload_mode():
     command = f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning "
     message = f"Watching:"
 
+    message_change_count = 0
     if gradio_folder.strip():
         command += f'--reload-dir "{gradio_folder}" '
-        message += f" [{gradio_folder}]"
+        message += f" '{gradio_folder}'"
+        message_change_count += 1
 
     if os.path.dirname(abs_original_path).strip():
         command += f'--reload-dir "{os.path.dirname(abs_original_path)}"'
-        message += f" [{os.path.dirname(abs_original_path)}]"
+        if message_change_count == 1:
+            message += ","
+        message += f" '{os.path.dirname(abs_original_path)}'"
 
     print(message + "\n")
     os.system(command)
