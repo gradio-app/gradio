@@ -41,7 +41,7 @@ def run_in_reload_mode():
         f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
     )
     command = f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning "
-    message = f"Watching:"
+    message = "Watching:"
 
     message_change_count = 0
     if gradio_folder.strip():
