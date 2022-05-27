@@ -1,13 +1,16 @@
 {
+  "version": "3.0.6",
   "mode": "blocks",
+  "dev_mode": true,
   "components": [
     {
       "id": 1,
       "type": "markdown",
       "props": {
-        "default_value": "<p>Let's do some kinematics! Choose the speed and angle to see the trajectory.</p>\n",
+        "value": "<p>Let's do some kinematics! Choose the speed and angle to see the trajectory.</p>\n",
         "name": "markdown",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -15,22 +18,23 @@
       "type": "row",
       "props": {
         "type": "row",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 3,
       "type": "slider",
       "props": {
-        "minimum": 0,
-        "maximum": 100,
-        "step": 1,
-        "default_value": 25,
+        "minimum": 1,
+        "maximum": 30,
+        "step": 0.1,
+        "value": 25,
         "label": "Speed",
         "show_label": true,
         "name": "slider",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -38,38 +42,40 @@
       "type": "slider",
       "props": {
         "minimum": 0,
-        "maximum": 100,
-        "step": 1,
-        "default_value": 45,
+        "maximum": 90,
+        "step": 0.1,
+        "value": 45,
         "label": "Angle",
         "show_label": true,
         "name": "slider",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 5,
-      "type": "image",
+      "type": "plot",
       "props": {
-        "image_mode": "RGB",
-        "source": "upload",
-        "tool": "editor",
         "show_label": true,
-        "name": "image",
-        "css": {}
+        "name": "plot",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 6,
       "type": "button",
       "props": {
-        "default_value": "Run",
+        "value": "Run",
+        "variant": "secondary",
         "name": "button",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     }
   ],
   "theme": "default",
+  "css": null,
   "enable_queue": false,
   "layout": {
     "id": 0,
@@ -109,6 +115,8 @@
       "outputs": [
         5
       ],
+      "backend_fn": true,
+      "js": null,
       "status_tracker": null,
       "queue": null
     }

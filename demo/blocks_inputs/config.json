@@ -1,5 +1,7 @@
 {
+  "version": "3.0.6",
   "mode": "blocks",
+  "dev_mode": true,
   "components": [
     {
       "id": 1,
@@ -7,11 +9,12 @@
       "props": {
         "lines": 5,
         "max_lines": 20,
-        "default_value": "",
+        "value": "",
         "label": "Input",
         "show_label": true,
         "name": "textbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -20,11 +23,12 @@
       "props": {
         "lines": 1,
         "max_lines": 20,
-        "default_value": "",
-        "label": "Output",
+        "value": "",
+        "label": "Output-Interactive",
         "show_label": true,
         "name": "textbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -33,24 +37,29 @@
       "props": {
         "lines": 1,
         "max_lines": 20,
-        "default_value": "Hello friends\nhello friends\n\nHello friends\n\n",
+        "value": "Hello friends\nhello friends\n\nHello friends\n\n",
         "label": "Output",
         "show_label": true,
+        "interactive": false,
         "name": "textbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 4,
       "type": "button",
       "props": {
-        "default_value": "Submit",
+        "value": "Submit",
+        "variant": "secondary",
         "name": "button",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     }
   ],
   "theme": "default",
+  "css": null,
   "enable_queue": false,
   "layout": {
     "id": 0,
@@ -81,6 +90,8 @@
       "outputs": [
         2
       ],
+      "backend_fn": true,
+      "js": null,
       "status_tracker": null,
       "queue": null
     }

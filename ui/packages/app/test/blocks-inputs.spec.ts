@@ -35,6 +35,9 @@ test("renders the correct elements", async ({ page }) => {
 
 	await textbox.fill("hello world");
 	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
+	await expect(await page.inputValue("label:has-text('Output-Interactive')")).toEqual(
+		"hello world"
+	);
 	await expect(await page.inputValue("label:has-text('Input')")).toEqual(
 		"hello world"
 	);
