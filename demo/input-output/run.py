@@ -12,7 +12,5 @@ with demo:
     btn = gr.Button("Run")
     btn.click(image_mod, text, text)
 
-print(demo.get_config_file())
-
 if __name__ == "__main__":
     demo.launch()

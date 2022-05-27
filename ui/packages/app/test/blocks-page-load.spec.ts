@@ -25,17 +25,18 @@ function mock_api(page: Page, body: Array<unknown>) {
 	});
 }
 
-test("a component acts as both input and output", async ({ page }) => {
-	await mock_demo(page, "input-output");
-	await mock_api(page, [["tset"]]);
+test("renders the correct elements", async ({ page }) => {
+	await mock_demo(page, "blocks_page_load");
+	await mock_api(page, [["Welcome! This page has loaded for Frank"]]);
 	await page.goto("http://localhost:3000");
 
-	const textbox = await page.locator("label:has-text('Input-Output')");
-	const button = await page.locator("button");
+	const textbox = await page.locator("label:has-text('Name')");
 
-	await textbox.fill("test");
-	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
-	await expect(await page.inputValue("label:has-text('Input-Output')")).toEqual(
-		"tset"
+	await textbox.fill("Frank");
+	await expect(await page.inputValue("label:has-text('Name')")).toEqual(
+		"Frank"
+	);
+	await expect(await page.inputValue("label:has-text('Output')")).toEqual(
+		"Welcome! This page has loaded for Frank"
 	);
 });
