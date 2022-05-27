@@ -6,23 +6,27 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import { createEventDispatcher } from "svelte";
+	const dispatch = createEventDispatcher<{
+		change;
+		stream;
+	}>();
 
 	import { _ } from "svelte-i18n";
 
+	export let elem_id: string = "";
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
-	export let default_value: null | FileData | string = null;
-	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
+	export let pending: boolean;
+	export let streaming: boolean;
 
 	export let loading_status: LoadingStatus;
-
-	if (default_value) value = default_value;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
@@ -36,6 +40,7 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	{elem_id}
 >
 	<StatusTracker {...loading_status} />
 
@@ -44,12 +49,20 @@
 			{label}
 			{show_label}
 			value={_value}
-			on:change={({ detail }) => (value = detail)}
+			on:change={({ detail }) => {
+				value = detail;
+				dispatch("change", value);
+			}}
+			on:stream={({ detail }) => {
+				value = detail;
+				dispatch("stream", value);
+			}}
 			on:drag={({ detail }) => (dragging = detail)}
-			{style}
 			{name}
 			{source}
 			{type}
+			{pending}
+			{streaming}
 			on:edit
 			on:play
 			on:pause

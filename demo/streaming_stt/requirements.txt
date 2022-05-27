@@ -1,1 +1,1 @@
-deepspeech==0.8.2
+deepspeech==0.9.3

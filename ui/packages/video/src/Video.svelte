@@ -4,14 +4,13 @@
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
+	import { Video } from "@gradio/icons";
 
 	import { prettyBytes, playable } from "./utils";
-	import video_icon from "./video.svg";
 
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let drop_text: string = "Drop a video file";
@@ -42,7 +41,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} image={video_icon} label={label || "Video"} />
+<BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
 		<Upload
@@ -57,7 +56,10 @@
 			</div>
 		</Upload>
 	{:else if source === "webcam"}
-		<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
+		<Webcam
+			mode="video"
+			on:capture={({ detail }) => dispatch("change", detail)}
+		/>
 	{/if}
 {:else}
 	<ModifyUpload on:clear={handle_clear} />

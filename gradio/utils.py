@@ -157,7 +157,7 @@ def readme_to_html(article: str) -> str:
     return article
 
 
-def show_tip(interface: Interface) -> None:
+def show_tip(interface: gradio.Blocks) -> None:
     if interface.show_tips and random.random() < 1.5:
         tip: str = random.choice(gradio.strings.en["TIPS"])
         print(f"Tip: {tip}")
@@ -173,118 +173,12 @@ def launch_counter() -> None:
             with open(JSON_PATH) as j:
                 launches = json.load(j)
             launches["launches"] += 1
-            if launches["launches"] in [25, 50]:
+            if launches["launches"] in [25, 50, 150, 500, 1000]:
                 print(gradio.strings.en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
     except:
         pass
-
-
-def get_config_file(interface: Interface) -> Dict[str, Any]:
-    config = {
-        "input_components": [
-            iface.get_template_context() for iface in interface.input_components
-        ],
-        "output_components": [
-            iface.get_template_context() for iface in interface.output_components
-        ],
-        "function_count": len(interface.predict),
-        "live": interface.live,
-        "examples_per_page": interface.examples_per_page,
-        "layout": interface.layout,
-        "show_input": interface.show_input,
-        "show_output": interface.show_output,
-        "title": interface.title,
-        "analytics_enabled": interface.analytics_enabled,
-        "description": interface.description,
-        "simple_description": interface.simple_description,
-        "article": interface.article,
-        "theme": interface.theme,
-        "css": interface.css,
-        "thumbnail": interface.thumbnail,
-        "allow_screenshot": interface.allow_screenshot,
-        "allow_flagging": interface.allow_flagging,
-        "flagging_options": interface.flagging_options,
-        "allow_interpretation": interface.interpretation is not None,
-        "enable_queue": interface.enable_queue,
-        "cached_examples": interface.cache_examples
-        if hasattr(interface, "cache_examples")
-        else False,
-        "version": pkg_resources.require("gradio")[0].version,
-        "favicon_path": interface.favicon_path,
-    }
-    try:
-        param_names = inspect.getfullargspec(interface.predict[0])[0]
-        for index, component in enumerate(config["input_components"]):
-            if not component["label"]:
-                if index < len(param_names):
-                    component["label"] = param_names[index].replace("_", " ")
-                else:
-                    component["label"] = (
-                        f"input {index + 1}"
-                        if len(config["input_components"]) > 1
-                        else "input"
-                    )
-        for index, component in enumerate(config["output_components"]):
-            outputs_per_function = int(
-                len(interface.output_components) / len(interface.predict)
-            )
-            function_index = index // outputs_per_function
-            component_index = index - function_index * outputs_per_function
-            if component["label"] is None:
-                component["label"] = (
-                    f"output {component_index + 1}"
-                    if outputs_per_function > 1
-                    else "output"
-                )
-            if len(interface.predict) > 1:
-                component["label"] = (
-                    interface.function_names[function_index].replace("_", " ")
-                    + ": "
-                    + component["label"]
-                )
-    except ValueError:
-        pass
-    if interface.examples is not None:
-        if isinstance(interface.examples, str):
-            if not os.path.exists(interface.examples):
-                raise FileNotFoundError(
-                    "Could not find examples directory: " + interface.examples
-                )
-            log_file = os.path.join(interface.examples, "log.csv")
-            if not os.path.exists(log_file):
-                if len(interface.input_components) == 1:
-                    examples = [
-                        [os.path.join(interface.examples, item)]
-                        for item in os.listdir(interface.examples)
-                    ]
-                else:
-                    raise FileNotFoundError(
-                        "Could not find log file (required for multiple inputs): "
-                        + log_file
-                    )
-            else:
-                with open(log_file) as logs:
-                    examples = list(csv.reader(logs))
-                    examples = examples[1:]  # remove header
-            for i, example in enumerate(examples):
-                for j, (component, cell) in enumerate(
-                    zip(
-                        interface.input_components + interface.output_components,
-                        example,
-                    )
-                ):
-                    examples[i][j] = component.restore_flagged(
-                        interface.flagging_dir,
-                        cell,
-                        interface.encryption_key if interface.encrypt else None,
-                    )
-            config["examples"] = examples
-            config["examples_dir"] = interface.examples
-        else:
-            config["examples"] = interface.examples
-    return config
 
 
 def get_default_args(func: Callable) -> Dict[str, Any]:

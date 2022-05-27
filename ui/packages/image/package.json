@@ -9,10 +9,10 @@
 	"private": true,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
 		"cropperjs": "^1.5.12",
 		"lazy-brush": "^1.0.1",
-		"resize-observer-polyfill": "^1.5.1",
-		"tui-image-editor": "^3.15.2"
+		"resize-observer-polyfill": "^1.5.1"
 	}
 }

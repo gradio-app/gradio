@@ -12,6 +12,7 @@ build/
 
 # JS build
 gradio/templates/frontend/static
+gradio/templates/frontend/cdn
 
 # Secrets
 .env

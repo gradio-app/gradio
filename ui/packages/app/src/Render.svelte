@@ -1,16 +1,25 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher, setContext } from "svelte";
+	import { loading_status } from "./stores";
 
 	export let root: string;
 	export let component;
 	export let instance_map;
 	export let id: number;
-	export let props;
-	export let children;
-	export let theme;
+	export let props: {
+		style: Record<string, unknown>;
+		visible: boolean;
+		[key: string]: unknown;
+	};
+	interface LayoutNode {
+		id: number;
+		children: Array<LayoutNode>;
+	}
+	export let children: Array<LayoutNode>;
 	export let dynamic_ids: Set<number>;
-	export let has_modes: boolean;
+	export let has_modes: boolean | undefined;
 	export let status_tracker_values: Record<number, string>;
+	export let parent: string | null = null;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -32,11 +41,11 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style = props.css
-		? Object.entries(props.css)
-				.map((rule) => rule[0] + ": " + rule[1])
-				.join("; ")
-		: null;
+	$: {
+		if (typeof props.visible === "boolean") {
+			props.style.visible = props.visible;
+		}
+	}
 
 	const forms = [
 		"textbox",
@@ -86,30 +95,30 @@
 	children =
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
+
+	setContext("BLOCK_KEY", parent);
 </script>
 
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
-	bind:value={instance_map[id].value}
-	{style}
+	bind:value={instance_map[id].props.value}
+	elem_id={props.elem_id || id}
 	{...props}
 	{root}
-	tracked_status={status_tracker_values[id]}
 >
 	{#if children && children.length}
-		{#each children as { component, id, props, children, has_modes } (id)}
+		{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
 			<svelte:self
+				parent={instance_map[id].type}
 				{component}
-				{id}
+				id={each_id}
 				{props}
-				{theme}
 				{root}
 				{instance_map}
 				{children}
 				{dynamic_ids}
 				{has_modes}
-				{status_tracker_values}
 				on:destroy
 				on:mount
 			/>

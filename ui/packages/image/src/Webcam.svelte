@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import camera_icon from "./camera.svg";
-	import circle_icon from "./circle.svg";
-	import square_icon from "./square.svg";
+	import { Camera, Circle, Square } from "@gradio/icons";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
+	export let streaming: boolean = false;
+	export let pending: boolean = false;
 
 	export let mode: "image" | "video" = "image";
 
@@ -25,12 +25,6 @@
 		}
 	}
 
-	function clearphoto() {
-		var context = canvas.getContext("2d")!;
-		context.fillStyle = "#AAA";
-		context.fillRect(0, 0, canvas.width, canvas.height);
-	}
-
 	function take_picture() {
 		var context = canvas.getContext("2d")!;
 
@@ -46,7 +40,7 @@
 			);
 
 			var data = canvas.toDataURL("image/png");
-			dispatch("capture", data);
+			dispatch(streaming ? "stream" : "capture", data);
 		}
 	}
 
@@ -96,45 +90,39 @@
 	}
 
 	access_webcam();
+
+	if (streaming && mode === "image") {
+		window.setInterval(() => {
+			if (video_source && !pending) {
+				take_picture();
+			}
+		}, 500);
+	}
 </script>
 
-<div class="h-full w-full relative">
+<div class="h-full min-h-[15rem] w-full relative">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video bind:this={video_source} class=" h-full w-full" />
-	<button
-		on:click={mode === "image" ? take_picture : take_recording}
-		class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
-	>
-		{#if mode === "video"}
-			{#if recording}
-				<img
-					style="color: white"
-					src={square_icon}
-					alt="take a screenshot"
-					class="w-2/4 h-2/4"
-				/>
+	<video bind:this={video_source} class="h-full w-full " />
+	{#if !streaming}
+		<button
+			on:click={mode === "image" ? take_picture : take_recording}
+			class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
+		>
+			{#if mode === "video"}
+				{#if recording}
+					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+						<Square />
+					</div>
+				{:else}
+					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+						<Circle />
+					</div>
+				{/if}
 			{:else}
-				<img
-					style="color: white"
-					src={circle_icon}
-					alt="take a screenshot"
-					class="w-2/4 h-2/4"
-				/>
+				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<Camera />
+				</div>
 			{/if}
-		{:else}
-			<img
-				style="color: white"
-				src={camera_icon}
-				alt="take a screenshot"
-				class="w-2/4 h-2/4"
-			/>
-		{/if}
-	</button>
+		</button>
+	{/if}
 </div>
-
-<style lang="postcss">
-	video {
-		-webkit-transform: scaleX(-1);
-		transform: scaleX(-1);
-	}
-</style>

@@ -5,7 +5,7 @@
       "id": 1,
       "type": "markdown",
       "props": {
-        "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+        "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
         "name": "markdown",
         "css": {}
       }
@@ -14,12 +14,9 @@
       "id": 2,
       "type": "checkboxgroup",
       "props": {
-        "choices": [
-          "Covid",
-          "Malaria",
-          "Lung Cancer"
-        ],
-        "default_value": [],
+        "choices": ["Covid", "Malaria", "Lung Cancer"],
+        "value": [],
+        "name": "checkboxgroup",
         "label": "Disease to Scan For",
         "show_label": true,
         "name": "checkboxgroup",
@@ -31,7 +28,7 @@
       "type": "tabs",
       "props": {
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -40,7 +37,7 @@
       "props": {
         "label": "X-ray",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -49,7 +46,7 @@
       "props": {
         "type": "row",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -59,7 +56,7 @@
         "image_mode": "RGB",
         "source": "upload",
         "tool": "editor",
-        "show_label": true,
+        "value": null,
         "name": "image",
         "css": {}
       }
@@ -68,8 +65,7 @@
       "id": 7,
       "type": "json",
       "props": {
-        "default_value": "\"\"",
-        "show_label": true,
+        "value": "\"\"",
         "name": "json",
         "css": {}
       }
@@ -78,7 +74,7 @@
       "id": 8,
       "type": "button",
       "props": {
-        "default_value": "Run",
+        "value": "Run",
         "name": "button",
         "css": {}
       }
@@ -98,7 +94,7 @@
       "props": {
         "label": "CT Scan",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -107,7 +103,7 @@
       "props": {
         "type": "row",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -117,7 +113,7 @@
         "image_mode": "RGB",
         "source": "upload",
         "tool": "editor",
-        "show_label": true,
+        "value": null,
         "name": "image",
         "css": {}
       }
@@ -126,8 +122,7 @@
       "id": 13,
       "type": "json",
       "props": {
-        "default_value": "\"\"",
-        "show_label": true,
+        "value": "\"\"",
         "name": "json",
         "css": {}
       }
@@ -136,7 +131,7 @@
       "id": 14,
       "type": "button",
       "props": {
-        "default_value": "Run",
+        "value": "Run",
         "name": "button",
         "css": {}
       }
@@ -145,27 +140,13 @@
       "id": 15,
       "type": "statustracker",
       "props": {
-        "cover_container": true,
-        "name": "statustracker",
-        "css": {}
-      }
-    },
-    {
-      "id": 16,
-      "type": "button",
-      "props": {
-        "default_value": "Upload Results",
-        "name": "button",
-        "css": {}
-      }
-    },
-    {
-      "id": 17,
-      "type": "statustracker",
-      "props": {
-        "cover_container": false,
-        "name": "statustracker",
-        "css": {}
+        "lines": 1,
+        "placeholder": null,
+        "value": "",
+        "name": "textbox",
+        "label": null,
+        "css": {},
+        "interactive": null
       }
     }
   ],

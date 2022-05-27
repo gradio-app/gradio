@@ -23,3 +23,29 @@
 		<blockquote>I am a quote</blockquote>
 	</TabItem>
 </Tabs>
+
+<Tabs>
+	<TabItem name="tab 1" on:select={() => console.log("tab 1")}>
+		<h1>HELLO FROM TAB 1</h1>
+	</TabItem>
+
+	<TabItem name="tab 2" on:select={() => console.log("tab 2")}>
+		<h1>HELLO FROM TAB 2</h1>
+	</TabItem>
+
+	<TabItem name="tab 3" on:select={() => console.log("tab 3")}>
+		<Tabs>
+			<TabItem name="tab 1" on:select={() => console.log("tab 1")}>
+				<h1>HELLO FROM TAB 1</h1>
+			</TabItem>
+
+			<TabItem name="tab 2" on:select={() => console.log("tab 2")}>
+				<h1>HELLO FROM TAB 2</h1>
+			</TabItem>
+
+			<TabItem name="tab 3" on:select={() => console.log("tab 3")}>
+				<h1>HELLO FROM TAB 3</h1>
+			</TabItem>
+		</Tabs>
+	</TabItem>
+</Tabs>

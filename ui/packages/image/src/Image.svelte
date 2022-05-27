@@ -1,20 +1,17 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Block, BlockLabel } from "@gradio/atoms";
-	import image_icon from "./image.svg";
-	import sketch_icon from "./sketch.svg";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
-	import ImageEditor from "./ImageEditor.svelte";
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -23,8 +20,9 @@
 	export let drop_text: string = "Drop an image file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
+	export let streaming: boolean = false;
+	export let pending: boolean = false;
 
-	let mode: "edit" | "view" = "view";
 	let sketch: Sketch;
 
 	function handle_upload({ detail }: CustomEvent<string>) {
@@ -38,12 +36,12 @@
 
 	function handle_save({ detail }: { detail: string }) {
 		value = detail;
-		mode = "view";
-		dispatch("edit");
+		dispatch(streaming ? "stream" : "edit");
 	}
 
 	const dispatch = createEventDispatcher<{
 		change: string | null;
+		stream: string | null;
 		edit: undefined;
 		clear: undefined;
 		drag: boolean;
@@ -58,7 +56,7 @@
 
 <BlockLabel
 	{show_label}
-	image={source === "canvas" ? sketch_icon : image_icon}
+	Icon={source === "canvas" ? SketchIcon : Image}
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 
@@ -69,7 +67,7 @@
 			on:clear={() => sketch.clear()}
 		/>
 		<Sketch {value} bind:this={sketch} on:change={handle_save} />
-	{:else if value === null}
+	{:else if value === null || streaming}
 		{#if source === "upload"}
 			<Upload
 				bind:dragging
@@ -84,43 +82,25 @@
 				</div>
 			</Upload>
 		{:else if source === "webcam"}
-			<Webcam on:capture={handle_save} />
+			<Webcam
+				on:capture={handle_save}
+				on:stream={handle_save}
+				{streaming}
+				{pending}
+			/>
 		{/if}
 	{:else if tool === "select"}
 		<Cropper image={value} on:crop={handle_save} />
+		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
-		{#if mode === "edit"}
-			<ImageEditor
-				{value}
-				on:cancel={() => (mode = "view")}
-				on:save={handle_save}
-			/>
-		{/if}
 		<ModifyUpload
-			on:edit={() => (mode = "edit")}
+			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{:else}
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
 </div>
-
-<style lang="postcss">
-	:global(.image_editor_buttons) {
-		width: 800px;
-		@apply flex justify-end gap-1;
-	}
-	:global(.image_editor_buttons button) {
-		@apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
-	}
-	:global(.tui-image-editor-header-buttons) {
-		@apply hidden;
-	}
-	:global(.tui-colorpicker-palette-button) {
-		width: 12px;
-		height: 12px;
-	}
-</style>

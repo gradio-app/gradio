@@ -1,5 +1,6 @@
 <script>
 	import { onMount, onDestroy, createEventDispatcher } from "svelte";
+	import { fade } from "svelte/transition";
 	import { LazyBrush } from "lazy-brush/src";
 	import ResizeObserver from "resize-observer-polyfill";
 
@@ -10,9 +11,8 @@
 	let mounted;
 
 	let brush_radius = 50;
-	let brush_color = "#444";
+	let brush_color = "#0b0f19";
 	let catenary_color = "#aaa";
-	let background_color = "#FFF";
 
 	let canvas_width = 400;
 	let canvas_height = 400;
@@ -49,12 +49,12 @@
 	let values_changed = true;
 	let is_drawing = false;
 	let is_pressing = false;
-	let show_placeholder = false;
 	let lazy = null;
 	let chain_length = null;
 	let canvas_container = null;
 	let canvas_observer = null;
 	let save_data = "";
+	let line_count = 0;
 
 	onMount(() => {
 		Object.keys(canvas).forEach((key) => {
@@ -99,6 +99,7 @@
 		const _lines = lines.slice(0, -1);
 		clear();
 		draw_lines({ lines: _lines });
+		line_count = lines.length;
 		trigger_on_change();
 	}
 
@@ -156,13 +157,13 @@
 
 	let handle_draw_start = (e) => {
 		e.preventDefault();
-		show_placeholder = true;
 		is_pressing = true;
 		const { x, y } = get_pointer_pos(e);
 		if (e.touches && e.touches.length > 0) {
 			lazy.update({ x, y }, { both: true });
 		}
 		handle_pointer_move(x, y);
+		line_count += 1;
 	};
 
 	let handle_draw_move = (e) => {
@@ -275,13 +276,13 @@
 	};
 
 	export function clear() {
-		show_placeholder = false;
 		lines = [];
 		values_changed = true;
 		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
 		ctx.temp.clearRect(0, 0, canvas.temp.width, canvas.temp.height);
 		ctx.drawing.fillStyle = "#FFFFFF";
 		ctx.drawing.fillRect(0, 0, canvas.drawing.width, canvas.drawing.height);
+		line_count = 0;
 	}
 
 	let loop = ({ once = false } = {}) => {
@@ -337,14 +338,14 @@
 </script>
 
 <div
-	class="touch-none relative"
-	style="height:100%; width:100%; background-color:{background_color}"
+	class="touch-none relative h-full w-full"
 	bind:this={canvas_container}
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}
 >
-	{#if !show_placeholder}
+	{#if line_count === 0}
 		<div
+			transition:fade={{ duration: 50 }}
 			class="absolute inset-0 flex items-center justify-center z-40 pointer-events-none touch-none text-gray-400 md:text-xl"
 		>
 			Start drawing

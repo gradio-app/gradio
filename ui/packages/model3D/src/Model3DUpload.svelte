@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, afterUpdate } from "svelte";
+	import { createEventDispatcher, tick, afterUpdate, onMount } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
-
-	import file_icon from "./file.svg";
+	import { File } from "@gradio/icons";
 
 	export let value: null | FileData;
 
@@ -14,6 +13,12 @@
 	export let label: string = "";
 	export let show_label: boolean;
 	export let style: string;
+
+	onMount(() => {
+		if (value != null) {
+			addNewModel();
+		}
+	});
 
 	afterUpdate(() => {
 		if (value != null && value.is_example) {
@@ -29,6 +34,9 @@
 	}
 
 	async function handle_clear({ detail }: CustomEvent<null>) {
+		if (scene) {
+			scene.dispose();
+		}
 		value = null;
 		await tick();
 		dispatch("clear");
@@ -49,9 +57,13 @@
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
+	let engine: BABYLON.Engine;
 
 	function addNewModel() {
-		const engine = new BABYLON.Engine(canvas, true);
+		if (scene) {
+			scene.dispose();
+		}
+		engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
 		scene.clearColor = new BABYLON.Color4(0.2, 0.2, 0.2, 1);
@@ -91,7 +103,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} image={file_icon} label={label || "3D Model"} />
+<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
 {#if value === null}
 	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
@@ -100,10 +112,10 @@
 		{upload_text}
 	</Upload>
 {:else}
-	<ModifyUpload on:clear={handle_clear} absolute />
 	<div
 		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 	>
+		<ModifyUpload on:clear={handle_clear} absolute />
 		<canvas class="w-full h-full object-contain" bind:this={canvas} />
 	</div>
 {/if}

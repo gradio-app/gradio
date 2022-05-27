@@ -16,8 +16,6 @@
 	export let y: Array<string> | undefined = undefined;
 	export let colors: Array<string> = [];
 
-	export let style: string = "";
-
 	const dispatch = createEventDispatcher();
 
 	$: ({ x: _x, y: _y } =
@@ -59,11 +57,11 @@
 </script>
 
 <div class="mt-3">
-	<div class="flex justify-center items-center text-sm">
+	<div class="flex justify-center items-center text-sm dark:text-slate-200">
 		{#each _y as { name }}
 			<div class="mx-2 flex gap-1 items-center">
 				<span
-					class="inline-block w-[12px] h-[12px] rounded-sm"
+					class="inline-block w-[12px] h-[12px] rounded-sm "
 					style="background-color: {color_map[name]}"
 				/>
 				{name}
@@ -86,7 +84,7 @@
 					stroke="#aaa"
 				/>
 				<text
-					class="font-mono text-xs"
+					class="font-mono text-xs dark:fill-slate-200"
 					text-anchor="middle"
 					x={scale_x(tick)}
 					y={scale_y(y_ticks[0]) + 30}
@@ -110,7 +108,7 @@
 				/>
 
 				<text
-					class="font-mono text-xs"
+					class="font-mono text-xs dark:fill-slate-200"
 					text-anchor="end"
 					y={scale_y(tick) + 4}
 					x={scale_x(x_ticks[0]) - 20}
@@ -129,7 +127,7 @@
 					stroke="#aaa"
 				/>
 				<text
-					class="font-mono text-xs"
+					class="font-mono text-xs dark:fill-slate-200"
 					text-anchor="end"
 					y={scale_y(y_domain[1]) + 4}
 					x={scale_x(x_ticks[0]) - 20}
@@ -177,7 +175,9 @@
 		{/each}
 	</svg>
 
-	<div class="flex justify-center align-items-center text-sm">
+	<div
+		class="flex justify-center align-items-center text-sm dark:text-slate-200"
+	>
 		{_x.name}
 	</div>
 </div>

@@ -9,24 +9,10 @@ from __future__ import annotations
 import warnings
 from typing import Any, List, Optional, Tuple
 
-from gradio.components import Audio as C_Audio
-from gradio.components import Checkbox as C_Checkbox
-from gradio.components import CheckboxGroup as C_CheckboxGroup
-from gradio.components import Dataframe as C_Dataframe
-from gradio.components import Dropdown as C_Dropdown
-from gradio.components import File as C_File
-from gradio.components import Image as C_Image
-from gradio.components import Model3D as C_Model3D
-from gradio.components import Number as C_Number
-from gradio.components import Radio as C_Radio
-from gradio.components import Slider as C_Slider
-from gradio.components import Textbox as C_Textbox
-from gradio.components import Timeseries as C_Timeseries
-from gradio.components import Variable as C_Variable
-from gradio.components import Video as C_Video
+from gradio import components
 
 
-class Textbox(C_Textbox):
+class Textbox(components.Textbox):
     def __init__(
         self,
         lines: int = 1,
@@ -42,7 +28,7 @@ class Textbox(C_Textbox):
             DeprecationWarning,
         )
         super().__init__(
-            default_value=default,
+            value=default,
             lines=lines,
             placeholder=placeholder,
             label=label,
@@ -52,7 +38,7 @@ class Textbox(C_Textbox):
         )
 
 
-class Number(C_Number):
+class Number(components.Number):
     """
     Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
@@ -75,12 +61,12 @@ class Number(C_Number):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label, optional=optional)
+        super().__init__(value=default, label=label, optional=optional)
 
 
-class Slider(C_Slider):
+class Slider(components.Slider):
     """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides number as an argument to the wrapped function.
     Input type: float
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -109,7 +95,7 @@ class Slider(C_Slider):
         )
 
         super().__init__(
-            default_value=default,
+            value=default,
             minimum=minimum,
             maximum=maximum,
             step=step,
@@ -118,7 +104,7 @@ class Slider(C_Slider):
         )
 
 
-class Checkbox(C_Checkbox):
+class Checkbox(components.Checkbox):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
     Input type: bool
@@ -141,10 +127,10 @@ class Checkbox(C_Checkbox):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label, optional=optional)
+        super().__init__(value=default, label=label, optional=optional)
 
 
-class CheckboxGroup(C_CheckboxGroup):
+class CheckboxGroup(components.CheckboxGroup):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
     Input type: Union[List[str], List[int]]
@@ -172,7 +158,7 @@ class CheckboxGroup(C_CheckboxGroup):
             DeprecationWarning,
         )
         super().__init__(
-            default_selected=default,
+            value=default,
             choices=choices,
             type=type,
             label=label,
@@ -180,7 +166,7 @@ class CheckboxGroup(C_CheckboxGroup):
         )
 
 
-class Radio(C_Radio):
+class Radio(components.Radio):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
@@ -210,13 +196,13 @@ class Radio(C_Radio):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )
 
 
-class Dropdown(C_Dropdown):
+class Dropdown(components.Dropdown):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
@@ -246,13 +232,13 @@ class Dropdown(C_Dropdown):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )
 
 
-class Image(C_Image):
+class Image(components.Image):
     """
     Component creates an image upload box with editing capabilities.
     Input type: Union[numpy.array, PIL.Image, file-object]
@@ -297,7 +283,7 @@ class Image(C_Image):
         )
 
 
-class Video(C_Video):
+class Video(components.Video):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -323,10 +309,10 @@ class Video(C_Video):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, source=source, label=label, optional=optional)
+        super().__init__(format=type, source=source, label=label, optional=optional)
 
 
-class Audio(C_Audio):
+class Audio(components.Audio):
     """
     Component accepts audio input files.
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
@@ -354,7 +340,7 @@ class Audio(C_Audio):
         super().__init__(source=source, type=type, label=label, optional=optional)
 
 
-class File(C_File):
+class File(components.File):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
@@ -390,7 +376,7 @@ class File(C_File):
         )
 
 
-class Dataframe(C_Dataframe):
+class Dataframe(components.Dataframe):
     """
     Component accepts 2D input through a spreadsheet interface.
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
@@ -426,7 +412,7 @@ class Dataframe(C_Dataframe):
             DeprecationWarning,
         )
         super().__init__(
-            default_value=default,
+            value=default,
             headers=headers,
             row_count=row_count,
             col_count=col_count,
@@ -438,7 +424,7 @@ class Dataframe(C_Dataframe):
         )
 
 
-class Timeseries(C_Timeseries):
+class Timeseries(components.Timeseries):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file.
     Input type: pandas.DataFrame
@@ -466,7 +452,7 @@ class Timeseries(C_Timeseries):
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
-class State(C_Variable):
+class State(components.Variable):
     """
     Special hidden component that stores state across runs of the interface.
     Input type: Any
@@ -488,10 +474,10 @@ class State(C_Variable):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label)
+        super().__init__(value=default, label=label)
 
 
-class Image3D(C_Model3D):
+class Image3D(components.Model3D):
     """
     Used for 3D image model output.
     Input type: File object of type (.obj, glb, or .gltf)

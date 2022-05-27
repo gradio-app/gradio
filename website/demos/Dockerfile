@@ -14,6 +14,7 @@ WORKDIR /gradio
 COPY ./website ./website
 COPY ./demo ./demo
 COPY ./guides ./guides
+COPY ./gradio/components.py ./gradio/components.py
 WORKDIR /gradio/website/demos
 RUN pip install -r requirements.txt
 RUN python map_demos.py

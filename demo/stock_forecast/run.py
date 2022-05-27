@@ -1,10 +1,12 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
 import gradio as gr
 
 
-def stock_forecast(final_year, companies, noise, show_legend, point_style):
+def plot_forecast(final_year, companies, noise, show_legend, point_style):
     start_year = 2020
     x = np.arange(start_year, final_year + 1)
     year_count = x.shape[0]
@@ -18,20 +20,19 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
         ax.plot(x, series, plt_format)
     if show_legend:
         plt.legend(companies)
-    plt.close()
     return fig
 
 
 demo = gr.Interface(
-    stock_forecast,
+    plot_forecast,
     [
         gr.Radio([2025, 2030, 2035, 2040], label="Project to:"),
-        gr.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
-        gr.Slider(minimum=1, maximum=100),
-        "checkbox",
+        gr.CheckboxGroup(["Google", "Microsoft", "Gradio"], label="Company Selection"),
+        gr.Slider(1, 100, label="Noise Level"),
+        gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.Image(plot=True, label="forecast"),
+    gr.Plot(label="forecast"),
 )
 
 if __name__ == "__main__":

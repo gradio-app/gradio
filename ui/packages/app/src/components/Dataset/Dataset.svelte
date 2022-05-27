@@ -5,12 +5,12 @@
 	export let components: Array<string>;
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
+	export let elem_id: string = "";
 	export let value: Number | null = null;
 	export let root: string;
 	export let samples_per_page: number = 10;
 
 	export let theme: string;
-	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
@@ -50,7 +50,7 @@
 	}
 </script>
 
-<div class="mt-4 inline-block max-w-full text-gray-700 w-full">
+<div id={elem_id} class="mt-4 inline-block max-w-full text-gray-700 w-full">
 	<div class="text-xs mb-2 flex items-center text-gray-500">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +92,9 @@
 		<div class="overflow-x-auto border table-auto rounded-lg w-full text-sm">
 			<table class="gr-samples-table">
 				<thead>
-					<tr class="border-b divide-x shadow-sm">
+					<tr
+						class="border-b dark:border-gray-800 divide-x dark:divide-gray-800 shadow-sm"
+					>
 						{#each headers as header}
 							<th class="p-2 whitespace-nowrap min-w-lg text-left">
 								{header}
@@ -103,7 +105,7 @@
 				<tbody>
 					{#each selected_samples as sample_row, i}
 						<tr
-							class="group cursor-pointer odd:bg-gray-50 border-b divide-x last:border-none hover:bg-orange-50 hover:divide-orange-100"
+							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
 							on:click={() => {
 								value = i;
 								dispatch("click", i + page * samples_per_page);

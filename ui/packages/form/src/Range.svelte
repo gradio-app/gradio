@@ -5,9 +5,10 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockTitle } from "@gradio/atoms";
+	import { create_classes } from "@gradio/utils";
 
 	export let value: number = 0;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;
@@ -27,7 +28,9 @@
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<div class="font-medium">{value}</div>
+		<div class={"font-medium dark:text-gray-300" + create_classes(style)}>
+			{value}
+		</div>
 	</div>
 </div>
 

@@ -9,18 +9,18 @@
 <script lang="ts">
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Music } from "@gradio/icons";
 	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
-
-	import audio_icon from "./music.svg";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let show_label: boolean;
-	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
+	export let pending: boolean = false;
+	export let streaming: boolean = false;
 	export let drop_text: string = "Drop an audio file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
@@ -39,6 +39,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
+		stream: AudioData;
 		edit: AudioData;
 		play: undefined;
 		pause: undefined;
@@ -64,16 +65,15 @@
 		});
 
 		recorder.addEventListener("stop", async () => {
-			recording = false;
+			if (!streaming) {
+				recording = false;
+			}
 			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
 			value = {
 				data: await blob_to_data_url(audio_blob),
 				name
 			};
-			dispatch("change", {
-				data: await blob_to_data_url(audio_blob),
-				name
-			});
+			dispatch(streaming ? "stream" : "change", value);
 		});
 	}
 
@@ -94,6 +94,9 @@
 
 	const stop = () => {
 		recorder.stop();
+		if (streaming) {
+			recording = false;
+		}
 	};
 
 	function clear() {
@@ -151,15 +154,29 @@
 
 	export let dragging = false;
 	$: dispatch("drag", dragging);
+
+	if (streaming) {
+		window.setInterval(() => {
+			if (
+				recording &&
+				recorder &&
+				recorder.state === "recording" &&
+				pending === false
+			) {
+				stop();
+				record();
+			}
+		}, 500);
+	}
 </script>
 
-<BlockLabel {show_label} image={audio_icon} label={label || "Audio"} />
-{#if value === null}
+<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
+{#if value === null || streaming}
 	{#if source === "microphone"}
 		<div class="mt-6 p-2">
 			{#if recording}
 				<button class="gr-button !bg-red-500/10" on:click={stop}>
-					<span class="flex h-1.5 w-1.5 relative mr-2">
+					<span class="flex h-1.5 w-1.5 relative mr-2 ">
 						<span
 							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
 						/>
@@ -170,7 +187,7 @@
 					<div class="whitespace-nowrap text-red-500">Stop recording</div>
 				</button>
 			{:else}
-				<button class="gr-button" on:click={record}>
+				<button class="gr-button text-gray-800" on:click={record}>
 					<span class="flex h-1.5 w-1.5 relative mr-2">
 						<span
 							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
