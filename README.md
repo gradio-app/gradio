@@ -369,7 +369,7 @@ if __name__ == "__main__":
 ![blocks_flipper interface](demo/blocks_flipper/screenshot.gif)
 
 
-If you are interested in how Blocks works, [read its dedicated Guide](introduction_to_blocks).
+If you are interested in how Blocks works, [read its dedicated Guide](https://gradio.app/introduction_to_blocks/).
 
 ### Sharing Demos 🌎
 
