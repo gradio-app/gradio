@@ -25,13 +25,12 @@ def run_in_reload_mode():
         demo_name = args[1]
 
     original_path = args[0]
+    abs_original_path = os.path.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
     path = path.replace("\\", ".")
     filename = os.path.splitext(path)[0]
 
-    abs_original_path = os.path.abspath(args[0])
-    
     gradio_folder = os.path.dirname(inspect.getfile(gradio))
 
     port = networking.get_first_available_port(
@@ -43,14 +42,14 @@ def run_in_reload_mode():
     )
     command = f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning "
     message = f"Watching:"
-    
+
     if gradio_folder.strip():
         command += f'--reload-dir "{gradio_folder}" '
         message += f" [{gradio_folder}]"
-    
+
     if os.path.dirname(abs_original_path).strip():
         command += f'--reload-dir "{os.path.dirname(abs_original_path)}"'
         message += f" [{os.path.dirname(abs_original_path)}]"
-    
+
     print(message + "\n")
     os.system(command)
