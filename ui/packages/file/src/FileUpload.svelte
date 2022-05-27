@@ -51,7 +51,7 @@
 	<Upload
 		on:load={handle_upload}
 		filetype="file"
-		single_file={false}
+		file_count={file_count}
 		bind:dragging
 	>
 		{drop_text}
