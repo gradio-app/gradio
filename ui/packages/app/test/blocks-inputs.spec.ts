@@ -27,7 +27,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_inputs");
-    await mock_api(page, [["hello world"]]);
+	await mock_api(page, [["hello world"]]);
 	await page.goto("http://localhost:3000");
 
 	const textbox = await page.locator("label:has-text('Input')");
@@ -35,9 +35,9 @@ test("renders the correct elements", async ({ page }) => {
 
 	await textbox.fill("hello world");
 	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
-	await expect(await page.inputValue("label:has-text('Output-Interactive')")).toEqual(
-		"hello world"
-	);
+	await expect(
+		await page.inputValue("label:has-text('Output-Interactive')")
+	).toEqual("hello world");
 	await expect(await page.inputValue("label:has-text('Input')")).toEqual(
 		"hello world"
 	);
