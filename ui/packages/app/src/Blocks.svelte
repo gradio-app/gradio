@@ -114,6 +114,7 @@
 		acc[next.id] = next;
 		return acc;
 	}, {} as { [id: number]: Component });
+	console.log(instance_map)
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -123,7 +124,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
-				console.log(name);
+				console.error("failed to load: " + name);
 				rej(e);
 			}
 		});
@@ -131,6 +132,7 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
+		console.log(node.id, instance)
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {
@@ -163,6 +165,7 @@
 				}
 			})
 			.catch((e) => {
+				console.error(e);
 				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "error" });
 				}
