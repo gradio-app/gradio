@@ -3580,7 +3580,9 @@ class Dataset(Clickable, Component):
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.components = [get_component_instance(c).unrender() for c in components]
+        self.components = (
+            components  # [get_component_instance(c).unrender() for c in components]
+        )
         self.type = type
         self.headers = headers or [c.label for c in self.components]
         self.samples = samples
