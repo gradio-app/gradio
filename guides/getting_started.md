@@ -151,7 +151,7 @@ As an example, Blocks uses nested `with` statements in Python to lay out compone
 {{ demos["blocks_flipper"] }}
 
 
-If you are interested in how Blocks works, [read its dedicated Guide](introduction_to_blocks).
+If you are interested in how Blocks works, [read its dedicated Guide](https://gradio.app/introduction_to_blocks/).
 
 ### Sharing Demos 🌎
 
