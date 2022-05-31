@@ -144,7 +144,10 @@ class IOComponent(Component):
         return self.save_file(file, dir, label)
 
     def restore_flagged_file(
-        self, dir: str, file: str, encryption_key: bool,
+        self,
+        dir: str,
+        file: str,
+        encryption_key: bool,
     ) -> Dict[str, Any]:
         """
         Loads flagged data from file and returns it
@@ -697,7 +700,7 @@ class Slider(Changeable, IOComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10 ** power
+            step = 10**power
         self.step = step
         self.value = self.postprocess(value)
         self.cleared_value = self.value
@@ -808,7 +811,9 @@ class Slider(Changeable, IOComponent):
         container_bg_color: Optional[str] = None,
     ):
         return IOComponent.style(
-            self, text_color=text_color, container_bg_color=container_bg_color,
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
         )
 
 
@@ -932,7 +937,9 @@ class Checkbox(Changeable, IOComponent):
         container_bg_color: Optional[str] = None,
     ):
         return IOComponent.style(
-            self, text_color=text_color, container_bg_color=container_bg_color,
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
         )
 
 
@@ -1409,7 +1416,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             return np.array(im)
         elif self.type == "file" or self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
-                delete=False, suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                delete=False,
+                suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
             if self.type == "file":
@@ -1441,7 +1449,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 x = PIL.Image.fromarray(np.uint8(x)).convert("RGB")
             fmt = x.format
             file_obj = tempfile.NamedTemporaryFile(
-                delete=False, suffix=("." + fmt.lower() if fmt is not None else ".png"),
+                delete=False,
+                suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             x.save(file_obj.name)
             return processing_utils.encode_url_or_file_to_base64(file_obj.name)
@@ -2551,7 +2560,9 @@ class Variable(IOComponent):
     """
 
     def __init__(
-        self, value: Any = None, **kwargs,
+        self,
+        value: Any = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -3461,7 +3472,8 @@ class Markdown(IOComponent, Changeable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None, visible: Optional[bool] = None,
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
     ):
         return {
             "visible": visible,
@@ -3584,7 +3596,8 @@ class Dataset(Clickable, Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None, visible: Optional[bool] = None,
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
     ):
         return {
             "visible": visible,
@@ -3626,7 +3639,8 @@ class Interpretation(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None, visible: Optional[bool] = None,
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
     ):
         return {
             "visible": visible,
@@ -3663,7 +3677,8 @@ class StatusTracker(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None, visible: Optional[bool] = None,
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
     ):
         return {
             "visible": visible,
