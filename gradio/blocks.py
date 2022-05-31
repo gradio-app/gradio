@@ -683,17 +683,21 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import IFrame, display  # type: ignore
+                from IPython.display import HTML, display  # type: ignore
 
                 if share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(1)
                     display(
-                        IFrame(self.share_url, width=self.width, height=self.height)
+                        HTML(
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                        )
                     )
                 else:
                     display(
-                        IFrame(self.local_url, width=self.width, height=self.height)
+                        HTML(
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                        )
                     )
             except ImportError:
                 pass
