@@ -11,7 +11,9 @@ export const prettyBytes = (bytes: number): string => {
 	return bytes.toFixed(1) + " " + unit;
 };
 
-export const display_file_name = (value: FileData | Array<FileData>): string => {
+export const display_file_name = (
+	value: FileData | Array<FileData>
+): string => {
 	var str: string;
 	if (Array.isArray(value)) {
 		if (value.length > 1) {
@@ -31,7 +33,9 @@ export const download_files = (value: FileData | Array<FileData>): string => {
 	return Array.isArray(value) ? value[0].data : value.data;
 };
 
-export const display_file_size = (value: FileData | Array<FileData>): string => {
+export const display_file_size = (
+	value: FileData | Array<FileData>
+): string => {
 	var total_size = 0;
 	if (Array.isArray(value)) {
 		for (var file of value) {

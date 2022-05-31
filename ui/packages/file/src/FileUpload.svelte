@@ -5,7 +5,11 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
-	import { display_file_name, download_files, display_file_size } from "./utils";
+	import {
+		display_file_name,
+		download_files,
+		display_file_size
+	} from "./utils";
 
 	export let value: null | FileData | Array;
 
@@ -48,12 +52,7 @@
 		{upload_text}
 	</Upload>
 {:else if value === null}
-	<Upload
-		on:load={handle_upload}
-		filetype="file"
-		file_count={file_count}
-		bind:dragging
-	>
+	<Upload on:load={handle_upload} filetype="file" {file_count} bind:dragging>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
