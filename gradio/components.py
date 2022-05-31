@@ -2800,7 +2800,7 @@ class HighlightedText(Changeable, IOComponent):
                     running_text = text
                     running_category = category
                 elif category == running_category:
-                    running_text += text
+                    running_text += ' ' + text
                 else:
                     output.append((running_text, running_category))
                     running_text = text
