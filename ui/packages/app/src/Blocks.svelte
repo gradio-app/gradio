@@ -114,6 +114,7 @@
 		acc[next.id] = next;
 		return acc;
 	}, {} as { [id: number]: Component });
+	console.log(instance_map);
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -123,7 +124,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
-				console.log(name);
+				console.error("failed to load: " + name);
 				rej(e);
 			}
 		});
@@ -131,6 +132,7 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
+		console.log(node.id, instance);
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {
@@ -163,6 +165,7 @@
 				}
 			})
 			.catch((e) => {
+				console.error(e);
 				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "error" });
 				}
@@ -381,8 +384,11 @@
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
-<div class="w-full h-full min-h-screen {mode}">
-	<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
+<div class="w-full h-full min-h-screen {mode} flex flex-col">
+	<div
+		class="mx-auto container px-4 py-6 dark:bg-gray-950"
+		class:flex-grow={(window.__gradio_mode__ = "app")}
+	>
 		{#if ready}
 			<Render
 				component={rootNode.component}
@@ -398,20 +404,19 @@
 			/>
 		{/if}
 	</div>
-	<div
-		class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
-	>
-		<div
-			class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
+	<footer class="flex justify-center pb-6">
+		<a
+			href="https://gradio.app"
+			target="_blank"
+			rel="noreferrer"
+			class="group text-gray-300 dark:text-gray-500 hover:text-gray-400 dark:hover:text-gray-400 transition-colors font-semibold text-sm"
 		>
-			<a href="https://gradio.app" target="_blank" rel="noreferrer">
-				{$_("interface.built_with_Gradio")}
-				<img
-					class="h-5 inline-block pb-0.5"
-					src="{static_src}/static/img/logo.svg"
-					alt="logo"
-				/>
-			</a>
-		</div>
-	</div>
+			{$_("interface.built_with_Gradio")}
+			<img
+				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
+				src="{static_src}/static/img/logo.svg"
+				alt="logo"
+			/>
+		</a>
+	</footer>
 </div>

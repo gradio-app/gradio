@@ -1,0 +1,88 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 5,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Input",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Output",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "Hello friends\nhello friends\n\nHello friends\n\n",
+        "label": "Output",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "button",
+      "props": {
+        "default_value": "Submit",
+        "name": "button",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      },
+      {
+        "id": 4
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        4
+      ],
+      "trigger": "click",
+      "inputs": [
+        1
+      ],
+      "outputs": [
+        2
+      ],
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}

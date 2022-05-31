@@ -1,0 +1,325 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "default",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 2,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Small Textbox",
+        "show_label": false,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "textbox",
+      "props": {
+        "lines": 5,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Large Textbox",
+        "show_label": false,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "number",
+      "props": {
+        "label": "Number",
+        "show_label": false,
+        "name": "number",
+        "css": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "checkbox",
+      "props": {
+        "default_value": false,
+        "label": "Checkbox",
+        "show_label": false,
+        "name": "checkbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 6,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          "One",
+          "Two",
+          "Three"
+        ],
+        "default_value": [],
+        "label": "Checkbox Group",
+        "show_label": false,
+        "name": "checkboxgroup",
+        "css": {}
+      }
+    },
+    {
+      "id": 7,
+      "type": "radio",
+      "props": {
+        "choices": [
+          "One",
+          "Two",
+          "Three"
+        ],
+        "default_value": "One",
+        "label": "Radio",
+        "show_label": false,
+        "name": "radio",
+        "css": {}
+      }
+    },
+    {
+      "id": 8,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          "One",
+          "Two",
+          "Three"
+        ],
+        "default_value": "One",
+        "label": "Dropdown",
+        "show_label": false,
+        "name": "dropdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 9,
+      "type": "slider",
+      "props": {
+        "minimum": 0,
+        "maximum": 100,
+        "step": 1,
+        "default_value": 0,
+        "label": "Slider",
+        "show_label": false,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "audio",
+      "props": {
+        "source": "upload",
+        "show_label": false,
+        "name": "audio",
+        "css": {}
+      }
+    },
+    {
+      "id": 11,
+      "type": "file",
+      "props": {
+        "file_count": "single",
+        "show_label": false,
+        "name": "file",
+        "css": {}
+      }
+    },
+    {
+      "id": 12,
+      "type": "video",
+      "props": {
+        "source": "upload",
+        "show_label": false,
+        "name": "video",
+        "css": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "show_label": false,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "props": {
+        "show_label": false,
+        "name": "timeseries",
+        "css": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "dataframe",
+      "props": {
+        "datatype": "str",
+        "row_count": 3,
+        "col_count": 3,
+        "default_value": [
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ]
+        ],
+        "max_rows": 20,
+        "overflow_row_behaviour": "paginate",
+        "show_label": false,
+        "name": "dataframe",
+        "css": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "html",
+      "props": {
+        "default_value": "",
+        "show_label": false,
+        "name": "html",
+        "css": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "json",
+      "props": {
+        "default_value": "\"\"",
+        "show_label": false,
+        "name": "json",
+        "css": {}
+      }
+    },
+    {
+      "id": 18,
+      "type": "markdown",
+      "props": {
+        "default_value": "",
+        "name": "markdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 19,
+      "type": "label",
+      "props": {
+        "show_label": false,
+        "name": "label",
+        "css": {}
+      }
+    },
+    {
+      "id": 20,
+      "type": "highlightedtext",
+      "props": {
+        "show_legend": false,
+        "default_value": "",
+        "show_label": false,
+        "name": "highlightedtext",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1,
+        "children": [
+          {
+            "id": 2
+          },
+          {
+            "id": 3
+          },
+          {
+            "id": 4
+          },
+          {
+            "id": 5
+          },
+          {
+            "id": 6
+          },
+          {
+            "id": 7
+          },
+          {
+            "id": 8
+          },
+          {
+            "id": 9
+          },
+          {
+            "id": 10
+          },
+          {
+            "id": 11
+          },
+          {
+            "id": 12
+          },
+          {
+            "id": 13
+          },
+          {
+            "id": 14
+          },
+          {
+            "id": 15
+          },
+          {
+            "id": 16
+          },
+          {
+            "id": 17
+          },
+          {
+            "id": 18
+          },
+          {
+            "id": 19
+          },
+          {
+            "id": 20
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": []
+}

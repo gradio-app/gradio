@@ -14,7 +14,6 @@ interface CustomWindow extends Window {
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
-declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
 
 interface Component {
@@ -154,6 +153,7 @@ if (window.__gradio_mode__ == "app") {
 			window.launchGradio(config, "#root");
 		})
 		.catch((e) => {
+			console.error(e);
 			window.__gradio_loader__.$set({ status: "error" });
 		});
 }
