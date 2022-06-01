@@ -9,6 +9,6 @@
 	}
 </script>
 
-<Block>
+<Block explicit_call>
 	<slot />
 </Block>
