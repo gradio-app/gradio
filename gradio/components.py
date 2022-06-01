@@ -234,27 +234,11 @@ class IOComponent(Component):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
-        valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
         if rounded is not None:
             self._style["rounded"] = rounded
-        if bg_color is not None:
-            assert bg_color in valid_colors
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            assert text_color in valid_colors
-            self._style["text_color"] = text_color
-        if container_bg_color is not None:
-            assert container_bg_color in valid_colors
-            self._style["container_bg_color"] = container_bg_color
-        if margin is not None:
-            self._style["margin"] = margin
         if border is not None:
             self._style["border"] = border
         if container is not None:
@@ -444,27 +428,6 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         return x
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        container: Optional[bool] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-            margin=margin,
-            border=border,
-            container=container,
-        )
-
 
 class Number(Changeable, Submittable, IOComponent):
     """
@@ -646,21 +609,6 @@ class Number(Changeable, Submittable, IOComponent):
         """
         return y
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
-
 
 class Slider(Changeable, IOComponent):
     """
@@ -807,13 +755,11 @@ class Slider(Changeable, IOComponent):
 
     def style(
         self,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        container: Optional[bool] = None,
     ):
         return IOComponent.style(
             self,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -930,17 +876,6 @@ class Checkbox(Changeable, IOComponent):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
-
-    def style(
-        self,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
 
 
 class CheckboxGroup(Changeable, IOComponent):
@@ -1093,16 +1028,16 @@ class CheckboxGroup(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
     ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
         return IOComponent.style(
             self,
             rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -1239,17 +1174,15 @@ class Radio(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
     ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
         return IOComponent.style(
             self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -1295,6 +1228,16 @@ class Dropdown(Radio):
             visible=visible,
             elem_id=elem_id,
             **kwargs,
+        )
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(
+            self, rounded=rounded, border=border, container=container
         )
 
 
@@ -1602,6 +1545,15 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
     def stream(
         self,
         fn: Callable,
@@ -1620,21 +1572,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
         Streamable.stream(self, fn, inputs, outputs, _js)
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
 
 
 class Video(Changeable, Clearable, Playable, IOComponent):
@@ -1776,6 +1713,15 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
@@ -2078,6 +2024,15 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             )
         Streamable.stream(self, fn, inputs, outputs, _js)
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class File(Changeable, Clearable, IOComponent):
     """
@@ -2149,7 +2104,23 @@ class File(Changeable, Clearable, IOComponent):
         }
 
     def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
+        if isinstance(x, list):
+            return [
+                {
+                    "name": file,
+                    "data": None,
+                    "size": os.path.getsize(file),
+                    "is_example": True,
+                }
+                for file in x
+            ]
+        else:
+            return {
+                "name": x,
+                "data": None,
+                "size": os.path.getsize(x),
+                "is_example": True,
+            }
 
     def preprocess(self, x: List[Dict[str, str]] | None):
         """
@@ -2198,9 +2169,14 @@ class File(Changeable, Clearable, IOComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data[0]["data"], encryption_key
-        )
+        if isinstance(data, list):
+            return self.save_flagged_file(
+                dir, label, None if data is None else data[0]["data"], encryption_key
+            )
+        else:
+            return self.save_flagged_file(
+                dir, label, data["data"], encryption_key, data["name"]
+            )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
@@ -2216,11 +2192,36 @@ class File(Changeable, Clearable, IOComponent):
         """
         if y is None:
             return None
-        return {
-            "name": os.path.basename(y),
-            "size": os.path.getsize(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
+        if isinstance(y, list):
+            return [
+                {
+                    "name": os.path.basename(file),
+                    "size": os.path.getsize(file),
+                    "data": processing_utils.encode_file_to_base64(file),
+                }
+                for file in y
+            ]
+        else:
+            return {
+                "name": os.path.basename(y),
+                "size": os.path.getsize(y),
+                "data": processing_utils.encode_file_to_base64(y),
+            }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Dataframe(Changeable, IOComponent):
@@ -2419,6 +2420,16 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class Timeseries(Changeable, IOComponent):
     """
@@ -2548,6 +2559,16 @@ class Timeseries(Changeable, IOComponent):
             return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
         raise ValueError("Cannot process value as Timeseries data")
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class Variable(IOComponent):
     """
@@ -2577,6 +2598,9 @@ class Variable(IOComponent):
             "value": self.value,
             **IOComponent.get_config(self),
         }
+
+    def style(self):
+        return self
 
 
 ############################
@@ -2711,6 +2735,12 @@ class Label(Changeable, IOComponent):
             "__type__": "update",
         }
 
+    def style(
+        self,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(self, container=container)
+
 
 class HighlightedText(Changeable, IOComponent):
     """
@@ -2737,13 +2767,17 @@ class HighlightedText(Changeable, IOComponent):
         """
         Parameters:
         value (List[Tuple[str, str | Number | None]]): Default value to show
-        color_map (Dict[str, str]): Map between category and respective colors
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
         self.color_map = color_map
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
+                DeprecationWarning,
+            )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.value = self.postprocess(value)
@@ -2816,6 +2850,17 @@ class HighlightedText(Changeable, IOComponent):
 
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        color_map: Optional[Dict[str, str]] = None,
+        container: Optional[bool] = None,
+    ):
+        if color_map is not None:
+            self._style["color_map"] = color_map
+
+        return IOComponent.style(self, rounded=rounded, container=container)
 
 
 class JSON(Changeable, IOComponent):
@@ -2893,6 +2938,9 @@ class JSON(Changeable, IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def style(self, container: Optional[bool] = None):
+        return IOComponent.style(self, container=container)
+
 
 class HTML(Changeable, IOComponent):
     """
@@ -2950,6 +2998,9 @@ class HTML(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 class Gallery(IOComponent):
@@ -3030,24 +3081,16 @@ class Gallery(IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int] = None,
+        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
         height: Optional[str] = None,
+        container: Optional[bool] = None,
     ):
         if grid is not None:
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            margin=margin,
-        )
+        return IOComponent.style(self, rounded=rounded, container=container)
 
 
 class Carousel(IOComponent, Changeable):
@@ -3168,7 +3211,7 @@ class Chatbot(Changeable, IOComponent):
     def __init__(
         self,
         value: Optional[List[Tuple[str, str]]] = None,
-        color_map: Tuple[str, str] = None,
+        color_map: Dict[str, str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3179,13 +3222,19 @@ class Chatbot(Changeable, IOComponent):
         """
         Parameters:
         value (str): Default value to show in chatbot
-        color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
+                DeprecationWarning,
+            )
+
         self.value = self.postprocess(value)
         self.color_map = color_map
+
         IOComponent.__init__(
             self,
             label=label,
@@ -3228,6 +3277,19 @@ class Chatbot(Changeable, IOComponent):
 
         """
         return y
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        color_map: Optional[Dict[str, str]] = None,
+    ):
+        if color_map is not None:
+            self._style["color_map"] = color_map
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Model3D(Changeable, Editable, Clearable, IOComponent):
@@ -3355,6 +3417,15 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class Plot(Changeable, Clearable, IOComponent):
     """
@@ -3431,6 +3502,9 @@ class Plot(Changeable, Clearable, IOComponent):
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
+    def style(self):
+        return self
+
 
 class Markdown(IOComponent, Changeable):
     """
@@ -3480,6 +3554,9 @@ class Markdown(IOComponent, Changeable):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 ############################
@@ -3536,22 +3613,20 @@ class Button(Clickable, Component):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
         full_width: Optional[str] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if bg_color is not None:
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            self._style["text_color"] = text_color
         if full_width is not None:
             self._style["full_width"] = full_width
         if margin is not None:
             self._style["margin"] = margin
-        return self
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
 
 
 class Dataset(Clickable, Component):
@@ -3614,6 +3689,17 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
+
 
 class Interpretation(Component):
     """
@@ -3647,6 +3733,9 @@ class Interpretation(Component):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 class StatusTracker(Component):

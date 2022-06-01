@@ -33,7 +33,6 @@ with gr.Blocks(css=".container { max-width: 800px; margin: auto; }") as demo:
                     label="Enter your prompt", show_label=False, max_lines=1
                 ).style(
                     border=(True, False, True, True),
-                    margin=False,
                     rounded=(True, False, False, True),
                     container=False,
                 )
