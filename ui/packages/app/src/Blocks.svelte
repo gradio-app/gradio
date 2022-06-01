@@ -61,8 +61,8 @@
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
-	
-	const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+
+	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			try {
