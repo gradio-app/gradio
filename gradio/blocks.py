@@ -256,11 +256,13 @@ class Blocks(BlockContext):
         self.app_id = random.getrandbits(64)
         self.thread_limit_set = False
 
-    async def set_thread_limit(self, max_threads=100):
+    async def set_thread_limit(self):
         if self.thread_limit_set:
             return
         self.thread_limit_set = True
-        limiter = CapacityLimiter(total_tokens=100)
+        if self.max_threads is None:
+            return
+        limiter = CapacityLimiter(total_tokens=self.max_threads)
         prev_run_in_thread = anyio.to_thread.run_sync
         anyio.to_thread.run_sync = partial(prev_run_in_thread, limiter=limiter)
 
@@ -351,7 +353,7 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        await self.set_thread_limit(100)
+        await self.set_thread_limit()
 
         if block_fn.preprocess:
             processed_input = []
@@ -550,6 +552,7 @@ class Blocks(BlockContext):
         share: bool = False,
         debug: bool = False,
         enable_queue: bool = None,
+        max_threads: Optional[int] = None,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         prevent_thread_lock: bool = False,
@@ -583,6 +586,7 @@ class Blocks(BlockContext):
         server_name (str | None): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool | None): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+        max_threads (int | None): allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -616,6 +620,7 @@ class Blocks(BlockContext):
         else:
             self.enable_queue = enable_queue or False
 
+        self.max_threads = max_threads
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
