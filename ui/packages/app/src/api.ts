@@ -68,11 +68,12 @@ export const fn = async (
 ) => {
 	const fn_index = payload.fn_index;
 
-	console.log(">", frontend_fn);
 	if (frontend_fn !== undefined) {
+		loading_status.update(fn_index as number, "pending", null, null);
 		payload.data = await frontend_fn(payload.data.concat(output_data));
 	}
 	if (backend_fn == false) {
+		loading_status.update(fn_index, "complete", null, null);
 		return payload;
 	}
 
