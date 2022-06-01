@@ -68,8 +68,9 @@ export const fn = async (
 ) => {
 	const fn_index = payload.fn_index;
 
+	console.log(">", frontend_fn);
 	if (frontend_fn !== undefined) {
-		payload.data = frontend_fn(payload.data.concat(output_data));
+		payload.data = await frontend_fn(payload.data.concat(output_data));
 	}
 	if (backend_fn == false) {
 		return payload;
