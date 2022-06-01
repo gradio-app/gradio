@@ -559,7 +559,7 @@ class Blocks(BlockContext):
         Parameters:
         inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab.
+        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
         auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str | None): If provided, HTML message provided on login page.
@@ -639,10 +639,12 @@ class Blocks(BlockContext):
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
-        # automatically create a shareable link.
-        is_colab = utils.colab_check()
+        # a shareable link must be created.
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            share = True
+            if not self.share:
+                raise ValueError(
+                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
+                )
             if is_colab and not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
