@@ -1,6 +1,23 @@
+<p align="center">
+  <a href="https://gradio.app"><img src="website/homepage/src/assets/img/logos/gradio.svg" alt="gradio"></a> 
+</p>
+<p align="center">
+    <em>Build & share delightful machine learning apps easily</em>
+<br>
+<br>
+<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
+<a href="https://encode.io"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
+<a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
+<a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
+<a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="vite" height=40></a>
+<a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
+<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
+</p>
+
+
+
 [![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)  [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)  [![codecov](https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS)](https://codecov.io/gh/gradio-app/gradio) [![PyPI - Downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/) [![Twitter Follow](https://img.shields.io/twitter/follow/gradio.svg?style=social&label=Follow)](https://twitter.com/gradio)
 
-#  Gradio: Build Machine Learning Web Apps — in Python
 
 Gradio (pronounced GRAY-dee-oh) is an open-source Python library that is used to build machine learning and data science demos and web applications. 
 
