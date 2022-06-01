@@ -533,7 +533,7 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
@@ -559,7 +559,7 @@ class Blocks(BlockContext):
         Parameters:
         inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
+        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
         auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str | None): If provided, HTML message provided on login page.
@@ -582,6 +582,7 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
+        is_colab = utils.colab_check()
         self.dev_mode = False
         if (
             auth
@@ -603,7 +604,11 @@ class Blocks(BlockContext):
             self.enable_queue = enable_queue or False
 
         self.config = self.get_config_file()
-        self.share = share
+        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
+        if share is None:
+            self.share = True if is_colab else False
+        else:
+            self.share = share
         self.encrypt = encrypt
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
