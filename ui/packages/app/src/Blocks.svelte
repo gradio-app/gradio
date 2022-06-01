@@ -9,6 +9,7 @@
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
 	import { tick } from "svelte";
+	import logo from "./images/logo.svg";
 	setupi18n();
 
 	interface Component {
@@ -52,12 +53,12 @@
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
-	export let style: string | null;
+
 	export let enable_queue: boolean;
-	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
+	export let css: string;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -114,7 +115,6 @@
 		acc[next.id] = next;
 		return acc;
 	}, {} as { [id: number]: Component });
-	console.log(instance_map);
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -132,7 +132,7 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
-		console.log(node.id, instance);
+
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {
@@ -160,6 +160,7 @@
 				ready = true;
 
 				await tick();
+
 				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "complete" });
 				}
@@ -342,13 +343,13 @@
 
 		if (color_mode !== null) {
 			if (color_mode === "dark") {
-				mode = "dark";
+				target.classList.add("dark");
 			} else if (color_mode === "system") {
 				use_system_theme();
 			}
 			// light is default, so we don't need to do anything else
 		} else if (url.searchParams.get("__dark-theme") === "true") {
-			mode = "dark";
+			target.classList.add("dark");
 		} else {
 			use_system_theme();
 		}
@@ -364,7 +365,8 @@
 			const is_dark =
 				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
 
-			mode = is_dark ? "dark" : "";
+			if (is_dark) target.classList.add("dark");
+			// mode = is_dark ? "dark" : "";
 		}
 	}
 
@@ -384,7 +386,8 @@
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
-<div class="w-full h-full min-h-screen {mode} flex flex-col">
+
+<div class="w-full h-full min-h-screen flex flex-col">
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={(window.__gradio_mode__ = "app")}
@@ -414,7 +417,7 @@
 			{$_("interface.built_with_Gradio")}
 			<img
 				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
-				src="{static_src}/static/img/logo.svg"
+				src={logo}
 				alt="logo"
 			/>
 		</a>

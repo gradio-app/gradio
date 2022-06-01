@@ -8,7 +8,7 @@
 		"build": "pnpm build:local --filter @gradio/app --emptyOutDir",
 		"build:cdn": "pnpm build:cdn --filter @gradio/app --emptyOutDir",
 		"build:website": "pnpm build:website --filter @gradio/app --emptyOutDir",
-		"preview": "sirv ../gradio/templates/frontend --single --port=3000 --quiet",
+		"preview": "sirv ../gradio/templates/cdn --single --port=3000 --quiet --cors",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",

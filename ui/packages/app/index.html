@@ -4,10 +4,6 @@
 	style="
 		margin: 0;
 		padding: 0;
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-		height: 100%;
 	"
 >
 	<head>
@@ -65,17 +61,15 @@
 	</head>
 
 	<body
-		style="
-			margin: 0;
-			padding: 0;
-			display: flex;
-			flex-direction: column;
-			flex-grow: 1;
-		"
+		style="width: 100%;
+		margin: 0;
+		padding: 0;"
 	>
-		<div
-			id="root"
-			style="display: flex; flex-direction: column; flex-grow: 1"
-		></div>
+
+	<gradio-app><div
+		id="root"
+		style="display: flex; flex-direction: column; flex-grow: 1"
+	></div></gradio-app>
+		
 	</body>
 </html>
