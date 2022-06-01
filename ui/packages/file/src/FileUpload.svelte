@@ -17,7 +17,6 @@
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
-	export let style: string;
 	export let show_label: boolean;
 	export let file_count: string;
 

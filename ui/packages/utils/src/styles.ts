@@ -1,3 +1,157 @@
+type BoolTuple = [boolean, boolean, boolean, boolean];
+type BoolOrTuple = boolean | BoolTuple;
+
+export interface Styles {
+	rounded?: BoolOrTuple;
+	border?: BoolOrTuple;
+	container?: boolean;
+	grid?: number | Array<number>;
+	height?: "auto" | string;
+	full_width?: boolean;
+	equal_height?: boolean;
+	mobile_collapse?: boolean;
+	visible?: boolean;
+	item_container?: boolean;
+	color_map?: Record<string, string>;
+	label_container?: boolean;
+}
+
+type PartialRecord<K extends keyof any, T> = {
+	[P in K]?: T;
+};
+
+type ProcessedStyles = PartialRecord<keyof Styles, string> & {
+	classes: string;
+};
+
+const get_style = <T extends keyof Styles>(styles: Styles, key: T) => {
+	return style_handlers[key](styles[key]!);
+};
+
+export function get_styles(
+	styles: Styles,
+	allowed_styles: Array<keyof Styles>
+): ProcessedStyles {
+	const processed_styles = allowed_styles.reduce((acc, next) => {
+		if (styles[next] === undefined || !style_handlers[next]) acc[next] = " ";
+		else {
+			acc[next] = ` ${get_style(styles, next)} `;
+		}
+		return acc;
+	}, {} as ProcessedStyles);
+
+	processed_styles.classes = ` ${Object.values(processed_styles)
+		.join(" ")
+		.replace(/\s+/g, " ")
+		.trim()} `;
+
+	return processed_styles;
+}
+
+type StyleHandlers = {
+	[K in keyof Styles]: (style: Exclude<Styles[K], null | undefined>) => string;
+};
+
+const style_handlers: StyleHandlers = {
+	rounded(rounded) {
+		let _style: BoolTuple = Array.isArray(rounded)
+			? rounded
+			: bool_to_tuple(rounded);
+
+		return tuple_to_class(
+			_style,
+			"!rounded-",
+			["tl", "tr", "br", "bl"],
+			["lg", "none"]
+		);
+	},
+
+	border(border) {
+		let _style: BoolTuple = Array.isArray(border)
+			? border
+			: bool_to_tuple(border);
+
+		return tuple_to_class(
+			_style,
+			"!border-",
+			["t", "r", "b", "l"],
+			[false, "0"]
+		);
+	},
+	container(container_visible) {
+		return container_visible
+			? ""
+			: `!p-0 !m-0 !border-0 !shadow-none !overflow-visible !bg-transparent`;
+	},
+	label_container(visible) {
+		return visible
+			? ""
+			: `!border-0 !shadow-none !overflow-visible !bg-transparent`;
+	},
+	grid(grid) {
+		let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
+		let _grid = Array.isArray(grid) ? grid : [grid];
+
+		return [0, 0, 0, 0, 0, 0]
+			.map(
+				(_, i) =>
+					`${grid_map[i]}grid-cols-${_grid?.[i] || _grid?.[_grid?.length - 1]}`
+			)
+			.join(" ");
+	},
+	height(height) {
+		return height === "auto" ? "auto" : "";
+	},
+	full_width(full_width) {
+		return full_width ? "!w-full" : "";
+	},
+	equal_height(equal_height) {
+		return equal_height ? "" : "unequal-height";
+	},
+	mobile_collapse(mobile_collapse) {
+		return mobile_collapse ? "flex-col" : "mobile-row";
+	},
+	visible(visible) {
+		return visible ? "!hidden" : "";
+	},
+	item_container(visible) {
+		return visible ? "" : "!border-none";
+	}
+} as const;
+
+export function bool_to_tuple(bool: boolean): BoolTuple {
+	return !!bool ? [true, true, true, true] : [false, false, false, false];
+}
+
+export function tuple_to_class(
+	tuple: BoolTuple,
+	prefix: string = "",
+	position_map: [string, string, string, string],
+	condition_map: [string, string] | [false, string] | [string, false]
+) {
+	const [_true_class, _false_class] = condition_map;
+
+	return tuple
+		.map((condition, i) => {
+			if (!_true_class && condition) {
+				return "";
+			} else if (!_false_class && !condition) {
+				return "";
+			}
+
+			const suffix = !condition_map[0]
+				? condition_map[1]
+				: condition
+				? condition_map[0]
+				: condition_map[1];
+
+			return `${prefix}${position_map[i]}-${suffix}`;
+		})
+		.join(" ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
 export const create_classes = (
 	styles: Record<string, any>,
 	prefix: string = ""
@@ -13,26 +167,6 @@ export const create_classes = (
 				target_styles[propname] = styles[prop];
 			}
 		}
-	}
-
-	switch (target_styles.visible) {
-		case false:
-			classes.push("!hidden");
-			break;
-	}
-
-	if (target_styles.hasOwnProperty("rounded")) {
-		if (!Array.isArray(target_styles.rounded)) {
-			target_styles.rounded = !!target_styles.rounded
-				? [true, true, true, true]
-				: [false, false, false, false];
-		}
-
-		let rounded_map = ["tl", "tr", "br", "bl"];
-
-		(target_styles.rounded as boolean[]).forEach((rounded, i) => {
-			classes.push(`!rounded-${rounded_map[i]}-${!!rounded ? "lg" : "none"}`);
-		});
 	}
 
 	if (target_styles.hasOwnProperty("margin")) {

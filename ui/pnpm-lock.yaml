@@ -33,7 +33,7 @@ importers:
       tailwindcss: ^3.0.23
       tinyspy: ^0.3.0
       vite: ^2.9.5
-      vitest: ^0.10.0
+      vitest: ^0.12.7
     dependencies:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
@@ -63,7 +63,7 @@ importers:
       tailwindcss: 3.0.23_autoprefixer@10.4.4
       tinyspy: 0.3.0
       vite: 2.9.5
-      vitest: 0.10.0_happy-dom@2.49.0
+      vitest: 0.12.7_happy-dom@2.49.0
     devDependencies:
       '@types/three': 0.138.0
 
@@ -128,7 +128,10 @@ importers:
       svelte-i18n: 3.3.13_svelte@3.47.0
 
   packages/atoms:
-    specifiers: {}
+    specifiers:
+      '@gradio/utils': workspace:^0.0.1
+    dependencies:
+      '@gradio/utils': link:../utils
 
   packages/audio:
     specifiers:
@@ -143,7 +146,10 @@ importers:
       svelte-range-slider-pips: 2.0.2
 
   packages/button:
-    specifiers: {}
+    specifiers:
+      '@gradio/utils': workspace:^0.0.1
+    dependencies:
+      '@gradio/utils': link:../utils
 
   packages/carousel:
     specifiers: {}
@@ -176,8 +182,10 @@ importers:
   packages/chatbot:
     specifiers:
       '@gradio/theme': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/theme': link:../theme
+      '@gradio/utils': link:../utils
 
   packages/file:
     specifiers:
@@ -231,7 +239,10 @@ importers:
     specifiers: {}
 
   packages/label:
-    specifiers: {}
+    specifiers:
+      '@gradio/utils': workspace:^0.0.1
+    dependencies:
+      '@gradio/utils': link:../utils
 
   packages/markdown:
     specifiers: {}
@@ -263,10 +274,12 @@ importers:
   packages/table:
     specifiers:
       '@gradio/upload': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       d3-dsv: ^3.0.1
       dequal: ^2.0.2
     dependencies:
       '@gradio/upload': link:../upload
+      '@gradio/utils': link:../utils
       d3-dsv: 3.0.1
       dequal: 2.0.2
 
@@ -1650,7 +1663,7 @@ packages:
       supports-color: 7.2.0
 
   /check-error/1.0.2:
-    resolution: {integrity: sha1-V00xLt2Iu13YkS6Sht1sCu1KrII=}
+    resolution: {integrity: sha512-BrgHpW9NURQgzoNyjfq0Wu6VFO6D7IZEmJNdtgNqpzGG8RuNFHt2jQxWlAs4HMe119chBnv+34syEZtc6IhLtA==}
     dev: false
 
   /chokidar/3.5.3:
@@ -1759,7 +1772,7 @@ packages:
     dev: false
 
   /core-util-is/1.0.2:
-    resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
+    resolution: {integrity: sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=}
 
   /cosmiconfig/7.0.1:
     resolution: {integrity: sha512-a1YWNUV2HwGimB7dU2s1wUMurNKjpx60HxBB6xUM8Re+2s1g1IIfJvFR0/iCF+XHdE0GMTKTuLR32UQff4TEyQ==}
@@ -2974,7 +2987,7 @@ packages:
     dev: false
 
   /isarray/1.0.0:
-    resolution: {integrity: sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==}
+    resolution: {integrity: sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE=}
 
   /isexe/2.0.0:
     resolution: {integrity: sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=}
@@ -3243,7 +3256,6 @@ packages:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /needle/2.9.1:
     resolution: {integrity: sha512-6R9fqJ5Zcmf+uYaFgdIHmLwNldn5HbK8L5ybn7Uz+ylX/rnOsSp1AHcvQSrCaFN+qNM1wpymHqD7mVasEOlHGQ==}
@@ -3656,7 +3668,6 @@ packages:
       nanoid: 3.3.4
       picocolors: 1.0.0
       source-map-js: 1.0.2
-    dev: true
 
   /postcss/8.4.6:
     resolution: {integrity: sha512-OovjwIzs9Te46vlEx7+uXB0PLijpwjXGKXjVGGPIGubGpq7uh5Xgf6D6FiJ/SzJMBosHDp6a2hiXOS97iBXcaA==}
@@ -4541,8 +4552,8 @@ packages:
     engines: {node: '>=4'}
     dev: false
 
-  /tinypool/0.1.2:
-    resolution: {integrity: sha512-fvtYGXoui2RpeMILfkvGIgOVkzJEGediv8UJt7TxdAOY8pnvUkFg/fkvqTfXG9Acc9S17Cnn1S4osDc2164guA==}
+  /tinypool/0.1.3:
+    resolution: {integrity: sha512-2IfcQh7CP46XGWGGbdyO4pjcKqsmVqFAPcXfPxcPXmOWt9cYkTP9HcDmGgsfijYoAEc4z9qcpM/BaBz46Y9/CQ==}
     engines: {node: '>=14.0.0'}
     dev: false
 
@@ -4663,10 +4674,9 @@ packages:
       rollup: 2.66.1
     optionalDependencies:
       fsevents: 2.3.2
-    dev: true
 
-  /vitest/0.10.0_happy-dom@2.49.0:
-    resolution: {integrity: sha512-8UXemUg9CA4QYppDTsDV76nH0e1p6C8lV9q+o9i0qMSK9AQ7vA2sjoxtkDP0M+pwNmc3ZGYetBXgSJx0M1D/gg==}
+  /vitest/0.12.7_happy-dom@2.49.0:
+    resolution: {integrity: sha512-rQsb9i/zEw+HtiTNr+5p+tOUMu0Ojp0jtZc/6FfE4T1xL2bhMq74tfUgu7hav3rFF9eGKpJeZBVlEszjdCuYQg==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
@@ -4687,15 +4697,17 @@ packages:
       '@types/chai': 4.3.1
       '@types/chai-subset': 1.3.3
       chai: 4.3.6
+      debug: 4.3.4
       happy-dom: 2.49.0
       local-pkg: 0.4.1
-      tinypool: 0.1.2
+      tinypool: 0.1.3
       tinyspy: 0.3.2
-      vite: 2.9.5
+      vite: 2.9.9
     transitivePeerDependencies:
       - less
       - sass
       - stylus
+      - supports-color
     dev: false
 
   /webidl-conversions/3.0.1:
@@ -4742,7 +4754,7 @@ packages:
   /wide-align/1.1.5:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
-      string-width: 1.0.2
+      string-width: 4.2.3
     dev: true
 
   /worktop/0.8.0-next.14:

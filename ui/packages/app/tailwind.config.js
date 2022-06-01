@@ -3,6 +3,22 @@ const colors = require("tailwindcss/colors");
 const defaultTheme = require("tailwindcss/defaultTheme");
 const production = !process.env.ROLLUP_WATCH;
 
+const allowed_colors = [
+	"red",
+	"green",
+	"blue",
+	"yellow",
+	"purple",
+	"teal",
+	"orange",
+	"cyan",
+	"lime",
+	"pink",
+	"black",
+	"grey",
+	"gray"
+];
+
 module.exports = {
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
@@ -42,6 +58,18 @@ module.exports = {
 	},
 	plugins: [require("@tailwindcss/forms")],
 	safelist: [
+		...allowed_colors.reduce(
+			(acc, col) => [
+				...acc,
+				`!text-${col}-500`,
+				`dark:!text-${col}-300`,
+				`!bg-${col}-200`,
+				`dark:!bg-${col}-700`
+			],
+			[]
+		),
+		"!text-gray-700",
+		"dark:!text-gray-50",
 		"min-h-[350px]",
 		"max-h-[55vh]",
 		"xl:min-h-[450px]",
