@@ -25,10 +25,8 @@ with demo:
                     with gr.Row():
                         correct_btn = gr.Button(
                             "Correct",
-                        ).style(bg_color="green", text_color="black", full_width=True)
-                        incorrect_btn = gr.Button("Incorrect").style(
-                            bg_color="pink", text_color="black", full_width=True
-                        )
+                        ).style(full_width=True)
+                        incorrect_btn = gr.Button("Incorrect").style(full_width=True)
 
         with gr.TabItem("Results"):
             results = gr.Variable(value={})
