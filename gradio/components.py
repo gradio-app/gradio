@@ -3580,9 +3580,7 @@ class Dataset(Clickable, Component):
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.components = (
-            components  # [get_component_instance(c).unrender() for c in components]
-        )
+        self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
         self.headers = headers or [c.label for c in self.components]
         self.samples = samples
@@ -3694,13 +3692,18 @@ def component(cls_name: str) -> Component:
     return obj
 
 
-def get_component_instance(comp: str | dict | Component) -> Component:
+def get_component_instance(comp: str | dict | Component, render=True) -> Component:
     if isinstance(comp, str):
-        return component(comp)
+        component_obj = component(comp)
+        if not (render):
+            component_obj.unrender()
+        return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = component_or_layout_class(name)
         component_obj = component_cls(**comp)
+        if not (render):
+            component_obj.unrender()
         return component_obj
     elif isinstance(comp, Component):
         return comp
