@@ -14,7 +14,6 @@
 	export let value: Array<string> | null = null;
 	export let style: Record<string, unknown> = {};
 
-	$: console.log(">", value)
 	let selected_image: number | null = null;
 
 	$: previous =
