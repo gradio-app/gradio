@@ -132,7 +132,6 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
-
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {
