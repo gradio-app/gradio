@@ -310,8 +310,16 @@ class Blocks(BlockContext):
                     event_method = getattr(original_mapping[target], trigger)
                     event_method(fn=fn, **dependency)
 
+        # Handle case that blocks is an interface (make it usable with Series/Parallel)
+        
         return blocks
 
+    def __call__(self, *params):
+        """
+        Allows Blocks to be called as a function, e.g. blocks(params)
+        """
+        raise NotImplementedError("Blocks cannot be called as a function yet")
+    
     def render(self):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
