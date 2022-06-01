@@ -2104,7 +2104,23 @@ class File(Changeable, Clearable, IOComponent):
         }
 
     def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
+        if isinstance(x, list):
+            return [
+                {
+                    "name": file,
+                    "data": None,
+                    "size": os.path.getsize(file),
+                    "is_example": True,
+                }
+                for file in x
+            ]
+        else:
+            return {
+                "name": x,
+                "data": None,
+                "size": os.path.getsize(x),
+                "is_example": True,
+            }
 
     def preprocess(self, x: List[Dict[str, str]] | None):
         """
@@ -2153,9 +2169,14 @@ class File(Changeable, Clearable, IOComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data[0]["data"], encryption_key
-        )
+        if isinstance(data, list):
+            return self.save_flagged_file(
+                dir, label, None if data is None else data[0]["data"], encryption_key
+            )
+        else:
+            return self.save_flagged_file(
+                dir, label, data["data"], encryption_key, data["name"]
+            )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
@@ -2171,11 +2192,27 @@ class File(Changeable, Clearable, IOComponent):
         """
         if y is None:
             return None
-        return {
-            "name": os.path.basename(y),
-            "size": os.path.getsize(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
+        if isinstance(y, list):
+            return [
+                {
+                    "name": os.path.basename(file),
+                    "size": os.path.getsize(file),
+                    "data": processing_utils.encode_file_to_base64(file),
+                }
+                for file in y
+            ]
+        else:
+            return {
+                "name": os.path.basename(y),
+                "size": os.path.getsize(y),
+                "data": processing_utils.encode_file_to_base64(y),
+            }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def style(
         self,

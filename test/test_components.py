@@ -922,7 +922,7 @@ class TestFile(unittest.TestCase):
             to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
             self.assertEqual("file_input/1", to_save)
             restored = file_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "file_input/1")
+            self.assertEqual(restored["name"], "file_input/1")
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
