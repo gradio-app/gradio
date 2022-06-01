@@ -313,9 +313,11 @@ class Blocks(BlockContext):
                     event_method(fn=fn, **dependency)
 
         if config["mode"] == "interface":
-            warnings.warn("This Interface was loaded as a Blocks object. Some Interface"
-                          "-specific functions may not work.")
-        
+            warnings.warn(
+                "This Interface was loaded as a Blocks object. Some Interface"
+                "-specific functions may not work."
+            )
+
         blocks.api_mode = True
         return blocks
 
@@ -332,35 +334,38 @@ class Blocks(BlockContext):
             for i, input_id in enumerate(dependency["inputs"]):
                 block = self.blocks[input_id]
                 if getattr(block, "stateful", False):
-                    raise ValueError("Cannot call Blocks object as a function if any of"
-                                     " the inputs are stateful.")
+                    raise ValueError(
+                        "Cannot call Blocks object as a function if any of"
+                        " the inputs are stateful."
+                    )
                 else:
                     serialized_input = block.serialize(params[i], True)
                     serialized_params.append(serialized_input)
         else:
             serialized_params = params
 
-
         output = (await self.process_api(fn_index, params))["data"]
-        
+
         if self.api_mode:
             output_copy = copy.deepcopy(output)
             deserialized_output = []
             for o, output_id in enumerate(dependency["outputs"]):
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
-                    raise ValueError("Cannot call Blocks object as a function if any of"
-                                     " the outputs are stateful.")
+                    raise ValueError(
+                        "Cannot call Blocks object as a function if any of"
+                        " the outputs are stateful."
+                    )
                 else:
                     deserialized = block.deserialize(output_copy[o])
                     deserialized_output.append(deserialized)
         else:
             deserialized_output = output
-        
+
         if len(output) == 1:
             return output[0]
         return output
-           
+
     def render(self):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
@@ -372,7 +377,7 @@ class Blocks(BlockContext):
     async def call_function(self, fn_index, processed_input):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-        
+
         start = time.time()
         if inspect.iscoroutinefunction(block_fn.fn):
             prediction = await block_fn.fn(*processed_input)
@@ -380,11 +385,11 @@ class Blocks(BlockContext):
             prediction = await run_in_threadpool(block_fn.fn, *processed_input)
         duration = time.time() - start
         return prediction, duration
-        
+
     async def process_api(
         self,
         fn_index: int,
-        raw_input: List[Any],        
+        raw_input: List[Any],
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -410,9 +415,9 @@ class Blocks(BlockContext):
                     processed_input.append(block.preprocess(raw_input[i]))
         else:
             processed_input = raw_input
-        
+
         predictions, duration = await self.call_function(fn_index, processed_input)
-        
+
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
         if type(predictions) is dict and len(predictions) > 0:
@@ -433,7 +438,7 @@ class Blocks(BlockContext):
                 )
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
-        
+
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
