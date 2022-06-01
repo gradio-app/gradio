@@ -4,11 +4,12 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Block, BlockTitle } from "@gradio/atoms";
+	import { BlockTitle } from "@gradio/atoms";
 	import { create_classes } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
-	export let style: Record<string, string> = {};
+	export let style: Styles = {};
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;
@@ -23,7 +24,7 @@
 	$: dispatch("change", value);
 </script>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col ">
 	<div class="flex justify-between">
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
