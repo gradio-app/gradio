@@ -7,12 +7,12 @@ import random
 import sys
 import time
 import webbrowser
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
-from anyio import CapacityLimiter
-import anyio
-
-from fastapi.concurrency import run_in_threadpool
 from functools import partial
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+import anyio
+from anyio import CapacityLimiter
+from fastapi.concurrency import run_in_threadpool
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
