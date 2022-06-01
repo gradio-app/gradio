@@ -332,8 +332,6 @@
 		}
 	}
 
-	let mode = "";
-
 	function handle_darkmode() {
 		let url = new URL(window.location.toString());
 
@@ -366,15 +364,12 @@
 				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
 
 			if (is_dark) target.classList.add("dark");
-			// mode = is_dark ? "dark" : "";
 		}
 	}
 
-	onMount(() => {
-		if (window.__gradio_mode__ !== "website") {
-			handle_darkmode();
-		}
-	});
+	if (window.__gradio_mode__ !== "website") {
+		handle_darkmode();
+	}
 </script>
 
 <svelte:head>

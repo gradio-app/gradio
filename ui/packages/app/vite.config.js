@@ -13,14 +13,15 @@ import {
 import tailwind from "tailwindcss";
 import nested from "tailwindcss/nesting/index.js";
 
-const GRADIO_VERSION = process.env.GRADIO_VERSION || "asdasdasdasd";
+const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
+const TEST_CDN = !!process.env.TEST_CDN;
+const CDN = TEST_CDN
+	? "http://localhost:4321/"
+	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const CDN_URL =
-		mode === "production:cdn"
-			? `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`
-			: "/";
+	const CDN_URL = mode === "production:cdn" ? CDN : "/";
 	const production =
 		mode === "production:cdn" ||
 		mode === "production:local" ||

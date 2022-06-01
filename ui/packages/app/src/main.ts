@@ -214,6 +214,8 @@ function create_custom_element() {
 		async connectedCallback() {
 			const space = this.getAttribute("space");
 
+			console.log(space);
+
 			const config = await handle_config(this.root, space);
 			console.log("mount");
 			mount_app(config, this.root, this.wrapper);
