@@ -7,7 +7,7 @@
 <br>
 <a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
 <a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
-<a href="https://encode.io"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
+<a href="https://github.com/encode/"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
 <a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
 <a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
 <a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="vite" height=40></a>
