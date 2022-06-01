@@ -22,6 +22,7 @@ class Parallel(gradio.Interface):
         outputs = []
 
         for io in interfaces:
+            assert isinstance(io, gradio.Interface), "Parallel can only be used with Interface objects"
             fns.extend(io.predict)
             outputs.extend(io.output_components)
 
@@ -52,7 +53,10 @@ class Series(gradio.Interface):
         Returns:
         (Interface): an Interface object connecting the given models
         """
-        fns = [io.predict for io in interfaces]
+        fns = []
+        for io in interfaces:
+            assert isinstance(io, gradio.Interface), "Series can only be used with Interface objects"
+            fns.append(io.predict)
 
         def connected_fn(
             *data,

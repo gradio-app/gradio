@@ -11,12 +11,11 @@ import numbers
 import operator
 import os
 import shutil
-import sys
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
 import numpy as np
@@ -26,7 +25,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block
 from gradio.events import (
     Changeable,
     Clearable,

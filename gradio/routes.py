@@ -277,8 +277,11 @@ class App(FastAPI):
                 session_state = app.state_holder[body.session_hash]
             else:
                 session_state = {}
-            try:
-                output = await app.blocks.process_api(body, username, session_state)
+            try:               
+                raw_input = body.data
+                fn_index = body.fn_index
+                output = await app.blocks.process_api(fn_index, raw_input, 
+                                                      username, session_state)
             except BaseException as error:
                 if app.blocks.show_error:
                     traceback.print_exc()
