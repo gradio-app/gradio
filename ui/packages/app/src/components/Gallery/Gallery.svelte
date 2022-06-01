@@ -14,6 +14,7 @@
 	export let value: Array<string> | null = null;
 	export let style: Record<string, unknown> = {};
 
+	$: console.log(">", value)
 	let selected_image: number | null = null;
 
 	$: previous =
@@ -117,6 +118,7 @@
 					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
 					{#each value as image, i}
+						{console.log}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
