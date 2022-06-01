@@ -8,8 +8,11 @@ import sys
 import time
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from anyio import CapacityLimiter
+import anyio
 
 from fastapi.concurrency import run_in_threadpool
+from functools import partial
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
@@ -251,6 +254,15 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+        self.thread_limit_set = False
+
+    async def set_thread_limit(self, max_threads=100):
+        if self.thread_limit_set:
+            return
+        self.thread_limit_set = True
+        limiter = CapacityLimiter(total_tokens=100)
+        prev_run_in_thread = anyio.to_thread.run_sync
+        anyio.to_thread.run_sync = partial(prev_run_in_thread, limiter=limiter)
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
@@ -338,6 +350,8 @@ class Blocks(BlockContext):
         fn_index = data.fn_index
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+
+        await self.set_thread_limit(100)
 
         if block_fn.preprocess:
             processed_input = []
