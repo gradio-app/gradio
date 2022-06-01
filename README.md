@@ -5,18 +5,33 @@
     <em>Build & share delightful machine learning apps easily</em>
 <br>
 <br>
+<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
 <a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
 <a href="https://encode.io"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
 <a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
 <a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
 <a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="vite" height=40></a>
 <a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
-<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
+<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/huggingface.svg" alt="fastapi" height=40></a>
 </p>
 
-
-
-[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)  [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)  [![codecov](https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS)](https://codecov.io/gh/gradio-app/gradio) [![PyPI - Downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/) [![Twitter Follow](https://img.shields.io/twitter/follow/gradio.svg?style=social&label=Follow)](https://twitter.com/gradio)
+<p align="center">
+<a href="https://circleci.com/gh/gradio-app/gradio" target="_blank">
+    <img src="https://circleci.com/gh/gradio-app/gradio.svg?style=svg" alt="circleci">
+</a>
+<a href="https://badge.fury.io/py/gradio" target="_blank">
+    <img src="https://badge.fury.io/py/gradio.svg" alt="pypi">
+</a>
+<a href="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS" target="_blank">
+    <img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS" alt="Codecov">
+</a>
+<a href="https://pypi.org/project/gradio/" target="_blank">
+    <img src="https://img.shields.io/pypi/dm/gradio" alt="pypi">
+</a>
+<a href="https://twitter.com/gradio " target="_blank">
+    <img src="https://img.shields.io/twitter/follow/gradio.svg?style=social&label=Follow" alt="twitter">
+</a>
+</p>
 
 
 Gradio (pronounced GRAY-dee-oh) is an open-source Python library that is used to build machine learning and data science demos and web applications. 
