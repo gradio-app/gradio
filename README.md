@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://gradio.app"><img src="website/homepage/src/assets/img/logos/gradio.svg" alt="gradio"></a> 
+  <a href="https://gradio.app"><img src="website/homepage/src/assets/img/logos/gradio.svg" alt="gradio" width=300></a> 
 </p>
 <p align="center">
     <em>Build & share delightful machine learning apps easily</em>
