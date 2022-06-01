@@ -123,7 +123,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
-				console.log(name);
+				console.error("failed to load: " + name);
 				rej(e);
 			}
 		});
@@ -163,6 +163,7 @@
 				}
 			})
 			.catch((e) => {
+				console.error(e);
 				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "error" });
 				}

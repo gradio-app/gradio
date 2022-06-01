@@ -82,7 +82,7 @@ import gradio as gr
 
 gr.Interface(fn=predict,
              inputs=["text", "state"],
-             outputs=["text", "state"]).launch()
+             outputs=["chatbot", "state"]).launch()
 ```
 
 This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):

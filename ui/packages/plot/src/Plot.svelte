@@ -11,12 +11,14 @@
 </svelte:head>
 
 <script lang="ts">
-	export let elem_id: string = "";
-	export let visible: boolean = true;
+	import Plotly from "plotly.js-dist-min";
+	import { Plot as PlotIcon } from "@gradio/icons";
+	
+	import { afterUpdate, onMount } from "svelte";
+
+	// export let visible: boolean = true;
 	export let value: null | string;
 	export let theme: string;
-	import { afterUpdate, onMount} from "svelte";
-	import Plotly from "plotly.js-dist-min";
 
 	// Bokeh
 	let bokehLoaded = false
@@ -65,10 +67,14 @@
 	<div id="bokehDiv"/>
 {:else if value && value["type"] == "matplotlib"}
 	<div
-		class="output-image w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
+		class="output-image w-full max-h-80 flex justify-center items-center  relative"
 		{theme}
 	>
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<img  class="w-full h-full object-contain" src={value["plot"]} />
+	</div>
+{:else}
+	<div class="h-full min-h-[15rem] flex justify-center items-center">
+		<div class="h-5 dark:text-white opacity-50"><PlotIcon/></div>
 	</div>
 {/if}

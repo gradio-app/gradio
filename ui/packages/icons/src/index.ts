@@ -16,3 +16,4 @@ export { default as TextHighlight } from "./TextHighlight.svelte";
 export { default as JSON } from "./JSON.svelte";
 export { default as Tree } from "./Tree.svelte";
 export { default as Chat } from "./Chat.svelte";
+export { default as Plot } from "./Plot.svelte";
