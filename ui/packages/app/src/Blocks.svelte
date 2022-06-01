@@ -61,13 +61,15 @@
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
-
+	
+	const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			try {
-				d.frontend_fn = new Function(
+				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
-					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+					`let result = await (${d.js})(...__fn_args);
+					return ${d.outputs.length} === 1 ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
