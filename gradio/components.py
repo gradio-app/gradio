@@ -3615,9 +3615,12 @@ class Button(Clickable, Component):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         full_width: Optional[str] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         if full_width is not None:
             self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
 
         return IOComponent.style(
             self,

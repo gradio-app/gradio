@@ -4,6 +4,7 @@ type BoolOrTuple = boolean | BoolTuple;
 export interface Styles {
 	rounded?: BoolOrTuple;
 	border?: BoolOrTuple;
+	margin?: BoolOrTuple;
 	container?: boolean;
 	grid?: number | Array<number>;
 	height?: "auto" | string;
@@ -78,6 +79,13 @@ const style_handlers: StyleHandlers = {
 			[false, "0"]
 		);
 	},
+	margin(margin) {
+		let _style: BoolTuple = Array.isArray(margin)
+			? margin
+			: bool_to_tuple(margin);
+
+		return tuple_to_class(_style, "!m", ["t", "r", "b", "l"], [false, "0"]);
+	},
 	container(container_visible) {
 		return container_visible
 			? ""
@@ -112,7 +120,7 @@ const style_handlers: StyleHandlers = {
 		return mobile_collapse ? "flex-col" : "mobile-row";
 	},
 	visible(visible) {
-		return visible ? "!hidden" : "";
+		return visible ? "" : "!hidden";
 	},
 	item_container(visible) {
 		return visible ? "" : "!border-none";

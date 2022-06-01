@@ -61,7 +61,7 @@
 	}
 
 	.row.gr-gap.mobile-row > *:not(.absolute) + * {
-		@apply !ml-3 !mt-0;
+		@apply ml-3 mt-0;
 	}
 
 	.row.gr-form-gap > .form + .form {

@@ -61,7 +61,7 @@
 		(typeof style.rounded === "boolean" && style.rounded);
 
 	$: rounded_style = get_styles({ rounded: rounded }, ["rounded"]).classes;
-	$: visible_style = get_styles({ visible }, ["visible"]);
+	$: visible_style = get_styles({ visible }, ["visible"]).classes;
 </script>
 
 <svelte:element
