@@ -12,6 +12,23 @@ export const ordered_colors = [
 	"lime",
 	"pink"
 ] as const;
+interface ColorPair {
+	primary: number;
+	secondary: number;
+}
+
+interface Colors {
+	red: ColorPair;
+	green: ColorPair;
+	blue: ColorPair;
+	yellow: ColorPair;
+	purple: ColorPair;
+	teal: ColorPair;
+	orange: ColorPair;
+	cyan: ColorPair;
+	lime: ColorPair;
+	pink: ColorPair;
+}
 
 // https://play.tailwindcss.com/ZubQYya0aN
 export const color_values = [
@@ -35,5 +52,5 @@ export const colors = color_values.reduce(
 			secondary: tw_colors[color][secondary]
 		}
 	}),
-	{}
+	{} as Colors
 );

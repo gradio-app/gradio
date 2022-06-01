@@ -3,6 +3,9 @@
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 
+	import { get_styles } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
+
 	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
 
@@ -13,6 +16,7 @@
 	export let row_count: [number, "fixed" | "dynamic"];
 
 	export let editable = true;
+	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
 
@@ -450,6 +454,8 @@
 	}
 
 	let dragging = false;
+
+	$: ({ classes } = get_styles(style, ["rounded"]));
 </script>
 
 <svelte:window
@@ -466,7 +472,7 @@
 		</p>
 	{/if}
 	<div
-		class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
+		class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
 		class:border-green-400={dragging}
 	>
 		<Upload
@@ -491,7 +497,7 @@
 						{#each _headers as { value, id }, i (id)}
 							<th
 								bind:this={els[id].cell}
-								class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
+								class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none {classes}"
 								class:bg-orange-50={header_edit === id}
 								class:dark:bg-transparent={header_edit === id}
 								class:rounded-tl-lg={i === 0}
@@ -549,7 +555,7 @@
 									on:click={() => handle_cell_click(id)}
 									on:dblclick={() => start_edit(id)}
 									on:keydown={(e) => handle_keydown(e, i, j, id)}
-									class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
+									class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative {classes}"
 								>
 									<div
 										class:border-transparent={selected !== id}
