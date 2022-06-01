@@ -12,7 +12,7 @@
 <a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
 <a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="vite" height=40></a>
 <a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
-<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/huggingface.svg" alt="fastapi" height=40></a>
+<a href="https://hf.co/"><img src="website/homepage/src/assets/img/logos/huggingface.svg" alt="huggingface" height=40></a>
 </p>
 
 <p align="center">
