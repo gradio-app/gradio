@@ -3,16 +3,6 @@
 </p>
 <p align="center">
     <em>Build & share delightful machine learning apps easily</em>
-<br>
-<br>
-<a href="https://hf.co/"><img src="website/homepage/src/assets/img/logos/huggingface_mini.svg" alt="huggingface" height=40></a>
-<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
-<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
-<a href="https://github.com/encode/"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
-<a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
-<a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
-<a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="pnpm" height=40></a>
-<a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
 </p>
 
 <p align="center">
@@ -49,6 +39,19 @@ Gradio is useful for:
 * **Debugging** your model interactively during development using built-in manipulation and interpretation tools
 
 **You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
+
+
+## Open Source Stack
+<p>
+<a href="https://hf.co/"><img src="website/homepage/src/assets/img/logos/huggingface_mini.svg" alt="huggingface" height=40></a>
+<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
+<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
+<a href="https://github.com/encode/"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
+<a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
+<a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
+<a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="pnpm" height=40></a>
+<a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
+</p>
 
 
 ## Quickstart
