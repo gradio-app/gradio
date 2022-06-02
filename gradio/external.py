@@ -340,8 +340,9 @@ def get_spaces_blocks(model_name, config):
                     if len(outputs) == 1:
                         output = output[0]
                     return output
+
                 return fn
-            
+
             fn = get_fn(deepcopy(dependency["outputs"]), d)
             fns.append(fn)
         else:

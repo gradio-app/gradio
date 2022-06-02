@@ -46,7 +46,10 @@
 					  }
 					: (this.result as string);
 				if (all_file_data.length === files.length) {
-					dispatch("load", file_count == "single" ? all_file_data[0] : all_file_data);
+					dispatch(
+						"load",
+						file_count == "single" ? all_file_data[0] : all_file_data
+					);
 				}
 			};
 		});

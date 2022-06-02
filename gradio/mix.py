@@ -24,7 +24,7 @@ class Parallel(gradio.Interface):
         outputs = []
 
         for io in interfaces:
-            if not(isinstance(io, gradio.Interface)):
+            if not (isinstance(io, gradio.Interface)):
                 warnings.warn(
                     "Parallel may not work properly with non-Interface objects."
                 )
@@ -60,10 +60,10 @@ class Series(gradio.Interface):
         """
         fns = []
         for io in interfaces:
-            if not(isinstance(io, gradio.Interface)):
+            if not (isinstance(io, gradio.Interface)):
                 warnings.warn(
                     "Series may not work properly with non-Interface objects."
-                )            
+                )
             fns.append(io.predict)
 
         def connected_fn(

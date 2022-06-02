@@ -317,7 +317,7 @@ class Blocks(BlockContext):
             dependency = blocks.dependencies[0]
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
-            
+
         blocks.api_mode = True
         return blocks
 
@@ -343,7 +343,7 @@ class Blocks(BlockContext):
                     serialized_params.append(serialized_input)
         else:
             serialized_params = params
-        
+
         output = (await self.process_api(fn_index, serialized_params))["data"]
 
         if self.api_mode:
