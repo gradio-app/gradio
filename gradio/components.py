@@ -1677,7 +1677,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             return file_name
 
     def serialize(self, x, called_directly):
-        raise NotImplementedError()
+        data = processing_utils.encode_url_or_file_to_base64(x)
+        return {"name": x, "data": data, "is_example": False}
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -1711,7 +1712,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         }
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def style(
         self,
