@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: gradio
-Version: 3.0.6
+Version: 3.0.9b11
 Summary: Python library for easily interacting with trained machine learning models
 Home-page: https://github.com/gradio-app/gradio
 Author: Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir
@@ -382,7 +382,7 @@ if __name__ == "__main__":
 ![blocks_flipper interface](demo/blocks_flipper/screenshot.gif)
 
 
-If you are interested in how Blocks works, [read its dedicated Guide](introduction_to_blocks).
+If you are interested in how Blocks works, [read its dedicated Guide](https://gradio.app/introduction_to_blocks/).
 
 ### Sharing Demos 🌎
 

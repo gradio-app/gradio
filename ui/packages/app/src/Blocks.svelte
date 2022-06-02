@@ -62,12 +62,14 @@
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
 
+	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			try {
-				d.frontend_fn = new Function(
+				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
-					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+					`let result = await (${d.js})(...__fn_args);
+					return ${d.outputs.length} === 1 ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -123,7 +125,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
-				console.log(name);
+				console.error("failed to load: " + name);
 				rej(e);
 			}
 		});
@@ -163,6 +165,7 @@
 				}
 			})
 			.catch((e) => {
+				console.error(e);
 				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "error" });
 				}

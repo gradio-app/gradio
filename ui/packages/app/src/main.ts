@@ -153,6 +153,7 @@ if (window.__gradio_mode__ == "app") {
 			window.launchGradio(config, "#root");
 		})
 		.catch((e) => {
+			console.error(e);
 			window.__gradio_loader__.$set({ status: "error" });
 		});
 }
