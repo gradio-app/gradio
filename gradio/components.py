@@ -2757,6 +2757,7 @@ class HighlightedText(Changeable, IOComponent):
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
         combine_adjacent: bool = False,
+        adjacent_separator: str = "",
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -2765,7 +2766,10 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (List[Tuple[str, str | Number | None]]): Default value to show
+        value (List[Tuple[str, str | Number | None]]): Default value to show.
+        color_map (Dict[str, str]): Map between category and respective colors.
+        combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
+        adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -2779,6 +2783,7 @@ class HighlightedText(Changeable, IOComponent):
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
+        self.adjacent_separator = adjacent_separator
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -2833,7 +2838,7 @@ class HighlightedText(Changeable, IOComponent):
                     running_text = text
                     running_category = category
                 elif category == running_category:
-                    running_text += text
+                    running_text += self.adjacent_separator + text
                 else:
                     output.append((running_text, running_category))
                     running_text = text
