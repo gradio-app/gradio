@@ -888,7 +888,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: List[str] = None,
         type: str = "value",
@@ -908,7 +908,7 @@ class CheckboxGroup(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.choices = choices
+        self.choices = choices or []
         self.cleared_value = []
         self.type = type
         self.value = self.postprocess(value)
@@ -1051,7 +1051,7 @@ class Radio(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1071,7 +1071,7 @@ class Radio(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.choices = choices
+        self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.value = self.postprocess(value)
@@ -1196,7 +1196,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -2002,7 +2002,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def stream(
         self,
@@ -2210,7 +2211,8 @@ class File(Changeable, Clearable, IOComponent):
             }
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
