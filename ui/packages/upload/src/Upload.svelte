@@ -10,7 +10,7 @@
 	export let click: boolean = true;
 	export let center: boolean = true;
 	export let flex: boolean = true;
-	export let file_count: string;
+	export let file_count: string = "single";
 
 	let hidden_upload: HTMLInputElement;
 
@@ -46,7 +46,7 @@
 					  }
 					: (this.result as string);
 				if (all_file_data.length === files.length) {
-					dispatch("load", all_file_data);
+					dispatch("load", file_count == "single" ? all_file_data[0] : all_file_data);
 				}
 			};
 		});
