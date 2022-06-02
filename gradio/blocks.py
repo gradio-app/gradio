@@ -330,7 +330,7 @@ class Blocks(BlockContext):
         """
         dependency = self.dependencies[fn_index]
         block_fn = self.fns[fn_index]
-        
+
         if self.api_mode:
             serialized_params = []
             for i, input_id in enumerate(dependency["inputs"]):
@@ -346,15 +346,15 @@ class Blocks(BlockContext):
         else:
             serialized_params = params
 
-        
         processed_input = self.preprocess_data(fn_index, serialized_params, None)
 
-
         if inspect.iscoroutinefunction(block_fn.fn):
-            raise ValueError("Cannot call Blocks object as a function if the function is a coroutine")
+            raise ValueError(
+                "Cannot call Blocks object as a function if the function is a coroutine"
+            )
         else:
             predictions = block_fn.fn(*processed_input)
-        
+
         output = self.postprocess_data(fn_index, predictions, None)
 
         if self.api_mode:
@@ -408,7 +408,7 @@ class Blocks(BlockContext):
     def preprocess_data(self, fn_index, raw_input, state):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
-        
+
         if block_fn.preprocess:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
@@ -419,7 +419,7 @@ class Blocks(BlockContext):
                     processed_input.append(block.preprocess(raw_input[i]))
         else:
             processed_input = raw_input
-        return processed_input       
+        return processed_input
 
     async def call_function(self, fn_index, processed_input):
         """Calls and times function with given index and preprocessed input."""
@@ -432,11 +432,11 @@ class Blocks(BlockContext):
             prediction = await run_in_threadpool(block_fn.fn, *processed_input)
         duration = time.time() - start
         return prediction, duration
-    
+
     def postprocess_data(self, fn_index, predictions, state):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
-        
+
         if type(predictions) is dict and len(predictions) > 0:
             keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
             if all(keys_are_blocks):
@@ -492,7 +492,6 @@ class Blocks(BlockContext):
         else:
             output = predictions
         return output
-    
 
     async def process_api(
         self,
@@ -511,15 +510,15 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
-        
+
         processed_input = self.preprocess_data(fn_index, raw_input, state)
 
         predictions, duration = await self.call_function(fn_index, processed_input)
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
-        
+
         output = self.postprocess_data(fn_index, predictions, state)
-        
+
         return {
             "data": output,
             "duration": duration,
