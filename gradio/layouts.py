@@ -7,6 +7,22 @@ from gradio.blocks import BlockContext
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
 
+valid_colors = [
+    "red",
+    "green",
+    "blue",
+    "yellow",
+    "purple",
+    "teal",
+    "orange",
+    "cyan",
+    "lime",
+    "pink",
+    "black",
+    "grey",
+    "gray",
+]
+
 
 class Row(BlockContext):
     """
@@ -28,7 +44,7 @@ class Row(BlockContext):
     def style(
         self,
         equal_height: Optional[bool] = None,
-        mobile_collapse: Optional[bool] = None,
+        mobile_collapse: Optional[bool] = True,
     ):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
@@ -133,6 +149,19 @@ class Group(BlockContext):
             "__type__": "update",
         }
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if margin is not None:
+            self._style["margin"] = margin
+
+        return self
+
 
 class Box(BlockContext):
     """
@@ -151,3 +180,17 @@ class Box(BlockContext):
             "visible": visible,
             "__type__": "update",
         }
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if margin is not None:
+            self._style["margin"] = margin
+        if border is not None:
+            self._style["border"] = border
+        return self

@@ -1,5 +1,7 @@
 {
+  "version": "3.0.6",
   "mode": "blocks",
+  "dev_mode": true,
   "components": [
     {
       "id": 1,
@@ -7,29 +9,33 @@
       "props": {
         "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
         "name": "markdown",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 2,
       "type": "checkboxgroup",
       "props": {
-        "choices": ["Covid", "Malaria", "Lung Cancer"],
+        "choices": [
+          "Covid",
+          "Malaria",
+          "Lung Cancer"
+        ],
         "value": [],
-        "name": "checkboxgroup",
         "label": "Disease to Scan For",
-        "css": {},
-        "interactive": null
+        "show_label": true,
+        "name": "checkboxgroup",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 3,
       "type": "tabs",
       "props": {
-        "css": {},
-        "value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -37,8 +43,8 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
-        "css": {},
-        "value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -46,8 +52,8 @@
       "type": "row",
       "props": {
         "type": "row",
-        "css": {},
-        "value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -55,25 +61,23 @@
       "type": "image",
       "props": {
         "image_mode": "RGB",
-        "shape": null,
         "source": "upload",
         "tool": "editor",
-        "value": null,
+        "streaming": false,
+        "show_label": true,
         "name": "image",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 7,
       "type": "json",
       "props": {
-        "value": "\"\"",
+        "show_label": true,
         "name": "json",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -81,82 +85,110 @@
       "type": "button",
       "props": {
         "value": "Run",
+        "variant": "secondary",
         "name": "button",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 9,
-      "type": "tabitem",
+      "type": "statustracker",
       "props": {
-        "label": "CT Scan",
-        "css": {},
-        "value": true
+        "cover_container": true,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 10,
-      "type": "row",
+      "type": "tabitem",
       "props": {
-        "type": "row",
-        "css": {},
-        "value": true
+        "label": "CT Scan",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 11,
-      "type": "image",
+      "type": "row",
       "props": {
-        "image_mode": "RGB",
-        "shape": null,
-        "source": "upload",
-        "tool": "editor",
-        "value": null,
-        "name": "image",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "type": "row",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 12,
-      "type": "json",
+      "type": "image",
       "props": {
-        "value": "\"\"",
-        "name": "json",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 13,
-      "type": "button",
+      "type": "json",
       "props": {
-        "value": "Run",
-        "name": "button",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "show_label": true,
+        "name": "json",
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 14,
-      "type": "textbox",
+      "type": "button",
       "props": {
-        "lines": 1,
-        "placeholder": null,
-        "value": "",
-        "name": "textbox",
-        "label": null,
-        "css": {},
-        "interactive": null
+        "value": "Run",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "button",
+      "props": {
+        "value": "Upload Results",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "statustracker",
+      "props": {
+        "cover_container": false,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
       }
     }
   ],
   "theme": "default",
+  "css": null,
+  "enable_queue": false,
   "layout": {
     "id": 0,
     "children": [
@@ -185,49 +217,93 @@
               },
               {
                 "id": 8
+              },
+              {
+                "id": 9
               }
             ]
           },
           {
-            "id": 9,
+            "id": 10,
             "children": [
               {
-                "id": 10,
+                "id": 11,
                 "children": [
                   {
-                    "id": 11
+                    "id": 12
                   },
                   {
-                    "id": 12
+                    "id": 13
                   }
                 ]
               },
               {
-                "id": 13
+                "id": 14
+              },
+              {
+                "id": 15
               }
             ]
           }
         ]
       },
       {
-        "id": 14
+        "id": 16
+      },
+      {
+        "id": 17
       }
     ]
   },
   "dependencies": [
     {
-      "targets": [8],
+      "targets": [
+        8
+      ],
       "trigger": "click",
-      "inputs": [2, 6],
-      "outputs": [7],
-      "queue": false
+      "inputs": [
+        2,
+        6
+      ],
+      "outputs": [
+        7
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 9,
+      "queue": null
     },
     {
-      "targets": [13],
+      "targets": [
+        14
+      ],
       "trigger": "click",
-      "inputs": [2, 11],
-      "outputs": [12],
-      "queue": false
+      "inputs": [
+        2,
+        12
+      ],
+      "outputs": [
+        13
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 15,
+      "queue": null
+    },
+    {
+      "targets": [
+        16
+      ],
+      "trigger": "click",
+      "inputs": [
+        13,
+        7
+      ],
+      "outputs": [],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 17,
+      "queue": null
     }
   ]
 }
