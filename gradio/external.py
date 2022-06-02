@@ -323,12 +323,12 @@ def get_spaces_blocks(model_name, config):
     headers = {"Content-Type": "application/json"}
 
     fns = []
-    for _dependency in config["dependencies"]:
-        if _dependency["backend_fn"]:
+    for d, dependency in enumerate(config["dependencies"]):
+        if dependency["backend_fn"]:
 
-            def get_fn(dependency):
+            def get_fn(outputs, fn_index):
                 def fn(*data):
-                    data = json.dumps({"data": data})
+                    data = json.dumps({"data": data, "fn_index": fn_index})
                     response = requests.post(api_url, headers=headers, data=data)
                     result = json.loads(response.content.decode("utf-8"))
                     try:
@@ -337,13 +337,14 @@ def get_spaces_blocks(model_name, config):
                         raise KeyError(
                             f"Could not find 'data' key in response from external Space. Response received: {result}"
                         )
-                    if len(dependency["outputs"]) == 1:
+                    if len(outputs) == 1:
                         output = output[0]
                     return output
 
                 return fn
 
-            fns.append(get_fn(deepcopy(_dependency)))
+            fn = get_fn(deepcopy(dependency["outputs"]), d)
+            fns.append(fn)
         else:
             fns.append(None)
     return gradio.Blocks.from_config(config, fns)
