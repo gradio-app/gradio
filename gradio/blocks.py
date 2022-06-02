@@ -312,12 +312,12 @@ class Blocks(BlockContext):
                     event_method = getattr(original_mapping[target], trigger)
                     event_method(fn=fn, **dependency)
 
-        if config["mode"] == "interface":
-            warnings.warn(
-                "This Interface was loaded as a Blocks object. Some Interface"
-                "-specific functions may not work."
-            )
-
+            # Allows some use of Interface-specific methods with loaded Spaces
+            blocks.predict = [fns[0]]
+            dependency = blocks.dependencies[0]
+            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
+            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+            
         blocks.api_mode = True
         return blocks
 
@@ -343,8 +343,8 @@ class Blocks(BlockContext):
                     serialized_params.append(serialized_input)
         else:
             serialized_params = params
-
-        output = (await self.process_api(fn_index, params))["data"]
+        
+        output = (await self.process_api(fn_index, serialized_params))["data"]
 
         if self.api_mode:
             output_copy = copy.deepcopy(output)
@@ -362,9 +362,9 @@ class Blocks(BlockContext):
         else:
             deserialized_output = output
 
-        if len(output) == 1:
-            return output[0]
-        return output
+        if len(deserialized_output) == 1:
+            return deserialized_output[0]
+        return deserialized_output
 
     def render(self):
         if Context.root_block is not None:
