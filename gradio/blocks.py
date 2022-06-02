@@ -321,7 +321,7 @@ class Blocks(BlockContext):
         blocks.api_mode = True
         return blocks
 
-    async def __call__(self, *params, fn_index=0):
+    def __call__(self, *params, fn_index=0):
         """
         Allows Blocks objects to be called as functions
         Parameters:
@@ -329,6 +329,8 @@ class Blocks(BlockContext):
         fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
         """
         dependency = self.dependencies[fn_index]
+        block_fn = self.fns[fn_index]
+        
         if self.api_mode:
             serialized_params = []
             for i, input_id in enumerate(dependency["inputs"]):
@@ -344,7 +346,16 @@ class Blocks(BlockContext):
         else:
             serialized_params = params
 
-        output = (await self.process_api(fn_index, serialized_params))["data"]
+        
+        processed_input = self.preprocess_data(fn_index, serialized_params, None)
+
+
+        if inspect.iscoroutinefunction(block_fn.fn):
+            raise ValueError("Cannot call Blocks object as a function if the function is a coroutine")
+        else:
+            predictions = block_fn.fn(*processed_input)
+        
+        output = self.postprocess_data(fn_index, predictions, None)
 
         if self.api_mode:
             output_copy = copy.deepcopy(output)
@@ -394,6 +405,22 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
+    def preprocess_data(self, fn_index, raw_input, state):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+        
+        if block_fn.preprocess:
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(raw_input[i]))
+        else:
+            processed_input = raw_input
+        return processed_input       
+
     async def call_function(self, fn_index, processed_input):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
@@ -405,41 +432,11 @@ class Blocks(BlockContext):
             prediction = await run_in_threadpool(block_fn.fn, *processed_input)
         duration = time.time() - start
         return prediction, duration
-
-    async def process_api(
-        self,
-        fn_index: int,
-        raw_input: List[Any],
-        username: str = None,
-        state: Optional[Dict[int, any]] = None,
-    ) -> Dict[str, Any]:
-        """
-        Processes API calls from the frontend. First preprocesses the data,
-        then runs the relevant function using self.call_function, then postprocesses.
-        Parameters:
-            data: data recieved from the frontend
-            username: name of user if authentication is set up
-            state: data stored from stateful components for session
-        Returns: None
-        """
+    
+    def postprocess_data(self, fn_index, predictions, state):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
-
-        if block_fn.preprocess:
-            processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
-                else:
-                    processed_input.append(block.preprocess(raw_input[i]))
-        else:
-            processed_input = raw_input
-
-        predictions, duration = await self.call_function(fn_index, processed_input)
-
-        block_fn.total_runtime += duration
-        block_fn.total_runs += 1
+        
         if type(predictions) is dict and len(predictions) > 0:
             keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
             if all(keys_are_blocks):
@@ -494,6 +491,35 @@ class Blocks(BlockContext):
 
         else:
             output = predictions
+        return output
+    
+
+    async def process_api(
+        self,
+        fn_index: int,
+        raw_input: List[Any],
+        username: str = None,
+        state: Optional[Dict[int, any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Processes API calls from the frontend. First preprocesses the data,
+        then runs the relevant function, then postprocesses the output.
+        Parameters:
+            data: data recieved from the frontend
+            username: name of user if authentication is set up
+            state: data stored from stateful components for session
+        Returns: None
+        """
+        block_fn = self.fns[fn_index]
+        
+        processed_input = self.preprocess_data(fn_index, raw_input, state)
+
+        predictions, duration = await self.call_function(fn_index, processed_input)
+        block_fn.total_runtime += duration
+        block_fn.total_runs += 1
+        
+        output = self.postprocess_data(fn_index, predictions, state)
+        
         return {
             "data": output,
             "duration": duration,
