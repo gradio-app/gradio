@@ -375,7 +375,7 @@ class Blocks(BlockContext):
         repr += "\n" + "-" * len(repr)
         for d, dependency in enumerate(self.dependencies):
             if dependency["backend_fn"]:
-                repr += f"\nfn_index={d}"                
+                repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
                 for input_id in dependency["inputs"]:
                     block = self.blocks[input_id]
