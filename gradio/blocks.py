@@ -263,8 +263,7 @@ class Blocks(BlockContext):
         if self.max_threads is None:
             return
         limiter = CapacityLimiter(total_tokens=self.max_threads)
-        prev_run_in_thread = anyio.to_thread.run_sync
-        anyio.to_thread.run_sync = partial(prev_run_in_thread, limiter=limiter)
+        anyio.to_thread.run_sync = partial(anyio.to_thread.run_sync, limiter=limiter)
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
