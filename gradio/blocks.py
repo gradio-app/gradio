@@ -366,6 +366,26 @@ class Blocks(BlockContext):
             return deserialized_output[0]
         return deserialized_output
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
+        repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
+        repr += "\n" + "-" * len(repr)
+        for d, dependency in enumerate(self.dependencies):
+            if dependency["backend_fn"]:
+                repr += f"\nfn_index={d}"                
+                repr += "\n inputs:"
+                for input_id in dependency["inputs"]:
+                    block = self.blocks[input_id]
+                    repr += "\n |-{}".format(str(block))
+                repr += "\n outputs:"
+                for output_id in dependency["outputs"]:
+                    block = self.blocks[output_id]
+                    repr += "\n |-{}".format(str(block))
+        return repr
+
     def render(self):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
