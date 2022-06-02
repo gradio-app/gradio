@@ -1,6 +1,8 @@
 """
 Ways to transform interfaces to produce new interfaces
 """
+import warnings
+
 import gradio
 
 
@@ -22,6 +24,10 @@ class Parallel(gradio.Interface):
         outputs = []
 
         for io in interfaces:
+            if not (isinstance(io, gradio.Interface)):
+                warnings.warn(
+                    "Parallel may not work properly with non-Interface objects."
+                )
             fns.extend(io.predict)
             outputs.extend(io.output_components)
 
@@ -52,7 +58,13 @@ class Series(gradio.Interface):
         Returns:
         (Interface): an Interface object connecting the given models
         """
-        fns = [io.predict for io in interfaces]
+        fns = []
+        for io in interfaces:
+            if not (isinstance(io, gradio.Interface)):
+                warnings.warn(
+                    "Series may not work properly with non-Interface objects."
+                )
+            fns.append(io.predict)
 
         def connected_fn(
             *data,

@@ -843,9 +843,7 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(
-                deepcopy(media_data.BASE64_AUDIO)["data"]
-            ).endswith(".wav")
+            audio_output.deserialize(deepcopy(media_data.BASE64_AUDIO)).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
@@ -1179,8 +1177,10 @@ class TestVideo(unittest.TestCase):
         self.assertIsNotNone(video_input.preprocess(x_video))
         video_input = gr.Video(format="avi")
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
-        with self.assertRaises(NotImplementedError):
-            video_input.serialize(x_video, True)
+
+        self.assertEqual(
+            video_input.serialize(x_video["name"], True)["data"], x_video["data"]
+        )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
@@ -1191,9 +1191,7 @@ class TestVideo(unittest.TestCase):
             )
         )
         self.assertTrue(
-            video_output.deserialize(
-                deepcopy(media_data.BASE64_VIDEO)["data"]
-            ).endswith(".mp4")
+            video_output.deserialize(deepcopy(media_data.BASE64_VIDEO)).endswith(".mp4")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = video_output.save_flagged(
