@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import anyio
 from anyio import CapacityLimiter
-from fastapi.concurrency import run_in_threadpool
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
@@ -254,16 +253,6 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.thread_limit_set = False
-
-    async def set_thread_limit(self):
-        if self.thread_limit_set:
-            return
-        self.thread_limit_set = True
-        if self.max_threads is None:
-            return
-        limiter = CapacityLimiter(total_tokens=self.max_threads)
-        anyio.to_thread.run_sync = partial(anyio.to_thread.run_sync, limiter=limiter)
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
@@ -333,6 +322,11 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
+    async def create_limiter(self, max_threads: Optional[int]):
+        return (
+            None if max_threads is None else CapacityLimiter(total_tokens=max_threads)
+        )
+
     async def process_api(
         self,
         data: PredictBody,
@@ -352,8 +346,6 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        await self.set_thread_limit()
-
         if block_fn.preprocess:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
@@ -368,7 +360,9 @@ class Blocks(BlockContext):
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = await block_fn.fn(*processed_input)
         else:
-            predictions = await run_in_threadpool(block_fn.fn, *processed_input)
+            predictions = await anyio.to_thread.run_sync(
+                block_fn.fn, *processed_input, limiter=self.limiter
+            )
         duration = time.time() - start
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
@@ -619,7 +613,7 @@ class Blocks(BlockContext):
         else:
             self.enable_queue = enable_queue or False
 
-        self.max_threads = max_threads
+        self.limiter = anyio.run(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
