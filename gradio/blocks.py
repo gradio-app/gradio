@@ -255,6 +255,18 @@ class Blocks(BlockContext):
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
 
+    @property
+    def share(self):
+        return self._share
+
+    @share.setter
+    def share(self, value: Optional[bool]):
+        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
+        if value is None:
+            self._share = True if utils.colab_check() else False
+        else:
+            self._share = value
+
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
         """Factory method that creates a Blocks from a config and list of functions."""
@@ -650,7 +662,7 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
         max_threads: Optional[int] = None,
@@ -677,7 +689,7 @@ class Blocks(BlockContext):
         Parameters:
         inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
+        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
         auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str | None): If provided, HTML message provided on login page.
@@ -753,10 +765,13 @@ class Blocks(BlockContext):
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
-        # automatically create a shareable link.
+        # a shareable link must be created.
         is_colab = utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            share = True
+            if not self.share:
+                raise ValueError(
+                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
+                )
             if is_colab and not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
@@ -767,7 +782,7 @@ class Blocks(BlockContext):
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
-        if share:
+        if self.share:
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
@@ -781,7 +796,7 @@ class Blocks(BlockContext):
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
                 self.share_url = None
-                share = False
+                self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             if not (quiet):
@@ -789,7 +804,7 @@ class Blocks(BlockContext):
             self.share_url = None
 
         if inbrowser:
-            link = self.share_url if share else self.local_url
+            link = self.share_url if self.share else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
@@ -804,7 +819,7 @@ class Blocks(BlockContext):
             try:
                 from IPython.display import HTML, display  # type: ignore
 
-                if share:
+                if self.share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(1)
                     display(
@@ -824,7 +839,7 @@ class Blocks(BlockContext):
         data = {
             "launch_method": "browser" if inbrowser else "inline",
             "is_google_colab": is_colab,
-            "is_sharing_on": share,
+            "is_sharing_on": self.share,
             "share_url": self.share_url,
             "ip_address": self.ip_address,
             "enable_queue": self.enable_queue,
