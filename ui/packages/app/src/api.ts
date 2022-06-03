@@ -2,21 +2,21 @@ import { LoadingStatus, loading_status } from "./stores";
 
 type StatusResponse =
 	| {
-		status: "COMPLETE";
-		data: { duration: number; average_duration: number; data: unknown };
-	}
+			status: "COMPLETE";
+			data: { duration: number; average_duration: number; data: unknown };
+	  }
 	| {
-		status: "QUEUED";
-		data: number;
-	}
+			status: "QUEUED";
+			data: number;
+	  }
 	| {
-		status: "PENDING";
-		data: null;
-	}
+			status: "PENDING";
+			data: null;
+	  }
 	| {
-		status: "FAILED";
-		data: Record<string, unknown>;
-	};
+			status: "FAILED";
+			data: Record<string, unknown>;
+	  };
 
 interface Payload {
 	data: Record<string, unknown>;
@@ -71,7 +71,7 @@ export const fn = async (
 	if (frontend_fn !== undefined) {
 		payload.data = await frontend_fn(payload.data.concat(output_data));
 	}
-	console.log(payload)
+	console.log(payload);
 	if (backend_fn == false) {
 		return payload;
 	}
@@ -86,7 +86,7 @@ export const fn = async (
 
 		loading_status.update(fn_index, "pending", queue_position, null);
 
-		for (; ;) {
+		for (;;) {
 			await delay(1);
 
 			const { status, data } = await post_data<StatusResponse>(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, AnyStr
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import Block
 
@@ -37,7 +37,7 @@ class Changeable(Block):
             inputs,
             outputs,
             status_tracker=status_tracker,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -113,7 +113,7 @@ class Submittable(Block):
             inputs,
             outputs,
             status_tracker=status_tracker,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -147,12 +147,13 @@ class Editable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
             queue=queue,
         )
+
 
 class Clearable(Block):
     def clear(
@@ -180,7 +181,7 @@ class Clearable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -214,7 +215,7 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -226,7 +227,7 @@ class Playable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        api_name: Optional[AnyStr] = None, 
+        api_name: Optional[AnyStr] = None,
         queue: Optional[bool] = None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -246,7 +247,7 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -278,7 +279,7 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -313,7 +314,7 @@ class Streamable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name, 
+            api_name=api_name,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,

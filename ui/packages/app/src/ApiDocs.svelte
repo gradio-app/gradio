@@ -3,7 +3,7 @@
 		id: number;
 		props: {
 			name: string;
-            label?: string;
+			label?: string;
 		};
 	}
 	interface Dependency {
@@ -15,7 +15,7 @@
 	export let components: Array<Component>;
 	export let dependencies: Array<Dependency>;
 
-    let just_copied = false;
+	let just_copied = -1;
 </script>
 
 <div>
@@ -26,7 +26,7 @@
 		</span>
 	</h2>
 	<div class="flex flex-col gap-6">
-		{#each dependencies as dependency}
+		{#each dependencies as dependency, d}
 			{#if dependency.documentation}
 				<div
 					class="bg-gray-50 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 p-6 rounded"
@@ -38,15 +38,20 @@
 						Full URL: <span class="underline"
 							>{window.location.href}api/{dependency.api_name}</span
 						>
-                        <button class="ml-1 px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700"
-                            on:click={() => {
-                                navigator.clipboard.writeText(window.location.href + "api/" + dependency.api_name);
-                                just_copied = true;
-                                setTimeout(() => {just_copied = false}, 500);
-                            }}
-                        >
-                            {#if just_copied}copied!{:else}copy{/if}
-                        </button>
+						<button
+							class="ml-1 px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700"
+							on:click={() => {
+								navigator.clipboard.writeText(
+									window.location.href + "api/" + dependency.api_name
+								);
+								just_copied = d;
+								setTimeout(() => {
+									just_copied = -1;
+								}, 500);
+							}}
+						>
+							{#if just_copied === d}copied!{:else}copy{/if}
+						</button>
 					</div>
 					<h4 class="text-2xl mt-6 mb-4">Input Payload</h4>
 					<div
@@ -63,8 +68,13 @@
 								>// represents {dependency_doc?.substring(
 									dependency_doc.indexOf(": ") + 2
 								)} of
-                                {"'" + components.filter((c) => c.id === dependency.inputs[i])[0]
-                                    .props.label + "'" || "the"}
+								{((label) => {
+									return label ? "'" + label + "'" : "the";
+								})(
+									components.filter((c) => c.id === dependency.inputs[i])[0]
+										.props.label
+								)}
+
 								<span class="capitalize"
 									>{components.filter((c) => c.id === dependency.inputs[i])[0]
 										.props.name}</span
@@ -90,9 +100,12 @@
 								>// represents {dependency_doc?.substring(
 									dependency_doc.indexOf(": ") + 2
 								)} of
-                                {"'" + components.filter((c) => c.id === dependency.outputs[i])[0]
-                                .props.label + "'" || "the"}
-
+								{((label) => {
+									return label ? "'" + label + "'" : "the";
+								})(
+									components.filter((c) => c.id === dependency.outputs[i])[0]
+										.props.label
+								)}
 								<span class="capitalize"
 									>{components.filter((c) => c.id === dependency.outputs[i])[0]
 										.props.name}</span

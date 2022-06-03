@@ -236,7 +236,9 @@ class App(FastAPI):
             status, data = queueing.get_status(body.hash)
             return {"status": status, "data": data}
 
-        async def run_predict(body: PredictBody, username: str = Depends(get_current_user)):
+        async def run_predict(
+            body: PredictBody, username: str = Depends(get_current_user)
+        ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
@@ -255,21 +257,29 @@ class App(FastAPI):
                     return JSONResponse(content={"error": str(error)}, status_code=500)
                 else:
                     raise error
-            return output            
+            return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
-        async def predict(api_name: str, body: PredictBody, username: str = Depends(get_current_user)):
+        async def predict(
+            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+        ):
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
                     if fn["api_name"] == api_name:
                         body.fn_index = i
                         break
                 if body.fn_index is None:
-                    return JSONResponse(content={"error": f"This app has no endpoint /api/{api_name}/."}, status_code=500)
+                    return JSONResponse(
+                        content={
+                            "error": f"This app has no endpoint /api/{api_name}/."
+                        },
+                        status_code=500,
+                    )
             return await run_predict(body=body, username=username)
 
         return app
+
 
 ########
 # Helper functions
@@ -307,4 +317,3 @@ def get_types(cls_set: List[Type]):
                 types.append(line.split("value (")[1].split(")")[0])
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
-

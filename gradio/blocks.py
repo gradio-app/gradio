@@ -7,7 +7,7 @@ import random
 import sys
 import time
 import webbrowser
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, AnyStr
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
