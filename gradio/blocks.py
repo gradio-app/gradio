@@ -218,6 +218,7 @@ class Blocks(BlockContext):
         mode (str): a human-friendly name for the kind of Blocks interface being created.
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
+        self.limiter = None
         self.save_to = None
         self.api_mode = False
         self.theme = theme
@@ -528,7 +529,7 @@ class Blocks(BlockContext):
         }
 
     async def create_limiter(self, max_threads: Optional[int]):
-        return (
+        self.limiter = (
             None if max_threads is None else CapacityLimiter(total_tokens=max_threads)
         )
 
@@ -719,7 +720,7 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-        self.limiter = utils.synchronize_async(self.create_limiter, max_threads)
+        utils.synchronize_async(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt

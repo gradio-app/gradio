@@ -312,7 +312,7 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args: object):
-    loop = asyncio.get_event_loop()
-    result = loop.create_task(func(*args))
-    return result
+def synchronize_async(func: Callable, *args: object, callback_func: Callable = None):
+    event_loop = asyncio.get_event_loop()
+    task = event_loop.create_task(func(*args))
+    task.add_done_callback(callback_func)
