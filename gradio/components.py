@@ -245,6 +245,20 @@ class IOComponent(Component):
             self._style["container"] = container
         return self
 
+    @classmethod
+    def document_parameters(cls, target):
+        if target == "input":
+            doc = inspect.getdoc(cls.preprocess)
+            if "Parameters:\nx (" in doc:
+                return doc.split("Parameters:\nx ")[1].split("\n")[0]
+            return None
+        elif target == "output":
+            doc = inspect.getdoc(cls.postprocess)
+            if "Returns:\n" in doc:
+                return doc.split("Returns:\n")[1].split("\n")[0]
+            return None
+        else:
+            raise ValueError("Invalid doumentation target.")
 
 class Textbox(Changeable, Submittable, IOComponent):
     """
@@ -527,21 +541,21 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: int | float | None) -> int | float | None:
+    def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:
-        x (int | float | None): numeric input as a string
+        x (float | None): numeric input
         Returns:
-        (int | float | None): number representing function input
+        (float | None): number representing function input
         """
         if x is None:
             return None
         return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: int | float | None) -> int | float | None:
+    def preprocess_example(self, x: float | None) -> float | None:
         """
         Returns:
-        (int | float | None): Number representing function input
+        (float | None): Number representing function input
         """
         if x is None:
             return None
@@ -593,18 +607,18 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> int | float:
+    def generate_sample(self) -> float:
         return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
-    def postprocess(self, y: int | float | None) -> int | float | None:
+    def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        y (int | float | None): numeric output
+        y (float | None): numeric output
         Returns:
-        (int | float | None): number representing function output
+        (float | None): number representing function output
         """
         if y is None:
             return None
@@ -749,13 +763,13 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: int | float | None):
+    def postprocess(self, y: float | None):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (int | float | None): numeric output
+        y (float | None): numeric output
         Returns:
-        (int | float): numeric output or minimum number if None
+        (float): numeric output or minimum number if None
         """
         return self.minimum if y is None else y
 

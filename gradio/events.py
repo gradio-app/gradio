@@ -226,7 +226,7 @@ class Playable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        api_name=api_name, 
+        api_name: Optional[AnyStr] = None, 
         queue: Optional[bool] = None,
         _js: Optional[str] = None,
         _preprocess: bool = True,

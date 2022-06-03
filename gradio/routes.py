@@ -226,75 +226,17 @@ class App(FastAPI):
                 if Path(app.cwd).resolve() in Path(path).resolve().parents:
                     return FileResponse(Path(path).resolve())
 
-        @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
-        @app.get("/api/", response_class=HTMLResponse)
-        def api_docs(request: Request):
-            endpoints = []
-            for i, fn in enumerate(app.blocks.dependencies):
-                if fn["api_name"] is None:
-                    continue
-                endpoint = {}
-                endpoint["name"] = fn["api_name"]
-                if fn["api_name"] == "predict":
-                    endpoint["url"] = '/predict/'
-                else:
-                    endpoint["url"] = f'/predict/{fn["api_name"]}'
-                endpoint["len_inputs"] = len(fn["inputs"])
-                endpoint["len_outputs"] = len(fn["outputs"])
-                inputs_list = fn["inputs"]
-                outputs_list = fn["outputs"]
-                endpoint["inputs"] = []
-                endpoint["outputs"] = []
-                for input_id in inputs_list:
-                    input = {}
-                    cls = app.blocks.blocks[input_id]
-                    input["name"] = str(cls)
-                    if hasattr(cls, 'is_template') and cls.is_template:
-                        input["type"] = get_input_type(type(cls).__bases__[0])
-                        input["sample"] = cls.generate_sample()
-                    else:
-                        input["type"] = get_input_type(type(cls))
-                        input["sample"] = cls.generate_sample()
-                    endpoint["inputs"].append(input)
-                for output_id in outputs_list:
-                    output = {}
-                    cls = app.blocks.blocks[output_id]
-                    output["name"] = str(cls)
-                    if hasattr(cls, 'is_template') and cls.is_template:
-                        output["type"] = get_output_type(type(cls).__bases__[0])
-                    else:
-                        output["type"] = get_output_type(type(cls))
-                    endpoint["outputs"].append(output)
-                endpoint["len_components"] = endpoint["len_inputs"] + endpoint["len_outputs"]
-                endpoint["components"] = endpoint["inputs"] + endpoint["outputs"]
-                endpoints.append(endpoint)
+        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
+        async def queue_push(body: QueuePushBody):
+            job_hash, queue_position = queueing.push(body)
+            return {"hash": job_hash, "queue_position": queue_position}
 
-            docs = {
-                "auth": app.blocks.auth,
-                "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
-                "local_api_url": urllib.parse.urljoin(
-                    app.blocks.local_url, "api/predict"
-                ),
-                "endpoints": endpoints,
-                "len_endpoints": len(endpoints)
-            }
-            return templates.TemplateResponse(
-                "api_docs.html", {"request": request, **docs}
-            )
+        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
+        async def queue_status(body: QueueStatusBody):
+            status, data = queueing.get_status(body.hash)
+            return {"status": status, "data": data}
 
-        @app.post("/api/predict/{api_name}", dependencies=[Depends(login_check)])
-        async def named_predict(api_name: str, body: PredictBody, username: str = Depends(get_current_user)):
-            body.fn_index = None
-            for i, fn in enumerate(app.blocks.dependencies):
-                if fn["api_name"] == api_name:
-                    body.fn_index = i
-                    break
-            if body.fn_index is None:
-                return JSONResponse(content={"error": "This demo has no such defined endpoint."}, status_code=500)
-            return await predict(body=body, username=username)
-
-        @app.post("/api/predict/", dependencies=[Depends(login_check)])
-        async def predict(body: PredictBody, username: str = Depends(get_current_user)):
+        async def run_predict(body: PredictBody, username: str = Depends(get_current_user)):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
@@ -313,20 +255,21 @@ class App(FastAPI):
                     return JSONResponse(content={"error": str(error)}, status_code=500)
                 else:
                     raise error
-            return output
+            return output            
 
-        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-        async def queue_push(body: QueuePushBody):
-            job_hash, queue_position = queueing.push(body)
-            return {"hash": job_hash, "queue_position": queue_position}
-
-        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-        async def queue_status(body: QueueStatusBody):
-            status, data = queueing.get_status(body.hash)
-            return {"status": status, "data": data}
+        @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
+        @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
+        async def predict(api_name: str, body: PredictBody, username: str = Depends(get_current_user)):
+            if body.fn_index is None:
+                for i, fn in enumerate(app.blocks.dependencies):
+                    if fn["api_name"] == api_name:
+                        body.fn_index = i
+                        break
+                if body.fn_index is None:
+                    return JSONResponse(content={"error": f"This app has no endpoint /api/{api_name}/."}, status_code=500)
+            return await run_predict(body=body, username=username)
 
         return app
-
 
 ########
 # Helper functions
@@ -365,14 +308,3 @@ def get_types(cls_set: List[Type]):
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
 
-
-def get_input_type(cls):
-    doc = inspect.getdoc(cls.preprocess)
-    if "Parameters:\nx (" in doc:
-        return doc.split("Parameters:\nx ")[1].split("\n")[0]
-
-
-def get_output_type(cls):
-    doc = inspect.getdoc(cls.postprocess)
-    if "Returns:\n" in doc:
-        return doc.split("Returns:\n")[1].split("\n")[0]

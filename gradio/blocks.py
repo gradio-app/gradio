@@ -83,7 +83,7 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: AnyStr = None,
+        api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
@@ -115,21 +115,25 @@ class Block:
             outputs = [outputs]
 
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
-        Context.root_block.dependencies.append(
-            {
-                "targets": [self._id] if not no_target else [],
-                "trigger": event_name,
-                "inputs": [block._id for block in inputs],
-                "outputs": [block._id for block in outputs],
-                "backend_fn": fn is not None,
-                "js": js,
-                "status_tracker": status_tracker._id
-                if status_tracker is not None
-                else None,
-                "queue": queue,
-                "api_name": api_name
-            }
-        )
+        dependency = {
+            "targets": [self._id] if not no_target else [],
+            "trigger": event_name,
+            "inputs": [block._id for block in inputs],
+            "outputs": [block._id for block in outputs],
+            "backend_fn": fn is not None,
+            "js": js,
+            "status_tracker": status_tracker._id
+            if status_tracker is not None
+            else None,
+            "queue": queue,
+            "api_name": api_name,
+        }
+        if api_name is not None:
+            dependency["documentation"] = [
+                [component.document_parameters("input") for component in inputs],
+                [component.document_parameters("output") for component in outputs],
+            ]
+        Context.root_block.dependencies.append(dependency)
 
     def get_config(self):
         return {
