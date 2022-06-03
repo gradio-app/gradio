@@ -32,7 +32,7 @@
 					class="bg-gray-50 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 p-6 rounded"
 				>
 					<h3 class="text-3xl text-amber-500 font-semibold mb-2">
-						/api/{dependency.api_name}
+						POST /api/{dependency.api_name}
 					</h3>
 					<div class="mb-6">
 						Full URL: <span class="underline"
