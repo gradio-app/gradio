@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import copy
-import csv
+import asyncio
 import inspect
 import json
 import json.decoder
@@ -311,3 +310,9 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
         ):
             return cls
     raise ValueError(f"No such component or layout: {cls_name}")
+
+
+def synchronize_async(func: Callable, *args: object):
+    loop = asyncio.get_event_loop()
+    result = loop.create_task(func(*args))
+    return result

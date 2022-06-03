@@ -7,7 +7,6 @@ import os
 import random
 import sys
 import time
-import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
@@ -720,8 +719,7 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-
-        self.limiter = anyio.run(self.create_limiter, max_threads)
+        self.limiter = utils.synchronize_async(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
