@@ -1688,6 +1688,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             dir, label, None if data is None else data["data"], encryption_key
         )
 
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
 
@@ -1977,8 +1980,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
-
         return self.save_flagged_file(dir, label, data_string, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)

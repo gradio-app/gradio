@@ -779,7 +779,7 @@ class TestAudio(unittest.TestCase):
             to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
             self.assertEqual("audio_input/1.wav", to_save)
             restored = audio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "audio_input/1.wav")
+            self.assertEqual(restored, media_data.BASE64_AUDIO)
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -1154,7 +1154,7 @@ class TestVideo(unittest.TestCase):
             to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
             self.assertEqual("video_input/1.mp4", to_save)
             restored = video_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "video_input/1.mp4")
+            self.assertEqual(restored, media_data.BASE64_VIDEO)
 
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
