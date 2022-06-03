@@ -25,7 +25,7 @@
 	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent "
 >
 	<input
-		bind:checked={value}
+		on:change={() => handle_change()}
 		{disabled}
 		type="checkbox"
 		name="test"
