@@ -252,6 +252,18 @@ class Blocks(BlockContext):
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
 
+    @property
+    def share(self):
+        return self._share
+
+    @share.setter
+    def share(self, value: Optional[bool]):
+        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
+        if value is None:
+            self._share = True if utils.colab_check() else False
+        else:
+            self._share = value
+
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
         """Factory method that creates a Blocks from a config and list of functions."""
@@ -582,7 +594,6 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
-        is_colab = utils.colab_check()
         self.dev_mode = False
         if (
             auth
@@ -604,11 +615,7 @@ class Blocks(BlockContext):
             self.enable_queue = enable_queue or False
 
         self.config = self.get_config_file()
-        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
-        if share is None:
-            self.share = True if is_colab else False
-        else:
-            self.share = share
+        self.share = share
         self.encrypt = encrypt
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
@@ -640,6 +647,7 @@ class Blocks(BlockContext):
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
+        is_colab = utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
             if not self.share:
                 raise ValueError(
