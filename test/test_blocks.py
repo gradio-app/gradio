@@ -9,6 +9,7 @@ import pytest
 import gradio as gr
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
+from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -85,7 +86,7 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         config.pop("version")  # remove version key
-        self.assertDictEqual(XRAY_CONFIG, config)
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
 
     @pytest.mark.asyncio
     async def test_async_function(self):
