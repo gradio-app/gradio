@@ -1,5 +1,5 @@
 try:
-    from IPython.core.magic import register_cell_magic, needs_local_scope
+    from IPython.core.magic import needs_local_scope, register_cell_magic
 except ImportError:
     pass
 
