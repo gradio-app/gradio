@@ -53,7 +53,9 @@ import gradio as gr
 
 def greet(name):
     return "Hello " + name + "!!"
+
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
+
 demo.launch()
 
 ```
@@ -91,6 +93,7 @@ demo = gr.Interface(
     inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
     outputs="text",
 )
+
 demo.launch()
 
 ```
@@ -129,6 +132,7 @@ Let's try an image-to-image function! When using the  `Image`  component, your f
 
 ```python
 import numpy as np
+
 import gradio as gr
 
 def sepia(input_img):
@@ -140,6 +144,7 @@ def sepia(input_img):
     return sepia_img
 
 demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
+
 demo.launch()
 
 ```
@@ -158,6 +163,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+
 import gradio as gr
 
 def sales_projections(employee_data):
@@ -198,6 +204,7 @@ You can provide example data that a user can easily load into the model. This ca
 
 ```python
 import gradio as gr
+
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -222,6 +229,7 @@ demo = gr.Interface(
     description="heres a sample toy calculator. enjoy!",
     flagging_options=["this", "or", "that"],
 )
+
 demo.launch()
 
 ```
@@ -252,6 +260,7 @@ demo = gr.Interface(
     "number",
     live=True,
 )
+
 demo.launch()
 
 ```
@@ -310,10 +319,12 @@ As an example, Blocks uses nested `with` statements in Python to lay out compone
 ```python
 import numpy as np
 import gradio as gr
+
 demo = gr.Blocks()
 
 def flip_text(x):
     return x[::-1]
+
 def flip_image(x):
     return np.fliplr(x)
 
