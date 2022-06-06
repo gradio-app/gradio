@@ -2,18 +2,44 @@ import asyncio
 import random
 import time
 import unittest
+from unittest.mock import patch
 
 import pytest
 
 import gradio as gr
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
+from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
 
 
 class TestBlocks(unittest.TestCase):
     maxDiff = None
+
+    def test_set_share(self):
+        with gr.Blocks() as demo:
+            # self.share is False when instantiating the class
+            self.assertFalse(demo.share)
+            # default is False, if share is None
+            demo.share = None
+            self.assertFalse(demo.share)
+            # if set to True, it doesn't change
+            demo.share = True
+            self.assertTrue(demo.share)
+
+    @patch("gradio.utils.colab_check")
+    def test_set_share_in_colab(self, mock_colab_check):
+        mock_colab_check.return_value = True
+        with gr.Blocks() as demo:
+            # self.share is False when instantiating the class
+            self.assertFalse(demo.share)
+            # default is True, if share is None and colab_check is true
+            demo.share = None
+            self.assertTrue(demo.share)
+            # if set to True, it doesn't change
+            demo.share = True
+            self.assertTrue(demo.share)
 
     def test_xray(self):
         def fake_func():
@@ -60,7 +86,7 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         config.pop("version")  # remove version key
-        self.assertDictEqual(XRAY_CONFIG, config)
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
 
     @pytest.mark.asyncio
     async def test_async_function(self):

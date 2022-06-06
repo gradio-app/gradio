@@ -11,12 +11,11 @@ import numbers
 import operator
 import os
 import shutil
-import sys
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
 import numpy as np
@@ -26,7 +25,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block, BlockContext
+from gradio.blocks import Block
 from gradio.events import (
     Changeable,
     Clearable,
@@ -889,7 +888,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: List[str] = None,
         type: str = "value",
@@ -909,7 +908,7 @@ class CheckboxGroup(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.choices = choices
+        self.choices = choices or []
         self.cleared_value = []
         self.type = type
         self.value = self.postprocess(value)
@@ -1052,7 +1051,7 @@ class Radio(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1072,7 +1071,7 @@ class Radio(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.choices = choices
+        self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.value = self.postprocess(value)
@@ -1197,7 +1196,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1678,7 +1677,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             return file_name
 
     def serialize(self, x, called_directly):
-        raise NotImplementedError()
+        data = processing_utils.encode_url_or_file_to_base64(x)
+        return {"name": x, "data": data, "is_example": False}
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -1712,7 +1712,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         }
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def style(
         self,
@@ -2001,7 +2002,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def stream(
         self,
@@ -2209,7 +2211,8 @@ class File(Changeable, Clearable, IOComponent):
             }
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
@@ -2758,6 +2761,7 @@ class HighlightedText(Changeable, IOComponent):
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
         combine_adjacent: bool = False,
+        adjacent_separator: str = "",
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -2766,7 +2770,10 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (List[Tuple[str, str | Number | None]]): Default value to show
+        value (List[Tuple[str, str | Number | None]]): Default value to show.
+        color_map (Dict[str, str]): Map between category and respective colors.
+        combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
+        adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -2780,6 +2787,7 @@ class HighlightedText(Changeable, IOComponent):
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
+        self.adjacent_separator = adjacent_separator
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -2834,7 +2842,7 @@ class HighlightedText(Changeable, IOComponent):
                     running_text = text
                     running_category = category
                 elif category == running_category:
-                    running_text += text
+                    running_text += self.adjacent_separator + text
                 else:
                     output.append((running_text, running_category))
                     running_text = text
