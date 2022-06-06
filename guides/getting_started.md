@@ -182,7 +182,7 @@ You can either drag and drop a folder containing your Gradio model and all relat
 Now that you're familiar with the basics of Gradio, here are some good next steps:
 
 * Check out [the free Gradio course](https://huggingface.co/course/chapter9/1) for a step-by-step walkthrough of everything Gradio-related with lots of examples of how to build your own machine learning demos 📖
-* Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](/introduction_to_blocks/) 🧱
-* If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](/advanced_interface_features) 💪
+* Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](https://gradio.app/introduction_to_blocks/) 🧱
+* If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](https://gradio.app/advanced_interface_features/) 💪
 * If you just want to explore what demos other people have built with Gradio and see the underlying Python code, [browse public Hugging Face Spaces](https://hf.space/), and be inspired 🤗
 
