@@ -14,6 +14,11 @@
 	}
 	export let components: Array<Component>;
 	export let dependencies: Array<Dependency>;
+	export let root: string;
+
+	if (root === "") {
+		root = window.location.href;
+	}
 
 	let just_copied = -1;
 </script>
@@ -22,7 +27,7 @@
 	<h2 class="text-3xl text-center mb-6">
 		API Docs for
 		<span class="italic text-amber-500">
-			{window.location.href}
+			{root}
 		</span>
 	</h2>
 	<div class="flex flex-col gap-6">
@@ -36,13 +41,13 @@
 					</h3>
 					<div class="mb-6">
 						Full URL: <span class="underline"
-							>{window.location.href}api/{dependency.api_name}</span
+							>{root}api/{dependency.api_name}</span
 						>
 						<button
 							class="ml-1 px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700"
 							on:click={() => {
 								navigator.clipboard.writeText(
-									window.location.href + "api/" + dependency.api_name
+									root + "api/" + dependency.api_name
 								);
 								just_copied = d;
 								setTimeout(() => {

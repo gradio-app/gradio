@@ -395,7 +395,7 @@
 		class:flex-grow={(window.__gradio_mode__ = "app")}
 	>
 		{#if api_docs_visible}
-			<ApiDocs {components} {dependencies} />
+			<ApiDocs {components} {dependencies} {root} />
 		{:else if ready}
 			<Render
 				component={rootNode.component}
