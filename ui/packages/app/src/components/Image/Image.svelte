@@ -25,6 +25,7 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
+	$: value, console.log(value);
 	let dragging: boolean;
 </script>
 
