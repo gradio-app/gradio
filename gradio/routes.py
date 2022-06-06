@@ -226,47 +226,19 @@ class App(FastAPI):
                 if Path(app.cwd).resolve() in Path(path).resolve().parents:
                     return FileResponse(Path(path).resolve())
 
-        @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
-        @app.get("/api/", response_class=HTMLResponse)
-        def api_docs(request: Request):
-            inputs = [type(inp) for inp in app.blocks.input_components]
-            outputs = [type(out) for out in app.blocks.output_components]
-            input_types_doc, input_types = get_types(inputs, "input")
-            output_types_doc, output_types = get_types(outputs, "output")
-            input_names = [inp.get_block_name() for inp in app.blocks.input_components]
-            output_names = [
-                out.get_block_name() for out in app.blocks.output_components
-            ]
-            if app.blocks.examples is not None:
-                sample_inputs = app.blocks.examples[0]
-            else:
-                sample_inputs = [
-                    inp.generate_sample() for inp in app.blocks.input_components
-                ]
-            docs = {
-                "inputs": input_names,
-                "outputs": output_names,
-                "len_inputs": len(inputs),
-                "len_outputs": len(outputs),
-                "inputs_lower": [name.lower() for name in input_names],
-                "outputs_lower": [name.lower() for name in output_names],
-                "input_types": input_types,
-                "output_types": output_types,
-                "input_types_doc": input_types_doc,
-                "output_types_doc": output_types_doc,
-                "sample_inputs": sample_inputs,
-                "auth": app.blocks.auth,
-                "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
-                "local_api_url": urllib.parse.urljoin(
-                    app.blocks.local_url, "api/predict"
-                ),
-            }
-            return templates.TemplateResponse(
-                "api_docs.html", {"request": request, **docs}
-            )
+        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
+        async def queue_push(body: QueuePushBody):
+            job_hash, queue_position = queueing.push(body)
+            return {"hash": job_hash, "queue_position": queue_position}
 
-        @app.post("/api/predict/", dependencies=[Depends(login_check)])
-        async def predict(body: PredictBody, username: str = Depends(get_current_user)):
+        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
+        async def queue_status(body: QueueStatusBody):
+            status, data = queueing.get_status(body.hash)
+            return {"status": status, "data": data}
+
+        async def run_predict(
+            body: PredictBody, username: str = Depends(get_current_user)
+        ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
@@ -291,15 +263,24 @@ class App(FastAPI):
                     raise error
             return output
 
-        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-        async def queue_push(body: QueuePushBody):
-            job_hash, queue_position = queueing.push(body)
-            return {"hash": job_hash, "queue_position": queue_position}
-
-        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-        async def queue_status(body: QueueStatusBody):
-            status, data = queueing.get_status(body.hash)
-            return {"status": status, "data": data}
+        @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
+        @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
+        async def predict(
+            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+        ):
+            if body.fn_index is None:
+                for i, fn in enumerate(app.blocks.dependencies):
+                    if fn["api_name"] == api_name:
+                        body.fn_index = i
+                        break
+                if body.fn_index is None:
+                    return JSONResponse(
+                        content={
+                            "error": f"This app has no endpoint /api/{api_name}/."
+                        },
+                        status_code=500,
+                    )
+            return await run_predict(body=body, username=username)
 
         return app
 
@@ -329,19 +310,14 @@ def safe_join(directory: str, path: str) -> Optional[str]:
     return posixpath.join(directory, filename)
 
 
-def get_types(cls_set: List[Type], component: str):
+def get_types(cls_set: List[Type]):
     docset = []
     types = []
-    if component == "input":
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.preprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].split(":")[-1])
-            types.append(doc_lines[1].split(")")[0].split("(")[-1])
-    else:
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.postprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[-1].split(":")[-1])
-            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    for cls in cls_set:
+        doc = inspect.getdoc(cls)
+        doc_lines = doc.split("\n")
+        for line in doc_lines:
+            if "value (" in line:
+                types.append(line.split("value (")[1].split(")")[0])
+        docset.append(doc_lines[1].split(":")[-1])
     return docset, types
