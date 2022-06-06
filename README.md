@@ -51,14 +51,10 @@ pip install gradio
 ```python
 import gradio as gr
 
-
 def greet(name):
     return "Hello " + name + "!!"
-
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 
@@ -87,19 +83,15 @@ Let's say you want to customize the input text field - for example, you wanted i
 ```python
 import gradio as gr
 
-
 def greet(name):
     return "Hello " + name + "!"
-
 
 demo = gr.Interface(
     fn=greet,
     inputs=gr.Textbox(lines=2, placeholder="Name Here..."),
     outputs="text",
 )
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![hello_world_2 interface](demo/hello_world_2/screenshot.gif)
@@ -113,21 +105,18 @@ Let's say you had a much more complex function, with multiple inputs and outputs
 ```python
 import gradio as gr
 
-
 def greet(name, is_morning, temperature):
     salutation = "Good morning" if is_morning else "Good evening"
     greeting = "%s %s. It is %s degrees today" % (salutation, name, temperature)
     celsius = (temperature - 32) * 5 / 9
     return greeting, round(celsius, 2)
 
-
 demo = gr.Interface(
     fn=greet,
     inputs=["text", "checkbox", gr.Slider(0, 100)],
     outputs=["text", "number"],
 )
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![hello_world_3 interface](demo/hello_world_3/screenshot.gif)
@@ -140,9 +129,7 @@ Let's try an image-to-image function! When using the  `Image`  component, your f
 
 ```python
 import numpy as np
-
 import gradio as gr
-
 
 def sepia(input_img):
     sepia_filter = np.array(
@@ -152,11 +139,8 @@ def sepia(input_img):
     sepia_img /= sepia_img.max()
     return sepia_img
 
-
 demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![sepia_filter interface](demo/sepia_filter/screenshot.gif)
@@ -174,9 +158,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-
 import gradio as gr
-
 
 def sales_projections(employee_data):
     sales_data = employee_data.iloc[:, 1:4].astype("int").to_numpy()
@@ -196,7 +178,6 @@ def sales_projections(employee_data):
     plt.legend(employee_data["Name"])
     return employee_data, plt.gcf(), regression_values
 
-
 demo = gr.Interface(
     sales_projections,
     gr.Dataframe(
@@ -206,8 +187,7 @@ demo = gr.Interface(
     ["dataframe", "plot", "numpy"],
     description="Enter sales figures for employees to predict sales trajectory over year.",
 )
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![sales_projections interface](demo/sales_projections/screenshot.gif)
@@ -218,7 +198,6 @@ You can provide example data that a user can easily load into the model. This ca
 
 ```python
 import gradio as gr
-
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -228,7 +207,6 @@ def calculator(num1, operation, num2):
         return num1 * num2
     elif operation == "divide":
         return num1 / num2
-
 
 demo = gr.Interface(
     calculator,
@@ -244,9 +222,7 @@ demo = gr.Interface(
     description="heres a sample toy calculator. enjoy!",
     flagging_options=["this", "or", "that"],
 )
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![calculator interface](demo/calculator/screenshot.gif)
@@ -260,7 +236,6 @@ You can make interfaces automatically refresh by setting `live=True` in the inte
 ```python
 import gradio as gr
 
-
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -271,16 +246,13 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-
 demo = gr.Interface(
     calculator,
     ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     live=True,
 )
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![calculator_live interface](demo/calculator_live/screenshot.gif)
@@ -338,16 +310,12 @@ As an example, Blocks uses nested `with` statements in Python to lay out compone
 ```python
 import numpy as np
 import gradio as gr
-
 demo = gr.Blocks()
-
 
 def flip_text(x):
     return x[::-1]
-
 def flip_image(x):
     return np.fliplr(x)
-
 
 with demo:
     gr.Markdown("Flip text or image files using this demo.")
@@ -365,8 +333,7 @@ with demo:
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
     
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 ```
 
 ![blocks_flipper interface](demo/blocks_flipper/screenshot.gif)
