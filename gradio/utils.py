@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
+import fsspec.asyn
 import pkg_resources
 import requests
 
@@ -232,7 +233,7 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
+def format_ner_list(input_string: str, ner_groups: Dict[str: str | int]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 
@@ -312,7 +313,7 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args: object, callback_func: Callable = None):
-    event_loop = asyncio.get_event_loop()
-    task = event_loop.create_task(func(*args))
-    task.add_done_callback(callback_func)
+def synchronize_async(func: Callable, *args: object):
+    loop = asyncio.get_event_loop()
+    print(loop)
+    return fsspec.asyn.sync(loop, func, args, timeout=1)
