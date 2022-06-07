@@ -147,14 +147,18 @@ class IOComponent(Component):
         dir: str,
         file: str,
         encryption_key: bool,
+        as_data: bool = False,
     ) -> Dict[str, Any]:
         """
         Loads flagged data from file and returns it
         """
-        data = processing_utils.encode_file_to_base64(
-            os.path.join(dir, file), encryption_key=encryption_key
-        )
-        return {"name": file, "data": data}
+        if as_data:
+            data = processing_utils.encode_file_to_base64(
+                os.path.join(dir, file), encryption_key=encryption_key
+            )
+            return {"name": file, "data": data}
+        else:
+            return {"name": os.path.join(dir, file), "data": os.path.join(dir, file), "is_example": True}
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
