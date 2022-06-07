@@ -1,15 +1,5 @@
 <!DOCTYPE html>
-<html
-	lang="en"
-	style="
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		flex-grow: 1;
-		height: 100%;
-	"
->
+<html lang="en" style="margin: 0; padding: 0">
 	<head>
 		<meta charset="utf-8" />
 		<meta
@@ -64,18 +54,12 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>
 	</head>
 
-	<body
-		style="
-			margin: 0;
-			padding: 0;
-			display: flex;
-			flex-direction: column;
-			flex-grow: 1;
-		"
-	>
-		<div
-			id="root"
-			style="display: flex; flex-direction: column; flex-grow: 1"
-		></div>
+	<body style="width: 100%; margin: 0; padding: 0">
+		<gradio-app
+			><div
+				id="root"
+				style="display: flex; flex-direction: column; flex-grow: 1"
+			></div
+		></gradio-app>
 	</body>
 </html>
