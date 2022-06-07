@@ -589,7 +589,7 @@ class TestImage(unittest.TestCase):
             self.assertEqual("image_input/1.png", to_save)
             restored = image_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(
-                restored["name"], os.path.join(tmpdirname, "image_input/1.png")
+                restored, os.path.join(tmpdirname, "image_input/1.png")
             )
 
         self.assertIsInstance(image_input.generate_sample(), str)
