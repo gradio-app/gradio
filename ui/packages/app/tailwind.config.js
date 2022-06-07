@@ -166,6 +166,5 @@ module.exports = {
 		"2xl:grid-cols-10",
 		"2xl:grid-cols-11",
 		"2xl:grid-cols-12"
-	],
-	important: ".gradio-container"
+	]
 };

@@ -6,7 +6,7 @@ cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
 
 
 def img(text):
-    sleep(1)
+    sleep(3)
     return [
         cheetah,
         cheetah,

@@ -5,16 +5,26 @@ import { fn } from "./api";
 
 import * as t from "@gradio/theme";
 
+let id = -1;
+window.__gradio_loader__ = [];
+
 interface CustomWindow extends Window {
 	__gradio_mode__: "app" | "website";
 	launchGradio: Function;
 	launchGradioFromSpaces: Function;
 	gradio_config: Config;
+	scoped_css_attach: (link: HTMLLinkElement) => void;
+	__gradio_loader__: Array<{
+		$set: (args: any) => any;
+	}>;
 }
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
+
+const ENTRY_CSS = "__ENTRY_CSS__";
+const FONTS = "__FONTS_CSS__";
 
 interface Component {
 	name: string;
@@ -46,7 +56,6 @@ interface Config {
 	show_input: boolean;
 	show_output: boolean;
 	simpler_description: string;
-	static_src: string;
 	theme: string;
 	thumbnail: null | string;
 	title: string;
@@ -58,88 +67,174 @@ interface Config {
 }
 
 let app_id: string | null = null;
-let reload_check = (root: string) => {
-	fetch(root + "app_id")
-		.then((response) => response.text())
-		.then((response) => {
-			if (app_id === null) {
-				app_id = response;
-			} else if (app_id != response) {
-				location.reload();
-			}
-		})
-		.finally(() => {
-			setTimeout(() => reload_check(root), 250);
-		});
-};
 
-window.launchGradio = (config: Config, element_query: string) => {
-	let target: HTMLElement = document.querySelector(element_query)!;
+async function reload_check(root: string) {
+	const result = await (await fetch(root + "app_id")).text();
 
-	if (!target) {
-		throw new Error(
-			"The target element could not be found. Please ensure that element exists."
-		);
+	if (app_id === null) {
+		app_id = result;
+	} else if (app_id != result) {
+		location.reload();
 	}
-	target.classList.add("gradio-container");
 
-	if (config.root === undefined) {
-		config.root = BACKEND_URL;
-	}
-	if (window.__gradio_mode__ === "app") {
-		config.static_src = ".";
-	} else if (window.__gradio_mode__ === "website") {
-		config.static_src = "";
-	} else {
-		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
-	}
-	if (config.dev_mode) {
-		reload_check(config.root);
-	}
-	if (config.css) {
-		let style = document.createElement("style");
-		style.innerHTML = config.css;
-		document.head.appendChild(style);
-	}
-	if (config.detail === "Not authenticated" || config.auth_required) {
-		new Login({
-			target: target,
-			props: config
-		});
-		window.__gradio_loader__.$set({ status: "complete" });
-	} else {
-		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn.bind(null, session_hash, config.root + "api/");
+	setTimeout(() => reload_check(root), 250);
+}
 
-		new Blocks({
-			target: target,
-			props: { ...config, target }
-		});
-	}
-};
+async function get_space_config(space_id: string): Promise<Config> {
+	const space_url = `https://hf.space/embed/${space_id}/+/`;
+	let config = await (await fetch(space_url + "config")).json();
+	config.root = space_url;
+	config.space = space_id;
 
-window.launchGradioFromSpaces = async (space: string, target: string) => {
-	const space_url = `https://hf.space/embed/${space}/+/`;
-	let config = await fetch(space_url + "config");
-	let _config: Config = await config.json();
-	_config.root = space_url;
-	_config.space = space;
-	window.launchGradio(_config, target);
-};
+	return config;
+}
 
-async function get_config() {
+async function get_config(space_id: string | null) {
 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
 		let config = await fetch(BACKEND_URL + "config");
-		config = await config.json();
+		const result = await config.json();
+		return result;
+	} else if (space_id) {
+		const config = await get_space_config(space_id);
 		return config;
 	} else {
 		return window.gradio_config;
 	}
 }
 
-if (window.__gradio_mode__ == "app") {
-	window.__gradio_loader__ = new Loader({
-		target: document.querySelector("#root")!,
+function mount_css(
+	url: string,
+	target: ShadowRoot | HTMLElement,
+	css_string?: string
+): Promise<void> {
+	if (css_string) {
+		let style = document.createElement("style");
+		style.innerHTML = css_string;
+		target.appendChild(style);
+	}
+	if (BUILD_MODE === "dev") Promise.resolve();
+
+	const link = document.createElement("link");
+	link.rel = "stylesheet";
+	link.href = url;
+	// @ts-ignore
+	target.appendChild(link);
+
+	return new Promise((res, rej) => {
+		link.addEventListener("load", () => res());
+		link.addEventListener("error", () =>
+			rej(new Error(`Unable to preload CSS for ${url}`))
+		);
+	});
+}
+
+async function handle_config(
+	target: HTMLElement | ShadowRoot,
+	space_id: string | null
+) {
+	let [config] = await Promise.all([
+		get_config(space_id),
+		mount_css(ENTRY_CSS, target)
+	]);
+
+	if (config.dev_mode) {
+		reload_check(config.root);
+	}
+
+	if (config.root === undefined) {
+		config.root = BACKEND_URL;
+	}
+
+	config.target = target;
+
+	return config;
+}
+
+function mount_app(
+	config: Config,
+	target: HTMLElement | ShadowRoot | false,
+	wrapper: HTMLDivElement,
+	id: number
+) {
+	if (config.detail === "Not authenticated" || config.auth_required) {
+		const app = new Login({
+			target: wrapper,
+			//@ts-ignore
+			props: { ...config, id }
+		});
+	} else {
+		let session_hash = Math.random().toString(36).substring(2);
+		config.fn = fn.bind(null, session_hash, config.root + "api/");
+
+		const app = new Blocks({
+			target: wrapper,
+			//@ts-ignore
+			props: { ...config, target: wrapper, id }
+		});
+	}
+
+	if (target) {
+		target.append(wrapper);
+	}
+}
+
+function create_custom_element() {
+	//@ts-ignore
+	FONTS.map((f) => mount_css(f, document.head));
+
+	class GradioApp extends HTMLElement {
+		root: ShadowRoot;
+		wrapper: HTMLDivElement;
+		_id: number;
+
+		constructor() {
+			super();
+
+			this._id = ++id;
+
+			this.root = this.attachShadow({ mode: "open" });
+
+			window.scoped_css_attach = (link) => {
+				this.root.append(link);
+			};
+
+			this.wrapper = document.createElement("div");
+			this.wrapper.classList.add("gradio-container");
+
+			this.wrapper.style.position = "relative";
+			this.wrapper.style.width = "100%";
+			this.wrapper.style.minHeight = "100vh";
+
+			window.__gradio_loader__[this._id] = new Loader({
+				target: this.wrapper,
+				props: {
+					status: "pending",
+					timer: false,
+					queue_position: null,
+					cover_all: true
+				}
+			});
+
+			this.root.append(this.wrapper);
+		}
+
+		async connectedCallback() {
+			const space = this.getAttribute("space");
+
+			const config = await handle_config(this.root, space);
+			mount_app(config, this.root, this.wrapper, this._id);
+		}
+	}
+
+	customElements.define("gradio-app", GradioApp);
+}
+
+async function unscoped_mount() {
+	const target = document.querySelector("#root")! as HTMLDivElement;
+	target.classList.add("gradio-container");
+
+	window.__gradio_loader__[0] = new Loader({
+		target: target,
 		props: {
 			status: "pending",
 			timer: false,
@@ -148,12 +243,13 @@ if (window.__gradio_mode__ == "app") {
 		}
 	});
 
-	get_config()
-		.then((config) => {
-			window.launchGradio(config, "#root");
-		})
-		.catch((e) => {
-			console.error(e);
-			window.__gradio_loader__.$set({ status: "error" });
-		});
+	const config = await handle_config(target, null);
+
+	mount_app(config, false, target, 0);
+}
+
+if (BUILD_MODE === "dev") {
+	unscoped_mount();
+} else {
+	create_custom_element();
 }
