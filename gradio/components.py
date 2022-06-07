@@ -158,7 +158,12 @@ class IOComponent(Component):
             )
             return {"name": file, "data": data}
         else:
-            return {"name": os.path.join(dir, file), "data": os.path.join(dir, file), "file_name": file, "is_example": True}
+            return {
+                "name": os.path.join(dir, file),
+                "data": os.path.join(dir, file),
+                "file_name": file,
+                "is_example": True,
+            }
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
