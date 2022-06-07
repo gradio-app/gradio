@@ -42,4 +42,5 @@ setup(
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
     },
+    python_requires='>=3.7',
 )

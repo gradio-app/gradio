@@ -16,7 +16,7 @@ Gradio allows you to **build demos and share them, all in Python.** And usually 
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
-<span>1.</span> Install Gradio from pip.
+<span>1.</span> Install Gradio from pip. Note, the minimal supported Python version is 3.7.
 
 ```bash
 pip install gradio
