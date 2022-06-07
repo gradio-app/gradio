@@ -8,6 +8,5 @@ module.exports = {
 		extend: {}
 	},
 
-	plugins: [require("@tailwindcss/forms")],
-	important: ".gradio-container"
+	plugins: [require("@tailwindcss/forms")]
 };

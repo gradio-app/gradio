@@ -10,6 +10,7 @@
 	import Render from "./Render.svelte";
 	import ApiDocs from "./ApiDocs.svelte";
 	import { tick } from "svelte";
+	import logo from "./images/logo.svg";
 	setupi18n();
 
 	interface Component {
@@ -55,12 +56,13 @@
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
-	export let style: string | null;
+
 	export let enable_queue: boolean;
-	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
+	export let css: string;
+	export let id: number = 0;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -165,14 +167,15 @@
 				ready = true;
 
 				await tick();
+
 				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__.$set({ status: "complete" });
+					window.__gradio_loader__[id].$set({ status: "complete" });
 				}
 			})
 			.catch((e) => {
 				console.error(e);
 				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__.$set({ status: "error" });
+					window.__gradio_loader__[id].$set({ status: "error" });
 				}
 			});
 	});
@@ -336,8 +339,6 @@
 		}
 	}
 
-	let mode = "";
-
 	function handle_darkmode() {
 		let url = new URL(window.location.toString());
 
@@ -347,13 +348,13 @@
 
 		if (color_mode !== null) {
 			if (color_mode === "dark") {
-				mode = "dark";
+				target.classList.add("dark");
 			} else if (color_mode === "system") {
 				use_system_theme();
 			}
 			// light is default, so we don't need to do anything else
 		} else if (url.searchParams.get("__dark-theme") === "true") {
-			mode = "dark";
+			target.classList.add("dark");
 		} else {
 			use_system_theme();
 		}
@@ -369,15 +370,13 @@
 			const is_dark =
 				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
 
-			mode = is_dark ? "dark" : "";
+			if (is_dark) target.classList.add("dark");
 		}
 	}
 
-	onMount(() => {
-		if (window.__gradio_mode__ !== "website") {
-			handle_darkmode();
-		}
-	});
+	if (window.__gradio_mode__ !== "website") {
+		handle_darkmode();
+	}
 </script>
 
 <svelte:head>
@@ -389,7 +388,8 @@
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
-<div class="w-full h-full min-h-screen {mode} flex flex-col">
+
+<div class="w-full h-full min-h-screen flex flex-col">
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={(window.__gradio_mode__ = "app")}
@@ -434,7 +434,7 @@
 			{$_("interface.built_with_Gradio")}
 			<img
 				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
-				src="{static_src}/static/img/logo.svg"
+				src={logo}
 				alt="logo"
 			/>
 		</a>
