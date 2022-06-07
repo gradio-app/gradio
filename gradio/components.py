@@ -1589,7 +1589,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Demos: video_flip
+    Demos: video_identity
     """
 
     def __init__(
