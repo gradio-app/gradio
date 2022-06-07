@@ -59,6 +59,7 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
+	export let id: number = 0;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -161,13 +162,13 @@
 				await tick();
 
 				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__.$set({ status: "complete" });
+					window.__gradio_loader__[id].$set({ status: "complete" });
 				}
 			})
 			.catch((e) => {
 				console.error(e);
 				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__.$set({ status: "error" });
+					window.__gradio_loader__[id].$set({ status: "error" });
 				}
 			});
 	});

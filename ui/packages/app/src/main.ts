@@ -5,15 +5,18 @@ import { fn } from "./api";
 
 import * as t from "@gradio/theme";
 
+let id = -1;
+window.__gradio_loader__ = [];
+
 interface CustomWindow extends Window {
 	__gradio_mode__: "app" | "website";
 	launchGradio: Function;
 	launchGradioFromSpaces: Function;
 	gradio_config: Config;
 	scoped_css_attach: (link: HTMLLinkElement) => void;
-	__gradio_loader__: {
+	__gradio_loader__: Array<{
 		$set: (args: any) => any;
-	};
+	}>;
 }
 
 declare let window: CustomWindow;
@@ -150,13 +153,14 @@ async function handle_config(
 function mount_app(
 	config: Config,
 	target: HTMLElement | ShadowRoot | false,
-	wrapper: HTMLDivElement
+	wrapper: HTMLDivElement,
+	id: number
 ) {
 	if (config.detail === "Not authenticated" || config.auth_required) {
 		const app = new Login({
 			target: wrapper,
 			//@ts-ignore
-			props: config
+			props: { ...config, id }
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
@@ -165,7 +169,7 @@ function mount_app(
 		const app = new Blocks({
 			target: wrapper,
 			//@ts-ignore
-			props: { ...config, target: wrapper }
+			props: { ...config, target: wrapper, id }
 		});
 	}
 
@@ -181,9 +185,12 @@ function create_custom_element() {
 	class GradioApp extends HTMLElement {
 		root: ShadowRoot;
 		wrapper: HTMLDivElement;
+		_id: number;
 
 		constructor() {
 			super();
+
+			this._id = ++id;
 
 			this.root = this.attachShadow({ mode: "open" });
 
@@ -198,7 +205,7 @@ function create_custom_element() {
 			this.wrapper.style.width = "100%";
 			this.wrapper.style.minHeight = "100vh";
 
-			window.__gradio_loader__ = new Loader({
+			window.__gradio_loader__[this._id] = new Loader({
 				target: this.wrapper,
 				props: {
 					status: "pending",
@@ -214,11 +221,8 @@ function create_custom_element() {
 		async connectedCallback() {
 			const space = this.getAttribute("space");
 
-			console.log(space);
-
 			const config = await handle_config(this.root, space);
-			console.log("mount");
-			mount_app(config, this.root, this.wrapper);
+			mount_app(config, this.root, this.wrapper, this._id);
 		}
 	}
 
@@ -229,7 +233,7 @@ async function unscoped_mount() {
 	const target = document.querySelector("#root")! as HTMLDivElement;
 	target.classList.add("gradio-container");
 
-	window.__gradio_loader__ = new Loader({
+	window.__gradio_loader__[0] = new Loader({
 		target: target,
 		props: {
 			status: "pending",
@@ -241,7 +245,7 @@ async function unscoped_mount() {
 
 	const config = await handle_config(target, null);
 
-	mount_app(config, false, target);
+	mount_app(config, false, target, 0);
 }
 
 if (BUILD_MODE === "dev") {

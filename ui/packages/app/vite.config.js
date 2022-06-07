@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
 
 		build: {
 			target: "esnext",
-			minify: production,
+			minify: false,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
 				compilerOptions: {
 					dev: !production
 				},
-				hot: !process.env.VITEST,
+				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }
 				})
