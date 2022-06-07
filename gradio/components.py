@@ -1518,7 +1518,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
     def restore_flagged(self, dir, data, encryption_key):
         return processing_utils.encode_file_to_base64(
-            os.path.join(dir, data), encryption_key=encryption_key, as_data=True
+            os.path.join(dir, data), encryption_key=encryption_key
         )
 
     def generate_sample(self):
