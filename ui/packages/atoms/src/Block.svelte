@@ -65,8 +65,6 @@
 			? get_styles({ rounded: rounded }, ["rounded"]).classes
 			: "";
 	$: visible_style = get_styles({ visible }, ["visible"]).classes;
-
-	$: console.log(explicit_call);
 </script>
 
 <svelte:element
