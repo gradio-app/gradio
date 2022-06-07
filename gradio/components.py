@@ -158,7 +158,7 @@ class IOComponent(Component):
             )
             return {"name": file, "data": data}
         else:
-            return {"name": os.path.join(dir, file), "data": os.path.join(dir, file), "is_example": True}
+            return {"name": os.path.join(dir, file), "data": os.path.join(dir, file), "file_name": file, "is_example": True}
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -3433,7 +3433,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
     def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
+        return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
 
     def style(
         self,

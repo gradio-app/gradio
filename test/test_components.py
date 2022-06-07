@@ -588,7 +588,7 @@ class TestImage(unittest.TestCase):
             to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
             self.assertEqual("image_input/1.png", to_save)
             restored = image_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, media_data.BASE64_IMAGE)
+            self.assertEqual(restored, os.path.join(tmpdirname, "image_input/1.png"))
 
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.Image(
@@ -779,7 +779,7 @@ class TestAudio(unittest.TestCase):
             to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
             self.assertEqual("audio_input/1.wav", to_save)
             restored = audio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["data"], media_data.BASE64_AUDIO["data"])
+            self.assertEqual(restored["file_name"], "audio_input/1.wav")
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -1154,7 +1154,7 @@ class TestVideo(unittest.TestCase):
             to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
             self.assertEqual("video_input/1.mp4", to_save)
             restored = video_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["data"], media_data.BASE64_VIDEO["data"])
+            self.assertEqual(restored["file_name"], "video_input/1.mp4")
 
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
