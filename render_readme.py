@@ -17,8 +17,9 @@ for code_src in code_tags:
     with open(join("demo", code_src, "run.py")) as code_file:
         python_code = code_file.read()
         python_code = python_code.replace(
-            'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
         )
+        python_code = python_code.replace("\n\n\n", "\n\n")
         code[code_src] = "```python\n" + python_code + "\n```"
 
 for demo_src in demo_tags:
