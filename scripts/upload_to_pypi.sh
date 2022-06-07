@@ -6,10 +6,10 @@ else
   echo "Uploading to pypi"
   set -e
   git pull origin main
-  old_version=$(ggrep -Po "(?<=version=\")[^\"]+(?=\")" setup.py)
+  old_version=$(grep -Po "(?<=version=\")[^\"]+(?=\")" setup.py)
   echo "Current version is $old_version. New version?"
   read new_version
-  gsed -i "s/version=\"$old_version\"/version=\"$new_version\"/g" setup.py
+  sed -i "s/version=\"$old_version\"/version=\"$new_version\"/g" setup.py
 
   echo -n $new_version > gradio/version.txt
   rm -rf gradio/templates/frontend
