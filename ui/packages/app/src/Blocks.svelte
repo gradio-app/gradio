@@ -8,6 +8,7 @@
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
+	import ApiDocs from "./ApiDocs.svelte";
 	import { tick } from "svelte";
 	import logo from "./images/logo.svg";
 	setupi18n();
@@ -45,6 +46,8 @@
 		status_tracker: number | null;
 		status?: string;
 		queue: boolean | null;
+		api_name: string | null;
+		documentation?: Array<Array<string>>;
 	}
 
 	export let root: string;
@@ -64,12 +67,14 @@
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
 
+	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 	dependencies.forEach((d) => {
 		if (d.js) {
 			try {
-				d.frontend_fn = new Function(
+				d.frontend_fn = new AsyncFunction(
 					"__fn_args",
-					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+					`let result = await (${d.js})(...__fn_args);
+					return ${d.outputs.length} === 1 ? [result] : result;`
 				);
 			} catch (e) {
 				console.error("Could not parse custom js method.");
@@ -77,6 +82,8 @@
 			}
 		}
 	});
+	let show_api_docs = dependencies.some((d) => "documentation" in d);
+	let api_docs_visible = false;
 
 	function is_dep(
 		id: number,
@@ -387,7 +394,9 @@
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={(window.__gradio_mode__ = "app")}
 	>
-		{#if ready}
+		{#if api_docs_visible}
+			<ApiDocs {components} {dependencies} {root} />
+		{:else if ready}
 			<Render
 				component={rootNode.component}
 				id={rootNode.id}
@@ -402,12 +411,25 @@
 			/>
 		{/if}
 	</div>
-	<footer class="flex justify-center pb-6">
+	<footer
+		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
+	>
+		{#if show_api_docs}
+			<div
+				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+				on:click={() => {
+					api_docs_visible = !api_docs_visible;
+				}}
+			>
+				{#if api_docs_visible}hide{:else}view{/if} api
+			</div>
+			&nbsp; &bull; &nbsp;
+		{/if}
 		<a
 			href="https://gradio.app"
 			target="_blank"
 			rel="noreferrer"
-			class="group text-gray-300 dark:text-gray-500 hover:text-gray-400 dark:hover:text-gray-400 transition-colors font-semibold text-sm"
+			class="group hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 		>
 			{$_("interface.built_with_Gradio")}
 			<img
