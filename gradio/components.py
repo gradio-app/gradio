@@ -1512,7 +1512,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def restore_flagged(self, dir, data, encryption_key):
-        return os.path.join(dir, data)
+        return processing_utils.encode_file_to_base64(
+            os.path.join(dir, data), encryption_key=encryption_key
+        )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
@@ -1545,8 +1547,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return out_y
 
     def deserialize(self, x):
-        y = processing_utils.decode_base64_to_file(x).name
-        return y
+        return processing_utils.decode_base64_to_file(x).name
 
     def style(
         self,
