@@ -315,4 +315,5 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
 def synchronize_async(func: Callable, *args: object, callback_func: Callable = None):
     event_loop = asyncio.get_event_loop()
     task = event_loop.create_task(func(*args))
-    task.add_done_callback(callback_func)
+    if callback_func:
+        task.add_done_callback(callback_func)

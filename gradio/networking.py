@@ -143,11 +143,12 @@ def start_server(
     if app.blocks.enable_queue:
         if blocks.auth is not None or app.blocks.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
-        queueing.init()
-        app.queue_thread = threading.Thread(
-            target=queueing.queue_thread, args=(path_to_local_server,)
-        )
-        app.queue_thread.start()
+        from gradio.queue import Queue
+        from gradio.utils import synchronize_async
+
+        Queue.init(path_to_local_server)
+        synchronize_async(Queue.start_processing)
+
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
     config = uvicorn.Config(

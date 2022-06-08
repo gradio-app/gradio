@@ -15,18 +15,18 @@ from typing import Any, List, Optional, Type
 
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from pydantic import BaseModel
-from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
 
 import gradio
 from gradio import encryptor, queueing
+from gradio.queue import Estimation, Event, Queue
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -281,6 +281,22 @@ class App(FastAPI):
                         status_code=500,
                     )
             return await run_predict(body=body, username=username)
+
+        @app.websocket("/queue/join")
+        async def join_queue(websocket: WebSocket, _=Depends(login_check)):
+            await websocket.accept()
+            event_body = await websocket.receive_json()
+            event = Event(websocket, event_body)
+            Queue.push(event)
+            await event.send_message({"message": "joined_queue"})
+
+        @app.post(
+            "/queue/status",
+            dependencies=[Depends(login_check)],
+            response_model=Estimation,
+        )
+        async def get_queue_status():
+            return Queue.get_estimation()
 
         return app
 
