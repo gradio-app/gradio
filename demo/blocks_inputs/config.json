@@ -1,0 +1,99 @@
+{
+  "version": "3.0.6",
+  "mode": "blocks",
+  "dev_mode": true,
+  "components": [
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 5,
+        "max_lines": 20,
+        "value": "",
+        "label": "Input",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "",
+        "label": "Output-Interactive",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "Hello friends\nhello friends\n\nHello friends\n\n",
+        "label": "Output",
+        "show_label": true,
+        "interactive": false,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "button",
+      "props": {
+        "value": "Submit",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "css": null,
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      },
+      {
+        "id": 4
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        4
+      ],
+      "trigger": "click",
+      "inputs": [
+        1
+      ],
+      "outputs": [
+        2
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}

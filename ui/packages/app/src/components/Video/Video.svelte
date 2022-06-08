@@ -6,15 +6,18 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: FileData | null | string = null;
 	export let label: string;
 	export let source: string;
 	export let root: string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
+	export let style: Styles = {};
 
 	export let mode: "static" | "dynamic";
 
@@ -31,6 +34,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	style={{ rounded: style.rounded }}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

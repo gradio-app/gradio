@@ -3,17 +3,20 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { createEventDispatcher, tick } from "svelte";
+	import type { Styles } from "@gradio/utils";
 
 	type Headers = Array<string>;
 	type Data = Array<Array<string | number>>;
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
+	export let style: Styles = {};
 	export let label: string | null = null;
 
 	$: {
@@ -39,6 +42,7 @@
 
 <div
 	id={elem_id}
+	class:hidden={visible === false}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
 >
@@ -51,5 +55,6 @@
 		{headers}
 		on:change={handle_change}
 		editable={mode === "dynamic"}
+		{style}
 	/>
 </div>
