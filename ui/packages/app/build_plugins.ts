@@ -1,8 +1,8 @@
 import type { Plugin } from "vite";
-import { parse } from "node-html-parser";
+import { parse, HTMLElement } from "node-html-parser";
 
-import path from "path";
-import fs from "fs";
+import { join } from "path";
+import { writeFileSync } from "fs";
 
 export function inject_ejs(): Plugin {
 	return {
@@ -47,8 +47,8 @@ export function patch_dynamic_import({
 							chunk.code.replace(import_re, `import_fix($1, ${import_meta})`);
 
 						if (!config.dir) break;
-						const output_location = path.join(config.dir, chunk.fileName);
-						fs.writeFileSync(output_location, chunk.code);
+						const output_location = join(config.dir, chunk.fileName);
+						writeFileSync(output_location, chunk.code);
 					}
 				}
 			}
@@ -81,27 +81,15 @@ export function generate_cdn_entry({
 				Array.from(tree.querySelectorAll("script[type=module]")).find((node) =>
 					node.attributes.src?.startsWith(cdn_url)
 				)?.attributes.src || "";
-			const styles =
-				Array.from(tree.querySelectorAll("link[rel=stylesheet]")).find((node) =>
-					node.attributes.href?.startsWith(cdn_url)
-				)?.attributes.href || "";
 
-			const output_location = path.join(config.dir, "gradio.js");
+			const output_location = join(config.dir, "gradio.js");
 
-			fs.writeFileSync(output_location, make_entry(script, styles));
+			writeFileSync(output_location, make_entry(script));
 		}
 	};
 }
 
-function make_entry(script: string, style: string) {
-	const make_style = `
-function make_style(href) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-}`;
-
+function make_entry(script: string) {
 	const make_script = `
 function make_script(src) {
     const script = document.createElement('script');
@@ -112,9 +100,91 @@ function make_script(src) {
 }`;
 
 	return `
-${make_style}
 ${make_script}
 make_script("${script}");
-make_style("${style}");
 `;
+}
+
+export function handle_ce_css(): Plugin {
+	return {
+		enforce: "post",
+		name: "custome-element-css",
+		transform(code, id) {
+			if (id === "vite/preload-helper") {
+				return {
+					code: code.replace(
+						"document.head.appendChild(link);",
+						"window.scoped_css_attach(link)"
+					)
+				};
+			}
+		},
+
+		writeBundle(config, bundle) {
+			let file_to_insert = {
+				filename: "",
+				source: ""
+			};
+
+			if (
+				!config.dir ||
+				!bundle["index.html"] ||
+				bundle["index.html"].type !== "asset"
+			)
+				return;
+
+			for (const key in bundle) {
+				const chunk = bundle[key];
+				if (chunk.type === "chunk") {
+					const _chunk = chunk;
+
+					const found = _chunk.code?.indexOf("ENTRY_CSS");
+
+					if (found > -1)
+						file_to_insert = {
+							filename: join(config.dir, key),
+							source: _chunk.code
+						};
+				}
+			}
+
+			const tree = parse(bundle["index.html"].source as string);
+
+			const { style, fonts } = Array.from(
+				tree.querySelectorAll("link[rel=stylesheet]")
+			).reduce(
+				(acc, next) => {
+					if (/.*\/index(.*?)\.css/.test(next.attributes.href)) {
+						return { ...acc, style: next };
+					} else {
+						return { ...acc, fonts: [...acc.fonts, next.attributes.href] };
+					}
+				},
+				{ fonts: [], style: undefined } as {
+					fonts: string[];
+					style: HTMLElement | undefined;
+				}
+			);
+
+			const transformed_html =
+				(bundle["index.html"].source as string).substring(0, style!.range[0]) +
+				(bundle["index.html"].source as string).substring(
+					style!.range[1],
+					bundle["index.html"].source.length
+				);
+			const html_location = join(config.dir, "index.html");
+
+			writeFileSync(
+				file_to_insert.filename,
+				file_to_insert.source
+					.replace("__ENTRY_CSS__", style!.attributes.href)
+					.replace(
+						'"__FONTS_CSS__"',
+						`[${fonts.map((f) => `"${f}"`).join(",")}]`
+					)
+			);
+
+			writeFileSync(html_location, transformed_html);
+		}
+	};
 }

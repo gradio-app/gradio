@@ -147,14 +147,23 @@ class IOComponent(Component):
         dir: str,
         file: str,
         encryption_key: bool,
+        as_data: bool = False,
     ) -> Dict[str, Any]:
         """
         Loads flagged data from file and returns it
         """
-        data = processing_utils.encode_file_to_base64(
-            os.path.join(dir, file), encryption_key=encryption_key
-        )
-        return {"name": file, "data": data}
+        if as_data:
+            data = processing_utils.encode_file_to_base64(
+                os.path.join(dir, file), encryption_key=encryption_key
+            )
+            return {"name": file, "data": data}
+        else:
+            return {
+                "name": os.path.join(dir, file),
+                "data": os.path.join(dir, file),
+                "file_name": file,
+                "is_example": True,
+            }
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -1547,7 +1556,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def restore_flagged(self, dir, data, encryption_key):
-        return os.path.join(dir, data)
+        return processing_utils.encode_file_to_base64(
+            os.path.join(dir, data), encryption_key=encryption_key
+        )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
@@ -1580,8 +1591,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return out_y
 
     def deserialize(self, x):
-        y = processing_utils.decode_base64_to_file(x).name
-        return y
+        return processing_utils.decode_base64_to_file(x).name
 
     def style(
         self,
@@ -1618,7 +1628,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Demos: video_flip
+    Demos: video_identity
     """
 
     def __init__(
@@ -1726,6 +1736,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return self.save_flagged_file(
             dir, label, None if data is None else data["data"], encryption_key
         )
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
@@ -2016,8 +2029,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
-
         return self.save_flagged_file(dir, label, data_string, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -3460,7 +3475,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
     def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
+        return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
 
     def style(
         self,
