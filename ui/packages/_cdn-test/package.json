@@ -1,0 +1,13 @@
+{
+	"name": "@gradio/cdn-test",
+	"private": true,
+	"version": "0.0.0",
+	"scripts": {
+		"dev": "vite --port 3001",
+		"build": "vite build",
+		"preview": "vite preview  --port 3001"
+	},
+	"devDependencies": {
+		"vite": "^2.9.9"
+	}
+}

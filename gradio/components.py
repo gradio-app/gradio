@@ -11,15 +11,13 @@ import numbers
 import operator
 import os
 import shutil
-import sys
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
-import numpy
 import numpy as np
 import pandas as pd
 import PIL
@@ -37,6 +35,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.utils import component_or_layout_class
 
 
 class Component(Block):
@@ -148,14 +147,23 @@ class IOComponent(Component):
         dir: str,
         file: str,
         encryption_key: bool,
+        as_data: bool = False,
     ) -> Dict[str, Any]:
         """
         Loads flagged data from file and returns it
         """
-        data = processing_utils.encode_file_to_base64(
-            os.path.join(dir, file), encryption_key=encryption_key
-        )
-        return {"name": file, "data": data}
+        if as_data:
+            data = processing_utils.encode_file_to_base64(
+                os.path.join(dir, file), encryption_key=encryption_key
+            )
+            return {"name": file, "data": data}
+        else:
+            return {
+                "name": os.path.join(dir, file),
+                "data": os.path.join(dir, file),
+                "file_name": file,
+                "is_example": True,
+            }
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -234,32 +242,31 @@ class IOComponent(Component):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
-        valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
         if rounded is not None:
             self._style["rounded"] = rounded
-        if bg_color is not None:
-            assert bg_color in valid_colors
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            assert text_color in valid_colors
-            self._style["text_color"] = text_color
-        if container_bg_color is not None:
-            assert container_bg_color in valid_colors
-            self._style["container_bg_color"] = container_bg_color
-        if margin is not None:
-            self._style["margin"] = margin
         if border is not None:
             self._style["border"] = border
         if container is not None:
             self._style["container"] = container
         return self
+
+    @classmethod
+    def document_parameters(cls, target):
+        if target == "input":
+            doc = inspect.getdoc(cls.preprocess)
+            if "Parameters:\nx (" in doc:
+                return doc.split("Parameters:\nx ")[1].split("\n")[0]
+            return None
+        elif target == "output":
+            doc = inspect.getdoc(cls.postprocess)
+            if "Returns:\n" in doc:
+                return doc.split("Returns:\n")[1].split("\n")[0]
+            return None
+        else:
+            raise ValueError("Invalid doumentation target.")
 
 
 class Textbox(Changeable, Submittable, IOComponent):
@@ -295,11 +302,10 @@ class Textbox(Changeable, Submittable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.value = value
+        self.value = self.postprocess(value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -347,6 +353,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def preprocess(self, x: str | None) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
         """
         if x is None:
             return None
@@ -433,6 +443,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def postprocess(self, y: str | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
         """
         if y is None:
             return None
@@ -445,27 +459,6 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         return x
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        container: Optional[bool] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-            margin=margin,
-            border=border,
-            container=container,
-        )
-
 
 class Number(Changeable, Submittable, IOComponent):
     """
@@ -473,12 +466,12 @@ class Number(Changeable, Submittable, IOComponent):
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Demos: tax_calculator, titanic_survival, blocks_hello
+    Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
 
     def __init__(
         self,
-        value: Optional[float] = 0,
+        value: Optional[float] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -496,9 +489,8 @@ class Number(Changeable, Submittable, IOComponent):
         visible (bool): If False, component will be hidden.
         precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
-        self.value = self.round_to_precision(value, precision)
-        self.cleared_value = 0
         self.precision = precision
+        self.value = self.postprocess(value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -554,24 +546,25 @@ class Number(Changeable, Submittable, IOComponent):
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
 
-    def preprocess(self, x: int | float | None) -> int | float | None:
+    def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:
-        x (int | float | None): numeric input as a string
+        x (float | None): numeric input
         Returns:
-        (int | float | None): number representing function input
+        (float | None): number representing function input
         """
         if x is None:
             return None
         return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: int | float | None) -> int | float | None:
+    def preprocess_example(self, x: float | None) -> float | None:
         """
         Returns:
-        (int | float | None): Number representing function input
+        (float | None): Number representing function input
         """
         if x is None:
             return None
@@ -623,18 +616,18 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> int | float:
+    def generate_sample(self) -> float:
         return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
-    def postprocess(self, y: int | float | None) -> int | float | None:
+    def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        y (int | float | None): numeric output
+        y (float | None): numeric output
         Returns:
-        (int | float | None): number representing function output
+        (float | None): number representing function output
         """
         if y is None:
             return None
@@ -646,21 +639,6 @@ class Number(Changeable, Submittable, IOComponent):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return y
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
 
 
 class Slider(Changeable, IOComponent):
@@ -703,7 +681,7 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.value = minimum if value is None else value
+        self.value = self.postprocess(value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -794,11 +772,15 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: int | float | None):
+    def postprocess(self, y: float | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (float | None): numeric output
+        Returns:
+        (float): numeric output or minimum number if None
         """
-        return y
+        return self.minimum if y is None else y
 
     def deserialize(self, y):
         """
@@ -808,13 +790,11 @@ class Slider(Changeable, IOComponent):
 
     def style(
         self,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        container: Optional[bool] = None,
     ):
         return IOComponent.style(
             self,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -845,9 +825,8 @@ class Checkbox(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.cleared_value = False
         self.test_input = True
-        self.value = value
+        self.value = self.postprocess(value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -924,6 +903,10 @@ class Checkbox(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (bool): boolean output
+        Returns:
+        (bool): boolean output
         """
         return y
 
@@ -932,17 +915,6 @@ class Checkbox(Changeable, IOComponent):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
-
-    def style(
-        self,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
-    ):
-        return IOComponent.style(
-            self,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
-        )
 
 
 class CheckboxGroup(Changeable, IOComponent):
@@ -956,7 +928,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: List[str] = None,
         type: str = "value",
@@ -976,14 +948,10 @@ class CheckboxGroup(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        if (
-            value is None
-        ):  # Mutable parameters shall not be given as default parameters in the function.
-            value = []
-        self.choices = choices
-        self.value = value
+        self.choices = choices or []
         self.cleared_value = []
         self.type = type
+        self.value = self.postprocess(value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1087,8 +1055,12 @@ class CheckboxGroup(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (List[str]): List of selected choices
+        Returns:
+        (List[str]): List of selected choices
         """
-        return y
+        return [] if y is None else y
 
     def deserialize(self, x):
         """
@@ -1099,16 +1071,16 @@ class CheckboxGroup(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
     ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
         return IOComponent.style(
             self,
             rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -1123,7 +1095,7 @@ class Radio(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1143,16 +1115,10 @@ class Radio(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.choices = choices
+        self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.value = (
-            value
-            if value is not None
-            else self.choices[0]
-            if len(self.choices) > 0
-            else None
-        )
+        self.value = self.postprocess(value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1238,8 +1204,14 @@ class Radio(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str): string of choice
+        Returns:
+        (str): string of choice
         """
-        return y
+        return (
+            y if y is not None else self.choices[0] if len(self.choices) > 0 else None
+        )
 
     def deserialize(self, x):
         """
@@ -1249,17 +1221,15 @@ class Radio(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
+        item_container: Optional[bool] = None,
+        container: Optional[bool] = None,
     ):
+        if item_container is not None:
+            self._style["item_container"] = item_container
+
         return IOComponent.style(
             self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
+            container=container,
         )
 
 
@@ -1274,7 +1244,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str],
+        choices: List[str] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1294,7 +1264,6 @@ class Dropdown(Radio):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        # Everything is same with Dropdown and Radio, so let's make use of it :)
         Radio.__init__(
             self,
             value=value,
@@ -1308,6 +1277,16 @@ class Dropdown(Radio):
             **kwargs,
         )
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(
+            self, rounded=rounded, border=border, container=container
+        )
+
 
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
@@ -1315,12 +1294,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_mod, blocks_xray
+    Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | PIL.Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1332,13 +1311,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         show_label: bool = True,
         interactive: Optional[bool] = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
         streaming: bool = False,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Image component is going to take.
+        value (Optional[str | PIL.Image | np.narray]): A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1351,11 +1330,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         """
         self.type = type
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
-        self.type = type
-        self.output_type = "auto"
+        self.value = self.postprocess(value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1581,7 +1556,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def restore_flagged(self, dir, data, encryption_key):
-        return os.path.join(dir, data)
+        return processing_utils.encode_file_to_base64(
+            os.path.join(dir, data), encryption_key=encryption_key
+        )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
@@ -1591,58 +1568,38 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (numpy.array | PIL.Image | str | matplotlib.pyplot): image in specified format
+        y (numpy.array | PIL.Image | str): image in specified format
         Returns:
         (str): base64 url data
         """
-        if self.output_type == "auto":
-            if isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, PIL.Image.Image):
-                dtype = "pil"
-            elif isinstance(y, str):
-                dtype = "file"
-            elif isinstance(y, (ModuleType, matplotlib.figure.Figure)):
-                dtype = "plot"
-            else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
-                )
+        if y is None:
+            return None
+        if isinstance(y, np.ndarray):
+            dtype = "numpy"
+        elif isinstance(y, PIL.Image.Image):
+            dtype = "pil"
+        elif isinstance(y, str):
+            dtype = "file"
         else:
-            dtype = self.output_type
+            raise ValueError("Cannot process this value as an Image")
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
             out_y = processing_utils.encode_url_or_file_to_base64(y)
-        elif dtype == "plot":
-            out_y = processing_utils.encode_plot_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + dtype
-                + ". Please choose from: 'numpy', 'pil', 'file', 'plot'."
-            )
         return out_y
 
     def deserialize(self, x):
-        y = processing_utils.decode_base64_to_file(x).name
-        return y
+        return processing_utils.decode_base64_to_file(x).name
 
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        container_bg_color: Optional[str] = None,
     ):
         return IOComponent.style(
             self,
             rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            container_bg_color=container_bg_color,
         )
 
     def stream(
@@ -1671,12 +1628,12 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Demos: video_flip
+    Demos: video_identity
     """
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         format: Optional[str] = None,
         source: str = "upload",
@@ -1696,11 +1653,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
         self.format = format
         self.source = source
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1771,7 +1726,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             return file_name
 
     def serialize(self, x, called_directly):
-        raise NotImplementedError()
+        data = processing_utils.encode_url_or_file_to_base64(x)
+        return {"name": x, "data": data, "is_example": False}
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -1780,6 +1736,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return self.save_flagged_file(
             dir, label, None if data is None else data["data"], encryption_key
         )
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
@@ -1791,6 +1750,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         Returns:
         (str): base64 url data
         """
+        if y is None:
+            return None
         returned_format = y.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
@@ -1803,7 +1764,17 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         }
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
@@ -1817,7 +1788,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str | Tuple[int, np.array]] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1825,13 +1796,13 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         show_label: bool = True,
         interactive: Optional[bool] = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
         streaming: bool = False,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Audio component is going to take.
+        value (str | Tuple[int, numpy.array]): A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
         label (Optional[str]): component name in interface.
@@ -1839,13 +1810,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         visible (bool): If False, component will be hidden.
         streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
+        self.value = self.postprocess(value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
-        self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
         self.streaming = streaming
@@ -1866,7 +1834,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def get_config(self):
         return {
-            "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
+            "source": self.source,
             "value": self.value,
             "streaming": self.streaming,
             **IOComponent.get_config(self),
@@ -2061,8 +2029,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
-
         return self.save_flagged_file(dir, label, data_string, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -2074,24 +2044,20 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Returns:
         (str): base64 url data
         """
-        if self.output_type in ["numpy", "file", "auto"]:
-            if self.output_type == "numpy" or (
-                self.output_type == "auto" and isinstance(y, tuple)
-            ):
-                sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(
-                    prefix="sample", suffix=".wav", delete=False
-                )
-                processing_utils.audio_to_file(sample_rate, data, file.name)
-                y = file.name
-            return processing_utils.encode_url_or_file_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'."
+        if y is None:
+            return None
+        if isinstance(y, tuple):
+            sample_rate, data = y
+            file = tempfile.NamedTemporaryFile(
+                prefix="sample", suffix=".wav", delete=False
             )
+            processing_utils.audio_to_file(sample_rate, data, file.name)
+            y = file.name
+        return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
 
     def stream(
         self,
@@ -2114,6 +2080,15 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             )
         Streamable.stream(self, fn, inputs, outputs, _js)
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class File(Changeable, Clearable, IOComponent):
     """
@@ -2126,7 +2101,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2139,18 +2114,16 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value given as file path
+        value (Optional[str]): Default file to display, given as str file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
         self.file_count = file_count
         self.type = type
+        self.value = self.postprocess(value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2187,14 +2160,30 @@ class File(Changeable, Clearable, IOComponent):
         }
 
     def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
+        if isinstance(x, list):
+            return [
+                {
+                    "name": file,
+                    "data": None,
+                    "size": os.path.getsize(file),
+                    "is_example": True,
+                }
+                for file in x
+            ]
+        else:
+            return {
+                "name": x,
+                "data": None,
+                "size": os.path.getsize(x),
+                "is_example": True,
+            }
 
     def preprocess(self, x: List[Dict[str, str]] | None):
         """
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (file-object | bytes | List[file-object] | List[bytes]): File objects in requested format
+        (file-object | bytes | List[file-object] | List[bytes]]): File objects in requested format
         """
         if x is None:
             return None
@@ -2236,9 +2225,14 @@ class File(Changeable, Clearable, IOComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data[0]["data"], encryption_key
-        )
+        if isinstance(data, list):
+            return self.save_flagged_file(
+                dir, label, None if data is None else data[0]["data"], encryption_key
+            )
+        else:
+            return self.save_flagged_file(
+                dir, label, data["data"], encryption_key, data["name"]
+            )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
@@ -2252,18 +2246,46 @@ class File(Changeable, Clearable, IOComponent):
         Returns:
         (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
-        return {
-            "name": os.path.basename(y),
-            "size": os.path.getsize(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
+        if y is None:
+            return None
+        if isinstance(y, list):
+            return [
+                {
+                    "name": os.path.basename(file),
+                    "size": os.path.getsize(file),
+                    "data": processing_utils.encode_file_to_base64(file),
+                }
+                for file in y
+            ]
+        else:
+            return {
+                "name": os.path.basename(y),
+                "size": os.path.getsize(y),
+                "data": processing_utils.encode_file_to_base64(y),
+            }
+
+    def deserialize(self, x):
+        file = processing_utils.decode_base64_to_file(x["data"])
+        return file.name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} which is rendered in the spreadsheet.
+    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
 
     Demos: filter_records, matrix_transpose, tax_calculator
     """
@@ -2314,7 +2336,6 @@ class Dataframe(Changeable, IOComponent):
         self.headers = headers
         self.datatype = datatype
         self.type = type
-        self.output_type = "auto"
         values = {
             "str": "",
             "number": 0,
@@ -2380,7 +2401,7 @@ class Dataframe(Changeable, IOComponent):
         Parameters:
         x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
         Returns:
-        (pandas.DataFrame | numpy.array | List[str | float | bool] | List[List[str | float | bool]]): Dataframe in requested format
+        (pandas.DataFrame | numpy.array | List[str | float | bool], List[List[str | float | bool]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2419,35 +2440,24 @@ class Dataframe(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (pandas.DataFrame, numpy.array, List[str | float | bool], List[List[str | float | bool]]): dataframe in given format
+        y (str | pandas.DataFrame | numpy.array | List[str | float], List[List[str | float]]]): dataframe in given format
         Returns:
         (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if self.output_type == "auto":
-            if isinstance(y, pd.core.frame.DataFrame):
-                dtype = "pandas"
-            elif isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, list):
-                dtype = "array"
-            else:
-                raise ValueError("Cannot determine the type of DataFrame output.")
-        else:
-            dtype = self.output_type
-        if dtype == "pandas":
+        if y is None:
+            return y
+        if isinstance(y, str):
+            y = pd.read_csv(str)
             return {"headers": list(y.columns), "data": y.values.tolist()}
-        elif dtype in ("numpy", "array"):
-            if dtype == "numpy":
+        if isinstance(y, pd.DataFrame):
+            return {"headers": list(y.columns), "data": y.values.tolist()}
+        if isinstance(y, (np.ndarray, list)):
+            if isinstance(y, np.ndarray):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
             return {"data": y}
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + self.type
-                + ". Please choose from: 'pandas', 'numpy', 'array'."
-            )
+        raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
     def __process_counts(count, default=3):
@@ -2467,12 +2477,22 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class Timeseries(Changeable, IOComponent):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
-    Postprocessing: expects a {pandas.DataFrame} to be returned, which is then displayed as a timeseries graph
+    Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
 
     Demos: fraud_detector
     """
@@ -2493,7 +2513,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): File path for the timeseries csv file.
+        value: File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (str | List[str]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
@@ -2501,7 +2521,7 @@ class Timeseries(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = pd.read_csv(value) if value is not None else None
+        self.value = self.postprocess(value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2568,7 +2588,7 @@ class Timeseries(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[str | float | bool]]) 2D array
+        Returns: (List[List[str | float]]) 2D array
         """
         return json.dumps(data)
 
@@ -2583,11 +2603,28 @@ class Timeseries(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (pandas.DataFrame): timeseries data
+        y (str | pandas.DataFrame): csv or dataframe with timeseries data
         Returns:
         (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        if y is None:
+            return None
+        if isinstance(y, str):
+            y = pd.read_csv(y)
+            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        if isinstance(y, pd.DataFrame):
+            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        raise ValueError("Cannot process value as Timeseries data")
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Variable(IOComponent):
@@ -2619,6 +2656,9 @@ class Variable(IOComponent):
             **IOComponent.get_config(self),
         }
 
+    def style(self):
+        return self
+
 
 ############################
 # Only Output Components
@@ -2631,14 +2671,14 @@ class Label(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
-    Demos: main_note, titanic_survival
+    Demos: image_classifier, main_note, titanic_survival
     """
 
     CONFIDENCES_KEY = "confidences"
 
     def __init__(
         self,
-        value: str = None,
+        value: Optional[str] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2649,15 +2689,14 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value to show
+        value(str): Default value to show in the component.
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
         self.num_top_classes = num_top_classes
-        self.output_type = "auto"
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2669,7 +2708,6 @@ class Label(Changeable, IOComponent):
 
     def get_config(self):
         return {
-            "output_type": self.output_type,
             "num_top_classes": self.num_top_classes,
             "value": self.value,
             **IOComponent.get_config(self),
@@ -2678,17 +2716,15 @@ class Label(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Dict[str, float]): dictionary mapping label to confidence value
+        y (Dict[str, float] | str | Number): a dictionary mapping labels to confidence value, or just a string/numerical label by itself
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if self.output_type == "label" or (
-            self.output_type == "auto" and (isinstance(y, (str, numbers.Number)))
-        ):
+        if y is None:
+            return None
+        if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
-        elif self.output_type == "confidences" or (
-            self.output_type == "auto" and isinstance(y, dict)
-        ):
+        if isinstance(y, dict):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
@@ -2698,32 +2734,27 @@ class Label(Changeable, IOComponent):
                     {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
                 ],
             }
-        else:
-            raise ValueError(
-                "The `Label` output interface expects one of: a string label, or an int label, a "
-                "float label, or a dictionary whose keys are labels and values are confidences. "
-                "Instead, got a {}".format(type(y))
-            )
+        raise ValueError(
+            "The `Label` output interface expects one of: a string label, or an int label, a "
+            "float label, or a dictionary whose keys are labels and values are confidences. "
+            "Instead, got a {}".format(type(y))
+        )
 
     def deserialize(self, y):
+        if y is None:
+            return None
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.output_type == "label" or (
-            self.output_type == "auto"
-            and (
-                isinstance(y, (str, numbers.Number))
-                or ("label" in y and not ("confidences" in y.keys()))
-            )
+        if isinstance(y, (str, numbers.Number)) or (
+            "label" in y and not ("confidences" in y.keys())
         ):
             if isinstance(y, (str, numbers.Number)):
                 return y
             else:
                 return y["label"]
-        elif self.output_type == "confidences" or self.output_type == "auto":
-            if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
-                return {k["label"]: k["confidence"] for k in y["confidences"]}
-            else:
-                return y
-        raise ValueError("Unable to deserialize output: {}".format(y))
+        if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
+            return {k["label"]: k["confidence"] for k in y["confidences"]}
+        else:
+            return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -2761,6 +2792,12 @@ class Label(Changeable, IOComponent):
             "__type__": "update",
         }
 
+    def style(
+        self,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(self, container=container)
+
 
 class HighlightedText(Changeable, IOComponent):
     """
@@ -2773,11 +2810,12 @@ class HighlightedText(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
         combine_adjacent: bool = False,
+        adjacent_separator: str = "",
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -2786,17 +2824,25 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
-        color_map (Dict[str, str]): Map between category and respective colors
+        value (List[Tuple[str, str | Number | None]]): Default value to show.
+        color_map (Dict[str, str]): Map between category and respective colors.
+        combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
+        adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
         self.color_map = color_map
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
+                DeprecationWarning,
+            )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
+        self.adjacent_separator = adjacent_separator
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2840,6 +2886,8 @@ class HighlightedText(Changeable, IOComponent):
         Returns:
         (List[Tuple[str, str | number | None]]): List of (word, category) tuples
         """
+        if y is None:
+            return None
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
@@ -2848,7 +2896,7 @@ class HighlightedText(Changeable, IOComponent):
                     running_text = text
                     running_category = category
                 elif category == running_category:
-                    running_text += text
+                    running_text += self.adjacent_separator + text
                 else:
                     output.append((running_text, running_category))
                     running_text = text
@@ -2865,6 +2913,17 @@ class HighlightedText(Changeable, IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        color_map: Optional[Dict[str, str]] = None,
+        container: Optional[bool] = None,
+    ):
+        if color_map is not None:
+            self._style["color_map"] = color_map
+
+        return IOComponent.style(self, rounded=rounded, container=container)
+
 
 class JSON(Changeable, IOComponent):
     """
@@ -2877,7 +2936,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2892,7 +2951,7 @@ class JSON(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = json.dumps(value)
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2926,7 +2985,7 @@ class JSON(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Dict | List | str): JSON output
+        y (Dict | List | str]): JSON output
         Returns:
         (Dict | List): JSON output
         """
@@ -2940,6 +2999,9 @@ class JSON(Changeable, IOComponent):
 
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
+
+    def style(self, container: Optional[bool] = None):
+        return IOComponent.style(self, container=container)
 
 
 class HTML(Changeable, IOComponent):
@@ -2999,6 +3061,9 @@ class HTML(Changeable, IOComponent):
             "__type__": "update",
         }
 
+    def style(self):
+        return self
+
 
 class Gallery(IOComponent):
     """
@@ -3011,7 +3076,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: List[numpy.array | PIL.Image | str] = None,
+        value: Optional[List[np.ndarray | PIL.Image | str]] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3021,12 +3086,12 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-        value (List[numpy.array | PIL.Image | str]): Default images in the Gallery
+        value (Optional[List[np.ndarray | PIL.Image | str]]): List of images to display in the gallery by default
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
+        self.value = self.postprocess(value)
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3050,12 +3115,6 @@ class Gallery(IOComponent):
             "__type__": "update",
         }
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def postprocess(self, y):
         """
         Parameters:
@@ -3063,6 +3122,8 @@ class Gallery(IOComponent):
         Returns:
         (str): list of base64 url data for images
         """
+        if y is None:
+            return []
         output = []
         for img in y:
             if isinstance(img, np.ndarray):
@@ -3082,30 +3143,23 @@ class Gallery(IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int] = None,
+        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
         height: Optional[str] = None,
+        container: Optional[bool] = None,
     ):
         if grid is not None:
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            bg_color=bg_color,
-            text_color=text_color,
-            margin=margin,
-        )
+        return IOComponent.style(self, rounded=rounded, container=container)
 
 
 class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
+    Demos: disease_report
     """
 
     def __init__(
@@ -3120,7 +3174,7 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (List[Component] | Component]): Classes of component(s) that will be scrolled through.
+        components (List[Component] | Component): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3218,8 +3272,8 @@ class Chatbot(Changeable, IOComponent):
 
     def __init__(
         self,
-        value="",
-        color_map: Tuple[str, str] = None,
+        value: Optional[List[Tuple[str, str]]] = None,
+        color_map: Dict[str, str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3229,14 +3283,20 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
-        color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
+        value (str): Default value to show in chatbot
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
+        if color_map is not None:
+            warnings.warn(
+                "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
+                DeprecationWarning,
+            )
+
+        self.value = self.postprocess(value)
         self.color_map = color_map
+
         IOComponent.__init__(
             self,
             label=label,
@@ -3280,14 +3340,26 @@ class Chatbot(Changeable, IOComponent):
         """
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        color_map: Optional[Dict[str, str]] = None,
+    ):
+        if color_map is not None:
+            self._style["color_map"] = color_map
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
+
 
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
-
-    Demos: model3D_demo
+    Demos: model3D
     """
 
     def __init__(
@@ -3303,14 +3375,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default file to show
+        value (Optional[str]): path to (.obj, glb, or .gltf) file to show in model3D viewer
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.clear_color = clear_color
-        self.value = value
+        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -3389,38 +3461,44 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         Parameters:
         y (str): path to the model
         Returns:
-        (str): file name
-        (str): file extension
-        (str): base64 url data
+        (Dict[name (str): file name, data (str): base64 url data] | None)
         """
-
-        if self.clear_color is None:
-            self.clear_color = [0.2, 0.2, 0.2, 1.0]
-
-        return {
+        if y is None:
+            return y
+        data = {
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
+        return data
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
     def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
+        return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+        )
 
 
 class Plot(Changeable, Clearable, IOComponent):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+    Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
         self,
-        value: Optional[Any] = None,
+        value=None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3430,7 +3508,7 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (matplotlib.pyplot.Figure | plotly.graph_objects._figure.Figure | dict): default plot to show
+        value (Optional[matplotlib.figure.Figure | dict | plotly.graph_objects._figure.Figure]): Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3468,12 +3546,11 @@ class Plot(Changeable, Clearable, IOComponent):
         Parameters:
         y (str): plot data
         Returns:
-        (str): plot type
-        (str): plot base64 or json
+        (Dict[type (str): plot type, plot (str): plot base64 | json] | None)
         """
         if y is None:
             return None
-        elif isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif isinstance(y, dict):
@@ -3483,6 +3560,9 @@ class Plot(Changeable, Clearable, IOComponent):
             dtype = "plotly"
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
+
+    def style(self):
+        return self
 
 
 class Markdown(IOComponent, Changeable):
@@ -3504,15 +3584,16 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-        value (str): Default value
+        value (str): Value to show in Markdown component
         visible (bool): If False, component will be hidden.
         """
         IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
-        unindented_value = inspect.cleandoc(value)
-        self.value = self.md.render(unindented_value)
+        self.value = self.postprocess(value)
 
     def postprocess(self, y):
+        if y is None:
+            return None
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
 
@@ -3533,6 +3614,9 @@ class Markdown(IOComponent, Changeable):
             "__type__": "update",
         }
 
+    def style(self):
+        return self
+
 
 ############################
 # Static Components
@@ -3550,7 +3634,7 @@ class Button(Clickable, Component):
         self,
         value: str = "Run",
         *,
-        variant: str = "primary",
+        variant: str = "secondary",
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
@@ -3588,22 +3672,20 @@ class Button(Clickable, Component):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
-        text_color: Optional[str] = None,
         full_width: Optional[str] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if bg_color is not None:
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            self._style["text_color"] = text_color
         if full_width is not None:
             self._style["full_width"] = full_width
         if margin is not None:
             self._style["margin"] = margin
-        return self
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
 
 
 class Dataset(Clickable, Component):
@@ -3615,8 +3697,9 @@ class Dataset(Clickable, Component):
     def __init__(
         self,
         *,
-        components: List[Component],
+        components: List[Component] | List[str],
         samples: List[List[Any]],
+        headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
         elem_id: Optional[str] = None,
@@ -3624,15 +3707,16 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Which component types to show in this dataset widget
+        components (List[Component]): Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
         samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
-        type (str): 'values' if clicking on a should  pass the value of the sample, or "index" if it should pass the index of the sample
+        headers (List[str]): Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
+        type (str): 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.components = components
+        self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
-        self.headers = [c.label for c in components]
+        self.headers = headers or [c.label for c in self.components]
         self.samples = samples
 
     def get_config(self):
@@ -3663,6 +3747,17 @@ class Dataset(Clickable, Component):
             return x
         elif self.type == "values":
             return self.samples[x]
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
 
 
 class Interpretation(Component):
@@ -3697,6 +3792,9 @@ class Interpretation(Component):
             "value": value,
             "__type__": "update",
         }
+
+    def style(self):
+        return self
 
 
 class StatusTracker(Component):
@@ -3737,42 +3835,23 @@ class StatusTracker(Component):
         }
 
 
-def component_class(cls_name: str) -> Type[Component]:
-    """
-    Returns the component class with the given class name, or raises a ValueError if not found.
-    @param cls_name: lower-case string class name of a component
-    @return cls: the component class
-    """
-    import gradio.templates
-
-    components = [
-        (name, cls)
-        for name, cls in sys.modules[__name__].__dict__.items()
-        if isinstance(cls, type)
-    ]
-    templates = [
-        (name, cls)
-        for name, cls in gradio.templates.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    for name, cls in components + templates:
-        if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
-            return cls
-    raise ValueError(f"No such Component: {cls_name}")
-
-
 def component(cls_name: str) -> Component:
-    obj = component_class(cls_name)()
+    obj = component_or_layout_class(cls_name)()
     return obj
 
 
-def get_component_instance(comp: str | dict | Component):
+def get_component_instance(comp: str | dict | Component, render=True) -> Component:
     if isinstance(comp, str):
-        return component(comp)
+        component_obj = component(comp)
+        if not (render):
+            component_obj.unrender()
+        return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component_class(name)
+        component_cls = component_or_layout_class(name)
         component_obj = component_cls(**comp)
+        if not (render):
+            component_obj.unrender()
         return component_obj
     elif isinstance(comp, Component):
         return comp
@@ -3786,13 +3865,3 @@ DataFrame = Dataframe
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
-
-
-def update(**kwargs) -> dict:
-    """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
-    """
-    kwargs["__type__"] = "generic_update"
-    return kwargs

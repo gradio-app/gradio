@@ -5,13 +5,16 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 	export let label: string = "Label";
+	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -21,10 +24,19 @@
 	$: value, dispatch("change");
 </script>
 
-<Block {elem_id}>
+<Block
+	{elem_id}
+	disable={typeof style.container === "boolean" && !style.container}
+	{visible}
+>
 	<StatusTracker {...loading_status} />
-	<BlockLabel Icon={LabelIcon} {label} />
-
+	{#if show_label}
+		<BlockLabel
+			Icon={LabelIcon}
+			{label}
+			disable={typeof style.container === "boolean" && !style.container}
+		/>
+	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
 		<Label {value} {show_label} />
 	{:else}

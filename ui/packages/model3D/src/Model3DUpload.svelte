@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick, afterUpdate } from "svelte";
+	import { createEventDispatcher, tick, afterUpdate, onMount } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
@@ -12,7 +12,12 @@
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
 	export let show_label: boolean;
-	export let style: string;
+
+	onMount(() => {
+		if (value != null) {
+			addNewModel();
+		}
+	});
 
 	afterUpdate(() => {
 		if (value != null && value.is_example) {

@@ -1,13 +1,41 @@
+"""This module should not be used directly as its API is subject to change. Instead,
+use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
+
 import base64
 import json
 import re
+from copy import deepcopy
+from typing import Callable, Dict
 
 import requests
 
+import gradio
 from gradio import components, utils
 
 
-def get_huggingface_interface(model_name, api_key, alias):
+def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
+    """Creates and returns a Blocks instance from several kinds of Hugging Face repos:
+    1) A model repo
+    2) A Spaces repo running Gradio 2.x
+    3) A Spaces repo running Gradio 3.x
+    """
+    if src is None:
+        tokens = name.split(
+            "/"
+        )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
+        assert (
+            len(tokens) > 1
+        ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
+        src = tokens[0]
+        name = "/".join(tokens[1:])
+    assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
+        factory_methods.keys()
+    )
+    blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
+    return blocks
+
+
+def get_models_interface(model_name, api_key, alias, **kwargs):
     model_url = "https://huggingface.co/{}".format(model_name)
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
     print("Fetching model from: {}".format(model_url))
@@ -256,57 +284,16 @@ def get_huggingface_interface(model_name, api_key, alias):
         "title": model_name,
     }
 
-    return interface_info
+    kwargs = dict(interface_info, **kwargs)
+    interface = gradio.Interface(**kwargs)
+    interface.api_mode = True  # So interface doesn't run pre/postprocess.
+    return interface
 
 
-def load_interface(name, src=None, api_key=None, alias=None):
-    if src is None:
-        tokens = name.split(
-            "/"
-        )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
-        assert (
-            len(tokens) > 1
-        ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
-        src = tokens[0]
-        name = "/".join(tokens[1:])
-    assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
-    interface_info = repos[src](name, api_key, alias)
-    return interface_info
-
-
-def interface_params_from_config(config_dict):
-    # instantiate input component and output component
-    config_dict["inputs"] = [
-        components.get_component_instance(component)
-        for component in config_dict["input_components"]
-    ]
-    config_dict["outputs"] = [
-        components.get_component_instance(component)
-        for component in config_dict["output_components"]
-    ]
-    parameters = {
-        "allow_flagging",
-        "allow_screenshot",
-        "article",
-        "description",
-        "flagging_options",
-        "inputs",
-        "outputs",
-        "show_input",
-        "show_output",
-        "theme",
-        "title",
-    }
-    config_dict = {k: config_dict[k] for k in parameters}
-    return config_dict
-
-
-def get_spaces_interface(model_name, api_key, alias):
+def get_spaces(model_name, api_key, alias, **kwargs):
     space_url = "https://huggingface.co/spaces/{}".format(model_name)
     print("Fetching interface from: {}".format(space_url))
     iframe_url = "https://hf.space/embed/{}/+".format(model_name)
-    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
-    headers = {"Content-Type": "application/json"}
 
     r = requests.get(iframe_url)
     result = re.search(
@@ -316,35 +303,115 @@ def get_spaces_interface(model_name, api_key, alias):
         config = json.loads(result.group(1))
     except AttributeError:
         raise ValueError("Could not load the Space: {}".format(model_name))
-    interface_info = interface_params_from_config(config)
+    if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
+        return get_spaces_interface(model_name, config, alias, **kwargs)
+    else:  # Create a Blocks for Gradio 3.x Spaces
+        return get_spaces_blocks(model_name, config)
+
+
+def get_spaces_blocks(model_name, config):
+    def streamline_config(config: dict) -> dict:
+        """Streamlines the blocks config dictionary to fix components that don't render correctly."""
+        # TODO(abidlabs): Need a better way to fix relative paths in dataset component
+        for c, component in enumerate(config["components"]):
+            if component["type"] == "dataset":
+                config["components"][c]["props"]["visible"] = False
+        return config
+
+    config = streamline_config(config)
+    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
+    headers = {"Content-Type": "application/json"}
+
+    fns = []
+    for d, dependency in enumerate(config["dependencies"]):
+        if dependency["backend_fn"]:
+
+            def get_fn(outputs, fn_index):
+                def fn(*data):
+                    data = json.dumps({"data": data, "fn_index": fn_index})
+                    response = requests.post(api_url, headers=headers, data=data)
+                    result = json.loads(response.content.decode("utf-8"))
+                    try:
+                        output = result["data"]
+                    except KeyError:
+                        raise KeyError(
+                            f"Could not find 'data' key in response from external Space. Response received: {result}"
+                        )
+                    if len(outputs) == 1:
+                        output = output[0]
+                    return output
+
+                return fn
+
+            fn = get_fn(deepcopy(dependency["outputs"]), d)
+            fns.append(fn)
+        else:
+            fns.append(None)
+    return gradio.Blocks.from_config(config, fns)
+
+
+def get_spaces_interface(model_name, config, alias, **kwargs):
+    def streamline_config(config: dict) -> dict:
+        """Streamlines the interface config dictionary to remove unnecessary keys."""
+        config["inputs"] = [
+            components.get_component_instance(component)
+            for component in config["input_components"]
+        ]
+        config["outputs"] = [
+            components.get_component_instance(component)
+            for component in config["output_components"]
+        ]
+        parameters = {
+            "article",
+            "description",
+            "flagging_options",
+            "inputs",
+            "outputs",
+            "theme",
+            "title",
+        }
+        config = {k: config[k] for k in parameters}
+        return config
+
+    config = streamline_config(config)
+    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
+    headers = {"Content-Type": "application/json"}
 
     # The function should call the API with preprocessed data
     def fn(*data):
         data = json.dumps({"data": data})
         response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
-        output = result["data"]
+        try:
+            output = result["data"]
+        except KeyError:
+            raise KeyError(
+                f"Could not find 'data' key in response from external Space. Response received: {result}"
+            )
         if (
-            len(interface_info["outputs"]) == 1
+            len(config["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
             output = output[0]
-        if len(interface_info["outputs"]) == 1 and isinstance(
+        if len(config["outputs"]) == 1 and isinstance(
             output, list
         ):  # Needed to support Output.Image() returning bounding boxes as well (TODO: handle different versions of gradio since they have slightly different APIs)
             output = output[0]
         return output
 
     fn.__name__ = alias if (alias is not None) else model_name
-    interface_info["fn"] = fn
+    config["fn"] = fn
 
-    return interface_info
+    kwargs = dict(config, **kwargs)
+    interface = gradio.Interface(**kwargs)
+    interface.api_mode = True  # So interface doesn't run pre/postprocess.
+    return interface
 
 
-repos = {
-    # for each repo, we have a method that returns the Interface given the model name & optionally an api_key
-    "huggingface": get_huggingface_interface,
-    "models": get_huggingface_interface,
-    "spaces": get_spaces_interface,
+factory_methods: Dict[str, Callable] = {
+    # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
+    "huggingface": get_models_interface,
+    "models": get_models_interface,
+    "spaces": get_spaces,
 }
 
 

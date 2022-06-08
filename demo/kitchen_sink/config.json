@@ -1,0 +1,1122 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 35,
+      "type": "markdown",
+      "props": {
+        "default_value": "<h1 style='text-align: center; margin-bottom: 1rem'>Kitchen Sink</h1>",
+        "name": "markdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 36,
+      "type": "markdown",
+      "props": {
+        "default_value": "<p>Try out all the components!</p>",
+        "name": "markdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 37,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 38,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "panel",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 39,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "default",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 0,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "Lorem ipsum",
+        "label": "Textbox",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 3,
+        "max_lines": 20,
+        "placeholder": "Type here..",
+        "default_value": "",
+        "label": "Textbox 2",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "number",
+      "props": {
+        "label": "Number",
+        "show_label": true,
+        "name": "number",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "slider",
+      "props": {
+        "minimum": 10,
+        "maximum": 20,
+        "step": 0.1,
+        "default_value": 15,
+        "label": "Slider: 10 - 20",
+        "show_label": true,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "slider",
+      "props": {
+        "minimum": 0,
+        "maximum": 20,
+        "step": 0.04,
+        "default_value": 0,
+        "label": "Slider: step @ 0.04",
+        "show_label": true,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "checkbox",
+      "props": {
+        "default_value": false,
+        "label": "Checkbox",
+        "show_label": true,
+        "name": "checkbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 6,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default_value": [
+          "foo",
+          "bar"
+        ],
+        "label": "CheckboxGroup",
+        "show_label": true,
+        "name": "checkboxgroup",
+        "css": {}
+      }
+    },
+    {
+      "id": 7,
+      "type": "radio",
+      "props": {
+        "choices": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default_value": "baz",
+        "label": "Radio",
+        "show_label": true,
+        "name": "radio",
+        "css": {}
+      }
+    },
+    {
+      "id": 8,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default_value": "foo",
+        "label": "Dropdown",
+        "show_label": true,
+        "name": "dropdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "label": "Image",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "select",
+        "label": "Image w/ Cropper",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "canvas",
+        "tool": "editor",
+        "label": "Sketchpad",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "webcam",
+        "tool": "editor",
+        "label": "Webcam",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "video",
+      "props": {
+        "source": "upload",
+        "label": "Video",
+        "show_label": true,
+        "name": "video",
+        "css": {}
+      }
+    },
+    {
+      "id": 14,
+      "type": "audio",
+      "props": {
+        "source": "upload",
+        "label": "Audio",
+        "show_label": true,
+        "name": "audio",
+        "css": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "audio",
+      "props": {
+        "source": "microphone",
+        "label": "Microphone",
+        "show_label": true,
+        "name": "audio",
+        "css": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "file",
+      "props": {
+        "file_count": "single",
+        "label": "File",
+        "show_label": true,
+        "name": "file",
+        "css": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "dataframe",
+      "props": {
+        "headers": [
+          "Name",
+          "Age",
+          "Gender"
+        ],
+        "datatype": "str",
+        "row_count": 3,
+        "col_count": 3,
+        "default_value": [
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ]
+        ],
+        "max_rows": 20,
+        "overflow_row_behaviour": "paginate",
+        "label": "Dataframe",
+        "show_label": true,
+        "name": "dataframe",
+        "css": {}
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "props": {
+        "x": "time",
+        "y": [
+          "price",
+          "value"
+        ],
+        "colors": [
+          "pink",
+          "purple"
+        ],
+        "label": "df2",
+        "show_label": true,
+        "name": "timeseries",
+        "css": {}
+      }
+    },
+    {
+      "id": 40,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 41,
+      "type": "button",
+      "props": {
+        "default_value": "Clear",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 42,
+      "type": "button",
+      "props": {
+        "default_value": "Submit",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 43,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "panel",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 44,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "css": {}
+      }
+    },
+    {
+      "id": 19,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Textbox",
+        "show_label": true,
+        "interactive": false,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 20,
+      "type": "label",
+      "props": {
+        "label": "Label",
+        "show_label": true,
+        "interactive": false,
+        "name": "label",
+        "css": {}
+      }
+    },
+    {
+      "id": 21,
+      "type": "audio",
+      "props": {
+        "source": "upload",
+        "label": "Audio",
+        "show_label": true,
+        "interactive": false,
+        "name": "audio",
+        "css": {}
+      }
+    },
+    {
+      "id": 22,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "label": "Image",
+        "show_label": true,
+        "interactive": false,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 23,
+      "type": "video",
+      "props": {
+        "source": "upload",
+        "label": "Video",
+        "show_label": true,
+        "interactive": false,
+        "name": "video",
+        "css": {}
+      }
+    },
+    {
+      "id": 24,
+      "type": "highlightedtext",
+      "props": {
+        "color_map": {
+          "punc": "pink",
+          "test 0": "blue"
+        },
+        "show_legend": false,
+        "default_value": "",
+        "label": "HighlightedText",
+        "show_label": true,
+        "interactive": false,
+        "name": "highlightedtext",
+        "css": {}
+      }
+    },
+    {
+      "id": 25,
+      "type": "highlightedtext",
+      "props": {
+        "show_legend": true,
+        "default_value": "",
+        "label": "HighlightedText",
+        "show_label": true,
+        "interactive": false,
+        "name": "highlightedtext",
+        "css": {}
+      }
+    },
+    {
+      "id": 26,
+      "type": "json",
+      "props": {
+        "default_value": "\"\"",
+        "label": "JSON",
+        "show_label": true,
+        "interactive": false,
+        "name": "json",
+        "css": {}
+      }
+    },
+    {
+      "id": 27,
+      "type": "html",
+      "props": {
+        "default_value": "",
+        "label": "HTML",
+        "show_label": true,
+        "interactive": false,
+        "name": "html",
+        "css": {}
+      }
+    },
+    {
+      "id": 28,
+      "type": "file",
+      "props": {
+        "file_count": "single",
+        "label": "File",
+        "show_label": true,
+        "interactive": false,
+        "name": "file",
+        "css": {}
+      }
+    },
+    {
+      "id": 29,
+      "type": "dataframe",
+      "props": {
+        "datatype": "str",
+        "row_count": 3,
+        "col_count": 3,
+        "default_value": [
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ]
+        ],
+        "max_rows": 20,
+        "overflow_row_behaviour": "paginate",
+        "label": "Dataframe",
+        "show_label": true,
+        "interactive": false,
+        "name": "dataframe",
+        "css": {}
+      }
+    },
+    {
+      "id": 30,
+      "type": "dataframe",
+      "props": {
+        "datatype": "str",
+        "row_count": 3,
+        "col_count": 3,
+        "default_value": [
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            ""
+          ]
+        ],
+        "max_rows": 20,
+        "overflow_row_behaviour": "paginate",
+        "label": "Numpy",
+        "show_label": true,
+        "interactive": false,
+        "name": "dataframe",
+        "css": {}
+      }
+    },
+    {
+      "id": 32,
+      "type": "carousel",
+      "props": {
+        "components": [
+          {
+            "image_mode": "RGB",
+            "source": "upload",
+            "tool": "editor",
+            "show_label": true,
+            "name": "image",
+            "css": {}
+          }
+        ],
+        "label": "Carousel",
+        "show_label": true,
+        "interactive": false,
+        "name": "carousel",
+        "css": {}
+      }
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "props": {
+        "x": "time",
+        "y": [
+          "price",
+          "value"
+        ],
+        "label": "Timeseries",
+        "show_label": true,
+        "interactive": false,
+        "name": "timeseries",
+        "css": {}
+      }
+    },
+    {
+      "id": 45,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 46,
+      "type": "button",
+      "props": {
+        "default_value": "Flag",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 47,
+      "type": "dataset",
+      "props": {
+        "components": [
+          "textbox",
+          "textbox",
+          "number",
+          "slider",
+          "slider",
+          "checkbox",
+          "checkboxgroup",
+          "radio",
+          "dropdown",
+          "image",
+          "image",
+          "image",
+          "image",
+          "video",
+          "audio",
+          "audio",
+          "file",
+          "dataframe",
+          "timeseries"
+        ],
+        "headers": [
+          "Textbox",
+          "Textbox 2",
+          "Number",
+          "Slider: 10 - 20",
+          "Slider: step @ 0.04",
+          "Checkbox",
+          "CheckboxGroup",
+          "Radio",
+          "Dropdown",
+          "Image",
+          "Image w/ Cropper",
+          "Sketchpad",
+          "Webcam",
+          "Video",
+          "Audio",
+          "Microphone",
+          "File",
+          "Dataframe",
+          "df2"
+        ],
+        "samples": [
+          [
+            "the quick brown fox",
+            "jumps over the lazy dog",
+            10,
+            12,
+            4,
+            true,
+            [
+              "foo",
+              "baz"
+            ],
+            "baz",
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+          ],
+          [
+            "the quick brown fox",
+            "jumps over the lazy dog",
+            10,
+            12,
+            4,
+            true,
+            [
+              "foo",
+              "baz"
+            ],
+            "baz",
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+          ],
+          [
+            "the quick brown fox",
+            "jumps over the lazy dog",
+            10,
+            12,
+            4,
+            true,
+            [
+              "foo",
+              "baz"
+            ],
+            "baz",
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            [
+              [
+                1,
+                2,
+                3
+              ],
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+          ]
+        ],
+        "type": "index",
+        "name": "dataset",
+        "css": {}
+      }
+    },
+    {
+      "id": 48,
+      "type": "markdown",
+      "props": {
+        "default_value": "<p>Learn more about <a href=\"http://gradio.app\">Gradio</a></p>",
+        "name": "markdown",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 34,
+    "children": [
+      {
+        "id": 35
+      },
+      {
+        "id": 36
+      },
+      {
+        "id": 37,
+        "children": [
+          {
+            "id": 38,
+            "children": [
+              {
+                "id": 39,
+                "children": [
+                  {
+                    "id": 0
+                  },
+                  {
+                    "id": 1
+                  },
+                  {
+                    "id": 2
+                  },
+                  {
+                    "id": 3
+                  },
+                  {
+                    "id": 4
+                  },
+                  {
+                    "id": 5
+                  },
+                  {
+                    "id": 6
+                  },
+                  {
+                    "id": 7
+                  },
+                  {
+                    "id": 8
+                  },
+                  {
+                    "id": 9
+                  },
+                  {
+                    "id": 10
+                  },
+                  {
+                    "id": 11
+                  },
+                  {
+                    "id": 12
+                  },
+                  {
+                    "id": 13
+                  },
+                  {
+                    "id": 14
+                  },
+                  {
+                    "id": 15
+                  },
+                  {
+                    "id": 16
+                  },
+                  {
+                    "id": 17
+                  },
+                  {
+                    "id": 18
+                  }
+                ]
+              },
+              {
+                "id": 40,
+                "children": [
+                  {
+                    "id": 41
+                  },
+                  {
+                    "id": 42
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 43,
+            "children": [
+              {
+                "id": 44
+              },
+              {
+                "id": 19
+              },
+              {
+                "id": 20
+              },
+              {
+                "id": 21
+              },
+              {
+                "id": 22
+              },
+              {
+                "id": 23
+              },
+              {
+                "id": 24
+              },
+              {
+                "id": 25
+              },
+              {
+                "id": 26
+              },
+              {
+                "id": 27
+              },
+              {
+                "id": 28
+              },
+              {
+                "id": 29
+              },
+              {
+                "id": 30
+              },
+              {
+                "id": 32
+              },
+              {
+                "id": 33
+              },
+              {
+                "id": 45,
+                "children": [
+                  {
+                    "id": 46
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 47
+      },
+      {
+        "id": 48
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        46
+      ],
+      "trigger": "click",
+      "inputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        32,
+        33
+      ],
+      "outputs": [],
+      "status_tracker": null,
+      "queue": null
+    },
+    {
+      "targets": [
+        42
+      ],
+      "trigger": "click",
+      "inputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "outputs": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        32,
+        33
+      ],
+      "status_tracker": 44,
+      "queue": null
+    },
+    {
+      "targets": [
+        41
+      ],
+      "trigger": "click",
+      "inputs": [],
+      "outputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        32,
+        33,
+        39
+      ],
+      "status_tracker": null,
+      "queue": null
+    },
+    {
+      "targets": [
+        47
+      ],
+      "trigger": "click",
+      "inputs": [
+        47
+      ],
+      "outputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "status_tracker": null,
+      "queue": false
+    }
+  ]
+}
