@@ -253,6 +253,7 @@
 						})
 						.catch((error) => {
 							console.error(error);
+							loading_status.update(i, "error", 0, 0);
 						});
 
 					handled_dependencies[i] = [-1];
@@ -302,6 +303,7 @@
 							})
 							.catch((error) => {
 								console.error(error);
+								loading_status.update(i, "error", 0, 0);
 							});
 					});
 
