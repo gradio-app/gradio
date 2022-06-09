@@ -80,8 +80,8 @@
 				<button
 					class="group rounded-lg"
 					on:click={() => {
-						value = i;
-						dispatch("click", i + page * samples_per_page);
+						value = i + page * samples_per_page;
+						dispatch("click", value);
 					}}
 				>
 					<svelte:component
@@ -112,8 +112,8 @@
 						<tr
 							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
 							on:click={() => {
-								value = i;
-								dispatch("click", i + page * samples_per_page);
+								value = i + page * samples_per_page;
+								dispatch("click", value);
 							}}
 						>
 							{#each sample_row as sample_cell, j}
