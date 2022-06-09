@@ -6,6 +6,7 @@
 	let called = false;
 
 	async function scroll_into_view(el: HTMLDivElement) {
+		console.log(el)
 		if (window.__gradio_mode__ === "website") {
 			return;
 		}
@@ -44,6 +45,7 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";
+	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let cover_all: boolean = false;
 
@@ -102,6 +104,7 @@
 	}
 
 	$: el &&
+		scroll_to_output &&
 		(status === "pending" || status === "complete") &&
 		scroll_into_view(el);
 

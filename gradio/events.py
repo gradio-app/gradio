@@ -53,6 +53,7 @@ class Clickable(Block):
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
         api_name: AnyStr = None,
+        scroll_to_output: bool = False,
         queue=None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -65,6 +66,7 @@ class Clickable(Block):
             outputs: List of outputs
             status_tracker: StatusTracker to visualize function progress
             api_name: Defining this parameter exposes the endpoint in the api docs
+            scroll_to_output: If True, will scroll to output component on completion
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
             _preprocess: If False, will not run preprocessing of component data before running 'fn'.
             _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
@@ -76,6 +78,7 @@ class Clickable(Block):
             inputs,
             outputs,
             status_tracker=status_tracker,
+            scroll_to_output=scroll_to_output,
             api_name=api_name,
             queue=queue,
             js=_js,

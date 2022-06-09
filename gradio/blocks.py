@@ -85,6 +85,7 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        scroll_to_output: bool = False,
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
@@ -129,6 +130,7 @@ class Block:
             else None,
             "queue": queue,
             "api_name": api_name,
+            "scroll_to_output": scroll_to_output,
         }
         if api_name is not None:
             dependency["documentation"] = [
