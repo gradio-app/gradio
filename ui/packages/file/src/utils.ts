@@ -39,6 +39,7 @@ export const display_file_size = (
 	var total_size = 0;
 	if (Array.isArray(value)) {
 		for (var file of value) {
+			console.log(file)
 			total_size += file.size;
 		}
 	} else {
