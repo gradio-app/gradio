@@ -27,6 +27,7 @@
 	<input
 		on:change={(evt) => handle_change(evt)}
 		{disabled}
+		checked={value}
 		type="checkbox"
 		name="test"
 		class="gr-check-radio gr-checkbox {rounded} {border}"
