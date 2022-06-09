@@ -1784,6 +1784,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             rounded=rounded,
         )
 
+
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).

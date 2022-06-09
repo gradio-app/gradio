@@ -1,4 +1,3 @@
-
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
