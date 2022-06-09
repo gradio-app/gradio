@@ -113,13 +113,8 @@
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
-{#if visible || status === "error"}
-	<div
-		class="wrap"
-		class:opacity-0={!status || status === "complete"}
-		class:z-50={cover_all}
-		bind:this={el}
-	>
+{#if status && status !== "complete" && (visible || status === "error")}
+	<div class="wrap" class:z-50={cover_all} bind:this={el}>
 		{#if status === "pending"}
 			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
 			<div class="meta-text">
