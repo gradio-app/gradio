@@ -563,7 +563,7 @@ class Blocks(BlockContext):
     def get_config_file(self):
         config = {
             "version": routes.VERSION,
-            "mode": "blocks",
+            "mode": self.mode,
             "dev_mode": self.dev_mode,
             "components": [],
             "theme": self.theme,

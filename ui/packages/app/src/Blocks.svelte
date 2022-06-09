@@ -2,7 +2,7 @@
 	import type { SvelteComponentTyped } from "svelte";
 	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
-	import { loading_status } from "./stores";
+	import { loading_status, app_state } from "./stores";
 	import type { LoadingStatus } from "./components/StatusTracker/types";
 
 	import { _ } from "svelte-i18n";
@@ -66,6 +66,9 @@
 	export let css: string;
 	export let is_space: boolean;
 	export let id: number = 0;
+	export let autoscroll: boolean = false;
+
+	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -338,6 +341,7 @@
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.visible = dependency.show_progress;
+
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
 		const inputs_to_update = loading_status.get_inputs_to_update();
