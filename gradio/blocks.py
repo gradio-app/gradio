@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import getpass
 import inspect
 import os
@@ -7,9 +8,10 @@ import random
 import sys
 import time
 import webbrowser
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
-from fastapi.concurrency import run_in_threadpool
+import anyio
+from anyio import CapacityLimiter
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
@@ -83,6 +85,7 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
@@ -97,6 +100,7 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
@@ -113,20 +117,25 @@ class Block:
             outputs = [outputs]
 
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
-        Context.root_block.dependencies.append(
-            {
-                "targets": [self._id] if not no_target else [],
-                "trigger": event_name,
-                "inputs": [block._id for block in inputs],
-                "outputs": [block._id for block in outputs],
-                "backend_fn": fn is not None,
-                "js": js,
-                "status_tracker": status_tracker._id
-                if status_tracker is not None
-                else None,
-                "queue": queue,
-            }
-        )
+        dependency = {
+            "targets": [self._id] if not no_target else [],
+            "trigger": event_name,
+            "inputs": [block._id for block in inputs],
+            "outputs": [block._id for block in outputs],
+            "backend_fn": fn is not None,
+            "js": js,
+            "status_tracker": status_tracker._id
+            if status_tracker is not None
+            else None,
+            "queue": queue,
+            "api_name": api_name,
+        }
+        if api_name is not None:
+            dependency["documentation"] = [
+                [component.document_parameters("input") for component in inputs],
+                [component.document_parameters("output") for component in outputs],
+            ]
+        Context.root_block.dependencies.append(dependency)
 
     def get_config(self):
         return {
@@ -216,6 +225,7 @@ class Blocks(BlockContext):
         mode (str): a human-friendly name for the kind of Blocks interface being created.
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
+        self.limiter = None
         self.save_to = None
         self.api_mode = False
         self.theme = theme
@@ -251,6 +261,18 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+
+    @property
+    def share(self):
+        return self._share
+
+    @share.setter
+    def share(self, value: Optional[bool]):
+        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
+        if value is None:
+            self._share = True if utils.colab_check() else False
+        else:
+            self._share = value
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
@@ -310,7 +332,90 @@ class Blocks(BlockContext):
                     event_method = getattr(original_mapping[target], trigger)
                     event_method(fn=fn, **dependency)
 
+            # Allows some use of Interface-specific methods with loaded Spaces
+            blocks.predict = [fns[0]]
+            dependency = blocks.dependencies[0]
+            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
+            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+
+        blocks.api_mode = True
         return blocks
+
+    def __call__(self, *params, fn_index=0):
+        """
+        Allows Blocks objects to be called as functions
+        Parameters:
+        *params: the parameters to pass to the function
+        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        """
+        dependency = self.dependencies[fn_index]
+        block_fn = self.fns[fn_index]
+
+        if self.api_mode:
+            serialized_params = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    raise ValueError(
+                        "Cannot call Blocks object as a function if any of"
+                        " the inputs are stateful."
+                    )
+                else:
+                    serialized_input = block.serialize(params[i], True)
+                    serialized_params.append(serialized_input)
+        else:
+            serialized_params = params
+
+        processed_input = self.preprocess_data(fn_index, serialized_params, None)
+
+        if inspect.iscoroutinefunction(block_fn.fn):
+            raise ValueError(
+                "Cannot call Blocks object as a function if the function is a coroutine"
+            )
+        else:
+            predictions = block_fn.fn(*processed_input)
+
+        output = self.postprocess_data(fn_index, predictions, None)
+
+        if self.api_mode:
+            output_copy = copy.deepcopy(output)
+            deserialized_output = []
+            for o, output_id in enumerate(dependency["outputs"]):
+                block = self.blocks[output_id]
+                if getattr(block, "stateful", False):
+                    raise ValueError(
+                        "Cannot call Blocks object as a function if any of"
+                        " the outputs are stateful."
+                    )
+                else:
+                    deserialized = block.deserialize(output_copy[o])
+                    deserialized_output.append(deserialized)
+        else:
+            deserialized_output = output
+
+        if len(deserialized_output) == 1:
+            return deserialized_output[0]
+        return deserialized_output
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
+        repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
+        repr += "\n" + "-" * len(repr)
+        for d, dependency in enumerate(self.dependencies):
+            if dependency["backend_fn"]:
+                repr += f"\nfn_index={d}"
+                repr += "\n inputs:"
+                for input_id in dependency["inputs"]:
+                    block = self.blocks[input_id]
+                    repr += "\n |-{}".format(str(block))
+                repr += "\n outputs:"
+                for output_id in dependency["outputs"]:
+                    block = self.blocks[output_id]
+                    repr += "\n |-{}".format(str(block))
+        return repr
 
     def render(self):
         if Context.root_block is not None:
@@ -320,22 +425,7 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
-    async def process_api(
-        self,
-        data: PredictBody,
-        username: str = None,
-        state: Optional[Dict[int, any]] = None,
-    ) -> Dict[str, Any]:
-        """
-        Processes API calls from the frontend.
-        Parameters:
-            data: data recieved from the frontend
-            username: name of user if authentication is set up
-            state: data stored from stateful components for session
-        Returns: None
-        """
-        raw_input = data.data
-        fn_index = data.fn_index
+    def preprocess_data(self, fn_index, raw_input, state):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -349,14 +439,26 @@ class Blocks(BlockContext):
                     processed_input.append(block.preprocess(raw_input[i]))
         else:
             processed_input = raw_input
+        return processed_input
+
+    async def call_function(self, fn_index, processed_input):
+        """Calls and times function with given index and preprocessed input."""
+        block_fn = self.fns[fn_index]
+
         start = time.time()
         if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = await block_fn.fn(*processed_input)
+            prediction = await block_fn.fn(*processed_input)
         else:
-            predictions = await run_in_threadpool(block_fn.fn, *processed_input)
+            prediction = await anyio.to_thread.run_sync(
+                block_fn.fn, *processed_input, limiter=self.limiter
+            )
         duration = time.time() - start
-        block_fn.total_runtime += duration
-        block_fn.total_runs += 1
+        return prediction, duration
+
+    def postprocess_data(self, fn_index, predictions, state):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
         if type(predictions) is dict and len(predictions) > 0:
             keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
             if all(keys_are_blocks):
@@ -375,6 +477,7 @@ class Blocks(BlockContext):
                 )
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
+
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
@@ -410,11 +513,44 @@ class Blocks(BlockContext):
 
         else:
             output = predictions
+        return output
+
+    async def process_api(
+        self,
+        fn_index: int,
+        raw_input: List[Any],
+        username: str = None,
+        state: Optional[Dict[int, any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Processes API calls from the frontend. First preprocesses the data,
+        then runs the relevant function, then postprocesses the output.
+        Parameters:
+            data: data recieved from the frontend
+            username: name of user if authentication is set up
+            state: data stored from stateful components for session
+        Returns: None
+        """
+        block_fn = self.fns[fn_index]
+
+        processed_input = self.preprocess_data(fn_index, raw_input, state)
+
+        predictions, duration = await self.call_function(fn_index, processed_input)
+        block_fn.total_runtime += duration
+        block_fn.total_runs += 1
+
+        output = self.postprocess_data(fn_index, predictions, state)
+
         return {
             "data": output,
             "duration": duration,
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
+
+    async def create_limiter(self, max_threads: Optional[int]):
+        self.limiter = (
+            None if max_threads is None else CapacityLimiter(total_tokens=max_threads)
+        )
 
     def get_config(self):
         return {"type": "column"}
@@ -533,9 +669,10 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
+        max_threads: Optional[int] = None,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         prevent_thread_lock: bool = False,
@@ -559,7 +696,7 @@ class Blocks(BlockContext):
         Parameters:
         inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
+        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
         auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str | None): If provided, HTML message provided on login page.
@@ -569,6 +706,7 @@ class Blocks(BlockContext):
         server_name (str | None): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool | None): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+        max_threads (int | None): allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -601,7 +739,7 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-
+        utils.synchronize_async(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
@@ -634,10 +772,13 @@ class Blocks(BlockContext):
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
-        # automatically create a shareable link.
+        # a shareable link must be created.
         is_colab = utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            share = True
+            if not self.share:
+                raise ValueError(
+                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
+                )
             if is_colab and not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
@@ -648,7 +789,7 @@ class Blocks(BlockContext):
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
-        if share:
+        if self.share:
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
@@ -662,7 +803,7 @@ class Blocks(BlockContext):
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
                 self.share_url = None
-                share = False
+                self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             if not (quiet):
@@ -670,7 +811,7 @@ class Blocks(BlockContext):
             self.share_url = None
 
         if inbrowser:
-            link = self.share_url if share else self.local_url
+            link = self.share_url if self.share else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
@@ -683,17 +824,21 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import IFrame, display  # type: ignore
+                from IPython.display import HTML, display  # type: ignore
 
-                if share:
+                if self.share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(1)
                     display(
-                        IFrame(self.share_url, width=self.width, height=self.height)
+                        HTML(
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                        )
                     )
                 else:
                     display(
-                        IFrame(self.local_url, width=self.width, height=self.height)
+                        HTML(
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                        )
                     )
             except ImportError:
                 pass
@@ -701,7 +846,7 @@ class Blocks(BlockContext):
         data = {
             "launch_method": "browser" if inbrowser else "inline",
             "is_google_colab": is_colab,
-            "is_sharing_on": share,
+            "is_sharing_on": self.share,
             "share_url": self.share_url,
             "ip_address": self.ip_address,
             "enable_queue": self.enable_queue,

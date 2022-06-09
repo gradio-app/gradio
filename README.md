@@ -28,6 +28,7 @@ Gradio is an open-source Python library that is used to build machine learning a
 With Gradio, you can quickly create a beautiful user interface around your machine learning models or data science workflow and let people "try it out" by dragging-and-dropping in their own images,
 pasting text, recording their own voice, and interacting with your demo, all through the browser.
 
+
 ![Interface montage](website/homepage/src/assets/img/meta-image-2.png)
 
 Gradio is useful for:
@@ -69,14 +70,12 @@ pip install gradio
 ```python
 import gradio as gr
 
-
 def greet(name):
     return "Hello " + name + "!!"
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 
@@ -105,10 +104,8 @@ Let's say you want to customize the input text field - for example, you wanted i
 ```python
 import gradio as gr
 
-
 def greet(name):
     return "Hello " + name + "!"
-
 
 demo = gr.Interface(
     fn=greet,
@@ -116,8 +113,7 @@ demo = gr.Interface(
     outputs="text",
 )
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![hello_world_2 interface](demo/hello_world_2/screenshot.gif)
@@ -131,21 +127,18 @@ Let's say you had a much more complex function, with multiple inputs and outputs
 ```python
 import gradio as gr
 
-
 def greet(name, is_morning, temperature):
     salutation = "Good morning" if is_morning else "Good evening"
     greeting = "%s %s. It is %s degrees today" % (salutation, name, temperature)
     celsius = (temperature - 32) * 5 / 9
     return greeting, round(celsius, 2)
 
-
 demo = gr.Interface(
     fn=greet,
     inputs=["text", "checkbox", gr.Slider(0, 100)],
     outputs=["text", "number"],
 )
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![hello_world_3 interface](demo/hello_world_3/screenshot.gif)
@@ -161,7 +154,6 @@ import numpy as np
 
 import gradio as gr
 
-
 def sepia(input_img):
     sepia_filter = np.array(
         [[0.393, 0.769, 0.189], [0.349, 0.686, 0.168], [0.272, 0.534, 0.131]]
@@ -170,11 +162,9 @@ def sepia(input_img):
     sepia_img /= sepia_img.max()
     return sepia_img
 
-
 demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![sepia_filter interface](demo/sepia_filter/screenshot.gif)
@@ -195,7 +185,6 @@ import numpy as np
 
 import gradio as gr
 
-
 def sales_projections(employee_data):
     sales_data = employee_data.iloc[:, 1:4].astype("int").to_numpy()
     regression_values = np.apply_along_axis(
@@ -214,7 +203,6 @@ def sales_projections(employee_data):
     plt.legend(employee_data["Name"])
     return employee_data, plt.gcf(), regression_values
 
-
 demo = gr.Interface(
     sales_projections,
     gr.Dataframe(
@@ -224,8 +212,7 @@ demo = gr.Interface(
     ["dataframe", "plot", "numpy"],
     description="Enter sales figures for employees to predict sales trajectory over year.",
 )
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![sales_projections interface](demo/sales_projections/screenshot.gif)
@@ -247,7 +234,6 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-
 demo = gr.Interface(
     calculator,
     [gr.Number(4), gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
@@ -263,8 +249,7 @@ demo = gr.Interface(
     flagging_options=["this", "or", "that"],
 )
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![calculator interface](demo/calculator/screenshot.gif)
@@ -278,7 +263,6 @@ You can make interfaces automatically refresh by setting `live=True` in the inte
 ```python
 import gradio as gr
 
-
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -289,7 +273,6 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-
 demo = gr.Interface(
     calculator,
     ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
@@ -297,8 +280,7 @@ demo = gr.Interface(
     live=True,
 )
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 
 ```
 ![calculator_live interface](demo/calculator_live/screenshot.gif)
@@ -359,13 +341,11 @@ import gradio as gr
 
 demo = gr.Blocks()
 
-
 def flip_text(x):
     return x[::-1]
 
 def flip_image(x):
     return np.fliplr(x)
-
 
 with demo:
     gr.Markdown("Flip text or image files using this demo.")
@@ -383,14 +363,13 @@ with demo:
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
     
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
 ```
 
 ![blocks_flipper interface](demo/blocks_flipper/screenshot.gif)
 
 
-If you are interested in how Blocks works, [read its dedicated Guide](introduction_to_blocks).
+If you are interested in how Blocks works, [read its dedicated Guide](https://gradio.app/introduction_to_blocks/).
 
 ### Sharing Demos 🌎
 
@@ -421,8 +400,8 @@ You can either drag and drop a folder containing your Gradio model and all relat
 Now that you're familiar with the basics of Gradio, here are some good next steps:
 
 * Check out [the free Gradio course](https://huggingface.co/course/chapter9/1) for a step-by-step walkthrough of everything Gradio-related with lots of examples of how to build your own machine learning demos 📖
-* Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](/introduction_to_blocks/) 🧱
-* If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](/advanced_interface_features) 💪
+* Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](https://gradio.app/introduction_to_blocks/) 🧱
+* If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](https://gradio.app/advanced_interface_features/) 💪
 * If you just want to explore what demos other people have built with Gradio and see the underlying Python code, [browse public Hugging Face Spaces](https://hf.space/), and be inspired 🤗
  
 

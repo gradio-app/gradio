@@ -201,8 +201,12 @@ class Interface(Blocks):
                 )
             self.cache_examples = False
 
-        self.input_components = [get_component_instance(i).unrender() for i in inputs]
-        self.output_components = [get_component_instance(o).unrender() for o in outputs]
+        self.input_components = [
+            get_component_instance(i, render=False) for i in inputs
+        ]
+        self.output_components = [
+            get_component_instance(o, render=False) for o in outputs
+        ]
 
         for component in self.input_components + self.output_components:
             if not (
@@ -515,6 +519,7 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
+                    api_name="predict",
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
