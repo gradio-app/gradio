@@ -11,30 +11,30 @@ from render_html_helpers import generate_meta_image
 from bs4 import BeautifulSoup
 
 from gradio.components import (
-    Textbox, 
+    Textbox,
     Number,
-    Slider, 
-    Checkbox, 
-    CheckboxGroup, 
-    Radio, 
+    Slider,
+    Checkbox,
+    CheckboxGroup,
+    Radio,
     Dropdown,
-    Image, 
-    Video, 
-    Audio, 
-    File, 
-    Dataframe, 
-    Timeseries,    
-    Label, 
+    Image,
+    Video,
+    Audio,
+    File,
+    Dataframe,
+    Timeseries,
+    Label,
     HighlightedText,
-    JSON, 
-    HTML, 
+    JSON,
+    HTML,
     Gallery,
-    Chatbot, 
-    Model3D, 
-    Plot, 
-    Markdown,    
-    Button, 
-    Dataset, 
+    Chatbot,
+    Model3D,
+    Plot,
+    Markdown,
+    Button,
+    Dataset,
     Variable
 )
 
@@ -52,7 +52,6 @@ with open(GRADIO_INDEX_FILE) as index_file:
     index_html = index_file.read()
 
 ENTRY_JS_FILE=re.findall(r'\/assets\/(.*\.js)', index_html)[0]
-ENTRY_CSS_FILE=re.findall(r'\/assets\/(.*\.css)', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -74,8 +73,7 @@ def render_index():
             tweets=tweets,
             star_count=star_count,
             navbar_html=navbar_html,
-            entry_js_file=ENTRY_JS_FILE,
-            entry_css_file=ENTRY_CSS_FILE
+            entry_js_file=ENTRY_JS_FILE
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -196,7 +194,7 @@ def render_guides():
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = (
                     code_file.read().replace(
-                        'if __name__ == "__main__":\n    demo.launch()', 
+                        'if __name__ == "__main__":\n    demo.launch()',
                         "demo.launch()"
                     ).replace("\n\n\n", "\n\n")  # triple new lines are introduced by formatter
                 )
@@ -234,7 +232,7 @@ def render_guides():
         output_html = markdown2.markdown(
             guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
-        
+
         def remove_emojis(text: str) -> str:
             regrex_pattern = re.compile(pattern = "["
                 u"\U0001F600-\U0001F64F"  # emoticons
@@ -247,14 +245,14 @@ def render_guides():
                 u"\U0001f926-\U0001f937"
                 u"\U00010000-\U0010ffff"                
                                 "]+", flags = re.UNICODE)
-            return regrex_pattern.sub(r'',text)        
-        
+            return regrex_pattern.sub(r'',text)
+
         soup = BeautifulSoup(output_html, "html.parser")
         headings = []
         for heading in soup.find_all(["h1", "h2", "h3", "h4"]):
             headings.append({'text': remove_emojis(heading.text.strip()),
                             'id': heading.get('id')})
-        
+
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -277,7 +275,6 @@ def render_guides():
                 tags=guide["tags"],
                 contributor=guide["contributor"],
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE,
                 headings=headings,
             )
             generated_template.write(output_html)
@@ -405,12 +402,12 @@ def render_docs():
             }
         }
 
-        
+
         if cls in string_shortcuts:
             inp["string_shortcut"] = string_shortcuts[cls]
         else:
-            inp["string_shortcut"] = None               
-        
+            inp["string_shortcut"] = None
+
         inp["events"] = []
         if issubclass(cls, Changeable):
             inp["events"].append("change()")
@@ -427,37 +424,37 @@ def render_docs():
         if issubclass(cls, Submittable):
             inp["events"].append("submit()")
         inp["events"] = ", ".join(inp["events"])
-            
+
         return inp
 
     components = [
-        Textbox, 
+        Textbox,
         Number,
-        Slider, 
-        Checkbox, 
-        CheckboxGroup, 
-        Radio, 
+        Slider,
+        Checkbox,
+        CheckboxGroup,
+        Radio,
         Dropdown,
-        Image, 
-        Video, 
-        Audio, 
-        File, 
-        Dataframe, 
-        Timeseries,    
-        Label, 
-        HighlightedText, 
-        JSON, 
-        HTML, 
+        Image,
+        Video,
+        Audio,
+        File,
+        Dataframe,
+        Timeseries,
+        Label,
+        HighlightedText,
+        JSON,
+        HTML,
         Gallery,
-        Chatbot, 
-        Model3D, 
-        Plot, 
-        Markdown,    
-        Button, 
+        Chatbot,
+        Model3D,
+        Plot,
+        Markdown,
+        Button,
         Dataset,
         Variable
     ]
-    
+
     components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
     interface_docs = get_class_documentation(Interface, get_interpret=False, lines=None)["doc"]
@@ -506,7 +503,7 @@ demo.launch()"""
         "params": from_pipeline_params[1],
         "params_doc": from_pipeline_params[2],
         "return_doc": from_pipeline_params[3],
-        "example": 
+        "example":
 """import gradio as gr
 from transformers import pipeline
 
@@ -538,7 +535,7 @@ with demo:
 
 demo.launch()""",
         "demos": ["blocks_hello", "blocks_flipper", "blocks_speech_text_length"]
-    }    
+    }
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
     tabbed_interface = {
@@ -547,7 +544,7 @@ demo.launch()""",
         "params_doc": tabbed_interface_params[2],
         "demos": ["sst_or_tts"]
     }
-    
+
     series_docs = get_class_documentation(Series, lines=None)["doc"]
     series_params = get_function_documentation(Series.__init__)
     series = {
@@ -555,32 +552,32 @@ demo.launch()""",
         "params": series_params[1],
         "params_doc": series_params[2],
     }
-    
+
     parallel_docs = get_class_documentation(Parallel, lines=None)["doc"]
     parallel_params = get_function_documentation(Parallel.__init__)
     parallel = {
         "doc": parallel_docs,
         "params": parallel_params[1],
         "params_doc": parallel_params[2],
-    }    
-    
+    }
+
     row = {
         "doc": get_class_documentation(Row, lines=None)["doc"],
         "params": get_function_documentation(Row.__init__)[1],
         "params_doc": get_function_documentation(Row.__init__)[2],
-    }           
+    }
 
     column = {
         "doc": get_class_documentation(Column, lines=None)["doc"],
         "params": get_function_documentation(Column.__init__)[1],
         "params_doc": get_function_documentation(Column.__init__)[2],
-    }           
+    }
 
     tabs = {
         "doc": get_class_documentation(Tabs, lines=None)["doc"],
         "params": get_function_documentation(Tabs.__init__)[1],
         "params_doc": get_function_documentation(Tabs.__init__)[2],
-    }           
+    }
 
     tabitem = {
         "doc": get_class_documentation(TabItem, lines=None)["doc"],
@@ -663,8 +660,7 @@ demo.launch()""",
         template = Template(template_file.read())
         output_html = template.render(
             docs=docs, demo_links=demo_links, navbar_html=navbar_html,
-            entry_js_file=ENTRY_JS_FILE,
-            entry_css_file=ENTRY_CSS_FILE
+            entry_js_file=ENTRY_JS_FILE
         )
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(
@@ -692,8 +688,7 @@ def render_other():
         ) as template_file:
             template = Template(template_file.read())
             output_html = template.render(
-                entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE
+                entry_js_file=ENTRY_JS_FILE
             )
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
