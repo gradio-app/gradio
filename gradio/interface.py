@@ -34,7 +34,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.events import Changeable, Streamable
-from gradio.external import load_from_pipeline, load_interface  # type: ignore
+from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.process_examples import cache_interface_examples, load_from_cache
@@ -87,11 +87,7 @@ class Interface(Blocks):
         Returns:
         (gradio.Interface): a Gradio Interface object for the given model
         """
-        interface_info = load_interface(name, src, api_key, alias)
-        kwargs = dict(interface_info, **kwargs)
-        interface = cls(**kwargs)
-        interface.api_mode = True  # So interface doesn't run pre/postprocess.
-        return interface
+        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
@@ -205,8 +201,12 @@ class Interface(Blocks):
                 )
             self.cache_examples = False
 
-        self.input_components = [get_component_instance(i).unrender() for i in inputs]
-        self.output_components = [get_component_instance(o).unrender() for o in outputs]
+        self.input_components = [
+            get_component_instance(i, render=False) for i in inputs
+        ]
+        self.output_components = [
+            get_component_instance(o, render=False) for o in outputs
+        ]
 
         for component in self.input_components + self.output_components:
             if not (
@@ -251,10 +251,7 @@ class Interface(Blocks):
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
-
         self.live = live
-        self.flag_hash = random.getrandbits(32)
-
         self.title = title
 
         CLEANER = re.compile("<.*?>")
@@ -441,6 +438,19 @@ class Interface(Blocks):
                 )
             if self.description:
                 Markdown(self.description)
+
+            def render_flag_btns(flagging_options):
+                if flagging_options is None:
+                    return [(Button("Flag"), None)]
+                else:
+                    return [
+                        (
+                            Button("Flag as " + flag_option),
+                            flag_option,
+                        )
+                        for flag_option in flagging_options
+                    ]
+
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -468,14 +478,14 @@ class Interface(Blocks):
                                 self.InterfaceTypes.STANDARD,
                                 self.InterfaceTypes.INPUT_ONLY,
                             ]:
-                                clear_btn = Button("Clear", variant="secondary")
+                                clear_btn = Button("Clear")
                                 if not self.live:
-                                    submit_btn = Button("Submit")
+                                    submit_btn = Button("Submit", variant="primary")
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                                clear_btn = Button("Clear", variant="secondary")
-                                submit_btn = Button("Submit")
+                                clear_btn = Button("Clear")
+                                submit_btn = Button("Submit", variant="primary")
                                 if self.allow_flagging == "manual":
-                                    flag_btn = Button("Flag", variant="secondary")
+                                    flag_btns = render_flag_btns(self.flagging_options)
 
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -488,14 +498,12 @@ class Interface(Blocks):
                             component.render()
                         with Row().style(mobile_collapse=False):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                                clear_btn = Button("Clear", variant="secondary")
-                                submit_btn = Button("Generate")
+                                clear_btn = Button("Clear")
+                                submit_btn = Button("Generate", variant="primary")
                             if self.allow_flagging == "manual":
-                                flag_btn = Button("Flag", variant="secondary")
+                                flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
-                                interpretation_btn = Button(
-                                    "Interpret", variant="secondary"
-                                )
+                                interpretation_btn = Button("Interpret")
             submit_fn = (
                 lambda *args: self.run_prediction(args)[0]
                 if len(self.output_components) == 1
@@ -524,6 +532,7 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
+                    api_name="predict",
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
@@ -560,26 +569,34 @@ class Interface(Blocks):
                 )}
                 """,
             )
+
+            class FlagMethod:
+                def __init__(self, flagging_callback, flag_option=None):
+                    self.flagging_callback = flagging_callback
+                    self.flag_option = flag_option
+
+                def __call__(self, *flag_data):
+                    self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
+
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.OUTPUT_ONLY,
+                    self.InterfaceTypes.UNIFIED,
                 ]:
-                    flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(flag_data),
-                        inputs=self.input_components + self.output_components,
-                        outputs=[],
-                        _preprocess=False,
-                        queue=False,
-                    )
-                elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                    flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(flag_data),
-                        inputs=self.input_components,
-                        outputs=[],
-                        _preprocess=False,
-                        queue=False,
-                    )
+                    if self.interface_type == self.InterfaceTypes.UNIFIED:
+                        flag_components = self.input_components
+                    else:
+                        flag_components = self.input_components + self.output_components
+                    for flag_btn, flag_option in flag_btns:
+                        flag_method = FlagMethod(self.flagging_callback, flag_option)
+                        flag_btn.click(
+                            flag_method,
+                            inputs=flag_components,
+                            outputs=[],
+                            _preprocess=False,
+                            queue=False,
+                        )
 
             if self.examples:
                 non_state_inputs = [

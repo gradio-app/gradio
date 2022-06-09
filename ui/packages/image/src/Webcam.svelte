@@ -119,7 +119,7 @@
 					</div>
 				{/if}
 			{:else}
-				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+				<div class="w-2/4 h-2/4 text-white opacity-80">
 					<Camera />
 				</div>
 			{/if}

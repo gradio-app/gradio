@@ -1,0 +1,310 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 7,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 8,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "panel",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 9,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "default",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 0,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          "Matplotlib",
+          "Plotly",
+          "Bokeh"
+        ],
+        "default_value": "Matplotlib",
+        "label": "Plot Type",
+        "show_label": true,
+        "name": "dropdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 1,
+      "type": "slider",
+      "props": {
+        "minimum": 1,
+        "maximum": 4,
+        "step": 0.01,
+        "default_value": 3.2,
+        "label": "R",
+        "show_label": true,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "dropdown",
+      "props": {
+        "choices": [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May"
+        ],
+        "default_value": "January",
+        "label": "Month",
+        "show_label": true,
+        "name": "dropdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          "USA",
+          "Canada",
+          "Mexico",
+          "UK"
+        ],
+        "default_value": [
+          "USA",
+          "Canada"
+        ],
+        "label": "Countries",
+        "show_label": true,
+        "name": "checkboxgroup",
+        "css": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "checkbox",
+      "props": {
+        "default_value": false,
+        "label": "Social Distancing?",
+        "show_label": true,
+        "name": "checkbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "button",
+      "props": {
+        "default_value": "Clear",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 12,
+      "type": "button",
+      "props": {
+        "default_value": "Submit",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "panel",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 14,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "css": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "plot",
+      "props": {
+        "label": "output",
+        "show_label": true,
+        "interactive": false,
+        "name": "plot",
+        "css": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 16,
+      "type": "button",
+      "props": {
+        "default_value": "Flag",
+        "name": "button",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 6,
+    "children": [
+      {
+        "id": 7,
+        "children": [
+          {
+            "id": 8,
+            "children": [
+              {
+                "id": 9,
+                "children": [
+                  {
+                    "id": 0
+                  },
+                  {
+                    "id": 1
+                  },
+                  {
+                    "id": 2
+                  },
+                  {
+                    "id": 3
+                  },
+                  {
+                    "id": 4
+                  }
+                ]
+              },
+              {
+                "id": 10,
+                "children": [
+                  {
+                    "id": 11
+                  },
+                  {
+                    "id": 12
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 13,
+            "children": [
+              {
+                "id": 14
+              },
+              {
+                "id": 5
+              },
+              {
+                "id": 15,
+                "children": [
+                  {
+                    "id": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        16
+      ],
+      "trigger": "click",
+      "inputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "outputs": [],
+      "status_tracker": null,
+      "queue": null
+    },
+    {
+      "targets": [
+        12
+      ],
+      "trigger": "click",
+      "inputs": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "outputs": [
+        5
+      ],
+      "status_tracker": 14,
+      "queue": null
+    },
+    {
+      "targets": [
+        11
+      ],
+      "trigger": "click",
+      "inputs": [],
+      "outputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}

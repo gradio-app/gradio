@@ -83,9 +83,9 @@ def render_index():
         generated_template.write(output_html)
 
 
-guide_files = ["getting_started.md"]
+guide_files = ["getting_started.md", "advanced_interface_features.md", "introduction_to_blocks.md"]
 all_guides = sorted(os.listdir(GRADIO_GUIDES_DIR))
-guide_files.extend([file for file in all_guides if file != "getting_started.md"])
+guide_files.extend([file for file in all_guides if not(file in guide_files)])
 guides = []
 for guide in guide_files:
     if guide.lower() == "readme.md":
@@ -235,10 +235,24 @@ def render_guides():
             guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
         
-        soup = BeautifulSoup(output_html)
+        def remove_emojis(text: str) -> str:
+            regrex_pattern = re.compile(pattern = "["
+                u"\U0001F600-\U0001F64F"  # emoticons
+                u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                u"\U00002702-\U000027B0"
+                u"\U00002702-\U000027B0"
+                u"\U000024C2-\U0001F251"
+                u"\U0001f926-\U0001f937"
+                u"\U00010000-\U0010ffff"                
+                                "]+", flags = re.UNICODE)
+            return regrex_pattern.sub(r'',text)        
+        
+        soup = BeautifulSoup(output_html, "html.parser")
         headings = []
         for heading in soup.find_all(["h1", "h2", "h3", "h4"]):
-            headings.append({'text': heading.text.strip(),
+            headings.append({'text': remove_emojis(heading.text.strip()),
                             'id': heading.get('id')})
         
         os.makedirs("generated", exist_ok=True)
@@ -523,7 +537,7 @@ with demo:
     btn.click(fn=update, inputs=inp, outputs=out)
 
 demo.launch()""",
-        "demos": ["blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_length"]
+        "demos": ["blocks_hello", "blocks_flipper", "blocks_speech_text_length"]
     }    
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
@@ -531,7 +545,7 @@ demo.launch()""",
         "doc": tabbed_interface_docs,
         "params": tabbed_interface_params[1],
         "params_doc": tabbed_interface_params[2],
-        "demos": ["blocks_neural_instrument_coding", "sst_or_tts"]
+        "demos": ["sst_or_tts"]
     }
     
     series_docs = get_class_documentation(Series, lines=None)["doc"]
@@ -596,28 +610,28 @@ demo.launch()""",
         for code_src in component["demos"]:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                    'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
                 )
                 demo_code[code_src] = python_code
 
     for code_src in interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in blocks_docs["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in tabbed_interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 

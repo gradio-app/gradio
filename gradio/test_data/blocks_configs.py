@@ -1,5 +1,8 @@
+import gradio
+
 XRAY_CONFIG = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,
@@ -42,9 +45,9 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
-                "streaming": False,
                 "visible": True,
                 "style": {},
             },
@@ -52,20 +55,14 @@ XRAY_CONFIG = {
         {
             "id": 7,
             "type": "json",
-            "props": {
-                "value": '""',
-                "show_label": True,
-                "name": "json",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
         },
         {
             "id": 8,
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -88,9 +85,9 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
-                "streaming": False,
                 "visible": True,
                 "style": {},
             },
@@ -98,20 +95,14 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {
-                "value": '""',
-                "show_label": True,
-                "name": "json",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
         },
         {
             "id": 13,
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -197,6 +188,7 @@ XRAY_CONFIG = {
 
 XRAY_CONFIG_DIFF_IDS = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,
@@ -239,9 +231,9 @@ XRAY_CONFIG_DIFF_IDS = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
-                "streaming": False,
                 "visible": True,
                 "style": {},
             },
@@ -250,7 +242,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -262,7 +253,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -285,9 +276,9 @@ XRAY_CONFIG_DIFF_IDS = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
-                "streaming": False,
                 "visible": True,
                 "style": {},
             },
@@ -296,7 +287,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -308,7 +298,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -394,6 +384,7 @@ XRAY_CONFIG_DIFF_IDS = {
 
 XRAY_CONFIG_WITH_MISTAKE = {
     "mode": "blocks",
+    "dev_mode": True,
     "components": [
         {
             "id": 1,
@@ -441,9 +432,9 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "image_mode": "RGB",
                 "source": "upload",
+                "streaming": False,
                 "tool": "editor",
                 "name": "image",
-                "streaming": False,
                 "style": {},
             },
         },
@@ -451,7 +442,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
+                "value": None,
                 "name": "json",
                 "style": {},
             },
@@ -463,7 +454,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "variant": "primary",
+                "variant": "secondary",
             },
         },
         {
@@ -488,8 +479,8 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
-                "name": "image",
                 "streaming": False,
+                "name": "image",
                 "style": {},
             },
         },
@@ -497,7 +488,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
+                "value": None,
                 "name": "json",
                 "style": {},
             },
@@ -509,7 +500,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "Run",
                 "name": "button",
                 "style": {},
-                "variant": "primary",
+                "variant": "secondary",
             },
         },
         {

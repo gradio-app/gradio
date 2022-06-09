@@ -1,20 +1,25 @@
 <script lang="ts">
-	import { Audio, StaticAudio } from "@gradio/audio";
-	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
-	import { Block } from "@gradio/atoms";
-
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import type { LoadingStatus } from "../StatusTracker/types";
 	import { createEventDispatcher } from "svelte";
-	const dispatch = createEventDispatcher<{
-		change;
-		stream;
-	}>();
-
 	import { _ } from "svelte-i18n";
 
+	import type { FileData } from "@gradio/upload";
+	import type { LoadingStatus } from "../StatusTracker/types";
+
+	import { Audio, StaticAudio } from "@gradio/audio";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import { Block } from "@gradio/atoms";
+	import type { Styles } from "@gradio/utils";
+	export let style: Styles = {};
+
+	import { normalise_file } from "@gradio/upload";
+
+	const dispatch = createEventDispatcher<{
+		change: typeof value;
+		stream: typeof value;
+	}>();
+
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
 	export let name: string;
@@ -41,6 +46,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	style={{ rounded: style.rounded }}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 

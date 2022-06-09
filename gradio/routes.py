@@ -9,6 +9,7 @@ import posixpath
 import secrets
 import traceback
 import urllib
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
 
@@ -132,6 +133,11 @@ class App(FastAPI):
             token = request.cookies.get("access-token")
             return {"token": token, "user": app.tokens.get(token)}
 
+        @app.get("/app_id")
+        @app.get("/app_id/")
+        def app_id(request: Request) -> int:
+            return {"app_id": app.blocks.app_id}
+
         @app.post("/login")
         @app.post("/login/")
         def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -220,67 +226,6 @@ class App(FastAPI):
                 if Path(app.cwd).resolve() in Path(path).resolve().parents:
                     return FileResponse(Path(path).resolve())
 
-        @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
-        @app.get("/api/", response_class=HTMLResponse)
-        def api_docs(request: Request):
-            inputs = [type(inp) for inp in app.blocks.input_components]
-            outputs = [type(out) for out in app.blocks.output_components]
-            input_types_doc, input_types = get_types(inputs, "input")
-            output_types_doc, output_types = get_types(outputs, "output")
-            input_names = [inp.get_block_name() for inp in app.blocks.input_components]
-            output_names = [
-                out.get_block_name() for out in app.blocks.output_components
-            ]
-            if app.blocks.examples is not None:
-                sample_inputs = app.blocks.examples[0]
-            else:
-                sample_inputs = [
-                    inp.generate_sample() for inp in app.blocks.input_components
-                ]
-            docs = {
-                "inputs": input_names,
-                "outputs": output_names,
-                "len_inputs": len(inputs),
-                "len_outputs": len(outputs),
-                "inputs_lower": [name.lower() for name in input_names],
-                "outputs_lower": [name.lower() for name in output_names],
-                "input_types": input_types,
-                "output_types": output_types,
-                "input_types_doc": input_types_doc,
-                "output_types_doc": output_types_doc,
-                "sample_inputs": sample_inputs,
-                "auth": app.blocks.auth,
-                "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
-                "local_api_url": urllib.parse.urljoin(
-                    app.blocks.local_url, "api/predict"
-                ),
-            }
-            return templates.TemplateResponse(
-                "api_docs.html", {"request": request, **docs}
-            )
-
-        @app.post("/api/predict/", dependencies=[Depends(login_check)])
-        async def predict(body: PredictBody, username: str = Depends(get_current_user)):
-            if hasattr(body, "session_hash"):
-                if body.session_hash not in app.state_holder:
-                    app.state_holder[body.session_hash] = {
-                        _id: getattr(block, "value", None)
-                        for _id, block in app.blocks.blocks.items()
-                        if getattr(block, "stateful", False)
-                    }
-                session_state = app.state_holder[body.session_hash]
-            else:
-                session_state = {}
-            try:
-                output = await app.blocks.process_api(body, username, session_state)
-            except BaseException as error:
-                if app.blocks.show_error:
-                    traceback.print_exc()
-                    return JSONResponse(content={"error": str(error)}, status_code=500)
-                else:
-                    raise error
-            return output
-
         @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
         async def queue_push(body: QueuePushBody):
             job_hash, queue_position = queueing.push(body)
@@ -290,6 +235,52 @@ class App(FastAPI):
         async def queue_status(body: QueueStatusBody):
             status, data = queueing.get_status(body.hash)
             return {"status": status, "data": data}
+
+        async def run_predict(
+            body: PredictBody, username: str = Depends(get_current_user)
+        ):
+            if hasattr(body, "session_hash"):
+                if body.session_hash not in app.state_holder:
+                    app.state_holder[body.session_hash] = {
+                        _id: deepcopy(getattr(block, "value", None))
+                        for _id, block in app.blocks.blocks.items()
+                        if getattr(block, "stateful", False)
+                    }
+                session_state = app.state_holder[body.session_hash]
+            else:
+                session_state = {}
+            try:
+                raw_input = body.data
+                fn_index = body.fn_index
+                output = await app.blocks.process_api(
+                    fn_index, raw_input, username, session_state
+                )
+            except BaseException as error:
+                if app.blocks.show_error:
+                    traceback.print_exc()
+                    return JSONResponse(content={"error": str(error)}, status_code=500)
+                else:
+                    raise error
+            return output
+
+        @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
+        @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
+        async def predict(
+            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+        ):
+            if body.fn_index is None:
+                for i, fn in enumerate(app.blocks.dependencies):
+                    if fn["api_name"] == api_name:
+                        body.fn_index = i
+                        break
+                if body.fn_index is None:
+                    return JSONResponse(
+                        content={
+                            "error": f"This app has no endpoint /api/{api_name}/."
+                        },
+                        status_code=500,
+                    )
+            return await run_predict(body=body, username=username)
 
         return app
 
@@ -319,19 +310,14 @@ def safe_join(directory: str, path: str) -> Optional[str]:
     return posixpath.join(directory, filename)
 
 
-def get_types(cls_set: List[Type], component: str):
+def get_types(cls_set: List[Type]):
     docset = []
     types = []
-    if component == "input":
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.preprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].split(":")[-1])
-            types.append(doc_lines[1].split(")")[0].split("(")[-1])
-    else:
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.postprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[-1].split(":")[-1])
-            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    for cls in cls_set:
+        doc = inspect.getdoc(cls)
+        doc_lines = doc.split("\n")
+        for line in doc_lines:
+            if "value (" in line:
+                types.append(line.split("value (")[1].split(")")[0])
+        docset.append(doc_lines[1].split(":")[-1])
     return docset, types

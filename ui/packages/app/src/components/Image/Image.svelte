@@ -4,8 +4,11 @@
 	import { Block } from "@gradio/atoms";
 	import { _ } from "svelte-i18n";
 	import { Component as StatusTracker } from "../StatusTracker/";
+	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -13,6 +16,7 @@
 	export let show_label: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
+	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 
@@ -21,7 +25,6 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
-
 	let dragging: boolean;
 </script>
 
@@ -32,6 +35,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	style={{ rounded: style.rounded }}
+	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
