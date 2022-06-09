@@ -14,8 +14,10 @@ class Changeable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -26,8 +28,10 @@ class Changeable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
         Returns: None
         """
@@ -36,8 +40,10 @@ class Changeable(Block):
             fn,
             inputs,
             outputs,
-            status_tracker=status_tracker,
             api_name=api_name,
+            status_tracker=status_tracker,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -51,9 +57,10 @@ class Clickable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue=None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -64,9 +71,10 @@ class Clickable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
             _preprocess: If False, will not run preprocessing of component data before running 'fn'.
             _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
@@ -77,9 +85,10 @@ class Clickable(Block):
             fn,
             inputs,
             outputs,
+            api_name=api_name,
             status_tracker=status_tracker,
             scroll_to_output=scroll_to_output,
-            api_name=api_name,
+            show_progress=show_progress,
             queue=queue,
             js=_js,
             preprocess=_preprocess,
@@ -93,8 +102,10 @@ class Submittable(Block):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -105,8 +116,10 @@ class Submittable(Block):
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         Returns: None
         """
@@ -117,6 +130,8 @@ class Submittable(Block):
             outputs,
             status_tracker=status_tracker,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -297,6 +312,7 @@ class Streamable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        show_progress: bool = False,
         queue: Optional[bool] = None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -322,4 +338,5 @@ class Streamable(Block):
             preprocess=_preprocess,
             postprocess=_postprocess,
             queue=queue,
+            show_progress=False
         )

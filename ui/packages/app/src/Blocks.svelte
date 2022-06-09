@@ -43,6 +43,7 @@
 		backend_fn: boolean;
 		js: string | null;
 		scroll_to_output: boolean;
+		show_progress: boolean;
 		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
@@ -332,8 +333,9 @@
 		}
 		for (const id in statuses) {
 			let loading_status = statuses[id];
-			loading_status.scroll_to_output =
-				dependencies[loading_status.fn_index].scroll_to_output;
+			let dependency = dependencies[loading_status.fn_index];
+			loading_status.scroll_to_output = dependency.scroll_to_output;
+			loading_status.visible = dependency.show_progress;
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
 		const inputs_to_update = loading_status.get_inputs_to_update();

@@ -48,6 +48,7 @@
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let cover_all: boolean = false;
+	export let visible: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -112,6 +113,7 @@
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
+{#if visible || status === "error"}
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
@@ -141,6 +143,7 @@
 		<span class="error">ERROR</span>
 	{/if}
 </div>
+{/if}
 
 <style lang="postcss">
 	.wrap {
