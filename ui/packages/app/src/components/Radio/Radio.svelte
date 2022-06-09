@@ -7,7 +7,6 @@
 
 	export let label: string = "Radio";
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: string = "";
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
@@ -22,7 +21,6 @@
 	type="fieldset"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 

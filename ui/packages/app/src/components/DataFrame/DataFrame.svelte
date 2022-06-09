@@ -10,7 +10,6 @@
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -42,7 +41,6 @@
 
 <div
 	id={elem_id}
-	class:hidden={visible === false}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
 >
