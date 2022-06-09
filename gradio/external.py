@@ -37,7 +37,7 @@ def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
 
 def get_models_interface(model_name, api_key, alias, **kwargs):
     model_url = "https://huggingface.co/{}".format(model_name)
-    api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
+    api_url = "https://huggingface.co/api/models/{}".format(model_name)
     print("Fetching model from: {}".format(model_url))
 
     if api_key is not None:
