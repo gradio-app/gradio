@@ -15,7 +15,7 @@
 	>
 		<h2 class="text-2xl font-semibold my-2">login</h2>
 		{#if auth_message}
-		<p class="my-4">{auth_message}</p>
+			<p class="my-4">{auth_message}</p>
 		{/if}
 		<label class="block uppercase mt-4" for="username">username</label>
 		<input class="p-2 block" type="text" name="username" />
