@@ -1596,7 +1596,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -1770,12 +1774,15 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
         )
-
 
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """

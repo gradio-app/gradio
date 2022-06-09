@@ -1,3 +1,4 @@
+
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
@@ -34,7 +35,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded }}
+	style={{ rounded: style.rounded, height: style.height, width: style.width }}
 	{visible}
 >
 	<StatusTracker {...loading_status} />
