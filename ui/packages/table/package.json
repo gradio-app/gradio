@@ -9,6 +9,7 @@
 	"private": true,
 	"dependencies": {
 		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
 		"d3-dsv": "^3.0.1",
 		"dequal": "^2.0.2"
 	}

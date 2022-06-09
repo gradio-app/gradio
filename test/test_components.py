@@ -150,6 +150,13 @@ class TestTextbox(unittest.TestCase):
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
         self.assertEqual(iface.process([10]), ["5.0"])
 
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Textbox("abc")
+        self.assertEqual(component.get_config().get("value"), "abc")
+
 
 class TestNumber(unittest.TestCase):
     def test_component_functions(self):
@@ -330,6 +337,15 @@ class TestNumber(unittest.TestCase):
             ],
         )
 
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Number()
+        self.assertEqual(component.get_config().get("value"), None)
+        component = gr.Number(3)
+        self.assertEqual(component.get_config().get("value"), 3.0)
+
 
 class TestSlider(unittest.TestCase):
     def test_component_functions(self):
@@ -340,7 +356,7 @@ class TestSlider(unittest.TestCase):
         self.assertEqual(slider_input.preprocess(3.0), 3.0)
         self.assertEqual(slider_input.preprocess_example(3), 3)
         self.assertEqual(slider_input.postprocess(3), 3)
-        self.assertEqual(slider_input.postprocess(None), None)
+        self.assertEqual(slider_input.postprocess(None), 0)
         self.assertEqual(slider_input.serialize(3, True), 3)
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = slider_input.save_flagged(tmpdirname, "slider_input", 3, None)
@@ -390,6 +406,15 @@ class TestSlider(unittest.TestCase):
                 9996.0,
             ],
         )
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Slider(0, 100, 5)
+        self.assertEqual(component.get_config().get("value"), 5)
+        component = gr.Slider(0, 100, None)
+        self.assertEqual(component.get_config().get("value"), 0)
 
 
 class TestCheckbox(unittest.TestCase):
@@ -563,7 +588,7 @@ class TestImage(unittest.TestCase):
             to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
             self.assertEqual("image_input/1.png", to_save)
             restored = image_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, os.path.join(tmpdirname, "image_input/1.png"))
+            self.assertEqual(restored, media_data.BASE64_IMAGE)
 
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.Image(
@@ -627,16 +652,6 @@ class TestImage(unittest.TestCase):
             image_output.postprocess(np.array(y_img)).startswith(
                 "data:image/png;base64,iVBORw0KGgoAAA"
             )
-        )
-        with self.assertWarns(Warning):
-            plot_output = gr.Image(plot=True)
-
-        xpoints = np.array([0, 6])
-        ypoints = np.array([0, 250])
-        fig = plt.figure()
-        plt.plot(xpoints, ypoints)
-        self.assertTrue(
-            plot_output.postprocess(fig).startswith("data:image/png;base64,")
         )
         with self.assertRaises(ValueError):
             image_output.postprocess([1, 2, 3])
@@ -703,6 +718,44 @@ class TestImage(unittest.TestCase):
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
 
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Image("test/test_files/bus.png")
+        self.assertEqual(component.get_config().get("value"), media_data.BASE64_IMAGE)
+        component = gr.Image(None)
+        self.assertEqual(component.get_config().get("value"), None)
+
+
+class TestPlot(unittest.TestCase):
+    def test_in_interface_as_output(self):
+        """
+        Interface, process
+        """
+
+        def plot(num):
+            fig = plt.figure()
+            plt.plot(range(num), range(num))
+            return fig
+
+        iface = gr.Interface(plot, "slider", "plot")
+        output = iface.process([10])[0]
+        self.assertEqual(output["type"], "matplotlib")
+        self.assertTrue(output["plot"].startswith("data:image/png;base64"))
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        fig = plt.figure()
+        plt.plot([1, 2, 3], [1, 2, 3])
+
+        component = gr.Plot(fig)
+        self.assertNotEqual(component.get_config().get("value"), None)
+        component = gr.Plot(None)
+        self.assertEqual(component.get_config().get("value"), None)
+
 
 class TestAudio(unittest.TestCase):
     def test_component_functions(self):
@@ -726,7 +779,7 @@ class TestAudio(unittest.TestCase):
             to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
             self.assertEqual("audio_input/1.wav", to_save)
             restored = audio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "audio_input/1.wav")
+            self.assertEqual(restored["file_name"], "audio_input/1.wav")
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -790,9 +843,7 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(
-                deepcopy(media_data.BASE64_AUDIO)["data"]
-            ).endswith(".wav")
+            audio_output.deserialize(deepcopy(media_data.BASE64_AUDIO)).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
@@ -811,7 +862,7 @@ class TestAudio(unittest.TestCase):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
-        self.assertEquals(len(tokens), audio_input.interpretation_segments)
+        self.assertEqual(len(tokens), audio_input.interpretation_segments)
         x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         self.assertGreater(similarity, 0.9)
@@ -869,7 +920,7 @@ class TestFile(unittest.TestCase):
             to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
             self.assertEqual("file_input/1", to_save)
             restored = file_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "file_input/1")
+            self.assertEqual(restored["file_name"], "file_input/1")
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
@@ -1103,7 +1154,7 @@ class TestVideo(unittest.TestCase):
             to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
             self.assertEqual("video_input/1.mp4", to_save)
             restored = video_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "video_input/1.mp4")
+            self.assertEqual(restored["file_name"], "video_input/1.mp4")
 
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
@@ -1126,8 +1177,10 @@ class TestVideo(unittest.TestCase):
         self.assertIsNotNone(video_input.preprocess(x_video))
         video_input = gr.Video(format="avi")
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
-        with self.assertRaises(NotImplementedError):
-            video_input.serialize(x_video, True)
+
+        self.assertEqual(
+            video_input.serialize(x_video["name"], True)["data"], x_video["data"]
+        )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
@@ -1138,9 +1191,7 @@ class TestVideo(unittest.TestCase):
             )
         )
         self.assertTrue(
-            video_output.deserialize(
-                deepcopy(media_data.BASE64_VIDEO)["data"]
-            ).endswith(".mp4")
+            video_output.deserialize(deepcopy(media_data.BASE64_VIDEO)).endswith(".mp4")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = video_output.save_flagged(
@@ -1394,7 +1445,6 @@ class TestLabel(unittest.TestCase):
                 "name": "label",
                 "show_label": True,
                 "num_top_classes": 2,
-                "output_type": "auto",
                 "value": None,
                 "label": None,
                 "style": {},
@@ -1452,7 +1502,7 @@ class TestHighlightedText(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": "",
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1515,7 +1565,7 @@ class TestJSON(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": '""',
+                "value": None,
                 "show_label": True,
                 "label": None,
                 "name": "json",
@@ -1580,6 +1630,39 @@ class TestHTML(unittest.TestCase):
 
         iface = gr.Interface(bold_text, "text", "html")
         self.assertEqual(iface.process(["test"])[0], "<strong>test</strong>")
+
+
+class TestModel3D(unittest.TestCase):
+    def test_component_functions(self):
+        """
+        get_config
+        """
+        component = gr.components.Model3D("test/test_files/Box.gltf", label="Model")
+        self.assertEqual(
+            {
+                "clearColor": [0.2, 0.2, 0.2, 1.0],
+                "value": media_data.BASE64_MODEL3D,
+                "label": "Model",
+                "show_label": True,
+                "interactive": None,
+                "name": "model3d",
+                "visible": True,
+                "elem_id": None,
+                "style": {},
+            },
+            component.get_config(),
+        )
+
+    def test_in_interface(self):
+        """
+        Interface, process
+        """
+        iface = gr.Interface(lambda x: x, "model3d", "model3d")
+        input_data = gr.media_data.BASE64_MODEL3D["data"]
+        output_data = iface.process([{"name": "Box.gltf", "data": input_data}])[0][
+            "data"
+        ]
+        self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 
 if __name__ == "__main__":

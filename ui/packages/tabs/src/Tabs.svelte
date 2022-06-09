@@ -12,6 +12,7 @@
 	}
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 
 	const tabs: Array<Tab> = [];
 
@@ -27,7 +28,7 @@
 			const i = tabs.findIndex((t) => t.id === tab.id);
 			tabs.splice(i, 1);
 			selected_tab.update((current) =>
-				current === tab.id ? tabs[i].id || tabs[tabs.length - 1].id : current
+				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current
 			);
 		},
 
@@ -40,7 +41,11 @@
 	}
 </script>
 
-<div class="tabs flex flex-col my-4" id={elem_id}>
+<div
+	class="tabs flex flex-col my-4"
+	id={elem_id}
+	class:hidden={visible === false}
+>
 	<div class="flex border-b-2 dark:border-gray-700">
 		{#each tabs as t, i}
 			{#if t.id === $selected_tab}

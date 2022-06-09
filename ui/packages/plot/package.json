@@ -8,6 +8,8 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
+		"@gradio/icons": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
 		"plotly.js-dist-min": "^2.10.1"
 	}
 }

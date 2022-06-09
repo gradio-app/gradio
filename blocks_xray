@@ -1,0 +1,291 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "markdown",
+      "props": {
+        "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+        "name": "markdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          "Covid",
+          "Malaria",
+          "Lung Cancer"
+        ],
+        "default_value": [],
+        "label": "Disease to Scan For",
+        "show_label": true,
+        "name": "checkboxgroup",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "tabs",
+      "props": {
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "tabitem",
+      "props": {
+        "label": "X-ray",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 7,
+      "type": "json",
+      "props": {
+        "default_value": "\"\"",
+        "show_label": true,
+        "name": "json",
+        "css": {}
+      }
+    },
+    {
+      "id": 8,
+      "type": "button",
+      "props": {
+        "default_value": "Run",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 9,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "css": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "tabitem",
+      "props": {
+        "label": "CT Scan",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "json",
+      "props": {
+        "default_value": "\"\"",
+        "show_label": true,
+        "name": "json",
+        "css": {}
+      }
+    },
+    {
+      "id": 14,
+      "type": "button",
+      "props": {
+        "default_value": "Run",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "css": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "button",
+      "props": {
+        "default_value": "Upload Results",
+        "name": "button",
+        "css": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "statustracker",
+      "props": {
+        "cover_container": false,
+        "name": "statustracker",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3,
+        "children": [
+          {
+            "id": 4,
+            "children": [
+              {
+                "id": 5,
+                "children": [
+                  {
+                    "id": 6
+                  },
+                  {
+                    "id": 7
+                  }
+                ]
+              },
+              {
+                "id": 8
+              },
+              {
+                "id": 9
+              }
+            ]
+          },
+          {
+            "id": 10,
+            "children": [
+              {
+                "id": 11,
+                "children": [
+                  {
+                    "id": 12
+                  },
+                  {
+                    "id": 13
+                  }
+                ]
+              },
+              {
+                "id": 14
+              },
+              {
+                "id": 15
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 16
+      },
+      {
+        "id": 17
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        8
+      ],
+      "trigger": "click",
+      "inputs": [
+        2,
+        6
+      ],
+      "outputs": [
+        7
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 9,
+      "queue": null
+    },
+    {
+      "targets": [
+        14
+      ],
+      "trigger": "click",
+      "inputs": [
+        2,
+        12
+      ],
+      "outputs": [
+        13
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 15,
+      "queue": null
+    },
+    {
+      "targets": [
+        16
+      ],
+      "trigger": "click",
+      "inputs": [
+        13,
+        7
+      ],
+      "outputs": [],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 17,
+      "queue": null
+    }
+  ]
+}

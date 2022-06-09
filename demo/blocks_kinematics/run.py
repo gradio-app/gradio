@@ -32,7 +32,7 @@ with demo:
     with gr.Row():
         speed = gr.Slider(1, 30, 25, label="Speed")
         angle = gr.Slider(0, 90, 45, label="Angle")
-    output = gr.Image(type="plot")
+    output = gr.Plot()
     btn = gr.Button("Run")
     btn.click(plot, [speed, angle], output)
 

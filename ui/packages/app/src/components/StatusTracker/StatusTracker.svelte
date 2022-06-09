@@ -110,17 +110,14 @@
 </script>
 
 <div
-	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity"
+	class="wrap"
 	class:opacity-0={!status || status === "complete"}
 	class:z-50={cover_all}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		<div
-			class="absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80"
-			style:transform="scaleX({progress || 0})"
-		/>
-		<div class="absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs">
+		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+		<div class="meta-text">
 			{#if queue_position !== null && queue_position > 0}
 				queue: {queue_position}/{initial_queue_pos} |
 			{:else if queue_position === 0}
@@ -135,14 +132,37 @@
 		<Loader />
 
 		{#if !timer}
-			<p class="-translate-y-16">Loading...</p>
+			<p class="timer">Loading...</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="text-red-400 font-mono font-semibold text-lg">ERROR</span>
+		<span class="error">ERROR</span>
 	{/if}
 </div>
 
 <style lang="postcss">
+	.wrap {
+		@apply absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+	}
+
+	:global(.dark) .wrap {
+		@apply bg-gray-800;
+	}
+
+	.progress-bar {
+		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+	}
+
+	.meta-text {
+		@apply absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs;
+	}
+
+	.timer {
+		@apply -translate-y-16;
+	}
+
+	.error {
+		@apply text-red-400 font-mono font-semibold text-lg;
+	}
 	@keyframes blink {
 		0% {
 			opacity: 100%;

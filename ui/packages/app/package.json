@@ -4,9 +4,9 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
-		"build:cdn": "vite build --mode production:cdn",
-		"build:website": "vite build --mode production:website",
-		"build:local": "vite build --mode production:local",
+		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
+		"build:website": "vite build --mode production:website --emptyOutDir",
+		"build:local": "vite build --mode production:local --emptyOutDir",
 		"preview": "vite preview",
 		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpx playwright test test/ --debug --config=../../playwright.config.js"

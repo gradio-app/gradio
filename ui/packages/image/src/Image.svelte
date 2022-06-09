@@ -7,7 +7,6 @@
 	import Sketch from "./Sketch.svelte";
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
-	import ImageEditor from "./ImageEditor.svelte";
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
@@ -24,7 +23,6 @@
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 
-	let mode: "edit" | "view" = "view";
 	let sketch: Sketch;
 
 	function handle_upload({ detail }: CustomEvent<string>) {
@@ -38,7 +36,6 @@
 
 	function handle_save({ detail }: { detail: string }) {
 		value = detail;
-		mode = "view";
 		dispatch(streaming ? "stream" : "edit");
 	}
 
@@ -94,16 +91,10 @@
 		{/if}
 	{:else if tool === "select"}
 		<Cropper image={value} on:crop={handle_save} />
+		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
-		{#if mode === "edit"}
-			<ImageEditor
-				{value}
-				on:cancel={() => (mode = "view")}
-				on:save={handle_save}
-			/>
-		{/if}
 		<ModifyUpload
-			on:edit={() => (mode = "edit")}
+			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable
 		/>
@@ -113,20 +104,3 @@
 		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
 </div>
-
-<style lang="postcss">
-	:global(.image_editor_buttons) {
-		width: 800px;
-		@apply flex justify-end gap-1;
-	}
-	:global(.image_editor_buttons button) {
-		@apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
-	}
-	:global(.tui-image-editor-header-buttons) {
-		@apply hidden;
-	}
-	:global(.tui-colorpicker-palette-button) {
-		width: 12px;
-		height: 12px;
-	}
-</style>

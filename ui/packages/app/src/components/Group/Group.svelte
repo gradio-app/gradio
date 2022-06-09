@@ -14,18 +14,18 @@
 
 <style>
 	div > :global(*:not(.absolute)) {
-		@apply rounded-none;
+		@apply !rounded-none;
 	}
 
 	div > :global(*:first-child) {
-		@apply rounded-tl-lg rounded-tr-lg;
+		@apply !rounded-tl-lg !rounded-tr-lg;
 	}
 
 	div > :global(*:last-child) {
-		@apply rounded-bl-lg rounded-br-lg;
+		@apply !rounded-bl-lg !rounded-br-lg;
 	}
 
 	div > :global(* + *:not(.absolute)) {
-		@apply border-t-0;
+		@apply !border-t-0;
 	}
 </style>
