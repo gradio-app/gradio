@@ -6,7 +6,7 @@
 	let called = false;
 
 	async function scroll_into_view(el: HTMLDivElement) {
-		console.log(el)
+		console.log(el);
 		if (window.__gradio_mode__ === "website") {
 			return;
 		}
@@ -114,35 +114,35 @@
 </script>
 
 {#if visible || status === "error"}
-<div
-	class="wrap"
-	class:opacity-0={!status || status === "complete"}
-	class:z-50={cover_all}
-	bind:this={el}
->
-	{#if status === "pending"}
-		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text">
-			{#if queue_position !== null && queue_position > 0}
-				queue: {queue_position}/{initial_queue_pos} |
-			{:else if queue_position === 0}
-				processing |
+	<div
+		class="wrap"
+		class:opacity-0={!status || status === "complete"}
+		class:z-50={cover_all}
+		bind:this={el}
+	>
+		{#if status === "pending"}
+			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+			<div class="meta-text">
+				{#if queue_position !== null && queue_position > 0}
+					queue: {queue_position}/{initial_queue_pos} |
+				{:else if queue_position === 0}
+					processing |
+				{/if}
+
+				{#if timer}
+					{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+				{/if}
+			</div>
+
+			<Loader />
+
+			{#if !timer}
+				<p class="timer">Loading...</p>
 			{/if}
-
-			{#if timer}
-				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
-			{/if}
-		</div>
-
-		<Loader />
-
-		{#if !timer}
-			<p class="timer">Loading...</p>
+		{:else if status === "error"}
+			<span class="error">ERROR</span>
 		{/if}
-	{:else if status === "error"}
-		<span class="error">ERROR</span>
-	{/if}
-</div>
+	</div>
 {/if}
 
 <style lang="postcss">
