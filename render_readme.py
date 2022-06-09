@@ -6,7 +6,7 @@ from jinja2 import BaseLoader, Environment, TemplateNotFound
 README_TEMPLATE = "readme_template.md"
 GETTING_STARTED_TEMPLATE = "getting_started.md"
 
-with open(join("guides", GETTING_STARTED_TEMPLATE)) as getting_started_file:
+with open(join("guides", GETTING_STARTED_TEMPLATE), encoding="utf-8") as getting_started_file:
     getting_started = getting_started_file.read()
 
 code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', getting_started)
@@ -36,7 +36,7 @@ class GuidesLoader(BaseLoader):
         if not exists(path):
             raise TemplateNotFound(template)
         mtime = getmtime(path)
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             source = f.read()
         return source, path, lambda: mtime == getmtime(path)
 
@@ -45,5 +45,5 @@ readme_template = Environment(loader=GuidesLoader(".")).get_template(README_TEMP
 output_readme = readme_template.render(code=code, demos=demos)
 output_readme = output_readme.replace("(/assets/", "(website/homepage/src/assets/")
 
-with open("README.md", "w") as readme_md:
+with open("README.md", "w", encoding="utf-8") as readme_md:
     readme_md.write(output_readme)
