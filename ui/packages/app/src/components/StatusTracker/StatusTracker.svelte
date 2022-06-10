@@ -45,7 +45,6 @@
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";
 	export let timer: boolean = true;
-	export let cover_all: boolean = false;
 
 	let el: HTMLDivElement;
 
@@ -112,7 +111,6 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
-	class:z-50={cover_all}
 	bind:this={el}
 >
 	{#if status === "pending"}
@@ -141,7 +139,7 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		@apply absolute inset-0 z-50 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
 	}
 
 	:global(.dark) .wrap {
