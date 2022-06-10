@@ -113,32 +113,35 @@
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
-{#if status && status !== "complete" && (visible || status === "error")}
-	<div class="wrap" class:z-50={cover_all} bind:this={el}>
-		{#if status === "pending"}
-			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-			<div class="meta-text">
-				{#if queue_position !== null && queue_position > 0}
-					queue: {queue_position}/{initial_queue_pos} |
-				{:else if queue_position === 0}
-					processing |
-				{/if}
-
-				{#if timer}
-					{formatted_timer}{eta ? `/${formatted_eta}` : ""}
-				{/if}
-			</div>
-
-			<Loader />
-
-			{#if !timer}
-				<p class="timer">Loading...</p>
+<div
+	class="wrap"
+	class:z-50={cover_all}
+	bind:this={el}
+	class:opacity-0={!status || status === "complete"}
+>
+	{#if status === "pending"}
+		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+		<div class="meta-text">
+			{#if queue_position !== null && queue_position > 0}
+				queue: {queue_position}/{initial_queue_pos} |
+			{:else if queue_position === 0}
+				processing |
 			{/if}
-		{:else if status === "error"}
-			<span class="error">ERROR</span>
+
+			{#if timer}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+			{/if}
+		</div>
+
+		<Loader />
+
+		{#if !timer}
+			<p class="timer">Loading...</p>
 		{/if}
-	</div>
-{/if}
+	{:else if status === "error"}
+		<span class="error">ERROR</span>
+	{/if}
+</div>
 
 <style lang="postcss">
 	.wrap {
