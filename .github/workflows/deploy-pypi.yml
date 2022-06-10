@@ -31,7 +31,9 @@ jobs:
       with:
         python-version: '3.x'
     - name: Install pnpm
-      run: curl -fsSL https://get.pnpm.io/install.sh | PNPM_VERSION=6.32.11 sh - 
+      uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 6.0.2
     - name: Install pip
       run: python -m pip install --upgrade pip
     - name: Build pypi package
