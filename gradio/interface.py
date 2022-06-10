@@ -510,23 +510,35 @@ class Interface(Blocks):
                 else self.run_prediction(args)
             )
             if self.live:
-                for component in self.input_components:
-                    if isinstance(component, Streamable):
-                        if component.streaming:
-                            component.stream(
+                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                    super().load(submit_fn, None, self.output_components)
+                    submit_btn.click(
+                        submit_fn,
+                        None,
+                        self.output_components,
+                        api_name="predict",
+                        status_tracker=status_tracker,
+                    )
+                else:
+                    for component in self.input_components:
+                        if isinstance(component, Streamable):
+                            if component.streaming:
+                                component.stream(
+                                    submit_fn,
+                                    self.input_components,
+                                    self.output_components,
+                                )
+                                continue
+                            else:
+                                print(
+                                    "Hint: Set streaming=True for "
+                                    + component.__class__.__name__
+                                    + " component to use live streaming."
+                                )
+                        if isinstance(component, Changeable):
+                            component.change(
                                 submit_fn, self.input_components, self.output_components
                             )
-                            continue
-                        else:
-                            print(
-                                "Hint: Set streaming=True for "
-                                + component.__class__.__name__
-                                + " component to use live streaming."
-                            )
-                    if isinstance(component, Changeable):
-                        component.change(
-                            submit_fn, self.input_components, self.output_components
-                        )
             else:
                 submit_btn.click(
                     submit_fn,
