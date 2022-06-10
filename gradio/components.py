@@ -2825,7 +2825,6 @@ class HighlightedText(Changeable, IOComponent):
         """
         Parameters:
         value (List[Tuple[str, str | Number | None]]): Default value to show.
-        color_map (Dict[str, str]): Map between category and respective colors.
         combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
         adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
         show_legend (bool): whether to show span categories in a separate legend or inline.
@@ -2919,6 +2918,12 @@ class HighlightedText(Changeable, IOComponent):
         color_map: Optional[Dict[str, str]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Parameters:
+        rounded (bool | Tuple[bool, bool, bool, bool]): If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+        color_map (Dict[str, str]): Map between category and respective colors.        
+        container (bool): If True, will place the component in a container.
+        """
         if color_map is not None:
             self._style["color_map"] = color_map
 
