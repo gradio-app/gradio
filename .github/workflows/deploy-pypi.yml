@@ -14,7 +14,7 @@ on:
     branches:
       - master
     paths:
-          - 'gradio/version.txt'
+      - 'gradio/version.txt'
 
 permissions:
   contents: read
