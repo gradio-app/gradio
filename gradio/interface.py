@@ -499,8 +499,7 @@ class Interface(Blocks):
                         with Row().style(mobile_collapse=False):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
-                                if not self.live:
-                                    submit_btn = Button("Generate", variant="primary")
+                                submit_btn = Button("Generate", variant="primary")
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -513,6 +512,13 @@ class Interface(Blocks):
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                     super().load(submit_fn, None, self.output_components)
+                    submit_btn.click(
+                        submit_fn,
+                        None,
+                        self.output_components,
+                        api_name="predict",
+                        status_tracker=status_tracker,
+                    )
                 else:
                     for component in self.input_components:
                         if isinstance(component, Streamable):
