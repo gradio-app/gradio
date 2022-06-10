@@ -35,7 +35,7 @@ jobs:
       with:
         version: 6.32.11
     - name: Install pip
-      run: python -m pip install --upgrade pip
+      run: python -m pip install pip wheel
     - name: Build pypi package
       run: scripts/gh_action_pypi.sh
     - name: Publish package
