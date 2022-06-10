@@ -33,7 +33,7 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v2.2.2
       with:
-        version: 6.0.2
+        version: 6.32.11
     - name: Install pip
       run: python -m pip install --upgrade pip
     - name: Build pypi package
