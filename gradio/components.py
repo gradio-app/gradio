@@ -3159,7 +3159,6 @@ class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
-    Demos: disease_report
     """
 
     def __init__(
