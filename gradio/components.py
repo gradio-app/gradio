@@ -3472,7 +3472,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return data
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"], file_path=x["name"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
