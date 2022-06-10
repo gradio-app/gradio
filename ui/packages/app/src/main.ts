@@ -211,7 +211,6 @@ function create_custom_element() {
 					status: "pending",
 					timer: false,
 					queue_position: null,
-					cover_all: true
 				}
 			});
 
@@ -239,7 +238,6 @@ async function unscoped_mount() {
 			status: "pending",
 			timer: false,
 			queue_position: null,
-			cover_all: true
 		}
 	});
 
