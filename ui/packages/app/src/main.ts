@@ -210,7 +210,7 @@ function create_custom_element() {
 				props: {
 					status: "pending",
 					timer: false,
-					queue_position: null,
+					queue_position: null
 				}
 			});
 
@@ -237,7 +237,7 @@ async function unscoped_mount() {
 		props: {
 			status: "pending",
 			timer: false,
-			queue_position: null,
+			queue_position: null
 		}
 	});
 
