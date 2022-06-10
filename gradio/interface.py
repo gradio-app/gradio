@@ -518,7 +518,9 @@ class Interface(Blocks):
                         if isinstance(component, Streamable):
                             if component.streaming:
                                 component.stream(
-                                    submit_fn, self.input_components, self.output_components
+                                    submit_fn,
+                                    self.input_components,
+                                    self.output_components,
                                 )
                                 continue
                             else:
