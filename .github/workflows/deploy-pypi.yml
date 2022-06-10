@@ -12,7 +12,7 @@ on:
   pull_request:
     types: closed
     branches:
-      - master
+      - release
     paths:
       - 'gradio/version.txt'
 
