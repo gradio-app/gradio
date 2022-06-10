@@ -178,6 +178,9 @@ class Clearable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user clears the component (e.g. image or audio) 
+        using the X button for the component.
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -212,6 +215,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user plays the component (e.g. audio or video)
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -244,6 +249,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user pauses the component (e.g. audio or video)
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -276,6 +283,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user stops the component (e.g. audio or video)
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -310,6 +319,9 @@ class Streamable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user streams the component (e.g. a live webcam
+        component)
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
