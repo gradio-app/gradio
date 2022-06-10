@@ -22,6 +22,9 @@ class Changeable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the component's input value changes (e.g. when the user types in a textbox
+        or uploads an image) 
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -59,6 +62,8 @@ class Clickable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the component (e.g. a button) is clicked.
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -98,6 +103,8 @@ class Submittable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
@@ -134,6 +141,9 @@ class Editable(Block):
         _postprocess: bool = True,
     ):
         """
+        This event is triggered when the user edits the component (e.g. image) using the 
+        built-in editor.        
+        
         Parameters:
             fn: Callable function
             inputs: List of inputs
