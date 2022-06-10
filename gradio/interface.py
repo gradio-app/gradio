@@ -499,7 +499,8 @@ class Interface(Blocks):
                         with Row().style(mobile_collapse=False):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
-                                submit_btn = Button("Generate", variant="primary")
+                                if not self.live:
+                                    submit_btn = Button("Generate", variant="primary")
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -510,23 +511,26 @@ class Interface(Blocks):
                 else self.run_prediction(args)
             )
             if self.live:
-                for component in self.input_components:
-                    if isinstance(component, Streamable):
-                        if component.streaming:
-                            component.stream(
+                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                    super().load(submit_fn, None, self.output_components)
+                else:
+                    for component in self.input_components:
+                        if isinstance(component, Streamable):
+                            if component.streaming:
+                                component.stream(
+                                    submit_fn, self.input_components, self.output_components
+                                )
+                                continue
+                            else:
+                                print(
+                                    "Hint: Set streaming=True for "
+                                    + component.__class__.__name__
+                                    + " component to use live streaming."
+                                )
+                        if isinstance(component, Changeable):
+                            component.change(
                                 submit_fn, self.input_components, self.output_components
                             )
-                            continue
-                        else:
-                            print(
-                                "Hint: Set streaming=True for "
-                                + component.__class__.__name__
-                                + " component to use live streaming."
-                            )
-                    if isinstance(component, Changeable):
-                        component.change(
-                            submit_fn, self.input_components, self.output_components
-                        )
             else:
                 submit_btn.click(
                     submit_fn,
