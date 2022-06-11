@@ -94,7 +94,7 @@ The core `Interface` class is initialized with three required parameters:
 -   `inputs`: which component(s) to use for the input, e.g. `"text"` or `"image"` or `"audio"` 
 -   `outputs`: which component(s) to use for the output, e.g. `"text"` or `"image"` `"label"`
 
-Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](/docs))
+Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](https://gradio.app/docs))
 
 ### Components Attributes 💻
 
@@ -247,7 +247,6 @@ demo = gr.Interface(
     ],
     title="test calculator",
     description="heres a sample toy calculator. enjoy!",
-    flagging_options=["this", "or", "that"],
 )
 
 demo.launch()
