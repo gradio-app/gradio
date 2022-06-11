@@ -26,12 +26,12 @@ class Changeable(Block):
         or uploads an image) 
         
         Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
-            api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
+            fn (Callable): Callable function
+            inputs (List[Component]): List of inputs
+            outputs (List[Component]): List of outputs
+            status_tracker (StatusTracker): StatusTracker to visualize function progress
+            api_name (str): Defining this parameter exposes the endpoint in the api docs
+            _js (str): Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
         Returns: None
         """
         self.set_event_trigger(
