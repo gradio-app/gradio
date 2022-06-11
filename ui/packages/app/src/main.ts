@@ -226,6 +226,8 @@ function create_custom_element() {
 
 		async connectedCallback() {
 			const space = this.getAttribute("space");
+			const initial_height = this.getAttribute("initial_height");
+			this.wrapper.style.minHeight = initial_height || "300px";
 
 			const config = await handle_config(this.root, space);
 			mount_app(config, this.root, this.wrapper, this._id);
