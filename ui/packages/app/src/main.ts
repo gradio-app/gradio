@@ -102,16 +102,21 @@ async function get_config(space_id: string | null) {
 	}
 }
 
-function mount_css(
-	url: string,
+function mount_custom_css(
 	target: ShadowRoot | HTMLElement,
 	css_string?: string
-): Promise<void> {
+) {
 	if (css_string) {
 		let style = document.createElement("style");
 		style.innerHTML = css_string;
 		target.appendChild(style);
 	}
+}
+
+function mount_css(
+	url: string,
+	target: ShadowRoot | HTMLElement
+): Promise<void> {
 	if (BUILD_MODE === "dev") Promise.resolve();
 
 	const link = document.createElement("link");
@@ -136,6 +141,8 @@ async function handle_config(
 		get_config(space_id),
 		mount_css(ENTRY_CSS, target)
 	]);
+
+	mount_custom_css(target, config.css);
 
 	if (config.dev_mode) {
 		reload_check(config.root);
