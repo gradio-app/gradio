@@ -313,7 +313,36 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args: object):
-    loop = asyncio.get_event_loop()
-    print(loop)
-    return fsspec.asyn.sync(loop, func, args, timeout=1)
+def synchronize_async(func: Callable, *args, **kwargs):
+    """
+    Runs async functions in sync scopes.
+
+    Example:
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+    """
+    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
+
+
+def run_coro_in_background(func: Callable, *args, **kwargs):
+    """
+    Runs coroutines in background.
+
+    Example:
+        utils.run_coro_in_background(fn, *args, **kwargs)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+
+    Returns:
+
+    """
+    event_loop = asyncio.get_event_loop()
+    _ = event_loop.create_task(func(*args, **kwargs))

@@ -26,4 +26,4 @@ with gr.Blocks() as demo:
     text2.change(greet, text2, text3)
     text3.change(greet, text3, text1)
     button = gr.component("button")
-    demo.launch()
+    demo.launch(max_threads=30)

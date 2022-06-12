@@ -37,7 +37,7 @@ setup(
         "pydub",
         "requests",
         "uvicorn",
-        "Jinja2"
+        "Jinja2",
         "fsspec",
     ],
     entry_points={
