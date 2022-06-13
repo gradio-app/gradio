@@ -2921,7 +2921,7 @@ class HighlightedText(Changeable, IOComponent):
         """
         Parameters:
         rounded (bool | Tuple[bool, bool, bool, bool]): If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
-        color_map (Dict[str, str]): Map between category and respective colors.        
+        color_map (Dict[str, str]): Map between category and respective colors.
         container (bool): If True, will place the component in a container.
         """
         if color_map is not None:
