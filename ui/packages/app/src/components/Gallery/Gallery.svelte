@@ -15,7 +15,6 @@
 	export let value: Array<string> | null = null;
 	export let style: Styles = {};
 
-	$: console.log(">", value);
 	let selected_image: number | null = null;
 
 	$: previous =

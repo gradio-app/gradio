@@ -63,19 +63,25 @@
 		typeof style.rounded === "boolean"
 			? get_styles({ rounded: rounded }, ["rounded"]).classes
 			: "";
+	$: size_style =
+		"" +
+		(typeof style.width === "number" ? `height: ${style.width}px; ` : "") +
+		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
 <svelte:element
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class="w-full overflow-hidden {styles[variant]} {rounded
+	class="overflow-hidden {styles[variant]} {rounded
 		? styles[color]
 		: ''} {form_class} {classes} {rounded_style}"
+		: ''} {form_class} {classes} {rounded_style} {visible_style}"
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:gr-box-unrounded={!rounded && form_position}
 	class:gr-box={!form_position}
+	style={size_style || null}
 >
 	<slot />
 </svelte:element>

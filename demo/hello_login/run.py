@@ -9,4 +9,6 @@ def greet(name):
 
 demo = gr.Interface(fn=greet, inputs="text", outputs="text")
 if __name__ == "__main__":
-    demo.launch(auth=lambda u, p: user_db.get(u) == p)
+    demo.launch(
+        auth=lambda u, p: user_db.get(u) == p,
+        auth_message="This is a welcome message")
