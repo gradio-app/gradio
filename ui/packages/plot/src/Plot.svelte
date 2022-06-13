@@ -16,7 +16,6 @@
 	
 	import { afterUpdate, onMount } from "svelte";
 
-	// export let visible: boolean = true;
 	export let value: null | string;
 	export let theme: string;
 

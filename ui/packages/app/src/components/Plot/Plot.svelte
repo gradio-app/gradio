@@ -10,14 +10,13 @@
 
 	export let value: null | string = null;
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
 </script>
 
-<Block padding={false} {elem_id} {visible}>
+<Block padding={false} {elem_id}>
 	<BlockLabel {show_label} label={label || "Plot"} Icon={PlotIcon} />
 
 	<StatusTracker {...loading_status} />
