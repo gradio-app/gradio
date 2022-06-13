@@ -739,7 +739,9 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
+            
         utils.synchronize_async(self.create_limiter, max_threads)
+        
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
@@ -770,7 +772,6 @@ class Blocks(BlockContext):
             self.is_running = True
 
         utils.launch_counter()
-
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
         is_colab = utils.colab_check()
