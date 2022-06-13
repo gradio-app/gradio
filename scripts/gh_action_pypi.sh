@@ -16,6 +16,7 @@ else
   GRADIO_VERSION=$new_version pnpm build:cdn
   cd ..
   echo "Before AWS"
+  aws configure list
   aws s3 cp gradio/templates/cdn s3://gradio/$new_version/ --recursive 
   echo "After AWS"
   cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
