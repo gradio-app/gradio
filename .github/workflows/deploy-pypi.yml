@@ -36,6 +36,10 @@ jobs:
         version: 6.32.11
     - name: Install pip
       run: python -m pip install pip wheel
+    - name: Configure AWS
+      run: |
+        export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
     - name: Build pypi package
       run: | 
         export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
