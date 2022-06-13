@@ -1596,7 +1596,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -1770,7 +1774,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -3472,7 +3480,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return data
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"], file_path=x["name"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key, as_data=True)

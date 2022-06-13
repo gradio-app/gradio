@@ -46,8 +46,6 @@
 	export let status: "complete" | "pending" | "error";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
-	export let cover_all: boolean = false;
-	export let visible: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -114,9 +112,8 @@
 
 <div
 	class="wrap"
-	class:z-50={cover_all}
-	bind:this={el}
 	class:opacity-0={!status || status === "complete"}
+	bind:this={el}
 >
 	{#if status === "pending"}
 		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
@@ -144,7 +141,7 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		@apply absolute inset-0 z-50 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
 	}
 
 	:global(.dark) .wrap {

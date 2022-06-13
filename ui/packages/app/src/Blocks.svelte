@@ -23,9 +23,9 @@
 			visible?: boolean;
 			elem_id?: string;
 			[key: string]: unknown;
+			value?: unknown;
 		};
 		instance?: SvelteComponentTyped;
-		value?: unknown;
 		component?: any;
 		children?: Array<Component>;
 	}
@@ -112,11 +112,11 @@
 		return false;
 	}
 
-	const dynamic_ids = components.reduce((acc, { id }) => {
+	const dynamic_ids = components.reduce((acc, { id, props }) => {
 		const is_input = is_dep(id, "inputs", dependencies);
 		const is_output = is_dep(id, "outputs", dependencies);
 
-		if (!is_input && !is_output) acc.add(id); // default dynamic
+		if (!is_input && !is_output && !props.value) acc.add(id); // default dynamic
 		if (is_input) acc.add(id);
 
 		return acc;
@@ -256,6 +256,7 @@
 						})
 						.catch((error) => {
 							console.error(error);
+							loading_status.update(i, "error", 0, 0);
 						});
 
 					handled_dependencies[i] = [-1];
@@ -305,6 +306,7 @@
 							})
 							.catch((error) => {
 								console.error(error);
+								loading_status.update(i, "error", 0, 0);
 							});
 					});
 
