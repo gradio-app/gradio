@@ -9,7 +9,7 @@ import random
 import sys
 import time
 import webbrowser
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
 from anyio import CapacityLimiter
@@ -86,6 +86,7 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
@@ -100,6 +101,7 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
@@ -116,20 +118,25 @@ class Block:
             outputs = [outputs]
 
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
-        Context.root_block.dependencies.append(
-            {
-                "targets": [self._id] if not no_target else [],
-                "trigger": event_name,
-                "inputs": [block._id for block in inputs],
-                "outputs": [block._id for block in outputs],
-                "backend_fn": fn is not None,
-                "js": js,
-                "status_tracker": status_tracker._id
-                if status_tracker is not None
-                else None,
-                "queue": queue,
-            }
-        )
+        dependency = {
+            "targets": [self._id] if not no_target else [],
+            "trigger": event_name,
+            "inputs": [block._id for block in inputs],
+            "outputs": [block._id for block in outputs],
+            "backend_fn": fn is not None,
+            "js": js,
+            "status_tracker": status_tracker._id
+            if status_tracker is not None
+            else None,
+            "queue": queue,
+            "api_name": api_name,
+        }
+        if api_name is not None:
+            dependency["documentation"] = [
+                [component.document_parameters("input") for component in inputs],
+                [component.document_parameters("output") for component in outputs],
+            ]
+        Context.root_block.dependencies.append(dependency)
 
     def get_config(self):
         return {
@@ -255,6 +262,18 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+
+    @property
+    def share(self):
+        return self._share
+
+    @share.setter
+    def share(self, value: Optional[bool]):
+        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
+        if value is None:
+            self._share = True if utils.colab_check() else False
+        else:
+            self._share = value
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
@@ -649,7 +668,7 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
         max_threads: Optional[int] = None,
@@ -676,7 +695,7 @@ class Blocks(BlockContext):
         Parameters:
         inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
+        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
         auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str | None): If provided, HTML message provided on login page.
@@ -752,10 +771,13 @@ class Blocks(BlockContext):
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
-        # automatically create a shareable link.
+        # a shareable link must be created.
         is_colab = utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            share = True
+            if not self.share:
+                raise ValueError(
+                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
+                )
             if is_colab and not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
@@ -766,7 +788,7 @@ class Blocks(BlockContext):
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
-        if share:
+        if self.share:
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
@@ -780,7 +802,7 @@ class Blocks(BlockContext):
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
                 self.share_url = None
-                share = False
+                self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             if not (quiet):
@@ -788,7 +810,7 @@ class Blocks(BlockContext):
             self.share_url = None
 
         if inbrowser:
-            link = self.share_url if share else self.local_url
+            link = self.share_url if self.share else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
@@ -803,7 +825,7 @@ class Blocks(BlockContext):
             try:
                 from IPython.display import HTML, display  # type: ignore
 
-                if share:
+                if self.share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(1)
                     display(
@@ -823,7 +845,7 @@ class Blocks(BlockContext):
         data = {
             "launch_method": "browser" if inbrowser else "inline",
             "is_google_colab": is_colab,
-            "is_sharing_on": share,
+            "is_sharing_on": self.share,
             "share_url": self.share_url,
             "ip_address": self.ip_address,
             "enable_queue": self.enable_queue,

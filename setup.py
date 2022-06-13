@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf8')
 
 setup(
     name="gradio",
-    version="3.0.11",
+    version="3.0.13",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     long_description=long_description,
@@ -43,4 +43,5 @@ setup(
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
     },
+    python_requires='>=3.7',
 )

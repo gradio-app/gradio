@@ -11,9 +11,9 @@
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
-	function handle_change() {
-		dispatch("change", !value);
-		value = !value;
+	function handle_change(evt: Event) {
+		value = evt.target?.checked;
+		dispatch("change", value);
 	}
 
 	$: ({ rounded, border } = get_styles(style, ["rounded", "border"]));
@@ -25,8 +25,9 @@
 	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent "
 >
 	<input
-		bind:checked={value}
+		on:change={(evt) => handle_change(evt)}
 		{disabled}
+		checked={value}
 		type="checkbox"
 		name="test"
 		class="gr-check-radio gr-checkbox {rounded} {border}"

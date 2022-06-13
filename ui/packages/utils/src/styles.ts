@@ -7,7 +7,8 @@ export interface Styles {
 	margin?: BoolOrTuple;
 	container?: boolean;
 	grid?: number | Array<number>;
-	height?: "auto" | string;
+	height?: "auto" | string | number;
+	width?: "auto" | string | number;
 	full_width?: boolean;
 	equal_height?: boolean;
 	mobile_collapse?: boolean;

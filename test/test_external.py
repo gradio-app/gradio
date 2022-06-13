@@ -199,15 +199,6 @@ class TestLoadInterface(unittest.TestCase):
         filename = io("chest")
         self.assertTrue(filename.endswith(".jpg") or filename.endswith(".jpeg"))
 
-    def test_image_to_image_space(self):
-        def assertIsFile(path):
-            if not pathlib.Path(path).resolve().is_file():
-                raise AssertionError("File does not exist: %s" % str(path))
-
-        io = gr.Interface.load("spaces/abidlabs/image-identity")
-        output = io("gradio/test_data/lion.jpg")
-        assertIsFile(output)
-
 
 class TestLoadFromPipeline(unittest.TestCase):
     def test_text_to_text_model_from_pipeline(self):

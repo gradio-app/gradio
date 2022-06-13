@@ -147,14 +147,23 @@ class IOComponent(Component):
         dir: str,
         file: str,
         encryption_key: bool,
+        as_data: bool = False,
     ) -> Dict[str, Any]:
         """
         Loads flagged data from file and returns it
         """
-        data = processing_utils.encode_file_to_base64(
-            os.path.join(dir, file), encryption_key=encryption_key
-        )
-        return {"name": file, "data": data}
+        if as_data:
+            data = processing_utils.encode_file_to_base64(
+                os.path.join(dir, file), encryption_key=encryption_key
+            )
+            return {"name": file, "data": data}
+        else:
+            return {
+                "name": os.path.join(dir, file),
+                "data": os.path.join(dir, file),
+                "file_name": file,
+                "is_example": True,
+            }
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -244,6 +253,21 @@ class IOComponent(Component):
             self._style["container"] = container
         return self
 
+    @classmethod
+    def document_parameters(cls, target):
+        if target == "input":
+            doc = inspect.getdoc(cls.preprocess)
+            if "Parameters:\nx (" in doc:
+                return doc.split("Parameters:\nx ")[1].split("\n")[0]
+            return None
+        elif target == "output":
+            doc = inspect.getdoc(cls.postprocess)
+            if "Returns:\n" in doc:
+                return doc.split("Returns:\n")[1].split("\n")[0]
+            return None
+        else:
+            raise ValueError("Invalid doumentation target.")
+
 
 class Textbox(Changeable, Submittable, IOComponent):
     """
@@ -329,6 +353,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def preprocess(self, x: str | None) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
         """
         if x is None:
             return None
@@ -415,6 +443,10 @@ class Textbox(Changeable, Submittable, IOComponent):
     def postprocess(self, y: str | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
         """
         if y is None:
             return None
@@ -518,21 +550,21 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: int | float | None) -> int | float | None:
+    def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:
-        x (int | float | None): numeric input as a string
+        x (float | None): numeric input
         Returns:
-        (int | float | None): number representing function input
+        (float | None): number representing function input
         """
         if x is None:
             return None
         return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: int | float | None) -> int | float | None:
+    def preprocess_example(self, x: float | None) -> float | None:
         """
         Returns:
-        (int | float | None): Number representing function input
+        (float | None): Number representing function input
         """
         if x is None:
             return None
@@ -584,18 +616,18 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> int | float:
+    def generate_sample(self) -> float:
         return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
-    def postprocess(self, y: int | float | None) -> int | float | None:
+    def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        y (int | float | None): numeric output
+        y (float | None): numeric output
         Returns:
-        (int | float | None): number representing function output
+        (float | None): number representing function output
         """
         if y is None:
             return None
@@ -740,9 +772,13 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: int | float | None):
+    def postprocess(self, y: float | None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (float | None): numeric output
+        Returns:
+        (float): numeric output or minimum number if None
         """
         return self.minimum if y is None else y
 
@@ -867,6 +903,10 @@ class Checkbox(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (bool): boolean output
+        Returns:
+        (bool): boolean output
         """
         return y
 
@@ -1015,6 +1055,10 @@ class CheckboxGroup(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (List[str]): List of selected choices
+        Returns:
+        (List[str]): List of selected choices
         """
         return [] if y is None else y
 
@@ -1160,6 +1204,10 @@ class Radio(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str): string of choice
+        Returns:
+        (str): string of choice
         """
         return (
             y if y is not None else self.choices[0] if len(self.choices) > 0 else None
@@ -1508,7 +1556,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def restore_flagged(self, dir, data, encryption_key):
-        return os.path.join(dir, data)
+        return processing_utils.encode_file_to_base64(
+            os.path.join(dir, data), encryption_key=encryption_key
+        )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
@@ -1541,13 +1591,16 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         return out_y
 
     def deserialize(self, x):
-        y = processing_utils.decode_base64_to_file(x).name
-        return y
+        return processing_utils.decode_base64_to_file(x).name
 
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -1579,7 +1632,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Demos: video_flip
+    Demos: video_identity
     """
 
     def __init__(
@@ -1688,6 +1741,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             dir, label, None if data is None else data["data"], encryption_key
         )
 
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
 
@@ -1718,7 +1774,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -1977,8 +2037,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
-
         return self.save_flagged_file(dir, label, data_string, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -3407,9 +3469,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         Parameters:
         y (str): path to the model
         Returns:
-        (str): file name
-        (str): file extension
-        (str): base64 url data
+        (Dict[name (str): file name, data (str): base64 url data] | None)
         """
         if y is None:
             return y
@@ -3420,10 +3480,11 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return data
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"], file_path=x["name"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
+        return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
 
     def style(
         self,
@@ -3494,8 +3555,7 @@ class Plot(Changeable, Clearable, IOComponent):
         Parameters:
         y (str): plot data
         Returns:
-        (str): plot type
-        (str): plot base64 or json
+        (Dict[type (str): plot type, plot (str): plot base64 | json] | None)
         """
         if y is None:
             return None
