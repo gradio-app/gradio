@@ -76,7 +76,6 @@
 	class="overflow-hidden {styles[variant]} {rounded
 		? styles[color]
 		: ''} {form_class} {classes} {rounded_style}"
-		: ''} {form_class} {classes} {rounded_style} {visible_style}"
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:gr-box-unrounded={!rounded && form_position}
