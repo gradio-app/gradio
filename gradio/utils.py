@@ -233,7 +233,7 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: Dict[str: str | int]):
+def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 

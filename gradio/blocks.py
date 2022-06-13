@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import anyio
 from anyio import CapacityLimiter
-import fsspec.asyn
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
