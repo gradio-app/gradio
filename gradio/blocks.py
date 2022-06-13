@@ -739,9 +739,9 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-            
+
         utils.synchronize_async(self.create_limiter, max_threads)
-        
+
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
