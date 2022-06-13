@@ -4,6 +4,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
   exit -1
 else
   set -e
+  aws configure list
   old_version=$(grep -Po "(?<=version=\")[^\"]+(?=\")" setup.py)
   read -r new_version < gradio/version.txt
   sed -i "s/version=\"$old_version\"/version=\"$new_version\"/g" setup.py
@@ -16,7 +17,6 @@ else
   GRADIO_VERSION=$new_version pnpm build:cdn
   cd ..
   echo "Before AWS"
-  aws configure list
   aws s3 cp gradio/templates/cdn s3://gradio/$new_version/ --recursive 
   echo "After AWS"
   cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
