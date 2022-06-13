@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { create_classes } from "@gradio/utils";
+	import { get_styles } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
@@ -76,6 +76,8 @@
 			destroy: () => el.removeEventListener("input", resize)
 		};
 	}
+
+	$: ({ classes } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -85,8 +87,7 @@
 	{#if lines === 1 && max_lines === 1}
 		<input
 			type="text"
-			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
-				create_classes(style)}
+			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -96,8 +97,7 @@
 	{:else}
 		<textarea
 			use:text_area_resize={value}
-			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
-				create_classes(style)}
+			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
 			bind:value
 			bind:this={el}
 			{placeholder}
