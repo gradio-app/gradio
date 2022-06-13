@@ -27,6 +27,7 @@
 </script>
 
 <Block
+	test_id="highlighted-text"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 	style={{ rounded: style.rounded }}
