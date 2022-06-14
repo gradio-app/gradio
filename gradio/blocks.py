@@ -198,6 +198,10 @@ def update(**kwargs) -> dict:
     return kwargs
 
 
+def is_update(val):
+    return type(val) is dict and "update" in val.get("__type__", "")
+
+
 def skip() -> dict:
     return update()
 
@@ -489,13 +493,12 @@ class Blocks(BlockContext):
             for i, output_id in enumerate(dependency["outputs"]):
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
-                    state[output_id] = predictions[i]
+                    if not is_update(predictions[i]):
+                        state[output_id] = predictions[i]
                     output.append(None)
                 else:
                     prediction_value = predictions[i]
-                    if type(
-                        prediction_value
-                    ) is dict and "update" in prediction_value.get("__type__", ""):
+                    if is_update(prediction_value):
                         if prediction_value["__type__"] == "generic_update":
                             del prediction_value["__type__"]
                             prediction_value = block.__class__.update(
