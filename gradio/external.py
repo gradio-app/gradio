@@ -15,6 +15,7 @@ from gradio import components, utils
 
 class TooManyRequestsError(Exception):
     """Raised when the Hugging Face API returns a 429 status code."""
+
     pass
 
 
@@ -340,7 +341,9 @@ def get_spaces_blocks(model_name, config):
                         output = result["data"]
                     except KeyError:
                         if "error" in result and "429" in result["error"]:
-                            raise TooManyRequestsError("Too many requests to the Hugging Face API")
+                            raise TooManyRequestsError(
+                                "Too many requests to the Hugging Face API"
+                            )
                         raise KeyError(
                             f"Could not find 'data' key in response from external Space. Response received: {result}"
                         )
