@@ -395,6 +395,8 @@ def get_spaces_interface(model_name, config, alias, **kwargs):
         try:
             output = result["data"]
         except KeyError:
+            if "error" in result and "429" in result["error"]:
+                raise TooManyRequestsError("Too many requests to the Hugging Face API")
             raise KeyError(
                 f"Could not find 'data' key in response from external Space. Response received: {result}"
             )
