@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://gradio.app"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/gradio.svg" alt="gradio" width=300></a> 
+  <a href="https://gradio.app"><img src="website/homepage/src/assets/img/logos/gradio.svg" alt="gradio" width=300></a> 
 </p>
 <p align="center">
     <em>Build & share delightful machine learning apps easily</em>
@@ -50,14 +50,14 @@ Gradio is useful for:
 
 Gradio is built with many wonderful open-source libraries, please support them as well!
 <p>
-<a href="https://hf.co/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/huggingface_mini.svg" alt="huggingface" height=40></a>
-<a href="https://www.python.org/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
-<a href="https://fastapi.tiangolo.com/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
-<a href="https://github.com/encode/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
-<a href="https://svelte.dev"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
-<a href="https://vitejs.dev/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
-<a href="https://pnpm.io/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/pnpm.svg" alt="pnpm" height=40></a>
-<a href="https://tailwindcss.com/"><img src="https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
+<a href="https://hf.co/"><img src="website/homepage/src/assets/img/logos/huggingface_mini.svg" alt="huggingface" height=40></a>
+<a href="https://www.python.org/"><img src="website/homepage/src/assets/img/logos/python.svg" alt="python" height=40></a>
+<a href="https://fastapi.tiangolo.com/"><img src="website/homepage/src/assets/img/logos/fastapi.svg" alt="fastapi" height=40></a>
+<a href="https://github.com/encode/"><img src="website/homepage/src/assets/img/logos/encode.svg" alt="encode" height=40></a>
+<a href="https://svelte.dev"><img src="website/homepage/src/assets/img/logos/svelte.svg" alt="svelte" height=40></a>
+<a href="https://vitejs.dev/"><img src="website/homepage/src/assets/img/logos/vite.svg" alt="vite" height=40></a>
+<a href="https://pnpm.io/"><img src="website/homepage/src/assets/img/logos/pnpm.svg" alt="pnpm" height=40></a>
+<a href="https://tailwindcss.com/"><img src="website/homepage/src/assets/img/logos/tailwind.svg" alt="tailwind" height=40></a>
 </p>
 
 ## License:
