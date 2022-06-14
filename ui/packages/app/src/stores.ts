@@ -4,6 +4,7 @@ export interface LoadingStatus {
 	eta: number | null;
 	status: "pending" | "error" | "complete";
 	queue_position: number | null;
+	fn_index: number;
 	outputs: Array<number>;
 }
 
@@ -19,7 +20,7 @@ function create_loading_status_store() {
 	const fn_status: Array<LoadingStatus["status"]> = [];
 
 	function update(
-		fn_index: number,
+		fn_index: LoadingStatus["fn_index"],
 		status: LoadingStatus["status"],
 		position: LoadingStatus["queue_position"],
 		eta: LoadingStatus["eta"]
@@ -82,7 +83,8 @@ function create_loading_status_store() {
 				outputs[id] = {
 					queue_position,
 					eta: eta || outputs[id]?.eta,
-					status
+					status,
+					fn_index
 				};
 			});
 
