@@ -3,7 +3,7 @@
 	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
-	import type { LoadingStatus } from "./stores";
+	import type { LoadingStatus } from "./components/StatusTracker/types";
 
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
@@ -42,6 +42,8 @@
 		outputs: Array<number>;
 		backend_fn: boolean;
 		js: string | null;
+		scroll_to_output: boolean;
+		show_progress: boolean;
 		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
@@ -62,6 +64,7 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
+	export let is_space: boolean;
 	export let id: number = 0;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
@@ -326,14 +329,16 @@
 		loading_status.register(i, v.inputs, v.outputs);
 	});
 
-	function set_status(
-		statuses: Record<number, Omit<LoadingStatus, "outputs">>
-	) {
+	function set_status(statuses: Record<number, LoadingStatus>) {
 		if (window.__gradio_mode__ === "website") {
 			return;
 		}
 		for (const id in statuses) {
-			set_prop(instance_map[id], "loading_status", statuses[id]);
+			let loading_status = statuses[id];
+			let dependency = dependencies[loading_status.fn_index];
+			loading_status.scroll_to_output = dependency.scroll_to_output;
+			loading_status.visible = dependency.show_progress;
+			set_prop(instance_map[id], "loading_status", loading_status);
 		}
 		const inputs_to_update = loading_status.get_inputs_to_update();
 		for (const [id, pending_status] of inputs_to_update) {

@@ -73,7 +73,7 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class="overflow-hidden {styles[variant]} {rounded
+	class="relative w-full overflow-hidden {styles[variant]} {rounded
 		? styles[color]
 		: ''} {form_class} {classes} {rounded_style}"
 	class:gr-panel={padding}

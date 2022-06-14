@@ -85,6 +85,8 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
@@ -100,6 +102,8 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            scroll_to_output: whether to scroll to output of dependency on trigger
+            show_progress: whether to show progress animation while running.
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
@@ -129,6 +133,8 @@ class Block:
             else None,
             "queue": queue,
             "api_name": api_name,
+            "scroll_to_output": scroll_to_output,
+            "show_progress": show_progress,
         }
         if api_name is not None:
             dependency["documentation"] = [
