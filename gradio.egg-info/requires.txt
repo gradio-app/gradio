@@ -15,4 +15,3 @@ pydub
 requests
 uvicorn
 Jinja2
-fsspec
