@@ -6,7 +6,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: boolean = false;
 	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
@@ -20,7 +19,6 @@
 	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 

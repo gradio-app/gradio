@@ -16,7 +16,6 @@
 	
 	import { afterUpdate, onMount } from "svelte";
 
-	// export let visible: boolean = true;
 	export let value: null | string;
 	export let theme: string;
 
@@ -67,11 +66,11 @@
 	<div id="bokehDiv"/>
 {:else if value && value["type"] == "matplotlib"}
 	<div
-		class="output-image w-full max-h-80 flex justify-center items-center  relative"
+		class="output-image w-full flex justify-center items-center  relative"
 		{theme}
 	>
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img  class="w-full h-full object-contain" src={value["plot"]} />
+		<img  class="w-full max-h-[30rem] object-contain" src={value["plot"]} />
 	</div>
 {:else}
 	<div class="h-full min-h-[15rem] flex justify-center items-center">
