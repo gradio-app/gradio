@@ -3,11 +3,14 @@ try:
 except ImportError:
     from distutils.core import setup
 from pathlib import Path
+import re
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf8')
 
-print(long_description)
+# Replace relative paths to images with absolute paths
+long_description = re.sub("website/homepage/", "https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/", long_description)
+long_description = re.sub(r"demo/([\S]*.gif)", r"https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>", long_description)
 
 setup(
     name="gradio",
