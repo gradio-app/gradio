@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import getpass
 import inspect
@@ -375,9 +376,7 @@ class Blocks(BlockContext):
         processed_input = self.preprocess_data(fn_index, serialized_params, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
-            raise ValueError(
-                "Cannot call Blocks object as a function if the function is a coroutine"
-            )
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
 
@@ -745,7 +744,7 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-        utils.synchronize_async(self.create_limiter, max_threads)
+        utils.run_coro_in_background(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt

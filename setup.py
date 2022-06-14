@@ -39,7 +39,8 @@ setup(
         "pydub",
         "requests",
         "uvicorn",
-        "Jinja2"
+        "Jinja2",
+        "fsspec",
     ],
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
