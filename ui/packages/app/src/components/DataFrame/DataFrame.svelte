@@ -17,6 +17,7 @@
 	export let parent: string | null = null;
 	export let style: Styles = {};
 	export let label: string | null = null;
+	export let wrap: boolean;
 
 	$: {
 		if (!Array.isArray(value)) {
@@ -54,5 +55,6 @@
 		on:change={handle_change}
 		editable={mode === "dynamic"}
 		{style}
+		{wrap}
 	/>
 </div>
