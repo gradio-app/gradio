@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 * Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo`
 
-As a small aside, this auto-reloading happens if you change your `app.py` source code, OR the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
+As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
 ### Jupyter Notebook Magic 🔮
 
