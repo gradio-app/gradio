@@ -507,6 +507,13 @@ class Blocks(BlockContext):
                                 if prediction_value["value"] is not None
                                 else None
                             )
+                        if prediction_value["__type__"] == "update":
+                            keys_to_update = [
+                                key for key in prediction_value if key != "__type__"
+                            ]
+                            for key in keys_to_update:
+                                setattr(block, key, prediction_value[key])
+
                         output_value = prediction_value
                     else:
                         output_value = (
