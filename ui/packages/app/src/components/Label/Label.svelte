@@ -8,7 +8,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
@@ -28,7 +27,6 @@
 	test_id="label"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}

@@ -3,9 +3,14 @@ try:
 except ImportError:
     from distutils.core import setup
 from pathlib import Path
+import re
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf8')
+
+# Replace relative paths to images with absolute paths
+long_description = re.sub("website/homepage/", "https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/", long_description)
+long_description = re.sub(r"demo/([\S]*.gif)", r"https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>", long_description)
 
 setup(
     name="gradio",
@@ -37,7 +42,8 @@ setup(
         "pydub",
         "requests",
         "uvicorn",
-        "Jinja2"
+        "Jinja2",
+        "fsspec",
     ],
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']

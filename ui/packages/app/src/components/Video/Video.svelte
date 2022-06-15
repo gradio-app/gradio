@@ -10,7 +10,6 @@
 	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: FileData | null | string = null;
 	export let label: string;
 	export let source: string;
@@ -35,7 +34,6 @@
 	padding={false}
 	{elem_id}
 	style={{ rounded: style.rounded, height: style.height, width: style.width }}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 

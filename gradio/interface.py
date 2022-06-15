@@ -545,6 +545,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     api_name="predict",
+                    scroll_to_output=True,
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
