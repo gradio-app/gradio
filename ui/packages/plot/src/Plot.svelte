@@ -14,10 +14,13 @@
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
 	
-	import { afterUpdate, onMount } from "svelte";
+	import { afterUpdate } from "svelte";
 
 	export let value: null | string;
 	export let theme: string;
+
+	// Plotly
+	let plotDiv;
 
 	// Bokeh
 	let bokehLoaded = false
@@ -50,7 +53,6 @@
 	afterUpdate(() => {
 		if (value && value["type"] == "plotly") {
 			let plotObj = JSON.parse(value["plot"]);
-			let plotDiv = document.getElementById("plotlyDiv");
 			Plotly.newPlot(plotDiv, plotObj["data"], plotObj["layout"]);
 		} else if (value && value["type"] == "bokeh") {
 			document.getElementById("bokehDiv").innerHTML = "";
@@ -61,16 +63,16 @@
 </script>
 
 {#if value && value["type"] == "plotly"}
-	<div id="plotlyDiv"/>
+	<div bind:this={plotDiv}/>
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv"/>
 {:else if value && value["type"] == "matplotlib"}
 	<div
-		class="output-image w-full flex justify-center items-center  relative"
+		class="output-image w-full flex justify-center items-center relative"
 		{theme}
 	>
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img  class="w-full max-h-[30rem] object-contain" src={value["plot"]} />
+		<img class="w-full max-h-[30rem] object-contain" src={value["plot"]} />
 	</div>
 {:else}
 	<div class="h-full min-h-[15rem] flex justify-center items-center">
