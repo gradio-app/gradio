@@ -326,7 +326,7 @@ test("can run an api request and display the data", async ({ page }) => {
 		page.waitForResponse("**/api/predict/")
 	]);
 
-    const label = await page.locator("data-testid=label");
+  const label = await page.locator("data-testid=label");
 
 	await expect(label).toContainText(`negative
     negative
@@ -336,8 +336,13 @@ test("can run an api request and display the data", async ({ page }) => {
     neutral
     15%`);
 
-    await page.locator('text=HighlightedText The art quick brown adj fox nn jumped vrb testing testing testin');
-    await page.locator('text=HighlightedText -1 0 +1 The testing testing testing over the testing lazy dogs .');
+  const highlight_text_color_map = await page.locator('data-testid=highlighted-text').nth(0);
+  const highlight_text_legend = await page.locator('data-testid=highlighted-text').nth(1);
+  await expect(highlight_text_color_map).toContainText('  HighlightedText  The art quick brown adj fox nn jumped vrb testing testing testing  over prp the art testing  lazy adj dogs nn . punc test 0 test 0 test 1 test 1 test 2 test 2 test 3 test 3 test 4 test 4 test 5 test 5 test 6 test 6 test 7 test 7 test 8 test 8 test 9 test 9');
+  await expect(highlight_text_legend).toContainText('The testing testing testing over the testing lazy dogs . test test test test test test test test test test test test test test test test test test test test');
+
+  const click_me_button =await page.locator("button", { hasText: /Click Me: baz/ });
+  click_me_button.click()
 
 	const json = await page.locator("data-testid=json");
 	await expect(json).toContainText(`{
