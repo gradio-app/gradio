@@ -10,6 +10,6 @@
 	export let variant: "primary" | "secondary" = "primary";
 </script>
 
-<Button {variant} {elem_id} {style} on:click>
+<Button {variant} {elem_id} {style} {visible} on:click>
 	{$_(value)}
 </Button>
