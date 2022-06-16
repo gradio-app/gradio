@@ -20,10 +20,12 @@
 	export let wrap: boolean;
 
 	$: {
-		if (!Array.isArray(value)) {
+		if (value && !Array.isArray(value)) {
 			if (Array.isArray(value.headers)) headers = value.headers;
 			value =
 				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
+		} else if (value === null) {
+			value = [Array(headers.length).fill("")];
 		} else {
 			value = value;
 		}
