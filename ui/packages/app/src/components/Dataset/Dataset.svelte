@@ -51,7 +51,11 @@
 	}
 </script>
 
-<div id={elem_id} class="mt-4 inline-block max-w-full text-gray-700 w-full" class:hidden={!visible}>
+<div
+	id={elem_id}
+	class="mt-4 inline-block max-w-full text-gray-700 w-full"
+	class:hidden={!visible}
+>
 	<div class="text-xs mb-2 flex items-center text-gray-500">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

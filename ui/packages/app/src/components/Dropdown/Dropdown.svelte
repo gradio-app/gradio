@@ -18,7 +18,9 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {visible} 	{form_position}
+<Block
+	{visible}
+	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
