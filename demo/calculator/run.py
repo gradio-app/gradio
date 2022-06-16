@@ -23,7 +23,6 @@ demo = gr.Interface(
     ],
     title="test calculator",
     description="heres a sample toy calculator. enjoy!",
-    flagging_options=["this", "or", "that"],
 )
 
 if __name__ == "__main__":

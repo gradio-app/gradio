@@ -5,7 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
-from gradio.blocks import Blocks
+from gradio.blocks import Blocks, skip, update
 from gradio.components import (
     HTML,
     JSON,
@@ -39,9 +39,7 @@ from gradio.components import (
     Variable,
     Video,
     component,
-    update,
 )
-from gradio.external import load_interface
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import copy
-import csv
+import asyncio
 import inspect
 import json
 import json.decoder
 import os
 import random
+import sys
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
@@ -16,13 +16,16 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
+import fsspec.asyn
 import pkg_resources
 import requests
 
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Interface
+    from gradio import Blocks, Interface
+    from gradio.blocks import BlockContext
+    from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -157,7 +160,7 @@ def readme_to_html(article: str) -> str:
     return article
 
 
-def show_tip(interface: Interface) -> None:
+def show_tip(interface: gradio.Blocks) -> None:
     if interface.show_tips and random.random() < 1.5:
         tip: str = random.choice(gradio.strings.en["TIPS"])
         print(f"Tip: {tip}")
@@ -270,3 +273,76 @@ def resolve_singleton(_list):
         return _list[0]
     else:
         return _list
+
+
+def component_or_layout_class(cls_name: str) -> Component | BlockContext:
+    """
+    Returns the component, template, or layout class with the given class name, or
+    raises a ValueError if not found.
+
+    Parameters:
+    cls_name (str): lower-case string class name of a component
+    Returns:
+    cls: the component class
+    """
+    import gradio.components
+    import gradio.layouts
+    import gradio.templates
+
+    components = [
+        (name, cls)
+        for name, cls in gradio.components.__dict__.items()
+        if isinstance(cls, type)
+    ]
+    templates = [
+        (name, cls)
+        for name, cls in gradio.templates.__dict__.items()
+        if isinstance(cls, type)
+    ]
+    layouts = [
+        (name, cls)
+        for name, cls in gradio.layouts.__dict__.items()
+        if isinstance(cls, type)
+    ]
+    for name, cls in components + templates + layouts:
+        if name.lower() == cls_name.replace("_", "") and (
+            issubclass(cls, gradio.components.Component)
+            or issubclass(cls, gradio.blocks.BlockContext)
+        ):
+            return cls
+    raise ValueError(f"No such component or layout: {cls_name}")
+
+
+def synchronize_async(func: Callable, *args, **kwargs):
+    """
+    Runs async functions in sync scopes.
+
+    Example:
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+    """
+    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
+
+
+def run_coro_in_background(func: Callable, *args, **kwargs):
+    """
+    Runs coroutines in background.
+
+    Example:
+        utils.run_coro_in_background(fn, *args, **kwargs)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+
+    Returns:
+
+    """
+    event_loop = asyncio.get_event_loop()
+    _ = event_loop.create_task(func(*args, **kwargs))

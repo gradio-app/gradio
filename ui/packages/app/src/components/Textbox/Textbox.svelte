@@ -8,6 +8,7 @@
 
 	export let label: string = "Textbox";
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
@@ -25,6 +26,7 @@
 <Block
 	{form_position}
 	{elem_id}
+	{visible}
 	disable={typeof style.container === "boolean" && !style.container}
 >
 	<StatusTracker {...loading_status} />

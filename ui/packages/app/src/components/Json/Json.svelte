@@ -6,20 +6,30 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
+	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
 </script>
 
-<Block test_id="json" {elem_id}>
+<Block
+	test_id="json"
+	{elem_id}
+	disable={typeof style.container === "boolean" && !style.container}
+>
 	{#if label}
-		<BlockLabel Icon={JSONIcon} {label} />
+		<BlockLabel
+			Icon={JSONIcon}
+			{label}
+			disable={typeof style.container === "boolean" && !style.container}
+		/>
 	{/if}
 
 	<StatusTracker {...loading_status} />

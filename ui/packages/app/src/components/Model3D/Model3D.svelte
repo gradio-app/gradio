@@ -7,6 +7,8 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
+	import type { Styles } from "@gradio/utils";
+	export let style: Styles = {};
 
 	export let elem_id: string = "";
 	export let value: null | FileData = null;
@@ -29,6 +31,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
+	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 
