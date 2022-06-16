@@ -541,14 +541,16 @@ class Number(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
-            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
+        if interactive is not None:
+            updated_config["mode"] = "dynamic" if interactive else "static", 
+        return updated_config
 
     def preprocess(self, x: float | None) -> float | None:
         """
