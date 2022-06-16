@@ -2,17 +2,45 @@ import asyncio
 import random
 import time
 import unittest
+from unittest.mock import patch
 
 import pytest
 
 import gradio as gr
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
+from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
 
 
 class TestBlocks(unittest.TestCase):
+    maxDiff = None
+
+    def test_set_share(self):
+        with gr.Blocks() as demo:
+            # self.share is False when instantiating the class
+            self.assertFalse(demo.share)
+            # default is False, if share is None
+            demo.share = None
+            self.assertFalse(demo.share)
+            # if set to True, it doesn't change
+            demo.share = True
+            self.assertTrue(demo.share)
+
+    @patch("gradio.utils.colab_check")
+    def test_set_share_in_colab(self, mock_colab_check):
+        mock_colab_check.return_value = True
+        with gr.Blocks() as demo:
+            # self.share is False when instantiating the class
+            self.assertFalse(demo.share)
+            # default is True, if share is None and colab_check is true
+            demo.share = None
+            self.assertTrue(demo.share)
+            # if set to True, it doesn't change
+            demo.share = True
+            self.assertTrue(demo.share)
+
     def test_xray(self):
         def fake_func():
             return "Hello There"
@@ -23,7 +51,7 @@ class TestBlocks(unittest.TestCase):
         ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
         with gr.Blocks() as demo:
-            gr.components.Markdown(
+            gr.Markdown(
                 """
             # Detect Disease From Scan
             With this model you can lorem ipsum
@@ -31,15 +59,15 @@ class TestBlocks(unittest.TestCase):
             - ipsum 2
             """
             )
-            disease = gr.components.CheckboxGroup(
+            disease = gr.CheckboxGroup(
                 choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
             )
 
             with gr.Tabs():
                 with gr.TabItem("X-ray"):
                     with gr.Row():
-                        xray_scan = gr.components.Image()
-                        xray_results = gr.components.JSON()
+                        xray_scan = gr.Image()
+                        xray_results = gr.JSON()
                     xray_run = gr.Button("Run")
                     xray_run.click(
                         xray_model, inputs=[disease, xray_scan], outputs=xray_results
@@ -47,15 +75,18 @@ class TestBlocks(unittest.TestCase):
 
                 with gr.TabItem("CT Scan"):
                     with gr.Row():
-                        ct_scan = gr.components.Image()
-                        ct_results = gr.components.JSON()
+                        ct_scan = gr.Image()
+                        ct_results = gr.JSON()
                     ct_run = gr.Button("Run")
                     ct_run.click(
                         ct_model, inputs=[disease, ct_scan], outputs=ct_results
                     )
-            textbox = gr.components.Textbox()
+            textbox = gr.Textbox()
             demo.load(fake_func, [], [textbox])
-        self.assertEqual(XRAY_CONFIG, demo.get_config_file())
+
+        config = demo.get_config_file()
+        config.pop("version")  # remove version key
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
 
     @pytest.mark.asyncio
     async def test_async_function(self):
@@ -64,8 +95,8 @@ class TestBlocks(unittest.TestCase):
             return True
 
         with gr.Blocks() as demo:
-            text = gr.components.Textbox()
-            button = gr.components.Button()
+            text = gr.Textbox()
+            button = gr.Button()
             button.click(wait, [text], [text])
 
             body = PredictBody(data=1, fn_index=0)

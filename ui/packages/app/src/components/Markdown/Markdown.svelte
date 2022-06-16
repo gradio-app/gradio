@@ -11,4 +11,4 @@
 	$: label, dispatch("change");
 </script>
 
-<Markdown {value} on:change />
+<Markdown {value} {elem_id} on:change />

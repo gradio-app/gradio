@@ -11,6 +11,9 @@
 
 	import { Chart as ChartIcon } from "@gradio/icons";
 
+	import type { Styles } from "@gradio/utils";
+	export let style: Styles = {};
+
 	function format_value(val: StaticData) {
 		return val.data.map((r) =>
 			r.reduce((acc, next, i) => ({ ...acc, [val.headers[i]]: next }), {})
@@ -118,6 +121,7 @@
 	color={"grey"}
 	padding={false}
 	{elem_id}
+	style={{ rounded: style.rounded }}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />

@@ -74,6 +74,8 @@
 				name
 			};
 			dispatch(streaming ? "stream" : "change", value);
+			const audioTracks = stream.getAudioTracks();
+			audioTracks.forEach((track) => track.stop());
 		});
 	}
 
