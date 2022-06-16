@@ -45,7 +45,9 @@
 							data: this.result as string
 					  }
 					: (this.result as string);
-				if (all_file_data.length === files.length) {
+				if (
+					all_file_data.filter((x) => x !== undefined).length === files.length
+				) {
 					dispatch(
 						"load",
 						file_count == "single" ? all_file_data[0] : all_file_data

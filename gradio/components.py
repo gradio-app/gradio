@@ -1596,7 +1596,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -1770,7 +1774,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
     ):
+        self._style["height"] = height
+        self._style["width"] = width
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -2825,7 +2833,6 @@ class HighlightedText(Changeable, IOComponent):
         """
         Parameters:
         value (List[Tuple[str, str | Number | None]]): Default value to show.
-        color_map (Dict[str, str]): Map between category and respective colors.
         combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
         adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
         show_legend (bool): whether to show span categories in a separate legend or inline.
@@ -2919,6 +2926,12 @@ class HighlightedText(Changeable, IOComponent):
         color_map: Optional[Dict[str, str]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Parameters:
+        rounded (bool | Tuple[bool, bool, bool, bool]): If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+        color_map (Dict[str, str]): Map between category and respective colors.
+        container (bool): If True, will place the component in a container.
+        """
         if color_map is not None:
             self._style["color_map"] = color_map
 
@@ -3472,7 +3485,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return data
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        file = processing_utils.decode_base64_to_file(x["data"], file_path=x["name"])
+        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
