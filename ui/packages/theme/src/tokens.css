@@ -120,7 +120,3 @@ img.gr-sample-image,
 video.gr-sample-video {
 	@apply flex-none rounded-lg max-w-none ring-2 ring-gray-200 hover:ring-orange-400 group-hover:ring-orange-400 dark:ring-gray-700 dark:hover:ring-orange-700 dark:group-hover:ring-orange-700;
 }
-
-.gr-hide-next + * {
-	@apply hidden;
-}
