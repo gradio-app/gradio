@@ -268,6 +268,12 @@ class IOComponent(Component):
         else:
             raise ValueError("Invalid doumentation target.")
 
+    @staticmethod
+    def add_interactive_to_config(config, interactive):
+        if interactive is not None:
+            config["mode"] = "dynamic" if interactive else "static"
+        return config
+
 
 class Textbox(Changeable, Submittable, IOComponent):
     """
@@ -337,8 +343,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "lines": lines,
             "max_lines": max_lines,
             "placeholder": placeholder,
@@ -348,6 +355,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     # Input Functionalities
     def preprocess(self, x: str | None) -> Any:
@@ -541,14 +549,14 @@ class Number(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: float | None) -> float | None:
         """
@@ -715,7 +723,7 @@ class Slider(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "minimum": minimum,
             "maximum": maximum,
             "step": step,
@@ -726,6 +734,7 @@ class Slider(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: float) -> float:
         """
@@ -852,7 +861,7 @@ class Checkbox(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
@@ -860,6 +869,7 @@ class Checkbox(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -980,7 +990,7 @@ class CheckboxGroup(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "choices": choices,
             "label": label,
             "show_label": show_label,
@@ -989,6 +999,7 @@ class CheckboxGroup(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
@@ -1147,7 +1158,7 @@ class Radio(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "choices": choices,
             "label": label,
             "show_label": show_label,
@@ -1156,6 +1167,7 @@ class Radio(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: str) -> str | int:
         """
@@ -1373,7 +1385,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
@@ -1381,6 +1393,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
         """
@@ -1686,7 +1699,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "source": source,
             "label": label,
             "show_label": show_label,
@@ -1695,6 +1708,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
@@ -1857,7 +1871,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "source": source,
             "label": label,
             "show_label": show_label,
@@ -1866,6 +1880,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
@@ -2158,7 +2173,7 @@ class File(Changeable, Clearable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
@@ -2166,6 +2181,7 @@ class File(Changeable, Clearable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
         if isinstance(x, list):
@@ -2393,7 +2409,7 @@ class Dataframe(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "max_rows": max_rows,
             "max_cols": max_cols,
             "label": label,
@@ -2403,6 +2419,7 @@ class Dataframe(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: List[List[str | Number | bool]]):
         """
@@ -2563,7 +2580,7 @@ class Timeseries(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "colors": colors,
             "label": label,
             "show_label": show_label,
@@ -2572,6 +2589,7 @@ class Timeseries(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
         return {"name": x, "is_example": True}
@@ -2792,13 +2810,14 @@ class Label(Changeable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def style(
         self,
@@ -2876,7 +2895,7 @@ class HighlightedText(Changeable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "color_map": color_map,
             "show_legend": show_legend,
             "label": label,
@@ -2885,6 +2904,7 @@ class HighlightedText(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -2986,14 +3006,16 @@ class JSON(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3066,13 +3088,14 @@ class HTML(Changeable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def style(self):
         return self
@@ -3120,13 +3143,14 @@ class Gallery(IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3223,13 +3247,14 @@ class Carousel(IOComponent, Changeable):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3334,7 +3359,7 @@ class Chatbot(Changeable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "color_map": color_map,
             "label": label,
             "show_label": show_label,
@@ -3342,6 +3367,7 @@ class Chatbot(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3419,13 +3445,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
@@ -3547,13 +3574,14 @@ class Plot(Changeable, Clearable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3622,11 +3650,12 @@ class Markdown(IOComponent, Changeable):
         value: Optional[Any] = None,
         visible: Optional[bool] = None,
     ):
-        return {
+        updated_config = {
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+        return updated_config
 
     def style(self):
         return self
