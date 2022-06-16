@@ -2809,7 +2809,6 @@ class Label(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -2818,7 +2817,7 @@ class Label(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def style(
         self,
@@ -2895,7 +2894,6 @@ class HighlightedText(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "color_map": color_map,
@@ -2906,7 +2904,7 @@ class HighlightedText(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3017,7 +3015,7 @@ class JSON(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3089,7 +3087,6 @@ class HTML(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -3098,7 +3095,7 @@ class HTML(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def style(self):
         return self
@@ -3145,7 +3142,6 @@ class Gallery(IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -3154,7 +3150,7 @@ class Gallery(IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3250,7 +3246,6 @@ class Carousel(IOComponent, Changeable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -3259,7 +3254,7 @@ class Carousel(IOComponent, Changeable):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3363,7 +3358,6 @@ class Chatbot(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "color_map": color_map,
@@ -3373,7 +3367,7 @@ class Chatbot(Changeable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3450,7 +3444,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -3459,7 +3452,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
@@ -3580,7 +3573,6 @@ class Plot(Changeable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "label": label,
@@ -3589,7 +3581,7 @@ class Plot(Changeable, Clearable, IOComponent):
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def postprocess(self, y):
         """
@@ -3657,14 +3649,13 @@ class Markdown(IOComponent, Changeable):
     def update(
         value: Optional[Any] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
+        return updated_config
 
     def style(self):
         return self
