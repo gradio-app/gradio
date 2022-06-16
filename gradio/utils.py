@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
+import fsspec.asyn
 import pkg_resources
 import requests
 
@@ -312,7 +313,36 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args: object, callback_func: Callable = None):
+def synchronize_async(func: Callable, *args, **kwargs):
+    """
+    Runs async functions in sync scopes.
+
+    Example:
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+    """
+    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
+
+
+def run_coro_in_background(func: Callable, *args, **kwargs):
+    """
+    Runs coroutines in background.
+
+    Example:
+        utils.run_coro_in_background(fn, *args, **kwargs)
+
+    Args:
+        func:
+        *args:
+        **kwargs:
+
+    Returns:
+
+    """
     event_loop = asyncio.get_event_loop()
-    task = event_loop.create_task(func(*args))
-    task.add_done_callback(callback_func)
+    _ = event_loop.create_task(func(*args, **kwargs))
