@@ -11,7 +11,8 @@
 		id: object;
 	}
 
-	export let elem_id: string = "";
+	export let elem_id: string;
+	export let visible: boolean = true;
 
 	const tabs: Array<Tab> = [];
 
