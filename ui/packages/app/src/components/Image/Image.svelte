@@ -8,7 +8,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -35,8 +34,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded }}
-	{visible}
+	style={{ rounded: style.rounded, height: style.height, width: style.width }}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}

@@ -456,6 +456,41 @@
       <p class="mb-2 mt-4 text-lg">{{ docs.box["doc"] }}</p>
     
     </div>
+    <h3 class="font-semibold">Events:</h3>
+    <div id="events" class="func ml-20">
+        <p class="mb-2 mt-4 text-lg">There are 6 event methods that exist in Blocks: click(), submit(), change(), edit(), play() and clear()</p>
+        <p class="mb-2 mt-4 text-lg">Each event takes in the following parameters.</p>
+
+        <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.events["change"]["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+
+              {% for event_name, event_doc in docs.events.items() %}
+                 <h3 id="{{ event_name }}-header" class="text-2xl font-light my-4">{{ event_name }}()</h3>
+                 <p class="mb-2 mt-4 text-lg">{{ event_doc["doc"] }}</p>
+              {% endfor %}
+
+    </div>
           </div>
         </section>
         <section class="flex flex-col gap-6">
