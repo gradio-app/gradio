@@ -337,6 +337,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
     ):
         return {
             "lines": lines,
@@ -546,7 +547,7 @@ class Number(Changeable, Submittable, IOComponent):
             "show_label": show_label,
             "visible": visible,
             "value": value,
-            "interactive": interactive,
+            "mode": "dynamic" if interactive else "static",
             "__type__": "update",
         }
 
