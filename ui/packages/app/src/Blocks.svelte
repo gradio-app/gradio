@@ -265,7 +265,6 @@
 				target_instances.forEach(([id, { instance }]: [number, Component]) => {
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
 					instance?.$on(trigger, () => {
-						console.log("go");
 						if (loading_status.get_status_for_fn(i) === "pending") {
 							return;
 						}
