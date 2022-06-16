@@ -115,9 +115,8 @@
 					(active && active !== category)}
 				class:hl={category !== null}
 			>
-				<span class="text ">{text}</span
-				><!--
-			-->{#if !show_legend && category !== null}
+				<span class="text ">{text}</span>
+				{#if !show_legend && category !== null}
 					&nbsp;<span
 						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
 						style:background-color={category === null ||
@@ -127,8 +126,7 @@
 					>
 						{category}
 					</span>
-				{/if}<!--
-				--></span
+				{/if}</span
 			>
 		{/each}
 	</div>
