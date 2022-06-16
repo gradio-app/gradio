@@ -549,7 +549,7 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
         if interactive is not None:
-            updated_config["mode"] = "dynamic" if interactive else "static", 
+            updated_config["mode"] = "dynamic" if interactive else "static"
         return updated_config
 
     def preprocess(self, x: float | None) -> float | None:
