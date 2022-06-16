@@ -93,9 +93,6 @@
 	setContext("BLOCK_KEY", parent);
 </script>
 
-{#if props.visible === false}
-	<div class="gr-hide-next" />
-{/if}
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
