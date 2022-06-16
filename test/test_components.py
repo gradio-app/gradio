@@ -1038,7 +1038,7 @@ class TestDataframe(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
-                "wrap": False
+                "wrap": False,
             },
         )
         dataframe_input = gr.Dataframe()
@@ -1086,7 +1086,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                 ],
                 "interactive": None,
-                "wrap": False
+                "wrap": False,
             },
         )
         with self.assertRaises(ValueError):
