@@ -4,11 +4,10 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let loading_status: LoadingStatus;
 </script>
 
-<Carousel {elem_id} {visible} on:change>
+<Carousel {elem_id} on:change>
 	<StatusTracker {...loading_status} />
 
 	<slot />
