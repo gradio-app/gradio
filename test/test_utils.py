@@ -204,9 +204,9 @@ class TestRequest:
             method=Request.Method.GET,
             url="http://headers.jsontest.com/",
         )
-        response = client_response.validated_data
+        validated_data = client_response.get_validated_data()
         assert client_response.is_valid() is True
-        assert response["Host"] == "headers.jsontest.com"
+        assert validated_data["Host"] == "headers.jsontest.com"
 
     @pytest.mark.asyncio
     async def test_post(self):
@@ -215,7 +215,7 @@ class TestRequest:
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
         )
-        validated_data = client_response.validated_data
+        validated_data = client_response.get_validated_data()
         assert client_response.status == 201
         assert validated_data["job"] == "leader"
         assert validated_data["name"] == "morpheus"
@@ -234,7 +234,7 @@ class TestRequest:
             json={"name": "morpheus", "job": "leader"},
             validation_model=TestModel,
         )
-        assert isinstance(client_response.validated_data, TestModel)
+        assert isinstance(client_response.get_validated_data(), TestModel)
 
     @pytest.mark.asyncio
     async def test_validate_and_fail_with_model(self):
@@ -281,8 +281,9 @@ class TestRequest:
             json={"name": "morpheus", "job": "leader"},
             validation_function=has_name,
         )
+        validated_data = client_response.get_validated_data()
         assert client_response.is_valid() is True
-        assert client_response.validated_data["id"] is not None
+        assert validated_data["id"] is not None
         assert client_response.exception is None
 
     @pytest.mark.asyncio

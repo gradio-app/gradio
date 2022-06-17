@@ -368,7 +368,7 @@ class Request:
 
     The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
     with the "await" statement, and then you can use util functions to do some post request checks depends on your case.
-    Finally, call the validated_data property to get the response data.
+    Finally, call the get_validated_data function to get the response data.
     """
 
     ResponseJson = NewType("ResponseJson", Json)
@@ -542,13 +542,12 @@ class Request:
             # If there is no exception, that means there is no validation error.
             return True
 
+    def get_validated_data(self):
+        return self._validated_data
+
     @property
     def json(self):
         return self._json_response_data
-
-    @property
-    def validated_data(self):
-        return self._validated_data
 
     @property
     def exception(self):
