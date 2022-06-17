@@ -1,81 +1,67 @@
-# Adding Rich Descriptions to Your Demo
+# Embedding Gradio Demos on Websites
 
-related_spaces: https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/kingabzpro/Rick_and_Morty_Bot, https://huggingface.co/spaces/nateraw/cryptopunks-generator
-tags: MARKDOWN, DESCRIPTION, ARTICLE
+**Prerequisite**: This Guide builds on topics introduced in the Quickstart. Make sure to [read the Quickstart first](/getting_started).
 
-## Introduction
+### Introduction
 
-When an interface is shared, it is usually accompanied with some form of explanatory text, links or images. This guide will go over how to easily add these on gradio. 
+Once you have created a Gradio demo and [hosted it on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces), you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
 
-For example, take a look at this fun chatbot interface below. It has a title, description, image as well as a link in the bottom.  
+There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces, into your websites:
 
-<iframe src="https://hf.space/embed/aliabd/rick-and-morty/+" frameBorder="0" height="875" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+* (Preferred) **Web components**, using the \<gradio-app\> tag
 
-## The parameters in `Interface`
+* **Iframes**, using the \<iframe\> tag, in cases where you cannot add javascript to your page
 
-There are three parameters in `Interface` where text can go:
+In either case, the first step is to create your Gradio demo and host it on Hugging Face Spaces, a process which is described in this blog post: https://huggingface.co/blog/gradio-spaces 
 
-* `title`: which accepts text and can displays it at the very top of interface
-* `description`: which accepts text, markdown or HTML and places it right under the title.
-* `article`: which is also accepts text, markdown or HTML but places it below the interface.
+In this guide, we will be embedding this image classification Space: https://huggingface.co/spaces/abidlabs/pytorch-image-classifier using both web components and  
 
-![annotated](website/src/assets/img/guides/adding_rich_descriptions_to_your_demo/annotated.png)
+### Embedding with Web Components 
 
-## Code example
+Embedding with web components has a number of advantages over traditional iframes:
+* It's easy! All you need is the name of the Space
+* It's faster to load than iframes 
+* The embedded demo takes up just the right width and height for the demo
 
-Here's all the text-related code required to recreate the interface shown above. 
+How do you embed your Gradio demo with web components? There are two steps:
 
-```python
-import gradio as gr
+1. Somewhere in your webpage, usually in the \<head\> tags, include the following javascript code, which imports the Gradio package:
 
-title = "Ask Rick a Question"
-description = """
-<center>
-The bot was trained to answer questions based on Rick and Morty dialogues. Ask Rick anything!
-<img src="https://huggingface.co/spaces/course-demos/Rick_and_Morty_QA/resolve/main/rick.png" width=200px>
-</center>
-"""
-
-article = "Check out [the original Rick and Morty Bot](https://huggingface.co/spaces/kingabzpro/Rick_and_Morty_Bot) that this demo is based off of."
-
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
-tokenizer = AutoTokenizer.from_pretrained("ericzhou/DialoGPT-Medium-Rick_v2")
-model = AutoModelForCausalLM.from_pretrained("ericzhou/DialoGPT-Medium-Rick_v2")
-
-def predict(input):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
-
-    # generate a response 
-    history = model.generate(new_user_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
-
-    # convert the tokens to text, and then split the responses into the right format
-    response = tokenizer.decode(history[0]).split("<|endoftext|>")
-    return response[1]
-
-gr.Interface(fn = predict, inputs = ["textbox"], outputs = ["text"], title = title, description = description, article = article).launch() 
-
+```html
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
 ```
 
-Of course, you don't have to use HTML and can instead rely on markdown, like we've done in the `article` parameter above. 
+* Instead of <code>3.0.18</code>, you can put whichever version of `gradio`, you'd like to run (a safe choice is the [latest stable version of Gradio](https://pypi.org/project/gradio/)). 
 
-The table below shows the syntax for the most common markdown commands. 
+2. Wherever you'd like to put your demo on your webpage, insert the following code:
 
-| Type      | Syntax |
-| ----------- | ----------- |
-| Header      | # Heading 1 ## Heading 2 ### Heading 3        |
-| Link   | \[gradio's website](https://gradio.app)        |
-| Image   | !\[gradio's logo](https://gradio.app/assets/img/logo.png)        |
-| Text Formatting   | \_italic_ \*\*bold**         |
-| List | \* Item 1 \* Item 2 |
-| Quote | \> this is a quote |
-| Code | Inline \`code\` has \`back-ticks around\` it. |
+```html
+<gradio-app space="abidlabs/pytorch-image-classifier"> </gradio-app>
+```
+
+* Instead of <code>abidlabs/pytorch-image-classifier</code>, you should, of course, put the path to your Space
+
+That's it! Here's what it looks like in action:
 
 
 
-Here's a neat [cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) with more.
+### Embedding with Iframes
 
- 
-### That's all! Happy building :)
+Notice that using web components requires importing javascript. If you cannot do this on your website, you can use Iframes instead. 
+
+The URL to the iframe should be:
+
+```html
+https://hf.space/embed/{path/space}/+
+```
+
+
+
+--------
+
+### Next Steps
+
+Now that you know how to embed Gradio demos in your own portfolios, blog, or website, start building your own demo! 
+
+If you are looking for inspiration, try exploring demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/) 🤗
+
