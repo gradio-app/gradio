@@ -17,6 +17,7 @@ from gradio.test_data.blocks_configs import (
     XRAY_CONFIG_WITH_MISTAKE,
 )
 from gradio.utils import (
+    Request,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
     delete_none,
@@ -28,7 +29,6 @@ from gradio.utils import (
     launch_analytics,
     readme_to_html,
     version_check,
-    Request,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"

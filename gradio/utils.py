@@ -21,8 +21,7 @@ import fsspec.asyn
 import httpx
 import pkg_resources
 import requests
-from httpx import AsyncClient, Response
-from pydantic import Json, BaseModel, parse_obj_as
+from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
 
@@ -352,7 +351,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     _ = event_loop.create_task(func(*args, **kwargs))
 
 
-client = AsyncClient()
+client = httpx.AsyncClient()
 
 
 class Request:
@@ -442,7 +441,7 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: Response = await client.send(self._request)
+            self._response: httpx.Response = await client.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
