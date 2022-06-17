@@ -12,6 +12,7 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> | null = null;
 	export let style: Styles = {};
 
@@ -77,6 +78,7 @@
 <svelte:window bind:innerHeight={window_height} />
 
 <Block
+	{visible}
 	variant="solid"
 	color="grey"
 	padding={false}
