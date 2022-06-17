@@ -17,6 +17,7 @@
 
 	export let editable = true;
 	export let style: Styles = {};
+	export let wrap: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
 
@@ -472,8 +473,9 @@
 		</p>
 	{/if}
 	<div
-		class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
+		class="scroll-hide  overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
 		class:border-green-400={dragging}
+		class:whitespace-nowrap={!wrap}
 	>
 		<Upload
 			flex={false}
