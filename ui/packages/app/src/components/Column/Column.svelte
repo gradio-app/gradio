@@ -16,7 +16,7 @@
 	class="flex flex-col gr-gap gr-form-gap relative col w-full {create_classes(
 		style
 	)}"
-	class:hidden={!visible}
+	class:!hidden={!visible}
 >
 	<slot />
 </div>

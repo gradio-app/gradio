@@ -7,6 +7,7 @@
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" = "secondary";
 	export let size: "sm" | "lg" = "lg";
+	$: console.log(visible)
 
 	$: ({ classes } = get_styles(style, [
 		"border",
@@ -18,9 +19,9 @@
 
 <button
 	on:click
+	class:!hidden={!visible}
 	class="gr-button gr-button-{size} gr-button-{variant} self-start
 		{classes}"
-	class:hidden={!visible}
 	id={elem_id}
 >
 	<slot />
