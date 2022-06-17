@@ -12,13 +12,17 @@ import sys
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NewType, Type
 
 import aiohttp
 import analytics
 import fsspec.asyn
+import httpx
 import pkg_resources
 import requests
+from httpx import AsyncClient, Response
+from pydantic import Json, BaseModel, parse_obj_as
 
 import gradio
 
@@ -346,3 +350,210 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     event_loop = asyncio.get_event_loop()
     _ = event_loop.create_task(func(*args, **kwargs))
+
+
+client = AsyncClient()
+
+
+class Request:
+    """
+    The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
+    Compared to making calls by using httpx directly, Request offers more flexibility and control over:
+        (1) Includes response validation functionality both using validation models and functions.
+        (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
+        (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
+        individually in the case of multiple asynchronous request calls and some of them failing.
+        (4) Provides HTTP request types with Request.Method Enum class for ease of usage
+    Request also offers some util functions such as has_exception, is_valid and status to inspect get detailed
+    information about executed request call.
+
+    The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
+    with the "await" statement, and then you can use util functions to do some post request checks depends on your case.
+    Finally, call the validated_data property to get the response data.
+    """
+    ResponseJson = NewType("ResponseJson", Json)
+
+    class Method(str, Enum):
+        """
+        Method is an enumeration class that contains possible types of HTTP request methods.
+        """
+        ANY = "*"
+        CONNECT = "CONNECT"
+        HEAD = "HEAD"
+        GET = "GET"
+        DELETE = "DELETE"
+        OPTIONS = "OPTIONS"
+        PATCH = "PATCH"
+        POST = "POST"
+        PUT = "PUT"
+        TRACE = "TRACE"
+
+    def __init__(self,
+                 method: Method,
+                 url: str,
+                 *,
+                 validation_model: Type[BaseModel] = None,
+                 validation_function: Callable = None,
+                 exception_type: Type[Exception] = Exception,
+                 raise_for_status: bool = False,
+                 **kwargs):
+        """
+        Initialize the Request instance.
+        Args:
+            method(Request.Method) : method of the request
+            url(str): url of the request
+            *
+            validation_model(Type[BaseModel]): a pydantic validation class type to use in validation of the response
+            validation_function(Callable): a callable instance to use in validation of the response
+            exception_class(Type[Exception]): a exception type to throw with its type
+            raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
+        """
+        self._response = None
+        self._exception = None
+        self._status = None
+        self._raise_for_status = raise_for_status
+        self._validation_model = validation_model
+        self._validation_function = validation_function
+        self._exception_type = exception_type
+        # Create request
+        self._request = self._create_request(method, url, **kwargs)
+
+    def __await__(self):
+        """
+        Wrap Request's __await__ magic function to create request calls which are executed in one line.
+        """
+        return self.__run().__await__()
+
+    async def __run(self) -> Request:
+        """
+        Manage the request call lifecycle.
+        Execute the request by sending it through the client, then check its status.
+        Then parse the request into Json format. And then validate it using the provided validation methods.
+        If a problem occurs in this sequential process,
+        an exception will be raised within the corresponding method, and allowed to be examined.
+        Manage the request call lifecycle.
+
+        Returns:
+            Request
+        """
+        try:
+            # Send the request and get the response.
+            self._response: Response = await client.send(self._request)
+            # Raise for _status
+            self._status = self._response.status_code
+            if self._raise_for_status:
+                self._response.raise_for_status()
+            # Parse client response data to JSON
+            self._json_response_data = self._response.json()
+            # Validate response data
+            self._validated_data = self._validate_response_data(self._json_response_data)
+        except Exception as exception:
+            # If there is an exception, store it to do further inspections.
+            self._exception = self._exception_type(exception)
+        return self
+
+    @staticmethod
+    def _create_request(method: Method,
+                        url: str,
+                        **kwargs) -> Request:
+        """
+        Create a request. This is a httpx request wrapper function.
+        Args:
+            method(Request.Method): request method type
+            url(str): target url of the request
+            **kwargs
+        Returns:
+            Request
+        """
+        request = httpx.Request(method, url, **kwargs)
+        return request
+
+    def _validate_response_data(self, response: ResponseJson) -> ResponseJson:
+        """
+        Validate response using given validation methods. If there is a validation method and response is not valid,
+        validation functions will raise an exception for them.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+
+        # We use raw response as a default value if there is no validation method or response is not valid.
+        validated_response = response
+
+        try:
+            # If a validation model is provided, validate response using the validation model.
+            if self._validation_model:
+                validated_response = self._validate_response_by_model(validated_response)
+            # Then, If a validation function is provided, validate response using the validation function.
+            if self._validation_function:
+                validated_response = self._validate_response_by_validation_function(validated_response)
+        except Exception as exception:
+            # If one of the validation methods does not confirm, raised exception will be silently handled.
+            # We assign this exception to classes instance to do further inspections via is_valid function.
+            self._exception = exception
+
+        return validated_response
+
+    def _validate_response_by_model(self, response: ResponseJson) -> ResponseJson:
+        """
+        Validate response json using the validation model.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+        validated_data = parse_obj_as(self._validation_model, response)
+        return validated_data
+
+    def _validate_response_by_validation_function(self, response: ResponseJson) -> ResponseJson:
+        """
+        Validate response json using the validation function.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+        validated_data = self._validation_function(response)
+        return validated_data
+
+    def is_valid(self, raise_exceptions: bool = False) -> bool:
+        """
+        Check response object's validity+. Raise exceptions if raise_exceptions flag is True.
+        Args:
+            raise_exceptions(bool) : a flag to raise exceptions in this check
+        Returns:
+            bool: validity of the data
+        """
+        if self.has_exception:
+            if raise_exceptions:
+                raise self._exception
+            return False
+        else:
+            # If there is no exception, that means there is no validation error.
+            return True
+
+    @property
+    def json(self):
+        return self._json_response_data
+
+    @property
+    def validated_data(self):
+        return self._validated_data
+
+    @property
+    def exception(self):
+        return self._exception
+
+    @property
+    def has_exception(self):
+        return self.exception is not None
+
+    @property
+    def raise_exceptions(self):
+        if self.has_exception:
+            raise self._exception
+
+    @property
+    def status(self):
+        return self._status
