@@ -87,7 +87,10 @@
 
 {#if mode === "categories"}
 	{#if show_legend}
-		<div class="category-legend flex flex-wrap gap-1 mb-2 text-black mt-7" data-testid="highlighted-text:category-legend">
+		<div
+			class="category-legend flex flex-wrap gap-1 mb-2 text-black mt-7"
+			data-testid="highlighted-text:category-legend"
+		>
 			{#each Object.entries(_color_map) as [category, color], i}
 				<div
 					on:mouseover={() => handle_mouseover(category)}
@@ -103,7 +106,8 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7 mt-7" data-testid="highlighted-text:textfield" 
+		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7 mt-7"
+		data-testid="highlighted-text:textfield"
 	>
 		{#each value as [text, category]}
 			<span
@@ -134,7 +138,8 @@
 {:else}
 	{#if show_legend}
 		<div
-			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold mt-7" data-testid="highlighted-text:color-legend"
+			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold mt-7"
+			data-testid="highlighted-text:color-legend"
 			style="background: -webkit-linear-gradient(to right,#8d83d6,(255,255,255,0),#eb4d4b); background: linear-gradient(to right,#8d83d6,rgba(255,255,255,0),#eb4d4b);"
 		>
 			<span>-1</span>
@@ -143,7 +148,8 @@
 		</div>
 	{/if}
 	<div
-		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7" data-testid="highlighted-text:textfield"
+		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7"
+		data-testid="highlighted-text:textfield"
 	>
 		{#each value as [text, score]}
 			<span

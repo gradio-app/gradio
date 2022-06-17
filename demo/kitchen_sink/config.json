@@ -1,5 +1,5 @@
 {
-  "version": "3.0.13b13\n",
+  "version": "3.0.16\n",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -291,82 +291,6 @@
       }
     },
     {
-      "id": 16,
-      "type": "file",
-      "props": {
-        "file_count": "single",
-        "label": "File",
-        "show_label": true,
-        "name": "file",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 17,
-      "type": "dataframe",
-      "props": {
-        "headers": [
-          "Name",
-          "Age",
-          "Gender"
-        ],
-        "datatype": "str",
-        "row_count": [
-          3,
-          "dynamic"
-        ],
-        "col_count": [
-          3,
-          "dynamic"
-        ],
-        "value": [
-          [
-            "",
-            "",
-            ""
-          ],
-          [
-            "",
-            "",
-            ""
-          ],
-          [
-            "",
-            "",
-            ""
-          ]
-        ],
-        "max_rows": 20,
-        "overflow_row_behaviour": "paginate",
-        "label": "Dataframe",
-        "show_label": true,
-        "name": "dataframe",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 18,
-      "type": "timeseries",
-      "props": {
-        "x": "time",
-        "y": [
-          "price",
-          "value"
-        ],
-        "colors": [
-          "pink",
-          "purple"
-        ],
-        "label": "df2",
-        "show_label": true,
-        "name": "timeseries",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
       "id": 31,
       "type": "row",
       "props": {
@@ -420,7 +344,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 16,
       "type": "textbox",
       "props": {
         "lines": 1,
@@ -435,13 +359,56 @@
       }
     },
     {
-      "id": 20,
+      "id": 17,
       "type": "label",
       "props": {
         "label": "Label",
         "show_label": true,
         "interactive": false,
         "name": "label",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 18,
+      "type": "audio",
+      "props": {
+        "source": "upload",
+        "streaming": false,
+        "label": "Audio",
+        "show_label": true,
+        "interactive": false,
+        "name": "audio",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "label": "Image",
+        "show_label": true,
+        "interactive": false,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 20,
+      "type": "video",
+      "props": {
+        "source": "upload",
+        "label": "Video",
+        "show_label": true,
+        "interactive": false,
+        "name": "video",
         "visible": true,
         "style": {}
       }
@@ -543,10 +510,7 @@
           "image",
           "video",
           "audio",
-          "audio",
-          "file",
-          "dataframe",
-          "timeseries"
+          "audio"
         ],
         "headers": [
           "Textbox",
@@ -564,10 +528,7 @@
           "Webcam",
           "Video",
           "Audio",
-          "Microphone",
-          "File",
-          "Dataframe",
-          "df2"
+          "Microphone"
         ],
         "samples": [
           [
@@ -582,7 +543,13 @@
               "baz"
             ],
             "baz",
-            "bar"
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav"
           ],
           [
             "the quick brown fox",
@@ -596,7 +563,13 @@
               "baz"
             ],
             "baz",
-            "bar"
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav"
           ],
           [
             "the quick brown fox",
@@ -610,7 +583,13 @@
               "baz"
             ],
             "baz",
-            "bar"
+            "bar",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
+            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav"
           ]
         ],
         "type": "index",
@@ -698,15 +677,6 @@
                   },
                   {
                     "id": 15
-                  },
-                  {
-                    "id": 16
-                  },
-                  {
-                    "id": 17
-                  },
-                  {
-                    "id": 18
                   }
                 ]
               },
@@ -728,6 +698,15 @@
             "children": [
               {
                 "id": 35
+              },
+              {
+                "id": 16
+              },
+              {
+                "id": 17
+              },
+              {
+                "id": 18
               },
               {
                 "id": 19
@@ -789,12 +768,12 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18
+        15
       ],
       "outputs": [
+        16,
+        17,
+        18,
         19,
         20,
         21,
@@ -807,6 +786,8 @@
       "status_tracker": 35,
       "queue": null,
       "api_name": "predict",
+      "scroll_to_output": true,
+      "show_progress": true,
       "documentation": [
         [
           "(str): text",
@@ -824,14 +805,14 @@
           "(str): base64 url data",
           "(Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property",
           "(Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property",
-          "(Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property",
-          "(List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property",
-          "(List[List[str | number | bool]]): 2D array of str, numeric, or bool data",
-          "(Dict[data: List[List[str | number | bool]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange."
+          "(Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property"
         ],
         [
           "(str | None): text",
           "(Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs",
+          "(str): base64 url data",
+          "(str): base64 url data",
+          "(str): base64 url data",
           "(List[Tuple[str, str | number | None]]): List of (word, category) tuples",
           "(List[Tuple[str, str | number | None]]): List of (word, category) tuples",
           "(Dict | List): JSON output",
@@ -874,10 +855,12 @@
         30
       ],
       "backend_fn": false,
-      "js": "() => [\"\", \"\", null, 15, 0, null, [], \"baz\", \"foo\", null, null, null, null, null, null, null, null, null, null, \"\", null, null, null, null, null, {\"variant\": null, \"visible\": true, \"__type__\": \"update\"}]\n                ",
+      "js": "() => [\"\", \"\", null, 15, 0, null, [], \"baz\", \"foo\", null, null, null, null, null, null, null, \"\", null, null, null, null, null, null, null, null, {\"variant\": null, \"visible\": true, \"__type__\": \"update\"}]\n                ",
       "status_tracker": null,
       "queue": null,
-      "api_name": null
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     },
     {
       "targets": [
@@ -916,7 +899,9 @@
       "js": null,
       "status_tracker": null,
       "queue": false,
-      "api_name": null
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     },
     {
       "targets": [
@@ -942,16 +927,15 @@
         12,
         13,
         14,
-        15,
-        16,
-        17,
-        18
+        15
       ],
       "backend_fn": true,
       "js": null,
       "status_tracker": null,
       "queue": false,
-      "api_name": null
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     }
   ]
 }

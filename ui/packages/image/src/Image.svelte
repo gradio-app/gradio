@@ -60,7 +60,11 @@
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 
-<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
+<div
+	class:bg-gray-200={value}
+	class:h-60={source !== "webcam"}
+	data-testid="image"
+>
 	{#if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
