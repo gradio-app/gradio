@@ -52,7 +52,6 @@ with open(GRADIO_INDEX_FILE) as index_file:
     index_html = index_file.read()
 
 ENTRY_JS_FILE=re.findall(r'\/assets\/(.*\.js)', index_html)[0]
-ENTRY_CSS_FILE=re.findall(r'\/assets\/(.*\.css)', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -75,7 +74,7 @@ def render_index():
             star_count=star_count,
             navbar_html=navbar_html,
             entry_js_file=ENTRY_JS_FILE,
-            entry_css_file=ENTRY_CSS_FILE
+
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -277,7 +276,6 @@ def render_guides():
                 tags=guide["tags"],
                 contributor=guide["contributor"],
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE,
                 headings=headings,
             )
             generated_template.write(output_html)
@@ -710,7 +708,6 @@ demo.launch()""",
         output_html = template.render(
             docs=docs, demo_links=demo_links, navbar_html=navbar_html,
             entry_js_file=ENTRY_JS_FILE,
-            entry_css_file=ENTRY_CSS_FILE
         )
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(
@@ -739,7 +736,6 @@ def render_other():
             template = Template(template_file.read())
             output_html = template.render(
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE
             )
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
