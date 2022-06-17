@@ -2315,7 +2315,7 @@ class Dataframe(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        wrap: Optional[bool] = False,
+        wrap: bool = False,
         **kwargs,
     ):
         """
