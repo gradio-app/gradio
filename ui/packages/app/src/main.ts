@@ -225,6 +225,18 @@ function create_custom_element() {
 		}
 
 		async connectedCallback() {
+			const event = new CustomEvent("domchange", {
+				bubbles: true,
+				cancelable: false,
+				composed: true
+			});
+
+			var observer = new MutationObserver((mutations) => {
+				this.dispatchEvent(event);
+			});
+
+			observer.observe(this.root, { childList: true });
+
 			const space = this.getAttribute("space");
 			const initial_height = this.getAttribute("initial_height");
 			this.wrapper.style.minHeight = initial_height || "300px";
