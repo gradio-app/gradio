@@ -63,19 +63,19 @@ Notice that using web components requires importing javascript. If you cannot do
 https://hf.space/embed/PATH_TO_SPACE/+
 ```
 
-* Iframes require a specified height to render correctly, so you should set the `height` attribute that works for the demo you are embedding.
+* Iframes require a specified width and height to render correctly, so you should set the `width` and `height` attributes based on the size of the demo you are embedding.
 
 * You must request the permissions that are needed for your demo to work. While different demos require different permissions, you could request all permissions as a catch all using the `allow` and `sandbox` attributes. 
 
 Here is a complete example of the iframe tag:
 
 ```html
-<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" height="660" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" width="1300px" height="660px" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 ```
 
 A little long, but here's what it looks like embedded into this page:
 
-<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" height="660" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" width="1300px" height="660px" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 --------
 
