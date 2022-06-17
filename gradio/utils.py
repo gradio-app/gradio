@@ -371,12 +371,14 @@ class Request:
     with the "await" statement, and then you can use util functions to do some post request checks depends on your case.
     Finally, call the validated_data property to get the response data.
     """
+
     ResponseJson = NewType("ResponseJson", Json)
 
     class Method(str, Enum):
         """
         Method is an enumeration class that contains possible types of HTTP request methods.
         """
+
         ANY = "*"
         CONNECT = "CONNECT"
         HEAD = "HEAD"
@@ -388,15 +390,17 @@ class Request:
         PUT = "PUT"
         TRACE = "TRACE"
 
-    def __init__(self,
-                 method: Method,
-                 url: str,
-                 *,
-                 validation_model: Type[BaseModel] = None,
-                 validation_function: Callable = None,
-                 exception_type: Type[Exception] = Exception,
-                 raise_for_status: bool = False,
-                 **kwargs):
+    def __init__(
+        self,
+        method: Method,
+        url: str,
+        *,
+        validation_model: Type[BaseModel] = None,
+        validation_function: Callable = None,
+        exception_type: Type[Exception] = Exception,
+        raise_for_status: bool = False,
+        **kwargs,
+    ):
         """
         Initialize the Request instance.
         Args:
@@ -446,16 +450,16 @@ class Request:
             # Parse client response data to JSON
             self._json_response_data = self._response.json()
             # Validate response data
-            self._validated_data = self._validate_response_data(self._json_response_data)
+            self._validated_data = self._validate_response_data(
+                self._json_response_data
+            )
         except Exception as exception:
             # If there is an exception, store it to do further inspections.
             self._exception = self._exception_type(exception)
         return self
 
     @staticmethod
-    def _create_request(method: Method,
-                        url: str,
-                        **kwargs) -> Request:
+    def _create_request(method: Method, url: str, **kwargs) -> Request:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -484,10 +488,14 @@ class Request:
         try:
             # If a validation model is provided, validate response using the validation model.
             if self._validation_model:
-                validated_response = self._validate_response_by_model(validated_response)
+                validated_response = self._validate_response_by_model(
+                    validated_response
+                )
             # Then, If a validation function is provided, validate response using the validation function.
             if self._validation_function:
-                validated_response = self._validate_response_by_validation_function(validated_response)
+                validated_response = self._validate_response_by_validation_function(
+                    validated_response
+                )
         except Exception as exception:
             # If one of the validation methods does not confirm, raised exception will be silently handled.
             # We assign this exception to classes instance to do further inspections via is_valid function.
@@ -506,7 +514,9 @@ class Request:
         validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
-    def _validate_response_by_validation_function(self, response: ResponseJson) -> ResponseJson:
+    def _validate_response_by_validation_function(
+        self, response: ResponseJson
+    ) -> ResponseJson:
         """
         Validate response json using the validation function.
         Args:
