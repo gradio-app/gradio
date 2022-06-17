@@ -15,7 +15,7 @@
 	class:mobile-row={style.mobile_collapse === false}
 	class:unequal-height={style.equal_height === false}
 	class:flex-col={style.mobile_collapse}
-	class:hidden={!visible}
+	class:!hidden={!visible}
 	id={elem_id}
 >
 	<slot />

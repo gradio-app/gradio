@@ -47,7 +47,7 @@
 	id={elem_id}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
-	class:hidden={!visible}
+	class:!hidden={!visible}
 >
 	<StatusTracker {...loading_status} />
 	<Table
