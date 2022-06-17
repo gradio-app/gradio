@@ -10,13 +10,13 @@
 
 <div
 	id={elem_id}
-	class:hidden={visible === false}
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}
 	class:rounded-lg={variant === "panel"}
 	class="flex flex-col gr-gap gr-form-gap relative col w-full {create_classes(
 		style
 	)}"
+	class:!hidden={!visible}
 >
 	<slot />
 </div>

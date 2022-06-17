@@ -46,8 +46,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded }}
 	{visible}
+	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 

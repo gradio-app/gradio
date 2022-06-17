@@ -25,9 +25,9 @@
 </script>
 
 <Block
+	{visible}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}

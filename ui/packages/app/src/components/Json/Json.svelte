@@ -21,10 +21,10 @@
 </script>
 
 <Block
+	{visible}
 	test_id="json"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	{#if label}
 		<BlockLabel

@@ -118,12 +118,12 @@
 </script>
 
 <Block
+	{visible}
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
 	color={"grey"}
 	padding={false}
 	{elem_id}
 	style={{ rounded: style.rounded }}
-	{visible}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />

@@ -16,7 +16,7 @@ Gradio allows you to **build demos and share them, all in Python.** And usually 
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
-<span>1.</span> Install Gradio from pip.
+<span>1.</span> Install Gradio from pip. Note, the minimal supported Python version is 3.7.
 
 ```bash
 pip install gradio
@@ -40,7 +40,7 @@ The core `Interface` class is initialized with three required parameters:
 -   `inputs`: which component(s) to use for the input, e.g. `"text"` or `"image"` or `"audio"` 
 -   `outputs`: which component(s) to use for the output, e.g. `"text"` or `"image"` `"label"`
 
-Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](/docs))
+Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](https://gradio.app/docs))
 
 ### Components Attributes 💻
 

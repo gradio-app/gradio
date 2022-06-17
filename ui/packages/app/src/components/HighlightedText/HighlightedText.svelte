@@ -27,10 +27,10 @@
 </script>
 
 <Block
+	{visible}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 	style={{ rounded: style.rounded }}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}

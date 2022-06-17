@@ -600,6 +600,51 @@ demo.launch()""",
         "params_doc": get_function_documentation(Box.__init__)[2],
     }
 
+    # Changeable, Clearable, Submittable, Editable, Playable, Clickable
+
+    change = {
+        "doc": get_function_documentation(Changeable.change)[0],
+        "params": get_function_documentation(Changeable.change)[1],
+        "params_doc": get_function_documentation(Changeable.change)[2],
+    }
+
+    clear = {
+        "doc": get_function_documentation(Clearable.clear)[0],
+        "params": get_function_documentation(Clearable.clear)[1],
+        "params_doc": get_function_documentation(Clearable.clear)[2],
+    }
+
+    submit = {
+        "doc": get_function_documentation(Submittable.submit)[0],
+        "params": get_function_documentation(Submittable.submit)[1],
+        "params_doc": get_function_documentation(Submittable.submit)[2],
+    }
+
+    edit = {
+        "doc": get_function_documentation(Editable.edit)[0],
+        "params": get_function_documentation(Editable.edit)[1],
+        "params_doc": get_function_documentation(Editable.edit)[2],
+    }
+
+    play = {
+        "doc": get_function_documentation(Playable.play)[0],
+        "params": get_function_documentation(Playable.play)[1],
+        "params_doc": get_function_documentation(Playable.play)[2],
+    }
+    click = {
+        "doc": get_function_documentation(Clickable.click)[0],
+        "params": get_function_documentation(Clickable.click)[1],
+        "params_doc": get_function_documentation(Clickable.click)[2],
+    }
+
+    events = {
+        "change": change,
+        "clear": clear,
+        "submit": submit,
+        "edit": edit,
+        "play": play,
+        "click": click
+    }
 
 
     SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"
@@ -654,6 +699,7 @@ demo.launch()""",
         "tabitem": tabitem,
         "group": group,
         "box": box,
+        "events": events,
         "demo_code": demo_code,
         "embedding_configs": embedding_configs
     }

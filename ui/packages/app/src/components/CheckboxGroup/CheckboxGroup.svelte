@@ -19,11 +19,11 @@
 </script>
 
 <Block
+	{visible}
 	{form_position}
 	{elem_id}
 	type="fieldset"
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 

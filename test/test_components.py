@@ -588,7 +588,7 @@ class TestImage(unittest.TestCase):
             to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
             self.assertEqual("image_input/1.png", to_save)
             restored = image_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, os.path.join(tmpdirname, "image_input/1.png"))
+            self.assertEqual(restored, media_data.BASE64_IMAGE)
 
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.Image(
@@ -779,7 +779,7 @@ class TestAudio(unittest.TestCase):
             to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
             self.assertEqual("audio_input/1.wav", to_save)
             restored = audio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "audio_input/1.wav")
+            self.assertEqual(restored["file_name"], "audio_input/1.wav")
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -920,7 +920,7 @@ class TestFile(unittest.TestCase):
             to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
             self.assertEqual("file_input/1", to_save)
             restored = file_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["name"], "file_input/1")
+            self.assertEqual(restored["file_name"], "file_input/1")
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
@@ -1038,6 +1038,7 @@ class TestDataframe(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "wrap": False,
             },
         )
         dataframe_input = gr.Dataframe()
@@ -1085,6 +1086,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                 ],
                 "interactive": None,
+                "wrap": False,
             },
         )
         with self.assertRaises(ValueError):
@@ -1154,7 +1156,7 @@ class TestVideo(unittest.TestCase):
             to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
             self.assertEqual("video_input/1.mp4", to_save)
             restored = video_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "video_input/1.mp4")
+            self.assertEqual(restored["file_name"], "video_input/1.mp4")
 
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")

@@ -21,7 +21,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block padding={false} {elem_id} style={{ rounded: style.rounded }} {visible}>
+<Block padding={false} {elem_id} {visible} style={{ rounded: style.rounded }}>
 	<StatusTracker {...loading_status} />
 	{#if show_label}
 		<BlockLabel

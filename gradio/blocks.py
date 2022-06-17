@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import getpass
 import inspect
@@ -85,6 +86,8 @@ class Block:
         outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = False,
         no_target: bool = False,
@@ -100,6 +103,8 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            scroll_to_output: whether to scroll to output of dependency on trigger
+            show_progress: whether to show progress animation while running.
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
@@ -129,6 +134,8 @@ class Block:
             else None,
             "queue": queue,
             "api_name": api_name,
+            "scroll_to_output": scroll_to_output,
+            "show_progress": show_progress,
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -190,6 +197,10 @@ def update(**kwargs) -> dict:
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
+
+
+def is_update(val):
+    return type(val) is dict and "update" in val.get("__type__", "")
 
 
 def skip() -> dict:
@@ -369,9 +380,7 @@ class Blocks(BlockContext):
         processed_input = self.preprocess_data(fn_index, serialized_params, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
-            raise ValueError(
-                "Cannot call Blocks object as a function if the function is a coroutine"
-            )
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
 
@@ -483,13 +492,12 @@ class Blocks(BlockContext):
             for i, output_id in enumerate(dependency["outputs"]):
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
-                    state[output_id] = predictions[i]
+                    if not is_update(predictions[i]):
+                        state[output_id] = predictions[i]
                     output.append(None)
                 else:
                     prediction_value = predictions[i]
-                    if type(
-                        prediction_value
-                    ) is dict and "update" in prediction_value.get("__type__", ""):
+                    if is_update(prediction_value):
                         if prediction_value["__type__"] == "generic_update":
                             del prediction_value["__type__"]
                             prediction_value = block.__class__.update(
@@ -739,7 +747,7 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-        utils.synchronize_async(self.create_limiter, max_threads)
+        utils.run_coro_in_background(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
