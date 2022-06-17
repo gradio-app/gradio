@@ -18,9 +18,9 @@
 
 <button
 	on:click
+	class:!hidden={!visible}
 	class="gr-button gr-button-{size} gr-button-{variant} self-start
 		{classes}"
-	class:hidden={!visible}
 	id={elem_id}
 >
 	<slot />
