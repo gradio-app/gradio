@@ -1,3 +1,5 @@
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
+
 # Embedding Gradio Demos on Websites
 
 **Prerequisite**: This Guide builds on topics introduced in the Quickstart. Make sure to [read the Quickstart first](/getting_started).
@@ -43,25 +45,43 @@ How do you embed your Gradio demo with web components? There are two steps:
 
 That's it! Here's what it looks like in action:
 
+<gradio-app space="abidlabs/pytorch-image-classifier"> </gradio-app>
 
+Note: you can provide an *initial* height for your embedded demo by using the `height` parameter. This height is used to render the page appropriately until the demo loads, at which point the embedded demo takes up the height it needs for the demo. This would look like:
+
+```html
+<gradio-app space="abidlabs/pytorch-image-classifier" height="500px"> </gradio-app>
+```
 
 ### Embedding with Iframes
 
-Notice that using web components requires importing javascript. If you cannot do this on your website, you can use Iframes instead. 
+Notice that using web components requires importing javascript. If you cannot do this on your website, you can use Iframes instead. There are a few things to keep in mind:
 
-The URL to the iframe should be:
+* The URL to the iframe should be:
 
 ```html
-https://hf.space/embed/{path/space}/+
+https://hf.space/embed/PATH_TO_SPACE/+
 ```
 
+* Iframes require a specified height to render correctly, so you should set the `height` attribute that works for the demo you are embedding.
 
+* You must request the permissions that are needed for your demo to work. While different demos require different permissions, you could request all permissions as a catch all using the `allow` and `sandbox` attributes. 
+
+Here is a complete example of the iframe tag:
+
+```html
+<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" height="660" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+```
+
+A little long, but here's what it looks like embedded into this page:
+
+<iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+" frameBorder="0" height="660" title="Gradio app" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 --------
 
 ### Next Steps
 
-Now that you know how to embed Gradio demos in your own portfolios, blog, or website, start building your own demo! 
+Now that you know two different ways how to embed Gradio demos in your own portfolios, blog, or website, start building your own demo! 
 
 If you are looking for inspiration, try exploring demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/) 🤗
 
