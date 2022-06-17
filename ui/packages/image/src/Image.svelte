@@ -10,12 +10,12 @@
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
-	export let value: null | string;
+	export let value: null | string | { image: string; madk: string };
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" = "editor";
+	export let tool: "editor" | "select" | "sketch" = "editor";
 
 	export let drop_text: string = "Drop an image file";
 	export let or_text: string = "or";
@@ -52,6 +52,8 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
+
+	$: console.log(tool, source);
 </script>
 
 <BlockLabel
@@ -100,6 +102,13 @@
 		/>
 
 		<img class="w-full h-full object-contain" src={value} alt="" />
+	{:else if tool === "sketch"}
+		<img class="absolute w-full h-full object-contain" src={value} alt="" />
+		<Sketch {value} bind:this={sketch} on:change={handle_save} />
+		<ModifySketch
+			on:undo={() => sketch.undo()}
+			on:clear={() => sketch.clear()}
+		/>
 	{:else}
 		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
