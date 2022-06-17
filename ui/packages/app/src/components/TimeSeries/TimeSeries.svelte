@@ -32,6 +32,7 @@
 	}
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: null | Data;
 	export let y: Array<string>;
 	export let x: string;
@@ -117,6 +118,7 @@
 </script>
 
 <Block
+	{visible}
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
 	color={"grey"}
 	padding={false}

@@ -93,31 +93,29 @@
 	setContext("BLOCK_KEY", parent);
 </script>
 
-{#if props.visible !== false}
-	<svelte:component
-		this={component}
-		bind:this={instance_map[id].instance}
-		bind:value={instance_map[id].props.value}
-		elem_id={props.elem_id || id}
-		{...props}
-		{root}
-	>
-		{#if children && children.length}
-			{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
-				<svelte:self
-					parent={instance_map[id].type}
-					{component}
-					id={each_id}
-					{props}
-					{root}
-					{instance_map}
-					{children}
-					{dynamic_ids}
-					{has_modes}
-					on:destroy
-					on:mount
-				/>
-			{/each}
-		{/if}
-	</svelte:component>
-{/if}
+<svelte:component
+	this={component}
+	bind:this={instance_map[id].instance}
+	bind:value={instance_map[id].props.value}
+	elem_id={props.elem_id || id}
+	{...props}
+	{root}
+>
+	{#if children && children.length}
+		{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
+			<svelte:self
+				parent={instance_map[id].type}
+				{component}
+				id={each_id}
+				{props}
+				{root}
+				{instance_map}
+				{children}
+				{dynamic_ids}
+				{has_modes}
+				on:destroy
+				on:mount
+			/>
+		{/each}
+	{/if}
+</svelte:component>

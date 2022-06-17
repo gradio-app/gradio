@@ -7,6 +7,7 @@
 
 	export let label: string = "Radio";
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: string = "";
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
@@ -17,6 +18,7 @@
 </script>
 
 <Block
+	{visible}
 	{form_position}
 	type="fieldset"
 	{elem_id}
