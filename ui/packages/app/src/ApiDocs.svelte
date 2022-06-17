@@ -17,7 +17,10 @@
 	export let root: string;
 
 	if (root === "") {
-		root = window.location.href;
+		root = location.protocol + "//" + location.host + location.pathname;
+	}
+	if (!root.endsWith("/")) {
+		root += "/";
 	}
 
 	let just_copied = -1;

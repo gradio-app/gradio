@@ -6,6 +6,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
 	export let style: Styles = {};
@@ -18,6 +19,7 @@
 </script>
 
 <Block
+	{visible}
 	{form_position}
 	{elem_id}
 	type="fieldset"

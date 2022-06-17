@@ -15,6 +15,7 @@
 	export let test_id: string | undefined = undefined;
 	export let disable: boolean = false;
 	export let explicit_call: boolean = false;
+	export let visible = true;
 
 	const styles = {
 		dashed: "border-dashed border border-gray-300",
@@ -73,6 +74,7 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
+	class:!hidden={visible === false}
 	class="relative w-full overflow-hidden {styles[variant]} {rounded
 		? styles[color]
 		: ''} {form_class} {classes} {rounded_style}"

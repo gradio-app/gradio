@@ -10,6 +10,7 @@
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
@@ -17,12 +18,15 @@
 	export let parent: string | null = null;
 	export let style: Styles = {};
 	export let label: string | null = null;
+	export let wrap: boolean;
 
 	$: {
-		if (!Array.isArray(value)) {
+		if (value && !Array.isArray(value)) {
 			if (Array.isArray(value.headers)) headers = value.headers;
 			value =
 				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
+		} else if (value === null) {
+			value = [Array(headers.length).fill("")];
 		} else {
 			value = value;
 		}
@@ -43,6 +47,7 @@
 	id={elem_id}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
+	class:!hidden={!visible}
 >
 	<StatusTracker {...loading_status} />
 	<Table
@@ -54,5 +59,6 @@
 		on:change={handle_change}
 		editable={mode === "dynamic"}
 		{style}
+		{wrap}
 	/>
 </div>
