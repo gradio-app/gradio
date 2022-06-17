@@ -7,7 +7,6 @@
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" = "secondary";
 	export let size: "sm" | "lg" = "lg";
-	$: console.log(visible)
 
 	$: ({ classes } = get_styles(style, [
 		"border",
