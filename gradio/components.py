@@ -3620,7 +3620,6 @@ class Plot(Changeable, Clearable, IOComponent):
         return json.loads(data)
 
 
-
 class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
