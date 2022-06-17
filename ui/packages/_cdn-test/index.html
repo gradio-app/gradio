@@ -18,7 +18,6 @@
 		<script type="module" src="http://localhost:4321/gradio.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script>
 
-
 		<title>Vite App</title>
 	</head>
 	<body>
@@ -64,12 +63,16 @@
 			initial_height="400px"
 		></gradio-app>
 
-		<iframe id="myIframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" src="http://127.0.0.1:7860/" frameborder="0">
-
+		<iframe
+			id="myIframe"
+			allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
+			src="http://127.0.0.1:7860/"
+			frameborder="0"
+		>
 		</iframe>
 
 		<script>
-			iFrameResize({ log: false, checkOrigin: false }, '#myIframe')
+			iFrameResize({ log: false, checkOrigin: false }, "#myIframe");
 		</script>
 	</body>
 </html>
