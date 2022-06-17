@@ -2331,6 +2331,7 @@ class Dataframe(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        wrap: bool = False,
         **kwargs,
     ):
         """
@@ -2348,8 +2349,10 @@ class Dataframe(Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        wrap (Optional[bool]): if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
         """
 
+        self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
@@ -2396,6 +2399,7 @@ class Dataframe(Changeable, IOComponent):
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
+            "wrap": self.wrap,
             **IOComponent.get_config(self),
         }
 
