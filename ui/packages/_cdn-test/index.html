@@ -17,7 +17,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script type="module" src="http://localhost:4321/gradio.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script>
-		
+
 		<title>Vite App</title>
 	</head>
 	<body>
@@ -71,8 +71,14 @@
 		>
 		</iframe>
 		<script>
-			iFrameResize({ log: false, checkOrigin: false, heightCalculationMethod: 'lowestElement' }, "#myIframe");
+			iFrameResize(
+				{
+					log: false,
+					checkOrigin: false,
+					heightCalculationMethod: "lowestElement"
+				},
+				"#myIframe"
+			);
 		</script>
-		
 	</body>
 </html>
