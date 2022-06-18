@@ -267,7 +267,11 @@ async function unscoped_mount() {
 	mount_app(config, false, target, 0);
 }
 
-if (BUILD_MODE === "dev") {
+// dev mode or if inside an iframe
+if (BUILD_MODE === "dev" || window.location !== window.parent.location) {
+	window.scoped_css_attach = (link) => {
+		document.head.append(link);
+	};
 	unscoped_mount();
 } else {
 	create_custom_element();
