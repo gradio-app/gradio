@@ -16,6 +16,7 @@
 		<link rel="icon" type="image/svg+xml" href="favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script type="module" src="http://localhost:4321/gradio.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.min.js"></script>
 
 		<title>Vite App</title>
 	</head>
@@ -61,5 +62,23 @@
 			space="gradio/Echocardiogram-Segmentation"
 			initial_height="400px"
 		></gradio-app>
+
+		<iframe
+			id="myIframe"
+			allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking"
+			src="http://127.0.0.1:7860/"
+			frameborder="0"
+		>
+		</iframe>
+		<script>
+			iFrameResize(
+				{
+					log: false,
+					checkOrigin: false,
+					heightCalculationMethod: "lowestElement"
+				},
+				"#myIframe"
+			);
+		</script>
 	</body>
 </html>

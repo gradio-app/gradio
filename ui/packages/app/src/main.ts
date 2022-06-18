@@ -225,6 +225,18 @@ function create_custom_element() {
 		}
 
 		async connectedCallback() {
+			const event = new CustomEvent("domchange", {
+				bubbles: true,
+				cancelable: false,
+				composed: true
+			});
+
+			var observer = new MutationObserver((mutations) => {
+				this.dispatchEvent(event);
+			});
+
+			observer.observe(this.root, { childList: true });
+
 			const space = this.getAttribute("space");
 			const initial_height = this.getAttribute("initial_height");
 			this.wrapper.style.minHeight = initial_height || "300px";
@@ -255,7 +267,11 @@ async function unscoped_mount() {
 	mount_app(config, false, target, 0);
 }
 
-if (BUILD_MODE === "dev") {
+// dev mode or if inside an iframe
+if (BUILD_MODE === "dev" || window.location !== window.parent.location) {
+	window.scoped_css_attach = (link) => {
+		document.head.append(link);
+	};
 	unscoped_mount();
 } else {
 	create_custom_element();
