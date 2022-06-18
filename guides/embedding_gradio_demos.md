@@ -47,10 +47,10 @@ That's it! Here's what it looks like in action:
 
 <gradio-app space="abidlabs/pytorch-image-classifier"> </gradio-app>
 
-Note: you can provide an *initial* height for your embedded demo by using the `height` parameter. This height is used to render the page appropriately until the demo loads, at which point the embedded demo takes up the height it needs for the demo. This would look like:
+Note: you can provide an *initial* height for your embedded demo by using the `initial_height` parameter. This height (which is 300px by default) is used to render the page appropriately until the demo loads, at which point the embedded demo takes up the height it needs for the demo. This would look like:
 
 ```html
-<gradio-app space="abidlabs/pytorch-image-classifier" height="500px"> </gradio-app>
+<gradio-app space="abidlabs/pytorch-image-classifier" initial_height="500px"> </gradio-app>
 ```
 
 ### Embedding with Iframes
