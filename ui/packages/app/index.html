@@ -61,5 +61,16 @@
 				style="display: flex; flex-direction: column; flex-grow: 1"
 			></div
 		></gradio-app>
+
+		<script>
+			const ce = document.getElementsByTagName("gradio-app");
+			if (ce[0]) {
+				ce[0].addEventListener("domchange", () => {
+					document.body.style.padding = "0";
+				});
+				console.log("hello");
+				document.body.style.padding = "0";
+			}
+		</script>
 	</body>
 </html>
