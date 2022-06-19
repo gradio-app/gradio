@@ -8,7 +8,6 @@ import gradio.templates
 from gradio.blocks import Blocks, skip, update
 from gradio.components import (
     HTML,
-    Json,
     JSON,
     Audio,
     Button,
@@ -26,6 +25,7 @@ from gradio.components import (
     Highlightedtext,
     HighlightedText,
     Image,
+    Json,
     Label,
     Markdown,
     Model3D,

@@ -2124,7 +2124,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | List[str]]  = None,
+        value: Optional[str | List[str]] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -3400,9 +3400,9 @@ class Chatbot(Changeable, IOComponent):
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
-    Preprocessing: This component passes the uploaded file as a {str} filepath. 
+    Preprocessing: This component passes the uploaded file as a {str} filepath.
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
-    
+
     Demos: model3D
     """
 
