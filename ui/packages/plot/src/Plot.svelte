@@ -23,6 +23,7 @@
 	let plotDiv;
 
 	// Bokeh
+	let bokehDiv;
 	let bokehLoaded = false
 	const resolves = []
 	const bokehPromises = Array(6).fill(0).map((_, i) => createPromise(i))
@@ -46,7 +47,13 @@
 
 	Promise.all(bokehPromises).then(() => {
 		let plotObj = JSON.parse(value["plot"]);
-    window.Bokeh.embed.embed_item(plotObj, "bokehDiv");	
+    window.Bokeh.embed.embed_item(plotObj, "bokeh-plot-helper").
+		then(() => {
+			let plotHelper = document.getElementById("bokeh-plot-helper");
+			let plotClone = plotHelper.cloneNode(true);
+
+			bokehDiv.appendChild(plotClone);
+		});	
 	})
 
 	// Plotly
@@ -55,9 +62,27 @@
 			let plotObj = JSON.parse(value["plot"]);
 			Plotly.newPlot(plotDiv, plotObj["data"], plotObj["layout"]);
 		} else if (value && value["type"] == "bokeh") {
-			document.getElementById("bokehDiv").innerHTML = "";
+			/* Given how bokehJS works, this is a workaround to render
+			 the plots. The library uses getElementById to populate
+			 the plot inside a div. However the current component
+			 lives in the shadowDOM, so that doesn't work. Instead
+			 the solution is to render the plot on a helper div and
+			 copy it. */
+
+			bokehDiv.innerHTML = "";
+			document.getElementById("bokeh-plot-helper").innerHTML = "";
+			
 			let plotObj = JSON.parse(value["plot"]);
-    		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+
+			// Generate the plot on the helper div
+			window.Bokeh.embed.embed_item(plotObj, "bokeh-plot-helper").
+			then(() => {
+				let plotHelper = document.getElementById("bokeh-plot-helper");
+				let plotClone = plotHelper.cloneNode(true);
+
+				// Append the plot
+				bokehDiv.appendChild(plotClone);
+			});
 		}
 	});
 </script>
@@ -65,7 +90,7 @@
 {#if value && value["type"] == "plotly"}
 	<div bind:this={plotDiv}/>
 {:else if value && value["type"] == "bokeh"}
-	<div id="bokehDiv"/>
+	<div bind:this={bokehDiv}/>
 {:else if value && value["type"] == "matplotlib"}
 	<div
 		class="output-image w-full flex justify-center items-center relative"

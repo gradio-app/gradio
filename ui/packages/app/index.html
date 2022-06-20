@@ -59,8 +59,11 @@
 			><div
 				id="root"
 				style="display: flex; flex-direction: column; flex-grow: 1"
-			></div
-		></gradio-app>
+			></div>
+			<div id="bokeh-helper">
+				<div id="bokeh-plot-helper"></div>
+			</div>
+		</gradio-app>
 
 		<script>
 			const ce = document.getElementsByTagName("gradio-app");
@@ -68,7 +71,6 @@
 				ce[0].addEventListener("domchange", () => {
 					document.body.style.padding = "0";
 				});
-				console.log("hello");
 				document.body.style.padding = "0";
 			}
 		</script>
