@@ -3156,6 +3156,12 @@ class Gallery(IOComponent):
         }
         return updated_config
 
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
     def postprocess(self, y):
         """
         Parameters:
