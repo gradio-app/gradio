@@ -40,7 +40,7 @@ class ORJSONResponse(JSONResponse):
     media_type = "application/json"
 
     def render(self, content: Any) -> bytes:
-        return orjson.dumps(content)
+        return orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY)
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
