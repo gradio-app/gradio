@@ -2682,7 +2682,7 @@ class Variable(IOComponent):
             orjson.dumps(self.value, option=orjson.OPT_SERIALIZE_NUMPY)
         except TypeError:
             raise ValueError(
-                f"Cannot set initial value because type: {type(value)} is"
+                f"Cannot set initial value because type: {type(value)} is "
                 "not JSON serializable. Instead, you can set the initial "
                 "value to be None, and in your Python function, change it "
                 "to be the your desired value when the function is "
