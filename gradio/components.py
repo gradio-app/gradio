@@ -938,7 +938,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: List[str] = None,
         type: str = "value",
@@ -1106,7 +1106,7 @@ class Radio(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1256,7 +1256,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -2117,14 +2117,14 @@ class File(Changeable, Clearable, IOComponent):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
-    Postprocessing: expects a {str} path to a file returned by the function.
+    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
 
     Demos: zip_to_json, zip_two_files
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | List[str]] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2750,7 +2750,7 @@ class Label(Changeable, IOComponent):
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if y is None:
+        if y is None or y == {}:
             return None
         if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
@@ -3399,9 +3399,10 @@ class Chatbot(Changeable, IOComponent):
 
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
-    Component creates a 3D Model component with input and output capabilities.
-    Input type: File object of type (.obj, glb, or .gltf)
-    Output type: filepath
+    Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
+    Preprocessing: This component passes the uploaded file as a {str} filepath.
+    Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
+
     Demos: model3D
     """
 
@@ -3912,3 +3913,4 @@ DataFrame = Dataframe
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
+Json = JSON
