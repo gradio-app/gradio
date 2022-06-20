@@ -946,7 +946,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: List[str] = None,
         type: str = "value",
@@ -1116,7 +1116,7 @@ class Radio(Changeable, IOComponent):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -1268,7 +1268,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str] = None,
+        choices: Optional[List[str]] = None,
         *,
         value: Optional[str] = None,
         type: str = "value",
@@ -2137,14 +2137,14 @@ class File(Changeable, Clearable, IOComponent):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
-    Postprocessing: expects a {str} path to a file returned by the function.
+    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
 
     Demos: zip_to_json, zip_two_files
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | List[str]] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2716,6 +2716,74 @@ class Variable(IOComponent):
         return self
 
 
+class Button(Clickable, IOComponent):
+    """
+    Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
+    Preprocessing: passes the button value as a {str} into the function
+    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
+
+    Demos: blocks_inputs, blocks_kinematics
+    """
+
+    def __init__(
+        self,
+        value: str = "Run",
+        *,
+        variant: str = "secondary",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): Default value
+        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        self.value = value
+        self.variant = variant
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            "variant": self.variant,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        variant: Optional[str] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        full_width: Optional[str] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        if full_width is not None:
+            self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
+
+
 ############################
 # Only Output Components
 ############################
@@ -2777,7 +2845,7 @@ class Label(Changeable, IOComponent):
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if y is None:
+        if y is None or y == {}:
             return None
         if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
@@ -3432,9 +3500,10 @@ class Chatbot(Changeable, IOComponent):
 
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
-    Component creates a 3D Model component with input and output capabilities.
-    Input type: File object of type (.obj, glb, or .gltf)
-    Output type: filepath
+    Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
+    Preprocessing: This component passes the uploaded file as a {str} filepath.
+    Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
+
     Demos: model3D
     """
 
@@ -3706,72 +3775,6 @@ class Markdown(IOComponent, Changeable):
 ############################
 
 
-class Button(Clickable, Component):
-    """
-    Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
-
-    Demos: blocks_inputs, blocks_kinematics
-    """
-
-    def __init__(
-        self,
-        value: str = "Run",
-        *,
-        variant: str = "secondary",
-        visible: bool = True,
-        elem_id: Optional[str] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        value (str): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.value = value
-        self.variant = variant
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "variant": self.variant,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = None,
-        variant: Optional[str] = None,
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "variant": variant,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        full_width: Optional[str] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-        if full_width is not None:
-            self._style["full_width"] = full_width
-        if margin is not None:
-            self._style["margin"] = margin
-
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
-
-
 class Dataset(Clickable, Component):
     """
     Used to create a output widget for showing datasets. Used to render the examples
@@ -3950,3 +3953,4 @@ DataFrame = Dataframe
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
+Json = JSON
