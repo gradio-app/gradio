@@ -7,7 +7,6 @@
 	import { Chat } from "@gradio/icons";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: Array<[string, string]> = [];
 	export let style: Styles = {};
 	export let label: string;
@@ -21,7 +20,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block padding={false} {elem_id} {visible} style={{ rounded: style.rounded }}>
+<Block padding={false} {elem_id} style={{ rounded: style.rounded }}>
 	<StatusTracker {...loading_status} />
 	{#if show_label}
 		<BlockLabel

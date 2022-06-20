@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
-	import { loading_status } from "./stores";
 
 	export let root: string;
 	export let component;
@@ -93,9 +92,7 @@
 	setContext("BLOCK_KEY", parent);
 </script>
 
-<div
-	class:apply-hidden={props.visible === false}
->
+<div class:apply-hidden={props.visible === false}>
 	<svelte:component
 		this={component}
 		bind:this={instance_map[id].instance}

@@ -11,7 +11,6 @@
 	export let style: Styles = {};
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
 	export let root: string;
@@ -28,7 +27,6 @@
 </script>
 
 <Block
-	{visible}
 	variant={value === null ? "dashed" : "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}

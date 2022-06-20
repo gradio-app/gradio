@@ -6,7 +6,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: number = 0;
 	export let label: string = "Slider";
 	export let style: Styles = {};
@@ -21,7 +20,6 @@
 </script>
 
 <Block
-	{visible}
 	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}

@@ -8,7 +8,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: null | string = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -29,7 +28,6 @@
 </script>
 
 <Block
-	{visible}
 	variant={mode === "dynamic" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}

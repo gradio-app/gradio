@@ -6,7 +6,6 @@
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: Number | null = null;
 	export let root: string;
 	export let samples_per_page: number = 10;
@@ -51,11 +50,7 @@
 	}
 </script>
 
-<div
-	id={elem_id}
-	class="mt-4 inline-block max-w-full text-gray-700 w-full"
-	class:!hidden={!visible}
->
+<div id={elem_id} class="mt-4 inline-block max-w-full text-gray-700 w-full">
 	<div class="text-xs mb-2 flex items-center text-gray-500">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

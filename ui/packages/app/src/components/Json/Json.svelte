@@ -9,7 +9,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -21,7 +20,6 @@
 </script>
 
 <Block
-	{visible}
 	test_id="json"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}

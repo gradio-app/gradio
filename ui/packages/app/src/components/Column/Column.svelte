@@ -2,7 +2,6 @@
 	import { create_classes } from "@gradio/utils";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let variant: "default" | "panel" = "default";
 	export let parent: string | null = null;
 	export let style: Record<string, unknown> = {};
@@ -16,7 +15,6 @@
 	class="flex flex-col gr-gap gr-form-gap relative col w-full {create_classes(
 		style
 	)}"
-	class:!hidden={!visible}
 >
 	<slot />
 </div>
