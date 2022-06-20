@@ -1,3 +1,4 @@
+import asyncio
 import ipaddress
 import os
 import unittest
@@ -37,7 +38,6 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class TestUtils(unittest.TestCase):
     @mock.patch("pkg_resources.require")
     def test_should_fail_with_distribution_not_found(self, mock_require):
-
         mock_require.side_effect = pkg_resources.DistributionNotFound()
 
         with warnings.catch_warnings(record=True) as w:
@@ -50,7 +50,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get):
-
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
 
         with warnings.catch_warnings(record=True) as w:
@@ -62,7 +61,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.Response.json")
     def test_should_warn_url_not_having_version(self, mock_json):
-
         mock_json.return_value = {"foo": "bar"}
 
         with warnings.catch_warnings(record=True) as w:
@@ -74,7 +72,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
-
         mock_post.side_effect = requests.ConnectionError()
         error_analytics("placeholder", "placeholder")
         mock_post.assert_called()
@@ -191,12 +188,13 @@ class TestDeleteNone(unittest.TestCase):
 
 class TestRequest:
     @pytest.fixture(autouse=True)
-    def client(self):
+    async def client(self):
         """
         A fixture to mock the async client object.
         """
-        with mock.patch("gradio.utils.client", AsyncClient()):
-            yield
+        async with AsyncClient() as client:
+            with mock.patch("gradio.utils.client", client):
+                yield
 
     @pytest.mark.asyncio
     async def test_get(self):
