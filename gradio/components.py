@@ -2690,6 +2690,73 @@ class Variable(IOComponent):
         return self
 
 
+class Button(Clickable, IOComponent):
+    """
+    Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
+    Preprocessing: passes the button value as a {str} into the function
+    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
+
+    Demos: blocks_inputs, blocks_kinematics
+    """
+
+    def __init__(
+        self,
+        value: str = "Run",
+        *,
+        variant: str = "secondary",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): Default value
+        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        visible (bool): If False, component will be hidden.
+        """
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        self.value = value
+        self.variant = variant
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            "variant": self.variant,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        variant: Optional[str] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        full_width: Optional[str] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        if full_width is not None:
+            self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
+
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            border=border,
+        )
+
+
 ############################
 # Only Output Components
 ############################
@@ -3669,71 +3736,6 @@ class Markdown(IOComponent, Changeable):
 ############################
 # Static Components
 ############################
-
-
-class Button(Clickable, Component):
-    """
-    Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
-
-    Demos: blocks_inputs, blocks_kinematics
-    """
-
-    def __init__(
-        self,
-        value: str = "Run",
-        *,
-        variant: str = "secondary",
-        visible: bool = True,
-        elem_id: Optional[str] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        value (str): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
-        visible (bool): If False, component will be hidden.
-        """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.value = value
-        self.variant = variant
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            "variant": self.variant,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = None,
-        variant: Optional[str] = None,
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "variant": variant,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        full_width: Optional[str] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-        if full_width is not None:
-            self._style["full_width"] = full_width
-        if margin is not None:
-            self._style["margin"] = margin
-
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
 
 
 class Dataset(Clickable, Component):
