@@ -3678,6 +3678,15 @@ class Plot(Changeable, Clearable, IOComponent):
     def style(self):
         return self
 
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[str]])
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
 
 class Markdown(IOComponent, Changeable):
     """
