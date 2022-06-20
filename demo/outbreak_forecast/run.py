@@ -59,7 +59,11 @@ inputs = [
     ]
 outputs = gr.Plot()
 
-demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs)
+demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs, examples=[
+        ["Matplotlib", 2, "March", ["Mexico", "UK"], True],
+        ["Plotly", 3.6, "February", ["Canada", "Mexico", "UK"], False],
+        ["Bokeh", 1.2, "May", ["UK"], True]
+    ], cache_examples=True)
 
 
 if __name__ == "__main__":
