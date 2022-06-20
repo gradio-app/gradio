@@ -306,7 +306,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         placeholder (str): placeholder hint to provide behind textarea.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.lines = lines
         self.max_lines = max_lines
@@ -494,7 +496,9 @@ class Number(Changeable, Submittable, IOComponent):
         value (float): default value.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
@@ -680,7 +684,9 @@ class Slider(Changeable, IOComponent):
         step (float): increment between slider values.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -832,7 +838,9 @@ class Checkbox(Changeable, IOComponent):
         value (bool): if True, checked by default.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
         self.value = self.postprocess(value)
@@ -956,7 +964,9 @@ class CheckboxGroup(Changeable, IOComponent):
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         self.cleared_value = []
@@ -1124,7 +1134,9 @@ class Radio(Changeable, IOComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         self.type = type
@@ -1274,7 +1286,9 @@ class Dropdown(Radio):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Radio.__init__(
             self,
@@ -1338,8 +1352,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.type = type
         self.value = self.postprocess(value)
@@ -1668,7 +1684,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.format = format
         self.source = source
@@ -1829,8 +1847,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.source = source
@@ -2142,7 +2162,9 @@ class File(Changeable, Clearable, IOComponent):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.file_count = file_count
         self.type = type
@@ -2348,7 +2370,9 @@ class Dataframe(Changeable, IOComponent):
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         wrap (Optional[bool]): if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
         """
 
@@ -2548,7 +2572,9 @@ class Timeseries(Changeable, IOComponent):
         label (str): component name in interface.
         colors (List[str]): an ordered list of colors to use for each line plot
         show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will allow users to upload a timeseries csv; if False, can only be used to display timeseries data. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.x = x
@@ -2713,6 +2739,7 @@ class Button(Clickable, IOComponent):
         value (str): Default value
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.value = value
@@ -2791,6 +2818,7 @@ class Label(Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
         self.value = self.postprocess(value)
@@ -2910,7 +2938,7 @@ class HighlightedText(Changeable, IOComponent):
         self,
         value: Optional[str] = None,
         *,
-        color_map: Dict[str, str] = None,
+        color_map: Dict[str, str] = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
@@ -2923,12 +2951,13 @@ class HighlightedText(Changeable, IOComponent):
         """
         Parameters:
         value (List[Tuple[str, str | Number | None]]): Default value to show.
+        show_legend (bool): whether to show span categories in a separate legend or inline.
         combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
         adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
-        show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.color_map = color_map
         if color_map is not None:
@@ -3054,6 +3083,7 @@ class JSON(Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3135,6 +3165,7 @@ class HTML(Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = value
         IOComponent.__init__(
@@ -3197,6 +3228,7 @@ class Gallery(IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         super().__init__(
@@ -3286,6 +3318,7 @@ class Carousel(IOComponent, Changeable):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
@@ -3382,7 +3415,7 @@ class Chatbot(Changeable, IOComponent):
     def __init__(
         self,
         value: Optional[List[Tuple[str, str]]] = None,
-        color_map: Dict[str, str] = None,
+        color_map: Dict[str, str] = None,  # Parameter moved to Chatbot.style()
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3396,6 +3429,7 @@ class Chatbot(Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if color_map is not None:
             warnings.warn(
@@ -3491,6 +3525,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
         self.value = self.postprocess(value)
@@ -3625,6 +3660,7 @@ class Plot(Changeable, Clearable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3709,6 +3745,7 @@ class Markdown(IOComponent, Changeable):
         Parameters:
         value (str): Value to show in Markdown component
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
@@ -3771,6 +3808,7 @@ class Dataset(Clickable, Component):
         headers (List[str]): Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
         type (str): 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
