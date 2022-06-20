@@ -2684,7 +2684,7 @@ class Variable(IOComponent):
             raise ValueError(
                 f"Cannot set initial value because type: {type(value)} is"
                 "not JSON serializable. Instead, you can set the initial "
-                "value to be None, and in your Python function, change it"
+                "value to be None, and in your Python function, change it "
                 "to be the your desired value when the function is "
                 "run initially."
             )
