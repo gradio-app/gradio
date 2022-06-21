@@ -8,6 +8,7 @@ from typing import Literal
 
 import pkg_resources
 import pytest
+import pytest_asyncio
 import requests
 from httpx import AsyncClient
 from pydantic import BaseModel
@@ -186,16 +187,17 @@ class TestDeleteNone(unittest.TestCase):
         self.assertEqual(delete_none(input), truth)
 
 
-class TestRequest:
-    @pytest.fixture(autouse=True)
-    async def client(self):
-        """
-        A fixture to mock the async client object.
-        """
-        async with AsyncClient() as client:
-            with mock.patch("gradio.utils.client", client):
-                yield
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def client():
+    """
+    A fixture to mock the async client object.
+    """
+    async with AsyncClient() as mock_client:
+        with mock.patch("gradio.utils.client", mock_client):
+            yield
 
+
+class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
         client_response: Request = await Request(
