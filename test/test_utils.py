@@ -187,7 +187,7 @@ class TestDeleteNone(unittest.TestCase):
 
 
 class TestRequest:
-    @pytest.fixture(autouse=True)
+    @pytest_asyncio.fixture(autouse=True)
     async def client(self):
         """
         A fixture to mock the async client object.
