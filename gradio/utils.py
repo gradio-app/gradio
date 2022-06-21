@@ -418,6 +418,7 @@ class Request:
         self._validation_model = validation_model
         self._validation_function = validation_function
         self._exception_type = exception_type
+        self._validated_data = None
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
