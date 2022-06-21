@@ -258,30 +258,7 @@
   </script>
   <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
   <script>
-    window.launchGradioWhenReady = (config, target) => {
-      if (window.launchGradio) {
-        window.launchGradio(config, target)
-      } else {
-        window.setTimeout(() => {
-          window.launchGradioWhenReady(config, target)
-        }, 500)
-      }
-    }
-  </script>
-  <script>
-    var demo_endpoint = "/demo";
-    var demo_names = {{ demo_names| tojson }};
-    demo_names.forEach((demo_name, i) => {
-      fetch('/demo/' + demo_name + '/config')
-        .then(response => response.json())
-        .then(demo => {
-          demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradioWhenReady(demo, "#interface_" + demo_name);
-        });
-    });
-
-
-    // // highlighting section in nav bar
+    // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
       let lastId;
       let cur = [];

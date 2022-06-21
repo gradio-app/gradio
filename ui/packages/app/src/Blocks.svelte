@@ -64,7 +64,6 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
-	export let is_space: boolean;
 	export let id: number = 0;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
@@ -396,10 +395,13 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full h-full min-h-screen flex flex-col">
+<div
+	class="w-full h-full flex flex-col"
+	class:min-h-screen={window.__gradio_mode__ !== "website"}
+>
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={(window.__gradio_mode__ = "app")}
+		class:flex-grow={(window.__gradio_mode__ === "app")}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />

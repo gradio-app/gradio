@@ -74,7 +74,6 @@ def render_index():
             star_count=star_count,
             navbar_html=navbar_html,
             entry_js_file=ENTRY_JS_FILE,
-
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -205,7 +204,7 @@ def render_guides():
 
         for demo_name in demo_names:
             demos[demo_name] = (
-                "</div><div id='interface_" + demo_name + "'></div><div class='prose'>"
+                "</div><gradio-app source='/demo/" + demo_name + "'></gradio-app><div class='prose'>"
             )
         guide_template = Template(guide["content"])
         guide_output = guide_template.render(code=code, demos=demos)
