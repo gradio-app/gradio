@@ -161,7 +161,8 @@ function mount_app(
 	config: Config,
 	target: HTMLElement | ShadowRoot | false,
 	wrapper: HTMLDivElement,
-	id: number
+	id: number,
+	autoscroll?: Boolean
 ) {
 	if (config.detail === "Not authenticated" || config.auth_required) {
 		const app = new Login({
@@ -176,7 +177,7 @@ function mount_app(
 		const app = new Blocks({
 			target: wrapper,
 			//@ts-ignore
-			props: { ...config, target: wrapper, id }
+			props: { ...config, target: wrapper, id, autoscroll: autoscroll }
 		});
 	}
 
@@ -239,10 +240,14 @@ function create_custom_element() {
 
 			const space = this.getAttribute("space");
 			const initial_height = this.getAttribute("initial_height");
+			let autoscroll = this.getAttribute("autoscroll");
+
+			const _autoscroll = autoscroll === "true" ? true : false;
+
 			this.wrapper.style.minHeight = initial_height || "300px";
 
 			const config = await handle_config(this.root, space);
-			mount_app(config, this.root, this.wrapper, this._id);
+			mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
 		}
 	}
 
@@ -263,7 +268,6 @@ async function unscoped_mount() {
 	});
 
 	const config = await handle_config(target, null);
-
 	mount_app(config, false, target, 0);
 }
 
