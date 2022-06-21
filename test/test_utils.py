@@ -11,6 +11,7 @@ import pytest
 import requests
 from httpx import AsyncClient
 from pydantic import BaseModel
+import pytest_asyncio
 
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
