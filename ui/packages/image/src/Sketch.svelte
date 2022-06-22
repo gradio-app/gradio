@@ -7,15 +7,18 @@
 	const dispatch = createEventDispatcher();
 
 	export let value;
+	export let mode = "sketch";
+	export let brush_color = "#0b0f19";
+	export let width;
+	export let height;
 
 	let mounted;
 
 	let brush_radius = 50;
-	let brush_color = "#0b0f19";
 	let catenary_color = "#aaa";
 
-	let canvas_width = 400;
-	let canvas_height = 400;
+	let canvas_width = width || 400;
+	let canvas_height = height || 400;
 
 	$: mounted && !value && clear();
 
@@ -56,6 +59,14 @@
 	let save_data = "";
 	let line_count = 0;
 
+	let display_natural_ratio = 1;
+
+	function calculate_ratio() {
+		const x = canvas.interface.getBoundingClientRect();
+		console.log("CALC", width / x.width);
+		display_natural_ratio = width / x.width;
+	}
+
 	onMount(() => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
@@ -69,10 +80,14 @@
 			}
 		});
 		chain_length = brush_radius;
-		canvas_observer = new ResizeObserver((entries, observer) =>
-			handle_canvas_resize(entries, observer)
-		);
+
+		canvas_observer = new ResizeObserver((entries, observer) => {
+			handle_canvas_resize(entries, observer);
+
+			calculate_ratio();
+		});
 		canvas_observer.observe(canvas_container);
+
 		loop();
 		mounted = true;
 		window.setTimeout(() => {
@@ -88,6 +103,8 @@
 				load_save_data(save_data);
 			}
 		}, 100);
+
+		calculate_ratio();
 	});
 
 	onDestroy(() => {
@@ -192,11 +209,16 @@
 		load_save_data(save_data, true);
 	};
 
-	let set_canvas_size = (canvas, width, height) => {
-		canvas.width = width * 3;
-		canvas.height = height * 3;
-		canvas.style.width = width;
-		canvas.style.height = height;
+	let set_canvas_size = (canvas, _width, _height) => {
+		console.log(width, height);
+		canvas.width = width || _width * 3;
+		canvas.height = height || _height * 3;
+		if (mode === "sketch") {
+		}
+
+		console.log(mode);
+		canvas.style.width = mode === "mask" ? "auto" : _width;
+		canvas.style.height = mode === "mask" ? "100%" : _height;
 	};
 
 	let get_pointer_pos = (e) => {
@@ -215,7 +237,11 @@
 	};
 
 	let handle_pointer_move = (x, y) => {
-		lazy.update({ x: x * 3, y: y * 3 });
+		lazy.update(
+			mode === "sketch"
+				? { x: x * 3, y: y * 3 }
+				: { x: x * display_natural_ratio, y: y * display_natural_ratio }
+		);
 		const is_disabled = !lazy.isEnabled();
 		if ((is_pressing && !is_drawing) || (is_disabled && is_pressing)) {
 			is_drawing = true;
@@ -280,7 +306,7 @@
 		values_changed = true;
 		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
 		ctx.temp.clearRect(0, 0, canvas.temp.width, canvas.temp.height);
-		ctx.drawing.fillStyle = "#FFFFFF";
+		ctx.drawing.fillStyle = mode === "sketch" ? "#FFFFFF" : "transparent";
 		ctx.drawing.fillRect(0, 0, canvas.drawing.width, canvas.drawing.height);
 		line_count = 0;
 	}
@@ -354,7 +380,11 @@
 	{#each canvas_types as { name, zIndex }}
 		<canvas
 			key={name}
-			style="display:block;position:absolute; z-index:{zIndex}; width: {canvas_width}px; height: {canvas_height}px"
+			class="inset-0 m-auto"
+			style=" display:block;position:absolute; z-index:{zIndex}; width: {mode ===
+			'sketch'
+				? canvas_width
+				: width}px; height: {mode === 'sketch' ? canvas_height : height}px"
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}

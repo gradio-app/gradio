@@ -10,7 +10,10 @@
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
-	export let value: null | string | { image: string; madk: string };
+	export let value:
+		| null
+		| string
+		| { image: string | null; mask: string | null };
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -26,7 +29,10 @@
 	let sketch: Sketch;
 
 	function handle_upload({ detail }: CustomEvent<string>) {
-		value = detail;
+		value =
+			source === "upload" && tool === "sketch"
+				? { image: detail, mask: null }
+				: detail;
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -54,6 +60,22 @@
 	$: dispatch("drag", dragging);
 
 	$: console.log(tool, source);
+
+	function handle_image_load(event: Event) {
+		const element = event.composedPath()[0] as HTMLImageElement;
+		img_width = element.naturalWidth;
+		img_height = element.naturalHeight;
+	}
+
+	function handle_mask_save({ detail }: { detail: string }) {
+		value = {
+			image: typeof value === "string" ? value : value?.image || null,
+			mask: detail
+		};
+	}
+
+	let img_height = 0;
+	let img_width = 0;
 </script>
 
 <BlockLabel
@@ -103,12 +125,27 @@
 
 		<img class="w-full h-full object-contain" src={value} alt="" />
 	{:else if tool === "sketch"}
-		<img class="absolute w-full h-full object-contain" src={value} alt="" />
-		<Sketch {value} bind:this={sketch} on:change={handle_save} />
-		<ModifySketch
-			on:undo={() => sketch.undo()}
-			on:clear={() => sketch.clear()}
+		<img
+			class="absolute w-full h-full object-contain"
+			src={value.image}
+			alt=""
+			on:load={handle_image_load}
 		/>
+		{#if img_width > 0}
+			<Sketch
+				{value}
+				bind:this={sketch}
+				brush_color="rgba(255, 0, 0, 0.5)"
+				on:change={handle_mask_save}
+				mode="mask"
+				width={img_width}
+				height={img_height}
+			/>
+			<ModifySketch
+				on:undo={() => sketch.undo()}
+				on:clear={() => sketch.clear()}
+			/>
+		{/if}
 	{:else}
 		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
