@@ -272,8 +272,9 @@ class App(FastAPI):
                     )
             return await run_predict(body=body, username=username)
 
+        #TODO: Add login_check dependency
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket, _=Depends(login_check)):
+        async def join_queue(websocket: WebSocket):
             await websocket.accept()
             event_body = await websocket.receive_json()
             event = Event(websocket, event_body)

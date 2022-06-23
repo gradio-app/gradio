@@ -348,9 +348,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-    task = event_loop.create_task(func(*args))
-    if callback_func:
-        task.add_done_callback(callback_func)
+    _ = event_loop.create_task(func(*args))
 
 
 client = httpx.AsyncClient()

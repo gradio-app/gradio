@@ -10,7 +10,7 @@ import httpx
 from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
 
-from gradio.utils import synchronize_async
+from gradio.utils import synchronize_async, Request
 
 
 class EventBody(BaseModel):
@@ -35,7 +35,7 @@ class Queue:
     SERVER_PATH = None
     DURATION_HISTORY_SIZE = 10
     DURATION_HISTORY = []
-    ESTIMATION = 1
+    ESTIMATION = 1 # when there is no estimation is calculated, default estimation is 1 sec
 
     @classmethod
     def init(
@@ -184,20 +184,19 @@ class Queue:
             cls.clean_job(event)
             return
 
-        # TODO: Move client under Http class after async-request-refactor
-        # TODO: Correct the url and data
-        async with httpx.AsyncClient() as client:
-            begin_time = time.time()
-            response = await client.post(
-                f"{cls.SERVER_PATH}api/predict", json=event.data
-            )
-            end_time = time.time()
-            cls.update_estimation(duration=round(end_time - begin_time, 3))
+        begin_time = time.time()
+        response = await Request(
+            method=Request.Method.POST,
+            url=f"{cls.SERVER_PATH}api/predict",
+            json=event.data,
+        )
+        end_time = time.time()
+        cls.update_estimation(duration=round(end_time - begin_time, 3))
 
-            client_awake = await event.send_message(response.json())
-            if client_awake:
-                await event.disconnect()
-            cls.clean_job(event)
+        client_awake = await event.send_message(response.json())
+        if client_awake:
+            await event.disconnect()
+        cls.clean_job(event)
 
 
 class Event:
