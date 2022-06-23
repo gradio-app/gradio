@@ -4,6 +4,7 @@ import copy
 import getpass
 import inspect
 import os
+import queue
 import random
 import sys
 import time
@@ -13,7 +14,8 @@ from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, T
 import anyio
 from anyio import CapacityLimiter
 
-from gradio import encryptor, external, networking, queueing, routes, strings, utils
+import gradio.event_queue
+from gradio import encryptor, external, networking, event_queue, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import component_or_layout_class, delete_none
@@ -894,4 +896,4 @@ class Blocks(BlockContext):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
             if self.enable_queue:
-                queueing.close()
+                event_queue.Queue.close()

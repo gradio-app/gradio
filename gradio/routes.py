@@ -25,8 +25,8 @@ from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 
 import gradio
-from gradio import encryptor, queueing
-from gradio.queue import Estimation, Event, Queue
+from gradio import encryptor
+from gradio.event_queue import Estimation, Event, Queue
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -225,16 +225,6 @@ class App(FastAPI):
             else:
                 if Path(app.cwd).resolve() in Path(path).resolve().parents:
                     return FileResponse(Path(path).resolve())
-
-        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-        async def queue_push(body: QueuePushBody):
-            job_hash, queue_position = queueing.push(body)
-            return {"hash": job_hash, "queue_position": queue_position}
-
-        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-        async def queue_status(body: QueueStatusBody):
-            status, data = queueing.get_status(body.hash)
-            return {"status": status, "data": data}
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)

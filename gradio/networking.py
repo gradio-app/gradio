@@ -15,7 +15,6 @@ import fastapi
 import requests
 import uvicorn
 
-from gradio import queueing
 from gradio.routes import App
 from gradio.tunneling import create_tunnel
 
@@ -143,7 +142,7 @@ def start_server(
     if app.blocks.enable_queue:
         if blocks.auth is not None or app.blocks.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
-        from gradio.queue import Queue
+        from gradio.event_queue import Queue
         from gradio.utils import synchronize_async
 
         Queue.init(path_to_local_server)

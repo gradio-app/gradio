@@ -3,14 +3,13 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import List
+from typing import List, Optional
 
 import fastapi
 import httpx
 from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
 
-from gradio.routes import PredictBody
 from gradio.utils import synchronize_async
 
 
@@ -19,7 +18,7 @@ class EventBody(BaseModel):
 
 
 class Estimation(BaseModel):
-    message: str | None = "estimation"
+    message: Optional[str] = "estimation"
     queue_size: int
     queue_duration: int
 
@@ -58,6 +57,10 @@ class Queue:
     @classmethod
     def close(cls):
         cls.STOP = True
+
+    @classmethod
+    def resume(cls):
+        cls.STOP = False
 
     @classmethod
     async def start_processing(cls) -> None:
@@ -199,6 +202,7 @@ class Queue:
 
 class Event:
     def __init__(self, websocket: fastapi.WebSocket, event_body: EventBody):
+        from gradio.routes import PredictBody
         self.websocket = websocket
         self.event_body = event_body
         self.data: None | PredictBody = None
