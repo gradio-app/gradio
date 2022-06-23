@@ -9,7 +9,7 @@ with gr.Blocks() as demo:
     submit_btn = gr.Button("Submit")
 
     diagnosis_box = gr.Textbox(label="Diagnosis")
-    patient_summary_box = gr.Textbox(label="Patient Summary")
+    patient_summary_box = gr.Textbox(label="Patient Summary", visible=False)
 
     def submit(name, age, symptoms):
         if len(name) == 0:
@@ -18,7 +18,7 @@ with gr.Blocks() as demo:
             return {error_box: gr.update(value="Enter valid age", visible=True)}
         return {
             diagnosis_box: "covid" if "Cough" in symptoms else "flu",
-            patient_summary_box: f"{name}, {age} y/o",
+            patient_summary_box: gr.update(value=f"{name}, {age} y/o", visible=True)
         }
 
     submit_btn.click(

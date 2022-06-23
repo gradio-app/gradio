@@ -16,7 +16,6 @@
 	export let value: Array<string> | null = null;
 	export let style: Styles = {};
 
-	$: console.log(">", value);
 	let selected_image: number | null = null;
 
 	$: previous =
@@ -79,12 +78,12 @@
 <svelte:window bind:innerHeight={window_height} />
 
 <Block
+	{visible}
 	variant="solid"
 	color="grey"
 	padding={false}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 	{#if show_label}

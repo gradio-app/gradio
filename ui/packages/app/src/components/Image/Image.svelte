@@ -29,14 +29,14 @@
 </script>
 
 <Block
+	{visible}
 	variant={mode === "dynamic" && value === null && source === "upload"
 		? "dashed"
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded }}
-	{visible}
+	style={{ rounded: style.rounded, height: style.height, width: style.width }}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}

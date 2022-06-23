@@ -29,12 +29,12 @@
 </script>
 
 <Block
+	{visible}
 	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
 	style={{ rounded: style.rounded }}
-	{visible}
 >
 	<StatusTracker {...loading_status} />
 
