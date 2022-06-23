@@ -41,7 +41,9 @@ class TestParallel(unittest.TestCase):
         )
 
     def test_multiple_return_in_interface(self):
-        io1 = gr.Interface(lambda x: (x, x+x), "textbox", [gr.Textbox(), gr.Textbox()])
+        io1 = gr.Interface(
+            lambda x: (x, x + x), "textbox", [gr.Textbox(), gr.Textbox()]
+        )
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
         self.assertEqual(
