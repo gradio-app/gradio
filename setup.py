@@ -44,6 +44,8 @@ setup(
         "uvicorn",
         "Jinja2",
         "fsspec",
+        "httpx",
+        "pydantic",
     ],
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
