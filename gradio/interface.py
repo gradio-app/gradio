@@ -173,10 +173,11 @@ class Interface(Blocks):
         if not isinstance(fn, list):
             fn = [fn]
         else:
-            raise DeprecationWarning("The `fn` parameter only accepts a single function" 
-                                     ", support for a list of functions has been "
-                                     "deprecated. Please use gradio.mix.Parallel "
-                                     "instead.")
+            raise DeprecationWarning(
+                "The `fn` parameter only accepts a single function, support for a list "
+                "of functions has been deprecated. Please use gradio.mix.Parallel "
+                "instead."
+            )
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
