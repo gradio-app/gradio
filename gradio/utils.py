@@ -369,6 +369,8 @@ class Request:
     The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
     with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
     Finally, call the get_validated_data function to get the response data.
+    
+    You can see example usages in test_utils.py.
     """
 
     ResponseJson = NewType("ResponseJson", Json)
