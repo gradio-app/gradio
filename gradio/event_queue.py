@@ -139,7 +139,6 @@ class Queue:
         """
         Notify clients about events statuses in the queue periodically.
         """
-        print(f"Print from notify_clients")
         while not cls.STOP:
             await asyncio.sleep(cls.UPDATE_INTERVALS)
 
