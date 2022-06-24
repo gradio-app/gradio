@@ -18,3 +18,4 @@ uvicorn
 Jinja2
 httpx
 pydantic
+websockets
