@@ -36,7 +36,7 @@
 		if (!style.color_map) {
 			return ["#fb923c", "#9ca3af"];
 		} else {
-			return [get_color(style.color_map.bot), get_color(style.color_map.user)];
+			return [get_color(style.color_map[0]), get_color(style.color_map[1])];
 		}
 	}
 </script>
@@ -53,7 +53,7 @@
 			</div>
 			<div
 				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-whitetext-sm"
+				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white text-sm"
 				style={"background-color:" + _colors[1]}
 			>
 				{message[1]}
