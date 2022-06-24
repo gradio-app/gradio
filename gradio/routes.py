@@ -16,7 +16,7 @@ from typing import Any, List, Optional, Type
 
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,6 +24,7 @@ from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from pydantic import BaseModel
 from starlette.responses import RedirectResponse
+from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor
@@ -273,19 +274,21 @@ class App(FastAPI):
                     )
             return await run_predict(body=body, username=username)
 
-        # TODO: Add login_check dependency
+        # TODO: Add login_check dependency, could not make it work with Postman
         # TODO: remove prints
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
             print("Connection Accepted")
             await websocket.accept()
             event_body = await websocket.receive_json()
-            print(f"Event Body Received: {type(event_body)}, {event_body} ")
+            print(f"Event Body Received: {event_body}")
             event = Event(websocket, event_body)
             Queue.push(event)
-            await event.send_message({"msg": "joined_queue"})
             print("Joined queue")
-            await asyncio.sleep(3600)
+            while True:
+                await asyncio.sleep(60)
+                if websocket.application_state == WebSocketState.DISCONNECTED:
+                    return
 
         @app.post(
             "/queue/status",

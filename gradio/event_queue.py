@@ -68,7 +68,6 @@ class Queue:
     # TODO: Remove prints
     @classmethod
     async def start_processing(cls) -> None:
-        print(f"Starting processing", flush=True)
         while not cls.STOP:
             if not cls.EVENT_QUEUE:
                 await asyncio.sleep(1)

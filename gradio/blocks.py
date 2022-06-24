@@ -895,6 +895,10 @@ class Blocks(BlockContext):
         Closes the Interface that was launched and frees the port.
         """
         try:
+            from gradio.event_queue import Queue
+
+            if self.enable_queue:
+                Queue.close()
             self.server.close()
             self.is_running = False
             if verbose:
@@ -912,5 +916,3 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            if self.enable_queue:
-                event_queue.Queue.close()
