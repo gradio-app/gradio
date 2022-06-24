@@ -156,7 +156,7 @@ class Queue:
             event:
             estimation
         """
-        client_awake = await event.send_message(estimation.json())
+        client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
 
