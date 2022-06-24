@@ -41,4 +41,5 @@ class TestQueue:
         client = TestClient(app)
         with client.websocket_connect("/queue/join") as websocket:
             websocket.send_json({"hash": "0001"})
+
             assert {"message": "joined_queue"} == websocket.receive_json()

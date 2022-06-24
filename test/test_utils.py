@@ -239,7 +239,7 @@ class TestRequest:
     @pytest.mark.asyncio
     async def test_validate_and_fail_with_model(self):
         class TestModel(BaseModel):
-            name: Literal[str] = "John"
+            name: Literal["John"] = "John"
             job: str
 
         client_response: Request = await Request(
