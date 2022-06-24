@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
 
+
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
     queue_size: int
@@ -68,22 +69,23 @@ class Queue:
                 await asyncio.sleep(1)
                 continue
             print(f"Start Processing, search for inactive job slots")
-            if None in cls.ACTIVE_JOBS:
+            if not None in cls.ACTIVE_JOBS:
+                await asyncio.sleep(1)
+                continue
                 # Using mutex to avoid editing a list in use
 
-                async with cls.LOCK:
-                    print(
-                        f"Start Processing, found inactive job slot, now popping event"
-                    )
-                    event = cls.EVENT_QUEUE.pop(0)
-                    print(f"Start Processing, found event, popped event: {event}")
+            async with cls.LOCK:
+                print(
+                    f"Start Processing, found inactive job slot, now popping event"
+                )
+                event = cls.EVENT_QUEUE.pop(0)
+                print(f"Start Processing, found event, popped event: {event}")
 
-                cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
+            cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
 
-                run_coro_in_background(cls.process_event, event)
-                await cls.gather_data_for_first_ranks(cls.DATA_GATHERING_START_AT)
-            else:
-                await asyncio.sleep(1)
+            run_coro_in_background(cls.process_event, event)
+            await cls.gather_data_for_first_ranks(cls.DATA_GATHERING_START_AT)
+
     @classmethod
     def push(cls, event: Event):
         cls.EVENT_QUEUE.append(event)
@@ -137,7 +139,7 @@ class Queue:
         """
         while not cls.STOP:
             await asyncio.sleep(cls.UPDATE_INTERVALS)
-
+            print(f"Event Queue: {cls.EVENT_QUEUE}")
             if not cls.EVENT_QUEUE:
                 continue
 
@@ -220,12 +222,12 @@ class Event:
         try:
             await self.websocket.send_json(data=data)
             return True
-        except WebSocketDisconnect:
+        except:
             return False
 
     async def get_message(self) -> (json, bool):
         try:
             data = await self.websocket.receive_json()
             return data
-        except WebSocketDisconnect:
+        except:
             return None
