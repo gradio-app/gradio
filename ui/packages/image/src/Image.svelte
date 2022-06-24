@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
@@ -30,7 +30,7 @@
 
 	function handle_upload({ detail }: CustomEvent<string>) {
 		value =
-			source === "upload" && tool === "sketch"
+			(source === "upload" || source === "webcam") && tool === "sketch"
 				? { image: detail, mask: null }
 				: detail;
 	}
@@ -72,6 +72,12 @@
 			image: typeof value === "string" ? value : value?.image || null,
 			mask: detail
 		};
+	}
+
+	async function handle_mask_clear() {
+		sketch.clear();
+		await tick();
+		value = null;
 	}
 
 	let img_height = 0;
@@ -124,7 +130,7 @@
 		/>
 
 		<img class="w-full h-full object-contain" src={value} alt="" />
-	{:else if tool === "sketch"}
+	{:else if tool === "sketch" && value !== null}
 		<img
 			class="absolute w-full h-full object-contain"
 			src={value.image}
@@ -135,7 +141,8 @@
 			<Sketch
 				{value}
 				bind:this={sketch}
-				brush_color="rgba(255, 0, 0, 0.5)"
+				brush_radius={25}
+				brush_color="rgba(255, 255, 255, 1)"
 				on:change={handle_mask_save}
 				mode="mask"
 				width={img_width}
@@ -143,7 +150,7 @@
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
-				on:clear={() => sketch.clear()}
+				on:clear={handle_mask_clear}
 			/>
 		{/if}
 	{:else}
