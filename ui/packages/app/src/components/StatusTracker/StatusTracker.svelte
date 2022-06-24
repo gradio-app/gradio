@@ -123,8 +123,11 @@
 	bind:this={el}
 >
 	{#if status === "pending"}
-		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text">
+		<div
+			class="progress-bar dark:bg-gray-700 "
+			style:transform="scaleX({progress || 0})"
+		/>
+		<div class="meta-text dark:text-gray-300">
 			{#if queue_position !== null && queue_position > 0}
 				queue: {queue_position}/{initial_queue_pos} |
 			{:else if queue_position === 0}
@@ -156,7 +159,7 @@
 	}
 
 	.progress-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+		@apply absolute inset-0  origin-left bg-slate-100 top-0 left-0 z-10 opacity-80;
 	}
 
 	.meta-text {
@@ -168,7 +171,7 @@
 	}
 
 	.error {
-		@apply text-red-400 font-mono font-semibold text-lg;
+		@apply text-red-500 font-mono font-semibold text-sm;
 	}
 	@keyframes blink {
 		0% {
