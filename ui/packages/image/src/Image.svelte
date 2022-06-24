@@ -28,6 +28,14 @@
 
 	let sketch: Sketch;
 
+	if (
+		value &&
+		(source === "canvas" || source === "webcam") &&
+		tool === "sketch"
+	) {
+		value = { image: value, mask: null };
+	}
+
 	function handle_upload({ detail }: CustomEvent<string>) {
 		value =
 			(source === "upload" || source === "webcam") && tool === "sketch"
