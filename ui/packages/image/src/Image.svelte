@@ -30,7 +30,7 @@
 
 	if (
 		value &&
-		(source === "canvas" || source === "webcam") &&
+		(source === "upload" || source === "webcam") &&
 		tool === "sketch"
 	) {
 		value = { image: value, mask: null };
