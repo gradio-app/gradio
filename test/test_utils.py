@@ -193,7 +193,7 @@ async def client():
     A fixture to mock the async client object.
     """
     async with AsyncClient() as mock_client:
-        with mock.patch("gradio.utils.client", mock_client):
+        with mock.patch("gradio.utils.Request.client", mock_client):
             yield
 
 

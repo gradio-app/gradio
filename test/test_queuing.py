@@ -7,7 +7,7 @@ from gradio.routes import QueuePushBody
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
-#TODO:
+# TODO:
 """
 class TestQueuingOpenClose(unittest.TestCase):
     def test_init(self):

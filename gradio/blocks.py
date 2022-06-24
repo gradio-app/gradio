@@ -5,7 +5,6 @@ import copy
 import getpass
 import inspect
 import os
-import queue
 import random
 import sys
 import time
@@ -13,10 +12,10 @@ import webbrowser
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
+import requests
 from anyio import CapacityLimiter
 
-import gradio.event_queue
-from gradio import encryptor, external, networking, event_queue, routes, strings, utils
+from gradio import encryptor, event_queue, external, networking, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import component_or_layout_class, delete_none
@@ -245,6 +244,7 @@ class Blocks(BlockContext):
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
+        self.enable_queue = False
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -779,6 +779,14 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
 
+            if app.blocks.enable_queue:
+                if app.blocks.auth is not None or app.blocks.encrypt:
+                    raise ValueError(
+                        "Cannot queue with encryption or authentication enabled."
+                    )
+                # Cannot run async functions in background other than app's scope.
+                # Workaround by triggering the app endpoint
+                requests.get(f"{self.local_url}start/queue")
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
@@ -876,6 +884,7 @@ class Blocks(BlockContext):
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
+
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 

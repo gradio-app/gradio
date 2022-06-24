@@ -13,7 +13,7 @@ import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NewType, Type
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, NewType, Type
 
 import aiohttp
 import analytics
@@ -348,10 +348,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-    _ = event_loop.create_task(func(*args))
-
-
-client = httpx.AsyncClient()
+    return event_loop.create_task(func(*args, **kwargs))
 
 
 class Request:
@@ -374,6 +371,7 @@ class Request:
     """
 
     ResponseJson = NewType("ResponseJson", Json)
+    client = httpx.AsyncClient()
 
     class Method(str, Enum):
         """
@@ -444,7 +442,7 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await client.send(self._request)
+            self._response: httpx.Response = await Request.client.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -568,4 +566,3 @@ class Request:
     @property
     def status(self):
         return self._status
-

@@ -6,11 +6,10 @@ import time
 from typing import List, Optional
 
 import fastapi
-import httpx
 from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
 
-from gradio.utils import synchronize_async, Request
+from gradio.utils import Request, run_coro_in_background
 
 
 class EventBody(BaseModel):
@@ -35,10 +34,11 @@ class Queue:
     SERVER_PATH = None
     DURATION_HISTORY_SIZE = 10
     DURATION_HISTORY = []
-    ESTIMATION = 1 # when there is no estimation is calculated, default estimation is 1 sec
+    # when there is no estimation is calculated, default estimation is 1 sec
+    ESTIMATION = 1
 
     @classmethod
-    def init(
+    async def init(
         cls,
         server_path: str,
         max_thread_count: int = 1,
@@ -54,6 +54,9 @@ class Queue:
         cls.UPDATE_INTERVALS = update_intervals
         cls.DURATION_HISTORY_SIZE = duration_history_size
 
+        run_coro_in_background(Queue.notify_clients)
+        run_coro_in_background(Queue.start_processing)
+
     @classmethod
     def close(cls):
         cls.STOP = True
@@ -62,20 +65,28 @@ class Queue:
     def resume(cls):
         cls.STOP = False
 
+    # TODO: Remove prints
     @classmethod
     async def start_processing(cls) -> None:
+        print(f"Starting processing", flush=True)
         while not cls.STOP:
             if not cls.EVENT_QUEUE:
                 await asyncio.sleep(1)
                 continue
-
+            print(f"Start Processing, search for inactive job slots")
             if None in cls.ACTIVE_JOBS:
                 # Using mutex to avoid editing a list in use
+
                 async with cls.LOCK:
+                    print(
+                        f"Start Processing, found inactive job slot, now popping event"
+                    )
                     event = cls.EVENT_QUEUE.pop(0)
+                    print(f"Start Processing, found event, popped event: {event}")
+
                 cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
 
-                synchronize_async(cls.process_event, event)
+                run_coro_in_background(cls.process_event, event)
                 await cls.gather_data_for_first_ranks(cls.DATA_GATHERING_START_AT)
 
     @classmethod
@@ -116,7 +127,8 @@ class Queue:
             event:
         """
         if not event.data:
-            client_awake = await event.send_message({"message": "send_data"})
+
+            client_awake = await event.send_message({"msg": "send_data"})
             if not client_awake:
                 await cls.clean_event(event)
                 return
@@ -128,6 +140,7 @@ class Queue:
         """
         Notify clients about events statuses in the queue periodically.
         """
+        print(f"Print from notify_clients")
         while not cls.STOP:
             await asyncio.sleep(cls.UPDATE_INTERVALS)
 
@@ -179,7 +192,7 @@ class Queue:
     @classmethod
     async def process_event(cls, event: Event) -> None:
         await cls.gather_event_data(event)  # Make sure we have the data
-        client_awake = await event.send_message({"message": "process_starts"})
+        client_awake = await event.send_message({"msg": "process_starts"})
         if not client_awake:
             cls.clean_job(event)
             return
@@ -192,8 +205,7 @@ class Queue:
         )
         end_time = time.time()
         cls.update_estimation(duration=round(end_time - begin_time, 3))
-
-        client_awake = await event.send_message(response.json())
+        client_awake = await event.send_message(response.json)
         if client_awake:
             await event.disconnect()
         cls.clean_job(event)
@@ -202,6 +214,7 @@ class Queue:
 class Event:
     def __init__(self, websocket: fastapi.WebSocket, event_body: EventBody):
         from gradio.routes import PredictBody
+
         self.websocket = websocket
         self.event_body = event_body
         self.data: None | PredictBody = None

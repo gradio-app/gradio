@@ -73,7 +73,8 @@ class TestRoutes(unittest.TestCase):
         )
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest", None])
-    #TODO:
+
+    # TODO:
     """
     def test_queue_push_route(self):
         queueing.push = mock.MagicMock(return_value=(None, None))

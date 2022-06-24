@@ -91,7 +91,7 @@ def start_server(
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
     ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, fastapi.FastAPI, Server]:
+) -> Tuple[int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server
@@ -138,15 +138,6 @@ def start_server(
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
     app = App.create_app(blocks)
-
-    if app.blocks.enable_queue:
-        if blocks.auth is not None or app.blocks.encrypt:
-            raise ValueError("Cannot queue with encryption or authentication enabled.")
-        from gradio.event_queue import Queue
-        from gradio.utils import synchronize_async
-
-        Queue.init(path_to_local_server)
-        synchronize_async(Queue.start_processing)
 
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port

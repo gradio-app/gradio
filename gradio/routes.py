@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import io
 import os
@@ -272,14 +273,19 @@ class App(FastAPI):
                     )
             return await run_predict(body=body, username=username)
 
-        #TODO: Add login_check dependency
+        # TODO: Add login_check dependency
+        # TODO: remove prints
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
+            print("Connection Accepted")
             await websocket.accept()
             event_body = await websocket.receive_json()
+            print(f"Event Body Received: {type(event_body)}, {event_body} ")
             event = Event(websocket, event_body)
             Queue.push(event)
-            await event.send_message({"message": "joined_queue"})
+            await event.send_message({"msg": "joined_queue"})
+            print("Joined queue")
+            await asyncio.sleep(3600)
 
         @app.post(
             "/queue/status",
@@ -288,6 +294,16 @@ class App(FastAPI):
         )
         async def get_queue_status():
             return Queue.get_estimation()
+
+        @app.get(
+            "/start/queue",
+            dependencies=[Depends(login_check)],
+        )
+        async def start_queue():
+            from gradio.utils import run_coro_in_background
+
+            gradio.utils.run_coro_in_background(Queue.init, "http://127.0.0.1:7860/")
+            return True
 
         return app
 
