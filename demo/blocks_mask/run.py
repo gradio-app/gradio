@@ -10,7 +10,7 @@ demo = gr.Blocks()
 with demo:
     with gr.Row():
         with gr.Column():
-            img = gr.Image(tool="sketch", source="upload", label="Mask")
+            img = gr.Image(tool="sketch", source="webcam", label="Mask")
             btn = gr.Button("Run")
         with gr.Column():
             img2 = gr.Image()

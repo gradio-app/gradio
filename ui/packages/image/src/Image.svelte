@@ -40,8 +40,19 @@
 		dispatch("clear");
 	}
 
-	function handle_save({ detail }: { detail: string }) {
-		value = detail;
+	async function handle_save({ detail }: { detail: string }) {
+		console.log(
+			detail,
+			(source === "upload" || source === "webcam") && tool === "sketch"
+		);
+		value =
+			(source === "upload" || source === "webcam") && tool === "sketch"
+				? { image: detail, mask: null }
+				: detail;
+
+		await tick();
+
+		console.log(tool, value);
 		dispatch(streaming ? "stream" : "edit");
 	}
 
@@ -90,7 +101,10 @@
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 
-<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
+<div
+	class:bg-gray-200={value}
+	class:h-60={source !== "webcam" || tool === "sketch"}
+>
 	{#if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
