@@ -11,13 +11,8 @@ from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
 
-
-class EventBody(BaseModel):
-    hash: str
-
-
 class Estimation(BaseModel):
-    message: Optional[str] = "estimation"
+    msg: Optional[str] = "estimation"
     queue_size: int
     queue_duration: int
 
@@ -87,7 +82,8 @@ class Queue:
 
                 run_coro_in_background(cls.process_event, event)
                 await cls.gather_data_for_first_ranks(cls.DATA_GATHERING_START_AT)
-
+            else:
+                await asyncio.sleep(1)
     @classmethod
     def push(cls, event: Event):
         cls.EVENT_QUEUE.append(event)
@@ -100,7 +96,7 @@ class Queue:
     async def clean_event(cls, event: Event) -> None:
         # Using mutex to avoid editing a list in use
         async with cls.LOCK:
-            try:
+            try:  # TODO: Might search with event hash to speed up
                 cls.EVENT_QUEUE.remove(event)
             except ValueError:
                 pass
@@ -210,11 +206,11 @@ class Queue:
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, event_body: EventBody):
+    def __init__(self, websocket: fastapi.WebSocket, hash: str):
         from gradio.routes import PredictBody
 
         self.websocket = websocket
-        self.event_body = event_body
+        self.hash = hash
         self.data: None | PredictBody = None
 
     async def disconnect(self, code=1000):

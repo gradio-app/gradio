@@ -280,9 +280,10 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             print("Connection Accepted")
             await websocket.accept()
-            event_body = await websocket.receive_json()
-            print(f"Event Body Received: {event_body}")
-            event = Event(websocket, event_body)
+            await websocket.send_json(Queue.get_estimation().dict())
+            e_hash = await websocket.receive_json()
+            print(f"Event Body Received: {e_hash}")
+            event = Event(websocket, e_hash["hash"])
             Queue.push(event)
             print("Joined queue")
             while True:
