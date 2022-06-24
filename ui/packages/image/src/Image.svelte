@@ -41,10 +41,6 @@
 	}
 
 	async function handle_save({ detail }: { detail: string }) {
-		console.log(
-			detail,
-			(source === "upload" || source === "webcam") && tool === "sketch"
-		);
 		value =
 			(source === "upload" || source === "webcam") && tool === "sketch"
 				? { image: detail, mask: null }
@@ -52,7 +48,6 @@
 
 		await tick();
 
-		console.log(tool, value);
 		dispatch(streaming ? "stream" : "edit");
 	}
 
@@ -69,8 +64,6 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
-
-	$: console.log(tool, source);
 
 	function handle_image_load(event: Event) {
 		const element = event.composedPath()[0] as HTMLImageElement;
@@ -156,7 +149,7 @@
 				{value}
 				bind:this={sketch}
 				brush_radius={25}
-				brush_color="rgba(255, 255, 255, 1)"
+				brush_color="rgba(255, 255, 255, 0.65)"
 				on:change={handle_mask_save}
 				mode="mask"
 				width={img_width}

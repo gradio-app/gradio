@@ -186,7 +186,6 @@
 			points = _points;
 			saveLine({ brush_color, brush_radius });
 			if (mode === "mask") {
-				console.log(points);
 				save_mask_line();
 			}
 			return;
@@ -238,13 +237,11 @@
 	};
 
 	let set_canvas_size = (canvas, _width, _height) => {
-		console.log(width, height);
 		canvas.width = width || _width * 3;
 		canvas.height = height || _height * 3;
 		if (mode === "sketch") {
 		}
 
-		console.log(mode);
 		canvas.style.width = mode === "mask" ? "auto" : _width;
 		canvas.style.height = mode === "mask" ? "100%" : _height;
 	};
@@ -343,9 +340,6 @@
 	};
 
 	let save_mask_line = () => {
-		console.log("saving");
-		console.log(points);
-
 		// if (points.length < 2) return;
 
 		lines.push({
@@ -455,7 +449,6 @@
 	};
 
 	export function get_image_data() {
-		console.log(canvas.mask, canvas.mask.toDataURL("image/png"));
 		return mode === "mask"
 			? canvas.mask.toDataURL("image/png")
 			: canvas.drawing.toDataURL("image/png");
