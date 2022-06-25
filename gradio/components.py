@@ -3989,9 +3989,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         self,
         value: str = "",
         *,
-        lines: int = 1,
-        max_lines: int = 20,
-        placeholder: Optional[str] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
@@ -4002,22 +3999,15 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         """
         Parameters:
         value (str): default text to provide in textarea.
-        lines (int): minimum number of line rows to provide in textarea.
-        max_lines (int): maximum number of line rows to provide in textarea.
-        placeholder (str): placeholder hint to provide behind textarea.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         interactive (Optional[bool]): if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.lines = lines
-        self.max_lines = max_lines
-        self.placeholder = placeholder
         self.value = self.postprocess(value)
-        self.cleared_value = ""
+        self.cleared_value = "#000000"
         self.test_input = value
-        self.interpret_by_tokens = True
         IOComponent.__init__(
             self,
             label=label,
@@ -4030,9 +4020,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 
     def get_config(self):
         return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
             "value": self.value,
             **IOComponent.get_config(self),
         }
@@ -4040,18 +4027,12 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        lines: Optional[int] = None,
-        max_lines: Optional[int] = None,
-        placeholder: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
     ):
         updated_config = {
-            "lines": lines,
-            "max_lines": max_lines,
-            "placeholder": placeholder,
             "label": label,
             "show_label": show_label,
             "visible": visible,
@@ -4105,35 +4086,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         self.interpretation_replacement = replacement
         return self
 
-    def tokenize(self, x: str) -> Tuple[List[str], List[str], None]:
-        """
-        Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
-        """
-        tokens = x.split(self.interpretation_separator)
-        leave_one_out_strings = []
-        for index in range(len(tokens)):
-            leave_one_out_set = list(tokens)
-            if self.interpretation_replacement is None:
-                leave_one_out_set.pop(index)
-            else:
-                leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_strings.append(
-                self.interpretation_separator.join(leave_one_out_set)
-            )
-        return tokens, leave_one_out_strings, None
-
-    def get_masked_inputs(
-        self, tokens: List[str], binary_mask_matrix: List[List[int]]
-    ) -> List[str]:
-        """
-        Constructs partially-masked sentences for SHAP interpretation
-        """
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
-            masked_inputs.append(self.interpretation_separator.join(masked_input))
-        return masked_inputs
-
     def get_interpretation_scores(
         self, x, neighbors, scores: List[float], tokens: List[str], masks=None, **kwargs
     ) -> List[Tuple[str, float]]:
@@ -4148,7 +4100,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         return result
 
     def generate_sample(self) -> str:
-        return "Hello World"
+        return "#000000"
 
     # Output Functionalities
     def postprocess(self, y: str | None):

@@ -7,7 +7,7 @@ def greet(name):
 
 demo = gr.Interface(
     fn=greet,
-    inputs=gr.ColorPicker(lines=2, placeholder="Name Here..."),
+    inputs=gr.ColorPicker(),
     outputs="text",
 )
 

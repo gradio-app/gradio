@@ -9,12 +9,9 @@
 	export let label: string = "ColorPicker";
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: string = "";
-	export let lines: number;
-	export let placeholder: string = "";
+	export let value: string;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
-	export let max_lines: number | false;
 
 	export let style: Record<string, unknown> = {};
 
@@ -36,9 +33,6 @@
 		bind:value
 		{label}
 		{show_label}
-		{lines}
-		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
-		{placeholder}
 		on:change
 		on:submit
 		disabled={mode === "static"}
