@@ -7,6 +7,8 @@ import re
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf8')
+version = (this_directory / "gradio" / "version.txt").read_text(
+    encoding='utf8').strip()
 
 # Replace relative paths to images with absolute paths
 long_description = re.sub("website/homepage/", "https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/", long_description)
@@ -14,7 +16,7 @@ long_description = re.sub(r"demo/([\S]*.gif)", r"https://raw.githubusercontent.c
 
 setup(
     name="gradio",
-    version="3.0.13",
+    version=version,
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     long_description=long_description,
