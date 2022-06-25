@@ -1318,10 +1318,10 @@ class Dropdown(Radio):
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_classifier, image_mod, webcam, digit_classifier
+    Demos: image_classifier, image_mod, webcam, digit_classifier, blocks_mask
     """
 
     def __init__(
@@ -1349,7 +1349,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
+        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -1412,24 +1412,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
-        """
-        Parameters:
-        x (str): base64 url data
-        Returns:
-        (numpy.array | PIL.Image | str): image in requested format
-        """
-        if x is None:
-            return x
-        im = processing_utils.decode_base64_to_image(x)
-        fmt = im.format
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            im = im.convert(self.image_mode)
-        if self.shape is not None:
-            im = processing_utils.resize_and_crop(im, self.shape)
-        if self.invert_colors:
-            im = PIL.ImageOps.invert(im)
+    def format_image(
+        self, im: Optional[PIL.Image], fmt: str
+    ) -> np.array | PIL.Image | str | None:
+        """Helper method to format an image based on self.type"""
+        if im is None:
+            return im
         if self.type == "pil":
             return im
         elif self.type == "numpy":
@@ -1454,6 +1442,38 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + str(self.type)
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
+
+    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
+        """
+        Parameters:
+        x (str | dict): base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+        Returns:
+        (numpy.array | PIL.Image | str): image in requested format
+        """
+        if x is None:
+            return x
+        if self.tool == "sketch":
+            x, mask = x["image"], x["mask"]
+
+        im = processing_utils.decode_base64_to_image(x)
+        fmt = im.format
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            im = im.convert(self.image_mode)
+        if self.shape is not None:
+            im = processing_utils.resize_and_crop(im, self.shape)
+        if self.invert_colors:
+            im = PIL.ImageOps.invert(im)
+
+        if not (self.tool == "sketch"):
+            return self.format_image(im, fmt)
+
+        mask_im = processing_utils.decode_base64_to_image(mask)
+        mask_fmt = mask_im.format
+        return {
+            "image": self.format_image(im, fmt),
+            "mask": self.format_image(mask_im, mask_fmt),
+        }
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
