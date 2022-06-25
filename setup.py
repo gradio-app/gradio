@@ -6,13 +6,14 @@ from pathlib import Path
 import re
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding='utf8')
-version = (this_directory / "gradio" / "version.txt").read_text(
-    encoding='utf8').strip()
 
+long_description = (this_directory / "README.md").read_text(encoding='utf8')
 # Replace relative paths to images with absolute paths
 long_description = re.sub("website/homepage/", "https://raw.githubusercontent.com/gradio-app/gradio/main/website/homepage/", long_description)
 long_description = re.sub(r"demo/([\S]*.gif)", r"https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>", long_description)
+
+version = (this_directory / "gradio" / "version.txt").read_text(
+    encoding='utf8').strip()
 
 setup(
     name="gradio",
