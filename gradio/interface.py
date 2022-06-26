@@ -291,53 +291,7 @@ class Interface(Blocks):
         if not (self.theme == "default"):
             warnings.warn("Currently, only the 'default' theme is supported.")
 
-        if examples is None or (
-            isinstance(examples, list)
-            and (len(examples) == 0 or isinstance(examples[0], list))
-        ):
-            self.examples = examples
-        elif (
-            isinstance(examples, list) and len(self.input_components) == 1
-        ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
-            self.examples = [[e] for e in examples]
-        elif isinstance(examples, str):
-            if not os.path.exists(examples):
-                raise FileNotFoundError(
-                    "Could not find examples directory: " + examples
-                )
-            log_file = os.path.join(examples, "log.csv")
-            if not os.path.exists(log_file):
-                if len(self.input_components) == 1:
-                    exampleset = [
-                        [os.path.join(examples, item)] for item in os.listdir(examples)
-                    ]
-                else:
-                    raise FileNotFoundError(
-                        "Could not find log file (required for multiple inputs): "
-                        + log_file
-                    )
-            else:
-                with open(log_file) as logs:
-                    exampleset = list(csv.reader(logs))
-                    exampleset = exampleset[1:]  # remove header
-            for i, example in enumerate(exampleset):
-                for j, (component, cell) in enumerate(
-                    zip(
-                        self.input_components + self.output_components,
-                        example,
-                    )
-                ):
-                    exampleset[i][j] = component.restore_flagged(
-                        examples,
-                        cell,
-                        None,
-                    )
-            self.examples = exampleset
-        else:
-            raise ValueError(
-                "Examples argument must either be a directory or a nested "
-                "list, where each sublist represents a set of inputs."
-            )
+        self.examples = examples
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
 
@@ -620,36 +574,10 @@ class Interface(Blocks):
             if self.examples:
                 non_state_inputs = [
                     c for c in self.input_components if not isinstance(c, Variable)
-                ]
+                ]                
+                Examples(examples, non_state_inputs, self.cache_examples, outputs)
 
-                examples = Dataset(
-                    components=non_state_inputs,
-                    samples=self.examples,
-                    type="index",
-                )
 
-                def load_example(example_id):
-                    processed_examples = [
-                        component.preprocess_example(sample)
-                        for component, sample in zip(
-                            self.input_components, self.examples[example_id]
-                        )
-                    ]
-                    if self.cache_examples:
-                        processed_examples += load_from_cache(self, example_id)
-                    if len(processed_examples) == 1:
-                        return processed_examples[0]
-                    else:
-                        return processed_examples
-
-                examples.click(
-                    load_example,
-                    inputs=[examples],
-                    outputs=non_state_inputs
-                    + (self.output_components if self.cache_examples else []),
-                    _postprocess=False,
-                    queue=False,
-                )
 
             if self.interpretation:
                 interpretation_btn.click(
