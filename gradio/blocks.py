@@ -304,7 +304,6 @@ class Blocks(BlockContext):
             style = block_config["props"].pop("style", None)
             block = cls(**block_config["props"])
             if style:
-                print(f"><> style {style}")
                 block.style(**style)
             return block
 
