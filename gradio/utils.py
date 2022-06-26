@@ -13,7 +13,7 @@ import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NewType, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, NewType, Type
 
 import aiohttp
 import analytics
@@ -424,7 +424,7 @@ class Request:
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
-    def __await__(self):
+    def __await__(self) -> Generator[None, Any, "Request"]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """

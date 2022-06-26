@@ -200,7 +200,7 @@ async def client():
 class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.GET,
             url="http://headers.jsontest.com/",
         )
@@ -210,7 +210,7 @@ class TestRequest:
 
     @pytest.mark.asyncio
     async def test_post(self):
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -228,7 +228,7 @@ class TestRequest:
             id: str
             createdAt: str
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -242,7 +242,7 @@ class TestRequest:
             name: Literal[str] = "John"
             job: str
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -261,7 +261,7 @@ class TestRequest:
 
         validate_response_data.side_effect = Exception()
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.GET,
             url="https://reqres.in/api/users",
             exception_type=ResponseValidationException,
@@ -275,7 +275,7 @@ class TestRequest:
                 return response
             raise Exception
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -294,7 +294,7 @@ class TestRequest:
                     return response
             raise Exception
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
