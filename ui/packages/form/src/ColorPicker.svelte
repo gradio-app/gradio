@@ -30,7 +30,7 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="color"
-		class="gr-box gr-input gr-button {classes}"
+		class="gr-box-unrounded {classes}"
 		bind:value={value}
 		{disabled}
 	/>

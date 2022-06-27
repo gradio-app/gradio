@@ -3987,7 +3987,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: str = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
