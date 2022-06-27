@@ -191,7 +191,7 @@ class class_or_instancemethod(classmethod):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
 
-
+@document()
 def update(**kwargs) -> dict:
     """
     Updates component parameters
