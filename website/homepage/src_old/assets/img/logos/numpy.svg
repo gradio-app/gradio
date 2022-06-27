@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 307.0502 113.34502"
+   version="1.1"
+   id="svg25"
+   sodipodi:docname="numpy.svg"
+   width="307.0502"
+   height="113.34502"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview27"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="1.506"
+     inkscape:cx="400.39841"
+     inkscape:cy="138.44622"
+     inkscape:window-width="2560"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg25" />
+  <defs
+     id="defs4">
+    <style
+       id="style2">.cls-1{fill:rgb(77, 171, 207);}.cls-2{fill:rgb(77, 119, 207);}</style>
+  </defs>
+  <g
+     id="Layer_1"
+     data-name="Layer 1"
+     transform="matrix(0.14697703,0,0,0.14697703,241.84679,-6.3273611)">
+    <polygon
+       class="cls-1"
+       points="75.87,130.11 146.9,165.78 220.93,127.14 151.77,92.23 "
+       id="polygon6" />
+    <polygon
+       class="cls-1"
+       points="249.91,217.52 178.77,181.79 252.63,143.14 325.14,179.74 "
+       id="polygon8" />
+    <polygon
+       class="cls-1"
+       points="357.34,163.57 284.68,126.92 349.47,92.76 423.96,130.11 "
+       id="polygon10" />
+    <polygon
+       class="cls-1"
+       points="184.01,76.15 253.11,111 317.41,76.67 250.35,43.05 "
+       id="polygon12" />
+    <polygon
+       class="cls-1"
+       points="346.22,416.41 346.13,324.86 264.98,365.44 264.98,456.95 "
+       id="polygon14" />
+    <polygon
+       class="cls-1"
+       points="264.98,242.6 264.98,333.22 346.1,292.91 346.01,202.32 "
+       id="polygon16" />
+    <polygon
+       class="cls-1"
+       points="374.34,402.38 374.29,310.93 443.63,275.93 443.63,367.8 "
+       id="polygon18" />
+    <polygon
+       class="cls-1"
+       points="374.21,188.3 374.27,279.07 443.63,243.81 443.63,153.79 "
+       id="polygon20" />
+    <path
+       class="cls-2"
+       d="M 236.3,242.6 181.58,215.09 V 334 c 0,0 -66.92,-142.39 -73.12,-155.18 -0.8,-1.65 -4.09,-3.46 -4.93,-3.9 -12,-6.3 -47.16,-24.11 -47.16,-24.11 v 210.08 l 48.64,26 V 277.08 c 0,0 66.21,127.23 66.88,128.62 0.67,1.39 7.32,14.8 14.42,19.51 9.46,6.26 50,30.64 50,30.64 z"
+       id="path22" />
+  </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#000000;fill-opacity:1;stroke:none"
+     x="-5.9375"
+     y="97.47002"
+     id="text4049"><tspan
+       sodipodi:role="line"
+       id="tspan4047"
+       x="-5.9375"
+       y="97.47002"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:76px;font-family:'Lato', sans-serif;-inkscape-font-specification:'sans-serif Bold'">NumPy</tspan></text>
+</svg>

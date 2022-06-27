@@ -1,0 +1,167 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio x Huggingface</title>
+
+  <meta name="description"
+    content="Gradio is joining Hugging Face! Read more about how we plan on working with Hugging Face to democratize access to the best machine learning applications.">
+  <meta name="author" content="Gradio">
+  <meta property="og:title" content="Gradio x Huggingface">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/joining-huggingface">
+  <meta property="og:description"
+    content="Gradio is joining Hugging Face! Read more about how we plan on working with Hugging Face to democratize access to the best machine learning applications.">
+  <meta property="og:image" content="https://gradio.app/assets/img/acquisition_card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:title" content="Gradio x Huggingface">
+  <meta name="twitter:description"
+    content="Gradio is joining Hugging Face! Read more about how we plan on working with Hugging Face to democratize access to the best machine learning applications.">
+  <meta name="twitter:image" content="https://gradio.app/assets/img/acquisition_card.png">
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
+</head>
+
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  <div class="w-full bg-yellow-200 text-center p-3">
+    🎉 We are joining Hugging Face!
+    <a class="font-semibold underline" href="/joining-huggingface/">Read our announcement here.</a> 🤗
+  </div>
+  <header class="container mx-auto p-4 flex justify-between items-center gap-4 flex-col sm:flex-row">
+    <a href="/">
+      <img src="/assets/img/logo.svg" class="h-10">
+    </a>
+    <nav class="flex gap-12 sm:gap-16">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1"
+        onClick="document.querySelector('.guide-menu').classList.toggle('flex'); document.querySelector('.guide-menu').classList.toggle('hidden');">
+        Guides
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div
+          class="guide-menu hidden group-hover:flex group-active:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
+          {% for guide_name, pretty_guide_name in guide_names %}
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">{{ pretty_guide_name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <a class="link" href="/docs">Docs</a>
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1"
+        onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
+        Help
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="help-menu hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/issues/new">File an Issue</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <div class="container mx-auto px-4 mb-12 max-w-5xl">
+    <div class="prose prose-lg max-w-none">
+      <h2>We are joining Hugging Face!</h2>
+      <p>Abubakar Abid, CEO of Gradio</p>
+      <p class="italic">Gradio is joining Hugging Face! By acquiring Gradio, a machine learning startup, Hugging Face
+        will be able to offer users, developers, and data scientists the tools needed to get to high level results and
+        create better models and tools...</p>
+      <p>Hmm, paragraphs about acquisitions like the one above are so common that an algorithm could write them. In
+        fact, one did!! This first paragraph was written with the <a
+          href="https://huggingface.co/spaces/abidlabs/The-Acquisition-Post-Generator">Acquisition Post Generator</a>, a
+        machine learning demo on Hugging Face Spaces. You can run it yourself in your browser: provide the names of any
+        two companies and you'll get a reasonable-sounding start to an article announcing their acquisition!</p>
+      <p>The Acquisition Post Generator was built using our open-source Gradio library -- it is just one of our recent
+        collaborations with Hugging Face. And I'm excited to announce that these collaborations are culminating in... 🥁
+        <strong>Hugging Face's acquisition of Gradio</strong> (so yes, that first paragraph might have been written by
+        an algorithm but it's true!)</p>
+      <img class="max-w-full mx-auto my-6" style="width: 54rem" src="/assets/img/acquisition_screenshot.png">
+      <p>As one of the founders of Gradio, I couldn't be more excited about the next step in our journey. I still
+        remember clearly how we started in 2019: as a PhD student at Stanford, I struggled to share a medical computer
+        vision model with one of my collaborators, who was a doctor. I needed him to test my machine learning model, but
+        he didn't know Python and couldn't easily run the model on his own images. I envisioned a library that could
+        make it super simple for machine learning engineers to build and share demos of computer vision models, which in
+        turn would lead to better feedback and more reliable models 🔁</p>
+      <p>I recruited my talented housemates Ali Abdalla, Ali Abid, and Dawood Khan to release the first version of
+        Gradio in 2019. We steadily expanded to cover more areas of machine learning including text, speech, and video.
+        We found that it wasn't just researchers who needed to share machine learning models: interdisciplinary teams in
+        industry, from startups to public companies, were building models and needed to debug them internally or
+        showcase them externally. Gradio could help with both. Since we first released the library, more than 300,000
+        demos have been built with Gradio. We couldn't have done this without our community of contributors, our
+        supportive investors, and the amazing Ahsen Khaliq who joined our company this year. </p>
+      <p>Demos and GUIs built with Gradio give the power of machine learning to more and more people because they allow
+        non-technical users to access, use, and give feedback on models. And our acquisition by Hugging Face is the next
+        step in this ongoing journey of accessibility. Hugging Face has already radically democratized machine learning
+        so that any software engineer can use state-of-the-art models with a few lines of code. By working together with
+        Hugging Face, we're taking this even further so that machine learning is accessible to literally anyone with an
+        internet connection and a browser. With Hugging Face, we are going to keep growing Gradio and make it the best
+        way to share your machine learning model with anyone, anywhere 🚀</p>
+      <p>In addition to the shared mission of Gradio and Hugging Face, what delights me is the team that we are joining.
+        Hugging Face's remarkable culture of openness and innovation is well-known. Over the past few months, I've
+        gotten to know the founders as well: they are wonderful people who genuinely care about every single person at
+        Hugging Face and are willing to go to bat for them. On behalf of the entire Gradio team, we couldn't be more
+        thrilled to be working with them to build the future of machine learning 🤗</p>
+      <p>Also: <a class="link" href="https://apply.workable.com/huggingface/">we are hiring!!</a> ❤️</p>
+    </div>
+    <div class="flex justify-center mt-4">
+      <a class="border shadow border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100 hover:to-gray-200 transition rounded inline-flex gap-2 items-center justify-center px-3 py-2 rounded-r-none"
+        href="https://github.com/gradio-app/gradio-UI" target="_blank"
+        aria-label="Star gradio-app/gradio-UI on GitHub">
+        <svg version="1.1" class="h-6" viewBox="0 0 14 16" class="inline" aria-hidden="true">
+          <path fill-rule="evenodd"
+            d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path>
+        </svg>
+        <span class="text-md">Star</span>
+      </a>
+      <a class="font-semibold border shadow bg-white border-gray-300 hover:border-gray-400 transition hover:text-blue-600 rounded px-3 py-2 rounded-l-none border-l-0"
+        href="https://github.com/gradio-app/gradio/stargazers" target="_blank" aria-label="3902 stargazers on GitHub">
+        <span id="star-count" class="transition preloaded-star-count"></span>
+      </a>
+    </div>
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-10">
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
+    </div>
+  </footer>
+  <script>
+    let xhr = new XMLHttpRequest;
+    xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
+    xhr.onload = function()
+        {
+            if (this.status === 200)
+                {
+                    var stars = JSON.parse(this.responseText)["stargazers_count"];
+        stars = stars.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        document.getElementById('star-count').innerHTML = stars;
+        document.getElementById('star-count').classList.remove("preloaded-star-count");
+      }
+    }
+    xhr.send();
+  </script>
+</body>
+
+</html>

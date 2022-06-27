@@ -2,24 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-.example-tab {
-    @apply px-2.5 py-0.5;
-}
-
-.active-example-tab {
-    @apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
-}
-
-.btn-star {
-    @apply cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner;
-}
-
 .link {
-    @apply font-semibold hover:text-blue-500 transition-colors;
+  @apply font-semibold hover:text-blue-500 transition-colors;
 }
-.thin-link {
-    @apply hover:text-blue-500 transition-colors;
-}
+
 .group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
     display: flex;
 }
@@ -35,48 +21,6 @@
     .md\:block {
         @apply block;
     }
-}
-
-/* index.html */
-.preloaded-star-count {
-    @apply text-gray-400;
-}
-@media (max-width: 639px) {
-    .demotab {
-        @apply border border-b-0;
-    }
-    .demotab:last-child {
-        @apply border-b;
-    }
-    .demotab.selected {
-        @apply font-semibold;
-    }
-    .demotab:not(.selected) {
-        @apply text-gray-500;
-    }    
-}
-@media (min-width: 640px) {
-    .demotab:not(.selected) {
-        @apply border-b;
-    }    
-    .demotab.selected {
-        @apply border border-b-0 rounded-t-lg font-semibold;
-    }
-}
-.twitter-text a {
-    @apply link;
-}
-.twitter-text s {
-    text-decoration: none !important;
-}
-.twitter-text img {
-    @apply h-4 inline-block;
-}
-.twitter-heart {
-    background-image: url("assets/img/twitter/heart.svg");
-}
-.twitter-like:hover .twitter-heart {
-    background-image: url("assets/img/twitter/redheart.svg");
 }
 
 @layer base {
@@ -106,4 +50,19 @@
         0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04);
     }
   }
+}
+
+/* index */
+.active-example-tab {
+    @apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+}
+
+/* guides */
+.prose > p > img {
+  @apply max-w-xl mx-auto;
+}
+
+/* docs */
+.selected-demo {
+  @apply font-semibold bg-gray-50 rounded text-orange-500;
 }

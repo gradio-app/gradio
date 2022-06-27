@@ -38,11 +38,14 @@ from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.process_examples import cache_interface_examples, load_from_cache
+from gradio.documentation import document, document_mode
+document_mode("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
+@document("launch", "load", "from_pipeline")
 class Interface(Blocks):
     """
     The Interface class is a high-level abstraction that allows you to create a
@@ -835,6 +838,7 @@ class Interface(Blocks):
             utils.integration_analytics(data)
 
 
+@document()
 class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets

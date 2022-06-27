@@ -4,8 +4,10 @@ Ways to transform interfaces to produce new interfaces
 import warnings
 
 import gradio
+from gradio.documentation import document, document_mode
+document_mode("mix_interface")
 
-
+@document()
 class Parallel(gradio.Interface):
     """
     Creates a new Interface consisting of multiple models in parallel (comparing their outputs).
@@ -44,6 +46,7 @@ class Parallel(gradio.Interface):
         ].api_mode  # TODO(abidlabs): make api_mode a per-function attribute
 
 
+@document()
 class Series(gradio.Interface):
     """
     Creates a new Interface from multiple models in series (the output of one is fed as the input to the next,

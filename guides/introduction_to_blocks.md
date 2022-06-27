@@ -26,11 +26,11 @@ These are all use cases where you should use the Blocks API!
 
 After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/1n_uB44G_uENGf0zroeVKgcytFQ-7UwZt?usp=sharing))
 
-{{ code["blocks_hello"] }}
+$code_blocks_hello
 
 The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
-{{ demos["blocks_hello"] }}
+$demo_blocks_hello
 
 
 ### Understanding this Example
@@ -59,9 +59,9 @@ Finally, you can also create a `with gradio.Tabs():` and within it create multip
 
 Here is a example with tabs, rows, and columns:
 
-{{ code["blocks_flipper"] }}
+$code_blocks_flipper
 
-{{ demos["blocks_flipper"] }}
+$demo_blocks_flipper
 
 You'll notice that in this example, we've also created a `Button` component in each tab, and we've assigned a click event to each button, which is what actually runs the function. So let's talk more about events... 
 
@@ -79,17 +79,17 @@ You can attach event trigger to none, one, or more of these events. You create a
 
 You can even make the input and output component be the same component, as we do in this example that uses a GPT model to do text completion:
 
-{{ code["blocks_gpt"] }}
+$code_blocks_gpt
 
-{{ demos["blocks_gpt"] }}
+$demo_blocks_gpt
 
 ### Multistep Demos
 
 In some cases, you might want want a "multi-step" demo, in which you reuse the output of one function as the input to the next. This is really easy to do with Blocks, as you can use a component for the input of one event trigger but the output of another. Take a look at the `text` component in the example below, its value is the result of a speech-to-text model, but also gets passed into a sentiment analysis model:
 
-{{ code["blocks_speech_text_length"] }}
+$code_blocks_speech_text_length
 
-{{ demos["blocks_speech_text_length"] }}
+$demo_blocks_speech_text_length
 
 ### Updating Component Properties
 
@@ -97,9 +97,9 @@ So far, we have seen how to create events to update the value of another compone
 
 This is perhaps most easily illustrated with an example:
 
-{{ code["blocks_essay"] }}
+$code_blocks_essay
 
-{{ demos["blocks_essay"] }}
+$demo_blocks_essay
 
 ### Sharing Blocks Publicly
 
@@ -120,7 +120,7 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Blocks on Spaces below.
 
-![Sharing diagram](/assets/img/sharing.svg)
+![Sharing diagram](/assets/guides/sharing.svg)
 
 ### Hosting Gradio Blocks on Spaces
 
@@ -128,5 +128,5 @@ Huggingface provides the infrastructure to permanently host your Gradio demo on 
 
 See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](/assets/img/hf_demo.gif)
+![Hosting Demo](/assets/guides/hf_demo.gif)
 

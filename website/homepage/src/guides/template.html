@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with description="Build & Share Delightful Machine Learning Apps" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <div class="container relative mx-auto px-4 pt-8 pb-12">
+      <div class="prose max-w-full">
+        {% include "guides/temporary_template.html" %}
+      </div>
+    </div>
+    <script src="/assets/prism.js"></script>
+    {% include 'templates/footer.html' %}
+  </body>
+</html>

@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import BlockContext
+from gradio.documentation import document, document_mode
+document_mode("layout")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
@@ -23,7 +25,7 @@ valid_colors = [
     "gray",
 ]
 
-
+@document()
 class Row(BlockContext):
     """
     Row is a layout element within Blocks that renders all children horizontally.
@@ -54,6 +56,7 @@ class Row(BlockContext):
         return self
 
 
+@document()
 class Column(BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically.
@@ -89,6 +92,7 @@ class Column(BlockContext):
         }
 
 
+@document()
 class Tabs(BlockContext):
     """
     Tabs is a layout element within Blocks that can contain multiple TabItem's. Each
@@ -107,6 +111,7 @@ class Tabs(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
+@document()
 class TabItem(BlockContext):
     """
     TabItem is a layout element that must be defined within a Tabs context. The
@@ -131,6 +136,7 @@ class TabItem(BlockContext):
         self.set_event_trigger("select", fn, inputs, outputs)
 
 
+@document()
 class Group(BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
@@ -163,6 +169,7 @@ class Group(BlockContext):
         return self
 
 
+@document()
 class Box(BlockContext):
     """
     Box is a a layout element which places children in a box with rounded corners and

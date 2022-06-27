@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with description="Gradio Documentation" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <div class="container mx-auto max-w-7xl">
+      <main class="flex gap-4">
+        <div class="py-4 navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden md:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+             style="min-width: 18%">
+          <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-4"
+             href="#building_demos">Building Demos</a>
+          <a class="px-4 block thin-link" href="#interface">Interface</a>
+          <a class="px-4 block thin-link" href="#combining_interfaces">Combining Interfaces</a>
+          <a class="px-4 block thin-link" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+          <a class="px-4 link my-2 block" href="#components">Components
+          </h4>
+          {% for component in docs["component"] %}
+            <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+          {% endfor %}
+        </div>
+        <div>
+          {% for component in docs["component"] %}
+            <div class="component" id="{{ component['name'].lower() }}" class="mb-8">
+              {% if component['demos'] %}
+              <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
+                <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
+                  <div class="flex">
+                    {% for demo_name, _ in component["demos"] %}
+                    <button 
+                      class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+                      name="{{ demo_name }}"
+                      onclick="show_demo('{{ component['name'].lower() }}', '{{ demo_name }}')"
+
+                    >{{ demo_name }}</button>
+                    {% endfor %}
+                  </div>
+                  {% for demo_name, demo_code in component["demos"] %}
+                  <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
+                    <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre>
+                    <gradio-app src="/demo/{{ demo_name }}" />
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+              <div class="flex flex-row items-center justify-between">
+                <h3 id="{{ component['name'].lower() }}-header"
+                    class="text-3xl font-light my-4">{{ component['name'] }}</h3>
+                {% if component['demos'] %}
+                <button 
+                  class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
+                  onclick="this.closest('.component').querySelector('.demo-window').classList.remove('hidden')"
+                >
+                  Try Examples
+                </button>
+                {% endif %}
+              </div>
+              <code>gradio.<span>{{ component["name"] }}(</span><!--
+            -->{% for param in component["parameters"] %}<!--
+              -->{% if "positional" in param["kind"] %}<!--
+                -->{{ param["name"] }}, 
+                  {% endif %}
+                {% endfor %}              
+            ···<span>)</span></code>
+              <div id="{{ component['name'].lower() }}-component"
+                   class="component-embedding"></div>
+              <p class="mt-8 mb-2 text-lg">{{ component["description"] }}</p>
+              <p class="mb-2 text-lg text-gray-500">As input, {{ component["tags"]["preprocessing"] }}</p>
+              <p class="text-lg text-gray-500">As output, {{ component["tags"]["postprocessing"] }}</p>
+              
+              <table class="table-fixed w-full mt-6">
+                <thead class="text-left">
+                  <tr>
+                    <th class="p-3 font-semibold w-2/5">Parameter</th>
+                    <th class="p-3 font-semibold">Description</th>
+                  </tr>
+                </thead>
+                <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+                  {% for param in component["parameters"] %}
+                    {% if param["name"] != "self" %}
+                      <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                        <td class="p-3 w-2/5">
+                          <code class="block mb-2">
+                            {{ param["name"] }}
+                          </code>
+                          <p class="text-gray-500 italic mb-2">{{ param["annotation"] }}</p>
+                          {% if "default" in param %}
+                          <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-3 text-gray-700">
+                          <p>{{ param["doc"] or "" }}</p>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% if component["string_shortcuts"] %}
+              <table class="table-fixed w-full mt-6">
+                <thead class="text-left">
+                  <tr>
+                    <th class="p-3 font-semibold w-2/5">Interface String Shortcut</th>
+                    <th class="p-3 font-semibold">Initialization</th>
+                  </tr>
+                </thead>
+                <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+                {% for shortcut, settings in component["string_shortcuts"] %}
+                    <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                      <td class="p-3 w-2/5">
+                        <p>"{{ shortcut }}"</p>
+                      </td>
+                      <td class="p-3 text-gray-700">
+                        <code>{{ settings }}</code>
+                      </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+              {% endif %}              
+            </div>
+          {% endfor %}
+        </div>
+      </main>
+    </div>
+    <script src="/assets/prism.js"></script>
+    {% include 'templates/footer.html' %}
+    <script>
+    const show_demo = (component, demo) => {
+    
+      document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
+      document.querySelectorAll(`#${component} .demo-content`).forEach(n => n.classList.add('hidden'));
+      document.querySelector(`#${component} .demo-btn[name=${demo}]`).classList.add('selected-demo');
+      document.querySelectorAll(`#${component} .demo-content[name=${demo}]`).forEach(n => n.classList.remove('hidden'));
+    }
+    window.onclick = function(event) {
+      if (event.target.classList.contains('demo-window')) {
+        document.querySelectorAll('.demo-window').forEach(n => n.classList.add('hidden'));
+      }
+    }
+    </script>
+  </body>
+</html>

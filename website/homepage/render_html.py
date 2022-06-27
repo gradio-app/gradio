@@ -106,8 +106,8 @@ for guide in guide_files:
         tags = guide_content.split("tags: ")[1].split("\n")[0].split(", ")
 
     spaces = None
-    if "related_spaces: " in guide_content:
-        spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
+    if "Related spaces: " in guide_content:
+        spaces = guide_content.split("Related spaces: ")[1].split("\n")[0].split(", ")
     title = guide_content.split("\n")[0]
     contributor = None
     if "Contributed by " in guide_content:
@@ -124,7 +124,7 @@ for guide in guide_files:
             for line in guide_content.split("\n")
             if not (
                 line.startswith("tags: ")
-                or line.startswith("related_spaces: ")
+                or line.startswith("Related spaces: ")
                 or line.startswith("Contributed by ")
                 or line.startswith("Docs: ")
                 or line == title

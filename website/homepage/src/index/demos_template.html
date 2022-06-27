@@ -1,0 +1,102 @@
+<div class="mx-auto mb-6 px-4 lg:px-0 overflow-hidden1">
+    <nav class="flex lg:flex-wrap gap-3 overflow-x-auto py-1 lg:gap-6 whitespace-nowrap text-gray-600 md:text-lg mb-4 md:mb-0 lg:justify-center">
+        <div class="demo-tab hover:text-gray-800 cursor-pointer px-3 py-1 active-example-tab"
+             demo="1"
+             onclick="load_demo(1)">
+            Sketch Recognition
+        </div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer px-3 py-1"
+             demo="2"
+             onclick="load_demo(2)">
+            Question Answering
+        </div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer px-3 py-1"
+             demo="3"
+             onclick="load_demo(3)">
+            Image Segmentation
+        </div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer px-3 py-1"
+             demo="4"
+             onclick="load_demo(4)">
+            Speech Verification
+        </div>
+    </nav>
+</div>
+<div class="mx-auto grid max-w-7xl grid-cols-1 px-4">
+    <div class="demo space-y-2 md:col-span-3" demo="1">
+        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+            <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+<span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span><span class="token comment"># Implement your sketch recognition model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+        </div>
+        <iframe src="https://hf.space/embed/gradio/pictionary/+?__theme=light"
+                frameBorder="0"
+                height="425"
+                scrolling="yes"
+                title="Gradio app"
+                class="container p-0 flex-grow m-0"></iframe>
+    </div>
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="2">
+        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+            <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+<span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Implement your question-answering model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+        </div>
+        <iframe src="https://hf.space/embed/gradio/question-answering/+?__theme=light"
+                frameBorder="0"
+                height="425"
+                scrolling="yes"
+                title="Gradio app"
+                class="container p-0 flex-grow m-0"></iframe>
+    </div>
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="3">
+        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+            <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+<span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Implement your image segmentation model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+        </div>
+        <iframe src="https://hf.space/embed/gradio/Echocardiogram-Segmentation/+?__theme=light"
+                frameBorder="0"
+                height="425"
+                scrolling="yes"
+                title="Gradio app"
+                class="container p-0 flex-grow m-0"></iframe>
+    </div>
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="4">
+        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+            <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+<span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Generate a response depending on if audio1 and audio2 are spoken by same person or not</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>same_or_different<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"audio"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"html"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+        </div>
+        <iframe src="https://hf.space/embed/gradio/same-person-or-different/+?__theme=light"
+                frameBorder="0"
+                height="425"
+                scrolling="yes"
+                title="Gradio app"
+                class="container p-0 flex-grow m-0"></iframe>
+    </div>
+</div>
+<script>
+    let load_demo = demo_id => {
+        document.querySelectorAll(".demo-tab").forEach(e => {
+            e.classList.remove('active-example-tab');
+        })
+        document.querySelectorAll(".demo").forEach(e => {
+            e.classList.add("hidden");
+        })
+        document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("active-example-tab");
+
+         document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
+    }
+</script>

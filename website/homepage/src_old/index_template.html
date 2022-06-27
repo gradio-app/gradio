@@ -1,0 +1,359 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build & Share Delightful Machine Learning Apps.">
+  <meta name="author" content="Gradio Team">
+  <meta property="og:title" content="Gradio">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/">
+  <meta property="og:description" content="Build & Share Delightful Machine Learning Apps.">
+  <meta property="og:image" content="/assets/img/meta-image-2.png" />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@Gradio">
+  <meta name="twitter:title" content="Gradio">
+  <meta name="twitter:description" content="Build & Share Delightful Machine Learning Apps.">
+  <meta name="twitter:image" content="https://gradio.app/assets/img/meta-image-2.png">
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/assets/prism.css">
+  <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
+
+  <style>
+    .language-python {
+      background: none !important;
+    }
+
+    .token.operator {
+      background: none !important;
+    }
+    
+    /** JIT NOT WORKING QUICK FIX **/
+    @media (min-width: 768px) {
+      .md\:text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:w-\[550px\] {
+        width: 550px;
+      }
+
+      .lg\:flex-1 {
+        flex: 1 1 0%;
+      }
+
+      .lg\:flex-row {
+        flex-direction: row;
+      }
+
+      .lg\:pl-12 {
+        padding-left: 3rem;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .xl\:-ml-52 {
+        margin-left: -13rem;
+      }
+
+      .xl\:w-\[850px\] {
+        width: 850px;
+      }
+
+      .xl\:text-5xl {
+        font-size: 3rem;
+        line-height: 1;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .\32xl\:w-\[1050px\] {
+        width: 1050px;
+      }
+
+      .\32xl\:text-6xl {
+        font-size: 3.75rem;
+        line-height: 1;
+      }
+    }
+    .dall-e-banner:hover {
+      background: #EFFBD5 !important;
+    }
+
+  </style>
+</head>
+
+<body>
+<!--NAVBAR-->
+  {{navbar_html|safe}}
+
+  <!--HEADER-->
+  <div class="container relative mx-auto px-4 pt-8 pb-12">
+    <div class="flex flex-col items-center lg:flex-row">
+      <img class="sm-[400px] mb-12 lg:w-[550px] lg:flex-1 xl:w-[850px] 2xl:w-[1050px]" src="/assets/img/header-image.jpg" alt="" />
+      <div class="text-left">
+        <div class="mb-10 text-4xl font-bold capitalize text-gray-900 xl:-ml-52 xl:text-5xl 2xl:text-6xl">Build &amp; share delightful machine learning apps</div>
+        <div class="lg:pl-12">
+          <p class="mx-auto mb-12 text-xl text-gray-600">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere!</p>
+          <div class="flex space-x-4">
+            <a class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md md:text-xl" href="/getting_started">Get Started</a>
+            <div class="flex items-center justify-center">
+              <a href="https://github.com/gradio-app/gradio" class="btn-star font-bold text-lg -mr-1">
+                  <svg class="dark:text-gray-200 mr-2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" role="img" width="1.03em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 250">
+                    <path d="M128.001 0C57.317 0 0 57.307 0 128.001c0 56.554 36.676 104.535 87.535 121.46c6.397 1.185 8.746-2.777 8.746-6.158c0-3.052-.12-13.135-.174-23.83c-35.61 7.742-43.124-15.103-43.124-15.103c-5.823-14.795-14.213-18.73-14.213-18.73c-11.613-7.944.876-7.78.876-7.78c12.853.902 19.621 13.19 19.621 13.19c11.417 19.568 29.945 13.911 37.249 10.64c1.149-8.272 4.466-13.92 8.127-17.116c-28.431-3.236-58.318-14.212-58.318-63.258c0-13.975 5-25.394 13.188-34.358c-1.329-3.224-5.71-16.242 1.24-33.874c0 0 10.749-3.44 35.21 13.121c10.21-2.836 21.16-4.258 32.038-4.307c10.878.049 21.837 1.47 32.066 4.307c24.431-16.56 35.165-13.12 35.165-13.12c6.967 17.63 2.584 30.65 1.255 33.873c8.207 8.964 13.173 20.383 13.173 34.358c0 49.163-29.944 59.988-58.447 63.157c4.591 3.972 8.682 11.762 8.682 23.704c0 17.126-.148 30.91-.148 35.126c0 3.407 2.304 7.398 8.792 6.14C219.37 232.5 256 184.537 256 128.002C256 57.307 198.691 0 128.001 0zm-80.06 182.34c-.282.636-1.283.827-2.194.39c-.929-.417-1.45-1.284-1.15-1.922c.276-.655 1.279-.838 2.205-.399c.93.418 1.46 1.293 1.139 1.931zm6.296 5.618c-.61.566-1.804.303-2.614-.591c-.837-.892-.994-2.086-.375-2.66c.63-.566 1.787-.301 2.626.591c.838.903 1 2.088.363 2.66zm4.32 7.188c-.785.545-2.067.034-2.86-1.104c-.784-1.138-.784-2.503.017-3.05c.795-.547 2.058-.055 2.861 1.075c.782 1.157.782 2.522-.019 3.08zm7.304 8.325c-.701.774-2.196.566-3.29-.49c-1.119-1.032-1.43-2.496-.726-3.27c.71-.776 2.213-.558 3.315.49c1.11 1.03 1.45 2.505.701 3.27zm9.442 2.81c-.31 1.003-1.75 1.459-3.199 1.033c-1.448-.439-2.395-1.613-2.103-2.626c.301-1.01 1.747-1.484 3.207-1.028c1.446.436 2.396 1.602 2.095 2.622zm10.744 1.193c.036 1.055-1.193 1.93-2.715 1.95c-1.53.034-2.769-.82-2.786-1.86c0-1.065 1.202-1.932 2.733-1.958c1.522-.03 2.768.818 2.768 1.868zm10.555-.405c.182 1.03-.875 2.088-2.387 2.37c-1.485.271-2.861-.365-3.05-1.386c-.184-1.056.893-2.114 2.376-2.387c1.514-.263 2.868.356 3.061 1.403z" fill="currentColor"></path>
+                  </svg>
+                  Star
+              </a>
+              <div class="relative ml-3">
+                  <div class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100-to-white rounded-sm dark:bg-gray-900 border border-gray-200 dark:border-gray-850 flex-none transform rotate-45"></div>
+                  <a id="star-count" class="inset-0 btn-star font-bold text-lg dark:hover:text-yellow-500 relative" href="https://github.com/gradio-app/gradio">7,000</a>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <a href="https://huggingface.co/spaces/dalle-mini/dalle-mini" class="dall-e-banner flex items-center justify-center py-2 text-smd text-center border-b w-fit mx-auto mt-4 px-6 rounded-full" style="background: #F6FFE2; border: #E9FDBF; color: #0D3411"><div class="uppercase text-xs px-1 mr-2" style="background: #E2F5B8; color: #424039">new
+		</div>
+		Play with 🥑 DALL·E mini on Spaces →
+	</a>
+  </div>
+
+<!--DALL-E MINI BANNER-->
+<!--<a href="https://huggingface.co/spaces/dalle-mini/dalle-mini" class="flex bg-[#F6FFE2] hover:bg-[#EFFBD5] items-center justify-center py-2 text-smd text-center border-[#E9FDBF] text-[#0D3411] border-b"><div class="uppercase text-xs bg-[#E2F5B8] text-[#424039] px-1 mr-2">new-->
+<!--		</div>-->
+<!--		Play with 🥑 DALL·E mini on the Hub →-->
+<!--	</a>-->
+
+
+<!--DEMOS-->
+    <div class="mx-auto mb-6 px-4 lg:px-0 overflow-hidden1">
+      <nav class="flex lg:flex-wrap gap-3 overflow-x-auto py-1 lg:gap-6 whitespace-nowrap text-gray-600 md:text-lg mb-4 md:mb-0 lg:justify-center">
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab active-example-tab" demo="1"
+        onclick="load_demo(1)">Sketch Recognition</div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="2"
+        onclick="load_demo(2)">Question Answering</div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="3"
+        onclick="load_demo(3)">Image Segmentation</div>
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="4"
+        onclick="load_demo(4)">Speech Verification</div>
+      </nav>
+    </div>
+  <div class="mx-auto grid max-w-7xl grid-cols-1 px-4">
+
+    <div class="demo space-y-2 md:col-span-3" demo="1">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Implement your sketch recognition model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+        <iframe src="https://hf.space/embed/gradio/pictionary/+?__theme=light" frameBorder="0" height="350" scrolling="yes" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads" style="margin: auto;"></iframe>
+    </div>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="2">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Implement your question-answering model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+        <iframe src="https://hf.space/embed/gradio/question-answering/+?__theme=light" frameBorder="0" height="425" scrolling="yes" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads" style="margin: auto;"></iframe>
+    </div>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="3">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Implement your image segmentation model here...</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+       <iframe src="https://hf.space/embed/gradio/Echocardiogram-Segmentation/+?__theme=light" frameBorder="0" height="475" scrolling="yes" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads" style="margin: auto;"></iframe>
+    </div>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="4">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl max-w-5xl">
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass </span><span class="token comment"> # Generate a response depending on if audio1 and audio2 are spoken by same person or not</span>
+
+gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>same_or_different<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"audio"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"html"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+      </div>
+       <iframe src="https://hf.space/embed/gradio/same-person-or-different/+?__theme=light" frameBorder="0" height="420" scrolling="yes" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads" style="margin: auto;"></iframe>
+    </div>
+  </div>
+
+<!--CARDS-->
+  <div class="relative mx-auto max-w-7xl space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg">
+    <div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
+      <h2 class="mb-4 text-xl font-bold">
+        <svg class="mr-2 mb-3 text-2xl text-gray-800" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32">
+          <rect class="text-orange-500" x="6.34" y="19" width="11.31" height="2" transform="translate(-10.63 14.34) rotate(-45)"></rect>
+          <path d="M17,30a1,1,0,0,1-.37-.07,1,1,0,0,1-.62-.79l-1-7,2-.28.75,5.27L21,24.52V17a1,1,0,0,1,.29-.71l4.07-4.07A8.94,8.94,0,0,0,28,5.86V4H26.14a8.94,8.94,0,0,0-6.36,2.64l-4.07,4.07A1,1,0,0,1,15,11H7.48L4.87,14.26l5.27.75-.28,2-7-1a1,1,0,0,1-.79-.62,1,1,0,0,1,.15-1l4-5A1,1,0,0,1,7,9h7.59l3.77-3.78A10.92,10.92,0,0,1,26.14,2H28a2,2,0,0,1,2,2V5.86a10.92,10.92,0,0,1-3.22,7.78L23,17.41V25a1,1,0,0,1-.38.78l-5,4A1,1,0,0,1,17,30Z"></path>
+        </svg>
+        Fast, easy setup
+      </h2>
+      <p class="mb-3 text-gray-600">Gradio can be <a class="text-link" href="https://gradio.app/getting_started/">installed with pip</a>. Creating a Gradio interface only requires adding a couple lines of code to your project.</p>
+      <p class="text-gray-600">You can choose from a variety of interface types to interface your function.</p>
+    </div>
+    <div class="shadow-alternate flex-1 rounded-xl border border-t border-gray-100 p-6">
+      <h2 class="mb-4 text-xl font-bold">
+        <svg width="1em" height="1em" class="mr-2 mb-3 fill-current text-2xl text-gray-800" viewBox="0 0 1 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0.675 0.590576H0.73125V0.731201H0.675V0.590576ZM0.5625 0.449951H0.61875V0.731201H0.5625V0.449951Z" />
+          <path class="text-orange-500" d="M0.210183 0.689964C0.236545 0.716326 0.272288 0.731157 0.30957 0.731201C0.346866 0.731201 0.382635 0.716385 0.409007 0.690013C0.43538 0.663641 0.450195 0.627872 0.450195 0.590576C0.450195 0.55328 0.43538 0.517512 0.409007 0.491139C0.382635 0.464767 0.346866 0.449951 0.30957 0.449951V0.506201C0.326258 0.506201 0.342571 0.51115 0.356447 0.520421C0.370322 0.529692 0.381137 0.54287 0.387523 0.558287C0.393909 0.573705 0.39558 0.59067 0.392324 0.607037C0.389068 0.623404 0.381032 0.638438 0.369232 0.650238C0.357432 0.662038 0.342398 0.670074 0.326031 0.67333C0.309664 0.676586 0.292699 0.674915 0.277281 0.668529C0.261864 0.662142 0.248686 0.651328 0.239415 0.637452C0.230144 0.623577 0.225195 0.607264 0.225195 0.590576H0.168945C0.16899 0.627859 0.18382 0.663601 0.210183 0.689964Z" />
+          <path d="M0.787402 0.0561523H0.112402C0.0974885 0.0561672 0.0831897 0.0620983 0.072644 0.072644C0.0620983 0.0831897 0.0561672 0.0974885 0.0561523 0.112402V0.787402C0.0561672 0.802316 0.0620983 0.816615 0.072644 0.827161C0.0831897 0.837706 0.0974885 0.843637 0.112402 0.843652H0.787402C0.802314 0.84363 0.816608 0.837697 0.827152 0.827152C0.837697 0.816608 0.84363 0.802314 0.843652 0.787402V0.112402C0.843637 0.0974885 0.837706 0.0831897 0.827161 0.072644C0.816615 0.0620983 0.802316 0.0561672 0.787402 0.0561523ZM0.787402 0.309277H0.393652V0.112402H0.787402V0.309277ZM0.337402 0.112402V0.309277H0.112402V0.112402H0.337402ZM0.112402 0.787402V0.365527H0.787402L0.787459 0.787402H0.112402Z" />
+        </svg>
+
+        Present and share
+      </h2>
+      <p class="mb-3 text-gray-600">Gradio can be embedded in <a href="https://colab.research.google.com/drive/1T70IHFbztf_F0-HggwvM1PN7jBmS_wPN" class="text-link">Python notebooks</a> or presented as a <a href="https://huggingface.co/spaces/akhaliq/AnimeGANv2" class="text-link">webpage</a>.</p>
+      <p class="text-gray-600">A Gradio interface can automatically generate a public link you can share with colleagues that lets them interact with the model on your computer remotely from their own devices.</p>
+    </div>
+    <div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
+      <h2 class="mb-4 text-xl font-bold">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="mr-2 mb-3 text-2xl text-gray-800" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32">
+          <path fill="currentColor" d="M16 2a8 8 0 1 0 8 8a8.01 8.01 0 0 0-8-8zm5.91 7h-2.438a15.246 15.246 0 0 0-.791-4.36A6.009 6.009 0 0 1 21.91 9zm-5.888 6.999h-.008c-.38-.12-1.309-1.821-1.479-4.999h2.93c-.17 3.176-1.094 4.877-1.443 4.999zM14.535 9c.17-3.176 1.094-4.877 1.443-4.999h.008c.38.12 1.309 1.821 1.479 4.999zM13.32 4.64A15.246 15.246 0 0 0 12.528 9H10.09a6.009 6.009 0 0 1 3.23-4.36zM10.09 11h2.437a15.246 15.246 0 0 0 .792 4.36A6.009 6.009 0 0 1 10.09 11zm8.59 4.36a15.246 15.246 0 0 0 .792-4.36h2.438a6.009 6.009 0 0 1-3.23 4.36zM28 30H4a2.002 2.002 0 0 1-2-2v-6a2.002 2.002 0 0 1 2-2h24a2.002 2.002 0 0 1 2 2v6a2.002 2.002 0 0 1-2 2zM4 22v6h24v-6z"></path>
+          <circle cx="7" cy="25" r="1" class="fill-current text-orange-500"></circle>
+        </svg>
+        Permanent hosting
+      </h2>
+      <p class="mb-3 text-gray-600">Once you've created an interface, you can permanently host it on Hugging Face.</p>
+      <p class="text-gray-600"><a href="https://huggingface.co/spaces" class="text-link">Hugging Face Spaces</a> will host the interface on its servers and provide you with a link you can share.</p>
+    </div>
+  </div>
+
+<!--USED BY-->
+  <div class="text-center">
+    <h2 class="mb-2 inline-block bg-white px-5 text-gray-400">Used by</h2>
+    <div class="border-t border-b border-gray-100 bg-gradient-to-t from-gray-50 px-4 pt-24 pb-32" style="margin-top: -1.2rem;">
+      <div class="mx-auto grid max-w-7xl grid-cols-3 justify-items-center gap-x-3 gap-y-8 grayscale sm:gap-x-4 md:grid-cols-5"><img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/google.svg" /> <img class="logo h-4 contrast-0 sm:h-5" src="https://gradio.app/assets/img/logos/amazon.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/fb.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/cisco.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/twitter.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/vmware.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/huggingface.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/siemens.svg" /> <img class="logo h-4 contrast-0 sm:h-5" src="https://gradio.app/assets/img/logos/mit-svg-50.png" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/stanford.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/uipath.svg" /> <img class="logo h-4 sm:h-5" src="https://gradio.app/assets/img/logos/unifyid.svg" /> <img class="logo h-4 contrast-0 sm:h-5" src="https://gradio.app/assets/img/logos/humaniseai.svg" /> <img class="logo h-4 contrast-0 sm:h-5" src="https://gradio.app/assets/img/logos/factmata.svg" /> <img class="logo h-4 contrast-0 sm:h-5" src="https://gradio.app/assets/img/logos/wns.png" /></div>
+    </div>
+  </div>
+
+
+<!--TWEETS-->
+  <div class="pt-12 md:pt-20 mx-auto max-w-7xl px-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {% for tweet in tweets %}
+        <a href="{{ tweet['link'] }}" class="rounded-xl border border-gray-200 bg-white p-4 hover:shadow dark:border-gray-800 dark:bg-gray-800">
+          <div class="flex justify-between">
+            <div class="flex items-center gap-2">
+              <img class="h-11 w-11 rounded-full" src="/assets/img/twitter/{{ tweet['profile_pic'] }}" />
+              <div class="ml-1.5 text-sm leading-tight">
+                <span class="block font-bold text-black dark:text-white">{{ tweet['name'] }}</span>
+                <span class="block font-normal text-gray-500 dark:text-gray-400">@{{ tweet['handle'] }}</span>
+              </div>
+            </div>
+            <svg class="inline-block h-6 w-auto fill-current text-blue-400 dark:text-white" viewBox="0 0 24 24">
+              <g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g>
+            </svg>
+          </div>
+          <p class="mt-3 block leading-snug text-black dark:text-white">{{ tweet['content']|safe }}</p>
+
+
+          <p class="my-0.5 flex items-center py-1 text-base text-gray-500 dark:text-gray-400">
+            <svg class="mr-1 h-3.5 w-4 fill-current" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr" style="">
+              <g><path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path></g>
+            </svg>
+            {{ tweet['likes'] }} · {{ tweet['timestamp'] }}
+          </p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+<!--FOOTER-->
+  <footer class="container flex-row sm:flex-col lg:flex-row relative inset-x-0 top-0 z-10 bg-white/80 backdrop-blur-lg mx-auto flex max-w-7xl items-center px-4 py-6 justify-between flex-wrap gap-6">
+    <a href="/">
+      <svg width="90" viewBox="0 0 451 105" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M45.7779 9.7789L91.2031 34.6919V49.2071L45.7779 24.2941V9.7789Z" fill="#FF7C00" fill-opacity="0.75"/>
+        <path d="M91.1878 34.6924L45.5957 59.6992V74.3078L91.1878 49.301V34.6924Z" fill="#FF7C00"/>
+        <path d="M-0.000525172 34.6924L45.5957 59.6992V74.3079L-0.000525172 49.3011V34.6924Z" fill="#FF7C00" fill-opacity="0.75"/>
+        <path d="M45.7731 9.68544L0.00585938 34.6919V49.3006L45.7731 24.2942V9.68544Z" fill="#FF7C00"/>
+        <path d="M45.7779 34.9728L91.2031 59.8857V74.4009L45.7779 49.488V34.9728Z" fill="#FF7C00" fill-opacity="0.75"/>
+        <path d="M91.1878 59.8853L45.5957 84.8921V99.5007L91.1878 74.4939V59.8853Z" fill="#FF7C00"/>
+        <path d="M-0.000525172 59.8853L45.5957 84.8921V99.5008L-0.000525172 74.494V59.8853Z" fill="#FF7C00" fill-opacity="0.75"/>
+        <path d="M45.7731 34.8783L0.00585938 59.8848V74.4935L45.7731 49.4871V34.8783Z" fill="#FF7C00"/>
+        <path d="M139.727 96.9891L148.148 86.596C152.803 90.8598 157.991 92.9917 163.711 92.9917C167.549 92.9917 170.711 92.4232 173.198 91.2862C175.686 90.1492 176.929 88.5858 176.929 86.596C176.929 83.2205 174.176 81.5327 168.668 81.5327C167.176 81.5327 164.955 81.7104 162.006 82.0657C159.057 82.421 156.836 82.5987 155.344 82.5987C146.176 82.5987 141.593 79.312 141.593 72.7386C141.593 70.8554 142.357 69.0077 143.885 67.1956C145.413 65.3835 147.189 64.0511 149.214 63.1983C142.712 58.97 139.461 52.9829 139.461 45.237C139.461 39.1255 141.699 34.08 146.176 30.1004C150.653 26.0853 156.161 24.0777 162.699 24.0777C167.815 24.0777 172.097 25.0371 175.544 26.9558L180.767 20.8799L189.987 29.2476L183.645 33.8845C185.848 37.2245 186.949 41.1686 186.949 45.7166C186.949 52.219 184.959 57.4244 180.98 61.3329C177.036 65.2058 172.044 67.1423 166.003 67.1423C165.044 67.1423 163.765 67.0535 162.166 66.8758L159.981 66.5561C159.732 66.5561 158.772 66.9469 157.102 67.7286C155.468 68.4748 154.651 69.2565 154.651 70.0737C154.651 71.495 155.877 72.2056 158.328 72.2056C159.43 72.2056 161.277 71.9391 163.871 71.4062C166.465 70.8732 168.686 70.6067 170.534 70.6067C183.503 70.6067 189.987 75.8121 189.987 86.2229C189.987 91.9791 187.393 96.4916 182.206 99.7606C177.018 103.065 170.764 104.717 163.445 104.717C154.704 104.717 146.798 102.141 139.727 96.9891ZM153.052 45.2903C153.052 48.6658 153.976 51.384 155.823 53.4448C157.707 55.4701 160.229 56.4828 163.392 56.4828C166.554 56.4828 168.988 55.4879 170.693 53.4981C172.399 51.5083 173.252 48.7724 173.252 45.2903C173.252 42.4122 172.328 39.9782 170.48 37.9885C168.668 35.9987 166.305 35.0038 163.392 35.0038C160.336 35.0038 157.849 35.9631 155.93 37.8819C154.011 39.8006 153.052 42.27 153.052 45.2903Z" fill="#FF7C00"/>
+        <path d="M231.773 37.6687C229.392 36.1053 226.78 35.3236 223.938 35.3236C220.847 35.3236 218.093 36.7271 215.677 39.5341C213.296 42.3411 212.106 45.7699 212.106 49.8206V82.3322H198.781V25.2503H212.106V30.4735C215.837 26.2807 220.793 24.1843 226.976 24.1843C231.524 24.1843 235.006 24.8772 237.422 26.263L231.773 37.6687Z" fill="#FF7C00"/>
+        <path d="M277.236 76.6293C276.028 78.6191 273.913 80.2536 270.893 81.5327C267.909 82.7763 264.782 83.3981 261.513 83.3981C255.366 83.3981 250.533 81.8703 247.016 78.8145C243.498 75.7233 241.739 71.3529 241.739 65.7033C241.739 59.0944 244.209 53.9245 249.148 50.1936C254.122 46.4628 261.175 44.5974 270.307 44.5974C271.87 44.5974 273.718 44.8639 275.85 45.3968C275.85 38.6813 271.604 35.3236 263.112 35.3236C258.102 35.3236 253.909 36.1586 250.533 37.8286L247.655 27.4888C252.239 25.2858 257.693 24.1843 264.018 24.1843C272.723 24.1843 279.101 26.1741 283.152 30.1537C287.202 34.0977 289.228 41.5949 289.228 52.6453V64.8505C289.228 72.4543 290.756 77.2334 293.811 79.1876C292.71 81.1063 291.484 82.2789 290.134 82.7053C288.783 83.1672 287.238 83.3981 285.497 83.3981C283.578 83.3981 281.855 82.6875 280.327 81.2662C278.799 79.845 277.769 78.2993 277.236 76.6293ZM275.956 55.4701C273.682 55.0082 271.977 54.7773 270.84 54.7773C260.322 54.7773 255.064 58.2238 255.064 65.117C255.064 70.2336 258.031 72.7919 263.965 72.7919C271.959 72.7919 275.956 68.7946 275.956 60.7999V55.4701Z" fill="#FF7C00"/>
+        <path d="M340.393 82.3322V78.8678C339.292 80.0759 337.427 81.1419 334.797 82.0657C332.168 82.954 329.45 83.3981 326.643 83.3981C318.684 83.3981 312.412 80.8754 307.829 75.8299C303.28 70.7843 301.006 63.749 301.006 54.724C301.006 45.6989 303.618 38.3615 308.841 32.712C314.1 27.0269 320.673 24.1843 328.561 24.1843C332.896 24.1843 336.84 25.0726 340.393 26.8492V3.98449L353.718 0.786621V82.3322H340.393ZM340.393 38.8945C337.551 36.6205 334.584 35.4835 331.493 35.4835C326.163 35.4835 322.059 37.1179 319.181 40.3869C316.303 43.6203 314.864 48.2749 314.864 54.3509C314.864 66.2185 320.584 72.1523 332.026 72.1523C333.305 72.1523 334.868 71.7792 336.716 71.0331C338.599 70.2514 339.825 69.4697 340.393 68.688V38.8945Z" fill="#FF7C00"/>
+        <path d="M377.542 3.13172C379.674 3.13172 381.486 3.89566 382.978 5.42353C384.506 6.91586 385.27 8.72799 385.27 10.8599C385.27 12.9918 384.506 14.8217 382.978 16.3496C381.486 17.8419 379.674 18.5881 377.542 18.5881C375.41 18.5881 373.58 17.8419 372.052 16.3496C370.56 14.8217 369.814 12.9918 369.814 10.8599C369.814 8.72799 370.56 6.91586 372.052 5.42353C373.58 3.89566 375.41 3.13172 377.542 3.13172ZM370.667 82.3322V36.1763H363.365V25.2503H384.151V82.3322H370.667Z" fill="#FF7C00"/>
+        <path d="M395.983 53.658C395.983 44.9527 398.488 37.8641 403.498 32.3922C408.544 26.9203 415.188 24.1843 423.431 24.1843C432.101 24.1843 438.834 26.8137 443.631 32.0724C448.428 37.3311 450.826 44.5263 450.826 53.658C450.826 62.7541 448.375 69.9849 443.471 75.3502C438.603 80.7155 431.924 83.3981 423.431 83.3981C414.762 83.3981 408.011 80.6977 403.178 75.2969C398.381 69.8605 395.983 62.6476 395.983 53.658ZM409.84 53.658C409.84 66.2363 414.371 72.5254 423.431 72.5254C427.589 72.5254 430.875 70.8909 433.291 67.622C435.743 64.3531 436.969 59.6984 436.969 53.658C436.969 41.2574 432.456 35.0571 423.431 35.0571C419.274 35.0571 415.97 36.6915 413.518 39.9605C411.066 43.2294 409.84 47.7952 409.84 53.658Z" fill="#FF7C00"/>
+      </svg>
+    </a>
+    <nav class="flex ml-auto w-full flex-col gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-8">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="w-6">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="w-6">
+      </a>
+    </nav>
+  </footer>
+  <script>
+    let xhr = new XMLHttpRequest;
+    xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
+    xhr.onload = function()
+        {
+            if (this.status === 200)
+                {
+                    var stars = JSON.parse(this.responseText)["stargazers_count"];
+        stars = stars.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        document.getElementById('star-count').innerHTML = stars;
+        document.getElementById('star-count').classList.remove("preloaded-star-count");
+      }
+    }
+    xhr.send();
+
+    let load_demo = demo_id => {
+      document.querySelectorAll(".demo-tab").forEach(e => {
+        e.classList.remove('active-example-tab');
+      })
+      document.querySelectorAll(".demo").forEach(e => {
+        e.classList.add("hidden");
+      })
+      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("active-example-tab");
+
+      document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
+    }
+
+    window.__gradio_mode__ = "website";
+  </script>
+</body>
+
+</html>
