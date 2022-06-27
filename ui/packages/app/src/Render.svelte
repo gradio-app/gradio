@@ -23,6 +23,7 @@
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
+	console.log(props.interactive);
 	if (has_modes) {
 		if (props.interactive === false) {
 			props.mode = "static";

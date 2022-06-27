@@ -118,8 +118,8 @@
 	const dynamic_ids = components.reduce((acc, { id, props }) => {
 		const is_input = is_dep(id, "inputs", dependencies);
 		const is_output = is_dep(id, "outputs", dependencies);
-
-		if (!is_input && !is_output && !props.value) acc.add(id); // default dynamic
+		console.log(props.value, is_input, is_output);
+		if (!is_input && !is_output) acc.add(id); // default dynamic
 		if (is_input) acc.add(id);
 
 		return acc;
