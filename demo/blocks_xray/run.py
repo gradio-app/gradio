@@ -38,6 +38,7 @@ With this model you can lorem ipsum
                 inputs=[disease, xray_scan],
                 outputs=xray_results,
                 status_tracker=xray_progress,
+                api_name="xray_model"
             )
 
         with gr.TabItem("CT Scan"):
@@ -51,6 +52,7 @@ With this model you can lorem ipsum
                 inputs=[disease, ct_scan],
                 outputs=ct_results,
                 status_tracker=ct_progress,
+                api_name="ct_model"
             )
 
     upload_btn = gr.Button("Upload Results")

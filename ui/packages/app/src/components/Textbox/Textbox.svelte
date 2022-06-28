@@ -24,9 +24,9 @@
 </script>
 
 <Block
+	{visible}
 	{form_position}
 	{elem_id}
-	{visible}
 	disable={typeof style.container === "boolean" && !style.container}
 >
 	<StatusTracker {...loading_status} />

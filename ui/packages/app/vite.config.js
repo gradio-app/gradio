@@ -5,21 +5,23 @@ import sveltePreprocess from "svelte-preprocess";
 import {
 	inject_ejs,
 	patch_dynamic_import,
-	generate_cdn_entry
+	generate_cdn_entry,
+	handle_ce_css
 } from "./build_plugins";
 
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
 import nested from "tailwindcss/nesting/index.js";
 
-const GRADIO_VERSION = process.env.GRADIO_VERSION || "";
+const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
+const TEST_CDN = !!process.env.TEST_CDN;
+const CDN = TEST_CDN
+	? "http://localhost:4321/"
+	: `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const CDN_URL =
-		mode === "production:cdn"
-			? `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`
-			: "/";
+	const CDN_URL = mode === "production:cdn" ? CDN : "/";
 	const production =
 		mode === "production:cdn" ||
 		mode === "production:local" ||
@@ -31,7 +33,7 @@ export default defineConfig(({ mode }) => {
 
 		build: {
 			target: "esnext",
-			minify: production,
+			minify: false,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
@@ -53,7 +55,7 @@ export default defineConfig(({ mode }) => {
 				compilerOptions: {
 					dev: !production
 				},
-				hot: !process.env.VITEST,
+				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }
 				})
@@ -64,7 +66,8 @@ export default defineConfig(({ mode }) => {
 				gradio_version: GRADIO_VERSION,
 				cdn_url: CDN_URL
 			}),
-			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL })
+			generate_cdn_entry({ enable: is_cdn, cdn_url: CDN_URL }),
+			handle_ce_css()
 		],
 		test: {
 			environment: "happy-dom",

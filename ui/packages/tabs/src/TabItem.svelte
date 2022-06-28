@@ -23,8 +23,8 @@
 {#if $selected_tab === id}
 	<div
 		id={elem_id}
-		class:hidden={visible === false}
 		class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex"
+		class:!hidden={!visible}
 	>
 		<div
 			class="flex flex-col gr-gap gr-form-gap relative col overflow-auto flex-1"

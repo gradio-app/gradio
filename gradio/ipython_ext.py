@@ -1,5 +1,5 @@
 try:
-    from IPython.core.magic import register_cell_magic
+    from IPython.core.magic import needs_local_scope, register_cell_magic
 except ImportError:
     pass
 
@@ -10,7 +10,8 @@ def load_ipython_extension(ipython):
     __demo = gradio.Blocks()
 
     @register_cell_magic
-    def blocks(line, cell):
+    @needs_local_scope
+    def blocks(line, cell, local_ns=None):
         with __demo.clear():
-            exec(cell)
+            exec(cell, None, local_ns)
             __demo.launch(quiet=True)

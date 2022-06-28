@@ -26,11 +26,10 @@
 
 	let mode: "categories" | "scores";
 
-	if (color_map === null) {
-		color_map = {};
-	}
-
 	$: {
+		if (!color_map) {
+			color_map = {};
+		}
 		if (value.length > 0) {
 			for (let [_, label] of value) {
 				if (label !== null) {
@@ -118,7 +117,7 @@
 			>
 				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
-					<span
+					&nbsp;<span
 						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
@@ -127,8 +126,8 @@
 					>
 						{category}
 					</span>
-				{/if}
-			</span>
+				{/if}</span
+			>
 		{/each}
 	</div>
 {:else}

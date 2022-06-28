@@ -7,6 +7,8 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
+	import type { Styles } from "@gradio/utils";
+	export let style: Styles = {};
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
@@ -26,11 +28,12 @@
 </script>
 
 <Block
+	{visible}
 	variant={value === null ? "dashed" : "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	{visible}
+	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 

@@ -8,7 +8,10 @@
 		"build": "pnpm build:local --filter @gradio/app --emptyOutDir",
 		"build:cdn": "pnpm build:cdn --filter @gradio/app --emptyOutDir",
 		"build:website": "pnpm build:website --filter @gradio/app --emptyOutDir",
-		"preview": "sirv ../gradio/templates/frontend --single --port=3000 --quiet",
+		"build:cdn-local": "TEST_CDN=TRUE pnpm build:cdn",
+		"preview:cdn-server": "sirv ../gradio/templates/cdn --single --port=4321 --cors",
+		"preview:cdn-app": "pnpm dev --filter @gradio/cdn-test",
+		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
@@ -51,7 +54,7 @@
 		"tailwindcss": "^3.0.23",
 		"tinyspy": "^0.3.0",
 		"vite": "^2.9.5",
-		"vitest": "^0.10.0"
+		"vitest": "^0.12.7"
 	},
 	"devDependencies": {
 		"@types/three": "^0.138.0"

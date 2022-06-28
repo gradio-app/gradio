@@ -4,7 +4,6 @@
 
 	export let label: string;
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let value: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
@@ -12,4 +11,4 @@
 	$: label, dispatch("change");
 </script>
 
-<Markdown {value} {elem_id} {visible} on:change />
+<Markdown {value} {elem_id} on:change />
