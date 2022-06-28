@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Block } from "@gradio/atoms";
 	import { create_classes } from "@gradio/utils";
+	export let elem_id: string;
+	export let visible: boolean = true;
 	export let parent: string | null = null;
 	export let style: Record<string, unknown> = {};
 
@@ -9,6 +11,6 @@
 	}
 </script>
 
-<Block>
+<Block {elem_id} {visible} explicit_call>
 	<slot />
 </Block>

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { colors } from "@gradio/theme";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string, string]>;
-	export let color_map: [string, string] | undefined = undefined;
+	export let style: Styles = {};
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -23,17 +24,19 @@
 
 	$: _colors = get_colors();
 
+	function get_color(c: string) {
+		if (c in colors) {
+			return colors[c as keyof typeof colors].primary;
+		} else {
+			return c;
+		}
+	}
+
 	function get_colors() {
-		if (!color_map) {
+		if (!style.color_map) {
 			return ["#fb923c", "#9ca3af"];
 		} else {
-			return color_map.map((c) => {
-				if (c in colors) {
-					return colors[c as keyof typeof colors].primary;
-				} else {
-					return c;
-				}
-			});
+			return [get_color(style.color_map[0]), get_color(style.color_map[1])];
 		}
 	}
 </script>
@@ -43,14 +46,14 @@
 		{#each value as message}
 			<div
 				data-testid="user"
-				class="px-3 py-2 rounded-[22px] rounded-br-none text-white ml-7 text-sm"
+				class="px-3 py-2 rounded-[22px] rounded-br-none text-white text-sm"
 				style={"background-color:" + _colors[0]}
 			>
 				{message[0]}
 			</div>
 			<div
 				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white ml-7 text-sm"
+				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white text-sm"
 				style={"background-color:" + _colors[1]}
 			>
 				{message[1]}

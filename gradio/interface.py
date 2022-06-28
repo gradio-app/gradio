@@ -106,7 +106,7 @@ class Interface(Blocks):
 
     def __init__(
         self,
-        fn: Callable | List[Callable],
+        fn: Callable,
         inputs: Optional[str | Component | List[str | Component]],
         outputs: Optional[str | Component | List[str | Component]],
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
@@ -172,6 +172,12 @@ class Interface(Blocks):
 
         if not isinstance(fn, list):
             fn = [fn]
+        else:
+            raise DeprecationWarning(
+                "The `fn` parameter only accepts a single function, support for a list "
+                "of functions has been deprecated. Please use gradio.mix.Parallel "
+                "instead."
+            )
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
@@ -201,8 +207,12 @@ class Interface(Blocks):
                 )
             self.cache_examples = False
 
-        self.input_components = [get_component_instance(i).unrender() for i in inputs]
-        self.output_components = [get_component_instance(o).unrender() for o in outputs]
+        self.input_components = [
+            get_component_instance(i, render=False) for i in inputs
+        ]
+        self.output_components = [
+            get_component_instance(o, render=False) for o in outputs
+        ]
 
         for component in self.input_components + self.output_components:
             if not (
@@ -434,6 +444,19 @@ class Interface(Blocks):
                 )
             if self.description:
                 Markdown(self.description)
+
+            def render_flag_btns(flagging_options):
+                if flagging_options is None:
+                    return [(Button("Flag"), None)]
+                else:
+                    return [
+                        (
+                            Button("Flag as " + flag_option),
+                            flag_option,
+                        )
+                        for flag_option in flagging_options
+                    ]
+
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -468,7 +491,7 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Submit", variant="primary")
                                 if self.allow_flagging == "manual":
-                                    flag_btn = Button("Flag")
+                                    flag_btns = render_flag_btns(self.flagging_options)
 
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -484,7 +507,7 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")
                             if self.allow_flagging == "manual":
-                                flag_btn = Button("Flag")
+                                flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
             submit_fn = (
@@ -493,28 +516,42 @@ class Interface(Blocks):
                 else self.run_prediction(args)
             )
             if self.live:
-                for component in self.input_components:
-                    if isinstance(component, Streamable):
-                        if component.streaming:
-                            component.stream(
+                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                    super().load(submit_fn, None, self.output_components)
+                    submit_btn.click(
+                        submit_fn,
+                        None,
+                        self.output_components,
+                        api_name="predict",
+                        status_tracker=status_tracker,
+                    )
+                else:
+                    for component in self.input_components:
+                        if isinstance(component, Streamable):
+                            if component.streaming:
+                                component.stream(
+                                    submit_fn,
+                                    self.input_components,
+                                    self.output_components,
+                                )
+                                continue
+                            else:
+                                print(
+                                    "Hint: Set streaming=True for "
+                                    + component.__class__.__name__
+                                    + " component to use live streaming."
+                                )
+                        if isinstance(component, Changeable):
+                            component.change(
                                 submit_fn, self.input_components, self.output_components
                             )
-                            continue
-                        else:
-                            print(
-                                "Hint: Set streaming=True for "
-                                + component.__class__.__name__
-                                + " component to use live streaming."
-                            )
-                    if isinstance(component, Changeable):
-                        component.change(
-                            submit_fn, self.input_components, self.output_components
-                        )
             else:
                 submit_btn.click(
                     submit_fn,
                     self.input_components,
                     self.output_components,
+                    api_name="predict",
+                    scroll_to_output=True,
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
@@ -551,26 +588,34 @@ class Interface(Blocks):
                 )}
                 """,
             )
+
+            class FlagMethod:
+                def __init__(self, flagging_callback, flag_option=None):
+                    self.flagging_callback = flagging_callback
+                    self.flag_option = flag_option
+
+                def __call__(self, *flag_data):
+                    self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
+
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.OUTPUT_ONLY,
+                    self.InterfaceTypes.UNIFIED,
                 ]:
-                    flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(flag_data),
-                        inputs=self.input_components + self.output_components,
-                        outputs=[],
-                        _preprocess=False,
-                        queue=False,
-                    )
-                elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                    flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(flag_data),
-                        inputs=self.input_components,
-                        outputs=[],
-                        _preprocess=False,
-                        queue=False,
-                    )
+                    if self.interface_type == self.InterfaceTypes.UNIFIED:
+                        flag_components = self.input_components
+                    else:
+                        flag_components = self.input_components + self.output_components
+                    for flag_btn, flag_option in flag_btns:
+                        flag_method = FlagMethod(self.flagging_callback, flag_option)
+                        flag_btn.click(
+                            flag_method,
+                            inputs=flag_components,
+                            outputs=[],
+                            _preprocess=False,
+                            queue=False,
+                        )
 
             if self.examples:
                 non_state_inputs = [

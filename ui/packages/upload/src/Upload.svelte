@@ -4,16 +4,15 @@
 
 	export let filetype: string | undefined = undefined;
 	export let theme: string = "default";
-	export let single_file: boolean = true;
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight: boolean = true;
 	export let click: boolean = true;
 	export let center: boolean = true;
 	export let flex: boolean = true;
+	export let file_count: string = "single";
 
 	let hidden_upload: HTMLInputElement;
-	let file_count: "multiple" | "directory" | "single";
 
 	const dispatch = createEventDispatcher();
 
@@ -46,8 +45,13 @@
 							data: this.result as string
 					  }
 					: (this.result as string);
-				if (all_file_data.length === files.length) {
-					dispatch("load", single_file ? all_file_data[0] : all_file_data);
+				if (
+					all_file_data.filter((x) => x !== undefined).length === files.length
+				) {
+					dispatch(
+						"load",
+						file_count == "single" ? all_file_data[0] : all_file_data
+					);
 				}
 			};
 		});

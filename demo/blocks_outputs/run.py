@@ -43,6 +43,27 @@ with gr.Blocks() as demo:
         gr.Dataframe(
             interactive=True, headers=["One", "Two", "Three", "Four"], col_count=4
         )
+        gr.DataFrame(
+            [
+                [
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                ],
+                [
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                ],
+                [
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                    "Hello my name is frank, I am liking the small turtle you have there. It would be a shame if it went missing.",
+                ],
+            ],
+            headers=["One", "Two", "Three"],
+            wrap=True,
+        )
 
 
 if __name__ == "__main__":

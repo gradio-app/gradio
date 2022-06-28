@@ -19,4 +19,6 @@ with demo:
                inputs=inp, 
                outputs=out)
 
+    gr.Image("lion.jpg").style(height=54, width=240)
+
 demo.launch()

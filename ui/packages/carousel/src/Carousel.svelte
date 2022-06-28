@@ -48,8 +48,8 @@
 
 <div
 	class="output-carousel flex flex-col relative"
+	class:!hidden={!visible}
 	id={elem_id}
-	class:hidden={visible === false}
 >
 	<slot />
 
