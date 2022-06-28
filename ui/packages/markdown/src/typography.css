@@ -1081,6 +1081,12 @@
 .dark .gr-prose a {
 	color: #ffffff;
 }
+.dark .gr-prose strong {
+	color: #daddd8;
+}
+.dark .gr-prose code {
+	color: #daddd8;
+}
 .dark :is(h1, h2, h3, h4) {
 	color: #ffffff;
 }

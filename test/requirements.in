@@ -18,3 +18,5 @@ black
 isort
 flake8
 torch
+httpx
+pydantic
