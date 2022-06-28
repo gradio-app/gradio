@@ -13,7 +13,7 @@ def zip_two_files(file1, file2):
 
 demo = gr.Interface(
     zip_two_files,
-    ["file", "file"],
+    [gr.File(file_count="multiple"), gr.File(file_count="multiple")],
     "file",
     examples=[
         [os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
