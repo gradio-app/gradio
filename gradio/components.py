@@ -2722,7 +2722,7 @@ class Variable(IOComponent):
         Parameters:
         value (Any): the initial value of the state.
         """
-        self.value = value
+        self.value = deepcopy(value)
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
 
