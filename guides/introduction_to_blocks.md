@@ -1,4 +1,4 @@
-## Introduction to Gradio Blocks 🧱 
+# Introduction to Gradio Blocks 🧱 
  
 Gradio is a Python library that allows you to quickly build web-based machine learning demos, data science dashboards, or other kinds of web apps, **entirely in Python**. These web apps can be launched from wherever you use Python (jupyter notebooks, colab notebooks, Python terminal, etc.) and shared with anyone instantly using Gradio's auto-generated share links.
 
@@ -10,7 +10,7 @@ To offer both simplicity and more powerful and flexible control for advanced web
 
 This Guide will teach you the **Blocks API** and we will create several custom web apps in the process. It will be helpful but not necessary to be familiar with the Interface API before you read this tutorial.
 
-### Why Blocks 🧱?
+## Why Blocks 🧱?
 
 If you have already used `gradio.Interface`, you know that you can easily create fully-fledged machine learning demos with just a few lines of code. The Interface API is very convenient but in some cases may not be sufficiently flexible for your needs. For example, you might want to:
 
@@ -22,7 +22,7 @@ If you have already used `gradio.Interface`, you know that you can easily create
 These are all use cases where you should use the Blocks API!
 
 
-### "Hello World" with Blocks
+## "Hello World" with Blocks
 
 After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/1n_uB44G_uENGf0zroeVKgcytFQ-7UwZt?usp=sharing))
 
@@ -33,7 +33,7 @@ The interface below will appear automatically within the Python notebook, or pop
 $demo_blocks_hello
 
 
-### Understanding this Example
+## Understanding this Example
 
 This simple example introduces 5 concepts that underlie Blocks:
 
@@ -49,7 +49,7 @@ In this example, we run the `update()` function when the value in the `Textbox` 
 
 5. You can write and `launch()` your Blocks anywhere: jupyter notebooks, colab notebooks, or regular Python IDEs since Gradio uses the standard Python interpreter. You can also share Blocks with other people by setting a single parameter: `launch(share=True)`, which we will discuss towards the end of this guide.
 
-### Layouts
+## Layouts
 
 By default, `Blocks` renders the components that you create *vertically in one column*. You can change that by creating additional columns (`with gradio.Column():`) or rows (`with gradio.Row():`) and creating components within those contexts.
 
@@ -65,7 +65,7 @@ $demo_blocks_flipper
 
 You'll notice that in this example, we've also created a `Button` component in each tab, and we've assigned a click event to each button, which is what actually runs the function. So let's talk more about events... 
 
-### Events
+## Events
 
 Just as you can control the layout, `Blocks` gives you fine-grained control over what events trigger function calls. Each component and many layouts have specific events that they support. 
 
@@ -83,7 +83,7 @@ $code_blocks_gpt
 
 $demo_blocks_gpt
 
-### Multistep Demos
+## Multistep Demos
 
 In some cases, you might want want a "multi-step" demo, in which you reuse the output of one function as the input to the next. This is really easy to do with Blocks, as you can use a component for the input of one event trigger but the output of another. Take a look at the `text` component in the example below, its value is the result of a speech-to-text model, but also gets passed into a sentiment analysis model:
 
@@ -91,7 +91,7 @@ $code_blocks_speech_text_length
 
 $demo_blocks_speech_text_length
 
-### Updating Component Properties
+## Updating Component Properties
 
 So far, we have seen how to create events to update the value of another component. But if you want to change *other properties*  of a component (like the visibility of a textbox or the choices in a radio button group)? You can do this by returning a component class's `update()`  method instead of a regular return value from your function. 
 
@@ -101,7 +101,7 @@ $code_blocks_essay
 
 $demo_blocks_essay
 
-### Sharing Blocks Publicly
+## Sharing Blocks Publicly
 
 Blocks  can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
@@ -122,7 +122,7 @@ Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Blo
 
 ![Sharing diagram](/assets/guides/sharing.svg)
 
-### Hosting Gradio Blocks on Spaces
+## Hosting Gradio Blocks on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio demo on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HF Spaces will pull the Gradio interface from there. It's just as easy to share a Blocks demo as it is a regular Gradio Interface.
 

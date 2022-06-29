@@ -22,19 +22,19 @@
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
       </div>
-      <div class="flex flex-col gap-8">
-        <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800">
+      <div class="flex flex-col">
+        <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800 mb-1">
           New to Gradio? Start here: <a class="link" href="/getting_started">Getting Started</a>
         </p>
-        <section id="building_demos" class="pt-2 flex flex-col gap-10">
-          <section id="interface" class="pt-2">
-            <h2 class="text-4xl font-light mb-4 text-orange-500">Building Demos</h2>
+        <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
+          <section class="pt-2">
+            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Building Demos</h2>
             {% with obj=find_cls("Interface"), parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           </section>
           <section id="combining_interfaces" class="pt-2">
-            <h2 class="text-4xl font-light mb-4 text-orange-500">Combining Interfaces</h2>
+            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Combining Interfaces</h2>
             <p class="mt-8 mb-12 text-lg">
               Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
@@ -53,15 +53,15 @@
               {% endwith %}
             </div>
           </section>
-          <section id="blocks" class="pt-2">
-            <h2 class="text-4xl font-light mb-4 text-orange-500">Building with Blocks</h2>
+          <section id="blocks" class="pt-2 mb-8">
+            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Building with Blocks</h2>
             <p class="mt-8 mb-12 text-lg">Want to build more customizable UIs? Take a look at how to build with Blocks.</p>
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("Blocks"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
-            <h2 class="text-4xl font-light mb-4 mt-12 text-gray-500">Block Layouts</h2>
+            <h2 class="text-4xl font-light mb-2 pt-2 mt-10 text-gray-500">Block Layouts</h2>
             <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
@@ -75,7 +75,7 @@
         <section id="components" class="pt-2 flex flex-col gap-10">
           <div>
             <h2 id="components-header"
-                class="text-4xl font-light mb-4 text-orange-500">Components</h2>
+                class="text-4xl font-light mb-2 pt-2 text-orange-500">Components</h2>
             <p class="mt-8 text-lg">
               Gradio includes pre-built components that can be used as
               inputs or outputs in your Interface or Blocks with a single line of code. Components

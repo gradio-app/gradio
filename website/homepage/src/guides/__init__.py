@@ -66,7 +66,6 @@ for guide in guide_list:
                 or line.startswith("Related spaces: ")
                 or line.startswith("Contributed by ")
                 or line.startswith("Docs: ")
-                or i == 0
             )
         ]
     )
