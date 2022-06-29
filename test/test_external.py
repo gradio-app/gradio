@@ -173,7 +173,7 @@ class TestLoadInterface(unittest.TestCase):
     def test_sentiment_model(self):
         io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
-            output = io("I am happy, I love you.")
+            output = io("I am happy, I love you")
             self.assertGreater(output["POSITIVE"], 0.5)
         except TooManyRequestsError:
             pass
