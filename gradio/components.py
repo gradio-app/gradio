@@ -19,7 +19,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
 import numpy as np
-import orjson
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
@@ -2723,27 +2722,9 @@ class Variable(IOComponent):
         Parameters:
         value (Any): the initial value of the state.
         """
-        self.value = orjson.loads(value) if isinstance(value, str) else value
-        try:
-            orjson.dumps(self.value, option=orjson.OPT_SERIALIZE_NUMPY)
-        except TypeError:
-            raise ValueError(
-                f"Cannot set initial value because type: {type(value)} is "
-                "not JSON serializable. Instead, you can set the initial "
-                "value to be None, and in your Python function, change it "
-                "to be the your desired value when the function is "
-                "run initially."
-            )
+        self.value = deepcopy(value)
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
-
-    def get_config(self):
-        return {
-            "value": orjson.dumps(self.value, option=orjson.OPT_SERIALIZE_NUMPY).decode(
-                "utf-8"
-            ),
-            **IOComponent.get_config(self),
-        }
 
     def style(self):
         return self
