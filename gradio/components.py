@@ -2726,12 +2726,6 @@ class Variable(IOComponent):
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def style(self):
         return self
 
