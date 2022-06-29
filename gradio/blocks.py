@@ -486,6 +486,7 @@ class Blocks(BlockContext):
                 )
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
+
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
