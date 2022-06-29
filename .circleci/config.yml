@@ -29,7 +29,7 @@ jobs:
             chromedriver --version
           name: Check chrome driver install
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "venv"
       - node/install:
