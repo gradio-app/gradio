@@ -177,8 +177,8 @@ class IOComponent(Component):
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
-        x: Input to interface
-        called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            x: Input to interface
+            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -198,11 +198,11 @@ class IOComponent(Component):
         """
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
-        x: Input to interface
+            x: Input to interface
         Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
-        neighbor_values: Neighboring values to input x to compute for interpretation
-        interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
-        interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
+            neighbor_values: Neighboring values to input x to compute for interpretation
+            interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
+            interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
         """
         return [], {}, True
 
@@ -212,11 +212,11 @@ class IOComponent(Component):
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
-        x: Input to interface
-        neighbors: Neighboring values to input x used for interpretation.
-        scores: Output value corresponding to each neighbor in neighbors
+            x: Input to interface
+            neighbors: Neighboring values to input x used for interpretation.
+            scores: Output value corresponding to each neighbor in neighbors
         Returns:
-        Arrangement of interpretation scores for interfaces to render.
+            Arrangement of interpretation scores for interfaces to render.
         """
         pass
 
@@ -257,13 +257,13 @@ class IOComponent(Component):
     def document_parameters(cls, target):
         if target == "input":
             doc = inspect.getdoc(cls.preprocess)
-            if "Parameters:\nx (" in doc:
-                return doc.split("Parameters:\nx ")[1].split("\n")[0]
+            if "Parameters:\n    x (" in doc:
+                return doc.split("Parameters:\n    x ")[1].split("\n")[0]
             return None
         elif target == "output":
             doc = inspect.getdoc(cls.postprocess)
-            if "Returns:\n" in doc:
-                return doc.split("Returns:\n")[1].split("\n")[0]
+            if "Returns:    \n" in doc:
+                return doc.split("Returns:\n    ")[1].split("\n")[0]
             return None
         else:
             raise ValueError("Invalid doumentation target.")
@@ -301,13 +301,13 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value: default text to provide in textarea.
-        lines: minimum number of line rows to provide in textarea.
-        max_lines: maximum number of line rows to provide in textarea.
-        placeholder: placeholder hint to provide behind textarea.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: default text to provide in textarea.
+            lines: minimum number of line rows to provide in textarea.
+            max_lines: maximum number of line rows to provide in textarea.
+            placeholder: placeholder hint to provide behind textarea.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.lines = lines
         self.max_lines = max_lines
@@ -363,9 +363,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-        x: text
+            x: text
         Returns:
-        text
+            text
         """
         if x is None:
             return None
@@ -376,8 +376,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
-        x: Input to interface
-        called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            x: Input to interface
+            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -396,8 +396,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
         Parameters:
-        separator: Separator to use to split input into tokens.
-        replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
+            separator: Separator to use to split input into tokens.
+            replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
         """
         self.interpretation_separator = separator
         self.interpretation_replacement = replacement
@@ -437,7 +437,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ) -> List[Tuple[str, float]]:
         """
         Returns:
-        Each tuple set represents a set of characters and their corresponding interpretation score.
+            Each tuple set represents a set of characters and their corresponding interpretation score.
         """
         result = []
         for token, score in zip(tokens, scores):
@@ -453,9 +453,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y: text
+            y: text
         Returns:
-        text
+            text
         """
         if y is None:
             return None
@@ -493,11 +493,11 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value: default value.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
-        precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
+            value: default value.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
         self.value = self.postprocess(value)
@@ -523,10 +523,10 @@ class Number(Changeable, Submittable, IOComponent):
         If precision is None, no rounding happens. If 0, num is converted to int.
 
         Parameters:
-        num: Number to round.
-        precision: Precision to round to.
+            num: Number to round.
+            precision: Precision to round to.
         Returns:
-        rounded number
+            rounded number
         """
         if num is None:
             return None
@@ -563,9 +563,9 @@ class Number(Changeable, Submittable, IOComponent):
     def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:
-        x: numeric input
+            x: numeric input
         Returns:
-        number representing function input
+            number representing function input
         """
         if x is None:
             return None
@@ -574,7 +574,7 @@ class Number(Changeable, Submittable, IOComponent):
     def preprocess_example(self, x: float | None) -> float | None:
         """
         Returns:
-        Number representing function input
+            Number representing function input
         """
         if x is None:
             return None
@@ -587,9 +587,9 @@ class Number(Changeable, Submittable, IOComponent):
         """
         Calculates interpretation scores of numeric values close to the input number.
         Parameters:
-        steps: Number of nearby values to measure in each direction (above and below the input number).
-        delta: Size of step in each direction between nearby values.
-        delta_type: "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
+            steps: Number of nearby values to measure in each direction (above and below the input number).
+            delta: Size of step in each direction between nearby values.
+            delta_type: "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
         """
         self.interpretation_steps = steps
         self.interpretation_delta = delta
@@ -620,7 +620,7 @@ class Number(Changeable, Submittable, IOComponent):
     ) -> List[Tuple[float, float]]:
         """
         Returns:
-        Each tuple set represents a numeric value near the input and its corresponding interpretation score.
+            Each tuple set represents a numeric value near the input and its corresponding interpretation score.
         """
         interpretation = list(zip(neighbors, scores))
         interpretation.insert(int(len(interpretation) / 2), [x, None])
@@ -635,9 +635,9 @@ class Number(Changeable, Submittable, IOComponent):
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        y: numeric output
+            y: numeric output
         Returns:
-        number representing function output
+            number representing function output
         """
         if y is None:
             return None
@@ -677,13 +677,13 @@ class Slider(Changeable, IOComponent):
     ):
         """
         Parameters:
-        minimum: minimum value for slider.
-        maximum: maximum value for slider.
-        value: default value.
-        step: increment between slider values.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            minimum: minimum value for slider.
+            maximum: maximum value for slider.
+            value: default value.
+            step: increment between slider values.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -742,16 +742,16 @@ class Slider(Changeable, IOComponent):
     def preprocess(self, x: float) -> float:
         """
         Parameters:
-        x: numeric input
+            x: numeric input
         Returns:
-        numeric input
+            numeric input
         """
         return x
 
     def preprocess_example(self, x: float) -> float:
         """
         Returns:
-        Number representing function input
+            Number representing function input
         """
         return x
 
@@ -759,7 +759,7 @@ class Slider(Changeable, IOComponent):
         """
         Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
         Parameters:
-        steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
+            steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
         """
         self.interpretation_steps = steps
         return self
@@ -775,7 +775,7 @@ class Slider(Changeable, IOComponent):
     ) -> List[float]:
         """
         Returns:
-        Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
+            Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
         """
         return scores
 
@@ -788,9 +788,9 @@ class Slider(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y: numeric output
+            y: numeric output
         Returns:
-        numeric output or minimum number if None
+            numeric output or minimum number if None
         """
         return self.minimum if y is None else y
 
@@ -833,10 +833,10 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: if True, checked by default.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: if True, checked by default.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.test_input = True
         self.value = self.postprocess(value)
@@ -878,16 +878,16 @@ class Checkbox(Changeable, IOComponent):
     def preprocess(self, x: bool) -> bool:
         """
         Parameters:
-        x: boolean input
+            x: boolean input
         Returns:
-        boolean input
+            boolean input
         """
         return x
 
     def preprocess_example(self, x):
         """
         Returns:
-        Boolean representing function input
+            Boolean representing function input
         """
         return x
 
@@ -903,7 +903,7 @@ class Checkbox(Changeable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
         """
         Returns:
-        The first value represents the interpretation score if the input is False, and the second if the input is True.
+            The first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         if x:
             return scores[0], None
@@ -918,9 +918,9 @@ class Checkbox(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y: boolean output
+            y: boolean output
         Returns:
-        boolean output
+            boolean output
         """
         return y
 
@@ -956,12 +956,12 @@ class CheckboxGroup(Changeable, IOComponent):
     ):
         """
         Parameters:
-        choices: list of options to select from.
-        value: default selected list of options.
-        type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            choices: list of options to select from.
+            value: default selected list of options.
+            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.choices = choices or []
         self.cleared_value = []
@@ -1009,9 +1009,9 @@ class CheckboxGroup(Changeable, IOComponent):
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
         Parameters:
-        x: list of selected choices
+            x: list of selected choices
         Returns:
-        list of selected choices as strings or indices within choice list
+            list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -1044,7 +1044,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
         """
         Returns:
-        For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
+            For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         final_scores = []
         for choice, score in zip(self.choices, scores):
@@ -1072,9 +1072,9 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y: List of selected choices
+            y: List of selected choices
         Returns:
-        List of selected choices
+            List of selected choices
         """
         return [] if y is None else y
 
@@ -1125,12 +1125,12 @@ class Radio(Changeable, IOComponent):
     ):
         """
         Parameters:
-        choices: list of options to select from.
-        value: the button selected by default. If None, no button is selected by default.
-        type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            choices: list of options to select from.
+            value: the button selected by default. If None, no button is selected by default.
+            type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.choices = choices or []
         self.type = type
@@ -1178,9 +1178,9 @@ class Radio(Changeable, IOComponent):
     def preprocess(self, x: str) -> str | int:
         """
         Parameters:
-        x: selected choice
+            x: selected choice
         Returns:
-        selected choice as string or index within choice list
+            selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -1210,7 +1210,7 @@ class Radio(Changeable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, **kwargs) -> List:
         """
         Returns:
-        Each value represents the interpretation score corresponding to each choice.
+            Each value represents the interpretation score corresponding to each choice.
         """
         scores.insert(self.choices.index(x), None)
         return scores
@@ -1223,9 +1223,9 @@ class Radio(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y: string of choice
+            y: string of choice
         Returns:
-        string of choice
+            string of choice
         """
         return (
             y if y is not None else self.choices[0] if len(self.choices) > 0 else None
@@ -1276,12 +1276,12 @@ class Dropdown(Radio):
     ):
         """
         Parameters:
-        choices: list of options to select from.
-        value: default value selected in dropdown. If None, no value is selected by default.
-        type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            choices: list of options to select from.
+            value: default value selected in dropdown. If None, no value is selected by default.
+            type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         Radio.__init__(
             self,
@@ -1337,17 +1337,17 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ):
         """
         Parameters:
-        value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
-        shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
-        image_mode: "RGB" if color, or "L" if black and white.
-        invert_colors: whether to invert the image as a preprocessing step.
-        source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-        tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
-        streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
+            shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
+            image_mode: "RGB" if color, or "L" if black and white.
+            invert_colors: whether to invert the image as a preprocessing step.
+            source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
+            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
+            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         """
         self.type = type
         self.value = self.postprocess(value)
@@ -1406,9 +1406,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
         """
         Parameters:
-        x: base64 url data
+            x: base64 url data
         Returns:
-        image in requested format
+            image in requested format
         """
         if x is None:
             return x
@@ -1476,7 +1476,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
         Parameters:
-        segments: Number of interpretation segments to split image into.
+            segments: Number of interpretation segments to split image into.
         """
         self.interpretation_segments = segments
         return self
@@ -1485,7 +1485,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Helper method that segments an image into superpixels using slic.
         Parameters:
-        x: base64 representation of an image
+            x: base64 representation of an image
         """
         x = processing_utils.decode_base64_to_image(x)
         if self.shape is not None:
@@ -1518,11 +1518,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Segments image into tokens, masks, and leave-one-out-tokens
         Parameters:
-        x: base64 representation of an image
+            x: base64 representation of an image
         Returns:
-        tokens: list of tokens, used by the get_masked_input() method
-        leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
-        masks: list of masks, used by the get_interpretation_neighbors() method
+            tokens: list of tokens, used by the get_masked_input() method
+            leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
+            masks: list of masks, used by the get_interpretation_neighbors() method
         """
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
@@ -1554,7 +1554,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ) -> List[List[float]]:
         """
         Returns:
-        A 2D array representing the interpretation score of each pixel of the image.
+            A 2D array representing the interpretation score of each pixel of the image.
         """
         x = processing_utils.decode_base64_to_image(x)
         if self.shape is not None:
@@ -1589,9 +1589,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y: np.ndarray | PIL.Image | str) -> str:
         """
         Parameters:
-        y: image in specified format
+            y: image in specified format
         Returns:
-        base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -1672,12 +1672,12 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value: A path or URL for the default value that Video component is going to take.
-        format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-        source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: A path or URL for the default value that Video component is going to take.
+            format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
+            source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.format = format
         self.source = source
@@ -1725,9 +1725,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-        x: JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        file path to video
+            file path to video
         """
         if x is None:
             return x
@@ -1773,9 +1773,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def postprocess(self, y: str) -> str:
         """
         Parameters:
-        y: path to video
+            y: path to video
         Returns:
-        base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -1834,13 +1834,13 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-        value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
-        source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
-        streaming: If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
+            source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
+            type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            streaming: If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
         """
         self.value = self.postprocess(value)
         self.source = source
@@ -1898,9 +1898,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
-        x: JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        audio in requested format
+            audio in requested format
         """
         if x is None:
             return x
@@ -1967,7 +1967,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         """
         Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
         Parameters:
-        segments: Number of interpretation segments to split audio into.
+            segments: Number of interpretation segments to split audio into.
         """
         self.interpretation_segments = segments
         return self
@@ -2044,7 +2044,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, masks=None, tokens=None) -> List[float]:
         """
         Returns:
-        Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
+            Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
         """
         return list(scores)
 
@@ -2073,9 +2073,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def postprocess(self, y: Tuple[int, numpy.array] | str) -> str:
         """
         Parameters:
-        y: audio data in requested format
+            y: audio data in requested format
         Returns:
-        base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -2148,12 +2148,12 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value: Default file to display, given as str file path
-        file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-        type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Default file to display, given as str file path
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.file_count = file_count
         self.type = type
@@ -2216,9 +2216,9 @@ class File(Changeable, Clearable, IOComponent):
     def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
         """
         Parameters:
-        x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
+            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        File objects in requested format
+            File objects in requested format
         """
         if x is None:
             return None
@@ -2277,9 +2277,9 @@ class File(Changeable, Clearable, IOComponent):
     def postprocess(self, y: str) -> Dict:
         """
         Parameters:
-        y: file path
+            y: file path
         Returns:
-        JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+            JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
         if y is None:
             return None
@@ -2348,20 +2348,20 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: Default value as a 2-dimensional list of values.
-        headers: List of str header names. If None, no headers are shown.
-        row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-        col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-        datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
-        type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
-        label: component name in interface.
-        max_rows: Maximum number of rows to display at once. Set to None for infinite.
-        max_cols: Maximum number of columns to display at once. Set to None for infinite.
-        overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
-        wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
+            value: Default value as a 2-dimensional list of values.
+            headers: List of str header names. If None, no headers are shown.
+            row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+            col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
+            label: component name in interface.
+            max_rows: Maximum number of rows to display at once. Set to None for infinite.
+            max_cols: Maximum number of columns to display at once. Set to None for infinite.
+            overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
         """
 
         self.wrap = wrap
@@ -2440,9 +2440,9 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: List[List[str | Number | bool]]) -> pd.DataFrame | np.ndarray | List[List[str | float | bool]]:
         """
         Parameters:
-        x: 2D array of str, numeric, or bool data
+            x: 2D array of str, numeric, or bool data
         Returns:
-        Dataframe in requested format
+            Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2481,9 +2481,9 @@ class Dataframe(Changeable, IOComponent):
     def postprocess(self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]):
         """
         Parameters:
-        y: dataframe in given format
+            y: dataframe in given format
         Returns:
-        JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return y
@@ -2555,13 +2555,13 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: File path for the timeseries csv file.
-        x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
-        label: component name in interface.
-        colors: an ordered list of colors to use for each line plot
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: File path for the timeseries csv file.
+            x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+            y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+            label: component name in interface.
+            colors: an ordered list of colors to use for each line plot
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.value = self.postprocess(value)
         self.x = x
@@ -2614,9 +2614,9 @@ class Timeseries(Changeable, IOComponent):
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
-        x: Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+            x: Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
-        Dataframe of timeseries data
+            Dataframe of timeseries data
         """
         if x is None:
             return x
@@ -2646,9 +2646,9 @@ class Timeseries(Changeable, IOComponent):
     def postprocess(self, y: str | pd.DataFrame) -> Dict:
         """
         Parameters:
-        y: csv or dataframe with timeseries data
+            y: csv or dataframe with timeseries data
         Returns:
-        JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return None
@@ -2688,7 +2688,7 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-        value: the initial value of the state.
+            value: the initial value of the state.
         """
         self.value = value
         self.stateful = True
@@ -2734,11 +2734,11 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value(str): Default value to show in the component.
-        num_top_classes: number of most confident classes to show.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value(str): Default value to show in the component.
+            num_top_classes: number of most confident classes to show.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.num_top_classes = num_top_classes
         self.value = self.postprocess(value)
@@ -2761,9 +2761,9 @@ class Label(Changeable, IOComponent):
     def postprocess(self, y: Dict[str, float] | str | float) -> Dict:
         """
         Parameters:
-        y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
+            y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
         Returns:
-        Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
+            Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if y is None:
             return None
@@ -2804,7 +2804,7 @@ class Label(Changeable, IOComponent):
     def save_flagged(self, dir, label, data, encryption_key) -> str | Dict:
         """
         Returns:
-        Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
+            Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
         if "confidences" in data:
             return json.dumps(
@@ -2872,13 +2872,13 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: Default value to show.
-        combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
-        adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
-        show_legend: whether to show span categories in a separate legend or inline.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Default value to show.
+            combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
+            adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
+            show_legend: whether to show span categories in a separate legend or inline.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.color_map = color_map
         if color_map is not None:
@@ -2930,9 +2930,9 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y: List[Tuple[str, str | float | None]]) -> List[Tuple[str, str | float | None]]:
         """
         Parameters:
-        y: List of (word, category) tuples
+            y: List of (word, category) tuples
         Returns:
-        List of (word, category) tuples
+            List of (word, category) tuples
         """
         if y is None:
             return None
@@ -2969,9 +2969,9 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        rounded: If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
-        color_map: Map between category and respective colors.
-        container: If True, will place the component in a container.
+            rounded: If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+            color_map: Map between category and respective colors.
+            container: If True, will place the component in a container.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
@@ -3001,10 +3001,10 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: Default value
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Default value
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3042,9 +3042,9 @@ class JSON(Changeable, IOComponent):
     def postprocess(self, y: Dict | List | str) -> Dict | List:
         """
         Parameters:
-        y: JSON output
+            y: JSON output
         Returns:
-        JSON output
+            JSON output
         """
         if isinstance(y, str):
             return json.dumps(y)
@@ -3083,10 +3083,10 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: Default value
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Default value
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.value = value
         IOComponent.__init__(
@@ -3146,10 +3146,10 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-        value: List of images to display in the gallery by default
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: List of images to display in the gallery by default
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.value = self.postprocess(value)
         super().__init__(
@@ -3179,9 +3179,9 @@ class Gallery(IOComponent):
     def postprocess(self, y: List[np.ndarray | PIL.Image | str]) -> str:
         """
         Parameters:
-        y: list of images
+            y: list of images
         Returns:
-        list of base64 url data for images
+            list of base64 url data for images
         """
         if y is None:
             return []
@@ -3235,10 +3235,10 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components: Classes of component(s) that will be scrolled through.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            components: Classes of component(s) that will be scrolled through.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
@@ -3283,9 +3283,9 @@ class Carousel(IOComponent, Changeable):
     def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
         """
         Parameters:
-        y: carousel output
+            y: carousel output
         Returns:
-        2D array, where each sublist represents one set of outputs or 'slide' in the carousel
+            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
         """
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
@@ -3346,10 +3346,10 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: Default value to show in chatbot
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Default value to show in chatbot
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         if color_map is not None:
             warnings.warn(
@@ -3397,9 +3397,9 @@ class Chatbot(Changeable, IOComponent):
     def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Parameters:
-        y: List of tuples representing the message and response
+            y: List of tuples representing the message and response
         Returns:
-        List of tuples representing the message and response
+            List of tuples representing the message and response
         """
         return y
 
@@ -3439,11 +3439,11 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value: path to (.obj, glb, or .gltf) file to show in model3D viewer
-        clear_color: background color of scene
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: path to (.obj, glb, or .gltf) file to show in model3D viewer
+            clear_color: background color of scene
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
         self.value = self.postprocess(value)
@@ -3485,9 +3485,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-        x: JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        file path to 3D image model
+            file path to 3D image model
         """
         if x is None:
             return x
@@ -3524,9 +3524,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def postprocess(self, y: str) -> Dict[str, str]:
         """
         Parameters:
-        y: path to the model
+            y: path to the model
         Returns:
-        file name mapped to base64 url data
+            file name mapped to base64 url data
         """
         if y is None:
             return y
@@ -3575,10 +3575,10 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
-        label: component name in interface.
-        show_label: if True, will display label.
-        visible: If False, component will be hidden.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3612,9 +3612,9 @@ class Plot(Changeable, Clearable, IOComponent):
     def postprocess(self, y: str) -> Dict[str, str]:
         """
         Parameters:
-        y: plot data
+            y: plot data
         Returns:
-        plot type mapped to plot base64 data
+            plot type mapped to plot base64 data
         """
         if y is None:
             return None
@@ -3653,8 +3653,8 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-        value: Value to show in Markdown component
-        visible: If False, component will be hidden.
+            value: Value to show in Markdown component
+            visible: If False, component will be hidden.
         """
         IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
@@ -3712,9 +3712,9 @@ class Button(Clickable, Component):
     ):
         """
         Parameters:
-        value: Default value
-        variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
-        visible: If False, component will be hidden.
+            value: Default value
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            visible: If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.value = value
@@ -3779,11 +3779,11 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
-        samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
-        headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
-        type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
-        visible: If False, component will be hidden.
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+            headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
+            type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
+            visible: If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
@@ -3884,7 +3884,7 @@ class StatusTracker(Component):
     ):
         """
         Parameters:
-        cover_container: If True, will expand to cover parent container while function pending.
+            cover_container: If True, will expand to cover parent container while function pending.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.cover_container = cover_container

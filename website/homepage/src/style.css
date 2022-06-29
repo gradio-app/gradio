@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 .link {
-  @apply font-semibold hover:text-blue-500 transition-colors;
+  @apply font-semibold hover:text-orange-500 transition-colors;
+}
+.thin-link {
+  @apply hover:text-orange-500 transition-colors;
 }
 
 .group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
@@ -65,4 +68,10 @@
 /* docs */
 .selected-demo {
   @apply font-semibold bg-gray-50 rounded text-orange-500;
+}
+.current-nav-link {
+  @apply border-orange-500 text-orange-500 md:border-l-2 pl-4;
+}
+code.language-python {
+  @apply !leading-7;
 }

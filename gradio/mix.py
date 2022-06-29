@@ -4,6 +4,7 @@ Ways to transform interfaces to produce new interfaces
 import warnings
 
 import gradio
+from typing import List
 from gradio.documentation import document, document_mode
 document_mode("mix_interface")
 
@@ -14,13 +15,13 @@ class Parallel(gradio.Interface):
     The Interfaces to put in Parallel must share the same input components (but can have different output components).
     """
 
-    def __init__(self, *interfaces, **options):
+    def __init__(self, *interfaces: List[gradio.Interface], **options: dict) -> gradio.Interface:
         """
         Parameters:
-        *interfaces (Interface): any number of Interface objects that are to be compared in parallel
-        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+            interfaces: any number of Interface objects that are to be compared in parallel
+            options: additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object comparing the given models
+            an Interface object comparing the given models
         """
         fns = []
         outputs = []
@@ -53,13 +54,13 @@ class Series(gradio.Interface):
     and so the input and output components must agree between the interfaces).
     """
 
-    def __init__(self, *interfaces, **options):
+    def __init__(self, *interfaces: List[gradio.Interface], **options: dict):
         """
         Parameters:
-        *interfaces (Interface): any number of Interface objects that are to be connected in series
-        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+            interfaces: any number of Interface objects that are to be connected in series
+            options: additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object connecting the given models
+            an Interface object connecting the given models
         """
         fns = []
         for io in interfaces:

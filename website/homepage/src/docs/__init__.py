@@ -17,7 +17,7 @@ def add_component_shortcuts():
         ]
         for subcls in component["class"].__subclasses__():
             if getattr(subcls, "is_template", False):
-                _, tags = document_cls(subcls)
+                _, tags, _ = document_cls(subcls)
                 component["string_shortcuts"].append(
                     (subcls.__name__.lower(), "Uses " + tags.get("sets", "default values"))
                 )
@@ -36,11 +36,17 @@ def add_component_demos():
 
 add_component_demos()
 
+def find_cls(target_cls):
+    for mode in docs:
+        for cls in docs[mode]:
+            if cls["name"] == target_cls:
+                return cls
+    raise ValueError("Class not found")
 
 def build(output_dir, jinja_env):
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs)
+    output = template.render(docs=docs, find_cls=find_cls)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")

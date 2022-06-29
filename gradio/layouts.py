@@ -29,6 +29,12 @@ valid_colors = [
 class Row(BlockContext):
     """
     Row is a layout element within Blocks that renders all children horizontally.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Row():
+                gr.Image("lion.jpg")
+                gr.Image("tiger.jpg")
+        demo.launch()
     """
 
     def get_config(self):
@@ -60,6 +66,15 @@ class Row(BlockContext):
 class Column(BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Row():
+                with gradio.Column():
+                    text1 = gr.Textbox()
+                    text2 = gr.Textbox()
+                with gradio.Column():
+                    btn1 = gr.Button("Button 1")
+                    btn2 = gr.Button("Button 2")
     """
 
     def __init__(
@@ -98,6 +113,15 @@ class Tabs(BlockContext):
     Tabs is a layout element within Blocks that can contain multiple TabItem's. Each
     TabItem gets rendered as a individual tab. The TabItem's must be nested within the
     Tabs context.
+    Example:
+        with gradio.Blocks() as demo: 
+            with gradio.Tabs():
+                with gradio.TabItem("Lion"):
+                    gr.Image("lion.jpg")
+                    gr.Button("New Lion")
+                with gradio.TabItem("Tiger"):
+                    gr.Image("tiger.jpg")
+                    gr.Button("New Tiger")         
     """
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -111,7 +135,6 @@ class Tabs(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-@document()
 class TabItem(BlockContext):
     """
     TabItem is a layout element that must be defined within a Tabs context. The
@@ -141,6 +164,10 @@ class Group(BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
+    Example:
+        with gradio.Group():
+            gr.Textbox(label="First")
+            gr.Textbox(label="Last")
     """
 
     def get_config(self):
@@ -174,6 +201,10 @@ class Box(BlockContext):
     """
     Box is a a layout element which places children in a box with rounded corners and
     some padding around them.
+    Example:
+        with gradio.Box():
+            gr.Textbox(label="First")
+            gr.Textbox(label="Last")
     """
 
     def get_config(self):
