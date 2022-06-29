@@ -3913,6 +3913,9 @@ class Interpretation(Component):
     def style(self):
         return self
 
+    def postprocess(self, y):
+        return y
+
 
 class StatusTracker(Component):
     """
