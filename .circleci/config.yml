@@ -23,6 +23,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            bash scripts/install_gradio.sh
             bash scripts/install_test_requirements.sh
       - run:
           command: |
