@@ -80,7 +80,7 @@
       </a>
     </div>
     {% include 'index/demos_template.html' %}
-    <div class="relative mx-auto max-w-7xl space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg">
+    <div class="relative mx-auto container space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg">
       <div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
         <h2 class="mb-4 text-xl font-bold">
           <svg class="mr-2 mb-3 text-2xl text-gray-800"
@@ -169,7 +169,7 @@
       </h2>
       <div class="border-t border-b border-gray-100 bg-gradient-to-t from-gray-50 px-4 pt-24 pb-32"
            style="margin-top: -1.2rem;">
-        <div class="mx-auto grid max-w-7xl grid-cols-3 justify-items-center gap-x-3 gap-y-8 grayscale sm:gap-x-4 md:grid-cols-5">
+        <div class="mx-auto grid container grid-cols-3 justify-items-center gap-x-3 gap-y-8 grayscale sm:gap-x-4 md:grid-cols-5">
           <img class="logo h-4 sm:h-5" src="assets/logos/google.svg" />
           <img class="logo h-4 contrast-0 sm:h-5" src="assets/logos/amazon.svg" />
           <img class="logo h-4 sm:h-5" src="assets/logos/fb.svg" />
@@ -188,7 +188,7 @@
         </div>
       </div>
     </div>
-    <div class="pt-12 md:pt-20 mx-auto max-w-7xl px-4">
+    <div class="pt-12 md:pt-20 mx-auto container px-4">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {% for tweet in tweets %}
           <a href="{{ tweet['link'] }}"

@@ -1,91 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        {% with description="Build & Share Delightful Machine Learning Apps" %}
-            {% include "templates/meta.html" %}
-        {% endwith %}
-        <link rel="stylesheet" href="/style.css">
-        <link rel="stylesheet" href="/assets/prism.css">
-    </head>
-    <body>
-        {% include "templates/navbar.html" %}
-        <div class="container relative mx-auto px-4 pt-8 mb-12">
-            <input id="search-by-tag"
-                   type="text"
-                   class="w-full border border-gray-200 p-1 rounded outline-none text-center text-lg mb-2 focus:placeholder-transparent"
-                   placeholder="What do you want to build?"
-                   autocomplete="off"
-                   onkeyup="search(this.value);"/>
-            <h2 class="text-gray-600 mb-6">
-                Search through
-                <span id="counter">{{ guides|length }}</span>
-                Guides. <a class="link text-gray-600"
+  <head>
+    {% with description="Build & Share Delightful Machine Learning Apps" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <div class="container mx-auto px-4 relative pt-8 mb-12">
+      <input id="search-by-tag"
+             type="text"
+             class="w-full border border-gray-200 p-1 rounded outline-none text-center text-lg mb-2 focus:placeholder-transparent"
+             placeholder="What do you want to build?"
+             autocomplete="off"
+             onkeyup="search(this.value);"/>
+      <h2 class="text-gray-600 mb-6">
+        Search through
+        <span id="counter">{{ guides|length }}</span>
+        Guides. <a class="link text-gray-600"
     href="https://github.com/gradio-app/gradio/tree/master/guides">Contribute here</a>
-            </h2>
-            <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {% for guide in guides %}
-                    <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r"
-                       name="{{ guide.name }}"
-                       href="/{{ guide.name }}">
-                        <div class="flex flex-col p-4 h-min">
-                            <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}</h2>
-                            <div class="tags-holder">
-                                {% if guide.tags is not none %}
-                                    <p class="text-gray-600">
-                                        {% for tag in guide.tags %}
-                                            {{ tag }}
-                                            {% if not loop.last %},{% endif %}
-                                        {% endfor %}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </a>
-                {% endfor %}
+      </h2>
+      <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {% for guide in guides %}
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r"
+             name="{{ guide.name }}"
+             href="/{{ guide.name }}">
+            <div class="flex flex-col p-4 h-min">
+              <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}</h2>
+              <div class="tags-holder">
+                {% if guide.tags is not none %}
+                  <p class="text-gray-600">
+                    {% for tag in guide.tags %}
+                      {{ tag }}
+                      {% if not loop.last %},{% endif %}
+                    {% endfor %}
+                  </p>
+                {% endif %}
+              </div>
             </div>
-            <div class="no-guides hidden text-center text-xl text-gray-500">
-                <p class="mb-4">Sorry, we couldn't find a guide :(</p>
-                <p>
-                    Try a different term, or <a class="link" href="/docs">see the docs</a>
-                </p>
-            </div>
-        </div>
-        {% include 'templates/footer.html' %}
-        <script>
-        const COLOR_SETS = [
-            ["from-green-100", "to-green-50"], 
-            ["from-yellow-100", "to-yellow-50"], 
-            ["from-red-100", "to-red-50"], 
-            ["from-blue-100", "to-blue-50"],
-            ["from-pink-100", "to-pink-50"],
-            ["from-purple-100", "to-purple-50"],
-        ]
-        document.querySelectorAll(".guide-box").forEach(guide => {
-            const [start_color, end_color] = COLOR_SETS[Math.floor(Math.random() * COLOR_SETS.length)]
-            guide.classList.add(start_color);
-            guide.classList.add(end_color);
-        })
+          </a>
+        {% endfor %}
+      </div>
+      <div class="no-guides hidden text-center text-xl text-gray-500">
+        <p class="mb-4">Sorry, we couldn't find a guide :(</p>
+        <p>
+          Try a different term, or <a class="link" href="/docs">see the docs</a>
+        </p>
+      </div>
+    </div>
+    {% include 'templates/footer.html' %}
+    <script>
+    const COLOR_SETS = [
+      ["from-green-100", "to-green-50"], 
+      ["from-yellow-100", "to-yellow-50"], 
+      ["from-red-100", "to-red-50"], 
+      ["from-blue-100", "to-blue-50"],
+      ["from-pink-100", "to-pink-50"],
+      ["from-purple-100", "to-purple-50"],
+    ]
+    document.querySelectorAll(".guide-box").forEach(guide => {
+      const [start_color, end_color] = COLOR_SETS[Math.floor(Math.random() * COLOR_SETS.length)]
+      guide.classList.add(start_color);
+      guide.classList.add(end_color);
+    })
 
-        const guides = {{ guides|tojson }};
-        const search = query => {
-            query = query.toLowerCase();
-            let filtered_guides = guides
-                .filter(guide => 
-                    guide.name.toLowerCase().includes(query) || guide.content.toLowerCase().includes(query))
-                .map(guide => guide.name)
-            if (filtered_guides.length === 0) {
-                document.querySelector(".no-guides").classList.remove("hidden");
-            } else {
-                document.querySelector(".no-guides").classList.add("hidden");
-            }
-            document.querySelectorAll(".guide-box").forEach(guide => {
-                if (filtered_guides.includes(guide.getAttribute("name"))) {
-                    guide.classList.remove("hidden");
-                } else {
-                    guide.classList.add("hidden");
-                }
-            })
+    const guides = {{ guides|tojson }};
+    const search = query => {
+      query = query.toLowerCase();
+      let filtered_guides = guides
+        .filter(guide => 
+          guide.name.toLowerCase().includes(query) || guide.content.toLowerCase().includes(query))
+        .map(guide => guide.name)
+      if (filtered_guides.length === 0) {
+        document.querySelector(".no-guides").classList.remove("hidden");
+      } else {
+        document.querySelector(".no-guides").classList.add("hidden");
+      }
+      document.querySelectorAll(".guide-box").forEach(guide => {
+        if (filtered_guides.includes(guide.getAttribute("name"))) {
+          guide.classList.remove("hidden");
+        } else {
+          guide.classList.add("hidden");
         }
-        </script>
-    </body>
+      })
+    }
+    </script>
+  </body>
 </html>

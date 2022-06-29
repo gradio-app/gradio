@@ -69,9 +69,12 @@
 .selected-demo {
   @apply font-semibold bg-gray-50 rounded text-orange-500;
 }
-.current-nav-link {
+.thin-link.current-nav-link {
   @apply border-orange-500 text-orange-500 md:border-l-2 pl-4;
 }
+.link.current-nav-link {
+  @apply border-orange-500 text-orange-500;
+}
 code.language-python {
-  @apply !leading-7;
+  @apply !leading-7 !whitespace-pre-wrap !break-all;
 }
