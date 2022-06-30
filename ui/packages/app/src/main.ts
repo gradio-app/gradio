@@ -137,10 +137,17 @@ async function handle_config(
 	target: HTMLElement | ShadowRoot,
 	space_id: string | null
 ) {
-	let [config] = await Promise.all([
-		get_config(space_id),
-		mount_css(ENTRY_CSS, target)
-	]);
+	let config;
+
+	try {
+		let [_config] = await Promise.all([
+			get_config(space_id),
+			mount_css(ENTRY_CSS, target)
+		]);
+		config = _config;
+	} catch (e) {
+		console.error(e);
+	}
 
 	mount_custom_css(target, config.css);
 

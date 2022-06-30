@@ -174,13 +174,13 @@
 
 				await tick();
 
-				if (window.__gradio_mode__ == "app") {
+				if (window.__gradio_mode__ !== "website") {
 					window.__gradio_loader__[id].$set({ status: "complete" });
 				}
 			})
 			.catch((e) => {
 				console.error(e);
-				if (window.__gradio_mode__ == "app") {
+				if (window.__gradio_mode__ !== "website") {
 					window.__gradio_loader__[id].$set({ status: "error" });
 				}
 			});
@@ -400,10 +400,10 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full h-full min-h-screen flex flex-col">
+<div class="w-full flex flex-col">
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={(window.__gradio_mode__ = "app")}
+		class:flex-grow={window.__gradio_mode__ === "app"}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />
