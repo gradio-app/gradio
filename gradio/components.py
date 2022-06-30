@@ -2119,7 +2119,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x["data"])
+        file = processing_utils.decode_base64_to_file(x)
         return file.name
 
     def stream(
