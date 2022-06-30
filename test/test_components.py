@@ -843,7 +843,9 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(deepcopy(media_data.BASE64_AUDIO)).endswith(".wav")
+            audio_output.deserialize(
+                deepcopy(media_data.BASE64_AUDIO)["data"]
+            ).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
