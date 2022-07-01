@@ -2,7 +2,7 @@
 	import type { SvelteComponentTyped } from "svelte";
 	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
-	import { loading_status } from "./stores";
+	import { loading_status, app_state } from "./stores";
 	import type { LoadingStatus } from "./components/StatusTracker/types";
 
 	import { _ } from "svelte-i18n";
@@ -65,6 +65,9 @@
 	export let target: HTMLElement;
 	export let css: string;
 	export let id: number = 0;
+	export let autoscroll: boolean = false;
+
+	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -170,13 +173,13 @@
 
 				await tick();
 
-				if (window.__gradio_mode__ == "app") {
+				if (window.__gradio_mode__ !== "website") {
 					window.__gradio_loader__[id].$set({ status: "complete" });
 				}
 			})
 			.catch((e) => {
 				console.error(e);
-				if (window.__gradio_mode__ == "app") {
+				if (window.__gradio_mode__ !== "website") {
 					window.__gradio_loader__[id].$set({ status: "error" });
 				}
 			});
@@ -337,6 +340,7 @@
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.visible = dependency.show_progress;
+
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
 		const inputs_to_update = loading_status.get_inputs_to_update();
@@ -395,6 +399,7 @@
 	{/if}
 </svelte:head>
 
+<<<<<<< HEAD
 <div
 	class="w-full h-full flex flex-col"
 	class:min-h-screen={window.__gradio_mode__ !== "website"}
@@ -402,6 +407,12 @@
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={(window.__gradio_mode__ === "app")}
+=======
+<div class="w-full flex flex-col">
+	<div
+		class="mx-auto container px-4 py-6 dark:bg-gray-950"
+		class:flex-grow={window.__gradio_mode__ === "app"}
+>>>>>>> origin
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />

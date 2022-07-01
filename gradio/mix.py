@@ -34,8 +34,18 @@ class Parallel(gradio.Interface):
             fns.extend(io.predict)
             outputs.extend(io.output_components)
 
+        def parallel_fn(*args):
+            return_values = []
+            for fn in fns:
+                value = fn(*args)
+                if isinstance(value, tuple):
+                    return_values.extend(value)
+                else:
+                    return_values.append(value)
+            return return_values
+
         kwargs = {
-            "fn": fns,
+            "fn": parallel_fn,
             "inputs": interfaces[0].input_components,
             "outputs": outputs,
             "_repeat_outputs_per_model": False,

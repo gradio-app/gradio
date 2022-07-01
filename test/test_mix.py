@@ -15,8 +15,8 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 class TestSeries(unittest.TestCase):
     def test_in_interface(self):
-        io1 = gr.Interface(lambda x: x + " World", "textbox", gr.outputs.Textbox())
-        io2 = gr.Interface(lambda x: x + "!", "textbox", gr.outputs.Textbox())
+        io1 = gr.Interface(lambda x: x + " World", "textbox", gr.Textbox())
+        io2 = gr.Interface(lambda x: x + "!", "textbox", gr.Textbox())
         series = mix.Series(io1, io2)
         self.assertEqual(series.process(["Hello"]), ["Hello World!"])
 
@@ -33,11 +33,21 @@ class TestSeries(unittest.TestCase):
 
 class TestParallel(unittest.TestCase):
     def test_in_interface(self):
-        io1 = gr.Interface(lambda x: x + " World 1!", "textbox", gr.outputs.Textbox())
-        io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.outputs.Textbox())
+        io1 = gr.Interface(lambda x: x + " World 1!", "textbox", gr.Textbox())
+        io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
         self.assertEqual(
             parallel.process(["Hello"]), ["Hello World 1!", "Hello World 2!"]
+        )
+
+    def test_multiple_return_in_interface(self):
+        io1 = gr.Interface(
+            lambda x: (x, x + x), "textbox", [gr.Textbox(), gr.Textbox()]
+        )
+        io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
+        parallel = mix.Parallel(io1, io2)
+        self.assertEqual(
+            parallel.process(["Hello"]), ["Hello", "HelloHello", "Hello World 2!"]
         )
 
     def test_with_external(self):

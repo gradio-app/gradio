@@ -126,7 +126,7 @@ class Interface(Blocks):
 
     def __init__(
         self,
-        fn: Callable | List[Callable],
+        fn: Callable,
         inputs: Optional[str | Component | List[str | Component]],
         outputs: Optional[str | Component | List[str | Component]],
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
@@ -192,6 +192,12 @@ class Interface(Blocks):
 
         if not isinstance(fn, list):
             fn = [fn]
+        else:
+            raise DeprecationWarning(
+                "The `fn` parameter only accepts a single function, support for a list "
+                "of functions has been deprecated. Please use gradio.mix.Parallel "
+                "instead."
+            )
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
