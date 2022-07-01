@@ -2356,6 +2356,8 @@ class Dataframe(Changeable, IOComponent):
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
+    md = None
+
     def __init__(
         self,
         value: Optional[List[List[Any]]] = None,
@@ -2412,6 +2414,8 @@ class Dataframe(Changeable, IOComponent):
             "number": 0,
             "bool": False,
             "date": "01/01/1970",
+            "markdown": "",
+            "html": "",
         }
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
@@ -2419,7 +2423,10 @@ class Dataframe(Changeable, IOComponent):
         self.test_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
+
         self.value = value if value is not None else self.test_input
+        self.value = self.__process_markdown(self.value, datatype)
+
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2521,15 +2528,23 @@ class Dataframe(Changeable, IOComponent):
             return y
         if isinstance(y, str):
             y = pd.read_csv(str)
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, pd.DataFrame):
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
-            return {"data": y}
+            return {
+                "data": Dataframe.__process_markdown(y, self.datatype),
+            }
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
@@ -2550,10 +2565,28 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
+    @staticmethod
+    def __process_markdown(data: List[List[Any]], datatype: str | List[str]):
+        if (
+            type(datatype) is list and "markdown" not in datatype
+        ) or datatype != "markdown":
+            return data
+
+        if Dataframe.md is None:
+            Dataframe.md = MarkdownIt()
+
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                if (
+                    type(datatype) is list and datatype[j] == "markdown"
+                ) or datatype == "markdown":
+                    data[i][j] = Dataframe.md.render(data[i][j])
+
+        return data
+
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
@@ -2695,7 +2728,6 @@ class Timeseries(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
