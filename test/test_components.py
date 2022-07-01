@@ -537,7 +537,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "value": "a",
+                "value": None,
                 "name": "radio",
                 "show_label": True,
                 "label": "Pick Your One Input",
