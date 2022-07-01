@@ -1079,7 +1079,7 @@ class TestDataframe(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [
