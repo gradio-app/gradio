@@ -25,6 +25,7 @@
 	export let upload_text: string = "click to upload";
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
+	export let mirror_webcam: boolean;
 
 	let sketch: Sketch;
 
@@ -94,6 +95,8 @@
 
 	let img_height = 0;
 	let img_width = 0;
+
+	$: console.log(source, mirror_webcam, source === "webcam" && mirror_webcam);
 </script>
 
 <BlockLabel
@@ -133,6 +136,7 @@
 				on:stream={handle_save}
 				{streaming}
 				{pending}
+				{mirror_webcam}
 			/>
 		{/if}
 	{:else if tool === "select"}
@@ -145,13 +149,19 @@
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img
+			class="w-full h-full object-contain"
+			src={value}
+			alt=""
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+		/>
 	{:else if tool === "sketch" && value !== null}
 		<img
 			class="absolute w-full h-full object-contain"
 			src={value.image}
 			alt=""
 			on:load={handle_image_load}
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
 		{#if img_width > 0}
 			<Sketch
@@ -170,6 +180,11 @@
 			/>
 		{/if}
 	{:else}
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img
+			class="w-full h-full object-contain"
+			src={value}
+			alt=""
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+		/>
 	{/if}
 </div>

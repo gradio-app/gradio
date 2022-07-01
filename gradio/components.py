@@ -1339,6 +1339,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1356,7 +1357,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible (bool): If False, component will be hidden.
         streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcam will be mirrored. Default is True.
         """
+        self.mirror_webcam = mirror_webcam
         self.type = type
         self.value = self.postprocess(value)
         self.shape = shape
@@ -1390,6 +1393,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "tool": self.tool,
             "value": self.value,
             "streaming": self.streaming,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1463,6 +1467,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
+        if self.source == "webcam" and self.mirror_webcam is True:
+            im = PIL.ImageOps.mirror(im)
 
         if not (self.tool == "sketch"):
             return self.format_image(im, fmt)
@@ -1695,6 +1701,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1707,9 +1714,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive (Optional[bool]): if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcma will be mirrored. Default is True.
         """
         self.format = format
         self.source = source
+        self.mirror_webcam = mirror_webcam
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -1725,6 +1734,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return {
             "source": self.source,
             "value": self.value,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1773,9 +1783,22 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
+
         if self.format is not None and uploaded_format != self.format:
             output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+            ff.run()
+            return output_file_name
+        elif self.source == "webcam" and self.mirror_webcam is True:
+            output_file_name = (
+                file_name[0 : file_name.rindex(".")]
+                + "_flip."
+                + file_name[file_name.rindex(".") + 1 : len(file_name)]
+            )
+            ff = FFmpeg(
+                inputs={file_name: None},
+                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+            )
             ff.run()
             return output_file_name
         else:
