@@ -4,7 +4,7 @@ import gradio as gr
 
 
 def snap(image):
-    return np.flipud(image)
+    return image
 
 
 demo = gr.Interface(snap, gr.Image(source="webcam", tool=None), "image")
