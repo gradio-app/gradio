@@ -1022,7 +1022,7 @@ class TestDataframe(unittest.TestCase):
             dataframe_input.get_config(),
             {
                 "headers": ["Name", "Age", "Member"],
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [
