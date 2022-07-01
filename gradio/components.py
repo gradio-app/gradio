@@ -2289,7 +2289,7 @@ class File(Changeable, Clearable, IOComponent):
             if isinstance(x, list):
                 return [process_single_file(f) for f in x]
             else:
-                return process_single_file(x) 
+                return process_single_file(x)
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
