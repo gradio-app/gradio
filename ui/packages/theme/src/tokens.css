@@ -91,7 +91,7 @@
 
 	img.gr-sample-image,
 	video.gr-sample-video {
-		@apply max-h-12;
+		@apply object-contain h-20 w-20;
 	}
 }
 
