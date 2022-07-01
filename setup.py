@@ -47,7 +47,7 @@ setup(
         "uvicorn",
         "Jinja2",
         "fsspec",
-        "h11=0.12.0",
+        "h11==0.12.0",
         "httpx",
         "pydantic",
     ],
