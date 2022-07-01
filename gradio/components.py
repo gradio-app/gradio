@@ -2407,7 +2407,9 @@ class Dataframe(Changeable, IOComponent):
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = headers
-        self.datatype = datatype
+        self.datatype = (
+            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
+        )
         self.type = type
         values = {
             "str": "",
@@ -2527,7 +2529,7 @@ class Dataframe(Changeable, IOComponent):
         if y is None:
             return y
         if isinstance(y, str):
-            y = pd.read_csv(str)
+            y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),
                 "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
@@ -2565,21 +2567,17 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
-    @staticmethod
-    def __process_markdown(data: List[List[Any]], datatype: str | List[str]):
-        if (
-            type(datatype) is list and "markdown" not in datatype
-        ) or datatype != "markdown":
+    @classmethod
+    def __process_markdown(cls, data: List[List[Any]], datatype: List[str]):
+        if "markdown" not in datatype:
             return data
 
-        if Dataframe.md is None:
-            Dataframe.md = MarkdownIt()
+        if cls.md is None:
+            cls.md = MarkdownIt()
 
         for i in range(len(data)):
             for j in range(len(data[i])):
-                if (
-                    type(datatype) is list and datatype[j] == "markdown"
-                ) or datatype == "markdown":
+                if datatype[j] == "markdown":
                     data[i][j] = Dataframe.md.render(data[i][j])
 
         return data

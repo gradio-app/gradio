@@ -84,7 +84,7 @@ with gr.Blocks() as demo:
             ],
             headers=["One", "Two", "Three"],
             wrap=True,
-            datatype=["markdown", "str", "html"],
+            datatype=["markdown", "markdown", "html"],
             interactive=True,
         )
         btn = gr.Button("Run")
