@@ -2,7 +2,7 @@
   "name": "gradio-website",
   "scripts": {
     "build:html": "python build.py",
-    "build:css": "postcss src/style.css -o build/style.css && STYLE_FILE=$(jq -r '.\"style.css\"' build/manifest.json) && sed -i '' \"s/style.css/${STYLE_FILE}/g\" build/*.html && sed -i '' \"s/style.css/${STYLE_FILE}/g\" build/**/*.html && rm build/manifest.json",
+    "build:css": "postcss src/style.css -o build/style.css && STYLE_FILE=$(jq -r '.\"style.css\"' build/manifest.json) && sed -i \"s/style.css/${STYLE_FILE}/g\" build/*.html && sed -i \"s/style.css/${STYLE_FILE}/g\" build/**/*.html && rm build/manifest.json",
     "build": "npm run build:html && npm run build:css"
   },
   "dependencies": {

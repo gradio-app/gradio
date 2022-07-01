@@ -7,7 +7,6 @@ Author: Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Al
 Author-email: team@gradio.app
 License: Apache License 2.0
 Keywords: machine learning,visualization,reproducibility
-Platform: UNKNOWN
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
@@ -56,7 +55,7 @@ Gradio is useful for:
 
 **You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
 
- ## Quickstart
+## Quickstart
 
 **Prerequisite**: Gradio requires Python 3.7 or above, that's it! 
 
@@ -417,7 +416,8 @@ Now that you're familiar with the basics of Gradio, here are some good next step
 * Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](https://gradio.app/introduction_to_blocks/) 🧱
 * If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](https://gradio.app/advanced_interface_features/) 💪
 * If you just want to explore what demos other people have built with Gradio and see the underlying Python code, [browse public Hugging Face Spaces](https://hf.space/), and be inspired 🤗
- 
+
+
 
 ## System Requirements:
 
@@ -455,4 +455,3 @@ journal={arXiv preprint arXiv:1906.02569},
 year={2019}
 }
 ```
-
