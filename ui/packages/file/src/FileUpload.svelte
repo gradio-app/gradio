@@ -58,21 +58,39 @@
 	</Upload>
 {:else}
 	<div
-		class="file-preview w-full flex flex-row justify-between overflow-y-auto mt-7 dark:text-slate-200"
+		class="file-preview overflow-y-auto w-full h-60 flex flex-col justify-between mt-7 dark:text-slate-200"
 	>
 		<ModifyUpload on:clear={handle_clear} absolute />
-		<div class="file-name p-2">
-			{display_file_name(value)}
+		<div class="flex flex-row">
+			<div class="file-name p-2">
+				{display_file_name(value)}
+			</div>
+			<div class="file-size  p-2">
+				{display_file_size(value)}
+			</div>
+			<div class="file-size p-2 hover:underline">
+				<a
+					href={download_files(value)}
+					download
+					class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+				>
+			</div>
 		</div>
-		<div class="file-size  p-2">
-			{display_file_size(value)}
-		</div>
-		<div class="file-size p-2 hover:underline">
-			<a
-				href={download_files(value)}
-				download
-				class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
-			>
+
+		<div class="flex flex-row">
+			<div class="file-name p-2">
+				{display_file_name(value)}
+			</div>
+			<div class="file-size  p-2">
+				{display_file_size(value)}
+			</div>
+			<div class="file-size p-2 hover:underline">
+				<a
+					href={download_files(value)}
+					download
+					class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+				>
+			</div>
 		</div>
 	</div>
 {/if}
