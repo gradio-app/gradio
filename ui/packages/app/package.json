@@ -36,6 +36,7 @@
 		"@gradio/utils": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1",
 		"mime-types": "^2.1.34",
+		"playwright": "^1.22.2",
 		"svelte-i18n": "^3.3.13"
 	}
 }

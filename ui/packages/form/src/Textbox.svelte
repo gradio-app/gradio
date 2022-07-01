@@ -86,6 +86,7 @@
 
 	{#if lines === 1 && max_lines === 1}
 		<input
+			data-testid="textbox"
 			type="text"
 			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
 			bind:value
@@ -96,6 +97,7 @@
 		/>
 	{:else}
 		<textarea
+			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
 			bind:value

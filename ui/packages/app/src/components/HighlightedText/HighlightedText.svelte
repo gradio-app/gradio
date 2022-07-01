@@ -27,6 +27,7 @@
 </script>
 
 <Block
+	test_id="highlighted-text"
 	{visible}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
