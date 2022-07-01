@@ -1233,9 +1233,7 @@ class Radio(Changeable, IOComponent):
         Returns:
         (str): string of choice
         """
-        return (
-            y if y is not None else self.choices[0] if len(self.choices) > 0 else None
-        )
+        return y if y is not None else None
 
     def deserialize(self, x):
         """
