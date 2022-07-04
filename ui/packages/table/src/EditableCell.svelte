@@ -3,6 +3,7 @@
 	export let value: string | number = "";
 	export let el: HTMLInputElement | null;
 	export let header: boolean = false;
+	export let datatype: "str" | "markdown" | "html" | "number" | "bool" | "date";
 </script>
 
 {#if edit}
@@ -24,5 +25,11 @@
 	role="button"
 	class:opacity-0={edit}
 	class:pointer-events-none={edit}
-	class="p-2  outline-none border-0 flex-1">{value}</span
+	class="p-2  outline-none border-0 flex-1"
 >
+	{#if datatype === "markdown" || datatype === "html"}
+		{@html value}
+	{:else}
+		{value}
+	{/if}
+</span>

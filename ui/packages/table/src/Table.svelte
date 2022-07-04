@@ -9,6 +9,9 @@
 	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
 
+	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
+
+	export let datatype: Datatype | Array<Datatype>;
 	export let label: string | null = null;
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [[]];
@@ -567,6 +570,9 @@
 											bind:value
 											bind:el={els[id].input}
 											edit={editing === id}
+											datatype={Array.isArray(datatype)
+												? datatype[j]
+												: datatype}
 										/>
 									</div>
 								</td>
