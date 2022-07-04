@@ -1,8 +1,6 @@
 # Python build
 .eggs/
-gradio.egg-info/*
-!gradio.egg-info/requires.txt
-!gradio.egg-info/PKG-INFO
+gradio.egg-info
 dist/
 *.pyc
 __pycache__/

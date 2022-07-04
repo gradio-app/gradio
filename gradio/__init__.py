@@ -1,4 +1,4 @@
-import pkg_resources
+from importlib.metadata import version
 
 import gradio.components as components
 import gradio.inputs as inputs
@@ -67,5 +67,5 @@ from gradio.templates import (
     Webcam,
 )
 
-current_pkg_version = pkg_resources.require("gradio")[0].version
+current_pkg_version = version("gradio")
 __version__ = current_pkg_version
