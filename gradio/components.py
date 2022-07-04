@@ -13,6 +13,7 @@ import os
 import shutil
 import tempfile
 import warnings
+import pathlib
 from copy import deepcopy
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -1790,11 +1791,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             ff.run()
             return output_file_name
         elif self.source == "webcam" and self.mirror_webcam is True:
-            output_file_name = (
-                file_name[0 : file_name.rindex(".")]
-                + "_flip."
-                + file_name[file_name.rindex(".") + 1 : len(file_name)]
-            )
+            path = pathlib.Path(file_name)
+            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
             ff = FFmpeg(
                 inputs={file_name: None},
                 outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
