@@ -195,7 +195,7 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
     """Allows you to test if two different Blocks configs produce the same demo."""
     config1 = copy.deepcopy(config1)
     config2 = copy.deepcopy(config2)
-    
+
     assert config1["mode"] == config2["mode"], "Modes are different"
     assert config1["theme"] == config2["theme"], "Themes are different"
     assert len(config1["components"]) == len(
