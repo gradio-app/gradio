@@ -4,6 +4,7 @@ creating tunnels.
 """
 from __future__ import annotations
 
+from contextlib import closing
 import os
 import socket
 import threading
@@ -115,10 +116,6 @@ def start_server(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
     else:
-        s = socket.socket()
-        s.bind((LOCALHOST_NAME, server_port))
-        s.shutdown()
-        s.close()
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
