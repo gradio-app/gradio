@@ -23,14 +23,14 @@ with gr.Blocks() as demo:
     btn.click(mirror, inputs=[im], outputs=[im_2])
         
     gr.Markdown("## Text Examples")
-    gr.Examples([["hi", "Adam"], ["hello", "Eve"]], [txt, txt_2], cache_examples=False)
+    gr.Examples([["hi", "Adam"], ["hello", "Eve"]], [txt, txt_2])
     gr.Markdown("## Image Examples")
-    # gr.Examples(
-    #     examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
-    #     inputs=im,
-    #     outputs=im_2,
-    #     fn=mirror,
-    #     cache_examples=True)
+    gr.Examples(
+        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
+        inputs=im,
+        outputs=im_2,
+        fn=mirror,
+        cache_examples=True)
 
 if __name__ == "__main__":
     demo.launch()

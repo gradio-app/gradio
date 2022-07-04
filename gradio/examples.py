@@ -16,7 +16,6 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
-CACHE_FILE = os.path.join(CACHED_FOLDER, "log.csv")
 
 
 class Examples:
@@ -108,6 +107,8 @@ class Examples:
         self.fn = fn
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
+        self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
+        self.cached_file = os.path.join(self.cached_folder, "log.csv")
 
         if cache_examples:
             self.cache_interface_examples()
@@ -134,22 +135,22 @@ class Examples:
 
     def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""
-        if os.path.exists(CACHE_FILE):
+        if os.path.exists(self.cached_file):
             print(
-                f"Using cache from '{os.path.abspath(CACHED_FOLDER)}/' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{os.path.abspath(self.cached_folder)}/' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
             print(
-                f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
+                f"Caching examples at: '{os.path.abspath(self.cached_file)}'"
             )
             cache_logger = CSVLogger()
-            cache_logger.setup(self.outputs, CACHED_FOLDER)
+            cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 try:
                     prediction = self.process_example(example_id)
                     cache_logger.flag(prediction)
                 except Exception as e:
-                    shutil.rmtree(CACHED_FOLDER)
+                    shutil.rmtree(self.cached_folder)
                     raise e
 
     def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
@@ -163,7 +164,9 @@ class Examples:
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.inputs)
         ]
-        predictions = self.fn(processed_input)
+        predictions = self.fn(*processed_input)
+        if len(self.outputs) == 1:
+            predictions = [predictions]
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
@@ -175,14 +178,14 @@ class Examples:
 
     def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface."""
-        with open(CACHE_FILE) as cache:
+        with open(self.cached_file) as cache:
             examples = list(csv.reader(cache, quotechar="'"))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         for component, cell in zip(self.outputs, example):
             output.append(
                 component.restore_flagged(
-                    CACHED_FOLDER,
+                    self.cached_folder,
                     cell,
                     None,
                 )
