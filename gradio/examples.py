@@ -22,18 +22,25 @@ CACHE_FILE = os.path.join(CACHED_FOLDER, "log.csv")
 class Examples():
     def __init__(
         examples: List[Any] | List[List[Any]] | str,
-        inputs: Component | List[Component],
+        inputs: List[Component],
+        outputs: Optional[List[Component]] = None,
         fn: Optional[Callable] = None,
-        outputs: Optional[Component | List[Component]] = None,
         cache_examples: bool = False,
+        examples_per_page: int = 10,
         ):
         """
-        This class can be used to create Examples for Blocks / Interfaces
+        This class is a wrapper over the Dataset component can be used to create Examples 
+        for Blocks / Interfaces. Populates the Dataset component with examples and
+        assigns event listener so that clicking on an example populates the input/output
+        components. Optionally handles example caching for fast inference.
+        
+        Parameters:
         examples (List[Any] | List[List[Any]] | str): example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. 
         inputs: (Component | List[Component]): the component or list of components corresponding to the examples
-        fn: (Callable | None): optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
         outputs: (Component | List[Component] | None): optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
+        fn: (Callable | None): optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
         cache_examples (bool): if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
+        examples_per_page (int): how many examples to show per page (this parameter currently has no effect)
         """
         
         if examples is None or (
@@ -90,6 +97,9 @@ class Examples():
             type="index",
         )
         
+        if cache_examples:
+            cache_interface_examples(self)
+        
         def load_example(example_id):
             processed_examples = [
                 component.preprocess_example(sample)
@@ -97,7 +107,7 @@ class Examples():
                     inputs, examples[example_id]
                 )
             ]
-            if cache:
+            if cache_examples:
                 processed_examples += load_from_cache(self, example_id)
             if len(processed_examples) == 1:
                 return processed_examples[0]
@@ -108,26 +118,42 @@ class Examples():
             load_example,
             inputs=[examples],
             outputs=inputs
-            + (outputs if cache else []),
+            + (outputs if cache_examples else []),
             _postprocess=False,
             queue=False,
         )
-            
-
+        
 def process_example(
-    interface: Interface, example_id: int
+    examples: List[List[Any]],
+    input_components: Component | List[Component],
+    example_id: int
 ) -> Tuple[List[Any], List[float]]:
     """Loads an example from the interface and returns its prediction."""
-    example_set = interface.examples[example_id]
+    example_set = examples[example_id]
     raw_input = [
-        interface.input_components[i].preprocess_example(example)
+        input_components[i].preprocess_example(example)
         for i, example in enumerate(example_set)
     ]
+    processed_input = [
+        input_component.preprocess(raw_input[i])
+        for i, input_component in enumerate(input_components)
+    ]
+    predictions = self.fn(processed_input)
+    processed_output = [
+        output_component.postprocess(predictions[i])
+        if predictions[i] is not None
+        else None
+        for i, output_component in enumerate(self.output_components)
+    ]
+    
     prediction = interface.process(raw_input)
     return prediction
 
 
-def cache_interface_examples(interface: Interface) -> None:
+def cache_interface_examples(
+    examples: List[List[Any]],
+    input_components: List[Component], 
+    output_components: List[Component]) -> None:
     """Caches all of the examples from an interface."""
     if os.path.exists(CACHE_FILE):
         print(
@@ -138,28 +164,29 @@ def cache_interface_examples(interface: Interface) -> None:
             f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
         )
         cache_logger = CSVLogger()
-        cache_logger.setup(interface.output_components, CACHED_FOLDER)
-        for example_id, _ in enumerate(interface.examples):
+        cache_logger.setup(output_components, CACHED_FOLDER)
+        for example_id, _ in enumerate(examples):
             try:
-                prediction = process_example(interface, example_id)
+                prediction = process_example(input_components, example_id)
                 cache_logger.flag(prediction)
             except Exception as e:
                 shutil.rmtree(CACHED_FOLDER)
                 raise e
 
 
-def load_from_cache(interface: Interface, example_id: int) -> List[Any]:
+def load_from_cache(output_components: List[Component],
+                    example_id: int) -> List[Any]:
     """Loads a particular cached example for the interface."""
     with open(CACHE_FILE) as cache:
         examples = list(csv.reader(cache, quotechar="'"))
     example = examples[example_id + 1]  # +1 to adjust for header
     output = []
-    for component, cell in zip(interface.output_components, example):
+    for component, cell in zip(output_components, example):
         output.append(
             component.restore_flagged(
                 CACHED_FOLDER,
                 cell,
-                interface.encryption_key if interface.encrypt else None,
+                None,
             )
         )
     return output

@@ -37,7 +37,7 @@ from gradio.events import Changeable, Streamable
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
-from gradio.examples import cache_interface_examples, load_from_cache
+from gradio.examples import Examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -170,14 +170,13 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
-        if not isinstance(fn, list):
-            fn = [fn]
-        else:
+        if isinstance(fn, list):
             raise DeprecationWarning(
                 "The `fn` parameter only accepts a single function, support for a list "
                 "of functions has been deprecated. Please use gradio.mix.Parallel "
                 "instead."
             )
+
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
@@ -253,10 +252,9 @@ class Interface(Blocks):
             raise ValueError("Invalid value for parameter: interpretation")
 
         self.api_mode = False
-        self.predict = fn
-        self.predict_durations = [[0, 0]] * len(fn)
-        self.function_names = [func.__name__ for func in fn]
-        self.__name__ = ", ".join(self.function_names)
+        self.fn = fn
+        self.fn_durations = [0, 0]
+        self.__name__ = fn.__name__
         self.live = live
         self.title = title
 
@@ -365,7 +363,7 @@ class Interface(Blocks):
         utils.version_check()
         Interface.instances.add(self)
 
-        param_names = inspect.getfullargspec(self.predict[0])[0]
+        param_names = inspect.getfullargspec(self.predict)[0]
         for component, param_name in zip(self.input_components, param_names):
             if component.label is None:
                 component.label = param_name
@@ -375,9 +373,6 @@ class Interface(Blocks):
                     component.label = "output"
                 else:
                     component.label = "output " + str(i)
-
-        if self.cache_examples and examples:
-            cache_interface_examples(self)
 
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
@@ -574,10 +569,16 @@ class Interface(Blocks):
             if self.examples:
                 non_state_inputs = [
                     c for c in self.input_components if not isinstance(c, Variable)
-                ]                
-                Examples(examples, non_state_inputs, self.cache_examples, outputs)
-
-
+                ]
+                non_state_outputs = [
+                    c for c in self.output_components if not isinstance(c, Variable)
+                ]
+                Examples(examples=examples, 
+                         inputs=non_state_inputs,
+                         outputs=non_state_outputs,
+                         fn=self.predict,
+                         cache_examples=self.cache_examples,
+                         examples_per_page=examples_per_page)
 
             if self.interpretation:
                 interpretation_btn.click(
@@ -639,29 +640,17 @@ class Interface(Blocks):
                 input_component.serialize(processed_input[i], called_directly)
                 for i, input_component in enumerate(self.input_components)
             ]
-        predictions = []
-        output_component_counter = 0
 
-        for predict_fn in self.predict:
-            prediction = predict_fn(*processed_input)
+        prediction = self.predict(*processed_input)
 
-            if len(self.output_components) == len(self.predict) or prediction is None:
-                prediction = [prediction]
+        if prediction is None or len(self.output_components) == 1:
+            prediction = [prediction]
 
-            if self.api_mode:  # Serialize the input
-                prediction_ = copy.deepcopy(prediction)
-                prediction = []
-
-                # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
-                for pred in prediction_:
-                    prediction.append(
-                        self.output_components[output_component_counter].deserialize(
-                            pred
-                        )
-                    )
-                    output_component_counter += 1
-
-            predictions.extend(prediction)
+        if self.api_mode:  # Serialize the input
+            predictions = [
+                output_component.deserialize(predictions[i])
+                for i, output_component in enumerate(self.output_components)
+            ]
 
         return predictions
 
