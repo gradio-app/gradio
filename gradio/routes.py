@@ -8,12 +8,13 @@ import os
 import posixpath
 import secrets
 import traceback
+import urllib
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
-import importlib
 
 import orjson
+import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -27,11 +28,10 @@ from starlette.responses import RedirectResponse
 import gradio
 from gradio import encryptor, queueing
 
-STATIC_TEMPLATE_LIB = importlib.resources.path("gradio") / "templates/"
-STATIC_PATH_LIB = importlib.resources.path("gradio") / "templates/frontend/static"
-BUILD_PATH_LIB = importlib.resources.path("gradio") / "templates/frontend/assets"
-VERSION_FILE = importlib.resources.path("gradio") / "version.txt"
-
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
+BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
+VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 
