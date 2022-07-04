@@ -6,20 +6,20 @@ from __future__ import annotations
 import csv
 import os
 import shutil
-from typing import TYPE_CHECKING, Any, List, Tuple, Optional, Callable
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
-from gradio.flagging import CSVLogger
 from gradio.components import Dataset
+from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
-    from gradio.components import Component    
+    from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 CACHE_FILE = os.path.join(CACHED_FOLDER, "log.csv")
 
 
-class Examples():
+class Examples:
     def __init__(
         self,
         examples: List[Any] | List[List[Any]] | str,
@@ -28,22 +28,22 @@ class Examples():
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
-        ):
+    ):
         """
-        This class is a wrapper over the Dataset component can be used to create Examples 
+        This class is a wrapper over the Dataset component can be used to create Examples
         for Blocks / Interfaces. Populates the Dataset component with examples and
         assigns event listener so that clicking on an example populates the input/output
         components. Optionally handles example caching for fast inference.
-        
+
         Parameters:
-        examples (List[Any] | List[List[Any]] | str): example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. 
+        examples (List[Any] | List[List[Any]] | str): example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided.
         inputs: (Component | List[Component]): the component or list of components corresponding to the examples
         outputs: (Component | List[Component] | None): optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
         fn: (Callable | None): optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
         cache_examples (bool): if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
         examples_per_page (int): how many examples to show per page (this parameter currently has no effect)
         """
-        
+
         if examples is None or (
             isinstance(examples, list)
             and (len(examples) == 0 or isinstance(examples[0], list))
@@ -91,29 +91,27 @@ class Examples():
                 "Examples argument must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-            
+
         dataset = Dataset(
             components=inputs,
             samples=examples,
             type="index",
         )
-        
+
         self.examples = examples
         self.inputs = inputs
         self.outputs = outputs
         self.fn = fn
         self.cache_examples = cache_examples
-        self.examples_per_page = examples_per_page        
-        
+        self.examples_per_page = examples_per_page
+
         if cache_examples:
             self.cache_interface_examples()
-        
+
         def load_example(example_id):
             processed_examples = [
                 component.preprocess_example(sample)
-                for component, sample in zip(
-                    inputs, examples[example_id]
-                )
+                for component, sample in zip(inputs, examples[example_id])
             ]
             if cache_examples:
                 processed_examples += self.load_from_cache(example_id)
@@ -125,12 +123,11 @@ class Examples():
         dataset.click(
             load_example,
             inputs=[dataset],
-            outputs=inputs
-            + (outputs if cache_examples else []),
+            outputs=inputs + (outputs if cache_examples else []),
             _postprocess=False,
             queue=False,
         )
-        
+
     def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""
         if os.path.exists(CACHE_FILE):
@@ -149,8 +146,8 @@ class Examples():
                     cache_logger.flag(prediction)
                 except Exception as e:
                     shutil.rmtree(CACHED_FOLDER)
-                    raise e        
-        
+                    raise e
+
     def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
         """Loads an example from the interface and returns its prediction."""
         example_set = self.examples[example_id]
@@ -169,7 +166,7 @@ class Examples():
             else None
             for i, output_component in enumerate(self.outputs)
         ]
-        
+
         return processed_output
 
     def load_from_cache(self, example_id: int) -> List[Any]:

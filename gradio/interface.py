@@ -33,10 +33,10 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.events import Changeable, Streamable
+from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
-from gradio.examples import Examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -568,12 +568,14 @@ class Interface(Blocks):
                 non_state_outputs = [
                     c for c in self.output_components if not isinstance(c, Variable)
                 ]
-                Examples(examples=examples, 
-                         inputs=non_state_inputs,
-                         outputs=non_state_outputs,
-                         fn=self.fn,
-                         cache_examples=self.cache_examples,
-                         examples_per_page=examples_per_page)
+                Examples(
+                    examples=examples,
+                    inputs=non_state_inputs,
+                    outputs=non_state_outputs,
+                    fn=self.fn,
+                    cache_examples=self.cache_examples,
+                    examples_per_page=examples_per_page,
+                )
 
             if self.interpretation:
                 interpretation_btn.click(

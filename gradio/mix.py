@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import IOComponent    
+    from gradio.components import IOComponent
 
 
 class Parallel(gradio.Interface):
@@ -27,15 +27,15 @@ class Parallel(gradio.Interface):
 
         for interface in interfaces:
             outputs.extend(interface.output_components)
-            
+
         def parallel_fn(*args):
             return_values = []
             for interface in interfaces:
                 value = interface.run_prediction(args)
                 return_values.extend(value)
-            if len(outputs) == 1: 
-                return return_values[0]   
-            return return_values            
+            if len(outputs) == 1:
+                return return_values[0]
+            return return_values
 
         parallel_fn.__name__ = " | ".join([io.__name__ for io in interfaces])
 
@@ -62,6 +62,7 @@ class Series(gradio.Interface):
         Returns:
         (Interface): an Interface object connecting the given models
         """
+
         def connected_fn(
             *data,
         ):  # Run each function with the appropriate preprocessing and postprocessing
@@ -75,17 +76,19 @@ class Series(gradio.Interface):
 
                 # run all of predictions sequentially
                 data = interface.run_prediction(data)
-                
+
                 # skip postprocessing for final interface since the Series interface will include it
                 if idx < len(interfaces) - 1 and not (interface.api_mode):
                     data = [
                         output_component.postprocess(data[i])
-                        for i, output_component in enumerate(interface.output_components)
+                        for i, output_component in enumerate(
+                            interface.output_components
+                        )
                     ]
 
-            if len(interfaces[-1].output_components) == 1: 
-                return data[0]   
-            return data            
+            if len(interfaces[-1].output_components) == 1:
+                return data[0]
+            return data
 
         connected_fn.__name__ = " => ".join([io.__name__ for io in interfaces])
 
