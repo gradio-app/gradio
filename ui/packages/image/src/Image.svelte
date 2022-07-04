@@ -95,8 +95,6 @@
 
 	let img_height = 0;
 	let img_width = 0;
-
-	$: console.log(source, mirror_webcam, source === "webcam" && mirror_webcam);
 </script>
 
 <BlockLabel
