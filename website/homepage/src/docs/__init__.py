@@ -22,19 +22,20 @@ def add_component_shortcuts():
                     (subcls.__name__.lower(), "Uses " + tags.get("sets", "default values"))
                 )
 add_component_shortcuts()
-def add_component_demos():
-    for component in docs["component"]:
-        if "demos" not in component["tags"]:
-            continue
-        component["demos"] = []
-        demos = [demo.strip() for demo in component["tags"]["demos"].split(",")]
-        for demo in demos:
-            demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
-            with open(demo_file) as run_py:
-                demo_code = run_py.read()
-            component["demos"].append((demo, demo_code))
+def add_demos():
+    for mode in docs:
+        for cls in docs[mode]:
+            if "demos" not in cls["tags"]:
+                continue
+            cls["demos"] = []
+            demos = [demo.strip() for demo in cls["tags"]["demos"].split(",")]
+            for demo in demos:
+                demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+                with open(demo_file) as run_py:
+                    demo_code = run_py.read()
+                cls["demos"].append((demo, demo_code))
 
-add_component_demos()
+add_demos()
 
 def find_cls(target_cls):
     for mode in docs:
