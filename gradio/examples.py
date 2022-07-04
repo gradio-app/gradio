@@ -116,7 +116,7 @@ class Examples():
                 )
             ]
             if cache_examples:
-                processed_examples += self.load_from_cache(self, example_id)
+                processed_examples += self.load_from_cache(example_id)
             if len(processed_examples) == 1:
                 return processed_examples[0]
             else:
@@ -124,7 +124,7 @@ class Examples():
 
         dataset.click(
             load_example,
-            inputs=[examples],
+            inputs=[dataset],
             outputs=inputs
             + (outputs if cache_examples else []),
             _postprocess=False,
@@ -145,7 +145,7 @@ class Examples():
             cache_logger.setup(self.outputs, CACHED_FOLDER)
             for example_id, _ in enumerate(self.examples):
                 try:
-                    prediction = self.process_example(self.inputs, example_id)
+                    prediction = self.process_example(example_id)
                     cache_logger.flag(prediction)
                 except Exception as e:
                     shutil.rmtree(CACHED_FOLDER)
