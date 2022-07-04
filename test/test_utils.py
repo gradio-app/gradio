@@ -116,14 +116,16 @@ class TestIPAddress(unittest.TestCase):
 class TestAssertConfigsEquivalent(unittest.TestCase):
     def test_same_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(copy.deepcopy(XRAY_CONFIG), 
-                                                      copy.deepcopy(XRAY_CONFIG))
+            assert_configs_are_equivalent_besides_ids(
+                copy.deepcopy(XRAY_CONFIG), copy.deepcopy(XRAY_CONFIG)
+            )
         )
 
     def test_equivalent_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(copy.deepcopy(XRAY_CONFIG), 
-                                                      copy.deepcopy(XRAY_CONFIG_DIFF_IDS))
+            assert_configs_are_equivalent_besides_ids(
+                copy.deepcopy(XRAY_CONFIG), copy.deepcopy(XRAY_CONFIG_DIFF_IDS)
+            )
         )
 
     def test_different_configs(self):
@@ -131,22 +133,79 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
             assert_configs_are_equivalent_besides_ids(
                 copy.deepcopy(XRAY_CONFIG_WITH_MISTAKE), copy.deepcopy(XRAY_CONFIG)
             )
-            
+
     def test_different_dependencies(self):
-        config1 = {'version': '3.0.20\n', 'mode': 'blocks', 'dev_mode': True,
-                'components': [{'id': 1, 'type': 'textbox',
-                    'props': {'lines': 1, 'max_lines': 20, 'placeholder': 'What is your name?', 'value': '',
-                            'show_label': True, 'name': 'textbox', 'visible': True, 'style': {}}},
-                            {'id': 2, 'type': 'textbox', 'props': {'lines': 1, 'max_lines': 20, 'value': '', 'show_label': True, 'name': 'textbox', 'visible': True, 'style': {}}}, {'id': 3, 'type': 'image', 'props': {'image_mode': 'RGB', 'source': 'upload', 'tool': 'editor', 'streaming': False, 'show_label': True, 'name': 'image', 'visible': True, 'style': {'height': 54, 'width': 240}}}], 'theme': 'default', 'css': None, 'enable_queue': False, 'layout': {'id': 0, 'children': [{'id': 1}, {'id': 2}, {'id': 3}]},
-                'dependencies': [
-                    {'targets': [1], 'trigger': 'submit', 'inputs': [1], 'outputs': [2],
-                        'backend_fn': True, 'js': None, 'status_tracker': None, 'queue': None, 'api_name': 'greet',
-                        'scroll_to_output': False, 'show_progress': True, 'documentation': [['(str): text'], ['(str | None): text']]
-                    }
-                ]}
+        config1 = {
+            "version": "3.0.20\n",
+            "mode": "blocks",
+            "dev_mode": True,
+            "components": [
+                {
+                    "id": 1,
+                    "type": "textbox",
+                    "props": {
+                        "lines": 1,
+                        "max_lines": 20,
+                        "placeholder": "What is your name?",
+                        "value": "",
+                        "show_label": True,
+                        "name": "textbox",
+                        "visible": True,
+                        "style": {},
+                    },
+                },
+                {
+                    "id": 2,
+                    "type": "textbox",
+                    "props": {
+                        "lines": 1,
+                        "max_lines": 20,
+                        "value": "",
+                        "show_label": True,
+                        "name": "textbox",
+                        "visible": True,
+                        "style": {},
+                    },
+                },
+                {
+                    "id": 3,
+                    "type": "image",
+                    "props": {
+                        "image_mode": "RGB",
+                        "source": "upload",
+                        "tool": "editor",
+                        "streaming": False,
+                        "show_label": True,
+                        "name": "image",
+                        "visible": True,
+                        "style": {"height": 54, "width": 240},
+                    },
+                },
+            ],
+            "theme": "default",
+            "css": None,
+            "enable_queue": False,
+            "layout": {"id": 0, "children": [{"id": 1}, {"id": 2}, {"id": 3}]},
+            "dependencies": [
+                {
+                    "targets": [1],
+                    "trigger": "submit",
+                    "inputs": [1],
+                    "outputs": [2],
+                    "backend_fn": True,
+                    "js": None,
+                    "status_tracker": None,
+                    "queue": None,
+                    "api_name": "greet",
+                    "scroll_to_output": False,
+                    "show_progress": True,
+                    "documentation": [["(str): text"], ["(str | None): text"]],
+                }
+            ],
+        }
 
         config2 = copy.deepcopy(config1)
-        config2['dependencies'][0]['documentation'] = None
+        config2["dependencies"][0]["documentation"] = None
         with self.assertRaises(AssertionError):
             assert_configs_are_equivalent_besides_ids(config1, config2)
 

@@ -12,8 +12,8 @@ import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, NewType, Type
 from importlib.metadata import version
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, NewType, Type
 
 import aiohttp
 import analytics
@@ -226,7 +226,7 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
             assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
-        assert d1 == d2, "{} does not match {}".format(d1, d2)      
+        assert d1 == d2, "{} does not match {}".format(d1, d2)
 
     return True
 
