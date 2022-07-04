@@ -8,18 +8,17 @@ import json
 import json.decoder
 import os
 import random
-import sys
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, NewType, Type
+from importlib.metadata import version
 
 import aiohttp
 import analytics
 import fsspec.asyn
 import httpx
-import pkg_resources
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
@@ -38,7 +37,7 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 def version_check():
     try:
-        current_pkg_version = pkg_resources.require("gradio")[0].version
+        current_pkg_version = version("gradio")
         latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
@@ -49,10 +48,6 @@ def version_check():
                 )
             )
             print("--------")
-    except pkg_resources.DistributionNotFound:
-        warnings.warn(
-            "gradio is not setup or installed properly. Unable to get version info."
-        )
     except json.decoder.JSONDecodeError:
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
