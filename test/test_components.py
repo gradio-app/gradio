@@ -537,7 +537,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "value": "a",
+                "value": None,
                 "name": "radio",
                 "show_label": True,
                 "label": "Pick Your One Input",
@@ -843,7 +843,9 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(deepcopy(media_data.BASE64_AUDIO)).endswith(".wav")
+            audio_output.deserialize(
+                deepcopy(media_data.BASE64_AUDIO)["data"]
+            ).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
@@ -1020,7 +1022,7 @@ class TestDataframe(unittest.TestCase):
             dataframe_input.get_config(),
             {
                 "headers": ["Name", "Age", "Member"],
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [
@@ -1077,7 +1079,7 @@ class TestDataframe(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [

@@ -99,6 +99,7 @@ importers:
       '@gradio/utils': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
       mime-types: ^2.1.34
+      playwright: ^1.22.2
       svelte-i18n: ^3.3.13
     dependencies:
       '@gradio/atoms': link:../atoms
@@ -125,6 +126,7 @@ importers:
       '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       mime-types: 2.1.34
+      playwright: 1.22.2
       svelte-i18n: 3.3.13_svelte@3.47.0
 
   packages/atoms:
@@ -3589,6 +3591,21 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /playwright-core/1.22.2:
+    resolution: {integrity: sha512-w/hc/Ld0RM4pmsNeE6aL/fPNWw8BWit2tg+TfqJ3+p59c6s3B6C8mXvXrIPmfQEobkcFDc+4KirNzOQ+uBSP1Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: false
+
+  /playwright/1.22.2:
+    resolution: {integrity: sha512-hUTpg7LytIl3/O4t0AQJS1V6hWsaSY5uZ7w1oCC8r3a1AQN5d6otIdCkiB3cbzgQkcMaRxisinjMFMVqZkybdQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      playwright-core: 1.22.2
     dev: false
 
   /plotly.js-dist-min/2.11.1:
