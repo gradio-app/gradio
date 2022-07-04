@@ -5,7 +5,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
 else
   echo "Installing requirements for tests"
   pip install --upgrade pip
-  pip install -r gradio.egg-info/requires.txt
+  pip install -r requirements.txt
   pip install -r test/requirements.txt
 fi
 

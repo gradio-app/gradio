@@ -288,6 +288,7 @@ class Blocks(BlockContext):
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
         """Factory method that creates a Blocks from a config and list of functions."""
+        config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
 
@@ -325,6 +326,7 @@ class Blocks(BlockContext):
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
+                dependency.pop("documentation", None)
                 dependency["inputs"] = [
                     original_mapping[i] for i in dependency["inputs"]
                 ]

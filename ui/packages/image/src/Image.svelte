@@ -105,6 +105,7 @@
 <div
 	class:bg-gray-200={value}
 	class:h-60={source !== "webcam" || tool === "sketch"}
+	data-testid="image"
 >
 	{#if source === "canvas"}
 		<ModifySketch
