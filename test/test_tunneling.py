@@ -21,10 +21,8 @@ class TestTunneling(unittest.TestCase):
         io = Interface(lambda x: x, "text", "text")
         _, path_to_local_server, _ = io.launch(prevent_thread_lock=True, share=False)
         _, localhost, port = path_to_local_server.split(":")
-        threading.Thread.start = mock.MagicMock(return_value=None)
         paramiko.SSHClient.connect = mock.MagicMock(return_value=None)
         tunneling.create_tunnel(payload, localhost, port)
-        threading.Thread.start.assert_called_once()
         paramiko.SSHClient.connect.assert_called_once()
         io.close()
 
