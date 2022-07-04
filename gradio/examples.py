@@ -43,6 +43,10 @@ class Examples:
         cache_examples (bool): if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
         examples_per_page (int): how many examples to show per page (this parameter currently has no effect)
         """
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if not isinstance(outputs, list):
+            outputs = [outputs]
 
         if examples is None or (
             isinstance(examples, list)
@@ -91,7 +95,7 @@ class Examples:
                 "Examples argument must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-
+            
         dataset = Dataset(
             components=inputs,
             samples=examples,
