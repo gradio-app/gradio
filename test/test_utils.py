@@ -1,5 +1,4 @@
-import asyncio
-import ipaddress
+import copy
 import os
 import unittest
 import unittest.mock as mock
@@ -117,19 +116,39 @@ class TestIPAddress(unittest.TestCase):
 class TestAssertConfigsEquivalent(unittest.TestCase):
     def test_same_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
+            assert_configs_are_equivalent_besides_ids(copy.deepcopy(XRAY_CONFIG), 
+                                                      copy.deepcopy(XRAY_CONFIG))
         )
 
     def test_equivalent_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
+            assert_configs_are_equivalent_besides_ids(copy.deepcopy(XRAY_CONFIG), 
+                                                      copy.deepcopy(XRAY_CONFIG_DIFF_IDS))
         )
 
     def test_different_configs(self):
         with self.assertRaises(AssertionError):
             assert_configs_are_equivalent_besides_ids(
-                XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
+                copy.deepcopy(XRAY_CONFIG_WITH_MISTAKE), copy.deepcopy(XRAY_CONFIG)
             )
+            
+    def test_different_dependencies(self):
+        config1 = {'version': '3.0.20\n', 'mode': 'blocks', 'dev_mode': True,
+                'components': [{'id': 1, 'type': 'textbox',
+                    'props': {'lines': 1, 'max_lines': 20, 'placeholder': 'What is your name?', 'value': '',
+                            'show_label': True, 'name': 'textbox', 'visible': True, 'style': {}}},
+                            {'id': 2, 'type': 'textbox', 'props': {'lines': 1, 'max_lines': 20, 'value': '', 'show_label': True, 'name': 'textbox', 'visible': True, 'style': {}}}, {'id': 3, 'type': 'image', 'props': {'image_mode': 'RGB', 'source': 'upload', 'tool': 'editor', 'streaming': False, 'show_label': True, 'name': 'image', 'visible': True, 'style': {'height': 54, 'width': 240}}}], 'theme': 'default', 'css': None, 'enable_queue': False, 'layout': {'id': 0, 'children': [{'id': 1}, {'id': 2}, {'id': 3}]},
+                'dependencies': [
+                    {'targets': [1], 'trigger': 'submit', 'inputs': [1], 'outputs': [2],
+                        'backend_fn': True, 'js': None, 'status_tracker': None, 'queue': None, 'api_name': 'greet',
+                        'scroll_to_output': False, 'show_progress': True, 'documentation': [['(str): text'], ['(str | None): text']]
+                    }
+                ]}
+
+        config2 = copy.deepcopy(config1)
+        config2['dependencies'][0]['documentation'] = None
+        with self.assertRaises(AssertionError):
+            assert_configs_are_equivalent_besides_ids(config1, config2)
 
 
 class TestFormatNERList(unittest.TestCase):
@@ -187,7 +206,7 @@ async def client():
 class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.GET,
             url="http://headers.jsontest.com/",
         )
@@ -197,7 +216,7 @@ class TestRequest:
 
     @pytest.mark.asyncio
     async def test_post(self):
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -215,7 +234,7 @@ class TestRequest:
             id: str
             createdAt: str
 
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -229,7 +248,7 @@ class TestRequest:
             name: Literal[str] = "John"
             job: str
 
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -248,7 +267,7 @@ class TestRequest:
 
         validate_response_data.side_effect = Exception()
 
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.GET,
             url="https://reqres.in/api/users",
             exception_type=ResponseValidationException,
@@ -262,7 +281,7 @@ class TestRequest:
                 return response
             raise Exception
 
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -281,7 +300,7 @@ class TestRequest:
                     return response
             raise Exception
 
-        client_response = await Request(
+        client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},

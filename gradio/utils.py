@@ -220,13 +220,13 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
     same_children_recursive(children1, children2, mapping)
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
-        for t1, t2 in zip(d1["targets"], d2["targets"]):
+        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
             assert mapping[t1] == t2, "{} does not match {}".format(d1, d2)
-        assert d1["trigger"] == d2["trigger"], "{} does not match {}".format(d1, d2)
-        for i1, i2 in zip(d1["inputs"], d2["inputs"]):
+        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
             assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
-        for o1, o2 in zip(d1["outputs"], d2["outputs"]):
+        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
+        assert d1 == d2, "{} does not match {}".format(d1, d2)      
 
     return True
 
