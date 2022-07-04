@@ -2797,6 +2797,117 @@ class Button(Clickable, IOComponent):
         )
 
 
+class ColorPicker(Changeable, Submittable, IOComponent):
+    """
+    Creates a color picker for user to select a color as string input.
+    Preprocessing: passes selected color value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Demos: color_picker
+    """
+
+    def __init__(
+        self,
+        value: str = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): default text to provide in color picker.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.value = self.postprocess(value)
+        self.cleared_value = "#000000"
+        self.test_input = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+    ):
+        updated_config = {
+            "value": value,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def preprocess_example(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on an example before being passed to the main function.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def generate_sample(self) -> str:
+        return "#000000"
+
+    # Output Functionalities
+    def postprocess(self, y: str | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
+        """
+        if y is None:
+            return None
+        else:
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
 ############################
 # Only Output Components
 ############################
@@ -3975,153 +4086,6 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
-
-
-class ColorPicker(Changeable, Submittable, IOComponent):
-    """
-    Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
-    Demos: hello_world, diff_texts, sentence_builder
-    """
-
-    def __init__(
-        self,
-        value: str = None,
-        *,
-        label: Optional[str] = None,
-        show_label: bool = True,
-        interactive: Optional[bool] = None,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        value (str): default text to provide in textarea.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        self.value = self.postprocess(value)
-        self.cleared_value = "#000000"
-        self.test_input = value
-        IOComponent.__init__(
-            self,
-            label=label,
-            show_label=show_label,
-            interactive=interactive,
-            visible=visible,
-            elem_id=elem_id,
-            **kwargs,
-        )
-
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = None,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
-        interactive: Optional[bool] = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    # Input Functionalities
-    def preprocess(self, x: str | None) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        Parameters:
-        x (str): text
-        Returns:
-        (str): text
-        """
-        if x is None:
-            return None
-        else:
-            return str(x)
-
-    def serialize(self, x: Any, called_directly: bool) -> Any:
-        """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
-        Parameters:
-        x (Any): Input to interface
-        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
-        """
-        return x
-
-    def preprocess_example(self, x: str | None) -> Any:
-        """
-        Any preprocessing needed to be performed on an example before being passed to the main function.
-        """
-        if x is None:
-            return None
-        else:
-            return str(x)
-
-    def set_interpret_parameters(
-        self, separator: str = " ", replacement: Optional[str] = None
-    ):
-        """
-        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
-        Parameters:
-        separator (str): Separator to use to split input into tokens.
-        replacement (str): In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
-        """
-        self.interpretation_separator = separator
-        self.interpretation_replacement = replacement
-        return self
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], tokens: List[str], masks=None, **kwargs
-    ) -> List[Tuple[str, float]]:
-        """
-        Returns:
-        (List[Tuple[str, float]]): Each tuple set represents a set of characters and their corresponding interpretation score.
-        """
-        result = []
-        for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
-        return result
-
-    def generate_sample(self) -> str:
-        return "#000000"
-
-    # Output Functionalities
-    def postprocess(self, y: str | None):
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-        y (str | None): text
-        Returns:
-        (str | None): text
-        """
-        if y is None:
-            return None
-        else:
-            return str(y)
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
-
 
 
 DataFrame = Dataframe

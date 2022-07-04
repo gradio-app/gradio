@@ -1,47 +1,35 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { spy } from "tinyspy";
-import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
-import event from "@testing-library/user-event";
+import { cleanup, render } from "@gradio/tootils";
 
-import Textbox from "./Textbox.svelte";
+import ColorPicker from "./ColorPicker.svelte";
 
-describe("Textbox", () => {
+describe("ColorPicker", () => {
 	afterEach(() => cleanup());
 
 	test("renders provided value", () => {
-		const { getByDisplayValue } = render(Textbox, {
-			lines: 1,
-			mode: "dynamic",
-			value: "hello world",
-			label: "Textbox"
+		const { getByDisplayValue } = render(ColorPicker, {
+			value: "#000000",
+			label: "ColorPicker"
 		});
 
-		const item: HTMLInputElement = getByDisplayValue("hello world");
-		assert.equal(item.value, "hello world");
+		const item: HTMLInputElement = getByDisplayValue("#000000");
+		assert.equal(item.value, "#000000");
 	});
 
-	test("changing the text should update the value", async () => {
-		const { component, getByLabelText, getByDisplayValue } = render(Textbox, {
-			lines: 1,
-			mode: "dynamic",
-			value: "hi ",
-			label: "Textbox"
+	test("changing the color should update the value", async () => {
+		const { component, getByDisplayValue } = render(ColorPicker, {
+			value: "#000000",
+			label: "ColorPicker"
 		});
 
-		const item: HTMLInputElement = getByDisplayValue("hi");
+		const item: HTMLInputElement = getByDisplayValue("#000000");
 
-		const mock = spy();
-		component.$on("change", mock);
+		assert.equal(item.value, "#000000");
 
-		item.focus();
-		event.keyboard("some text");
+		await component.$set({
+			value: "#FFFFFF"
+		});
 
-		// wait for debounce
-		await wait(300);
-
-		assert.equal(item.value, "hi some text");
-		assert.equal(component.value, "hi some text");
-		assert.equal(mock.callCount, 1);
-		assert.equal(mock.calls[0][0].detail, "hi some text");
+		assert.equal(component.value, "#FFFFFF");
 	});
 });

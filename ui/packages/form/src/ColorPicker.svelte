@@ -18,7 +18,6 @@
 	}>();
 
 	function handle_change(val: string) {
-		console.log(val);
 		dispatch("change", val);
 	}
 
@@ -31,7 +30,7 @@
 	<input
 		type="color"
 		class="gr-box-unrounded {classes}"
-		bind:value={value}
+		bind:value
 		{disabled}
 	/>
 </label>
