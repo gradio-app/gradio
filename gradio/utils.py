@@ -39,7 +39,9 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 def version_check():
     try:
-        current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode('ascii').strip()
+        current_pkg_version = (
+            pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
+        )
         latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
