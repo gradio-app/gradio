@@ -137,7 +137,7 @@ class Examples:
         """Caches all of the examples from an interface."""
         if os.path.exists(self.cached_file):
             print(
-                f"Using cache from '{os.path.abspath(self.cached_folder)}/' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{os.path.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
             print(
