@@ -568,7 +568,7 @@ class Interface(Blocks):
                 non_state_outputs = [
                     c for c in self.output_components if not isinstance(c, Variable)
                 ]
-                Examples(
+                self.examples_handler = Examples(
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
