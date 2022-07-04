@@ -21,6 +21,7 @@ CACHE_FILE = os.path.join(CACHED_FOLDER, "log.csv")
 
 class Examples():
     def __init__(
+        self,
         examples: List[Any] | List[List[Any]] | str,
         inputs: List[Component],
         outputs: Optional[List[Component]] = None,
@@ -90,15 +91,22 @@ class Examples():
                 "Examples argument must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-        
+            
         dataset = Dataset(
             components=inputs,
             samples=examples,
             type="index",
         )
         
+        self.examples = examples
+        self.inputs = inputs
+        self.outputs = outputs
+        self.fn = fn
+        self.cache_examples = cache_examples
+        self.examples_per_page = examples_per_page        
+        
         if cache_examples:
-            cache_interface_examples(self)
+            self.cache_interface_examples()
         
         def load_example(example_id):
             processed_examples = [
@@ -108,7 +116,7 @@ class Examples():
                 )
             ]
             if cache_examples:
-                processed_examples += load_from_cache(self, example_id)
+                processed_examples += self.load_from_cache(self, example_id)
             if len(processed_examples) == 1:
                 return processed_examples[0]
             else:
@@ -123,70 +131,59 @@ class Examples():
             queue=False,
         )
         
-def process_example(
-    examples: List[List[Any]],
-    input_components: Component | List[Component],
-    example_id: int
-) -> Tuple[List[Any], List[float]]:
-    """Loads an example from the interface and returns its prediction."""
-    example_set = examples[example_id]
-    raw_input = [
-        input_components[i].preprocess_example(example)
-        for i, example in enumerate(example_set)
-    ]
-    processed_input = [
-        input_component.preprocess(raw_input[i])
-        for i, input_component in enumerate(input_components)
-    ]
-    predictions = self.fn(processed_input)
-    processed_output = [
-        output_component.postprocess(predictions[i])
-        if predictions[i] is not None
-        else None
-        for i, output_component in enumerate(self.output_components)
-    ]
-    
-    prediction = interface.process(raw_input)
-    return prediction
-
-
-def cache_interface_examples(
-    examples: List[List[Any]],
-    input_components: List[Component], 
-    output_components: List[Component]) -> None:
-    """Caches all of the examples from an interface."""
-    if os.path.exists(CACHE_FILE):
-        print(
-            f"Using cache from '{os.path.abspath(CACHED_FOLDER)}/' directory. If method or examples have changed since last caching, delete this folder to clear cache."
-        )
-    else:
-        print(
-            f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
-        )
-        cache_logger = CSVLogger()
-        cache_logger.setup(output_components, CACHED_FOLDER)
-        for example_id, _ in enumerate(examples):
-            try:
-                prediction = process_example(input_components, example_id)
-                cache_logger.flag(prediction)
-            except Exception as e:
-                shutil.rmtree(CACHED_FOLDER)
-                raise e
-
-
-def load_from_cache(output_components: List[Component],
-                    example_id: int) -> List[Any]:
-    """Loads a particular cached example for the interface."""
-    with open(CACHE_FILE) as cache:
-        examples = list(csv.reader(cache, quotechar="'"))
-    example = examples[example_id + 1]  # +1 to adjust for header
-    output = []
-    for component, cell in zip(output_components, example):
-        output.append(
-            component.restore_flagged(
-                CACHED_FOLDER,
-                cell,
-                None,
+    def cache_interface_examples(self) -> None:
+        """Caches all of the examples from an interface."""
+        if os.path.exists(CACHE_FILE):
+            print(
+                f"Using cache from '{os.path.abspath(CACHED_FOLDER)}/' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
-        )
-    return output
+        else:
+            print(
+                f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
+            )
+            cache_logger = CSVLogger()
+            cache_logger.setup(self.outputs, CACHED_FOLDER)
+            for example_id, _ in enumerate(self.examples):
+                try:
+                    prediction = self.process_example(self.inputs, example_id)
+                    cache_logger.flag(prediction)
+                except Exception as e:
+                    shutil.rmtree(CACHED_FOLDER)
+                    raise e        
+        
+    def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
+        """Loads an example from the interface and returns its prediction."""
+        example_set = self.examples[example_id]
+        raw_input = [
+            self.inputs[i].preprocess_example(example)
+            for i, example in enumerate(example_set)
+        ]
+        processed_input = [
+            input_component.preprocess(raw_input[i])
+            for i, input_component in enumerate(self.inputs)
+        ]
+        predictions = self.fn(processed_input)
+        processed_output = [
+            output_component.postprocess(predictions[i])
+            if predictions[i] is not None
+            else None
+            for i, output_component in enumerate(self.outputs)
+        ]
+        
+        return processed_output
+
+    def load_from_cache(self, example_id: int) -> List[Any]:
+        """Loads a particular cached example for the interface."""
+        with open(CACHE_FILE) as cache:
+            examples = list(csv.reader(cache, quotechar="'"))
+        example = examples[example_id + 1]  # +1 to adjust for header
+        output = []
+        for component, cell in zip(self.outputs, example):
+            output.append(
+                component.restore_flagged(
+                    CACHED_FOLDER,
+                    cell,
+                    None,
+                )
+            )
+        return output
