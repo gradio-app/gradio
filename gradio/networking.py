@@ -4,6 +4,7 @@ creating tunnels.
 """
 from __future__ import annotations
 
+from contextlib import closing
 import os
 import socket
 import threading
@@ -115,16 +116,6 @@ def start_server(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
     else:
-        try:
-            s = socket.socket()
-            s.bind((LOCALHOST_NAME, server_port))
-            s.close()
-        except OSError:
-            raise OSError(
-                "Port {} is in use. If a gradio.Blocks is running on the port, you can close() it or gradio.close_all().".format(
-                    server_port
-                )
-            )
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
