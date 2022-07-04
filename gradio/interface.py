@@ -25,7 +25,6 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Component,
-    Dataset,
     Interpretation,
     IOComponent,
     Markdown,
@@ -126,7 +125,6 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
-        _repeat_outputs_per_model: bool = True,
         **kwargs,
     ):
         """
@@ -234,9 +232,6 @@ class Interface(Blocks):
         ]:
             for o in self.output_components:
                 o.interactive = False  # Force output components to be non-interactive
-
-        if _repeat_outputs_per_model:
-            self.output_components *= len(fn)
 
         if (
             interpretation is None
@@ -363,7 +358,7 @@ class Interface(Blocks):
         utils.version_check()
         Interface.instances.add(self)
 
-        param_names = inspect.getfullargspec(self.predict)[0]
+        param_names = inspect.getfullargspec(self.fn)[0]
         for component, param_name in zip(self.input_components, param_names):
             if component.label is None:
                 component.label = param_name
@@ -576,7 +571,7 @@ class Interface(Blocks):
                 Examples(examples=examples, 
                          inputs=non_state_inputs,
                          outputs=non_state_outputs,
-                         fn=self.predict,
+                         fn=self.fn,
                          cache_examples=self.cache_examples,
                          examples_per_page=examples_per_page)
 
@@ -609,9 +604,7 @@ class Interface(Blocks):
         return self.__repr__()
 
     def __repr__(self):
-        repr = "Gradio Interface for: {}".format(
-            ", ".join(fn.__name__ for fn in self.predict)
-        )
+        repr = f"Gradio Interface for: {self.__name__}"
         repr += "\n" + "-" * len(repr)
         repr += "\ninputs:"
         for component in self.input_components:
@@ -641,18 +634,18 @@ class Interface(Blocks):
                 for i, input_component in enumerate(self.input_components)
             ]
 
-        prediction = self.predict(*processed_input)
+        prediction = self.fn(*processed_input)
 
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
-        if self.api_mode:  # Serialize the input
-            predictions = [
-                output_component.deserialize(predictions[i])
+        if self.api_mode:  # Deerialize the input
+            prediction = [
+                output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)
             ]
 
-        return predictions
+        return prediction
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
@@ -690,19 +683,17 @@ class Interface(Blocks):
         Passes a few samples through the function to test if the inputs/outputs
         components are consistent with the function parameter and return values.
         """
-        for predict_fn in self.predict:
-            print("Test launch: {}()...".format(predict_fn.__name__), end=" ")
-            raw_input = []
-            for input_component in self.input_components:
-                if input_component.test_input is None:
-                    print("SKIPPED")
-                    break
-                else:
-                    raw_input.append(input_component.test_input)
+        print("Test launch: {}()...".format(self.__name__), end=" ")
+        raw_input = []
+        for input_component in self.input_components:
+            if input_component.test_input is None:
+                print("SKIPPED")
+                break
             else:
-                self.process(raw_input)
-                print("PASSED")
-                continue
+                raw_input.append(input_component.test_input)
+        else:
+            self.process(raw_input)
+            print("PASSED")
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """
