@@ -23,17 +23,17 @@ class Examples():
     def __init__(
         examples: List[Any] | List[List[Any]] | str,
         inputs: Component | List[Component],
-        cache: bool = False,
         fn: Optional[Callable] = None,
         outputs: Optional[Component | List[Component]] = None,
+        cache_examples: bool = False,
         ):
         """
         This class can be used to create Examples for Blocks / Interfaces
         examples (List[Any] | List[List[Any]] | str): example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. 
         inputs: (Component | List[Component]): the component or list of components corresponding to the examples
-        cache (bool | None): if True, caches examples for fast runtime. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         fn: (Callable | None): optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
         outputs: (Component | List[Component] | None): optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
+        cache_examples (bool): if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
         """
         
         if examples is None or (
