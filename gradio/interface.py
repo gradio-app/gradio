@@ -57,6 +57,7 @@ class Interface(Blocks):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch(share=True)
+    Demos: hello_world, hello_world_3, gpt_j
     """
 
     # stores references to all currently existing Interface instances
@@ -859,6 +860,7 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
+    Demos: sst_or_tts
     """
 
     def __init__(
