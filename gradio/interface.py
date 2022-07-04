@@ -192,7 +192,7 @@ class Interface(Blocks):
                 raise ValueError(
                     "If using 'state', there must be exactly one state input and one state output."
                 )
-            default = utils.get_default_args(fn[0])[inputs.index("state")]
+            default = utils.get_default_args(fn)[inputs.index("state")]
             state_variable = Variable(value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
