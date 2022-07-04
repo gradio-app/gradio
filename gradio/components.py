@@ -2356,7 +2356,7 @@ class Dataframe(Changeable, IOComponent):
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
-    md = None
+    markdown_parser = None
 
     def __init__(
         self,
@@ -2572,13 +2572,13 @@ class Dataframe(Changeable, IOComponent):
         if "markdown" not in datatype:
             return data
 
-        if cls.md is None:
-            cls.md = MarkdownIt()
+        if cls.markdown_parser is None:
+            cls.markdown_parser = MarkdownIt()
 
         for i in range(len(data)):
             for j in range(len(data[i])):
                 if datatype[j] == "markdown":
-                    data[i][j] = Dataframe.md.render(data[i][j])
+                    data[i][j] = Dataframe.markdown_parser.render(data[i][j])
 
         return data
 
