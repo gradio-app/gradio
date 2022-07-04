@@ -1,4 +1,4 @@
-from importlib.metadata import version
+import pkgutil
 
 import gradio.components as components
 import gradio.inputs as inputs
@@ -67,5 +67,5 @@ from gradio.templates import (
     Webcam,
 )
 
-current_pkg_version = version("gradio")
+current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode('ascii').strip()
 __version__ = current_pkg_version
