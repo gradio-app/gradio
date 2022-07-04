@@ -27,16 +27,17 @@ class Parallel(gradio.Interface):
 
         for interface in interfaces:
             outputs.extend(interface.output_components)
-
+            
         def parallel_fn(*args):
             return_values = []
             for interface in interfaces:
-                value = interface.run_prediction(*args)
-                if len(interface.output_components == 1):
-                    return_values.append(value)
-                else:
-                    return_values.extend(value)
-            return return_values
+                value = interface.run_prediction(args)
+                return_values.extend(value)
+            if len(outputs) == 1: 
+                return return_values[0]   
+            return return_values            
+
+        parallel_fn.__name__ = " | ".join([io.__name__ for io in interfaces])
 
         kwargs = {
             "fn": parallel_fn,
@@ -73,7 +74,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = interface.run_prediction(*data)
+                data = interface.run_prediction(data)
                 
                 # skip postprocessing for final interface since the Series interface will include it
                 if idx < len(interfaces) - 1 and not (interface.api_mode):
@@ -82,7 +83,9 @@ class Series(gradio.Interface):
                         for i, output_component in enumerate(interface.output_components)
                     ]
 
-            return data[0]
+            if len(interfaces[-1].output_components) == 1: 
+                return data[0]   
+            return data            
 
         connected_fn.__name__ = " => ".join([io.__name__ for io in interfaces])
 
