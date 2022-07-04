@@ -140,7 +140,10 @@ class CSVLogger(FlaggingCallback):
             csv_data.append(username if username is not None else "")
             csv_data.append(str(datetime.datetime.now()))
             if is_new:
-                headers = [component.label or f"component {idx}" for idx, component in enumerate(self.components)] + [
+                headers = [
+                    component.label or f"component {idx}"
+                    for idx, component in enumerate(self.components)
+                ] + [
                     "flag",
                     "username",
                     "timestamp",

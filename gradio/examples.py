@@ -94,7 +94,7 @@ class Examples:
                 "Examples argument must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-            
+
         dataset = Dataset(
             components=inputs,
             samples=examples,
@@ -140,9 +140,7 @@ class Examples:
                 f"Using cache from '{os.path.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
-            print(
-                f"Caching examples at: '{os.path.abspath(self.cached_file)}'"
-            )
+            print(f"Caching examples at: '{os.path.abspath(self.cached_file)}'")
             cache_logger = CSVLogger()
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
