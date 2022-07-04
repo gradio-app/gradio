@@ -226,6 +226,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        title: str = "Gradio",
         css: Optional[str] = None,
         **kwargs,
     ):
@@ -272,6 +273,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+        self.title = title
 
     @property
     def share(self):
@@ -573,6 +575,7 @@ class Blocks(BlockContext):
             "components": [],
             "theme": self.theme,
             "css": self.css,
+            "title": self.title or "Gradio",
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch

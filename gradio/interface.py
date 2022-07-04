@@ -153,7 +153,8 @@ class Interface(Blocks):
         analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
         super().__init__(
-            analytics_enabled=analytics_enabled, mode="interface", css=css, **kwargs
+            analytics_enabled=analytics_enabled, mode="interface", css=css, 
+            title=title, **kwargs
         )
 
         if inspect.iscoroutinefunction(fn):
