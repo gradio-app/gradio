@@ -82,5 +82,5 @@ code.language-python {
   @apply group-hover:visible;
 }
 .anchor-img {
-  @apply w-7 max-w-full inline-block mr-0 ml-1;
+  @apply w-7 max-w-full inline-block m-0 ml-2;
 }
