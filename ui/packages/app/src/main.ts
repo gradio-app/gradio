@@ -247,7 +247,9 @@ function create_custom_element() {
 			observer.observe(this.root, { childList: true });
 
 			const space = this.getAttribute("space");
-			let source = space ? `https://hf.space/embed/${space}/+/` : this.getAttribute("src");
+			let source = space
+				? `https://hf.space/embed/${space}/+/`
+				: this.getAttribute("src");
 			const initial_height = this.getAttribute("initial_height");
 			let autoscroll = this.getAttribute("autoscroll");
 
