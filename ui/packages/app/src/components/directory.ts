@@ -6,6 +6,7 @@ export const component_map: Record<string, any> = {
 	chatbot: () => import("./Chatbot"),
 	checkbox: () => import("./Checkbox"),
 	checkboxgroup: () => import("./CheckboxGroup"),
+	colorpicker: () => import("./ColorPicker"),
 	column: () => import("./Column"),
 	dataframe: () => import("./DataFrame"),
 	dataset: () => import("./Dataset"),

@@ -1669,5 +1669,57 @@ class TestModel3D(unittest.TestCase):
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 
+class TestColorPicker(unittest.TestCase):
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        """
+        color_picker_input = gr.ColorPicker()
+        self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
+        self.assertEqual(color_picker_input.preprocess_example("#000000"), "#000000")
+        self.assertEqual(color_picker_input.postprocess(None), None)
+        self.assertEqual(color_picker_input.postprocess("#FFFFFF"), "#FFFFFF")
+        self.assertEqual(color_picker_input.serialize("#000000", True), "#000000")
+
+        color_picker_input.interpretation_replacement = "unknown"
+
+        self.assertEqual(
+            color_picker_input.get_config(),
+            {
+                "value": None,
+                "show_label": True,
+                "label": None,
+                "style": {},
+                "elem_id": None,
+                "visible": True,
+                "interactive": None,
+                "name": "colorpicker",
+            },
+        )
+        self.assertIsInstance(color_picker_input.generate_sample(), str)
+
+    def test_in_interface_as_input(self):
+        """
+        Interface, process, interpret,
+        """
+        iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
+        self.assertEqual(iface.process(["#000000"]), ["#000000"])
+
+    def test_in_interface_as_output(self):
+        """
+        Interface, process
+
+        """
+        iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
+        self.assertEqual(iface.process(["#000000"]), ["#000000"])
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.ColorPicker("#000000")
+        self.assertEqual(component.get_config().get("value"), "#000000")
+
+
 if __name__ == "__main__":
     unittest.main()

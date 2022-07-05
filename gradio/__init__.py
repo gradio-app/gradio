@@ -16,6 +16,7 @@ from gradio.components import (
     Checkbox,
     Checkboxgroup,
     CheckboxGroup,
+    ColorPicker,
     DataFrame,
     Dataframe,
     Dataset,
