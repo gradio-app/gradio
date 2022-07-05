@@ -1,6 +1,8 @@
 import os
 from gradio.documentation import generate_documentation, document_cls
 import gradio.templates
+from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
+
 
 DIR = os.path.dirname(__file__)
 GRADIO_DIR = "../../"
@@ -36,6 +38,27 @@ def add_demos():
                 cls["demos"].append((demo, demo_code))
 
 add_demos()
+
+def add_supported_events():
+    for component in docs["component"]:
+        component["events"] = []
+        if issubclass(component["class"], Changeable):
+            component["events"].append("change()")
+        if issubclass(component["class"], Clickable):
+            component["events"].append("click()")
+        if issubclass(component["class"], Clearable):
+            component["events"].append("clear()")
+        if issubclass(component["class"], Playable):
+            component["events"].append("play()")
+            component["events"].append("pause()")
+            component["events"].append("stop()")
+        if issubclass(component["class"], Editable):
+            component["events"].append("edit()")
+        if issubclass(component["class"], Submittable):
+            component["events"].append("submit()")
+        component["events"] = ", ".join(component["events"])
+
+add_supported_events()
 
 def override_signature(name, signature):
     for mode in docs:
