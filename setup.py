@@ -28,7 +28,7 @@ setup(
     author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir",
     author_email="team@gradio.app",
     url="https://github.com/gradio-app/gradio",
-    packages=["gradio"],
+    packages=["gradio", "gradio.test_data"],
     license="Apache License 2.0",
     keywords=["machine learning", "visualization", "reproducibility"],
     install_requires=requirements,
