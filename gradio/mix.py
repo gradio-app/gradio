@@ -63,7 +63,7 @@ class Series(gradio.Interface):
         (Interface): an Interface object connecting the given models
         """
 
-        def connected_fn(*data):  
+        def connected_fn(*data):
             for idx, interface in enumerate(interfaces):
                 # skip preprocessing for first interface since the Series interface will include it
                 if idx > 0 and not (interface.api_mode):

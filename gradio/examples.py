@@ -95,10 +95,10 @@ class Examples:
                 "The parameter `examples` must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-            
+
         if cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
-        
+
         dataset = Dataset(
             components=inputs,
             samples=examples,
