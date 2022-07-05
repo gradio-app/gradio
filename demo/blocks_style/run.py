@@ -1,6 +1,6 @@
 import gradio as gr
 
-with gr.Blocks() as demo:
+with gr.Blocks(title="Styling Examples") as demo:
     with gr.Column():
         txt = gr.Textbox(label="Small Textbox", lines=1).style(
             rounded=False,
