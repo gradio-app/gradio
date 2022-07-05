@@ -17,6 +17,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let style: Styles = {};
+	export let mirror_webcam: boolean;
 
 	export let loading_status: LoadingStatus;
 
@@ -58,6 +59,7 @@
 			drop_text={$_("interface.drop_image")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
+			{mirror_webcam}
 		/>
 	{/if}
 </Block>
