@@ -35,7 +35,12 @@ XRAY_CONFIG = {
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+                "style": {},
+                "id": False,
+            },
         },
         {
             "id": 5,
@@ -75,7 +80,12 @@ XRAY_CONFIG = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+                "style": {},
+                "id": False,
+            },
         },
         {
             "id": 10,
@@ -217,11 +227,20 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 3,
+            "type": "tabs",
+            "props": {"visible": True, "style": {}, "selected": False},
+        },
         {
             "id": 444,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+                "style": {},
+                "id": False,
+            },
         },
         {
             "id": 5,
@@ -266,7 +285,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+                "style": {},
+                "id": False,
+            },
         },
         {
             "id": 10,
@@ -414,7 +438,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 3,
             "type": "tabs",
-            "props": {"style": {}, "value": True},
+            "props": {"style": {}, "value": True, "selected": False},
         },
         {
             "id": 4,
@@ -423,6 +447,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "label": "X-ray",
                 "style": {},
                 "value": True,
+                "id": False,
             },
         },
         {
@@ -469,6 +494,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "label": "CT Scan",
                 "style": {},
                 "value": True,
+                "id": False,
             },
         },
         {
