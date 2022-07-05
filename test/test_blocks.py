@@ -1,5 +1,4 @@
 import asyncio
-import copy
 import random
 import time
 import unittest
