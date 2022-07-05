@@ -96,6 +96,7 @@ class Queue:
     async def clean_event(cls, event: Event) -> None:
         # Using mutex to avoid editing a list in use
         async with cls.LOCK:
+            # TODO: Might log number of cleaned events in the future
             try:  # TODO: Might search with event hash to speed up
                 cls.EVENT_QUEUE.remove(event)
             except ValueError:
