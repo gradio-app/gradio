@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from "svelte";
-	import { Play, Pause } from "@gradio/icons";
+	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
 	export let mirror: boolean;
@@ -93,16 +93,18 @@
 	</video>
 
 	<div
-		class="absolute bottom-0 w-full transition duration-500 h-10"
+		class="wrap absolute bottom-0 transition duration-500  m-1.5 bg-slate-800 px-1 py-2.5 rounded-md"
 		style="opacity: {duration && show_controls ? 1 : 0}"
 		on:mousemove={video_move}
 	>
-		<div class="flex w-full justify-space h-full items-center px-3">
+		<div class="flex w-full justify-space h-full items-center px-1.5 ">
 			<span
-				class="font-mono w-5 cursor-pointer text-white"
+				class=" w-6 cursor-pointer text-white flex justify-center"
 				on:click={play_pause}
 			>
-				{#if paused}
+				{#if time === duration}
+					<Undo />
+				{:else if paused}
 					<Play />
 				{:else}
 					<Pause />
@@ -117,8 +119,15 @@
 				on:mousemove={handleMove}
 				on:touchmove|preventDefault={handleMove}
 				on:click|stopPropagation|preventDefault={handle_click}
-				class="rounded h-2 w-full"
+				class="rounded h-2 w-full mx-3"
 			/>
+
+			<div
+				class="w-6 cursor-pointer text-white"
+				on:click={() => video.requestFullscreen()}
+			>
+				<Maximise />
+			</div>
 		</div>
 	</div>
 </div>
@@ -130,17 +139,21 @@
 
 	progress::-webkit-progress-bar {
 		border-radius: 2px;
-		background-color: rgba(0, 0, 0, 0.4);
+		background-color: rgba(255, 255, 255, 0.2);
 		overflow: hidden;
 	}
 
 	progress::-webkit-progress-value {
 		/* border-radius: 2px; */
 
-		background-color: rgba(255, 255, 255, 0.8);
+		background-color: rgba(255, 255, 255, 0.9);
 	}
 
 	.mirror {
 		transform: scaleX(-1);
+	}
+
+	.wrap {
+		width: calc(100% - 0.375rem * 2);
 	}
 </style>

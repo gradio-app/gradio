@@ -19,3 +19,4 @@ export { default as Chat } from "./Chat.svelte";
 export { default as Plot } from "./Plot.svelte";
 export { default as Play } from "./Play.svelte";
 export { default as Pause } from "./Pause.svelte";
+export { default as Maximise } from "./Maximise.svelte";
