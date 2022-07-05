@@ -116,16 +116,12 @@ class TestIPAddress(unittest.TestCase):
 class TestAssertConfigsEquivalent(unittest.TestCase):
     def test_same_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(
-                XRAY_CONFIG, XRAY_CONFIG
-            )
+            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
         )
 
     def test_equivalent_configs(self):
         self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(
-                XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS
-            )
+            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
         )
 
     def test_different_configs(self):

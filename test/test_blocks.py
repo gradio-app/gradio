@@ -86,11 +86,7 @@ class TestBlocks(unittest.TestCase):
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(
-                XRAY_CONFIG, config
-            )
-        )
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
 
     def test_load_from_config(self):
         def update(name):

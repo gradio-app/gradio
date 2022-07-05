@@ -14,7 +14,7 @@ from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from importlib.metadata import version
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Tuple, NewType, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
 
 import aiohttp
 import analytics
@@ -192,12 +192,10 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
 
 
 def assert_configs_are_equivalent_besides_ids(
-    config1: Dict, 
-    config2: Dict, 
-    root_keys: Tuple = ("mode", "theme")
-    ):
+    config1: Dict, config2: Dict, root_keys: Tuple = ("mode", "theme")
+):
     """Allows you to test if two different Blocks configs produce the same demo.
-    
+
     Parameters:
     config1 (dict): nested dict with config from the first Blocks instance
     config2 (dict): nested dict with config from the second Blocks instance
@@ -210,7 +208,7 @@ def assert_configs_are_equivalent_besides_ids(
 
     for key in root_keys:
         assert config1[key] == config2[key], f"Configs have different: {key}"
-    
+
     assert len(config1["components"]) == len(
         config2["components"]
     ), "# of components are different"
@@ -226,7 +224,9 @@ def assert_configs_are_equivalent_besides_ids(
 
     def same_children_recursive(children1, chidren2, mapping):
         for child1, child2 in zip(children1, chidren2):
-            assert mapping[child1["id"]] == child2["id"], f"{child1} does not match {child2}"
+            assert (
+                mapping[child1["id"]] == child2["id"]
+            ), f"{child1} does not match {child2}"
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"], mapping)
 
@@ -241,11 +241,11 @@ def assert_configs_are_equivalent_besides_ids(
             assert mapping[i1] == i2, f"{d1} does not match {d2}"
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert mapping[o1] == o2, f"{d1} does not match {d2}"
-        
+
         # status tracker is popped since we allow it to have different ids
         d1.pop("status_tracker", None)
         d2.pop("status_tracker", None)
-        
+
         assert d1 == d2, f"{d1} does not match {d2}"
 
     return True
