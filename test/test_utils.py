@@ -37,18 +37,6 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils(unittest.TestCase):
-    @mock.patch("pkg_resources.require")
-    def test_should_fail_with_distribution_not_found(self, mock_require):
-        mock_require.side_effect = pkg_resources.DistributionNotFound()
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            self.assertEqual(
-                str(w[-1].message),
-                "gradio is not setup or installed properly. Unable to get version info.",
-            )
-
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get):
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
@@ -200,7 +188,7 @@ async def client():
 class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.GET,
             url="http://headers.jsontest.com/",
         )
@@ -210,7 +198,7 @@ class TestRequest:
 
     @pytest.mark.asyncio
     async def test_post(self):
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -228,7 +216,7 @@ class TestRequest:
             id: str
             createdAt: str
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -242,7 +230,7 @@ class TestRequest:
             name: Literal["John"] = "John"
             job: str
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -261,7 +249,7 @@ class TestRequest:
 
         validate_response_data.side_effect = Exception()
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.GET,
             url="https://reqres.in/api/users",
             exception_type=ResponseValidationException,
@@ -275,7 +263,7 @@ class TestRequest:
                 return response
             raise Exception
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
@@ -294,7 +282,7 @@ class TestRequest:
                     return response
             raise Exception
 
-        client_response: Request = await Request(
+        client_response = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},

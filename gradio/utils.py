@@ -7,13 +7,23 @@ import inspect
 import json
 import json.decoder
 import os
+import pkgutil
 import random
 import sys
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List, NewType, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    Generator,
+    NewType,
+    Type,
+)
 
 import aiohttp
 import analytics
@@ -38,7 +48,9 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 def version_check():
     try:
-        current_pkg_version = pkg_resources.require("gradio")[0].version
+        current_pkg_version = (
+            pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
+        )
         latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
@@ -49,10 +61,6 @@ def version_check():
                 )
             )
             print("--------")
-    except pkg_resources.DistributionNotFound:
-        warnings.warn(
-            "gradio is not setup or installed properly. Unable to get version info."
-        )
     except json.decoder.JSONDecodeError:
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
@@ -422,7 +430,7 @@ class Request:
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
-    def __await__(self):
+    def __await__(self) -> Generator[None, Any, "Request"]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """

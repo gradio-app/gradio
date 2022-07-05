@@ -1,2 +1,3 @@
 recursive-include gradio/templates *
+recursive-include gradio/test_data *
 include gradio/version.txt

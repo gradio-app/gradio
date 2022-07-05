@@ -2,7 +2,6 @@ analytics-python
 aiohttp
 fastapi
 ffmpy
-fsspec
 markdown-it-py[linkify,plugins]
 matplotlib
 numpy
@@ -16,6 +15,7 @@ pydub
 requests
 uvicorn
 Jinja2
+fsspec
 httpx
 pydantic
 websockets

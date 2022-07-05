@@ -19,7 +19,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
 import numpy as np
-import orjson
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
@@ -1234,9 +1233,7 @@ class Radio(Changeable, IOComponent):
         Returns:
         (str): string of choice
         """
-        return (
-            y if y is not None else self.choices[0] if len(self.choices) > 0 else None
-        )
+        return y
 
     def deserialize(self, x):
         """
@@ -1318,10 +1315,10 @@ class Dropdown(Radio):
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_classifier, image_mod, webcam, digit_classifier
+    Demos: image_classifier, image_mod, webcam, digit_classifier, blocks_mask
     """
 
     def __init__(
@@ -1349,7 +1346,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
+        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -1412,24 +1409,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
-        """
-        Parameters:
-        x (str): base64 url data
-        Returns:
-        (numpy.array | PIL.Image | str): image in requested format
-        """
-        if x is None:
-            return x
-        im = processing_utils.decode_base64_to_image(x)
-        fmt = im.format
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            im = im.convert(self.image_mode)
-        if self.shape is not None:
-            im = processing_utils.resize_and_crop(im, self.shape)
-        if self.invert_colors:
-            im = PIL.ImageOps.invert(im)
+    def format_image(
+        self, im: Optional[PIL.Image], fmt: str
+    ) -> np.array | PIL.Image | str | None:
+        """Helper method to format an image based on self.type"""
+        if im is None:
+            return im
         if self.type == "pil":
             return im
         elif self.type == "numpy":
@@ -1454,6 +1439,38 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + str(self.type)
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
+
+    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
+        """
+        Parameters:
+        x (str | dict): base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+        Returns:
+        (numpy.array | PIL.Image | str): image in requested format
+        """
+        if x is None:
+            return x
+        if self.tool == "sketch":
+            x, mask = x["image"], x["mask"]
+
+        im = processing_utils.decode_base64_to_image(x)
+        fmt = im.format
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            im = im.convert(self.image_mode)
+        if self.shape is not None:
+            im = processing_utils.resize_and_crop(im, self.shape)
+        if self.invert_colors:
+            im = PIL.ImageOps.invert(im)
+
+        if not (self.tool == "sketch"):
+            return self.format_image(im, fmt)
+
+        mask_im = processing_utils.decode_base64_to_image(mask)
+        mask_fmt = mask_im.format
+        return {
+            "image": self.format_image(im, fmt),
+            "mask": self.format_image(mask_im, mask_fmt),
+        }
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
@@ -2100,7 +2117,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x["data"])
+        file = processing_utils.decode_base64_to_file(x)
         return file.name
 
     def stream(
@@ -2337,6 +2354,8 @@ class Dataframe(Changeable, IOComponent):
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
+    markdown_parser = None
+
     def __init__(
         self,
         value: Optional[List[List[Any]]] = None,
@@ -2386,13 +2405,17 @@ class Dataframe(Changeable, IOComponent):
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = headers
-        self.datatype = datatype
+        self.datatype = (
+            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
+        )
         self.type = type
         values = {
             "str": "",
             "number": 0,
             "bool": False,
             "date": "01/01/1970",
+            "markdown": "",
+            "html": "",
         }
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
@@ -2400,7 +2423,10 @@ class Dataframe(Changeable, IOComponent):
         self.test_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
+
         self.value = value if value is not None else self.test_input
+        self.value = self.__process_markdown(self.value, datatype)
+
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2501,16 +2527,24 @@ class Dataframe(Changeable, IOComponent):
         if y is None:
             return y
         if isinstance(y, str):
-            y = pd.read_csv(str)
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            y = pd.read_csv(y)
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, pd.DataFrame):
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
-            return {"data": y}
+            return {
+                "data": Dataframe.__process_markdown(y, self.datatype),
+            }
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
@@ -2531,10 +2565,24 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
+    @classmethod
+    def __process_markdown(cls, data: List[List[Any]], datatype: List[str]):
+        if "markdown" not in datatype:
+            return data
+
+        if cls.markdown_parser is None:
+            cls.markdown_parser = MarkdownIt()
+
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                if datatype[j] == "markdown":
+                    data[i][j] = Dataframe.markdown_parser.render(data[i][j])
+
+        return data
+
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
@@ -2676,7 +2724,6 @@ class Timeseries(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
@@ -2703,27 +2750,9 @@ class Variable(IOComponent):
         Parameters:
         value (Any): the initial value of the state.
         """
-        self.value = orjson.loads(value) if isinstance(value, str) else value
-        try:
-            orjson.dumps(self.value, option=orjson.OPT_SERIALIZE_NUMPY)
-        except TypeError:
-            raise ValueError(
-                f"Cannot set initial value because type: {type(value)} is "
-                "not JSON serializable. Instead, you can set the initial "
-                "value to be None, and in your Python function, change it "
-                "to be the your desired value when the function is "
-                "run initially."
-            )
+        self.value = deepcopy(value)
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
-
-    def get_config(self):
-        return {
-            "value": orjson.dumps(self.value, option=orjson.OPT_SERIALIZE_NUMPY).decode(
-                "utf-8"
-            ),
-            **IOComponent.get_config(self),
-        }
 
     def style(self):
         return self
@@ -2795,6 +2824,117 @@ class Button(Clickable, IOComponent):
             rounded=rounded,
             border=border,
         )
+
+
+class ColorPicker(Changeable, Submittable, IOComponent):
+    """
+    Creates a color picker for user to select a color as string input.
+    Preprocessing: passes selected color value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Demos: color_picker
+    """
+
+    def __init__(
+        self,
+        value: str = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): default text to provide in color picker.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.value = self.postprocess(value)
+        self.cleared_value = "#000000"
+        self.test_input = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+    ):
+        updated_config = {
+            "value": value,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def preprocess_example(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on an example before being passed to the main function.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def generate_sample(self) -> str:
+        return "#000000"
+
+    # Output Functionalities
+    def postprocess(self, y: str | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
+        """
+        if y is None:
+            return None
+        else:
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
 
 
 ############################
@@ -3911,6 +4051,9 @@ class Interpretation(Component):
 
     def style(self):
         return self
+
+    def postprocess(self, y):
+        return y
 
 
 class StatusTracker(Component):
