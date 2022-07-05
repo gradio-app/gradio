@@ -37,12 +37,12 @@
 		selected_tab
 	});
 
-	function handle_click(id: object | string | number) {
+	function change_tab(id: object | string | number) {
 		$selected_tab = id;
 		dispatch("change");
 	}
 
-	$: handle_click(selected);
+	$: change_tab(selected);
 </script>
 
 <div class="tabs flex flex-col my-4" id={elem_id}>
