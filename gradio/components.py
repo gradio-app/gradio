@@ -10,10 +10,10 @@ import math
 import numbers
 import operator
 import os
+import pathlib
 import shutil
 import tempfile
 import warnings
-import pathlib
 from copy import deepcopy
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple
