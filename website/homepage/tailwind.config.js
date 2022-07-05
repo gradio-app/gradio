@@ -33,8 +33,10 @@ module.exports = {
   darkMode: 'class', // or 'media' or 'class'
 
   variants: {
-    extend: {},
-  },
+    extend: {
+        visibility: ["group-hover"],
+    },
+    },
 
   plugins: [require('@tailwindcss/forms'), require("@tailwindcss/typography")],
 }

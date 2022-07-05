@@ -78,3 +78,9 @@
 code.language-python {
   @apply !leading-7 !whitespace-pre-wrap !break-all;
 }
+.group-hover-visible {
+  @apply group-hover:visible;
+}
+.anchor-img {
+  @apply w-7 max-w-full inline-block mr-0 ml-1;
+}

@@ -97,11 +97,11 @@
   </table>
   {% endif %}
   {% if obj["example"] %}
-    <h3 class="mt-4 p-3 font-semibold">Example Usage</h3>
+    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
     <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
   {% endif %}
   {% if "fns" in obj and obj["fns"]|length %}
-    <h3 class="mt-4 p-3 font-semibold">Methods</h3>
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
       <div class="flex flex-col gap-8 pl-12">
         {% for fn in obj["fns"] %}
           {% with obj=fn, parent=parent + "." + obj["name"] %}
