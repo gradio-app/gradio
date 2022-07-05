@@ -82,7 +82,7 @@
     </tbody>
   </table>
   {% if is_component and obj["string_shortcuts"] %}
-  <table class="table-fixed w-full mt-6">
+  <table class="mb-4 table-fixed w-full mt-6">
     <thead class="text-left">
       <tr>
         <th class="p-3 font-semibold w-2/5">Interface String Shortcut</th>
@@ -117,5 +117,21 @@
         {% endfor %}
       <div class="ml-12">
     </div>
+  {% endif %}
+  {% if is_component %}
+   <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+      {% if obj["guides"] %}
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {% for guide in obj["guides"] %}
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/{{ guide.name }}">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
+      {% endif %}
   {% endif %}
 </div>

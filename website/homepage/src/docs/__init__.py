@@ -2,7 +2,7 @@ import os
 from gradio.documentation import generate_documentation, document_cls
 import gradio.templates
 from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
-
+from ..guides import guides
 
 DIR = os.path.dirname(__file__)
 GRADIO_DIR = "../../"
@@ -59,6 +59,12 @@ def add_supported_events():
         component["events"] = ", ".join(component["events"])
 
 add_supported_events()
+
+def add_guides():
+    for component in docs["component"]:
+        component["guides"] = [guide for guide in guides if component["name"].lower() in guide["docs"]]
+
+add_guides()
 
 def override_signature(name, signature):
     for mode in docs:
