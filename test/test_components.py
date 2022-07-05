@@ -610,6 +610,7 @@ class TestImage(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "mirror_webcam": True,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -1174,6 +1175,7 @@ class TestVideo(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "mirror_webcam": True,
             },
         )
         self.assertIsNone(video_input.preprocess(None))

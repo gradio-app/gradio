@@ -4,6 +4,8 @@
 	import type { FileData } from "@gradio/upload";
 	import { Video } from "@gradio/icons";
 
+	import Player from "./Player.svelte";
+
 	export let value: FileData | null = null;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
@@ -25,14 +27,5 @@
 	</div>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video
-		class="w-full h-full object-contain bg-black"
-		controls
-		playsInline
-		preload="auto"
-		src={value.data}
-		on:play
-		on:pause
-		on:ended
-	/>
+	<Player src={value.data} on:play on:pause on:ended mirror={false} />
 {/if}
