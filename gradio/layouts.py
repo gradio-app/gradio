@@ -96,6 +96,21 @@ class Tabs(BlockContext):
     Tabs context.
     """
 
+    def __init__(self, selected, **kwargs):
+        super().__init__(**kwargs)
+        self.selected = selected
+
+    def get_config(self):
+        return {"selected": self.selected, **super().get_config()}
+
+    def update(
+        selected: Optional[int | str] = None,
+    ):
+        return {
+            "selected": selected,
+            "__type__": "update",
+        }
+
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -113,12 +128,13 @@ class TabItem(BlockContext):
     components defined within the TabItem will be rendered within a tab.
     """
 
-    def __init__(self, label, **kwargs):
+    def __init__(self, label, id, **kwargs):
         super().__init__(**kwargs)
         self.label = label
+        self.id = id
 
     def get_config(self):
-        return {"label": self.label, **super().get_config()}
+        return {"label": self.label, "id": self.id, **super().get_config()}
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
