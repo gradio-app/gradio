@@ -13,7 +13,7 @@
 
 	export let elem_id: string;
 	export let visible: boolean = true;
-	export let selected: number | string | object;
+	export let selected: number | string | false | object;
 
 	let tabs: Array<Tab> = [];
 
@@ -42,7 +42,7 @@
 		dispatch("change");
 	}
 
-	$: change_tab(selected);
+	$: selected !== false && change_tab(selected);
 </script>
 
 <div class="tabs flex flex-col my-4" id={elem_id}>

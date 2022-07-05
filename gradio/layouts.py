@@ -96,7 +96,7 @@ class Tabs(BlockContext):
     Tabs context.
     """
 
-    def __init__(self, selected, **kwargs):
+    def __init__(self, selected=False, **kwargs):
         super().__init__(**kwargs)
         self.selected = selected
 
@@ -128,7 +128,7 @@ class TabItem(BlockContext):
     components defined within the TabItem will be rendered within a tab.
     """
 
-    def __init__(self, label, id, **kwargs):
+    def __init__(self, label, id=False, **kwargs):
         super().__init__(**kwargs)
         self.label = label
         self.id = id
