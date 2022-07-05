@@ -28,13 +28,13 @@
         </p>
         <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
           <section class="pt-2">
-            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Building Demos</h2>
+            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos">Building Demos</h2>
             {% with obj=find_cls("Interface"), parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           </section>
           <section id="combining_interfaces" class="pt-2">
-            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Combining Interfaces</h2>
+            <h3 class="text-3xl font-light my-4" id="combining-interfaces">Combining Interfaces</h3>
             <p class="mt-8 mb-12 text-lg">
               Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
@@ -54,14 +54,14 @@
             </div>
           </section>
           <section id="blocks" class="pt-2 mb-8">
-            <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500">Building with Blocks</h2>
+            <h3 class="text-3xl font-light my-4" id="building-with-blocks">Building with Blocks</h3>
             <p class="mt-8 mb-12 text-lg">Want to build more customizable UIs? Take a look at how to build with Blocks.</p>
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("Blocks"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
-            <h2 class="text-4xl font-light mb-2 pt-2 mt-10 text-gray-500">Block Layouts</h2>
+            <h3 class="text-3xl font-light my-4" id="block-layouts">Block Layouts</h3>
             <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
@@ -129,6 +129,65 @@
         }
       });
     });
+
+    // adds anchor button when hovering over headers, except on touch devices where instead the header becomes a link
+
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("invisible", "group-hover-visible");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    function createMobileAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("no-underline")
+            return a;
+        }
+
+    var headers = document.querySelectorAll("h2, h3");
+
+    function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0) ||
+               (navigator.msMaxTouchPoints > 0));
+          }
+
+    if (isTouchDevice()) {
+          for (let i = 0; i < headers.length; i++) {
+            let link = '#' + headers[i].id;
+            var parent = headers[i].parentNode;
+            var wrapper = createMobileAnchorTag(link);
+            parent.replaceChild(wrapper, headers[i]);
+            wrapper.appendChild(headers[i]);
+          }
+    } else {
+          for (let i = 0; i < headers.length; i++) {
+            headers[i].classList.add("group")
+            let link = '#' + headers[i].id;
+            var anchorTag = createAnchorTag(link);
+            headers[i].appendChild(createAnchorTag(link));
+          }
+    }
+
+    const COLOR_SETS = [
+      ["from-green-100", "to-green-50"],
+      ["from-yellow-100", "to-yellow-50"],
+      ["from-red-100", "to-red-50"],
+      ["from-blue-100", "to-blue-50"],
+      ["from-pink-100", "to-pink-50"],
+      ["from-purple-100", "to-purple-50"],
+    ]
+    document.querySelectorAll(".guide-box").forEach(guide => {
+      const [start_color, end_color] = COLOR_SETS[Math.floor(Math.random() * COLOR_SETS.length)]
+      guide.classList.add(start_color);
+      guide.classList.add(end_color);
+    })
+
     </script>
   </body>
 </html>

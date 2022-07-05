@@ -9,6 +9,14 @@ GETTING_STARTED_TEMPLATE = "getting_started.md"
 with open(join("guides", GETTING_STARTED_TEMPLATE), encoding="utf-8") as getting_started_file:
     getting_started = getting_started_file.read()
 
+getting_started = "\n".join(
+        [
+            line
+            for i, line in enumerate(getting_started.split("\n"))
+            if not line.startswith("Pinned: ")
+        ]
+    )
+
 code_tags = re.findall(r'\$code_([^\s]+)', getting_started)
 demo_tags = re.findall(r'\$demo_([^\s]+)', getting_started)
 code, demos = {}, {}

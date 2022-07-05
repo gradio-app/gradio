@@ -235,7 +235,8 @@ class Blocks(BlockContext):
             btn = gr.Button("Run")
             btn.click(fn=update, inputs=inp, outputs=out)
 
-        demo.launch()    
+        demo.launch()
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length
     """
 
     def __init__(

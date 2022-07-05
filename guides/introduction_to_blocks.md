@@ -1,5 +1,7 @@
 # Introduction to Gradio Blocks 🧱 
- 
+
+Pinned: 2
+
 Gradio is a Python library that allows you to quickly build web-based machine learning demos, data science dashboards, or other kinds of web apps, **entirely in Python**. These web apps can be launched from wherever you use Python (jupyter notebooks, colab notebooks, Python terminal, etc.) and shared with anyone instantly using Gradio's auto-generated share links.
 
 To offer both simplicity and more powerful and flexible control for advanced web apps, Gradio offers two different APIs to users:

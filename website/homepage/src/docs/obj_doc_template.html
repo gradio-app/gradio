@@ -33,6 +33,9 @@
     </button>
     {% endif %}
   </div>
+  {% if obj['override_signature'] %}
+  <pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre>
+  {% else %}
   <pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
   -->{% if "positional" in param["kind"] and "default" not in param %}<!--
@@ -40,10 +43,12 @@
   -->{% endif %}<!--
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre>
+  {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}
   <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
-  <p class="text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
   {% endif %}
   
   <table class="table-fixed w-full mt-6 leading-loose">
@@ -64,6 +69,8 @@
               <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
               {% if "default" in param %}
               <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
+              {% else %}
+              <p class="text-orange-600 font-semibold italic">required</p>
               {% endif %}
             </td>
             <td class="p-3 text-gray-700">
@@ -75,7 +82,7 @@
     </tbody>
   </table>
   {% if is_component and obj["string_shortcuts"] %}
-  <table class="table-fixed w-full mt-6">
+  <table class="mb-4 table-fixed w-full mt-6">
     <thead class="text-left">
       <tr>
         <th class="p-3 font-semibold w-2/5">Interface String Shortcut</th>
@@ -97,11 +104,11 @@
   </table>
   {% endif %}
   {% if obj["example"] %}
-    <h3 class="mt-4 p-3 font-semibold">Example Usage</h3>
+    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
     <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
   {% endif %}
   {% if "fns" in obj and obj["fns"]|length %}
-    <h3 class="mt-4 p-3 font-semibold">Methods</h3>
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
       <div class="flex flex-col gap-8 pl-12">
         {% for fn in obj["fns"] %}
           {% with obj=fn, parent=parent + "." + obj["name"] %}
@@ -110,5 +117,21 @@
         {% endfor %}
       <div class="ml-12">
     </div>
+  {% endif %}
+  {% if is_component %}
+   <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+      {% if obj["guides"] %}
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {% for guide in obj["guides"] %}
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/{{ guide.name }}">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
+      {% endif %}
   {% endif %}
 </div>

@@ -57,6 +57,7 @@ class Interface(Blocks):
             return {'cat': 0.3, 'dog': 0.7}
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch(share=True)
+    Demos: hello_world, hello_world_3, gpt_j
     """
 
     # stores references to all currently existing Interface instances
@@ -865,6 +866,7 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
+    Demos: sst_or_tts
     """
 
     def __init__(
@@ -872,8 +874,8 @@ class TabbedInterface(Blocks):
     ):
         """
         Parameters:
-        interface_list (List[Interface]): a list of interfaces to be rendered in tabs.
-        tab_names (List[str] | None): a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+        interface_list: a list of interfaces to be rendered in tabs.
+        tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
         Returns:
         (gradio.TabbedInterface): a Gradio Tabbed Interface for the given interfaces
         """

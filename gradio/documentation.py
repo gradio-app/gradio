@@ -49,6 +49,8 @@ def document_fn(fn):
     description_doc = " ".join(description)
     parameter_docs = []
     for param_name, param in signature.parameters.items():
+        if param_name.startswith("_") or param_name == "kwargs":
+            continue
         parameter_doc = {
             "name": param_name,
             "annotation": param.annotation,

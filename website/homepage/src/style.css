@@ -62,7 +62,7 @@
 
 /* guides */
 .prose > p > img {
-  @apply max-w-xl mx-auto;
+  @apply max-w-full mx-auto my-0 w-4/5;
 }
 
 /* docs */
@@ -77,4 +77,10 @@
 }
 code.language-python {
   @apply !leading-7 !whitespace-pre-wrap !break-all;
+}
+.group-hover-visible {
+  @apply group-hover:visible;
+}
+.anchor-img {
+  @apply w-7 max-w-full inline-block mr-0 ml-1;
 }
