@@ -141,12 +141,13 @@ async function handle_config(
 
 	try {
 		let [_config] = await Promise.all([
-			get_config(space_id),
+			get_config(source),
 			mount_css(ENTRY_CSS, target)
 		]);
 		config = _config;
 	} catch (e) {
 		console.error(e);
+		return null;
 	}
 
 	mount_custom_css(target, config.css);
@@ -246,7 +247,7 @@ function create_custom_element() {
 			observer.observe(this.root, { childList: true });
 
 			const space = this.getAttribute("space");
-			let source = space ? `https://hf.space/embed/${space}/+/` : this.getAttribute("source");
+			let source = space ? `https://hf.space/embed/${space}/+/` : this.getAttribute("src");
 			const initial_height = this.getAttribute("initial_height");
 			let autoscroll = this.getAttribute("autoscroll");
 
@@ -254,8 +255,12 @@ function create_custom_element() {
 
 			this.wrapper.style.minHeight = initial_height || "300px";
 
-			const config = await handle_config(this.root, space);
-			mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+			const config = await handle_config(this.root, source);
+			if (config === null) {
+				this.wrapper.remove();
+			} else {
+				mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+			}
 		}
 	}
 

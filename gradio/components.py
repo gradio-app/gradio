@@ -1327,7 +1327,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_classifier, image_mod, webcam, digit_classifier, blocks_mask
+    Demos: image_mod
     """
 
     def __init__(
@@ -2824,7 +2824,7 @@ class Label(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
-    Demos: image_classifier, main_note, titanic_survival
+    Demos: main_note, titanic_survival
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3339,7 +3339,6 @@ class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
-    Demos: disease_report
     """
 
     def __init__(

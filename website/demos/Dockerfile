@@ -4,9 +4,6 @@ RUN apt-get update
 RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
 RUN pip install numpy matplotlib
-COPY ./ui ./ui
-WORKDIR /ui
-
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./setup.py ./setup.py
