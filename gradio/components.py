@@ -10,6 +10,7 @@ import math
 import numbers
 import operator
 import os
+import pathlib
 import shutil
 import tempfile
 import warnings
@@ -1337,6 +1338,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1354,7 +1356,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible (bool): If False, component will be hidden.
         streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcam will be mirrored. Default is True.
         """
+        self.mirror_webcam = mirror_webcam
         self.type = type
         self.value = self.postprocess(value)
         self.shape = shape
@@ -1388,6 +1392,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "tool": self.tool,
             "value": self.value,
             "streaming": self.streaming,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1461,6 +1466,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
+        if self.source == "webcam" and self.mirror_webcam is True:
+            im = PIL.ImageOps.mirror(im)
 
         if not (self.tool == "sketch"):
             return self.format_image(im, fmt)
@@ -1693,6 +1700,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1705,9 +1713,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive (Optional[bool]): if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcma will be mirrored. Default is True.
         """
         self.format = format
         self.source = source
+        self.mirror_webcam = mirror_webcam
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -1723,6 +1733,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return {
             "source": self.source,
             "value": self.value,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1771,9 +1782,19 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
+
         if self.format is not None and uploaded_format != self.format:
             output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+            ff.run()
+            return output_file_name
+        elif self.source == "webcam" and self.mirror_webcam is True:
+            path = pathlib.Path(file_name)
+            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+            ff = FFmpeg(
+                inputs={file_name: None},
+                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+            )
             ff.run()
             return output_file_name
         else:
@@ -2824,6 +2845,117 @@ class Button(Clickable, IOComponent):
             rounded=rounded,
             border=border,
         )
+
+
+class ColorPicker(Changeable, Submittable, IOComponent):
+    """
+    Creates a color picker for user to select a color as string input.
+    Preprocessing: passes selected color value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Demos: color_picker
+    """
+
+    def __init__(
+        self,
+        value: str = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): default text to provide in color picker.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.value = self.postprocess(value)
+        self.cleared_value = "#000000"
+        self.test_input = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+    ):
+        updated_config = {
+            "value": value,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def preprocess_example(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on an example before being passed to the main function.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def generate_sample(self) -> str:
+        return "#000000"
+
+    # Output Functionalities
+    def postprocess(self, y: str | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
+        """
+        if y is None:
+            return None
+        else:
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
 
 
 ############################
