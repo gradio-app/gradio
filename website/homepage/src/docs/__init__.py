@@ -37,6 +37,20 @@ def add_demos():
 
 add_demos()
 
+def override_signature(name, signature):
+    for mode in docs:
+        for cls in docs[mode]:
+            if cls["name"] == name:
+                cls["override_signature"] = signature
+
+override_signature("Blocks", "with gradio.Blocks(theme, analytics_enabled, mode):")
+override_signature("Row", "with gradio.Row():")
+override_signature("Column", "with gradio.Column():")
+override_signature("Tabs", "with gradio.Tabs():")
+override_signature("Group", "with gradio.Group():")
+override_signature("Box", "with gradio.Box():")
+
+
 def find_cls(target_cls):
     for mode in docs:
         for cls in docs[mode]:

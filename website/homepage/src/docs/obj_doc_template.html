@@ -33,6 +33,9 @@
     </button>
     {% endif %}
   </div>
+  {% if obj['override_signature'] %}
+  <pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre>
+  {% else %}
   <pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
   -->{% if "positional" in param["kind"] and "default" not in param %}<!--
@@ -40,6 +43,7 @@
   -->{% endif %}<!--
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre>
+  {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}
   <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
