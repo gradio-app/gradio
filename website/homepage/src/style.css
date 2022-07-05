@@ -62,7 +62,7 @@
 
 /* guides */
 .prose > p > img {
-  @apply max-w-xl mx-auto;
+  @apply max-w-full mx-auto my-0 w-4/5;
 }
 
 /* docs */
