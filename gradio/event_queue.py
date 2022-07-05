@@ -69,15 +69,13 @@ class Queue:
                 await asyncio.sleep(1)
                 continue
             print(f"Start Processing, search for inactive job slots")
-            if not None in cls.ACTIVE_JOBS:
+            if not (None in cls.ACTIVE_JOBS):
                 await asyncio.sleep(1)
                 continue
-                # Using mutex to avoid editing a list in use
 
+            # Using mutex to avoid editing a list in use
             async with cls.LOCK:
-                print(
-                    f"Start Processing, found inactive job slot, now popping event"
-                )
+                print(f"Start Processing, found inactive job slot, now popping event")
                 event = cls.EVENT_QUEUE.pop(0)
                 print(f"Start Processing, found event, popped event: {event}")
 
