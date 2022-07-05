@@ -54,6 +54,7 @@ for guide in guide_list:
     spaces = get_labeled_metadata("Related spaces:")
     contributor = get_labeled_metadata("Contributed by", is_list=False)
     docs = get_labeled_metadata("Docs:")
+    pinned = get_labeled_metadata("Pinned:", is_list=False)
 
     url = f"https://gradio.app/{guide_name}/"
 
@@ -66,6 +67,7 @@ for guide in guide_list:
                 or line.startswith("Related spaces: ")
                 or line.startswith("Contributed by ")
                 or line.startswith("Docs: ")
+                or line.startswith("Pinned: ")
             )
         ]
     )
@@ -92,8 +94,11 @@ for guide in guide_list:
             "url": url,
             "contributor": contributor,
             "docs": docs,
+            "pinned": pinned
         }
     )
+
+guides = sorted(guides, key=lambda x: float('inf') if x["pinned"] is None else int(x["pinned"]))
 
 def build_guides(output_dir, jinja_env):
     shutil.copytree(GUIDE_ASSETS_DIR, os.path.join(output_dir, "assets", "guides"))

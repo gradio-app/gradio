@@ -1,5 +1,7 @@
 # Quickstart
 
+Pinned: 0
+
 **Prerequisite**: Gradio requires Python 3.7 or above, that's it! 
 
 ## What Problem is Gradio Solving? 😲
