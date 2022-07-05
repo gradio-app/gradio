@@ -74,22 +74,6 @@ class TestRoutes(unittest.TestCase):
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest", None])
 
-    # TODO:
-    """
-    def test_queue_push_route(self):
-        queueing.push = mock.MagicMock(return_value=(None, None))
-        response = self.client.post(
-            "/api/queue/push/",
-            json={"data": "test", "action": "test", "fn_index": 0, "session_hash": "-"},
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_queue_push_route_2(self):
-        queueing.get_status = mock.MagicMock(return_value=(None, None))
-        response = self.client.post("/api/queue/status/", json={"hash": "test"})
-        self.assertEqual(response.status_code, 200)
-    """
-
     def tearDown(self) -> None:
         self.io.close()
         close_all()
