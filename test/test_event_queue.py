@@ -14,13 +14,13 @@ import gradio.event_queue
 import gradio.event_queue as event_queue
 from gradio.routes import PredictBody
 
-"""
+
 class TestQueue:
     @pytest.mark.asyncio
-    async def test_queue_with_several_events(self):
-        async def wait():
+    async def test_queue_with_single_event(self):
+        async def wait(data):
             await asyncio.sleep(0.1)
-            return True
+            return data
 
         with gr.Blocks() as demo:
             text = gr.Textbox()
@@ -29,8 +29,17 @@ class TestQueue:
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
         with client.websocket_connect("/queue/join") as websocket:
+            assert {'msg': 'estimation', 'queue_duration': 1, 'queue_size': 0} == websocket.receive_json()
             websocket.send_json({"hash": "0001"})
-            # Don't know why but websocket cannot receive any data and waits forever
-            assert {"msg": "joined_queue"} == websocket.receive_json()
+            while True:
+                message = websocket.receive_json()
+                if "estimation" == message["msg"]:
+                    continue
+                elif "send_data" == message["msg"]:
+                    websocket.send_json({"data": [1], "fn": 0})
+                elif "process_starts" == message["msg"]:
+                    continue
+                elif "process_completed" == message["msg"]:
+                    assert message["output"]["data"] == ["1"]
+                    break
         demo.close()
-"""
