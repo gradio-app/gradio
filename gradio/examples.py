@@ -111,23 +111,28 @@ class Examples:
         self.fn = fn
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
+
+        self.processed_examples = [
+            [
+                component.preprocess_example(sample)
+                for component, sample in zip(inputs, example)
+            ]
+            for example in examples
+        ]
+
         self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
-
         if cache_examples:
             self.cache_interface_examples()
 
         def load_example(example_id):
-            processed_examples = [
-                component.preprocess_example(sample)
-                for component, sample in zip(inputs, examples[example_id])
-            ]
+            processed_example = self.processed_examples[example_id]
             if cache_examples:
-                processed_examples += self.load_from_cache(example_id)
-            if len(processed_examples) == 1:
-                return processed_examples[0]
+                processed_example += self.load_from_cache(example_id)
+            if len(processed_example) == 1:
+                return processed_example[0]
             else:
-                return processed_examples
+                return processed_example
 
         dataset.click(
             load_example,
