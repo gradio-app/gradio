@@ -14,7 +14,7 @@
       </div>
       {% for demo_name, demo_code in obj["demos"] %}
       <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
-        <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre>
+        <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
         <gradio-app src="/demo/{{ demo_name }}" />
       </div>
       {% endfor %}
@@ -34,15 +34,15 @@
     {% endif %}
   </div>
   {% if obj['override_signature'] %}
-  <pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre>
+  <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
   {% else %}
-  <pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
+  <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
   -->{% if "positional" in param["kind"] and "default" not in param %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
--->···<span>)</span></code></pre>
+-->···<span>)</span></code></pre></div>
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}
@@ -105,7 +105,9 @@
   {% endif %}
   {% if obj["example"] %}
     <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
-    <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
+    <div class="codeblock">
+      <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
+    </div>
   {% endif %}
   {% if "fns" in obj and obj["fns"]|length %}
     <h4 class="mt-4 p-3 font-semibold">Methods</h4>

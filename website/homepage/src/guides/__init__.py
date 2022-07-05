@@ -71,11 +71,11 @@ for guide in guide_list:
             )
         ]
     )
-    guide_content = re.sub(r"```([a-z]+)\n", lambda x: f"<pre><code class='lang-{x.group(1)}'>", guide_content)
-    guide_content = re.sub(r"```", "</code></pre>", guide_content)
+    guide_content = re.sub(r"```([a-z]+)\n", lambda x: f"<div class='codeblock'><pre><code class='lang-{x.group(1)}'>", guide_content)
+    guide_content = re.sub(r"```", "</code></pre></div>", guide_content)
     guide_content = re.sub(
         r"\$code_([a-z _\-0-9]+)", 
-        lambda x: f"<pre><code class='lang-python'>{demos[x.group(1)]}</code></pre>", 
+        lambda x: f"<div class='codeblock'><pre><code class='lang-python'>{demos[x.group(1)]}</code></pre></div>",
         guide_content
     )
     guide_content = re.sub(

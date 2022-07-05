@@ -84,3 +84,23 @@ code.language-python {
 .anchor-img {
   @apply w-7 max-w-full inline-block m-0 ml-2;
 }
+
+/* copy button */
+.clipboard-button {
+  @apply absolute right-0 px-1.5 pt-0.5 pb-1 m-4 text-gray-500 text-sm z-[100] opacity-0 duration-100;
+}
+.clipboard-button:hover {
+  @apply cursor-pointer;
+}
+.clipboard-button:hover > svg {
+  @apply fill-gray-700;
+}
+.clipboard-button:focus {
+  @apply outline-0;
+}
+.codeblock {
+  @apply relative;
+}
+.codeblock:hover > .clipboard-button {
+  @apply opacity-100 duration-200;
+}
