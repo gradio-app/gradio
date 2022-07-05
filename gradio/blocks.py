@@ -235,6 +235,8 @@ class Blocks(BlockContext):
         theme (str): which theme to use - right now, only "default" is supported.
         analytics_enabled (bool | None): whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         mode (str): a human-friendly name for the kind of Blocks interface being created.
+        title (str): The tab title to display when this is opened in a browser window.
+        css (str | None): custom css or path to custom css file to apply to entire Blocks
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
