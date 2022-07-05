@@ -117,21 +117,21 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
     def test_same_configs(self):
         self.assertTrue(
             assert_configs_are_equivalent_besides_ids(
-                copy.deepcopy(XRAY_CONFIG), copy.deepcopy(XRAY_CONFIG)
+                XRAY_CONFIG, XRAY_CONFIG
             )
         )
 
     def test_equivalent_configs(self):
         self.assertTrue(
             assert_configs_are_equivalent_besides_ids(
-                copy.deepcopy(XRAY_CONFIG), copy.deepcopy(XRAY_CONFIG_DIFF_IDS)
+                XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS
             )
         )
 
     def test_different_configs(self):
         with self.assertRaises(AssertionError):
             assert_configs_are_equivalent_besides_ids(
-                copy.deepcopy(XRAY_CONFIG_WITH_MISTAKE), copy.deepcopy(XRAY_CONFIG)
+                XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
             )
 
     def test_different_dependencies(self):

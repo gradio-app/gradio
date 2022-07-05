@@ -86,10 +86,9 @@ class TestBlocks(unittest.TestCase):
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        config.pop("version")  # remove version key
         self.assertTrue(
             assert_configs_are_equivalent_besides_ids(
-                copy.deepcopy(XRAY_CONFIG), config
+                XRAY_CONFIG, config
             )
         )
 
