@@ -61,7 +61,7 @@ io4 = gr.Interface(
     gr.Audio(),
 )
 
-demo = gr.Blocks()
+demo = gr.Blocks(title="Neural Instrument Cloning")
 
 with demo.clear():
     m(

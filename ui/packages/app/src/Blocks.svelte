@@ -118,11 +118,21 @@
 		const is_input = is_dep(id, "inputs", dependencies);
 		const is_output = is_dep(id, "outputs", dependencies);
 
-		if (!is_input && !is_output && !props.value) acc.add(id); // default dynamic
+		if (!is_input && !is_output && has_no_default_value(props.value))
+			acc.add(id); // default dynamic
 		if (is_input) acc.add(id);
 
 		return acc;
 	}, new Set());
+
+	function has_no_default_value(value: any) {
+		return (
+			(Array.isArray(value) && value.length === 0) ||
+			value === "" ||
+			value === 0 ||
+			!value
+		);
+	}
 
 	let instance_map = components.reduce((acc, next) => {
 		acc[next.id] = next;

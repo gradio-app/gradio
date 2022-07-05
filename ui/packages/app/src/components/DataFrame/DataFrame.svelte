@@ -7,6 +7,7 @@
 
 	type Headers = Array<string>;
 	type Data = Array<Array<string | number>>;
+	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
@@ -19,6 +20,7 @@
 	export let style: Styles = {};
 	export let label: string | null = null;
 	export let wrap: boolean;
+	export let datatype: Datatype | Array<Datatype>;
 
 	$: {
 		if (value && !Array.isArray(value)) {
@@ -60,5 +62,6 @@
 		editable={mode === "dynamic"}
 		{style}
 		{wrap}
+		{datatype}
 	/>
 </div>

@@ -15,5 +15,6 @@ pydub
 requests
 uvicorn
 Jinja2
+fsspec
 httpx
 pydantic
