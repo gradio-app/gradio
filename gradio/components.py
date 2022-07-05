@@ -1292,6 +1292,7 @@ class Dropdown(Radio):
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
+            interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
