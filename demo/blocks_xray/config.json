@@ -1,5 +1,5 @@
 {
-  "version": "3.0.6",
+  "version": "3.0.24\n",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -34,6 +34,7 @@
       "id": 3,
       "type": "tabs",
       "props": {
+        "selected": false,
         "visible": true,
         "style": {}
       }
@@ -43,6 +44,7 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
+        "id": false,
         "visible": true,
         "style": {}
       }
@@ -106,6 +108,7 @@
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
+        "id": false,
         "visible": true,
         "style": {}
       }
@@ -271,7 +274,19 @@
       "backend_fn": true,
       "js": null,
       "status_tracker": 9,
-      "queue": null
+      "queue": null,
+      "api_name": "xray_model",
+      "scroll_to_output": false,
+      "show_progress": true,
+      "documentation": [
+        [
+          "(List[str]): list of selected choices",
+          "(str | dict): base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data"
+        ],
+        [
+          "(Dict | List): JSON output"
+        ]
+      ]
     },
     {
       "targets": [
@@ -288,7 +303,19 @@
       "backend_fn": true,
       "js": null,
       "status_tracker": 15,
-      "queue": null
+      "queue": null,
+      "api_name": "ct_model",
+      "scroll_to_output": false,
+      "show_progress": true,
+      "documentation": [
+        [
+          "(List[str]): list of selected choices",
+          "(str | dict): base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data"
+        ],
+        [
+          "(Dict | List): JSON output"
+        ]
+      ]
     },
     {
       "targets": [
@@ -303,7 +330,10 @@
       "backend_fn": true,
       "js": null,
       "status_tracker": 17,
-      "queue": null
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     }
   ]
 }
