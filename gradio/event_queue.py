@@ -200,10 +200,7 @@ class Queue:
         end_time = time.time()
         cls.update_estimation(duration=round(end_time - begin_time, 3))
         client_awake = await event.send_message(
-            {
-                "msg": "process_completed",
-                "output": response.json
-            }
+            {"msg": "process_completed", "output": response.json}
         )
         if client_awake:
             await event.disconnect()

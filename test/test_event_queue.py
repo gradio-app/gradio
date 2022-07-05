@@ -29,7 +29,11 @@ class TestQueue:
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
         with client.websocket_connect("/queue/join") as websocket:
-            assert {'msg': 'estimation', 'queue_duration': 1, 'queue_size': 0} == websocket.receive_json()
+            assert {
+                "msg": "estimation",
+                "queue_duration": 1,
+                "queue_size": 0,
+            } == websocket.receive_json()
             websocket.send_json({"hash": "0001"})
             while True:
                 message = websocket.receive_json()
