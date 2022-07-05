@@ -109,7 +109,7 @@ def build_guides(output_dir, jinja_env):
         output_folder = os.path.join(output_dir, guide["name"])
         os.makedirs(output_folder)
         output_file = os.path.join(output_folder, "index.html")
-        output = template.render(code={}, demos={})
+        output = template.render(code={}, demos={}, spaces=guide["spaces"])
         with open(output_file, "w") as index_html:
             index_html.write(output)
 

@@ -10,6 +10,20 @@
   <body>
     {% include "templates/navbar.html" %}
     <div class="container relative mx-auto px-4 pt-8 pb-12">
+      {% if spaces %}
+        <div id='spaces-holder' class="mb-4">
+          <a href='https://hf.co/spaces' target='_blank'>
+            <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
+          </a>
+          <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
+
+          {% for space in spaces %}
+          <div class='space-link inline-block m-1 px-1 rounded-md'>
+            <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
+          </div>
+          {% endfor %}
+          </div>
+      {% endif %}
       <div class="prose max-w-full">
         {% include "guides/temporary_template.html" %}
       </div>
@@ -60,6 +74,16 @@
               headers[i].appendChild(createAnchorTag(link));
             }
       }
+
+      // color related spaces
+
+      const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
+
+      document.querySelectorAll(".space-link").forEach(guide => {
+        const color = COLORS[Math.floor(Math.random() * COLORS.length)]
+        guide.classList.add(color);
+      })
+
     </script>
   </body>
 </html>
