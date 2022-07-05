@@ -868,8 +868,8 @@ class TabbedInterface(Blocks):
     ):
         """
         Parameters:
-        interface_list (List[Interface]): a list of interfaces to be rendered in tabs.
-        tab_names (List[str] | None): a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+        interface_list: a list of interfaces to be rendered in tabs.
+        tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
         Returns:
         (gradio.TabbedInterface): a Gradio Tabbed Interface for the given interfaces
         """
