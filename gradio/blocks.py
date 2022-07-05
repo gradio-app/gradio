@@ -226,6 +226,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        title: str = "Gradio",
         css: Optional[str] = None,
         **kwargs,
     ):
@@ -234,6 +235,8 @@ class Blocks(BlockContext):
         theme (str): which theme to use - right now, only "default" is supported.
         analytics_enabled (bool | None): whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         mode (str): a human-friendly name for the kind of Blocks interface being created.
+        title (str): The tab title to display when this is opened in a browser window.
+        css (str | None): custom css or path to custom css file to apply to entire Blocks
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
@@ -272,6 +275,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+        self.title = title
 
     @property
     def share(self):
@@ -573,6 +577,7 @@ class Blocks(BlockContext):
             "components": [],
             "theme": self.theme,
             "css": self.css,
+            "title": self.title or "Gradio",
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch

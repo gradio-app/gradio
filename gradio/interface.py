@@ -140,7 +140,7 @@ class Interface(Blocks):
         live (bool): whether the interface should automatically rerun if any of the inputs change.
         interpretation (Callable | str): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
         num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
-        title (str | None): a title for the interface; if provided, appears above the input and output components in large font.
+        title (str | None): a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
         description (str | None): a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
         article (str | None): an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
         thumbnail (str | None): path or url to image to use as display image when the web demo is shared on social media.
@@ -153,7 +153,11 @@ class Interface(Blocks):
         analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
         super().__init__(
-            analytics_enabled=analytics_enabled, mode="interface", css=css, **kwargs
+            analytics_enabled=analytics_enabled,
+            mode="interface",
+            css=css,
+            title=title,
+            **kwargs,
         )
 
         if inspect.iscoroutinefunction(fn):
