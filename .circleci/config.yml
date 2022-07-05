@@ -55,7 +55,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203,F403 gradio test
+            python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203,F403,F541 gradio test
       - run:
           command: |
             . venv/bin/activate
