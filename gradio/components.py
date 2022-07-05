@@ -2847,6 +2847,117 @@ class Button(Clickable, IOComponent):
         )
 
 
+class ColorPicker(Changeable, Submittable, IOComponent):
+    """
+    Creates a color picker for user to select a color as string input.
+    Preprocessing: passes selected color value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Demos: color_picker
+    """
+
+    def __init__(
+        self,
+        value: str = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): default text to provide in color picker.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.value = self.postprocess(value)
+        self.cleared_value = "#000000"
+        self.test_input = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+    ):
+        updated_config = {
+            "value": value,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def preprocess_example(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on an example before being passed to the main function.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def generate_sample(self) -> str:
+        return "#000000"
+
+    # Output Functionalities
+    def postprocess(self, y: str | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
+        """
+        if y is None:
+            return None
+        else:
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
 ############################
 # Only Output Components
 ############################
