@@ -22,8 +22,8 @@ class Examples:
     def __init__(
         self,
         examples: List[Any] | List[List[Any]] | str,
-        inputs: List[Component],
-        outputs: Optional[List[Component]] = None,
+        inputs: Component | List[Component],
+        outputs: Optional[Component | List[Component]] = None,
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -47,9 +47,10 @@ class Examples:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        if examples is None or (
-            isinstance(examples, list)
-            and (len(examples) == 0 or isinstance(examples[0], list))
+        if examples is None:
+            raise ValueError("The parameter `examples` cannot be None")
+        elif isinstance(examples, list) and (
+            len(examples) == 0 or isinstance(examples[0], list)
         ):
             pass
         elif (
@@ -91,10 +92,13 @@ class Examples:
             examples = exampleset
         else:
             raise ValueError(
-                "Examples argument must either be a directory or a nested "
+                "The parameter `examples` must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-
+            
+        if cache_examples and (fn is None or outputs is None):
+            raise ValueError("If caching examples, `fn` and `outputs` must be provided")
+        
         dataset = Dataset(
             components=inputs,
             samples=examples,
