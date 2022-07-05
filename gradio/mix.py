@@ -75,7 +75,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = interface.run_prediction(data)
+                data = interface.fn(data)
 
                 # skip postprocessing for final interface since the Series interface will include it
                 if idx < len(interfaces) - 1 and not (interface.api_mode):
@@ -99,3 +99,4 @@ class Series(gradio.Interface):
         }
         kwargs.update(options)
         super().__init__(**kwargs)
+        self.api_mode = interfaces[0].api_mode  # TODO: set api_mode per-function
