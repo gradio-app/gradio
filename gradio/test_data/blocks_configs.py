@@ -164,6 +164,9 @@ XRAY_CONFIG = {
             "js": None,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
         {
             "targets": [13],
@@ -174,6 +177,9 @@ XRAY_CONFIG = {
             "js": None,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
         {
             "targets": [],
@@ -184,6 +190,9 @@ XRAY_CONFIG = {
             "js": False,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
     ],
 }
@@ -362,6 +371,9 @@ XRAY_CONFIG_DIFF_IDS = {
             "js": None,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
         {
             "targets": [13],
@@ -372,6 +384,9 @@ XRAY_CONFIG_DIFF_IDS = {
             "js": None,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
         {
             "targets": [],
@@ -382,6 +397,9 @@ XRAY_CONFIG_DIFF_IDS = {
             "js": False,
             "status_tracker": None,
             "queue": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
     ],
 }
@@ -555,6 +573,9 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 6],
             "outputs": [7],
             "status_tracker": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
         {
             "targets": [13],
@@ -562,6 +583,9 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 11],
             "outputs": [12],
             "status_tracker": None,
+            "api_name": None,
+            "scroll_to_output": False,
+            "show_progress": True,
         },
     ],
 }
