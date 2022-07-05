@@ -27,7 +27,11 @@ XRAY_CONFIG = {
                 "style": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 3,
+            "type": "tabs",
+            "props": {"visible": True, "style": {}, "selected": False},
+        },
         {
             "id": 4,
             "type": "tabitem",
