@@ -7,11 +7,13 @@
 	import { Video } from "@gradio/icons";
 
 	import { prettyBytes, playable } from "./utils";
+	import Player from "./Player.svelte";
 
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
+	export let mirror_webcam: boolean;
 
 	export let drop_text: string = "Drop a video file";
 	export let or_text: string = "or";
@@ -57,6 +59,7 @@
 		</Upload>
 	{:else if source === "webcam"}
 		<Webcam
+			{mirror_webcam}
 			mode="video"
 			on:capture={({ detail }) => dispatch("change", detail)}
 		/>
@@ -65,16 +68,7 @@
 	<ModifyUpload on:clear={handle_clear} />
 	{#if playable(value.name)}
 		<!-- svelte-ignore a11y-media-has-caption -->
-		<video
-			class="w-full h-full object-contain bg-black"
-			controls
-			playsInline
-			preload="auto"
-			src={value.data}
-			on:play
-			on:pause
-			on:ended
-		/>
+		<Player src={value.data} on:play on:pause on:ended mirror={mirror_webcam} />
 	{:else if value.size}
 		<div class="file-name text-4xl p-6 break-all">{value.name}</div>
 		<div class="file-size text-2xl p-2">

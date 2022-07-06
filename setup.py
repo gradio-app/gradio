@@ -15,6 +15,9 @@ long_description = re.sub(r"demo/([\S]*.gif)", r"https://raw.githubusercontent.c
 version = (this_directory / "gradio" / "version.txt").read_text(
     encoding='utf8').strip()
 
+with open("requirements.txt") as reqs:
+    requirements = reqs.readlines()
+
 setup(
     name="gradio",
     version=version,
@@ -25,32 +28,10 @@ setup(
     author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir",
     author_email="team@gradio.app",
     url="https://github.com/gradio-app/gradio",
-    packages=["gradio"],
+    packages=["gradio", "gradio.test_data"],
     license="Apache License 2.0",
     keywords=["machine learning", "visualization", "reproducibility"],
-    install_requires=[
-        "analytics-python",
-        "aiohttp",
-        "fastapi",
-        "ffmpy",
-        "markdown-it-py[linkify,plugins]",
-        "matplotlib",
-        "numpy",
-        "orjson",
-        "pandas",
-        "paramiko",
-        "pillow",
-        "pycryptodome",
-        "python-multipart",
-        "pydub",
-        "requests",
-        "uvicorn",
-        "Jinja2",
-        "fsspec",
-        "h11==0.12.0",
-        "httpx",
-        "pydantic",
-    ],
+    install_requires=requirements,
     entry_points={
         'console_scripts': ['gradio=gradio.reload:run_in_reload_mode']
     },

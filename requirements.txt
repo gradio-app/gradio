@@ -1,8 +1,8 @@
 analytics-python
 aiohttp
+h11<0.13,>=0.11
 fastapi
 ffmpy
-fsspec
 markdown-it-py[linkify,plugins]
 matplotlib
 numpy
@@ -16,5 +16,6 @@ pydub
 requests
 uvicorn
 Jinja2
+fsspec
 httpx
 pydantic

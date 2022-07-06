@@ -10,6 +10,7 @@ import math
 import numbers
 import operator
 import os
+import pathlib
 import shutil
 import tempfile
 import warnings
@@ -1233,9 +1234,7 @@ class Radio(Changeable, IOComponent):
         Returns:
         (str): string of choice
         """
-        return (
-            y if y is not None else self.choices[0] if len(self.choices) > 0 else None
-        )
+        return y
 
     def deserialize(self, x):
         """
@@ -1339,6 +1338,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1356,7 +1356,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible (bool): If False, component will be hidden.
         streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcam will be mirrored. Default is True.
         """
+        self.mirror_webcam = mirror_webcam
         self.type = type
         self.value = self.postprocess(value)
         self.shape = shape
@@ -1390,6 +1392,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "tool": self.tool,
             "value": self.value,
             "streaming": self.streaming,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1463,6 +1466,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
+        if self.source == "webcam" and self.mirror_webcam is True:
+            im = PIL.ImageOps.mirror(im)
 
         if not (self.tool == "sketch"):
             return self.format_image(im, fmt)
@@ -1695,6 +1700,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
@@ -1707,9 +1713,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive (Optional[bool]): if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        mirror_webcam (bool): If True webcma will be mirrored. Default is True.
         """
         self.format = format
         self.source = source
+        self.mirror_webcam = mirror_webcam
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -1725,6 +1733,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return {
             "source": self.source,
             "value": self.value,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1773,9 +1782,19 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
+
         if self.format is not None and uploaded_format != self.format:
             output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+            ff.run()
+            return output_file_name
+        elif self.source == "webcam" and self.mirror_webcam is True:
+            path = pathlib.Path(file_name)
+            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+            ff = FFmpeg(
+                inputs={file_name: None},
+                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+            )
             ff.run()
             return output_file_name
         else:
@@ -2356,6 +2375,8 @@ class Dataframe(Changeable, IOComponent):
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
+    markdown_parser = None
+
     def __init__(
         self,
         value: Optional[List[List[Any]]] = None,
@@ -2405,13 +2426,17 @@ class Dataframe(Changeable, IOComponent):
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = headers
-        self.datatype = datatype
+        self.datatype = (
+            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
+        )
         self.type = type
         values = {
             "str": "",
             "number": 0,
             "bool": False,
             "date": "01/01/1970",
+            "markdown": "",
+            "html": "",
         }
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
@@ -2419,7 +2444,10 @@ class Dataframe(Changeable, IOComponent):
         self.test_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
+
         self.value = value if value is not None else self.test_input
+        self.value = self.__process_markdown(self.value, datatype)
+
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2520,16 +2548,24 @@ class Dataframe(Changeable, IOComponent):
         if y is None:
             return y
         if isinstance(y, str):
-            y = pd.read_csv(str)
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            y = pd.read_csv(y)
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, pd.DataFrame):
-            return {"headers": list(y.columns), "data": y.values.tolist()}
+            return {
+                "headers": list(y.columns),
+                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+            }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
-            return {"data": y}
+            return {
+                "data": Dataframe.__process_markdown(y, self.datatype),
+            }
         raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
@@ -2550,10 +2586,24 @@ class Dataframe(Changeable, IOComponent):
                 )
             )
 
+    @classmethod
+    def __process_markdown(cls, data: List[List[Any]], datatype: List[str]):
+        if "markdown" not in datatype:
+            return data
+
+        if cls.markdown_parser is None:
+            cls.markdown_parser = MarkdownIt()
+
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                if datatype[j] == "markdown":
+                    data[i][j] = Dataframe.markdown_parser.render(data[i][j])
+
+        return data
+
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
@@ -2695,7 +2745,6 @@ class Timeseries(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         return IOComponent.style(
             self,
@@ -2796,6 +2845,117 @@ class Button(Clickable, IOComponent):
             rounded=rounded,
             border=border,
         )
+
+
+class ColorPicker(Changeable, Submittable, IOComponent):
+    """
+    Creates a color picker for user to select a color as string input.
+    Preprocessing: passes selected color value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Demos: color_picker
+    """
+
+    def __init__(
+        self,
+        value: str = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        value (str): default text to provide in color picker.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+        visible (bool): If False, component will be hidden.
+        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.value = self.postprocess(value)
+        self.cleared_value = "#000000"
+        self.test_input = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+    ):
+        updated_config = {
+            "value": value,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+        x (str): text
+        Returns:
+        (str): text
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def preprocess_example(self, x: str | None) -> Any:
+        """
+        Any preprocessing needed to be performed on an example before being passed to the main function.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def generate_sample(self) -> str:
+        return "#000000"
+
+    # Output Functionalities
+    def postprocess(self, y: str | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+        y (str | None): text
+        Returns:
+        (str | None): text
+        """
+        if y is None:
+            return None
+        else:
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
 
 
 ############################
