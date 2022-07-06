@@ -27,6 +27,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
+from gradio.documentation import document, document_mode
 from gradio.events import (
     Changeable,
     Clearable,
@@ -37,8 +38,9 @@ from gradio.events import (
     Submittable,
 )
 from gradio.utils import component_or_layout_class
-from gradio.documentation import document, document_mode
+
 document_mode("component")
+
 
 class Component(Block):
     """
@@ -1360,7 +1362,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
-            interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.            
+            interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -1513,7 +1515,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
 
-    def set_interpret_parameters(self, segments:int=16):
+    def set_interpret_parameters(self, segments: int = 16):
         """
         Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
         Parameters:
@@ -1722,7 +1724,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            mirror_webcam: If True webcma will be mirrored. Default is True.            
+            mirror_webcam: If True webcma will be mirrored. Default is True.
         """
         self.format = format
         self.source = source
@@ -2022,7 +2024,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         file_data = processing_utils.encode_url_or_file_to_base64(name)
         return {"name": name, "data": file_data, "is_example": False}
 
-    def set_interpret_parameters(self, segments:int=8):
+    def set_interpret_parameters(self, segments: int = 8):
         """
         Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
         Parameters:
@@ -2100,7 +2102,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def get_interpretation_scores(self, x, neighbors, scores, masks=None, tokens=None) -> List[float]:
+    def get_interpretation_scores(
+        self, x, neighbors, scores, masks=None, tokens=None
+    ) -> List[float]:
         """
         Returns:
             Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
@@ -2509,7 +2513,9 @@ class Dataframe(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[List[str | Number | bool]]) -> pd.DataFrame | np.ndarray | List[List[str | float | bool]]:
+    def preprocess(
+        self, x: List[List[str | Number | bool]]
+    ) -> pd.DataFrame | np.ndarray | List[List[str | float | bool]]:
         """
         Parameters:
             x: 2D array of str, numeric, or bool data
@@ -2775,7 +2781,9 @@ class Variable(IOComponent):
     Postprocessing: No postprocessing is performed
     Demos: chatbot_demo, blocks_simple_squares
     """
+
     allow_string_shortcut = False
+
     def __init__(
         self,
         value: Any = None,
@@ -3198,7 +3206,9 @@ class HighlightedText(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str | float | None]]) -> List[Tuple[str, str | float | None]]:
+    def postprocess(
+        self, y: List[Tuple[str, str | float | None]]
+    ) -> List[Tuple[str, str | float | None]]:
         """
         Parameters:
             y: List of (word, category) tuples
@@ -3848,7 +3858,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value = None,
+        value=None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,

@@ -73,6 +73,7 @@ def document_fn(fn):
     examples_doc = "\n".join(examples) if len(examples) > 0 else None
     return description_doc, parameter_docs, return_docs, examples_doc
 
+
 def document_cls(cls):
     doc_str = inspect.getdoc(cls)
     if doc_str is None:
@@ -85,8 +86,8 @@ def document_cls(cls):
             mode = line[:-1].lower()
             tags[mode] = []
         elif line.split(" ")[0].endswith(":") and not line.startswith("    "):
-            tag = line[:line.index(":")].lower()
-            value = line[line.index(":") + 2:]
+            tag = line[: line.index(":")].lower()
+            value = line[line.index(":") + 2 :]
             tags[tag] = value
         else:
             if mode == "description":
@@ -104,6 +105,7 @@ def document_cls(cls):
     description = " ".join(description_lines).replace("\n", "<br>")
     return description, tags, example
 
+
 def generate_documentation():
     documentation = {}
     for mode, class_list in classes_to_document.items():
@@ -119,19 +121,26 @@ def generate_documentation():
                 "parameters": parameter_doc,
                 "returns": return_doc,
                 "example": cls_example,
-                "fns": []
+                "fns": [],
             }
             for fn_name in fns:
                 fn = getattr(cls, fn_name)
-                description_doc, parameter_docs, return_docs, examples_doc = document_fn(fn)
-                cls_documentation["fns"].append({
-                    "fn": fn,
-                    "name": fn_name,
-                    "description": description_doc,
-                    "tags": {},
-                    "parameters": parameter_docs,
-                    "returns": return_docs,
-                    "example": examples_doc,
-                })
+                (
+                    description_doc,
+                    parameter_docs,
+                    return_docs,
+                    examples_doc,
+                ) = document_fn(fn)
+                cls_documentation["fns"].append(
+                    {
+                        "fn": fn,
+                        "name": fn_name,
+                        "description": description_doc,
+                        "tags": {},
+                        "parameters": parameter_docs,
+                        "returns": return_docs,
+                        "example": examples_doc,
+                    }
+                )
             documentation[mode].append(cls_documentation)
     return documentation

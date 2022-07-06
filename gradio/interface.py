@@ -33,12 +33,13 @@ from gradio.components import (
     Variable,
     get_component_instance,
 )
+from gradio.documentation import document, document_mode
 from gradio.events import Changeable, Streamable
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.process_examples import cache_interface_examples, load_from_cache
-from gradio.documentation import document, document_mode
+
 document_mode("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -101,7 +102,7 @@ class Interface(Blocks):
             description = "Story generation with GPT"
             examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
             demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
-            demo.launch()        
+            demo.launch()
         """
         return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
@@ -118,7 +119,7 @@ class Interface(Blocks):
             import gradio as gr
             from transformers import pipeline
             pipe = pipeline("image-classification")
-            gr.Interface.from_pipeline(pipe).launch()        
+            gr.Interface.from_pipeline(pipe).launch()
         """
         interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
