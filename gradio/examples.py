@@ -98,11 +98,11 @@ class Examples:
                 "The parameter `examples` must either be a directory or a nested "
                 "list, where each sublist represents a set of inputs."
             )
-        
+
         input_has_examples = [False] * len(inputs)
         for example in examples:
             for idx, example_for_input in enumerate(example):
-                if not(example_for_input is None):
+                if not (example_for_input is None):
                     try:
                         input_has_examples[idx] = True
                     except IndexError:
@@ -111,9 +111,14 @@ class Examples:
                             f" It should have {len(inputs)} elements."
                         )
 
-        inputs_with_examples = [inp for (inp, keep) in zip(inputs, input_has_examples) if keep]
-        non_none_examples = [[ex for (ex, keep) in zip(example, input_has_examples) if keep] for example in examples]
-        
+        inputs_with_examples = [
+            inp for (inp, keep) in zip(inputs, input_has_examples) if keep
+        ]
+        non_none_examples = [
+            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
+            for example in examples
+        ]
+
         self.examples = examples
         self.non_none_examples = non_none_examples
         self.inputs = inputs
@@ -136,7 +141,7 @@ class Examples:
             ]
             for example in non_none_examples
         ]
-        
+
         self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
         if cache_examples:
