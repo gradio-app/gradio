@@ -32,21 +32,32 @@ from gradio.components import (
     Variable,
     get_component_instance,
 )
+from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
 from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
 
+set_documentation_group("interface")
+
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
+@document("launch", "load", "from_pipeline")
 class Interface(Blocks):
     """
     The Interface class is a high-level abstraction that allows you to create a
     web-based demo around a machine learning model or arbitrary Python function
     by specifying: (1) the function (2) the desired input components and (3) desired output components.
+    Example:
+        import gradio as gr
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
+        demo.launch(share=True)
+    Demos: hello_world, hello_world_3, gpt_j
     """
 
     # stores references to all currently existing Interface instances
@@ -79,12 +90,18 @@ class Interface(Blocks):
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
-        name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-        src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-        api_key (str | None): optional api key for use with Hugging Face Hub
-        alias (str | None): optional string used as the name of the loaded model instead of the default name
+            name: the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src: the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key: optional api key for use with Hugging Face Hub
+            alias: optional string used as the name of the loaded model instead of the default name
         Returns:
-        (gradio.Interface): a Gradio Interface object for the given model
+            a Gradio Interface object for the given model
+        Example:
+            import gradio as gr
+            description = "Story generation with GPT"
+            examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
+            demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+            demo.launch()
         """
         return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
@@ -94,9 +111,14 @@ class Interface(Blocks):
         Class method that constructs an Interface from a Hugging Face transformers.Pipeline object.
         The input and output components are automatically determined from the pipeline.
         Parameters:
-        pipeline (transformers.Pipeline): the pipeline object to use.
+            pipeline: the pipeline object to use.
         Returns:
-        (gradio.Interface): a Gradio Interface object from the given Pipeline
+            a Gradio Interface object from the given Pipeline
+        Example:
+            import gradio as gr
+            from transformers import pipeline
+            pipe = pipeline("image-classification")
+            gr.Interface.from_pipeline(pipe).launch()
         """
         interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
@@ -129,26 +151,26 @@ class Interface(Blocks):
     ):
         """
         Parameters:
-        fn (Callable): the function to wrap an interface around. Often a machine learning model's prediction function.
-        inputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
-        outputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
-        examples (List[List[Any]] | str | None): sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-        cache_examples (bool | None): If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-        examples_per_page (int): If examples are provided, how many to display per page.
-        live (bool): whether the interface should automatically rerun if any of the inputs change.
-        interpretation (Callable | str): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
-        num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
-        title (str | None): a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
-        description (str | None): a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
-        article (str | None): an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
-        thumbnail (str | None): path or url to image to use as display image when the web demo is shared on social media.
-        theme (str | None): Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
-        css (str | None): custom css or path to custom css file to use with interface.
-        allow_flagging (str | None): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
-        flagging_options (List[str] | None): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
-        flagging_dir (str): what to name the directory where flagged data is stored.
-        flagging_callback (FlaggingCallback): An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
-        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function.
+            inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
+            outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
+            examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            examples_per_page: If examples are provided, how many to display per page.
+            live: whether the interface should automatically rerun if any of the inputs change.
+            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
+            num_shap: a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
+            title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
+            description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
+            article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+            thumbnail: path or url to image to use as display image when the web demo is shared on social media.
+            theme: Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
+            css: custom css or path to custom css file to use with interface.
+            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+            flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
+            flagging_dir: what to name the directory where flagged data is stored.
+            flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
+            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -628,11 +650,10 @@ class Interface(Blocks):
         """
         Runs the prediction function with the given (already processed) inputs.
         Parameters:
-        processed_input (list): A list of processed inputs.
-        called_directly (bool): Whether the prediction is being called
-            directly (i.e. as a function, not through the GUI).
+            processed_input (list): A list of processed inputs.
+            called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
         Returns:
-        predictions (list): A list of predictions (not post-processed).
+            predictions (list): A list of predictions (not post-processed).
         """
         if self.api_mode:  # Serialize the input
             processed_input = [
@@ -658,10 +679,10 @@ class Interface(Blocks):
         First preprocesses the input, then runs prediction using
         self.run_prediction(), then postprocesses the output.
         Parameters:
-        raw_input: a list of raw inputs to process and apply the prediction(s) on.
+            raw_input: a list of raw inputs to process and apply the prediction(s) on.
         Returns:
-        processed output: a list of processed  outputs to return as the prediction(s).
-        duration: a list of time deltas measuring inference time for each prediction fn.
+            processed output: a list of processed  outputs to return as the prediction(s).
+            duration: a list of time deltas measuring inference time for each prediction fn.
         """
         processed_input = [
             input_component.preprocess(raw_input[i])
@@ -755,10 +776,12 @@ class Interface(Blocks):
             utils.integration_analytics(data)
 
 
+@document()
 class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
+    Demos: sst_or_tts
     """
 
     def __init__(
@@ -766,10 +789,10 @@ class TabbedInterface(Blocks):
     ):
         """
         Parameters:
-        interface_list (List[Interface]): a list of interfaces to be rendered in tabs.
-        tab_names (List[str] | None): a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            interface_list: a list of interfaces to be rendered in tabs.
+            tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
         Returns:
-        (gradio.TabbedInterface): a Gradio Tabbed Interface for the given interfaces
+            a Gradio Tabbed Interface for the given interfaces
         """
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]

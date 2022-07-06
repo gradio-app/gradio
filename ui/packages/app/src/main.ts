@@ -80,22 +80,22 @@ async function reload_check(root: string) {
 	setTimeout(() => reload_check(root), 250);
 }
 
-async function get_space_config(space_id: string): Promise<Config> {
-	const space_url = `https://hf.space/embed/${space_id}/+/`;
-	let config = await (await fetch(space_url + "config")).json();
-	config.root = space_url;
-	config.space = space_id;
-
+async function get_source_config(source: string): Promise<Config> {
+	let config = await (await fetch(source + "config")).json();
+	config.root = source;
 	return config;
 }
 
-async function get_config(space_id: string | null) {
+async function get_config(source: string | null) {
 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
 		let config = await fetch(BACKEND_URL + "config");
 		const result = await config.json();
 		return result;
-	} else if (space_id) {
-		const config = await get_space_config(space_id);
+	} else if (source) {
+		if (!source.endsWith("/")) {
+			source += "/";
+		}
+		const config = await get_source_config(source);
 		return config;
 	} else {
 		return window.gradio_config;
@@ -135,18 +135,19 @@ function mount_css(
 
 async function handle_config(
 	target: HTMLElement | ShadowRoot,
-	space_id: string | null
+	source: string | null
 ) {
 	let config;
 
 	try {
 		let [_config] = await Promise.all([
-			get_config(space_id),
+			get_config(source),
 			mount_css(ENTRY_CSS, target)
 		]);
 		config = _config;
 	} catch (e) {
 		console.error(e);
+		return null;
 	}
 
 	mount_custom_css(target, config.css);
@@ -246,6 +247,9 @@ function create_custom_element() {
 			observer.observe(this.root, { childList: true });
 
 			const space = this.getAttribute("space");
+			let source = space
+				? `https://hf.space/embed/${space}/+/`
+				: this.getAttribute("src");
 			const initial_height = this.getAttribute("initial_height");
 			let autoscroll = this.getAttribute("autoscroll");
 
@@ -253,8 +257,12 @@ function create_custom_element() {
 
 			this.wrapper.style.minHeight = initial_height || "300px";
 
-			const config = await handle_config(this.root, space);
-			mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+			const config = await handle_config(this.root, source);
+			if (config === null) {
+				this.wrapper.remove();
+			} else {
+				mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+			}
 		}
 	}
 

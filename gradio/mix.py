@@ -4,11 +4,15 @@ Ways to transform interfaces to produce new interfaces
 from typing import TYPE_CHECKING, List
 
 import gradio
+from gradio.documentation import document, set_documentation_group
+
+set_documentation_group("mix_interface")
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import IOComponent
 
 
+@document()
 class Parallel(gradio.Interface):
     """
     Creates a new Interface consisting of multiple models in parallel (comparing their outputs).
@@ -18,10 +22,10 @@ class Parallel(gradio.Interface):
     def __init__(self, *interfaces: gradio.Interface, **options):
         """
         Parameters:
-        *interfaces (Interface): any number of Interface objects that are to be compared in parallel
-        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+            interfaces: any number of Interface objects that are to be compared in parallel
+            options: additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object comparing the given models
+            an Interface object comparing the given models
         """
         outputs: List[IOComponent] = []
 
@@ -48,6 +52,7 @@ class Parallel(gradio.Interface):
         super().__init__(**kwargs)
 
 
+@document()
 class Series(gradio.Interface):
     """
     Creates a new Interface from multiple models in series (the output of one is fed as the input to the next,
@@ -57,10 +62,10 @@ class Series(gradio.Interface):
     def __init__(self, *interfaces: gradio.Interface, **options):
         """
         Parameters:
-        *interfaces (Interface): any number of Interface objects that are to be connected in series
-        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+            interfaces: any number of Interface objects that are to be connected in series
+            options: additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object connecting the given models
+            an Interface object connecting the given models
         """
 
         def connected_fn(*data):
