@@ -27,6 +27,7 @@ def document_fn(fn):
     description, parameters, returns, examples = [], {}, [], []
     mode = "description"
     for line in doc_lines:
+        line = line.rstrip()
         if line == "Parameters:":
             mode = "parameter"
         elif line == "Example:":
@@ -37,10 +38,15 @@ def document_fn(fn):
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            if line.startswith("    "):
-                line = line[4:]
+            assert line.startswith(
+                "    "
+            ), f"Documentation format for {fn.__name__} has format error in line: {line}"
+            line = line[4:]
             if mode == "parameter":
                 colon_index = line.index(": ")
+                assert (
+                    colon_index > -1
+                ), f"Documentation format for {fn.__name__} has format error in line: {line}"
                 parameter = line[:colon_index]
                 parameter_doc = line[colon_index + 2 :]
                 parameters[parameter] = parameter_doc
@@ -59,12 +65,17 @@ def document_fn(fn):
             "kind": param.kind.description,
             "doc": parameters.get(param_name),
         }
+        if param_name in parameters:
+            del parameters[param_name]
         if param.default != inspect.Parameter.empty:
             default = param.default
             if type(default) == str:
                 default = '"' + default + '"'
             parameter_doc["default"] = default
         parameter_docs.append(parameter_doc)
+    assert (
+        len(parameters) == 0
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -84,6 +95,7 @@ def document_cls(cls):
     description_lines = []
     mode = "description"
     for line in doc_str.split("\n"):
+        line = line.rstrip()
         if line.endswith(":") and " " not in line:
             mode = line[:-1].lower()
             tags[mode] = []
@@ -95,6 +107,9 @@ def document_cls(cls):
             if mode == "description":
                 description_lines.append(line if line.strip() else "<br>")
             else:
+                assert (
+                    line.startswith("    ") or not line.strip()
+                ), f"Documentation format for {cls.__name__} has format error in line: {line}"
                 tags[mode].append(line[4:])
     if "example" in tags:
         example = "\n".join(tags["example"])

@@ -2133,7 +2133,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
-    def postprocess(self, y: Tuple[int, numpy.array] | str) -> str:
+    def postprocess(self, y: Tuple[int, np.array] | str) -> str:
         """
         Parameters:
             y: audio data in requested format
