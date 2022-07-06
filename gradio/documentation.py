@@ -1,18 +1,20 @@
 import inspect
 
 classes_to_document = {}
-gl = {"mode": None}
+documentation_group = None
 
 
-def document_mode(m):
-    gl["mode"] = m
+def set_documentation_group(m):
+    global documentation_group
+    documentation_group = m
     if m not in classes_to_document:
         classes_to_document[m] = []
 
 
 def document(*fns):
     def inner_doc(cls):
-        classes_to_document[gl["mode"]].append((cls, fns))
+        global documentation_group
+        classes_to_document[documentation_group].append((cls, fns))
         return cls
 
     return inner_doc
@@ -33,7 +35,7 @@ def document_fn(fn):
             mode = "return"
         else:
             if mode == "description":
-                description.append(line if line != "" else "<br>")
+                description.append(line if line.strip() else "<br>")
                 continue
             if line.startswith("    "):
                 line = line[4:]
@@ -91,7 +93,7 @@ def document_cls(cls):
             tags[tag] = value
         else:
             if mode == "description":
-                description_lines.append(line if line != "" else "<br>")
+                description_lines.append(line if line.strip() else "<br>")
             else:
                 tags[mode].append(line[4:])
     if "example" in tags:

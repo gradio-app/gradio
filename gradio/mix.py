@@ -5,9 +5,9 @@ import warnings
 from typing import List
 
 import gradio
-from gradio.documentation import document, document_mode
+from gradio.documentation import document, set_documentation_group
 
-document_mode("mix_interface")
+set_documentation_group("mix_interface")
 
 
 @document()

@@ -27,7 +27,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
-from gradio.documentation import document, document_mode
+from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Changeable,
     Clearable,
@@ -39,7 +39,7 @@ from gradio.events import (
 )
 from gradio.utils import component_or_layout_class
 
-document_mode("component")
+set_documentation_group("component")
 
 
 class Component(Block):

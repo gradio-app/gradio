@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import BlockContext
-from gradio.documentation import document, document_mode
+from gradio.documentation import document, set_documentation_group
 
-document_mode("layout")
+set_documentation_group("layout")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
