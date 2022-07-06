@@ -5,13 +5,11 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let name: string;
-	export let id: string | number | object | false = {};
+	export let id: string | number | object = {};
 
 	const dispatch = createEventDispatcher<{ select: undefined }>();
 
 	const { register_tab, unregister_tab, selected_tab } = getContext(TABS);
-
-	id = id === false ? {} : id;
 
 	register_tab({ name, id });
 

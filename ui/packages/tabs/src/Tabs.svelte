@@ -13,7 +13,7 @@
 
 	export let elem_id: string;
 	export let visible: boolean = true;
-	export let selected: number | string | false | object;
+	export let selected: number | string | object;
 
 	let tabs: Array<Tab> = [];
 
@@ -23,7 +23,7 @@
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
 			tabs.push({ name: tab.name, id: tab.id });
-			selected_tab.update((current) => (current !== false ? current : tab.id));
+			selected_tab.update((current) => current ?? tab.id);
 			tabs = tabs;
 		},
 		unregister_tab: (tab: Tab) => {
@@ -42,7 +42,7 @@
 		dispatch("change");
 	}
 
-	$: selected !== false && change_tab(selected);
+	$: selected !== null && change_tab(selected);
 </script>
 
 <div class="tabs flex flex-col my-4" id={elem_id}>
