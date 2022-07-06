@@ -2500,21 +2500,21 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
-        x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
+        x (Dict[headers: List[str], data: (List[List[str | number | bool]]]): 2D array of str, numeric, or bool data
         Returns:
         (pandas.DataFrame | numpy.array | List[str | float | bool], List[List[str | float | bool]]): Dataframe in requested format
         """
         if self.type == "pandas":
-            if self.headers:
-                return pd.DataFrame(x, columns=self.headers)
+            if x["headers"]:
+                return pd.DataFrame(x["data"], columns=x["headers"])
             else:
-                return pd.DataFrame(x)
+                return pd.DataFrame(x["data"])
         if self.col_count[0] == 1:
-            x = [row[0] for row in x]
+            x["data"] = [row[0] for row in x["data"]]
         if self.type == "numpy":
-            return np.array(x)
+            return np.array(x["data"])
         elif self.type == "array":
-            return x
+            return x["data"]
         else:
             raise ValueError(
                 "Unknown type: "
