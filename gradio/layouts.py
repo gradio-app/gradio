@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, document_mode
+
 document_mode("layout")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -24,6 +25,7 @@ valid_colors = [
     "grey",
     "gray",
 ]
+
 
 @document()
 class Row(BlockContext):
@@ -114,14 +116,14 @@ class Tabs(BlockContext):
     TabItem gets rendered as a individual tab. The TabItem's must be nested within the
     Tabs context.
     Example:
-        with gradio.Blocks() as demo: 
+        with gradio.Blocks() as demo:
             with gradio.Tabs():
                 with gradio.TabItem("Lion"):
                     gr.Image("lion.jpg")
                     gr.Button("New Lion")
                 with gradio.TabItem("Tiger"):
                     gr.Image("tiger.jpg")
-                    gr.Button("New Tiger")         
+                    gr.Button("New Tiger")
     """
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):

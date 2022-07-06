@@ -2,11 +2,13 @@
 Ways to transform interfaces to produce new interfaces
 """
 import warnings
+from typing import List
 
 import gradio
-from typing import List
 from gradio.documentation import document, document_mode
+
 document_mode("mix_interface")
+
 
 @document()
 class Parallel(gradio.Interface):
@@ -15,7 +17,9 @@ class Parallel(gradio.Interface):
     The Interfaces to put in Parallel must share the same input components (but can have different output components).
     """
 
-    def __init__(self, *interfaces: List[gradio.Interface], **options: dict) -> gradio.Interface:
+    def __init__(
+        self, *interfaces: List[gradio.Interface], **options: dict
+    ) -> gradio.Interface:
         """
         Parameters:
             interfaces: any number of Interface objects that are to be compared in parallel
