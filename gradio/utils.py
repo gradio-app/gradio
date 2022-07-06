@@ -14,6 +14,7 @@ import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
+from importlib.metadata import version
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,7 +26,6 @@ from typing import (
     Tuple,
     Type,
 )
-from importlib.metadata import version
 
 import aiohttp
 import analytics
