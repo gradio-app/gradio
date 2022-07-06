@@ -106,10 +106,7 @@ class Examples:
                     try:
                         input_has_examples[idx] = True
                     except IndexError:
-                        raise ValueError(
-                            f"Example {example} has too many elements ({len(example)})."
-                            f" It should have {len(inputs)} elements."
-                        )
+                        pass  # If there are more example components than inputs, ignore. This can sometimes be intentional (e.g. loading from a log file where outputs and timestamps are also logged)
 
         inputs_with_examples = [
             inp for (inp, keep) in zip(inputs, input_has_examples) if keep
