@@ -12,7 +12,6 @@ GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets", "guides")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
 TEMP_TEMPLATE = os.path.join(DIR, "temporary_template.html")
-UNDERSCORE_TOKEN = "!UNDERSCORE!"
 
 demos = {}
 for demo_folder in os.listdir(DEMOS_DIR):
@@ -75,13 +74,13 @@ for guide in guide_list:
     guide_content = re.sub(r"```([a-z]+)\n", lambda x: f"<div class='codeblock'><pre><code class='lang-{x.group(1)}'>", guide_content)
     guide_content = re.sub(r"```", "</code></pre></div>", guide_content)
     guide_content = re.sub(
-        r"\$code_([a-z _\-0-9]+)", 
-        lambda x: f"<div class='not-prose codeblock'><pre><code class='lang-python'>{demos[x.group(1)]}</code></pre></div>", 
+        r"\$code_([a-z _\-0-9]+)",
+        lambda x: f"<div class='codeblock'><pre><code class='lang-python'>{demos[x.group(1)]}</code></pre></div>",
         guide_content
     )
     guide_content = re.sub(
-        r"\$demo_([a-z _\-0-9]+)", 
-        lambda x: f"<gradio-app class='not-prose' src='/demo/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />", 
+        r"\$demo_([a-z _\-0-9]+)",
+        lambda x: f"<gradio-app src='/demo/{x.group(1)}' />",
         guide_content
     )
 
@@ -109,7 +108,7 @@ def build_guides(output_dir, jinja_env):
                 markdown2.markdown(
                     guide["content"],
                     extras=["target-blank-links", "header-ids", "tables", "fenced-code-blocks"],
-                ).replace(UNDERSCORE_TOKEN, "_")
+                )
             )
         template = jinja_env.get_template("guides/template.html")
         output_folder = os.path.join(output_dir, guide["name"])

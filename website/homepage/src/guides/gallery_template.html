@@ -12,13 +12,13 @@
     <div class="container mx-auto px-4 relative pt-8 mb-12">
       <input id="search-by-tag"
              type="text"
-             class="w-full border border-gray-200 p-1 rounded outline-none text-center text-lg mb-2 focus:placeholder-transparent"
+             class="w-full border border-gray-200 p-1 rounded-full outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
              placeholder="What do you want to build?"
              autocomplete="off"
              onkeyup="search(this.value);"/>
-      <h2 class="text-gray-600 mb-6">
+      <h2 class="text-gray-600 mb-6 mx-auto w-fit text-sm">
         Search through
-        <span id="counter">{{ guides|length }}</span>
+        <span id="counter ">{{ guides|length }}</span>
         Guides. <a class="link text-gray-600"
     href="https://github.com/gradio-app/gradio/tree/main/guides">Contribute here</a>
       </h2>
