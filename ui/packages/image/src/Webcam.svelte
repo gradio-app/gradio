@@ -8,6 +8,7 @@
 	export let pending: boolean = false;
 
 	export let mode: "image" | "video" = "image";
+	export let mirror_webcam: boolean;
 
 	const dispatch = createEventDispatcher();
 
@@ -102,7 +103,11 @@
 
 <div class="h-full min-h-[15rem] w-full relative">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video bind:this={video_source} class="h-full w-full " />
+	<video
+		bind:this={video_source}
+		class="h-full w-full "
+		class:scale-x-[-1]={mirror_webcam}
+	/>
 	{#if !streaming}
 		<button
 			on:click={mode === "image" ? take_picture : take_recording}
