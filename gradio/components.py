@@ -297,6 +297,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        background_color: Optional[str] = None,
+        text_color: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -310,6 +312,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         interactive (Optional[bool]): if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
         visible (bool): If False, component will be hidden.
         elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        background_color (Optional[str]): An optional string that determines the background color of the Textbox. If set, will override the theme color.
+        text_color (Optional[str]): An optional string that determines the text color of the Textbox. If set, will override the theme color.
         """
         self.lines = lines
         self.max_lines = max_lines
@@ -318,6 +322,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
+        self.background_color = background_color
+        self.text_color = text_color
+
         IOComponent.__init__(
             self,
             label=label,
@@ -334,6 +341,8 @@ class Textbox(Changeable, Submittable, IOComponent):
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "value": self.value,
+            "background_color": self.background_color,
+            "text_color": self.text_color,
             **IOComponent.get_config(self),
         }
 
@@ -347,6 +356,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
+        background_color: Optional[str] = None,
+        text_color: Optional[str] = None
     ):
         updated_config = {
             "lines": lines,
@@ -356,6 +367,8 @@ class Textbox(Changeable, Submittable, IOComponent):
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "background_color": background_color,
+            "text_color": text_color,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)

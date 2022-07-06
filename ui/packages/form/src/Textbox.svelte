@@ -7,6 +7,8 @@
 	export let style: Record<string, unknown> = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
+	export let background_color: string | null = null;
+	export let text_color: string | null = null;
 	export let label: string;
 	export let disabled = false;
 	export let show_label: boolean = true;
@@ -77,7 +79,22 @@
 		};
 	}
 
+	function get_additional_styles(background_color: string | null, text_color: string | null) {
+		let styles = "";
+
+		if (background_color) {
+			styles = `background-color: ${background_color};`;
+		}
+
+		if(text_color) {
+			styles = `${styles} color: ${text_color};`;
+		}
+
+		return styles;
+	}
+
 	$: ({ classes } = get_styles(style, ["rounded", "border"]));
+	$: additional_styles = get_additional_styles(background_color, text_color);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -89,6 +106,7 @@
 			data-testid="textbox"
 			type="text"
 			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
+			style="{additional_styles}"
 			bind:value
 			bind:this={el}
 			{placeholder}
@@ -100,6 +118,7 @@
 			data-testid="textbox"
 			use:text_area_resize={value}
 			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
+			style="{additional_styles}"
 			bind:value
 			bind:this={el}
 			{placeholder}

@@ -12,6 +12,8 @@
 	export let value: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
+	export let background_color: string | null = null;
+	export let text_color: string | null = null;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 	export let max_lines: number | false;
@@ -39,6 +41,8 @@
 		{lines}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
+		{background_color}
+		{text_color}
 		on:change
 		on:submit
 		disabled={mode === "static"}
