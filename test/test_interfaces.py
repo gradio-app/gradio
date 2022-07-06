@@ -120,8 +120,8 @@ class TestInterface(unittest.TestCase):
         examples = ["test1", "test2"]
         interface = Interface(lambda x: x, "textbox", "label", examples=examples)
         interface.launch(prevent_thread_lock=True)
-        self.assertEqual(len(interface.examples), 2)
-        self.assertEqual(len(interface.examples[0]), 1)
+        self.assertEqual(len(interface.examples_handler.examples), 2)
+        self.assertEqual(len(interface.examples_handler.examples[0]), 1)
         interface.close()
 
     @mock.patch("IPython.display.display")
