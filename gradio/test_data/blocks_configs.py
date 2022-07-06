@@ -30,7 +30,7 @@ XRAY_CONFIG = {
         {
             "id": 3,
             "type": "tabs",
-            "props": {"visible": True, "style": {}, "selected": False},
+            "props": {"visible": True, "style": {}, "selected": None},
         },
         {
             "id": 4,
@@ -230,7 +230,7 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 3,
             "type": "tabs",
-            "props": {"visible": True, "style": {}, "selected": False},
+            "props": {"visible": True, "style": {}, "selected": None},
         },
         {
             "id": 444,
@@ -438,7 +438,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 3,
             "type": "tabs",
-            "props": {"style": {}, "value": True, "selected": False},
+            "props": {"style": {}, "value": True, "selected": None},
         },
         {
             "id": 4,

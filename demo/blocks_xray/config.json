@@ -34,7 +34,6 @@
       "id": 3,
       "type": "tabs",
       "props": {
-        "selected": false,
         "visible": true,
         "style": {}
       }
@@ -44,7 +43,6 @@
       "type": "tabitem",
       "props": {
         "label": "X-ray",
-        "id": false,
         "visible": true,
         "style": {}
       }
@@ -108,7 +106,6 @@
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
-        "id": false,
         "visible": true,
         "style": {}
       }
