@@ -23,33 +23,45 @@ class Queue:
     STOP = False
     CURRENT = None
     MAX_THREAD_COUNT = 1
-    DATA_GATHERING_START_AT = 50
-    UPDATE_INTERVALS = 5
+    DATA_GATHERING_STARTS_AT = 30
+    UPDATE_INTERVALS = 10
     ACTIVE_JOBS: List[None | Event] = [None]
     LOCK = asyncio.Lock()
     SERVER_PATH = None
-    DURATION_HISTORY_SIZE = 10
+    DURATION_HISTORY_SIZE = 100
     DURATION_HISTORY = []
-    # when there is no estimation is calculated, default estimation is 1 sec
+    # When there is no estimation is calculated, default estimation is 1 sec
     ESTIMATION = 1
+    LIVE_QUEUE_UPDATES = True
+
+    @classmethod
+    def configure_queue(
+        cls,
+        server_path: str,
+        live_queue_updates=True,
+        queue_concurrency_count: int = 1,
+        data_gathering_start: int = 30,
+        update_intervals: int = 5,
+        duration_history_size=100,
+    ):
+        """
+        See Blocks.launch() docstring for the explanation of parameters.
+        """
+
+        if live_queue_updates is False and update_intervals == 5:
+            update_intervals = 10
+        cls.SERVER_PATH = server_path
+        cls.LIVE_QUEUE_UPDATES = live_queue_updates
+        cls.MAX_THREAD_COUNT = queue_concurrency_count
+        cls.DATA_GATHERING_STARTS_AT = data_gathering_start
+        cls.UPDATE_INTERVALS = update_intervals
+        cls.DURATION_HISTORY_SIZE = duration_history_size
+        cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
 
     @classmethod
     async def init(
         cls,
-        server_path: str,
-        max_thread_count: int = 1,
-        data_gathering_start: int = 50,
-        update_intervals: int = 5,
-        duration_history_size=10,
     ) -> None:
-        cls.SERVER_PATH = server_path
-        cls.EVENT_QUEUE = []
-        cls.MAX_THREAD_COUNT = max_thread_count
-        cls.ACTIVE_JOBS = [None] * max_thread_count
-        cls.DATA_GATHERING_START_AT = data_gathering_start
-        cls.UPDATE_INTERVALS = update_intervals
-        cls.DURATION_HISTORY_SIZE = duration_history_size
-
         run_coro_in_background(Queue.notify_clients)
         run_coro_in_background(Queue.start_processing)
 
@@ -82,7 +94,9 @@ class Queue:
             cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
 
             run_coro_in_background(cls.process_event, event)
-            await cls.gather_data_for_first_ranks(cls.DATA_GATHERING_START_AT)
+            run_coro_in_background(cls.gather_data_for_first_ranks)
+            if cls.LIVE_QUEUE_UPDATES:
+                run_coro_in_background(cls.broadcast_estimation)
 
     @classmethod
     def push(cls, event: Event):
@@ -103,15 +117,15 @@ class Queue:
                 pass
 
     @classmethod
-    async def gather_data_for_first_ranks(cls, event_count: int) -> None:
+    async def gather_data_for_first_ranks(cls) -> None:
         """
         Gather data for the first x events.
-
-        Args:
-            event_count:
         """
         await asyncio.gather(
-            *[cls.gather_event_data(event) for event in cls.EVENT_QUEUE[:event_count]]
+            *[
+                cls.gather_event_data(event)
+                for event in cls.EVENT_QUEUE[: cls.DATA_GATHERING_STARTS_AT]
+            ]
         )
 
     @classmethod
@@ -142,11 +156,15 @@ class Queue:
             if not cls.EVENT_QUEUE:
                 continue
 
-            estimation = cls.get_estimation()
-            # Send all messages concurrently
-            await asyncio.gather(
-                *[cls.send_estimation(event, estimation) for event in cls.EVENT_QUEUE]
-            )
+            await cls.broadcast_estimation()
+
+    @classmethod
+    async def broadcast_estimation(cls) -> None:
+        estimation = cls.get_estimation()
+        # Send all messages concurrently
+        await asyncio.gather(
+            *[cls.send_estimation(event, estimation) for event in cls.EVENT_QUEUE]
+        )
 
     @classmethod
     async def send_estimation(cls, event: Event, estimation: Estimation) -> None:

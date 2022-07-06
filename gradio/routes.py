@@ -305,7 +305,7 @@ class App(FastAPI):
         async def start_queue():
             from gradio.utils import run_coro_in_background
 
-            gradio.utils.run_coro_in_background(Queue.init, "http://127.0.0.1:7860/")
+            gradio.utils.run_coro_in_background(Queue.init)
             return True
 
         return app

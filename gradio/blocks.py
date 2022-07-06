@@ -700,6 +700,11 @@ class Blocks(BlockContext):
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
         quiet: bool = False,
+        live_queue_updates=True,
+        queue_concurrency_count: int = 1,
+        data_gathering_start: int = 30,
+        update_intervals: int = 5,
+        duration_history_size=100,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -727,6 +732,12 @@ class Blocks(BlockContext):
         ssl_certfile (str | None): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password (str | None): If a password is provided, will use this with the ssl certificate for https.
         quiet (bool): If True, suppresses most print statements.
+        live_queue_updates(bool): If True, Queue will send estimations whenever a job is finished as well.
+        queue_concurrency_count(int): Number of max number concurrent jobs inside the Queue.
+        data_gathering_start(int): If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big data(video or such) to not reach memory overflow.
+        update_intervals(int): Queue will send estimations to the clients using intervals determined by update_intervals.
+        duration_history_size(int): Queue duration estimation calculation window size.
+
         Returns:
         app (FastAPI): FastAPI app object that is running the demo
         local_url (str): Locally accessible link to the demo
@@ -786,6 +797,14 @@ class Blocks(BlockContext):
                     raise ValueError(
                         "Cannot queue with encryption or authentication enabled."
                     )
+                event_queue.Queue.configure_queue(
+                    self.local_url,
+                    live_queue_updates,
+                    queue_concurrency_count,
+                    data_gathering_start,
+                    update_intervals,
+                    duration_history_size,
+                )
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}start/queue")
