@@ -16,7 +16,7 @@ module.exports = {
         postcss_hash({
             algorithm: 'sha256',
             trim: 20,
-            manifest: './generated/manifest.json'
+            manifest: './build/manifest.json'
         }),
     ],
 }

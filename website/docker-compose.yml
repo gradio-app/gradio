@@ -4,8 +4,6 @@ services:
     build:
       context: ../
       dockerfile: ./website/homepage/Dockerfile
-      args: 
-          COLAB_NOTEBOOK_LINKS: $COLAB_NOTEBOOK_LINKS
     container_name: homepage
     ports:
       - "8080:80"

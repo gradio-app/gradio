@@ -17,9 +17,12 @@ demos_up = set()
 with open("demos.json") as demos_file:
     demo_port_sets = json.load(demos_file)
 
+time_to_up = {}
+
 def launch_demo(demo_folder):
     subprocess.check_call([f"cd {demo_folder} && python run2.py"], shell=True)
 
+start_launch_time = time.time()
 for demo_name, port in demo_port_sets:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
     demo_file = os.path.join(demo_folder, "run.py")
@@ -30,9 +33,12 @@ for demo_name, port in demo_port_sets:
     filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port}, _frontend=False)")
     with open(demo_2_file, "w") as file:
         file.write(filedata)
+    time_to_up[demo_name] = -(time.time())
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
     demo_thread.start()
     demo_threads[demo_name] = demo_thread
+
+print("launch time:", time.time() - start_launch_time)
 
 while True:
     still_down = []
@@ -56,7 +62,9 @@ while True:
                 stayed_up.append(demo_name)
             else:
                 demos_up.add(demo_name)
+                time_to_up[demo_name] += time.time()
                 print(demo_name, "is up!")
     print("stayed up: " + " ".join(stayed_up))
     print("still_down: " + " ".join(still_down))
-    time.sleep(10)
+    print("time_to_up: " + ", ".join([f"({d}, {t})" for d, t in time_to_up.items() if t > 0]))
+    time.sleep(1)

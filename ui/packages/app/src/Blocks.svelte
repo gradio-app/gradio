@@ -64,7 +64,6 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
-	export let is_space: boolean;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 
@@ -183,16 +182,11 @@
 				ready = true;
 
 				await tick();
-
-				if (window.__gradio_mode__ !== "website") {
-					window.__gradio_loader__[id].$set({ status: "complete" });
-				}
+				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				if (window.__gradio_mode__ !== "website") {
-					window.__gradio_loader__[id].$set({ status: "error" });
-				}
+				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 

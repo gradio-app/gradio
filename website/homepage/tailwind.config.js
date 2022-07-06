@@ -2,13 +2,13 @@ const defaultTheme = require('tailwindcss/defaultTheme')
 
 module.exports = {
   content: [
-  './src/*.{html,js,css}',
-  './src/**/*.{html,js,svelte,ts,css}',
-  '**/@gradio/**/*.{html,js,svelte,ts,css}'
+    './src/*.{html,js,css}',
+    './src/**/*.{html,js,svelte,ts,css}',
+    '**/@gradio/**/*.{html,js,svelte,ts,css}'
   ],
 
   theme: {
-    extend: {
+    extend: {      
       fontFamily: {
         sans: ['Source Sans Pro', ...defaultTheme.fontFamily.sans],
         mono: ['IBM Plex Mono', ...defaultTheme.fontFamily.mono],
@@ -33,7 +33,10 @@ module.exports = {
   darkMode: 'class', // or 'media' or 'class'
 
   variants: {
-    extend: {},
-  },
+    extend: {
+        visibility: ["group-hover"],
+    },
+    },
+
   plugins: [require('@tailwindcss/forms'), require("@tailwindcss/typography")],
 }

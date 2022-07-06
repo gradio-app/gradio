@@ -1,0 +1,72 @@
+<div
+  class="container mx-auto flex flex-row flex-wrap justify-between sm:flex-col lg:flex-row relative items-center px-4 py-5 gap-6 text-lg z-50"
+>
+  <a href="/">
+    <img src="/assets/gradio.svg" >
+  </a>
+  <svg
+    class="h-8 w-8 sm:hidden"
+    viewBox="-10 -10 20 20"
+    onclick='document.querySelector("nav").classList.toggle("hidden"),document.querySelector("nav").classList.toggle("flex")'
+  >
+    <rect x="-7" y="-6" width="14" height="2"></rect>
+    <rect x="-7" y="-1" width="14" height="2"></rect>
+    <rect x="-7" y="4" width="14" height="2"></rect>
+  </svg>
+  <nav
+    class="hidden w-full flex-col gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-12"
+  >
+    <a class="thin-link flex items-center gap-3" href="/getting_started"
+      ><span>⚡</span> <span>Quickstart</span>
+    </a>
+    <a class="thin-link flex items-center gap-3" href="/docs"
+      ><span>✍️</span> <span>Docs</span>
+    </a>
+    <a class="thin-link flex items-center gap-3" href="/guides"
+      ><span>💡</span> <span>Guides</span></a
+    >
+    <div
+      class="group relative flex cursor-pointer items-center gap-3"
+      onclick='document.querySelector(".help-menu").classList.toggle("flex"),document.querySelector(".help-menu").classList.toggle("hidden")'
+    >
+      <span>🖐</span> <span>Community</span>
+      <svg
+        class="h-4 w-4"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+      >
+        <path
+          d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+        ></path>
+      </svg>
+      <div
+        class="help-menu absolute top-6 hidden w-52 flex-col bg-white shadow group-hover:flex sm:right-0"
+      >
+        <a
+          class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+          href="https://github.com/gradio-app/gradio/issues/new/choose"
+          target="_blank"
+          >File an Issue</a
+        >
+        <a
+          class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+          href="https://discuss.huggingface.co/c/gradio/26"
+          target="_blank"
+          >Discuss</a
+        >
+        <a
+          class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+          target="_blank"
+          href="https://discord.gg/feTf9x3ZSB"
+          >Discord</a
+        >
+        <a
+          class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+          target="_blank"
+          href="https://gradio.curated.co/"
+          >Newsletter</a
+        >
+      </div>
+    </div>
+  </nav>
+</div>

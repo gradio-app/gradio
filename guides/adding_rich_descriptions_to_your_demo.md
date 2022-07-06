@@ -1,7 +1,7 @@
 # Adding Rich Descriptions to Your Demo
 
-related_spaces: https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/kingabzpro/Rick_and_Morty_Bot, https://huggingface.co/spaces/nateraw/cryptopunks-generator
-tags: MARKDOWN, DESCRIPTION, ARTICLE
+Related spaces: https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/kingabzpro/Rick_and_Morty_Bot, https://huggingface.co/spaces/nateraw/cryptopunks-generator
+Tags: MARKDOWN, DESCRIPTION, ARTICLE
 
 ## Introduction
 
@@ -19,7 +19,7 @@ There are three parameters in `Interface` where text can go:
 * `description`: which accepts text, markdown or HTML and places it right under the title.
 * `article`: which is also accepts text, markdown or HTML but places it below the interface.
 
-![annotated](website/src/assets/img/guides/adding_rich_descriptions_to_your_demo/annotated.png)
+![annotated](/assets/guides/annotated.png)
 
 ## Code example
 
@@ -67,7 +67,7 @@ The table below shows the syntax for the most common markdown commands.
 | ----------- | ----------- |
 | Header      | # Heading 1 ## Heading 2 ### Heading 3        |
 | Link   | \[gradio's website](https://gradio.app)        |
-| Image   | !\[gradio's logo](https://gradio.app/assets/img/logo.png)        |
+| Image   | !\[gradio's logo](https://gradio.app/assets/guides/logo.png)        |
 | Text Formatting   | \_italic_ \*\*bold**         |
 | List | \* Item 1 \* Item 2 |
 | Quote | \> this is a quote |
