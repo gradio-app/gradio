@@ -25,7 +25,6 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Component,
-    Dataset,
     Interpretation,
     IOComponent,
     Markdown,
@@ -34,10 +33,10 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.events import Changeable, Streamable
+from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
-from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -126,7 +125,6 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
-        _repeat_outputs_per_model: bool = True,
         **kwargs,
     ):
         """
@@ -174,14 +172,13 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
-        if not isinstance(fn, list):
-            fn = [fn]
-        else:
+        if isinstance(fn, list):
             raise DeprecationWarning(
                 "The `fn` parameter only accepts a single function, support for a list "
                 "of functions has been deprecated. Please use gradio.mix.Parallel "
                 "instead."
             )
+
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
@@ -199,7 +196,7 @@ class Interface(Blocks):
                 raise ValueError(
                     "If using 'state', there must be exactly one state input and one state output."
                 )
-            default = utils.get_default_args(fn[0])[inputs.index("state")]
+            default = utils.get_default_args(fn)[inputs.index("state")]
             state_variable = Variable(value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
@@ -240,9 +237,6 @@ class Interface(Blocks):
             for o in self.output_components:
                 o.interactive = False  # Force output components to be non-interactive
 
-        if _repeat_outputs_per_model:
-            self.output_components *= len(fn)
-
         if (
             interpretation is None
             or isinstance(interpretation, list)
@@ -257,10 +251,9 @@ class Interface(Blocks):
             raise ValueError("Invalid value for parameter: interpretation")
 
         self.api_mode = False
-        self.predict = fn
-        self.predict_durations = [[0, 0]] * len(fn)
-        self.function_names = [func.__name__ for func in fn]
-        self.__name__ = ", ".join(self.function_names)
+        self.fn = fn
+        self.fn_durations = [0, 0]
+        self.__name__ = fn.__name__
         self.live = live
         self.title = title
 
@@ -295,53 +288,7 @@ class Interface(Blocks):
         if not (self.theme == "default"):
             warnings.warn("Currently, only the 'default' theme is supported.")
 
-        if examples is None or (
-            isinstance(examples, list)
-            and (len(examples) == 0 or isinstance(examples[0], list))
-        ):
-            self.examples = examples
-        elif (
-            isinstance(examples, list) and len(self.input_components) == 1
-        ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
-            self.examples = [[e] for e in examples]
-        elif isinstance(examples, str):
-            if not os.path.exists(examples):
-                raise FileNotFoundError(
-                    "Could not find examples directory: " + examples
-                )
-            log_file = os.path.join(examples, "log.csv")
-            if not os.path.exists(log_file):
-                if len(self.input_components) == 1:
-                    exampleset = [
-                        [os.path.join(examples, item)] for item in os.listdir(examples)
-                    ]
-                else:
-                    raise FileNotFoundError(
-                        "Could not find log file (required for multiple inputs): "
-                        + log_file
-                    )
-            else:
-                with open(log_file) as logs:
-                    exampleset = list(csv.reader(logs))
-                    exampleset = exampleset[1:]  # remove header
-            for i, example in enumerate(exampleset):
-                for j, (component, cell) in enumerate(
-                    zip(
-                        self.input_components + self.output_components,
-                        example,
-                    )
-                ):
-                    exampleset[i][j] = component.restore_flagged(
-                        examples,
-                        cell,
-                        None,
-                    )
-            self.examples = exampleset
-        else:
-            raise ValueError(
-                "Examples argument must either be a directory or a nested "
-                "list, where each sublist represents a set of inputs."
-            )
+        self.examples = examples
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
 
@@ -415,7 +362,7 @@ class Interface(Blocks):
         utils.version_check()
         Interface.instances.add(self)
 
-        param_names = inspect.getfullargspec(self.predict[0])[0]
+        param_names = inspect.getfullargspec(self.fn)[0]
         for component, param_name in zip(self.input_components, param_names):
             if component.label is None:
                 component.label = param_name
@@ -425,9 +372,6 @@ class Interface(Blocks):
                     component.label = "output"
                 else:
                     component.label = "output " + str(i)
-
-        if self.cache_examples and examples:
-            cache_interface_examples(self)
 
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
@@ -625,34 +569,16 @@ class Interface(Blocks):
                 non_state_inputs = [
                     c for c in self.input_components if not isinstance(c, Variable)
                 ]
-
-                examples = Dataset(
-                    components=non_state_inputs,
-                    samples=self.examples,
-                    type="index",
-                )
-
-                def load_example(example_id):
-                    processed_examples = [
-                        component.preprocess_example(sample)
-                        for component, sample in zip(
-                            self.input_components, self.examples[example_id]
-                        )
-                    ]
-                    if self.cache_examples:
-                        processed_examples += load_from_cache(self, example_id)
-                    if len(processed_examples) == 1:
-                        return processed_examples[0]
-                    else:
-                        return processed_examples
-
-                examples.click(
-                    load_example,
-                    inputs=[examples],
-                    outputs=non_state_inputs
-                    + (self.output_components if self.cache_examples else []),
-                    _postprocess=False,
-                    queue=False,
+                non_state_outputs = [
+                    c for c in self.output_components if not isinstance(c, Variable)
+                ]
+                self.examples_handler = Examples(
+                    examples=examples,
+                    inputs=non_state_inputs,
+                    outputs=non_state_outputs,
+                    fn=self.fn,
+                    cache_examples=self.cache_examples,
+                    examples_per_page=examples_per_page,
                 )
 
             if self.interpretation:
@@ -684,9 +610,7 @@ class Interface(Blocks):
         return self.__repr__()
 
     def __repr__(self):
-        repr = "Gradio Interface for: {}".format(
-            ", ".join(fn.__name__ for fn in self.predict)
-        )
+        repr = f"Gradio Interface for: {self.__name__}"
         repr += "\n" + "-" * len(repr)
         repr += "\ninputs:"
         for component in self.input_components:
@@ -715,31 +639,19 @@ class Interface(Blocks):
                 input_component.serialize(processed_input[i], called_directly)
                 for i, input_component in enumerate(self.input_components)
             ]
-        predictions = []
-        output_component_counter = 0
 
-        for predict_fn in self.predict:
-            prediction = predict_fn(*processed_input)
+        prediction = self.fn(*processed_input)
 
-            if len(self.output_components) == len(self.predict) or prediction is None:
-                prediction = [prediction]
+        if prediction is None or len(self.output_components) == 1:
+            prediction = [prediction]
 
-            if self.api_mode:  # Serialize the input
-                prediction_ = copy.deepcopy(prediction)
-                prediction = []
+        if self.api_mode:  # Deerialize the input
+            prediction = [
+                output_component.deserialize(prediction[i])
+                for i, output_component in enumerate(self.output_components)
+            ]
 
-                # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
-                for pred in prediction_:
-                    prediction.append(
-                        self.output_components[output_component_counter].deserialize(
-                            pred
-                        )
-                    )
-                    output_component_counter += 1
-
-            predictions.extend(prediction)
-
-        return predictions
+        return prediction
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
@@ -777,19 +689,17 @@ class Interface(Blocks):
         Passes a few samples through the function to test if the inputs/outputs
         components are consistent with the function parameter and return values.
         """
-        for predict_fn in self.predict:
-            print("Test launch: {}()...".format(predict_fn.__name__), end=" ")
-            raw_input = []
-            for input_component in self.input_components:
-                if input_component.test_input is None:
-                    print("SKIPPED")
-                    break
-                else:
-                    raw_input.append(input_component.test_input)
+        print("Test launch: {}()...".format(self.__name__), end=" ")
+        raw_input = []
+        for input_component in self.input_components:
+            if input_component.test_input is None:
+                print("SKIPPED")
+                break
             else:
-                self.process(raw_input)
-                print("PASSED")
-                continue
+                raw_input.append(input_component.test_input)
+        else:
+            self.process(raw_input)
+            print("PASSED")
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """
