@@ -2533,8 +2533,8 @@ class Dataframe(Changeable, IOComponent):
             Dataframe in requested format
         """
         if self.type == "pandas":
-            if x["headers"]:
-                return pd.DataFrame(x["data"], columns=x["headers"])
+            if x.get("headers") is not None:
+                return pd.DataFrame(x["data"], columns=x.get("headers"))
             else:
                 return pd.DataFrame(x["data"])
         # if len(x["data"][0]) == 1:
