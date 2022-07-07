@@ -9,6 +9,7 @@ import shutil
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from gradio.components import Dataset
+from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -17,8 +18,20 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 
 CACHED_FOLDER = "gradio_cached_examples"
 
+set_documentation_group("component-helpers")
 
+
+@document("cache_interface_examples", "load_from_cache", "process_example")
 class Examples:
+    """
+    This class is a wrapper over the Dataset component can be used to create Examples
+    for Blocks / Interfaces. Populates the Dataset component with examples and
+    assigns event listener so that clicking on an example populates the input/output
+    components. Optionally handles example caching for fast inference.
+
+    Demos: blocks_inputs, fake_gan
+    """
+
     def __init__(
         self,
         examples: List[Any] | List[List[Any]] | str,
@@ -29,18 +42,13 @@ class Examples:
         examples_per_page: int = 10,
     ):
         """
-        This class is a wrapper over the Dataset component can be used to create Examples
-        for Blocks / Interfaces. Populates the Dataset component with examples and
-        assigns event listener so that clicking on an example populates the input/output
-        components. Optionally handles example caching for fast inference.
-
         Parameters:
-        examples (List[Any] | List[List[Any]] | str): example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided.
-        inputs: (Component | List[Component]): the component or list of components corresponding to the examples
-        outputs: (Component | List[Component] | None): optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
-        fn: (Callable | None): optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
-        cache_examples (bool): if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
-        examples_per_page (int): how many examples to show per page (this parameter currently has no effect)
+            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided.
+            inputs: the component or list of components corresponding to the examples
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
+            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
+            examples_per_page: how many examples to show per page (this parameter currently has no effect)
         """
         if cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")

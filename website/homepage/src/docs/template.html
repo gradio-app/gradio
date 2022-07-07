@@ -21,6 +21,10 @@
         {% for component in docs["component"] %}
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
+        <a class="link px-4 my-2 block" href="#components-helpers">Component Helpers
+        {% for component in docs["component-helpers"] %}
+          <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+        {% endfor %}          
       </div>
       <div class="flex flex-col">
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800 mb-1">
@@ -92,6 +96,21 @@
           </div>
           {% for component in docs["component"] %}
             {% with obj=component, is_component=True, parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+          {% endfor %}
+        </section>
+        <section id="component-helpers" class="pt-2 flex flex-col gap-10">
+          <div>
+            <h2 id="component-helpers-header"
+                class="text-4xl font-light mb-2 pt-2 text-orange-500">Components Helpers</h2>
+            <p class="mt-8 text-lg">
+              Gradio includes helper classes that abstract over existing components. The goal of these classes is to help you
+              add common functionality to your app without having to repeatedly create the same components and event listeners.
+            </p>
+          </div>
+          {% for component in docs["component-helpers"] %}
+            {% with obj=component, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           {% endfor %}
