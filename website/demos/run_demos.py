@@ -27,17 +27,21 @@ component_launch_code = """import gradio as gr
 with gr.Blocks() as demo:
      component = gr.{component_name}()
 demo.launch()"""
-
-
 start_launch_time = time.time()
 for demo_name, port in demo_port_sets:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
     demo_2_file = os.path.join(demo_folder, "run2.py")
     if demo_name.endswith("_component"):
-        os.mkdir(demo_folder)
-        print(demo_name)
-        filedata = component_launch_code.format(component_name=demo_name[:-10])
-        print(filedata)
+        if os.path.exists(demo_2_file):
+            demo_file = os.path.join(demo_folder, "run.py")
+            with open(demo_file, "r") as file:
+                filedata = file.read()
+            assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
+        else:
+            os.mkdir(demo_folder)
+            print(demo_name)
+            filedata = component_launch_code.format(component_name=demo_name[:-10])
+            print(filedata)
     else:
         demo_file = os.path.join(demo_folder, "run.py")
         with open(demo_file, "r") as file:

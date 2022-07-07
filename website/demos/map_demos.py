@@ -26,11 +26,10 @@ for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
         guide_content = guide_file.read()
     demos_to_run += re.findall(DEMO_PATTERN, guide_content)
-demos_to_run = list(set(demos_to_run))
-
 # adding components to be embedded
 docs = generate_documentation()
 demos_to_run += [f"{component['name']}_component" for component in docs["component"]]
+demos_to_run = list(set(demos_to_run))
 
 
 failed_demos = []
