@@ -999,7 +999,7 @@ class TestDataframe(unittest.TestCase):
         """
         Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
         """
-        x_data = [["Tim", 12, False], ["Jan", 24, True]]
+        x_data = {"data": [["Tim", 12, False], ["Jan", 24, True]]}
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
         self.assertEqual(output["Age"][1], 24)
@@ -1120,7 +1120,7 @@ class TestDataframe(unittest.TestCase):
         """
         Interface, process,
         """
-        x_data = [[1, 2, 3], [4, 5, 6]]
+        x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
         self.assertEqual(iface.process([x_data]), [6])
         x_data = [["Tim"], ["Jon"], ["Sal"]]
@@ -1140,7 +1140,9 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        self.assertEqual(iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]})
+        self.assertEqual(
+            iface.process({"data": [[2, 3, 4]]})[0], {"data": [[True, False, True]]}
+        )
 
 
 class TestVideo(unittest.TestCase):
@@ -1356,14 +1358,16 @@ class TestTimeseries(unittest.TestCase):
         """
         timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
         iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
-        df = pd.DataFrame(
-            {
-                "time": [1, 2, 3, 4],
-                "retail": [1, 2, 3, 2],
-                "food": [1, 2, 3, 2],
-                "other": [1, 2, 4, 2],
-            }
-        )
+        df = {
+            "data": pd.DataFrame(
+                {
+                    "time": [1, 2, 3, 4],
+                    "retail": [1, 2, 3, 2],
+                    "food": [1, 2, 3, 2],
+                    "other": [1, 2, 4, 2],
+                }
+            )
+        }
         self.assertEqual(
             iface.process([df]),
             [
@@ -1603,7 +1607,9 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        self.assertDictEqual(iface.process([y_data])[0], {"M": 35, "F": 25, "O": 20})
+        self.assertDictEqual(
+            iface.process({"data": [y_data]})[0], {"M": 35, "F": 25, "O": 20}
+        )
 
 
 class TestHTML(unittest.TestCase):
