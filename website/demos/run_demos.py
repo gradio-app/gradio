@@ -39,9 +39,7 @@ for demo_name, port in demo_port_sets:
             assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
         else:
             os.mkdir(demo_folder)
-            print(demo_name)
             filedata = component_launch_code.format(component_name=demo_name[:-10])
-            print(filedata)
     else:
         demo_file = os.path.join(demo_folder, "run.py")
         with open(demo_file, "r") as file:
