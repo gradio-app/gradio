@@ -42,6 +42,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.examples import Examples
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

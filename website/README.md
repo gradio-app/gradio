@@ -9,23 +9,29 @@ The Gradio website ([https://gradio.app](https://gradio.app)) is built from the 
 
 The website is launched through the `docker-compose.yml` file in this directory. 
 
+You can run the entire website by:
+- Installing nginx
+- Copying gradio.nginx.conf from this folder to /etc/nginx/conf.d/gradio.nginx.conf 
+- Running `docker-compose build && docker-compose up`
+- (Re)starting nginx
+
+This will serve the website on port 80 (you can change the port from the gradio.nginx.conf file)
+
+Alternatively, for development, read the `homepage` section below:
+
 ## The `homepage` docker
 
 The homepage folder builds the static content of the website into standalone files, served by nginx in docker. For development purposes, instead of running docker to test changes, follow these steps in the `gradio/website/homepage` folder.
 
 - `npm install`
-- `npm run build` (or `npm run start` for automatic reload on change). 
+- `npm run build` (or `npm run build-mac` on Mac OSX)
 
-The website will be built in the `gradio/website/homepage/dist` directory. You can run a development server from this directory to launch the homepage, e.g. `python -m http.server`. See `gradio/website/homepage/package.json` for build steps.
+The website will be built in the `gradio/website/homepage/build` directory. You can run a development server from this directory to launch the homepage, e.g. `python -m http.server`. See `gradio/website/homepage/package.json` for build steps.
 
 ## The `demos` docker
 
 The demos folder launches all the demos embedded inside the website. The demos are loaded from the `gradio/demo` folder.
 
-## The `upload_notebooks` folder
-
-The upload_notebooks folder runs a script that uploads the demos within `gradio/demo` to Google Colab. The links generated from uploading these files are then stored in the docker env file, which is then used by the `homepage` docker container to link to the Colab notebooks from the documentation.
-
 ## Auto-Reloading
 
-The website is built from the master branch and automatically reloads on commits to master.
+The website is built from the main branch and automatically reloads on commits to main.

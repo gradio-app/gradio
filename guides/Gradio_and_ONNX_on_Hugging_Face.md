@@ -1,7 +1,7 @@
 # Gradio and ONNX on Hugging Face
 
-related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
-tags: ONNX, SPACES
+Related spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
+Tags: ONNX, SPACES
 Contributed by Gradio and the <a href="https://onnx.ai/">ONNX</a> team
 Docs: image, label
 
