@@ -290,7 +290,7 @@ class App(FastAPI):
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
 
-        @app.post(
+        @app.get(
             "/queue/status",
             dependencies=[Depends(login_check)],
             response_model=Estimation,
