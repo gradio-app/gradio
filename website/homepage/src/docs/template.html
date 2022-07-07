@@ -226,6 +226,14 @@
       addCopyButtons(navigator.clipboard);
     };
 
+    // Remove built-with-gradio footers from embedded components
+    document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+        let shadowroot = g.shadowRoot;
+        let f = shadowroot.querySelector('footer');
+        f.classList.add('hidden');
+      }
+    );
+
     </script>
   </body>
 </html>
