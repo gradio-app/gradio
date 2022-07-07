@@ -1490,6 +1490,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         }
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return processing_utils.encode_file_to_base64(x)
 
     def serialize(self, x, called_directly=False):
@@ -1769,6 +1771,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
@@ -1954,6 +1958,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
@@ -2260,7 +2266,9 @@ class File(Changeable, Clearable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
-        if isinstance(x, list):
+        if x is None:
+            return None
+        elif isinstance(x, list):
             return [
                 {
                     "name": file,
@@ -2711,6 +2719,8 @@ class Timeseries(Changeable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "is_example": True}
 
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
@@ -3773,6 +3783,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return updated_config
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
