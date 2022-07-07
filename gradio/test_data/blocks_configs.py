@@ -27,11 +27,22 @@ XRAY_CONFIG = {
                 "style": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 3,
+            "type": "tabs",
+            "props": {
+                "visible": True,
+                "style": {},
+            },
+        },
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 5,
@@ -72,7 +83,11 @@ XRAY_CONFIG = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 10,
@@ -224,11 +239,22 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"visible": True, "style": {}}},
+        {
+            "id": 3,
+            "type": "tabs",
+            "props": {
+                "visible": True,
+                "style": {},
+            },
+        },
         {
             "id": 444,
             "type": "tabitem",
-            "props": {"label": "X-ray", "visible": True, "style": {}},
+            "props": {
+                "label": "X-ray",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 5,
@@ -274,7 +300,11 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "visible": True, "style": {}},
+            "props": {
+                "label": "CT Scan",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 10,
@@ -432,7 +462,10 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 3,
             "type": "tabs",
-            "props": {"style": {}, "value": True},
+            "props": {
+                "style": {},
+                "value": True,
+            },
         },
         {
             "id": 4,

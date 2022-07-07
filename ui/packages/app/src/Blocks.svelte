@@ -293,7 +293,7 @@
 									if (
 										typeof value === "object" &&
 										value !== null &&
-										value.__type__ == "update"
+										value.__type__ === "update"
 									) {
 										for (const [update_key, update_value] of Object.entries(
 											value

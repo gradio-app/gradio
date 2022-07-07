@@ -1,9 +1,14 @@
 import gradio as gr
 
+
+def change_tab():
+    return gr.Tabs.update(selected=2)
+
+
 identity_demo, input_demo, output_demo = gr.Blocks(), gr.Blocks(), gr.Blocks()
 
 with identity_demo:
-    gr.Interface(lambda x:x, "text", "text")
+    gr.Interface(lambda x: x, "text", "text")
 
 with input_demo:
     t = gr.Textbox(label="Enter your text here")
@@ -17,14 +22,15 @@ with output_demo:
 
 with gr.Blocks() as demo:
     gr.Markdown("Three demos in one!")
-    with gr.Tabs():
-        with gr.TabItem("Text Identity"):
+    with gr.Tabs(selected=1) as tabs:
+        with gr.TabItem("Text Identity", id=0):
             identity_demo.render()
-        with gr.TabItem("Text Input"):
+        with gr.TabItem("Text Input", id=1):
             input_demo.render()
-        with gr.TabItem("Text Static"):
+        with gr.TabItem("Text Static", id=2):
             output_demo.render()
-    
+    btn = gr.Button("Change tab")
+    btn.click(inputs=None, outputs=tabs, fn=change_tab)
 
 if __name__ == "__main__":
     demo.launch()
