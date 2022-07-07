@@ -23,33 +23,30 @@ def launch_demo(demo_folder):
     subprocess.check_call([f"cd {demo_folder} && python run2.py"], shell=True)
 
 
-component_launch_code = """
-import gradio as gr
+component_launch_code = """import gradio as gr
 with gr.Blocks() as demo:
      component = gr.{component_name}()
-demo.launch()
-        """
+demo.launch()"""
+
+
 start_launch_time = time.time()
 for demo_name, port in demo_port_sets:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
     demo_2_file = os.path.join(demo_folder, "run2.py")
     if demo_name.endswith("_component"):
-        filedata = component_launch_code.format(component_name=demo_name.strip("_component"))
+        os.mkdir(demo_folder)
+        print(demo_name)
+        filedata = component_launch_code.format(component_name=demo_name[:-10])
+        print(filedata)
     else:
         demo_file = os.path.join(demo_folder, "run.py")
         with open(demo_file, "r") as file:
             filedata = file.read()
         assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
-        filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port}, _frontend=False)")
-        with open(demo_2_file, "w") as file:
-            file.write(filedata)
-        demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
-
     filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port}, _frontend=False)")
     with open(demo_2_file, "w") as file:
         file.write(filedata)
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
-
     time_to_up[demo_name] = -(time.time())
     demo_thread.start()
     demo_threads[demo_name] = demo_thread
