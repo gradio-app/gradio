@@ -77,6 +77,25 @@ export const fn = async (
 
 	if (queue && ["predict", "interpret"].includes(action)) {
 		loading_status.update(fn_index as number, "pending", null, null);
+		console.log(api_endpoint);
+		const ws = new WebSocket(
+			`ws://${api_endpoint
+				.replace("http://", "")
+				.replace("/api/", "")}/queue/join`
+		);
+
+		function send_message(data) {
+			ws.send(JSON.stringify(data));
+		}
+
+		ws.onmessage = function (event) {
+			console.log("message", JSON.parse(event.data));
+		};
+		ws.onopen = () => {
+			console.log("boo", payload);
+			send_message({ hash: session_hash });
+			send_message(payload);
+		};
 
 		const { hash, queue_position } = await post_data<{
 			hash: string;
