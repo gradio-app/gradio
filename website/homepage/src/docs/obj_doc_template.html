@@ -44,6 +44,9 @@
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
   {% endif %}
+  {% if is_component %}
+    <gradio-app src="/demo/{{ obj['name'] }}" />
+  {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}
   <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
