@@ -30,9 +30,10 @@ demo.launch()"""
 start_launch_time = time.time()
 for demo_name, port in demo_port_sets:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+    demo_file = os.path.join(demo_folder, "run.py")
     demo_2_file = os.path.join(demo_folder, "run2.py")
     if demo_name.endswith("_component"):
-        if os.path.exists(demo_2_file):
+        if os.path.exists(demo_file):
             demo_file = os.path.join(demo_folder, "run.py")
             with open(demo_file, "r") as file:
                 filedata = file.read()
@@ -41,7 +42,6 @@ for demo_name, port in demo_port_sets:
             os.mkdir(demo_folder)
             filedata = component_launch_code.format(component_name=demo_name[:-10])
     else:
-        demo_file = os.path.join(demo_folder, "run.py")
         with open(demo_file, "r") as file:
             filedata = file.read()
         assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
