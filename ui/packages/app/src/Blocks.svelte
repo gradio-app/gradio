@@ -64,7 +64,6 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
-	export let is_space: boolean;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 
@@ -119,11 +118,21 @@
 		const is_input = is_dep(id, "inputs", dependencies);
 		const is_output = is_dep(id, "outputs", dependencies);
 
-		if (!is_input && !is_output && !props.value) acc.add(id); // default dynamic
+		if (!is_input && !is_output && has_no_default_value(props.value))
+			acc.add(id); // default dynamic
 		if (is_input) acc.add(id);
 
 		return acc;
 	}, new Set());
+
+	function has_no_default_value(value: any) {
+		return (
+			(Array.isArray(value) && value.length === 0) ||
+			value === "" ||
+			value === 0 ||
+			!value
+		);
+	}
 
 	let instance_map = components.reduce((acc, next) => {
 		acc[next.id] = next;
@@ -173,16 +182,11 @@
 				ready = true;
 
 				await tick();
-
-				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__[id].$set({ status: "complete" });
-				}
+				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__[id].$set({ status: "error" });
-				}
+				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 
@@ -400,10 +404,10 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full h-full min-h-screen flex flex-col">
+<div class="w-full flex flex-col">
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={(window.__gradio_mode__ = "app")}
+		class:flex-grow={window.__gradio_mode__ === "app"}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />

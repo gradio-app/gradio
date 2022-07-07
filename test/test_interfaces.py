@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import mlflow
 import requests
 import wandb
+from fastapi.testclient import TestClient
 
 from gradio.blocks import Blocks
 from gradio.interface import Interface, TabbedInterface, close_all, os
@@ -119,8 +120,8 @@ class TestInterface(unittest.TestCase):
         examples = ["test1", "test2"]
         interface = Interface(lambda x: x, "textbox", "label", examples=examples)
         interface.launch(prevent_thread_lock=True)
-        self.assertEqual(len(interface.examples), 2)
-        self.assertEqual(len(interface.examples[0]), 1)
+        self.assertEqual(len(interface.examples_handler.examples), 2)
+        self.assertEqual(len(interface.examples_handler.examples[0]), 1)
         interface.close()
 
     @mock.patch("IPython.display.display")
@@ -217,6 +218,40 @@ class TestDeprecatedInterface(unittest.TestCase):
     def test_deprecation_notice(self):
         with self.assertWarns(Warning):
             _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
+
+
+class TestInterfaceInterpretation(unittest.TestCase):
+    def test_interpretation_from_interface(self):
+        def quadratic(num1: float, num2: float) -> float:
+            return 3 * num1**2 + num2
+
+        iface = Interface(
+            fn=quadratic,
+            inputs=["number", "number"],
+            outputs="number",
+            interpretation="default",
+        )
+
+        app, _, _ = iface.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        btn = next(
+            c["id"]
+            for c in iface.config["components"]
+            if c["props"].get("value") == "Interpret"
+        )
+        fn_index = next(
+            i
+            for i, d in enumerate(iface.config["dependencies"])
+            if d["targets"] == [btn]
+        )
+
+        response = client.post(
+            "/api/predict/", json={"fn_index": fn_index, "data": [10, 50, 350]}
+        )
+        self.assertTrue(response.json()["data"][0]["interpretation"] is not None)
+        iface.close()
+        close_all()
 
 
 if __name__ == "__main__":
