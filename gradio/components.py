@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 import matplotlib.figure
 import numpy as np
@@ -2366,6 +2366,11 @@ class File(Changeable, Clearable, IOComponent):
         )
 
 
+class DataframeData(TypedDict):
+    headers: List[str]
+    data: List[List[str | int | bool]]
+
+
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2497,10 +2502,10 @@ class Dataframe(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[List[str | Number | bool]]):
+    def preprocess(self, x: DataframeData):
         """
         Parameters:
-        x (Dict[headers: List[str], data: (List[List[str | number | bool]]]): 2D array of str, numeric, or bool data
+        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
         Returns:
         (pandas.DataFrame | numpy.array | List[str | float | bool], List[List[str | float | bool]]): Dataframe in requested format
         """
@@ -2509,8 +2514,8 @@ class Dataframe(Changeable, IOComponent):
                 return pd.DataFrame(x["data"], columns=x["headers"])
             else:
                 return pd.DataFrame(x["data"])
-        if self.col_count[0] == 1:
-            x["data"] = [row[0] for row in x["data"]]
+        # if len(x["data"][0]) == 1:
+        #     x["data"] = [row[0] for row in x["data"]]
         if self.type == "numpy":
             return np.array(x["data"])
         elif self.type == "array":
