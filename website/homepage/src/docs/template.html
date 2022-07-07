@@ -226,15 +226,18 @@
       addCopyButtons(navigator.clipboard);
     };
 
+
     // Remove built-with-gradio footers and extra space from embedded components
-    document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-        let shadowroot = g.shadowRoot;
-        let f = shadowroot.querySelector('footer');
-        f.classList.add('hidden');
-        let c = shadowroot.querySelector('.gradio-container');
-        c.style.removeProperty('min-height');
-      }
-    );
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+          let shadowroot = g.shadowRoot;
+          let f = shadowroot.querySelector('footer');
+          f.classList.add('hidden');
+          let c = shadowroot.querySelector('.gradio-container');
+          c.style.removeProperty('min-height');
+        }
+      );
+    })
 
     </script>
   </body>
