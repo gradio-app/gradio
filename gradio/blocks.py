@@ -191,12 +191,19 @@ class class_or_instancemethod(classmethod):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
 
+
 @document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
+    Updates component parameters.
+
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
+            number = gr.Number(value=2, interactive=True)
+            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
+        demo.launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs

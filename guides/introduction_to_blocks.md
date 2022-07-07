@@ -104,13 +104,34 @@ $code_blocks_essay
 
 $demo_blocks_essay
 
-You can also use the `gradio.update` function as a short-hand for using the component class's update method. 
+You can also use the `gradio.update` function as a short-hand for using the component class's update method.
 
-You can see an example of `gradio.update` in the following demo:
+Here is the previous demo rewritten with `gradio.update`:
 
-{{ code["blocks_essay"] }}
+```python
+import gradio as gr
 
-{{ demos["blocks_essay"] }}
+
+def change_textbox(choice):
+    if choice == "short":
+        return gr.update(lines=2, visible=True)
+    elif choice == "long":
+        return gr.update(lines=8, visible=True)
+    else:
+        return gr.update(visible=False)
+
+
+with gr.Blocks() as demo:
+    radio = gr.Radio(
+        ["short", "long", "none"], label="What kind of essay would you like to write?"
+    )
+    text = gr.Textbox(lines=2, interactive=True)
+
+    radio.change(fn=change_textbox, inputs=radio, outputs=text)
+
+demo.launch()
+```
+
 
 ## Sharing Blocks Publicly
 

@@ -74,6 +74,13 @@
                 {% endwith %}
               {% endfor %}
             </div>
+            <h3 class="text-3xl font-light my-4" id="block-utils">Block Utilities</h3>
+            <p class="mb-12">Customize the behavior of blocks with these utilities</p>
+            <div class="flex flex-col gap-10">
+              {% with obj=find_cls("update"), parent="gradio" %}
+                {% include "docs/obj_doc_template.html" %}
+              {% endwith %}
+            </div>
           </section>
         </section>
         <section id="components" class="pt-2 flex flex-col gap-10">
