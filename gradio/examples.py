@@ -99,25 +99,44 @@ class Examples:
                 "list, where each sublist represents a set of inputs."
             )
 
-        dataset = Dataset(
-            components=inputs,
-            samples=examples,
-            type="index",
-        )
+        input_has_examples = [False] * len(inputs)
+        for example in examples:
+            for idx, example_for_input in enumerate(example):
+                if not (example_for_input is None):
+                    try:
+                        input_has_examples[idx] = True
+                    except IndexError:
+                        pass  # If there are more example components than inputs, ignore. This can sometimes be intentional (e.g. loading from a log file where outputs and timestamps are also logged)
+
+        inputs_with_examples = [
+            inp for (inp, keep) in zip(inputs, input_has_examples) if keep
+        ]
+        non_none_examples = [
+            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
+            for example in examples
+        ]
 
         self.examples = examples
+        self.non_none_examples = non_none_examples
         self.inputs = inputs
+        self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs
         self.fn = fn
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
 
+        dataset = Dataset(
+            components=inputs_with_examples,
+            samples=non_none_examples,
+            type="index",
+        )
+
         self.processed_examples = [
             [
                 component.preprocess_example(sample)
-                for component, sample in zip(inputs, example)
+                for component, sample in zip(inputs_with_examples, example)
             ]
-            for example in examples
+            for example in non_none_examples
         ]
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
@@ -137,7 +156,7 @@ class Examples:
         dataset.click(
             load_example,
             inputs=[dataset],
-            outputs=inputs + (outputs if cache_examples else []),
+            outputs=inputs_with_examples + (outputs if cache_examples else []),
             _postprocess=False,
             queue=False,
         )
