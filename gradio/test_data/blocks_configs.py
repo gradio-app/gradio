@@ -42,7 +42,7 @@ XRAY_CONFIG = {
                 "label": "X-ray",
                 "visible": True,
                 "style": {},
-                "id": None,
+                ,
             },
         },
         {
@@ -87,7 +87,7 @@ XRAY_CONFIG = {
                 "label": "CT Scan",
                 "visible": True,
                 "style": {},
-                "id": None,
+                ,
             },
         },
         {
@@ -245,7 +245,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "label": "X-ray",
                 "visible": True,
                 "style": {},
-                "id": None,
+                ,
             },
         },
         {
@@ -295,7 +295,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "label": "CT Scan",
                 "visible": True,
                 "style": {},
-                "id": None,
+                ,
             },
         },
         {
@@ -456,7 +456,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "label": "X-ray",
                 "style": {},
                 "value": True,
-                "id": None,
+                ,
             },
         },
         {
@@ -503,7 +503,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "label": "CT Scan",
                 "style": {},
                 "value": True,
-                "id": None,
+                ,
             },
         },
         {

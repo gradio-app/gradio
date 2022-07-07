@@ -43,6 +43,7 @@
 	}
 
 	$: selected !== null && change_tab(selected);
+	$: console.log(selected);
 </script>
 
 <div class="tabs flex flex-col my-4" id={elem_id}>
