@@ -197,6 +197,8 @@ def update(**kwargs) -> dict:
     """
     Updates component parameters.
 
+    This is a shorthand for using the `update`
+
     Example:
         import gradio as gr
         with gr.Blocks() as demo:
@@ -204,6 +206,8 @@ def update(**kwargs) -> dict:
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
+
+    Demos: blocks_update, blocks_essay_gr_update
     """
     kwargs["__type__"] = "generic_update"
     return kwargs

@@ -129,7 +129,11 @@ class Tabs(BlockContext):
     def __init__(self, selected: Optional[int | str] = None, **kwargs):
         """
         Parameters:
+<<<<<<< HEAD
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+=======
+            selected: The currently selected tab. Must correspdong to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+>>>>>>> af8fec75 (Fix documentation tests)
         """
         super().__init__(**kwargs)
         self.selected = selected
@@ -165,7 +169,11 @@ class TabItem(BlockContext):
     def __init__(self, label: str, id: Optional[int | str] = None, **kwargs):
         """
         Parameters:
+<<<<<<< HEAD
             label: The visual label for the tab
+=======
+            label: The visual label for the tab.
+>>>>>>> af8fec75 (Fix documentation tests)
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
         """
         super().__init__(**kwargs)
