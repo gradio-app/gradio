@@ -231,6 +231,8 @@
         let shadowroot = g.shadowRoot;
         let f = shadowroot.querySelector('footer');
         f.classList.add('hidden');
+        let c = shadowroot.querySelector('.gradio-container');
+        c.style.min-height = null;
       }
     );
 
