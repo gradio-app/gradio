@@ -5,6 +5,9 @@ orbs:
 
 jobs:
   build:
+    parameters:
+      test-type:
+        type: string
     environment:
       NODE_OPTIONS: --max-old-space-size=4096
     docker:
