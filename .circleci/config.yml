@@ -3,15 +3,6 @@ orbs:
   codecov: codecov/codecov@3.2.2
   node: circleci/node@5.0.2
 
-workflows:
-  backend:
-    jobs:
-      - build:
-          matrix:
-            parameters:
-              test-type: ["not flaky", "flaky"]
-
-
 jobs:
   build:
     environment:
@@ -79,3 +70,11 @@ jobs:
           destination: screenshots
       - store_test_results:
           path: test-reports/
+
+workflows:
+  backend:
+    jobs:
+      - build:
+          matrix:
+            parameters:
+              test-type: ["not flaky", "flaky"]
