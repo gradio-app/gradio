@@ -21,6 +21,19 @@ We can see the `examples` parameter in action in this calculator demo:
 $code_calculator
 $demo_calculator
 
+If your interface only has one input component, then you can provide your examples as a regular list instead of a list of lists.
+
+You can also specify a path to a directory containing your examples. In the case of multiple inputs, this directory must
+contain a log.csv file with the example values.
+In the context of the calculator demo, we can change `examples` to be `examples=/demo/calculator/examples` and in that directory we include the following `log.csv` file:
+```csv
+num,operation,num2
+5,"add",3
+4,"divide",2
+5,"multiply",3
+```
+
+
 ## Adding examples to a Blocks app
 
 In order to add examples to an app written with the Blocks API, you need to use the `gr.Examples` component helper.
@@ -41,8 +54,9 @@ So if you know how this example works you also know how the Interface examples w
 
 Both `gr.Examples` and `Interface` have a `cache_examples` parameter.
 The default in the previous demos is to not cache examples, but if `cache_examples=True`, the `gr.Examples` component will
-run all of your examples through your app and save the outputs during start up.
-Whenever someone clicks on an example, the output will automatically be populated in the app. 
+run all of your examples through your app and save the outputs when you call the `launch()` method.
+Whenever someone clicks on an example, the output will automatically be populated in the app.
+This is useful especially when your model can take a while to run!  
 
 We can see this in the following demo.
 It's the same as the previous calculator with only the changes needed to cache examples.

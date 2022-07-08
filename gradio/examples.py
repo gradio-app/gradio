@@ -24,7 +24,7 @@ set_documentation_group("component-helpers")
 @document("cache_interface_examples", "load_from_cache", "process_example")
 class Examples:
     """
-    This class is a wrapper over the Dataset component can be used to create Examples
+    This class is a wrapper over the Dataset component and can be used to create Examples
     for Blocks / Interfaces. Populates the Dataset component with examples and
     assigns event listener so that clicking on an example populates the input/output
     components. Optionally handles example caching for fast inference.
@@ -188,7 +188,10 @@ class Examples:
                     raise e
 
     def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
-        """Loads an example from the interface and returns its prediction."""
+        """Loads an example from the interface and returns its prediction.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed).
+        """
         example_set = self.examples[example_id]
         raw_input = [
             self.inputs[i].preprocess_example(example)
@@ -211,7 +214,10 @@ class Examples:
         return processed_output
 
     def load_from_cache(self, example_id: int) -> List[Any]:
-        """Loads a particular cached example for the interface."""
+        """Loads a particular cached example for the interface.
+        Parameters:
+            example_id: The id of the example to process (zero-indexed).
+        """
         with open(self.cached_file) as cache:
             examples = list(csv.reader(cache, quotechar="'"))
         example = examples[example_id + 1]  # +1 to adjust for header
