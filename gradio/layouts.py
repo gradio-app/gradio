@@ -165,8 +165,8 @@ class TabItem(BlockContext):
     def __init__(self, label: str, id: Optional[int | str] = None, **kwargs):
         """
         Parameters:
-        label (str): The visual label for the tab
-        id: (Optional[int | str]): An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
+            label: The visual label for the tab
+            id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
         """
         super().__init__(**kwargs)
         self.label = label

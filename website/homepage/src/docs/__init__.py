@@ -61,8 +61,9 @@ def add_supported_events():
 add_supported_events()
 
 def add_guides():
-    for component in docs["component"]:
-        component["guides"] = [guide for guide in guides if component["name"].lower() in guide["docs"]]
+    for mode in docs:
+        for obj in docs[mode]:
+            obj["guides"] = [guide for guide in guides if obj["name"].lower() in guide["docs"]]
 
 add_guides()
 
