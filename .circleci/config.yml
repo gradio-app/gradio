@@ -77,7 +77,7 @@ jobs:
 workflows:
   backend:
     jobs:
-      - build:
+      - test:
           matrix:
             parameters:
               test-type: ["not flaky", "flaky"]
