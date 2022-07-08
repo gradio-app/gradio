@@ -63,7 +63,7 @@
 		<ModifyUpload on:clear={handle_clear} absolute />
 		{#if Array.isArray(value)}
 			{#each value as file}
-				<div class="flex flex-row">
+				<div class="flex flex-row w-1/2 justify-between">
 					<div class="file-name p-2">
 						{display_file_name(file)}
 					</div>
