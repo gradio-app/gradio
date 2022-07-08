@@ -16,7 +16,7 @@ astunparse==1.6.3
     # via tensorflow
 asyncio==3.4.3
     # via -r requirements.in
-atomicwrites==1.4.0
+atomicwrites==1.4.1
     # via pytest
 attrs==21.4.0
     # via
