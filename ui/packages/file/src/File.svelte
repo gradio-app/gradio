@@ -15,7 +15,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
-	
+
 {#if value}
 	<div
 		class="file-preview overflow-y-scroll w-full max-h-60 flex flex-col justify-between mt-7 mb-7 dark:text-slate-200"
@@ -33,7 +33,8 @@
 						<a
 							href={download_files(file)}
 							download
-							class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+							class="text-indigo-600 hover:underline dark:text-indigo-300"
+							>Download</a
 						>
 					</div>
 				</div>
@@ -50,7 +51,8 @@
 					<a
 						href={download_files(value)}
 						download
-						class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+						class="text-indigo-600 hover:underline dark:text-indigo-300"
+						>Download</a
 					>
 				</div>
 			</div>

@@ -74,7 +74,8 @@
 						<a
 							href={download_files(file)}
 							download
-							class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+							class="text-indigo-600 hover:underline dark:text-indigo-300"
+							>Download</a
 						>
 					</div>
 				</div>
@@ -91,7 +92,8 @@
 					<a
 						href={download_files(value)}
 						download
-						class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
+						class="text-indigo-600 hover:underline dark:text-indigo-300"
+						>Download</a
 					>
 				</div>
 			</div>
