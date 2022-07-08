@@ -56,14 +56,14 @@ class TestLoadInterface(unittest.TestCase):
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
-    # def test_translation(self):
-    #     model_type = "translation"
-    #     interface = gr.Interface.load(
-    #         "models/facebook/bart-large-cnn", api_key=None, alias=model_type
-    #     )
-    #     self.assertEqual(interface.__name__, model_type)
-    #     self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
-    #     self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
+    def test_translation(self):
+        model_type = "translation"
+        interface = gr.Interface.load(
+            "models/facebook/bart-large-cnn", api_key=None, alias=model_type
+        )
+        self.assertEqual(interface.__name__, model_type)
+        self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
+        self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
     def test_text2text_generation(self):
         model_type = "text2text-generation"
