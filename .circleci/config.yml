@@ -2,6 +2,16 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.2
   node: circleci/node@5.0.2
+
+workflows:
+  backend:
+    jobs:
+      - build:
+          matrix:
+            parameters:
+              test-type: ["not flaky", "flaky"]
+
+
 jobs:
   build:
     environment:
@@ -60,7 +70,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest
+            coverage run -m pytest -m <<<< parameters.test-type >>
             coverage xml
       - codecov/upload:
           file: "coverage.xml"
