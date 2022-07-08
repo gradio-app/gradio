@@ -22,30 +22,27 @@ time_to_up = {}
 def launch_demo(demo_folder):
     subprocess.check_call([f"cd {demo_folder} && python run2.py"], shell=True)
 
-
-component_launch_code = """import gradio as gr
-with gr.Blocks() as demo:
-     component = gr.{component_name}()
-demo.launch()"""
+SUFFIX = "_component"
+COMPONENTS_DEMOS_FOLDER = os.path.join(GRADIO_DEMO_DIR, 'components_demos')
 start_launch_time = time.time()
 for demo_name, port in demo_port_sets:
-    demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
-    demo_file = os.path.join(demo_folder, "run.py")
-    demo_2_file = os.path.join(demo_folder, "run2.py")
-    if demo_name.endswith("_component"):
-        if os.path.exists(demo_file):
-            demo_file = os.path.join(demo_folder, "run.py")
-            with open(demo_file, "r") as file:
-                filedata = file.read()
-            assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
-        else:
-            os.mkdir(demo_folder)
-            filedata = component_launch_code.format(component_name=demo_name[:-10])
+    if demo_name.endswith(SUFFIX):
+        demo_folder = COMPONENTS_DEMOS_FOLDER
+        demo_file = os.path.join(demo_folder, "run.py")
+        component_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+        os.mkdir(component_folder)
+        demo_2_file = os.path.join(component_folder, "run2.py")
+        with open(demo_file, "r") as file:
+            filedata = file.read()
+        filedata += f"\n{demo_name[:-len(SUFFIX)]}_demo.launch(server_port={port}, _frontend=False)"
     else:
+        demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+        demo_file = os.path.join(demo_folder, "run.py")
+        demo_2_file = os.path.join(demo_folder, "run2.py")
         with open(demo_file, "r") as file:
             filedata = file.read()
         assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata
-    filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port}, _frontend=False)")
+        filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port}, _frontend=False)")
     with open(demo_2_file, "w") as file:
         file.write(filedata)
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
