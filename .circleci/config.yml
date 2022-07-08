@@ -64,7 +64,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest -m << parameters.test-type >>
+            coverage run -m pytest -m "<< parameters.test-type >>"
             coverage xml
       - codecov/upload:
           file: "coverage.xml"
