@@ -48,6 +48,9 @@
   {% if is_component %}
   <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
   <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  {% if "examples" in obj["tags"]  %}
+  <p class="text-lg text-gray-500">Format expected for examples: <em>{{ obj["tags"]["examples"] }}</em></p>
+  {% endif %}
   <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
   {% endif %}
   
