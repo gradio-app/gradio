@@ -120,7 +120,6 @@
       <div class="ml-12">
     </div>
   {% endif %}
-  {% if is_component %}
    <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
       {% if obj["guides"] %}
         <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -135,5 +134,4 @@
       {% else %}
         <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
       {% endif %}
-  {% endif %}
 </div>

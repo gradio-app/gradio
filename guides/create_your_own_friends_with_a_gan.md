@@ -2,7 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/NimaBoscarino/cryptopunks, https://huggingface.co/spaces/nateraw/cryptopunks-generator
 Tags: GAN, IMAGE, HUB
-Docs: slider, image
+Docs: slider, image, examples
 
 Contributed by <a href="https://huggingface.co/NimaBoscarino">Nima Boscarino</a> and <a href="https://huggingface.co/nateraw">Nate Raw</a>
 
