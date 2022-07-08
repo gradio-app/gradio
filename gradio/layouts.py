@@ -129,8 +129,7 @@ class Tabs(BlockContext):
     def __init__(self, selected: Optional[int | str] = None, **kwargs):
         """
         Parameters:
-        label (str): The visual label for the tab
-        selected: (Optional[int | str]): The currently selected tab. Must correspdong to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+            selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
         """
         super().__init__(**kwargs)
         self.selected = selected
