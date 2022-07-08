@@ -4,7 +4,7 @@ orbs:
   node: circleci/node@5.0.2
 
 jobs:
-  build:
+  test:
     parameters:
       test-type:
         type: string
