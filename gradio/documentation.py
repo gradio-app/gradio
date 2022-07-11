@@ -57,7 +57,9 @@ def document_fn(fn):
     description_doc = " ".join(description)
     parameter_docs = []
     for param_name, param in signature.parameters.items():
-        if param_name.startswith("_") or param_name == "kwargs":
+        if param_name.startswith("_"):
+            continue
+        if param_name == "kwargs" and param_name not in parameters:
             continue
         parameter_doc = {
             "name": param_name,
@@ -128,7 +130,8 @@ def generate_documentation():
     for mode, class_list in classes_to_document.items():
         documentation[mode] = []
         for cls, fns in class_list:
-            _, parameter_doc, return_doc, _ = document_fn(cls.__init__)
+            fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
+            _, parameter_doc, return_doc, _ = document_fn(fn_to_document)
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,
