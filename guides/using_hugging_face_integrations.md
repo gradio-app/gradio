@@ -2,6 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder, https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
 Tags: HUB, SPACES, EMBED
+Docs: examples
 
 Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 and <a href="https://huggingface.co/farukozderim">Ömer Faruk Özdemir</a>
 
