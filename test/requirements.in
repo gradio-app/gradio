@@ -4,9 +4,8 @@ IPython
 comet_ml
 coverage
 mlflow
-tensorflow
+torch
 transformers
-selenium==4.0.0a6.post2
 scikit-image
 shap
 pytest
@@ -17,6 +16,5 @@ pytest-asyncio
 black
 isort
 flake8
-torch
 httpx
 pydantic
