@@ -63,14 +63,14 @@
 		<ModifyUpload on:clear={handle_clear} absolute />
 		{#if Array.isArray(value)}
 			{#each value as file}
-				<div class="flex flex-row w-1/2 justify-between">
-					<div class="file-name p-2">
+				<div class="flex flex-row w-full justify-between">
+					<div class="file-name w-5/12 p-2">
 						{display_file_name(file)}
 					</div>
-					<div class="file-size  p-2">
+					<div class="file-size w-3/12 p-2">
 						{display_file_size(file)}
 					</div>
-					<div class="file-size p-2 hover:underline">
+					<div class="file-size w-3/12 p-2 hover:underline">
 						<a
 							href={download_files(file)}
 							download
