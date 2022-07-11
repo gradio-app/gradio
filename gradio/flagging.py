@@ -277,10 +277,10 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
+        self.repo.git_pull(lfs=True)
+        
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
-
-        self.repo.git_pull(lfs=True)
 
         with open(self.log_file, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
