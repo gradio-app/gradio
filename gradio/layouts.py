@@ -126,6 +126,25 @@ class Tabs(BlockContext):
                     gr.Button("New Tiger")
     """
 
+    def __init__(self, selected: Optional[int | str] = None, **kwargs):
+        """
+        Parameters:
+            selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+        """
+        super().__init__(**kwargs)
+        self.selected = selected
+
+    def get_config(self):
+        return {"selected": self.selected, **super().get_config()}
+
+    def update(
+        selected: Optional[int | str] = None,
+    ):
+        return {
+            "selected": selected,
+            "__type__": "update",
+        }
+
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -143,12 +162,18 @@ class TabItem(BlockContext):
     components defined within the TabItem will be rendered within a tab.
     """
 
-    def __init__(self, label, **kwargs):
+    def __init__(self, label: str, id: Optional[int | str] = None, **kwargs):
+        """
+        Parameters:
+            label: The visual label for the tab
+            id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
+        """
         super().__init__(**kwargs)
         self.label = label
+        self.id = id
 
     def get_config(self):
-        return {"label": self.label, **super().get_config()}
+        return {"label": self.label, "id": self.id, **super().get_config()}
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """

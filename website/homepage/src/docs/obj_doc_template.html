@@ -118,14 +118,14 @@
     <h4 class="mt-4 p-3 font-semibold">Methods</h4>
       <div class="flex flex-col gap-8 pl-12">
         {% for fn in obj["fns"] %}
-          {% with obj=fn, parent=parent + "." + obj["name"] %}
+          {% with obj=fn, is_class=False, parent=parent + "." + obj["name"] %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
         {% endfor %}
       <div class="ml-12">
     </div>
   {% endif %}
-  {% if is_component %}
+  {% if is_class %}
    <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
       {% if obj["guides"] %}
         <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
