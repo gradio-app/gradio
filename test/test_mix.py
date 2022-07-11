@@ -1,6 +1,8 @@
 import os
 import unittest
 
+import pytest
+
 import gradio as gr
 from gradio import mix
 from gradio.external import TooManyRequestsError
@@ -20,6 +22,7 @@ class TestSeries(unittest.TestCase):
         series = mix.Series(io1, io2)
         self.assertEqual(series.process(["Hello"]), ["Hello World!"])
 
+    @pytest.mark.flaky
     def test_with_external(self):
         io1 = gr.Interface.load("spaces/abidlabs/image-identity")
         io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
@@ -50,6 +53,7 @@ class TestParallel(unittest.TestCase):
             parallel.process(["Hello"]), ["Hello", "HelloHello", "Hello World 2!"]
         )
 
+    @pytest.mark.flaky
     def test_with_external(self):
         io1 = gr.Interface.load("spaces/abidlabs/english_to_spanish")
         io2 = gr.Interface.load("spaces/abidlabs/english2german")

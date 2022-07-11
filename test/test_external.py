@@ -1,7 +1,7 @@
 import os
-import pathlib
 import unittest
 
+import pytest
 import transformers
 
 import gradio as gr
@@ -17,6 +17,9 @@ included in a separate file because of the above-mentioned dependency.
 """
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
+# Mark the whole module as flaky
+pytestmark = pytest.mark.flaky
 
 
 class TestLoadInterface(unittest.TestCase):
