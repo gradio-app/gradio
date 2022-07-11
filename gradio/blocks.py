@@ -164,8 +164,8 @@ class BlockContext(Block):
     ):
         """
         Parameters:
-            visible: TODO: @abidlabs
-            render: TODO: @abidlabs
+            visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
+            render: If False, this will not be included in the Blocks config file at all.
         """
         self.children = []
         super().__init__(visible=visible, render=render, **kwargs)
