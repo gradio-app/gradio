@@ -49,10 +49,10 @@
               {% with obj=find_cls("TabbedInterface"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
-              {% with obj=find_cls("Parallel"), parent="gradio" %}
+              {% with obj=find_cls("Parallel"), is_class=True, parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
-              {% with obj=find_cls("Series"), parent="gradio" %}
+              {% with obj=find_cls("Series"), is_class=True, parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
