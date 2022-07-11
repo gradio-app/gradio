@@ -278,7 +278,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         username: Optional[str] = None,
     ) -> int:
         self.repo.git_pull(lfs=True)
-        
+
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
 
