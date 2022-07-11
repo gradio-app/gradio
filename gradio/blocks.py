@@ -162,6 +162,11 @@ class BlockContext(Block):
         render: bool = True,
         **kwargs,
     ):
+        """
+        Parameters:
+            visible: TODO: @abidlabs
+            render: TODO: @abidlabs
+        """
         self.children = []
         super().__init__(visible=visible, render=render, **kwargs)
 
