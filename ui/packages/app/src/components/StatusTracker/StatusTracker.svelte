@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
+	import { _ } from "svelte-i18n";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -139,10 +140,10 @@
 		<Loader />
 
 		{#if !timer}
-			<p class="timer">Loading...</p>
+			<p class="timer">{$_("interface.loading")}</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">ERROR</span>
+		<span class="error">{$_("interface.error")}</span>
 	{/if}
 </div>
 
