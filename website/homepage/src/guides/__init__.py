@@ -126,6 +126,9 @@ def build_gallery(output_dir, jinja_env):
     output_file = os.path.join(output_folder, "index.html")
     with open(output_file, "w") as index_html:
         index_html.write(output)
+    output_file = os.path.join(output_dir, "guides.html")
+    with open(output_file, "w") as index_html:
+        index_html.write(output)
 
 def build(output_dir, jinja_env):
     build_guides(output_dir, jinja_env)
