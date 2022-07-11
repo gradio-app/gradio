@@ -72,6 +72,8 @@ def document_fn(fn):
             if type(default) == str:
                 default = '"' + default + '"'
             parameter_doc["default"] = default
+        elif parameter_doc["doc"] is not None and "kwargs" in parameter_doc["doc"]:
+            parameter_doc["kwargs"] = True
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
