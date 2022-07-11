@@ -53,7 +53,7 @@
 	afterUpdate(() => {
 		if (value && value["type"] == "plotly") {
 			let plotObj = JSON.parse(value["plot"]);
-			Plotly.newPlot(plotDiv, plotObj["data"], plotObj["layout"]);
+			Plotly.react(plotDiv, plotObj);
 		} else if (value && value["type"] == "bokeh") {
 			document.getElementById("bokehDiv").innerHTML = "";
 			let plotObj = JSON.parse(value["plot"]);
