@@ -2647,7 +2647,7 @@ class Timeseries(Changeable, IOComponent):
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
     Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
-    Examples: Filepath of csv data with  time series.
+    Examples: Filepath of csv data with time series.
     Demos: fraud_detector
     """
 
@@ -2889,6 +2889,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Examples: A string with a hexadecimal representation of a color.
     Demos: color_picker
     """
 
