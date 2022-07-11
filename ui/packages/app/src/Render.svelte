@@ -91,6 +91,12 @@
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
 
 	setContext("BLOCK_KEY", parent);
+
+	function handle_prop_change(e: { detail: Record<string, any> }) {
+		for (const k in e.detail) {
+			instance_map[id].props[k] = e.detail[k];
+		}
+	}
 </script>
 
 <svelte:component
@@ -98,6 +104,7 @@
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
 	elem_id={props.elem_id || id}
+	on:prop_change={handle_prop_change}
 	{...props}
 	{root}
 >
