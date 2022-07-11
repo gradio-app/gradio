@@ -1049,7 +1049,7 @@ class TestDataframe(unittest.TestCase):
         )
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output[1][1], 24)
+        self.assertEqual(output.iloc[1]["Age"], 24)
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
@@ -1129,7 +1129,7 @@ class TestDataframe(unittest.TestCase):
         x_data = {"data": [["Tim"], ["Jon"], ["Sal"]]}
 
         def get_last(my_list):
-            return my_list[-1]
+            return my_list[-1][-1]
 
         iface = gr.Interface(get_last, "list", "text")
         self.assertEqual(iface.process([x_data]), ["Sal"])
@@ -1143,8 +1143,9 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
+        print(iface.process([{"data": [[2, 3, 4]]}]))
         self.assertEqual(
-            iface.process({"data": [[2, 3, 4]]}), {"data": [[True, False, True]]}
+            iface.process([{"data": [[2, 3, 4]]}])[0], {"data": [[True, False, True]]}
         )
 
 
@@ -1592,6 +1593,7 @@ class TestJSON(unittest.TestCase):
         """
 
         def get_avg_age_per_gender(data):
+            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -1611,7 +1613,8 @@ class TestJSON(unittest.TestCase):
             ["F", 30],
         ]
         self.assertDictEqual(
-            iface.process({"data": [y_data]}), {"M": 35, "F": 25, "O": 20}
+            iface.process([{"data": y_data, "headers": ["gender", "age"]}])[0],
+            {"M": 35, "F": 25, "O": 20},
         )
 
 

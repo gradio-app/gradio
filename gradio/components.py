@@ -2537,8 +2537,6 @@ class Dataframe(Changeable, IOComponent):
                 return pd.DataFrame(x["data"], columns=x.get("headers"))
             else:
                 return pd.DataFrame(x["data"])
-        # if len(x["data"][0]) == 1:
-        #     x["data"] = [row[0] for row in x["data"]]
         if self.type == "numpy":
             return np.array(x["data"])
         elif self.type == "array":
@@ -2589,8 +2587,6 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
-            if len(y) == 0 or not isinstance(y[0], list):
-                y = [y]
             return {
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
