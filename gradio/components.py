@@ -284,6 +284,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
+    Examples-format: {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
     """
@@ -480,7 +481,7 @@ class Number(Changeable, Submittable, IOComponent):
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
-    Examples: Float or int representing value.
+    Examples-format: {float} or {int} representing value.
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
@@ -665,7 +666,7 @@ class Slider(Changeable, IOComponent):
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
-    Examples: Float or int representing slider value.
+    Examples-format: {float} or {int} representing slider value.
 
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -828,7 +829,7 @@ class Checkbox(Changeable, IOComponent):
 
     Preprocessing: passes the status of the checkbox as a {bool} into the function.
     Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
-    Examples: Boolean representing whether box is checked.
+    Examples-format: {bool} representing whether box is checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -951,7 +952,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
-    Examples: List of strings representing values to be checked.
+    Examples-format: {List[str]} representing values to be checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -1122,7 +1123,7 @@ class Radio(Changeable, IOComponent):
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
-    Examples: String representing radio option to select.
+    Examples-format: {str} representing radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
@@ -1274,7 +1275,7 @@ class Dropdown(Radio):
     Creates a dropdown of which only one entry can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-    Examples: String representing drop down value to select.
+    Examples-format: {str} representing drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -1332,7 +1333,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
-    Examples: Filepath of image.
+    Examples-format: {str} filepath to an image.
     Demos: image_mod
     """
 
@@ -1702,7 +1703,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
-    Examples: Filepath of video.
+    Examples-format: {str) filepath to a video.
     Demos: video_identity
     """
 
@@ -1881,7 +1882,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
-    Examples: Filepath of audio.
+    Examples-format: {str} filepath of audio.
     Demos: main_note, generate_tone, reverse_audio
     """
 
@@ -2202,7 +2203,7 @@ class File(Changeable, Clearable, IOComponent):
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples: Filepath.
+    Examples-format: {str} Filepath.
     Demos: zip_to_json, zip_two_files
     """
 
@@ -2647,7 +2648,7 @@ class Timeseries(Changeable, IOComponent):
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
     Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
-    Examples: Filepath of csv data with time series.
+    Examples-format: {str} Filepath of csv data with time series.
     Demos: fraud_detector
     """
 
@@ -2889,7 +2890,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
-    Examples: A string with a hexadecimal representation of a color.
+    Examples-format: {str} with a hexadecimal representation of a color.
     Demos: color_picker
     """
 
