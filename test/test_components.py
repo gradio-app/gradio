@@ -1049,7 +1049,7 @@ class TestDataframe(unittest.TestCase):
         )
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output.iloc[1]["Age"], 24)
+        self.assertEqual(output.iloc["Age"][1], 24)
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
@@ -1143,7 +1143,6 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        print(iface.process([{"data": [[2, 3, 4]]}]))
         self.assertEqual(
             iface.process([{"data": [[2, 3, 4]]}])[0], {"data": [[True, False, True]]}
         )
