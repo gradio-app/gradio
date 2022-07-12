@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 import matplotlib.figure
 import numpy as np
@@ -2394,7 +2394,11 @@ class File(Changeable, Clearable, IOComponent):
         )
 
 
-@document()
+class DataframeData(TypedDict):
+    headers: List[str]
+    data: List[List[str | int | bool]]
+
+
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2526,26 +2530,22 @@ class Dataframe(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(
-        self, x: List[List[str | Number | bool]]
-    ) -> pd.DataFrame | np.ndarray | List[List[str | float | bool]]:
+    def preprocess(self, x: DataframeData):
         """
         Parameters:
-            x: 2D array of str, numeric, or bool data
+        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
         Returns:
             Dataframe in requested format
         """
         if self.type == "pandas":
-            if self.headers:
-                return pd.DataFrame(x, columns=self.headers)
+            if x.get("headers") is not None:
+                return pd.DataFrame(x["data"], columns=x.get("headers"))
             else:
-                return pd.DataFrame(x)
-        if self.col_count[0] == 1:
-            x = [row[0] for row in x]
+                return pd.DataFrame(x["data"])
         if self.type == "numpy":
-            return np.array(x)
+            return np.array(x["data"])
         elif self.type == "array":
-            return x
+            return x["data"]
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2592,8 +2592,6 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
-            if len(y) == 0 or not isinstance(y[0], list):
-                y = [y]
             return {
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
