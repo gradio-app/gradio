@@ -57,6 +57,7 @@ def get_first_available_port(initial: int, final: int) -> int:
     for port in range(initial, final):
         try:
             s = socket.socket()  # create a socket object
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((LOCALHOST_NAME, port))  # Bind to the port
             s.close()
             return port
