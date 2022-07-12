@@ -1049,7 +1049,7 @@ class TestDataframe(unittest.TestCase):
         )
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output.iloc["Age"][1], 24)
+        self.assertEqual(output["Age"][1], 24)
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
