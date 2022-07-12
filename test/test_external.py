@@ -1,7 +1,7 @@
 import os
-import pathlib
 import unittest
 
+import pytest
 import transformers
 
 import gradio as gr
@@ -18,6 +18,9 @@ included in a separate file because of the above-mentioned dependency.
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
+# Mark the whole module as flaky
+pytestmark = pytest.mark.flaky
+
 
 class TestLoadInterface(unittest.TestCase):
     def test_audio_to_audio(self):
@@ -27,7 +30,7 @@ class TestLoadInterface(unittest.TestCase):
             src="models",
             alias=model_type,
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Audio)
         self.assertIsInstance(interface.output_components[0], gr.components.Audio)
 
@@ -36,14 +39,14 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Blocks.load(
             name="lysandre/tiny-vit-random", src="models", alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Image)
         self.assertIsInstance(interface.output_components[0], gr.components.Label)
 
     def test_text_generation(self):
         model_type = "text_generation"
         interface = gr.Interface.load("models/gpt2", alias=model_type)
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
@@ -52,7 +55,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/facebook/bart-large-cnn", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
@@ -61,7 +64,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/facebook/bart-large-cnn", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
@@ -70,7 +73,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/sshleifer/tiny-mbart", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
@@ -81,7 +84,7 @@ class TestLoadInterface(unittest.TestCase):
             api_key=None,
             alias=model_type,
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Label)
 
@@ -90,7 +93,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/bert-base-uncased", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Label)
 
@@ -99,7 +102,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/facebook/bart-large-mnli", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.input_components[1], gr.components.Textbox)
         self.assertIsInstance(interface.input_components[2], gr.components.Checkbox)
@@ -110,7 +113,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/facebook/wav2vec2-base-960h", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Audio)
         self.assertIsInstance(interface.output_components[0], gr.components.Textbox)
 
@@ -119,7 +122,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/google/vit-base-patch16-224", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Image)
         self.assertIsInstance(interface.output_components[0], gr.components.Label)
 
@@ -130,7 +133,7 @@ class TestLoadInterface(unittest.TestCase):
             api_key=None,
             alias=model_type,
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Dataframe)
 
@@ -141,7 +144,7 @@ class TestLoadInterface(unittest.TestCase):
             api_key=None,
             alias=model_type,
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Audio)
 
@@ -152,7 +155,7 @@ class TestLoadInterface(unittest.TestCase):
             api_key=None,
             alias=model_type,
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Audio)
 
@@ -161,7 +164,7 @@ class TestLoadInterface(unittest.TestCase):
         interface = gr.Interface.load(
             "models/osanseviero/BigGAN-deep-128", api_key=None, alias=model_type
         )
-        self.assertEqual(interface.predict[0].__name__, model_type)
+        self.assertEqual(interface.__name__, model_type)
         self.assertIsInstance(interface.input_components[0], gr.components.Textbox)
         self.assertIsInstance(interface.output_components[0], gr.components.Image)
 
@@ -173,7 +176,7 @@ class TestLoadInterface(unittest.TestCase):
     def test_sentiment_model(self):
         io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
-            output = io("I am happy, I love you.")
+            output = io("I am happy, I love you")
             self.assertGreater(output["POSITIVE"], 0.5)
         except TooManyRequestsError:
             pass

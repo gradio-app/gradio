@@ -117,3 +117,4 @@ function create_loading_status_store() {
 }
 
 export const loading_status = create_loading_status_store();
+export const app_state = writable({ autoscroll: false });

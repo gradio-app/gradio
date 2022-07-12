@@ -1,10 +1,10 @@
-## Developing Faster with Auto-Reloading
+# Developing Faster with Auto-Reloading
 
 **Prerequisite**: This Guide requires you to know about Blocks. Make sure to [read the Guide to Blocks first](/introduction_to_blocks).
 
 <span id="advanced-features"></span>
 
-### Why Auto-Reloading?
+## Why Auto-Reloading?
 
 When you are building a Gradio demo, particularly out of Blocks, you may find it cumbersome to keep re-running your code to test your changes. 
 
@@ -12,7 +12,7 @@ To make it faster and more convenient to write your code, we've made it easier t
 
 This short Guide will cover both of these methods, so no matter how you write Python, you'll leave knowing how to build Gradio apps faster.
 
-### Python IDE Reload 🔥
+## Python IDE Reload 🔥
 
 If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `app.py`) might looks something like this: 
 
@@ -54,7 +54,7 @@ The important part here is the line that says `Watching...` What's happening her
 
 As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
-### Jupyter Notebook Magic 🔮
+## Jupyter Notebook Magic 🔮
 
 What about if you use Jupyter Notebooks (or Colab Notebooks, etc.) to develop code? We got something for you too!
 
@@ -94,7 +94,7 @@ The Notebook Magic is now the author's preferred way of building Gradio demos. R
 
 --------
 
-### Next Steps
+## Next Steps
 
 Now that you know how to develop quickly using Gradio, start building your own! 
 

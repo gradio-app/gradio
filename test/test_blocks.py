@@ -85,8 +85,24 @@ class TestBlocks(unittest.TestCase):
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        config.pop("version")  # remove version key
         self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+
+    def test_load_from_config(self):
+        def update(name):
+            return f"Welcome to Gradio, {name}!"
+
+        with gr.Blocks() as demo1:
+            inp = gr.Textbox(placeholder="What is your name?")
+            out = gr.Textbox()
+
+            inp.submit(fn=update, inputs=inp, outputs=out, api_name="greet")
+
+            gr.Image().style(height=54, width=240)
+
+        config1 = demo1.get_config_file()
+        demo2 = gr.Blocks.from_config(config1, [update])
+        config2 = demo2.get_config_file()
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(config1, config2))
 
     @pytest.mark.asyncio
     async def test_async_function(self):

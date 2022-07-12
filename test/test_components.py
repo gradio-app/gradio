@@ -537,7 +537,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "value": "a",
+                "value": None,
                 "name": "radio",
                 "show_label": True,
                 "label": "Pick Your One Input",
@@ -610,6 +610,7 @@ class TestImage(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "mirror_webcam": True,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -843,7 +844,9 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(deepcopy(media_data.BASE64_AUDIO)).endswith(".wav")
+            audio_output.deserialize(
+                deepcopy(media_data.BASE64_AUDIO)["data"]
+            ).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
@@ -996,7 +999,10 @@ class TestDataframe(unittest.TestCase):
         """
         Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
         """
-        x_data = [["Tim", 12, False], ["Jan", 24, True]]
+        x_data = {
+            "data": [["Tim", 12, False], ["Jan", 24, True]],
+            "headers": ["Name", "Age", "Member"],
+        }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
         self.assertEqual(output["Age"][1], 24)
@@ -1020,7 +1026,7 @@ class TestDataframe(unittest.TestCase):
             dataframe_input.get_config(),
             {
                 "headers": ["Name", "Age", "Member"],
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [
@@ -1043,7 +1049,7 @@ class TestDataframe(unittest.TestCase):
         )
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output[1][1], 24)
+        self.assertEqual(output["Age"][1], 24)
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
@@ -1077,7 +1083,7 @@ class TestDataframe(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "datatype": "str",
+                "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": [
@@ -1117,13 +1123,13 @@ class TestDataframe(unittest.TestCase):
         """
         Interface, process,
         """
-        x_data = [[1, 2, 3], [4, 5, 6]]
+        x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
         self.assertEqual(iface.process([x_data]), [6])
-        x_data = [["Tim"], ["Jon"], ["Sal"]]
+        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]]}
 
         def get_last(my_list):
-            return my_list[-1]
+            return my_list[-1][-1]
 
         iface = gr.Interface(get_last, "list", "text")
         self.assertEqual(iface.process([x_data]), ["Sal"])
@@ -1137,7 +1143,9 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        self.assertEqual(iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]})
+        self.assertEqual(
+            iface.process([{"data": [[2, 3, 4]]}])[0], {"data": [[True, False, True]]}
+        )
 
 
 class TestVideo(unittest.TestCase):
@@ -1172,6 +1180,7 @@ class TestVideo(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "mirror_webcam": True,
             },
         )
         self.assertIsNone(video_input.preprocess(None))
@@ -1352,14 +1361,16 @@ class TestTimeseries(unittest.TestCase):
         """
         timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
         iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
-        df = pd.DataFrame(
-            {
-                "time": [1, 2, 3, 4],
-                "retail": [1, 2, 3, 2],
-                "food": [1, 2, 3, 2],
-                "other": [1, 2, 4, 2],
-            }
-        )
+        df = {
+            "data": pd.DataFrame(
+                {
+                    "time": [1, 2, 3, 4],
+                    "retail": [1, 2, 3, 2],
+                    "food": [1, 2, 3, 2],
+                    "other": [1, 2, 4, 2],
+                }
+            )
+        }
         self.assertEqual(
             iface.process([df]),
             [
@@ -1581,6 +1592,7 @@ class TestJSON(unittest.TestCase):
         """
 
         def get_avg_age_per_gender(data):
+            print(data)
             return {
                 "M": int(data[data["gender"] == "M"].mean()),
                 "F": int(data[data["gender"] == "F"].mean()),
@@ -1599,7 +1611,10 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        self.assertDictEqual(iface.process([y_data])[0], {"M": 35, "F": 25, "O": 20})
+        self.assertDictEqual(
+            iface.process([{"data": y_data, "headers": ["gender", "age"]}])[0],
+            {"M": 35, "F": 25, "O": 20},
+        )
 
 
 class TestHTML(unittest.TestCase):
@@ -1665,6 +1680,58 @@ class TestModel3D(unittest.TestCase):
             "data"
         ]
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
+
+
+class TestColorPicker(unittest.TestCase):
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        """
+        color_picker_input = gr.ColorPicker()
+        self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
+        self.assertEqual(color_picker_input.preprocess_example("#000000"), "#000000")
+        self.assertEqual(color_picker_input.postprocess(None), None)
+        self.assertEqual(color_picker_input.postprocess("#FFFFFF"), "#FFFFFF")
+        self.assertEqual(color_picker_input.serialize("#000000", True), "#000000")
+
+        color_picker_input.interpretation_replacement = "unknown"
+
+        self.assertEqual(
+            color_picker_input.get_config(),
+            {
+                "value": None,
+                "show_label": True,
+                "label": None,
+                "style": {},
+                "elem_id": None,
+                "visible": True,
+                "interactive": None,
+                "name": "colorpicker",
+            },
+        )
+        self.assertIsInstance(color_picker_input.generate_sample(), str)
+
+    def test_in_interface_as_input(self):
+        """
+        Interface, process, interpret,
+        """
+        iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
+        self.assertEqual(iface.process(["#000000"]), ["#000000"])
+
+    def test_in_interface_as_output(self):
+        """
+        Interface, process
+
+        """
+        iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
+        self.assertEqual(iface.process(["#000000"]), ["#000000"])
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.ColorPicker("#000000")
+        self.assertEqual(component.get_config().get("value"), "#000000")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 	import type { SvelteComponentTyped } from "svelte";
 	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
-	import { loading_status } from "./stores";
+	import { loading_status, app_state } from "./stores";
 	import type { LoadingStatus } from "./components/StatusTracker/types";
 
 	import { _ } from "svelte-i18n";
@@ -64,8 +64,10 @@
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
 	export let css: string;
-	export let is_space: boolean;
 	export let id: number = 0;
+	export let autoscroll: boolean = false;
+
+	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -116,11 +118,21 @@
 		const is_input = is_dep(id, "inputs", dependencies);
 		const is_output = is_dep(id, "outputs", dependencies);
 
-		if (!is_input && !is_output && !props.value) acc.add(id); // default dynamic
+		if (!is_input && !is_output && has_no_default_value(props.value))
+			acc.add(id); // default dynamic
 		if (is_input) acc.add(id);
 
 		return acc;
 	}, new Set());
+
+	function has_no_default_value(value: any) {
+		return (
+			(Array.isArray(value) && value.length === 0) ||
+			value === "" ||
+			value === 0 ||
+			!value
+		);
+	}
 
 	let instance_map = components.reduce((acc, next) => {
 		acc[next.id] = next;
@@ -170,16 +182,11 @@
 				ready = true;
 
 				await tick();
-
-				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__[id].$set({ status: "complete" });
-				}
+				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				if (window.__gradio_mode__ == "app") {
-					window.__gradio_loader__[id].$set({ status: "error" });
-				}
+				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 
@@ -286,7 +293,7 @@
 									if (
 										typeof value === "object" &&
 										value !== null &&
-										value.__type__ == "update"
+										value.__type__ === "update"
 									) {
 										for (const [update_key, update_value] of Object.entries(
 											value
@@ -338,6 +345,7 @@
 			let dependency = dependencies[loading_status.fn_index];
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.visible = dependency.show_progress;
+
 			set_prop(instance_map[id], "loading_status", loading_status);
 		}
 		const inputs_to_update = loading_status.get_inputs_to_update();
@@ -396,10 +404,10 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full h-full min-h-screen flex flex-col">
+<div class="w-full flex flex-col">
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={(window.__gradio_mode__ = "app")}
+		class:flex-grow={window.__gradio_mode__ === "app"}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />

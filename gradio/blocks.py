@@ -17,7 +17,10 @@ from anyio import CapacityLimiter
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
+from gradio.documentation import document, set_documentation_group
 from gradio.utils import component_or_layout_class, delete_none
+
+set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -207,6 +210,7 @@ def skip() -> dict:
     return update()
 
 
+@document()
 class Blocks(BlockContext):
     """
     The Blocks class is a low-level API that allows you to create custom web
@@ -219,6 +223,21 @@ class Blocks(BlockContext):
     The basic usage of Blocks is as follows: create a Blocks object, then use it as a
     context (with the "with" statement), and then define layouts, components, or events
     within the Blocks context. Finally, call the launch() method to launch the demo.
+    Example:
+        import gradio as gr
+        def update(name):
+            return f"Welcome to Gradio, {name}!"
+
+        with gr.Blocks() as demo:
+            gr.Markdown("Start typing below and then click **Run** to see the output.")
+            with gr.Row():
+                inp = gr.Textbox(placeholder="What is your name?")
+                out = gr.Textbox()
+            btn = gr.Button("Run")
+            btn.click(fn=update, inputs=inp, outputs=out)
+
+        demo.launch()
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length
     """
 
     def __init__(
@@ -226,14 +245,17 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        title: str = "Gradio",
         css: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        theme (str): which theme to use - right now, only "default" is supported.
-        analytics_enabled (bool | None): whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-        mode (str): a human-friendly name for the kind of Blocks interface being created.
+            theme: which theme to use - right now, only "default" is supported.
+            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            mode: a human-friendly name for the kind of Blocks interface being created.
+            title: The tab title to display when this is opened in a browser window.
+            css: custom css or path to custom css file to apply to entire Blocks
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
@@ -272,6 +294,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+        self.title = title
 
     @property
     def share(self):
@@ -288,6 +311,7 @@ class Blocks(BlockContext):
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
         """Factory method that creates a Blocks from a config and list of functions."""
+        config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
 
@@ -325,6 +349,7 @@ class Blocks(BlockContext):
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
+                dependency.pop("documentation", None)
                 dependency["inputs"] = [
                     original_mapping[i] for i in dependency["inputs"]
                 ]
@@ -566,11 +591,12 @@ class Blocks(BlockContext):
     def get_config_file(self):
         config = {
             "version": routes.VERSION,
-            "mode": "blocks",
+            "mode": self.mode,
             "dev_mode": self.dev_mode,
             "components": [],
             "theme": self.theme,
             "css": self.css,
+            "title": self.title or "Gradio",
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch
@@ -702,31 +728,37 @@ class Blocks(BlockContext):
         Launches a simple web server that serves the demo. Can also be used to create a
         shareable link.
         Parameters:
-        inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
-        inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool | None): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
-        debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
-        auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
-        auth_message (str | None): If provided, HTML message provided on login page.
-        prevent_thread_lock (bool): If True, the interface will block the main thread while the server is running.
-        show_error (bool): If True, any errors in the interface will be printed in the browser console log
-        server_port (int | None): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
-        server_name (str | None): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
-        show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (bool | None): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-        max_threads (int | None): allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
-        width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
-        height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
-        encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
-        favicon_path (str | None): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
-        ssl_keyfile (str | None): If a path to a file is provided, will use this as the private key file to create a local server running on https.
-        ssl_certfile (str | None): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
-        ssl_keyfile_password (str | None): If a password is provided, will use this with the ssl certificate for https.
-        quiet (bool): If True, suppresses most print statements.
+            inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
+            inbrowser: whether to automatically launch the interface in a new tab on the default browser.
+            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
+            debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
+            auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+            auth_message: If provided, HTML message provided on login page.
+            prevent_thread_lock: If True, the interface will block the main thread while the server is running.
+            show_error: If True, any errors in the interface will be printed in the browser console log
+            server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
+            server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
+            show_tips: if True, will occasionally show tips about new Gradio features
+            enable_queue: if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
+            width: The width in pixels of the iframe element containing the interface (used if inline=True)
+            height: The height in pixels of the iframe element containing the interface (used if inline=True)
+            encrypt: If True, flagged data will be encrypted by key provided by creator at launch
+            favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+            ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
+            ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+            ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+            quiet: If True, suppresses most print statements.
         Returns:
-        app (FastAPI): FastAPI app object that is running the demo
-        local_url (str): Locally accessible link to the demo
-        share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
+            app: FastAPI app object that is running the demo
+            local_url: Locally accessible link to the demo
+            share_url: Publicly accessible link to the demo (if share=True, otherwise None)
+        Example:
+            import gradio as gr
+            def reverse(text):
+                return text[::-1]
+            demo = gr.Interface(reverse, "text", "text")
+            demo.launch(share=True)
         """
         self.dev_mode = False
         if (

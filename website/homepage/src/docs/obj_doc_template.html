@@ -1,0 +1,142 @@
+<div class="obj" id="{{ obj['name'].lower() }}">
+  {% if obj['demos'] %}
+  <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
+    <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
+      <div class="flex">
+        {% for demo_name, _ in obj["demos"] %}
+        <button 
+          class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+          name="{{ demo_name }}"
+          onclick="show_demo('{{ obj['name'].lower() }}', '{{ demo_name }}')"
+
+        >{{ demo_name }}</button>
+        {% endfor %}
+      </div>
+      {% for demo_name, demo_code in obj["demos"] %}
+      <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
+        <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
+        <gradio-app src="/demo/{{ demo_name }}" />
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="flex flex-row items-center justify-between">
+    <h3 id="{{ obj['name'].lower() }}-header"
+        class="text-3xl font-light my-4">{{ obj['name'] }}</h3>
+    {% if obj['demos'] %}
+    <button 
+      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden')"
+    >
+      Try Examples
+    </button>
+    {% endif %}
+  </div>
+  {% if obj['override_signature'] %}
+  <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
+  {% else %}
+  <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
+-->{% for param in obj["parameters"] %}<!--
+  -->{% if "positional" in param["kind"] and "default" not in param %}<!--
+    -->{{ param["name"] }}, <!--
+  -->{% endif %}<!--
+-->{% endfor %}<!--  
+-->···<span>)</span></code></pre></div>
+  {% endif %}
+  <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
+  {% if is_component %}
+  <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  {% if "examples-format" in obj["tags"]  %}
+  <p class="text-lg text-gray-500">Format expected for examples: {{ obj["tags"]["examples-format"] }}</p>
+  {% endif %}
+  <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
+  {% endif %}
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      {% for param in obj["parameters"] %}
+        {% if param["name"] != "self" %}
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5">
+              <code class="block">
+                {{ param["name"] }}
+              </code>
+              <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
+              {% if "default" in param %}
+              <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
+              {% else %}
+              <p class="text-orange-600 font-semibold italic">required</p>
+              {% endif %}
+            </td>
+            <td class="p-3 text-gray-700">
+              <p>{{ param["doc"] or "" }}</p>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if is_component and obj["string_shortcuts"] %}
+  <table class="mb-4 table-fixed w-full mt-6">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Interface String Shortcut</th>
+        <th class="p-3 font-semibold">Initialization</th>
+      </tr>
+    </thead>
+    <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+    {% for shortcut, settings in obj["string_shortcuts"] %}
+        <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+          <td class="p-3 w-2/5">
+            <p>"{{ shortcut }}"</p>
+          </td>
+          <td class="p-3 text-gray-700">
+            {{ settings }}
+          </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if obj["example"] %}
+    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
+    <div class="codeblock">
+      <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
+    </div>
+  {% endif %}
+  {% if "fns" in obj and obj["fns"]|length %}
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
+      <div class="flex flex-col gap-8 pl-12">
+        {% for fn in obj["fns"] %}
+          {% with obj=fn, is_class=False, parent=parent + "." + obj["name"] %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        {% endfor %}
+      <div class="ml-12">
+    </div>
+  {% endif %}
+  {% if is_class %}
+   <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+      {% if obj["guides"] %}
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {% for guide in obj["guides"] %}
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/{{ guide.name }}">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
+      {% endif %}
+  {% endif %}
+</div>

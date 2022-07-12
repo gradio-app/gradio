@@ -1,8 +1,11 @@
-## Quickstart
+# Quickstart
+
+Pinned: 0
+Docs: examples
 
 **Prerequisite**: Gradio requires Python 3.7 or above, that's it! 
 
-### What Problem is Gradio Solving? 😲
+## What Problem is Gradio Solving? 😲
 
 One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive demo** that allows your users or colleagues to try out the demo in their browsers. 
 
@@ -12,7 +15,7 @@ However, creating such web-based demos has traditionally been difficult, as you 
 
 Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started. 
 
-### Hello, World ⚡
+## Hello, World ⚡
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
@@ -24,13 +27,13 @@ pip install gradio
 
 <span>2.</span> Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
 
-{{ code["hello_world"] }}
+$code_hello_world
 
 <span>3.</span> The demo below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
-{{ demos["hello_world"] }}
+$demo_hello_world
 
-### The `Interface` class 🧡
+## The `Interface` class 🧡
 
 You'll notice that in order to create the demo, we defined a `gradio.Interface` class. This `Interface` class can wrap almost any Python function with a  user interface. In the example above, we saw a simple text-based function. But the function could be anything from music generator to a tax calculator to (most commonly) the prediction function of a pretrained machine learning model.
 
@@ -42,63 +45,63 @@ The core `Interface` class is initialized with three required parameters:
 
 Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](https://gradio.app/docs))
 
-### Components Attributes 💻
+## Components Attributes 💻
 
 With these three arguments to `Interface`, you can quickly create user interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
 
 Let's say you want to customize the input text field - for example, you wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, you have access to much more customizability through component attributes.
 
-{{ code["hello_world_2"] }}
-{{ demos["hello_world_2"] }}
+$code_hello_world_2
+$demo_hello_world_2
 
  To see a list of all the components Gradio supports and what attributes you can use to customize them, check out the [Docs](https://gradio.app/docs).
 
-### Multiple Inputs and Outputs 🔥
+## Multiple Inputs and Outputs 🔥
 
 Let's say you had a much more complex function, with multiple inputs and outputs. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. Take a look how you pass a list of input and output components.
 
-{{ code["hello_world_3"] }}
-{{ demos["hello_world_3"] }}
+$code_hello_world_3
+$demo_hello_world_3
 
 You simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order. 
 
-### Images 🎨
+## Images 🎨
 
 Let's try an image-to-image function! When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
-{{ code["sepia_filter"] }}
-{{ demos["sepia_filter"] }}
+$code_sepia_filter
+$demo_sepia_filter
 
 Additionally, our  `Image`  input interface comes with an 'edit' button ✏️ which opens tools for cropping and zooming into images. We've found that manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!
 
 In addition to images, Gradio supports other media types, such as audio or video. Read about these in the [Docs](https://gradio.app/docs).
 
-### DataFrames and Graphs 📈
+## DataFrames and Graphs 📈
 
 You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 
-{{ code["sales_projections"] }}
-{{ demos["sales_projections"] }}
+$code_sales_projections
+$demo_sales_projections
 
-### Example Inputs 🦮
+## Example Inputs 🦮
 
 You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
-{{ code["calculator"] }}
-{{ demos["calculator"] }}
+$code_calculator
+$demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
-### Live Interfaces 🪁
+## Live Interfaces 🪁
 
 You can make interfaces automatically refresh by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input changes.
 
-{{ code["calculator_live"] }}
-{{ demos["calculator_live"] }}
+$code_calculator_live
+$demo_calculator_live
 
 Note there is no submit button, because the interface resubmits automatically on change.
 
-### Flagging 🚩
+## Flagging 🚩
 
 Underneath the output interfaces, there is a "Flag" button. When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
 
@@ -140,20 +143,20 @@ im/1.png,Output/1.png
 
 You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
-### Blocks: More Flexibility and Control 🧱
+## Blocks: More Flexibility and Control 🧱
 
 Gradio offers two APIs to users: (1) **Interface**, a high level abstraction for creating demos (that we've been discussing so far), and (2) **Blocks**, a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like: group together related demos, change where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction -- still all in Python. 
 
 As an example, Blocks uses nested `with` statements in Python to lay out components on a page, like this:
 
-{{ code["blocks_flipper"] }}
+$code_blocks_flipper
 
-{{ demos["blocks_flipper"] }}
+$demo_blocks_flipper
 
 
 If you are interested in how Blocks works, [read its dedicated Guide](https://gradio.app/introduction_to_blocks/).
 
-### Sharing Demos 🌎
+## Sharing Demos 🌎
 
 Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
@@ -167,17 +170,17 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see the next section.
 
-![Sharing diagram](/assets/img/sharing.svg)
+![Sharing diagram](/assets/guides/sharing.svg)
 
-### Hosting Gradio Demo on Spaces 🤗
+## Hosting Gradio Demo on Spaces 🤗
 
 If you'd like to have a permanent link to your Gradio demo on the internet, use Huggingface Spaces. Hugging Face Spaces provides the infrastructure to permanently host your machine learning model for free! 
 
 You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](/assets/img/hf_demo.gif)
+![Hosting Demo](/assets/guides/hf_demo.gif)
 
-### Next Steps
+## Next Steps
 
 Now that you're familiar with the basics of Gradio, here are some good next steps:
 

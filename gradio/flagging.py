@@ -125,11 +125,11 @@ class CSVLogger(FlaggingCallback):
 
         if flag_index is None:
             csv_data = []
-            for component, sample in zip(self.components, flag_data):
+            for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
                 csv_data.append(
                     component.save_flagged(
                         flagging_dir,
-                        component.label,
+                        component.label or f"component {idx}",
                         sample,
                         self.encryption_key,
                     )
@@ -140,7 +140,10 @@ class CSVLogger(FlaggingCallback):
             csv_data.append(username if username is not None else "")
             csv_data.append(str(datetime.datetime.now()))
             if is_new:
-                headers = [component.label for component in self.components] + [
+                headers = [
+                    component.label or f"component {idx}"
+                    for idx, component in enumerate(self.components)
+                ] + [
                     "flag",
                     "username",
                     "timestamp",
@@ -274,6 +277,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
+        self.repo.git_pull(lfs=True)
+
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
 

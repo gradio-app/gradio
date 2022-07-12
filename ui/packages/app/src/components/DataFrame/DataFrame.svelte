@@ -7,6 +7,7 @@
 
 	type Headers = Array<string>;
 	type Data = Array<Array<string | number>>;
+	type Datatype = "str" | "markdown" | "html" | "number" | "bool" | "date";
 
 	export let headers: Headers = [];
 	export let elem_id: string = "";
@@ -18,18 +19,7 @@
 	export let style: Styles = {};
 	export let label: string | null = null;
 	export let wrap: boolean;
-
-	$: {
-		if (value && !Array.isArray(value)) {
-			if (Array.isArray(value.headers)) headers = value.headers;
-			value =
-				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
-		} else if (value === null) {
-			value = [Array(headers.length).fill("")];
-		} else {
-			value = value;
-		}
-	}
+	export let datatype: Datatype | Array<Datatype>;
 
 	const dispatch = createEventDispatcher();
 
@@ -58,5 +48,6 @@
 		editable={mode === "dynamic"}
 		{style}
 		{wrap}
+		{datatype}
 	/>
 </div>

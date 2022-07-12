@@ -12,7 +12,7 @@
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}
 	class:rounded-lg={variant === "panel"}
-	class="flex flex-col gr-gap gr-form-gap relative col w-full {create_classes(
+	class="overflow-hidden flex flex-col gr-gap gr-form-gap relative col w-full {create_classes(
 		style
 	)}"
 >

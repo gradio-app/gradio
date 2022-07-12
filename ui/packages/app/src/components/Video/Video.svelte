@@ -17,6 +17,7 @@
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let style: Styles = {};
+	export let mirror_webcam: boolean;
 
 	export let mode: "static" | "dynamic";
 
@@ -50,6 +51,7 @@
 			drop_text={$_("interface.drop_video")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
+			{mirror_webcam}
 			on:change
 			on:clear
 			on:play

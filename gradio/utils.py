@@ -3,22 +3,26 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import inspect
 import json
 import json.decoder
 import os
+import pkgutil
 import random
-import sys
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from enum import Enum
+from importlib.metadata import version
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
 
 import aiohttp
 import analytics
 import fsspec.asyn
-import pkg_resources
+import httpx
 import requests
+from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
 
@@ -35,7 +39,9 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 def version_check():
     try:
-        current_pkg_version = pkg_resources.require("gradio")[0].version
+        current_pkg_version = (
+            pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
+        )
         latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
@@ -46,10 +52,6 @@ def version_check():
                 )
             )
             print("--------")
-    except pkg_resources.DistributionNotFound:
-        warnings.warn(
-            "gradio is not setup or installed properly. Unable to get version info."
-        )
     except json.decoder.JSONDecodeError:
         warnings.warn("unable to parse version details from package URL.")
     except KeyError:
@@ -192,10 +194,24 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
     ]
 
 
-def assert_configs_are_equivalent_besides_ids(config1, config2):
-    """Allows you to test if two different Blocks configs produce the same demo."""
-    assert config1["mode"] == config2["mode"], "Modes are different"
-    assert config1["theme"] == config2["theme"], "Themes are different"
+def assert_configs_are_equivalent_besides_ids(
+    config1: Dict, config2: Dict, root_keys: Tuple = ("mode", "theme")
+):
+    """Allows you to test if two different Blocks configs produce the same demo.
+
+    Parameters:
+    config1 (dict): nested dict with config from the first Blocks instance
+    config2 (dict): nested dict with config from the second Blocks instance
+    root_keys (Tuple): an interable consisting of which keys to test for equivalence at
+        the root level of the config. By default, only "mode" and "theme" are tested,
+        so keys like "version" are ignored.
+    """
+    config1 = copy.deepcopy(config1)
+    config2 = copy.deepcopy(config2)
+
+    for key in root_keys:
+        assert config1[key] == config2[key], f"Configs have different: {key}"
+
     assert len(config1["components"]) == len(
         config2["components"]
     ), "# of components are different"
@@ -207,13 +223,13 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
         mapping[c1["id"]] = c2["id"]
         c1.pop("id")
         c2.pop("id")
-        assert c1 == c2, "{} does not match {}".format(c1, c2)
+        assert c1 == c2, f"{c1} does not match {c2}"
 
     def same_children_recursive(children1, chidren2, mapping):
         for child1, child2 in zip(children1, chidren2):
-            assert mapping[child1["id"]] == child2["id"], "{} does not match {}".format(
-                child1, child2
-            )
+            assert (
+                mapping[child1["id"]] == child2["id"]
+            ), f"{child1} does not match {child2}"
             if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"], mapping)
 
@@ -222,13 +238,18 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
     same_children_recursive(children1, children2, mapping)
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
-        for t1, t2 in zip(d1["targets"], d2["targets"]):
-            assert mapping[t1] == t2, "{} does not match {}".format(d1, d2)
-        assert d1["trigger"] == d2["trigger"], "{} does not match {}".format(d1, d2)
-        for i1, i2 in zip(d1["inputs"], d2["inputs"]):
-            assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
-        for o1, o2 in zip(d1["outputs"], d2["outputs"]):
-            assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
+        for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
+            assert mapping[t1] == t2, f"{d1} does not match {d2}"
+        for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
+            assert mapping[i1] == i2, f"{d1} does not match {d2}"
+        for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
+            assert mapping[o1] == o2, f"{d1} does not match {d2}"
+
+        # status tracker is popped since we allow it to have different ids
+        d1.pop("status_tracker", None)
+        d2.pop("status_tracker", None)
+
+        assert d1 == d2, f"{d1} does not match {d2}"
 
     return True
 
@@ -346,3 +367,222 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     event_loop = asyncio.get_event_loop()
     _ = event_loop.create_task(func(*args, **kwargs))
+
+
+client = httpx.AsyncClient()
+
+
+class Request:
+    """
+    The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
+    Compared to making calls by using httpx directly, Request offers more flexibility and control over:
+        (1) Includes response validation functionality both using validation models and functions.
+        (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
+        (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
+        individually in the case of multiple asynchronous request calls and some of them failing.
+        (4) Provides HTTP request types with Request.Method Enum class for ease of usage
+    Request also offers some util functions such as has_exception, is_valid and status to inspect get detailed
+    information about executed request call.
+
+    The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
+    with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
+    Finally, call the get_validated_data function to get the response data.
+
+    You can see example usages in test_utils.py.
+    """
+
+    ResponseJson = NewType("ResponseJson", Json)
+
+    class Method(str, Enum):
+        """
+        Method is an enumeration class that contains possible types of HTTP request methods.
+        """
+
+        ANY = "*"
+        CONNECT = "CONNECT"
+        HEAD = "HEAD"
+        GET = "GET"
+        DELETE = "DELETE"
+        OPTIONS = "OPTIONS"
+        PATCH = "PATCH"
+        POST = "POST"
+        PUT = "PUT"
+        TRACE = "TRACE"
+
+    def __init__(
+        self,
+        method: Method,
+        url: str,
+        *,
+        validation_model: Type[BaseModel] = None,
+        validation_function: Callable = None,
+        exception_type: Type[Exception] = Exception,
+        raise_for_status: bool = False,
+        **kwargs,
+    ):
+        """
+        Initialize the Request instance.
+        Args:
+            method(Request.Method) : method of the request
+            url(str): url of the request
+            *
+            validation_model(Type[BaseModel]): a pydantic validation class type to use in validation of the response
+            validation_function(Callable): a callable instance to use in validation of the response
+            exception_class(Type[Exception]): a exception type to throw with its type
+            raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
+        """
+        self._response = None
+        self._exception = None
+        self._status = None
+        self._raise_for_status = raise_for_status
+        self._validation_model = validation_model
+        self._validation_function = validation_function
+        self._exception_type = exception_type
+        self._validated_data = None
+        # Create request
+        self._request = self._create_request(method, url, **kwargs)
+
+    def __await__(self) -> Generator[None, Any, "Request"]:
+        """
+        Wrap Request's __await__ magic function to create request calls which are executed in one line.
+        """
+        return self.__run().__await__()
+
+    async def __run(self) -> Request:
+        """
+        Manage the request call lifecycle.
+        Execute the request by sending it through the client, then check its status.
+        Then parse the request into Json format. And then validate it using the provided validation methods.
+        If a problem occurs in this sequential process,
+        an exception will be raised within the corresponding method, and allowed to be examined.
+        Manage the request call lifecycle.
+
+        Returns:
+            Request
+        """
+        try:
+            # Send the request and get the response.
+            self._response: httpx.Response = await client.send(self._request)
+            # Raise for _status
+            self._status = self._response.status_code
+            if self._raise_for_status:
+                self._response.raise_for_status()
+            # Parse client response data to JSON
+            self._json_response_data = self._response.json()
+            # Validate response data
+            self._validated_data = self._validate_response_data(
+                self._json_response_data
+            )
+        except Exception as exception:
+            # If there is an exception, store it to do further inspections.
+            self._exception = self._exception_type(exception)
+        return self
+
+    @staticmethod
+    def _create_request(method: Method, url: str, **kwargs) -> Request:
+        """
+        Create a request. This is a httpx request wrapper function.
+        Args:
+            method(Request.Method): request method type
+            url(str): target url of the request
+            **kwargs
+        Returns:
+            Request
+        """
+        request = httpx.Request(method, url, **kwargs)
+        return request
+
+    def _validate_response_data(self, response: ResponseJson) -> ResponseJson:
+        """
+        Validate response using given validation methods. If there is a validation method and response is not valid,
+        validation functions will raise an exception for them.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+
+        # We use raw response as a default value if there is no validation method or response is not valid.
+        validated_response = response
+
+        try:
+            # If a validation model is provided, validate response using the validation model.
+            if self._validation_model:
+                validated_response = self._validate_response_by_model(
+                    validated_response
+                )
+            # Then, If a validation function is provided, validate response using the validation function.
+            if self._validation_function:
+                validated_response = self._validate_response_by_validation_function(
+                    validated_response
+                )
+        except Exception as exception:
+            # If one of the validation methods does not confirm, raised exception will be silently handled.
+            # We assign this exception to classes instance to do further inspections via is_valid function.
+            self._exception = exception
+
+        return validated_response
+
+    def _validate_response_by_model(self, response: ResponseJson) -> ResponseJson:
+        """
+        Validate response json using the validation model.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+        validated_data = parse_obj_as(self._validation_model, response)
+        return validated_data
+
+    def _validate_response_by_validation_function(
+        self, response: ResponseJson
+    ) -> ResponseJson:
+        """
+        Validate response json using the validation function.
+        Args:
+            response(ResponseJson): response object
+        Returns:
+            ResponseJson: Validated Json object.
+        """
+        validated_data = self._validation_function(response)
+        return validated_data
+
+    def is_valid(self, raise_exceptions: bool = False) -> bool:
+        """
+        Check response object's validity+. Raise exceptions if raise_exceptions flag is True.
+        Args:
+            raise_exceptions(bool) : a flag to raise exceptions in this check
+        Returns:
+            bool: validity of the data
+        """
+        if self.has_exception:
+            if raise_exceptions:
+                raise self._exception
+            return False
+        else:
+            # If there is no exception, that means there is no validation error.
+            return True
+
+    def get_validated_data(self):
+        return self._validated_data
+
+    @property
+    def json(self):
+        return self._json_response_data
+
+    @property
+    def exception(self):
+        return self._exception
+
+    @property
+    def has_exception(self):
+        return self.exception is not None
+
+    @property
+    def raise_exceptions(self):
+        if self.has_exception:
+            raise self._exception
+
+    @property
+    def status(self):
+        return self._status

@@ -5,8 +5,14 @@
 
 	let called = false;
 
-	async function scroll_into_view(el: HTMLDivElement) {
-		if (window.__gradio_mode__ === "website") {
+	async function scroll_into_view(
+		el: HTMLDivElement,
+		enable: boolean | null = true
+	) {
+		if (
+			window.__gradio_mode__ === "website" ||
+			(window.__gradio_mode__ !== "app" && enable !== true)
+		) {
 			return;
 		}
 
@@ -39,6 +45,7 @@
 
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
+	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
 
 	export let eta: number | null = null;
@@ -104,7 +111,7 @@
 	$: el &&
 		scroll_to_output &&
 		(status === "pending" || status === "complete") &&
-		scroll_into_view(el);
+		scroll_into_view(el, $app_state.autoscroll);
 
 	$: formatted_eta = eta && (eta * ((initial_queue_pos || 0) + 1)).toFixed(1);
 	$: formatted_timer = timer_diff.toFixed(1);

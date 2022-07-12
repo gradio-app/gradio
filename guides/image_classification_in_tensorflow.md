@@ -1,8 +1,8 @@
 # Image Classification in TensorFlow and Keras
 
-related_spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
-tags: VISION, MOBILENET, TENSORFLOW
-Docs: image, label
+Related spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
+Tags: VISION, MOBILENET, TENSORFLOW
+Docs: image, label, examples
 
 ## Introduction
 

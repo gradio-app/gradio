@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
@@ -10,23 +10,38 @@
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
-	export let value: null | string;
+	export let value:
+		| null
+		| string
+		| { image: string | null; mask: string | null };
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
-	export let tool: "editor" | "select" = "editor";
+	export let tool: "editor" | "select" | "sketch" = "editor";
 
 	export let drop_text: string = "Drop an image file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
+	export let mirror_webcam: boolean;
 
 	let sketch: Sketch;
 
+	if (
+		value &&
+		(source === "upload" || source === "webcam") &&
+		tool === "sketch"
+	) {
+		value = { image: value, mask: null };
+	}
+
 	function handle_upload({ detail }: CustomEvent<string>) {
-		value = detail;
+		value =
+			(source === "upload" || source === "webcam") && tool === "sketch"
+				? { image: detail, mask: null }
+				: detail;
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -34,8 +49,14 @@
 		dispatch("clear");
 	}
 
-	function handle_save({ detail }: { detail: string }) {
-		value = detail;
+	async function handle_save({ detail }: { detail: string }) {
+		value =
+			(source === "upload" || source === "webcam") && tool === "sketch"
+				? { image: detail, mask: null }
+				: detail;
+
+		await tick();
+
 		dispatch(streaming ? "stream" : "edit");
 	}
 
@@ -52,6 +73,28 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
+
+	function handle_image_load(event: Event) {
+		const element = event.composedPath()[0] as HTMLImageElement;
+		img_width = element.naturalWidth;
+		img_height = element.naturalHeight;
+	}
+
+	function handle_mask_save({ detail }: { detail: string }) {
+		value = {
+			image: typeof value === "string" ? value : value?.image || null,
+			mask: detail
+		};
+	}
+
+	async function handle_mask_clear() {
+		sketch.clear();
+		await tick();
+		value = null;
+	}
+
+	let img_height = 0;
+	let img_width = 0;
 </script>
 
 <BlockLabel
@@ -60,7 +103,11 @@
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 
-<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
+<div
+	class:bg-gray-200={value}
+	class:h-60={source !== "webcam" || tool === "sketch"}
+	data-testid="image"
+>
 	{#if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
@@ -87,6 +134,7 @@
 				on:stream={handle_save}
 				{streaming}
 				{pending}
+				{mirror_webcam}
 			/>
 		{/if}
 	{:else if tool === "select"}
@@ -99,8 +147,42 @@
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img
+			class="w-full h-full object-contain"
+			src={value}
+			alt=""
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+		/>
+	{:else if tool === "sketch" && value !== null}
+		<img
+			class="absolute w-full h-full object-contain"
+			src={value.image}
+			alt=""
+			on:load={handle_image_load}
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+		/>
+		{#if img_width > 0}
+			<Sketch
+				{value}
+				bind:this={sketch}
+				brush_radius={25}
+				brush_color="rgba(255, 255, 255, 0.65)"
+				on:change={handle_mask_save}
+				mode="mask"
+				width={img_width}
+				height={img_height}
+			/>
+			<ModifySketch
+				on:undo={() => sketch.undo()}
+				on:clear={handle_mask_clear}
+			/>
+		{/if}
 	{:else}
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img
+			class="w-full h-full object-contain"
+			src={value}
+			alt=""
+			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+		/>
 	{/if}
 </div>

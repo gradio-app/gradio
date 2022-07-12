@@ -24,6 +24,7 @@
 </script>
 
 <Block
+	test_id="label"
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
