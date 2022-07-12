@@ -48,9 +48,8 @@ jobs:
   gh-release:
     needs: deploy
     runs-on: ubuntu-latest
-    env:
-      INPUT_NAME: cat gradio/version.txt
     steps:
+      - uses: actions/checkout@v3
       - name: Set release name
         run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
       - name: Set tag name
