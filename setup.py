@@ -19,7 +19,7 @@ with open("requirements.txt") as reqs:
     requirements = reqs.readlines()
 
 setup(
-    name="gradio",
+    name="gr-freddy",
     version=version,
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
