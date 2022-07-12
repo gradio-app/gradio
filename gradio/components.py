@@ -2883,6 +2883,7 @@ class Button(Clickable, IOComponent):
         )
 
 
+@document()
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
@@ -2905,12 +2906,12 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in color picker.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: default text to provide in color picker.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.cleared_value = "#000000"
