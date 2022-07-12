@@ -54,5 +54,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          name: "v$RELEASE_VERSION"
-          tag_name: "v$RELEASE_VERSION"
+          name: echo "v$RELEASE_VERSION"
+          tag_name: echo "v$RELEASE_VERSION"
