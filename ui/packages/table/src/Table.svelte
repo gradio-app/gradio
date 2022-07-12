@@ -22,7 +22,23 @@
 	export let style: Styles = {};
 	export let wrap: boolean = false;
 
-	const dispatch = createEventDispatcher<{ change: typeof values }>();
+	$: {
+		if (values && !Array.isArray(values)) {
+			if (Array.isArray(values.headers)) headers = values.headers;
+			values =
+				values.data.length === 0
+					? [Array(headers.length).fill("")]
+					: values.data;
+		} else if (values === null) {
+			values = [Array(headers.length).fill("")];
+		} else {
+			values = values;
+		}
+	}
+
+	const dispatch = createEventDispatcher<{
+		change: { data: typeof values; headers: typeof headers };
+	}>();
 
 	let editing: boolean | string = false;
 	let selected: boolean | string = false;
@@ -114,10 +130,10 @@
 	let old_val: undefined | Array<Array<string | number>> = undefined;
 
 	$: _headers &&
-		dispatch(
-			"change",
-			data.map((r) => r.map(({ value }) => value))
-		);
+		dispatch("change", {
+			data: data.map((r) => r.map(({ value }) => value)),
+			headers: _headers.map((h) => h.value)
+		});
 
 	function get_sort_status(
 		name: string,
