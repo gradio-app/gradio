@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import sys
+import pathlib
 
 from jinja2 import Template
 
@@ -13,11 +14,16 @@ sys.path.insert(0, GRADIO_DEMO_DIR)
 port = 7860
 
 demos_to_run = []
-GRADIO_COMPONENTS_FILE = os.path.join(GRADIO_DIR, "gradio", "components.py")
-with open(GRADIO_COMPONENTS_FILE) as comp_file:
-    comp_text = comp_file.read()
-for demostr in re.findall(r'Demos:(.*)', comp_text):
-  demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
+for root, _, files in os.walk(pathlib.Path(GRADIO_DIR) / "gradio"):
+    for filename in files:
+        source_file = pathlib.Path(root) / filename
+        if source_file.suffix != ".py":
+            continue
+        with open(source_file, "r") as comp_file:
+            comp_text = comp_file.read()
+        for demostr in re.findall(r'Demos:(.*)', comp_text):
+            demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
+
 DEMO_PATTERN = r'\$demo_([A-Za-z0-9_]+)'
 for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
     if not os.path.isfile(os.path.join(GRADIO_GUIDES_DIR, guide_filename)):
