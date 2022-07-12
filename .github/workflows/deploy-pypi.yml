@@ -49,10 +49,11 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: cat gradio/version.txt
+      INPUT_NAME: cat gradio/version.txt
     steps:
+      - name: Set release name
+        run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
+      - name: Set tag name
+        run: echo "INPUT_TAG_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
       - name: Release
         uses: softprops/action-gh-release@v1
-        with:
-          name: echo "v$RELEASE_VERSION"
-          tag_name: echo "v$RELEASE_VERSION"
