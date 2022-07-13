@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
+import pytest
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,6 +29,13 @@ class TestComponent(unittest.TestCase):
         component
         """
         assert isinstance(gr.components.component("text"), gr.templates.Text)
+
+
+def test_raise_warnings():
+    for c_type, component in zip(["inputs"] * 2 + ["outputs"] * 2,
+                                 [gr.inputs.Textbox, gr.inputs.Video, gr.outputs.Label, gr.outputs.Image]):
+        with pytest.warns(UserWarning, match=f"Usage of gradio.{c_type}"):
+            component()
 
 
 class TestTextbox(unittest.TestCase):
