@@ -4,12 +4,12 @@ import tempfile
 import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
-import pytest
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
+import pytest
 
 import gradio as gr
 from gradio import media_data
@@ -32,8 +32,9 @@ class TestComponent(unittest.TestCase):
 
 
 def test_raise_warnings():
-    for c_type, component in zip(["inputs"] * 2 + ["outputs"] * 2,
-                                 [gr.inputs.Textbox, gr.inputs.Video, gr.outputs.Label, gr.outputs.Image]):
+    for c_type, component in zip(
+        ["inputs", "outputs"], [gr.inputs.Textbox, gr.outputs.Label]
+    ):
         with pytest.warns(UserWarning, match=f"Usage of gradio.{c_type}"):
             component()
 
