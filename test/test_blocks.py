@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import pytest
 import wandb
+import mlflow
 
 import gradio as gr
 from gradio.routes import PredictBody
@@ -155,6 +156,46 @@ class TestBlocks(unittest.TestCase):
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
             wandb.log.assert_called_once()
+            
+    @mock.patch("comet_ml.Experiment")
+    def test_integration_comet(self, mock_experiment):
+        experiment = mock_experiment()
+        experiment.log_text = mock.MagicMock()
+        experiment.log_other = mock.MagicMock()
+
+        demo = gr.Blocks()
+        with demo:
+            gr.Textbox("Hi there!")
+                
+        demo.launch(prevent_thread_lock=True)
+        demo.integrate(comet_ml=experiment)
+        experiment.log_text.assert_called_with("gradio: " + interface.local_url)
+        demo.share_url = "tmp"  # used to avoid creating real share links.
+        demo.integrate(comet_ml=experiment)
+        experiment.log_text.assert_called_with("gradio: " + interface.share_url)
+        self.assertEqual(experiment.log_other.call_count, 2)
+        demo.share_url = None
+        demo.close()
+
+    def test_integration_mlflow(self):
+        mlflow.log_param = mock.MagicMock()
+        demo = gr.Blocks()
+        with demo:
+            gr.Textbox("Hi there!")
+        
+        demo.launch(prevent_thread_lock=True)
+        demo.integrate(mlflow=mlflow)
+        mlflow.log_param.assert_called_with(
+            "Gradio Interface Local Link", demo.local_url
+        )
+        demo.share_url = "tmp"  # used to avoid creating real share links.
+        demo.integrate(mlflow=mlflow)
+        mlflow.log_param.assert_called_with(
+            "Gradio Interface Share Link", demo.share_url
+        )
+        demo.share_url = None
+        demo.close()
+            
 
 
 if __name__ == "__main__":

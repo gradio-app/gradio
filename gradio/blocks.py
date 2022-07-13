@@ -286,7 +286,10 @@ class Blocks(BlockContext):
         self.mode = mode
 
         self.is_running = False
+        self.local_url = None
         self.share_url = None
+        self.width = None
+        self.height = None
 
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
