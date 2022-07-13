@@ -1,12 +1,12 @@
 import asyncio
 import io
-import sys
 import random
+import sys
 import time
 import unittest
-from unittest.mock import patch
 import unittest.mock as mock
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import pytest
 import wandb
@@ -138,7 +138,7 @@ class TestBlocks(unittest.TestCase):
             difference = end - start
             assert difference >= 0.01
             assert result
-            
+
     def test_integration_wandb(self):
         with captured_output() as (out, err):
             wandb.log = mock.MagicMock()
@@ -155,7 +155,6 @@ class TestBlocks(unittest.TestCase):
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
             wandb.log.assert_called_once()
-            
 
 
 if __name__ == "__main__":
