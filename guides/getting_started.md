@@ -54,7 +54,7 @@ Let's say you want to customize the input text field - for example, you wanted i
 $code_hello_world_2
 $demo_hello_world_2
 
- To see a list of all the components Gradio supports and what attributes you can use to customize them, check out the [Docs](https://gradio.app/docs).
+You can also change the default value of the component by setting the `value` parameter. To see a list of all the components Gradio supports and what attributes you can use to customize them, check out the [Docs](https://gradio.app/docs).
 
 ## Multiple Inputs and Outputs 🔥
 
