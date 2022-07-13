@@ -169,10 +169,10 @@ class TestBlocks(unittest.TestCase):
                 
         demo.launch(prevent_thread_lock=True)
         demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + interface.local_url)
+        experiment.log_text.assert_called_with("gradio: " + demo.local_url)
         demo.share_url = "tmp"  # used to avoid creating real share links.
         demo.integrate(comet_ml=experiment)
-        experiment.log_text.assert_called_with("gradio: " + interface.share_url)
+        experiment.log_text.assert_called_with("gradio: " + demo.share_url)
         self.assertEqual(experiment.log_other.call_count, 2)
         demo.share_url = None
         demo.close()
