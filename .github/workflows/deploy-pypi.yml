@@ -51,10 +51,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Set release name
         run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
-      - name: Set tag name
-        run: echo "INPUT_TAG_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ env.INPUT_NAME }}
-          tag_name: ${{ env.INPUT_TAG_NAME }}
+          tag_name: ${{ env.INPUT_NAME }}
