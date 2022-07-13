@@ -29,7 +29,6 @@ class Image(components.Image):
     """
     Component displays an output image.
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
-    Demos: image_mod, webcam
     """
 
     def __init__(
@@ -54,7 +53,6 @@ class Video(components.Video):
     """
     Used for video output.
     Output type: filepath
-    Demos: video_flip
     """
 
     def __init__(self, type: Optional[str] = None, label: Optional[str] = None):
@@ -74,7 +72,6 @@ class Audio(components.Audio):
     """
     Creates an audio player that plays the output audio.
     Output type: Union[Tuple[int, numpy.array], str]
-    Demos: generate_tone, reverse_audio
     """
 
     def __init__(self, type: str = "auto", label: Optional[str] = None):
@@ -94,7 +91,6 @@ class File(components.File):
     """
     Used for file output.
     Output type: Union[file-like, str]
-    Demos: zip_two_files
     """
 
     def __init__(self, label: Optional[str] = None):
@@ -113,7 +109,6 @@ class Dataframe(components.Dataframe):
     """
     Component displays 2D output through a spreadsheet interface.
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Demos: filter_records, matrix_transpose, fraud_detector
     """
 
     def __init__(
@@ -152,7 +147,6 @@ class Timeseries(components.Timeseries):
     """
     Component accepts pandas.DataFrame.
     Output type: pandas.DataFrame
-    Demos: fraud_detector
     """
 
     def __init__(
@@ -175,7 +169,6 @@ class State(components.Variable):
     """
     Special hidden component that stores state across runs of the interface.
     Output type: Any
-    Demos: chatbot
     """
 
     def __init__(self, label: Optional[str] = None):
@@ -194,7 +187,6 @@ class Label(components.Label):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
-    Demos: image_classifier, main_note, titanic_survival
     """
 
     def __init__(
@@ -220,7 +212,6 @@ class KeyValues:
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Demos: text_analysis
     """
 
     def __init__(self, value: str = " ", *, label: Optional[str] = None, **kwargs):
@@ -240,7 +231,6 @@ class HighlightedText(components.HighlightedText):
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
     Output type: List[Tuple[str, Union[float, str]]]
-    Demos: diff_texts, text_analysis
     """
 
     def __init__(
@@ -266,7 +256,6 @@ class JSON(components.JSON):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
-    Demos: zip_to_json
     """
 
     def __init__(self, label: Optional[str] = None):
@@ -285,7 +274,6 @@ class HTML(components.HTML):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
-    Demos: text_analysis
     """
 
     def __init__(self, label: Optional[str] = None):
@@ -299,7 +287,6 @@ class HTML(components.HTML):
 class Carousel(components.Carousel):
     """
     Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
     """
 
     def __init__(
@@ -323,7 +310,6 @@ class Chatbot(components.Chatbot):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
-    Demos: chatbot
     """
 
     def __init__(self, label: Optional[str] = None):
@@ -342,7 +328,6 @@ class Image3D(components.Model3D):
     """
     Used for 3D image model output.
     Input type: File object of type (.obj, glb, or .gltf)
-    Demos: Image3D
     """
 
     def __init__(
