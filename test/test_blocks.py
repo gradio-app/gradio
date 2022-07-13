@@ -8,9 +8,9 @@ import unittest.mock as mock
 from contextlib import contextmanager
 from unittest.mock import patch
 
+import mlflow
 import pytest
 import wandb
-import mlflow
 
 import gradio as gr
 from gradio.routes import PredictBody
@@ -156,7 +156,7 @@ class TestBlocks(unittest.TestCase):
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
             wandb.log.assert_called_once()
-            
+
     @mock.patch("comet_ml.Experiment")
     def test_integration_comet(self, mock_experiment):
         experiment = mock_experiment()
@@ -166,7 +166,7 @@ class TestBlocks(unittest.TestCase):
         demo = gr.Blocks()
         with demo:
             gr.Textbox("Hi there!")
-                
+
         demo.launch(prevent_thread_lock=True)
         demo.integrate(comet_ml=experiment)
         experiment.log_text.assert_called_with("gradio: " + demo.local_url)
@@ -182,7 +182,7 @@ class TestBlocks(unittest.TestCase):
         demo = gr.Blocks()
         with demo:
             gr.Textbox("Hi there!")
-        
+
         demo.launch(prevent_thread_lock=True)
         demo.integrate(mlflow=mlflow)
         mlflow.log_param.assert_called_with(
@@ -195,7 +195,6 @@ class TestBlocks(unittest.TestCase):
         )
         demo.share_url = None
         demo.close()
-            
 
 
 if __name__ == "__main__":
