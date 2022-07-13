@@ -1,10 +1,15 @@
 import asyncio
+import io
+import sys
 import random
 import time
 import unittest
 from unittest.mock import patch
+import unittest.mock as mock
+from contextlib import contextmanager
 
 import pytest
+import wandb
 
 import gradio as gr
 from gradio.routes import PredictBody
@@ -12,6 +17,17 @@ from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
+
+
+@contextmanager
+def captured_output():
+    new_out, new_err = io.StringIO(), io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 
 class TestBlocks(unittest.TestCase):
@@ -122,6 +138,24 @@ class TestBlocks(unittest.TestCase):
             difference = end - start
             assert difference >= 0.01
             assert result
+            
+    def test_integration_wandb(self):
+        with captured_output() as (out, err):
+            wandb.log = mock.MagicMock()
+            wandb.Html = mock.MagicMock()
+            demo = gr.Blocks()
+            with demo:
+                gr.Textbox("Hi there!")
+            demo.integrate(wandb=wandb)
+
+            self.assertEqual(
+                out.getvalue().strip(),
+                "The WandB integration requires you to `launch(share=True)` first.",
+            )
+            demo.share_url = "tmp"
+            demo.integrate(wandb=wandb)
+            wandb.log.assert_called_once()
+            
 
 
 if __name__ == "__main__":

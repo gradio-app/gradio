@@ -911,6 +911,59 @@ class Blocks(BlockContext):
 
         return self.server_app, self.local_url, self.share_url
 
+    def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
+        """
+        A catch-all method for integrating with other libraries.
+        Should be run after launch()
+        Parameters:
+            comet_ml (Experiment): If a comet_ml Experiment object is provided,
+            will integrate with the experiment and appear on Comet dashboard
+            wandb (module): If the wandb module is provided, will integrate
+            with it and appear on WandB dashboard
+            mlflow (module): If the mlflow module  is provided, will integrate
+            with the experiment and appear on ML Flow dashboard
+        """
+        analytics_integration = ""
+        if comet_ml is not None:
+            analytics_integration = "CometML"
+            comet_ml.log_other("Created from", "Gradio")
+            if self.share_url is not None:
+                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.end()
+            else:
+                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.end()
+        if wandb is not None:
+            analytics_integration = "WandB"
+            if self.share_url is not None:
+                wandb.log(
+                    {
+                        "Gradio panel": wandb.Html(
+                            '<iframe src="'
+                            + self.share_url
+                            + '" width="'
+                            + str(self.width)
+                            + '" height="'
+                            + str(self.height)
+                            + '" frameBorder="0"></iframe>'
+                        )
+                    }
+                )
+            else:
+                print(
+                    "The WandB integration requires you to "
+                    "`launch(share=True)` first."
+                )
+        if mlflow is not None:
+            analytics_integration = "MLFlow"
+            if self.share_url is not None:
+                mlflow.log_param("Gradio Interface Share Link", self.share_url)
+            else:
+                mlflow.log_param("Gradio Interface Local Link", self.local_url)
+        if self.analytics_enabled and analytics_integration:
+            data = {"integration": analytics_integration}
+            utils.integration_analytics(data)
+
     def close(self, verbose: bool = True) -> None:
         """
         Closes the Interface that was launched and frees the port.
