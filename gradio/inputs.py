@@ -25,7 +25,6 @@ class Textbox(components.Textbox):
     ):
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             value=default,
@@ -58,7 +57,6 @@ class Number(components.Number):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(value=default, label=label, optional=optional)
 
@@ -89,7 +87,6 @@ class Slider(components.Slider):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
 
         super().__init__(
@@ -122,7 +119,6 @@ class Checkbox(components.Checkbox):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(value=default, label=label, optional=optional)
 
@@ -151,7 +147,6 @@ class CheckboxGroup(components.CheckboxGroup):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             value=default,
@@ -186,7 +181,6 @@ class Radio(components.Radio):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             choices=choices,
@@ -221,7 +215,6 @@ class Dropdown(components.Dropdown):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             choices=choices,
@@ -262,7 +255,6 @@ class Image(components.Image):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             shape=shape,
@@ -299,7 +291,6 @@ class Video(components.Video):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(format=type, source=source, label=label, optional=optional)
 
@@ -326,7 +317,6 @@ class Audio(components.Audio):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(source=source, type=type, label=label, optional=optional)
 
@@ -355,7 +345,6 @@ class File(components.File):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             file_count=file_count,
@@ -398,7 +387,6 @@ class Dataframe(components.Dataframe):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             value=default,
@@ -435,7 +423,6 @@ class Timeseries(components.Timeseries):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(x=x, y=y, label=label, optional=optional)
 
@@ -459,7 +446,6 @@ class State(components.Variable):
         """
         warnings.warn(
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(value=default, label=label)
 
@@ -482,6 +468,5 @@ class Image3D(components.Model3D):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label, optional=optional)

@@ -1448,7 +1448,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             if self.type == "file":
                 warnings.warn(
                     "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                    DeprecationWarning,
                 )
                 return file_obj
             else:
@@ -1996,7 +1995,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         if self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             return file_obj
         elif self.type == "filepath":
@@ -2018,7 +2016,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         elif self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             name = x.name
         elif self.type == "numpy":
@@ -3177,7 +3174,6 @@ class HighlightedText(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
-                DeprecationWarning,
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -3546,7 +3542,6 @@ class Carousel(IOComponent, Changeable):
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
-            DeprecationWarning,
         )
         if not isinstance(components, list):
             components = [components]
@@ -3659,7 +3654,6 @@ class Chatbot(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
-                DeprecationWarning,
             )
 
         self.value = self.postprocess(value)

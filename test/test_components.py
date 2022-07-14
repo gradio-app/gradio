@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
+import pytest
 
 import gradio as gr
 from gradio import media_data
@@ -28,6 +29,14 @@ class TestComponent(unittest.TestCase):
         component
         """
         assert isinstance(gr.components.component("text"), gr.templates.Text)
+
+
+def test_raise_warnings():
+    for c_type, component in zip(
+        ["inputs", "outputs"], [gr.inputs.Textbox, gr.outputs.Label]
+    ):
+        with pytest.warns(UserWarning, match=f"Usage of gradio.{c_type}"):
+            component()
 
 
 class TestTextbox(unittest.TestCase):
@@ -803,7 +812,7 @@ class TestAudio(unittest.TestCase):
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
         self.assertIsNotNone(audio_input.preprocess(x_wav))
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(UserWarning):
             audio_input = gr.Audio(type="file")
             audio_input.preprocess(x_wav)
             with open("test/test_files/audio_sample.wav") as f:
