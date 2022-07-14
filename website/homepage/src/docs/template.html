@@ -16,6 +16,7 @@
         <a class="thin-link px-4 block" href="#interface">Interface</a>
         <a class="thin-link px-4 block" href="#combining_interfaces">Combining Interfaces</a>
         <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+        <a class="thin-link px-4 block" href="#blocks-utils">Blocks Utilities</a>
         <a class="link px-4 my-2 block" href="#components">Components
         </h4>
         {% for component in docs["component"] %}
@@ -73,6 +74,15 @@
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}
+            </div>
+          </section>
+          <section id="blocks-utils" class="pt-2 flex flex-col gap-10">
+            <h3 class="text-3xl font-light my-4" id="blocks-utils-header">Blocks Utilities</h3>
+            <p class="mb-12">Customize the behavior of blocks with these utilities</p>
+            <div class="flex flex-col gap-10">
+              {% with obj=find_cls("update"), parent="gradio" %}
+                {% include "docs/obj_doc_template.html" %}
+              {% endwith %}
             </div>
           </section>
         </section>

@@ -1,6 +1,7 @@
 # Introduction to Gradio Blocks 🧱 
 
 Pinned: 2
+Docs: update
 
 Gradio is a Python library that allows you to quickly build web-based machine learning demos, data science dashboards, or other kinds of web apps, **entirely in Python**. These web apps can be launched from wherever you use Python (jupyter notebooks, colab notebooks, Python terminal, etc.) and shared with anyone instantly using Gradio's auto-generated share links.
 
@@ -102,6 +103,13 @@ This is perhaps most easily illustrated with an example:
 $code_blocks_essay
 
 $demo_blocks_essay
+
+You can also use the `gradio.update` function as a short-hand for using the component class's update method.
+
+Here is the previous demo rewritten with `gradio.update`:
+
+$code_blocks_essay_update
+
 
 ## Sharing Blocks Publicly
 

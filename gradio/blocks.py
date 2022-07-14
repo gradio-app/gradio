@@ -192,11 +192,24 @@ class class_or_instancemethod(classmethod):
         return descr_get(instance, type_)
 
 
+@document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
+    Updates component parameters.
+    This is a shorthand for using the update method on a component.
+    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+
+    Demos: blocks_update, blocks_essay_update
+
+    Parameters:
+        kwargs: Key-word arguments used to update the component's properties.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
+            number = gr.Number(value=2, interactive=True)
+            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
+        demo.launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
