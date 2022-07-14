@@ -17,11 +17,12 @@ def chat(message, history):
     return history, history
 
 
+state = gr.Variable(value=[])
 chatbot = gr.Chatbot(color_map=("green", "pink")).style()
 demo = gr.Interface(
     chat,
-    ["text", "state"],
-    [chatbot, "state"],
+    ["text", state],
+    [chatbot, state],
     allow_flagging="never",
 )
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/abidlabs/streaming-asr-paused, https://huggingface.co/spaces/abidlabs/full-context-asr
 Tags: ASR, SPEECH, STREAMING
-Docs: audio, state, textbox
+Docs: audio, variable, textbox
 
 ## Introduction
 
@@ -76,27 +76,28 @@ When adding state to a Gradio demo, you need to do a total of 3 things:
 
 * Add a `state` parameter to the function
 * Return the updated `state` at the end of the function
-* Add the `"state"` components to the `inputs` and `outputs` in `Interface`
+* Create a `gr.Variable` component and add it to the `inputs` and `outputs` in `Interface`
 
 Here's what the code looks like:
 
 ```python
-import gradio as gr
-
-def transcribe(audio, state=""):
+def transcribe(audio, state):
     text = p(audio)["text"]
     state += text + " "
     return state, state
 
+# Set the starting state to an empty string
+state = gr.Variable(value="")
+
 gr.Interface(
     fn=transcribe, 
     inputs=[
-        gr.inputs.Audio(source="microphone", type="filepath"), 
-        "state"
+        gr.Audio(source="microphone", type="filepath", streaming=True), 
+        state
     ],
     outputs=[
         "textbox",
-        "state"
+        state
     ],
     live=True).launch()
 ```
@@ -117,21 +118,24 @@ import time
 
 p = pipeline("automatic-speech-recognition")
 
-def transcribe(audio, state=""):
+def transcribe(audio, state):
     time.sleep(2)
     text = p(audio)["text"]
     state += text + " "
     return state, state
 
+# Set the starting state to an empty string
+state = gr.Variable(value="")
+
 gr.Interface(
     fn=transcribe, 
     inputs=[
-        gr.Audio(source="microphone", type="filepath"), 
-        "state"
+        gr.Audio(source="microphone", type="filepath", streaming=True), 
+        state
     ],
     outputs=[
         "textbox",
-        "state"
+        state
     ],
     live=True).launch()
 ```
@@ -208,15 +212,16 @@ Then, create a Gradio Interface as before (the only difference being that the re
 ```python
 import gradio as gr
 
+state = gr.Variable()
 gr.Interface(
     fn=transcribe, 
     inputs=[
         gr.Audio(source="microphone", type="numpy"), 
-        "state"
+        state
     ], 
     outputs= [
         "text", 
-        "state"
+        state
     ], 
     live=True).launch()
 ```
