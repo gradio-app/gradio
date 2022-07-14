@@ -269,8 +269,20 @@ class TestRequest:
         assert client_response.is_valid() is True
         assert validated_data["Host"] == "headers.jsontest.com"
 
+    @mock.patch("gradio.utils.client.send")
     @pytest.mark.asyncio
-    async def test_post(self):
+    async def test_post(self, mock_send):
+
+        response = mock.MagicMock(name="mock_response")
+        response.status_code = 201
+        response.json.return_value = {
+            "name": "morpheus",
+            "id": "1",
+            "job": "leader",
+            "createdAt": "2",
+        }
+        mock_send.return_value = response
+
         client_response: Request = await Request(
             method=Request.Method.POST,
             url="https://reqres.in/api/users",
@@ -281,8 +293,18 @@ class TestRequest:
         assert validated_data["job"] == "leader"
         assert validated_data["name"] == "morpheus"
 
+    @mock.patch("gradio.utils.client.send")
     @pytest.mark.asyncio
-    async def test_validate_with_model(self):
+    async def test_validate_with_model(self, mock_send):
+        response = mock.MagicMock(name="mock_response")
+        response.json.return_value = {
+            "name": "morpheus",
+            "id": "1",
+            "job": "leader",
+            "createdAt": "2",
+        }
+        mock_send.return_value = response
+
         class TestModel(BaseModel):
             name: str
             job: str
@@ -329,8 +351,13 @@ class TestRequest:
         )
         assert isinstance(client_response.exception, ResponseValidationException)
 
+    @mock.patch("gradio.utils.client.send")
     @pytest.mark.asyncio
-    async def test_validate_with_function(self):
+    async def test_validate_with_function(self, mock_send):
+        response = mock.MagicMock(name="mock_response")
+        response.json.return_value = {"name": "morpheus", "id": 1}
+        mock_send.return_value = response
+
         def has_name(response):
             if response["name"] is not None:
                 return response
