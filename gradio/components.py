@@ -2396,12 +2396,13 @@ class DataframeData(TypedDict):
     data: List[List[str | int | bool]]
 
 
+@document()
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
-
+    Examples-format: a {str} filepath to a csv with data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
