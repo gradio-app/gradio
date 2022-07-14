@@ -41,7 +41,7 @@ Next, you will need to define a function that takes in the *user input* as well 
 In the case of our pretrained model, it will look like this:
 
 ```python
-def predict(input, history=[]):
+def predict(input, history):
     # tokenize the new input sentence
     new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
 
@@ -71,18 +71,21 @@ Then, the function tokenizes the input and concatenates it with the tokens corre
 
 Now that we have our predictive function set up, we can create a Gradio Interface around it. 
 
-In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
+In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `gr.Variable`. 
 
-The function also returns two values. We will display the list of responses using the dedicated `"chatbot"` component and use the `"state"` output component type for the second return value.
+We will create a `gr.Variable` called `state` and pass it as an input and output of the interface.
 
-Note that the `"state"` input and output components are not displayed. 
+We will display the list of responses using the dedicated `"chatbot"` component.
+
+Note that the `state` input and output components are not displayed.
 
 ```python
 import gradio as gr
 
+state = gr.Variable(value=[])
 gr.Interface(fn=predict,
-             inputs=["text", "state"],
-             outputs=["chatbot", "state"]).launch()
+             inputs=["text", state],
+             outputs=["chatbot", state]).launch()
 ```
 
 This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
