@@ -262,7 +262,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length, load_from_space
     """
 
     def __init__(

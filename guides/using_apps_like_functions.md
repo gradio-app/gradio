@@ -1,6 +1,6 @@
 <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.24/gradio.js"></script>
 
-# Treating Gradio apps like functions
+# Treating Gradio Apps Like Functions
 
 Docs: Blocks
 
