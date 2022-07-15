@@ -343,7 +343,7 @@ class TestRequest:
 
     @mock.patch("gradio.utils.Request._validate_response_data")
     @pytest.mark.asyncio
-    async def test_exception_type(self, mock_send, validate_response_data):
+    async def test_exception_type(self, validate_response_data, mock_send):
         class ResponseValidationException(Exception):
             message = "Response object is not valid."
 
