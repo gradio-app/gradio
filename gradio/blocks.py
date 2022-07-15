@@ -230,7 +230,7 @@ def skip() -> dict:
     return update()
 
 
-@document()
+@document("load")
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -686,21 +686,19 @@ class Blocks(BlockContext):
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
-        Parameters:
-            name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key (str | None): optional api key for use with Hugging Face Hub
-            alias (str | None): optional string used as the name of the loaded model instead of the default name
-            type (str): the type of the Blocks, either a standard `blocks` or `column`
-        Returns: Blocks instance
 
-        Instance method: adds an event for when the demo loads in the browser.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+
+
+        Instance method: adds an event for when the demo loads in the browser and returns None.
         Parameters:
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-        Returns: None
+            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional api key for use with Hugging Face Hub
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            fn: Instance Method - Callable function
+            inputs: Instance Method - input list
+            outputs: Instance Method - output list
         """
         if isinstance(self_or_cls, type):
             if name is None:
