@@ -14,7 +14,6 @@ import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
-from importlib.metadata import version
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
 
 import aiohttp
