@@ -33,6 +33,7 @@ class Queue:
     # When there is no estimation is calculated, default estimation is 1 sec
     ESTIMATION = 1
     LIVE_QUEUE_UPDATES = True
+    SLEEP_WHEN_FREE = 0.001
 
     @classmethod
     def configure_queue(
@@ -78,7 +79,7 @@ class Queue:
     async def start_processing(cls) -> None:
         while not cls.STOP:
             if not cls.EVENT_QUEUE:
-                await asyncio.sleep(1)
+                await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
             print(f"Start Processing, search for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
