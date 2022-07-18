@@ -127,7 +127,7 @@ Another type of data persistence Gradio supports is session **state**, where dat
 
 1. Pass in an extra parameter into your function, which represents the state of the interface.
 2. At the end of the function, return the updated value of the state as an extra return value.
-3. Create a `gr.Variable` and pass it as an input and output component of the `Interface`.
+3. Add the `'state'` input and `'state'` output components when creating your `Interface`
 
 See the chatbot example below: 
 
