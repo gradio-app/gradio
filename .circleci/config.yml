@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run: mkdir test-reports
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps2-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Install ffmpeg
           command: |
