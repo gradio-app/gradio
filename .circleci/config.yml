@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Install Python deps in a venv
           command: |
-            python3 -m venv venv
+            python -m venv venv
             . venv/bin/activate
             bash scripts/install_gradio.sh
             bash scripts/install_test_requirements.sh
