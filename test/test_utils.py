@@ -3,13 +3,13 @@ import os
 import unittest
 import unittest.mock as mock
 import warnings
-from typing_extensions import Literal
 
 import pytest
 import pytest_asyncio
 import requests
 from httpx import AsyncClient
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
