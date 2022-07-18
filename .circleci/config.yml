@@ -36,7 +36,7 @@ jobs:
             chromedriver --version
           name: Check chrome driver install
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps2-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "venv"
       - node/install:
