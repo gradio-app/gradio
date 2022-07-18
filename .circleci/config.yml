@@ -13,7 +13,7 @@ jobs:
     environment:
       NODE_OPTIONS: --max-old-space-size=4096
     docker:
-      - image: circleci/python:<< parameters.python-version >>-browsers
+      - image: cimg/python:<< parameters.python-version >>-browsers
     steps:
       - checkout
       - run: mkdir test-reports
