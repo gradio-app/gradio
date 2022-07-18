@@ -8,10 +8,12 @@ jobs:
     parameters:
       test-type:
         type: string
+      python-version:
+        type: string
     environment:
       NODE_OPTIONS: --max-old-space-size=4096
     docker:
-      - image: circleci/python:3.9.2-browsers
+      - image: circleci/python:<< parameters.python-version >>-browsers
     steps:
       - checkout
       - run: mkdir test-reports
@@ -81,3 +83,4 @@ workflows:
           matrix:
             parameters:
               test-type: ["not flaky", "flaky"]
+              python-version: ["3.9.2", "3.7.12"]

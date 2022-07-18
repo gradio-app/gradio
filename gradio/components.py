@@ -12,17 +12,18 @@ import operator
 import os
 import pathlib
 import shutil
-import sys
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
 
-if sys.version_info[0] == 3 and sys.version_info[1] >= 8:
+if TYPE_CHECKING:
     from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
 
 import matplotlib.figure
 import numpy as np
@@ -2398,11 +2399,6 @@ class File(Changeable, Clearable, IOComponent):
             self,
             rounded=rounded,
         )
-
-
-class DataframeData(TypedDict):
-    headers: List[str]
-    data: List[List[str | int | bool]]
 
 
 @document()
