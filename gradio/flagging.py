@@ -424,11 +424,10 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self.repo.git_pull(lfs=True)
 
         # Have main folder called `data`
-        # Get hash
-        # self.get_unique_name()
-        # create folder with hash
-        # put all files inside that hash folder
-        # upload hash folder to repo
+        # Get unique folder name using self.get_unique_name()
+        # create folde
+        # put all files inside that unique folder
+        # upload unique folder (with all its content) to repo
 
         folder_name = os.path.join(self.dataset_dir,self.get_unique_name()) #unique folder for specific example
         os.makedirs(folder_name,exist_ok=True)
