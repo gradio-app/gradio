@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run: mkdir test-reports
       - restore_cache:
-          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}-<< parameters.python-version >>
       - run:
           name: Install ffmpeg
           command: |
@@ -39,7 +39,7 @@ jobs:
             chromedriver --version
           name: Check chrome driver install
       - save_cache:
-          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}-<< parameters.python-version >>
           paths:
             - "venv"
       - node/install:
