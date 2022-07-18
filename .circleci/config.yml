@@ -86,4 +86,4 @@ workflows:
           matrix:
             parameters:
               test-type: ["not flaky", "flaky"]
-              python-version: ["3.9.2", "3.7.12"]
+              python-version: ["3.9.2", "3.7.13"]

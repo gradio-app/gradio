@@ -6,7 +6,7 @@ import pytest
 import gradio as gr
 
 
-class TestDocumentatino(unittest.TestCase):
+class TestDocumentation(unittest.TestCase):
     @pytest.mark.skipif(
         sys.version_info < (3, 8),
         reason="Docs use features in inspect module not available in py 3.7",
