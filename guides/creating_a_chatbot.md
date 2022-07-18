@@ -41,7 +41,7 @@ Next, you will need to define a function that takes in the *user input* as well 
 In the case of our pretrained model, it will look like this:
 
 ```python
-def predict(input, history):
+def predict(input, history=[]):
     # tokenize the new input sentence
     new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
 
@@ -80,10 +80,9 @@ Note that the `state` input and output components are not displayed.
 ```python
 import gradio as gr
 
-state = gr.Variable(value=[])
 gr.Interface(fn=predict,
-             inputs=["text", state],
-             outputs=["chatbot", state]).launch()
+             inputs=["text", "state"],
+             outputs=["chatbot", "state"]).launch()
 ```
 
 This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
