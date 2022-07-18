@@ -71,11 +71,9 @@ Then, the function tokenizes the input and concatenates it with the tokens corre
 
 Now that we have our predictive function set up, we can create a Gradio Interface around it. 
 
-In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `gr.Variable`. 
+In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
 
-We will create a `gr.Variable` called `state` and pass it as an input and output of the interface.
-
-We will display the list of responses using the dedicated `"chatbot"` component.
+The function also returns two values. We will display the list of responses using the dedicated `"chatbot"` component and use the `"state"` output component type for the second return value.
 
 Note that the `state` input and output components are not displayed.
 
