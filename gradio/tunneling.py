@@ -66,7 +66,7 @@ def create_tunnel(payload, local_server, local_server_port):
     # client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.set_missing_host_key_policy(paramiko.WarningPolicy())
 
-    verbose(f"Connecting to ssh host {payload["host"]}:{payload["port"]} ...")
+    verbose(f"Connecting to ssh host {payload["host"]}:{int(payload["port"])} ...")
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -77,7 +77,7 @@ def create_tunnel(payload, local_server, local_server_port):
                 pkey=paramiko.RSAKey.from_private_key(StringIO(payload["key"])),
             )
     except Exception as e:
-        print(f"*** Failed to connect to {payload["host"]}:{payload["port"]}: {e}")
+        print(f"*** Failed to connect to {payload["host"]}:{int(payload["port"])}: {e}")
         sys.exit(1)
 
     verbose(
