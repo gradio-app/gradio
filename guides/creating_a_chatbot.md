@@ -2,7 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
 Tags: NLP, TEXT, HTML
-Docs: textbox, state
+Docs: textbox, variable
 
 ## Introduction
 
@@ -75,7 +75,7 @@ In this case, our function takes in two values, a text input and a state input. 
 
 The function also returns two values. We will display the list of responses using the dedicated `"chatbot"` component and use the `"state"` output component type for the second return value.
 
-Note that the `state` input and output components are not displayed.
+Note that the `"state"` input and output components are not displayed. 
 
 ```python
 import gradio as gr
