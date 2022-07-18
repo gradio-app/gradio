@@ -3,7 +3,7 @@ import os
 import unittest
 import unittest.mock as mock
 import warnings
-from typing import Literal
+from typing_extensions import Literal
 
 import pytest
 import pytest_asyncio
