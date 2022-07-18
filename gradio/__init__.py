@@ -48,6 +48,7 @@ from gradio.flagging import (
     FlaggingCallback,
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
+    HuggingFaceDatasetJSONSaver,
 )
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
