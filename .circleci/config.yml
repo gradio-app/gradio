@@ -33,7 +33,7 @@ jobs:
             python -m venv venv
             . venv/bin/activate
             bash scripts/install_gradio.sh
-            pip install -r test/requirements-python<< parameters.python-version >>.txt
+            bash scripts/install_test_requirements.sh
       - run:
           command: |
             chromedriver --version
