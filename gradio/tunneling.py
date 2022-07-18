@@ -25,8 +25,9 @@ def handler(chan, host, port):
         verbose(f"Forwarding request to {host}:{port} failed: {e}")
         return
 
-    verbose("Connected! Tunnel open "
-            f"{chan.origin_addr} -> {chan.getpeername()} -> {(host, port)}"
+    verbose(
+        "Connected! Tunnel open "
+        f"{chan.origin_addr} -> {chan.getpeername()} -> {(host, port)}"
     )
 
     while True:
