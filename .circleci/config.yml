@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run: mkdir test-reports
       - restore_cache:
-          key: deps2-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           name: Install ffmpeg
           command: |
@@ -33,13 +33,13 @@ jobs:
             python -m venv venv
             . venv/bin/activate
             bash scripts/install_gradio.sh
-             pip install -r test/requirements-python<< parameters.python-version >>.txt
+            pip install -r test/requirements-python<< parameters.python-version >>.txt
       - run:
           command: |
             chromedriver --version
           name: Check chrome driver install
       - save_cache:
-          key: deps2-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "venv"
       - node/install:
