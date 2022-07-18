@@ -1,6 +1,6 @@
 # Don't forget to run bash scripts/create_test_requirements.sh from unix or wsl when you update this file.
 asyncio
-IPython
+IPython==7.34
 comet_ml
 coverage
 mlflow
