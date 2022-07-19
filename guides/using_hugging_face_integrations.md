@@ -112,7 +112,7 @@ The code above generates the following demo.
 
 As you can see, the demo looks the same, but it uses a webcam input instead of user-uploaded images.
 
-You can learn more about this feature, and how to use it with the new Blocks API in the [Using Gradio Apps Like Functions guide](/using_apps_like_functions)
+You can learn more about this feature, and how to use it with the new Blocks API in the [Using Gradio Blocks Like Functions guide](/using_blocks_like_functions)
 
 ## Using multiple Spaces
 
