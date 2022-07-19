@@ -94,9 +94,9 @@ demo = gr.Interface(
     [
         gr.Dropdown(["first", "second", "third"], type="index"),
         "checkbox",
-        gr.Slider(0, 80),
+        gr.Slider(0, 80, value=25),
         gr.CheckboxGroup(["Sibling", "Child"], label="Travelling with (select all)"),
-        gr.Number(),
+        gr.Number(value=20),
         gr.Radio(["S", "C", "Q"], type="index"),
     ],
     "label",

@@ -15,9 +15,9 @@ def calculator(num1, operation, num2):
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            num_1 = gr.Number()
+            num_1 = gr.Number(value=4)
             operation = gr.Radio(["add", "subtract", "multiply", "divide"])
-            num_2 = gr.Number()
+            num_2 = gr.Number(value=0)
             submit_btn = gr.Button(value="Calculate")
         with gr.Column():
             result = gr.Number()
