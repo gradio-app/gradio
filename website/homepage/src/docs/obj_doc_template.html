@@ -72,7 +72,7 @@
               <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
               {% if "default" in param %}
               <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
-              {% else %}
+              {% elif "kwargs" not in param %}
               <p class="text-orange-600 font-semibold italic">required</p>
               {% endif %}
             </td>
