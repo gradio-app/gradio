@@ -56,6 +56,12 @@
             {% with obj=find_cls("CSVLogger"), parent="gradio", show_parameter_table=false %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
+            {% with obj=find_cls("SimpleCSVLogger"), parent="gradio", show_parameter_table=false %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+            {% with obj=find_cls("HuggingFaceDatasetSaver"), parent="gradio"%}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
             </div>
             
             <h4 class="my-2 font-semibold">Flagging Guides</h4>
