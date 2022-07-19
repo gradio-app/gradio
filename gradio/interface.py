@@ -49,17 +49,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Interface(Blocks):
     """
     The Interface class is Gradio's main high-level abstraction, and allows you to create a
-    web-based GUI / demo around a machine learning model (or any Python function). You must specify 
-    three parameters: (1) the function to create a GUI for (2) the desired input components and 
+    web-based GUI / demo around a machine learning model (or any Python function). You must specify
+    three parameters: (1) the function to create a GUI for (2) the desired input components and
     (3) the desired output components. Further parameters can be specified to control the appearance
     and behavior of the demo.
-    
+
     Example:
         import gradio as gr
-        
+
         def image_classifier(inp):
             return {'cat': 0.3, 'dog': 0.7}
-        
+
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j

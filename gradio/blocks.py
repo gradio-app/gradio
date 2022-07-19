@@ -227,20 +227,20 @@ def skip() -> dict:
 class Blocks(BlockContext):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
-    applications and demos than Interfaces (yet still entirely in Python). 
-    
-    
-    Compared to the Interface class, Blocks offers more flexibility and control over: 
+    applications and demos than Interfaces (yet still entirely in Python).
+
+
+    Compared to the Interface class, Blocks offers more flexibility and control over:
     (1) the layout of components (2) the events that
     trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
     which can trigger the next level of outputs). Blocks also offers ways to group
     together related demos such as with tabs.
 
-    
+
     The basic usage of Blocks is as follows: create a Blocks object, then use it as a
     context (with the "with" statement), and then define layouts, components, or events
     within the Blocks context. Finally, call the launch() method to launch the demo.
-    
+
     Example:
         import gradio as gr
         def update(name):
@@ -745,7 +745,7 @@ class Blocks(BlockContext):
         """
         Launches a simple web server that serves the demo. Can also be used to create a
         public link used by anyone to access the demo from their browser by setting share=True.
-        
+
         Parameters:
             inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the interface in a new tab on the default browser.
