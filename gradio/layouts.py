@@ -85,7 +85,9 @@ class Column(BlockContext):
         variant: str = "default",
     ):
         """
-        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+        Parameters:
+            visible: If False, column will be hidden but included in the Blocks config file (its visibility can later be updated).
+            variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
         super().__init__(visible=visible)
