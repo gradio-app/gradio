@@ -6,6 +6,7 @@ import sys
 import pathlib
 
 from jinja2 import Template
+from gradio.documentation import generate_documentation
 
 GRADIO_DIR = os.path.join(os.getcwd(), os.pardir, os.pardir)
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
@@ -31,30 +32,38 @@ for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
         guide_content = guide_file.read()
     demos_to_run += re.findall(DEMO_PATTERN, guide_content)
+# adding components to be embedded
+docs = generate_documentation()
+COMPONENT_SUFFIX = "_component"
+demos_to_run += [f"{component['name']}{COMPONENT_SUFFIX}" for component in docs["component"]]
 demos_to_run = list(set(demos_to_run))
+
 
 failed_demos = []
 demo_port_sets = []
 for demo_name in demos_to_run:
     print(f" ----- {demo_name} ----- ")
-    demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
-    requirements_file = os.path.join(demo_folder, "requirements.txt")
-    if os.path.exists(requirements_file):
-        try:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "-r", requirements_file]
-            )
-        except:
-            failed_demos.append(demo_name)
-            continue
-    setup_file = os.path.join(demo_folder, "setup.sh")
-    if os.path.exists(setup_file):
-        try:
-            subprocess.check_call(["sh", setup_file])
-        except subprocess.CalledProcessError:
-            failed_demos.append(demo_name)
-            continue
-    demo_port_sets.append((demo_name, port))
+    if demo_name.endswith(COMPONENT_SUFFIX):
+        demo_port_sets.append((demo_name, port))
+    else:
+        demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+        requirements_file = os.path.join(demo_folder, "requirements.txt")
+        if os.path.exists(requirements_file):
+            try:
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+                )
+            except:
+                failed_demos.append(demo_name)
+                continue
+        setup_file = os.path.join(demo_folder, "setup.sh")
+        if os.path.exists(setup_file):
+            try:
+                subprocess.check_call(["sh", setup_file])
+            except subprocess.CalledProcessError:
+                failed_demos.append(demo_name)
+                continue
+        demo_port_sets.append((demo_name, port))
     port += 1
 
 with open("nginx_template.conf") as nginx_template_conf:
