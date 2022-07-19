@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.2
   node: circleci/node@5.0.2
-  browser-tools: circleci/browser-tools@1.3.0
+  #browser-tools: circleci/browser-tools@1.3.0
 
 jobs:
   test:
@@ -25,8 +25,8 @@ jobs:
           command: |
             sudo apt update
             sudo apt install ffmpeg -y
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
+      #- browser-tools/install-chrome
+      #- browser-tools/install-chromedriver
       - run:
           name: Install Python deps in a venv
           command: |
@@ -34,10 +34,10 @@ jobs:
             . venv/bin/activate
             bash scripts/install_gradio.sh
             bash scripts/install_test_requirements.sh
-      - run:
-          command: |
-            chromedriver --version
-          name: Check chrome driver install
+#      - run:
+#          command: |
+#            chromedriver --version
+#          name: Check chrome driver install
       - save_cache:
           key: deps3-{{ .Branch }}-{{ checksum "requirements.txt" }}-<< parameters.python-version >>
           paths:
