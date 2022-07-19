@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 set_documentation_group("flagging")
 
+
 class FlaggingCallback(ABC):
     """
     An abstract class for defining the methods that any FlaggingCallback should have.
@@ -59,7 +60,7 @@ class FlaggingCallback(ABC):
 class SimpleCSVLogger(FlaggingCallback):
     """
     A simple example implementation of the FlaggingCallback abstract class
-    provided for illustrative purposes.  Each flagged sample (both the input and output data) 
+    provided for illustrative purposes.  Each flagged sample (both the input and output data)
     is logged to a CSV file.
     """
 
@@ -97,14 +98,15 @@ class SimpleCSVLogger(FlaggingCallback):
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
+
 @document()
 class CSVLogger(FlaggingCallback):
     """
     The default implementation of the FlaggingCallback abstract class. Each flagged
-    sample (both the input and output data) is logged to a CSV file with headers. 
+    sample (both the input and output data) is logged to a CSV file with headers.
     Files such as images, audio, and video are saved separately.
     """
-    
+
     def __init__(self):
         pass
 
@@ -213,10 +215,10 @@ class CSVLogger(FlaggingCallback):
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
     A callback that saves each flagged sample (both the input and output data)
-    to a HuggingFace dataset. 
+    to a HuggingFace dataset.
     Parameters:
         hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset.
-        dataset_name: The dataset name to use.  
+        dataset_name: The dataset name to use.
         organization: The organization to save the dataset under. The hf_token must provide write access to this organization. If not provided, saved under the name of the user corresponding to the hf_token.
         private: Whether the dataset should be private (defaults to False).
     """

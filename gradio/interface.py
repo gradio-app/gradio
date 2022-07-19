@@ -45,8 +45,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 @document("launch", "load", "from_pipeline", "integrate")
 class Interface(Blocks):
     """
-    Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo 
-    around a machine learning model (or any Python function) in a few lines of code. 
+    Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo
+    around a machine learning model (or any Python function) in a few lines of code.
     You must specify three parameters: (1) the function to create a GUI for (2) the desired input components and
     (3) the desired output components. Additional parameters can be used to control the appearance
     and behavior of the demo.
