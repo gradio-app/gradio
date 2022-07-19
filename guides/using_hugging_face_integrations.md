@@ -112,6 +112,8 @@ The code above generates the following demo.
 
 As you can see, the demo looks the same, but it uses a webcam input instead of user-uploaded images.
 
+You can learn more about this feature, and how to use it with the new Blocks API in the [Using Gradio Blocks Like Functions guide](/using_blocks_like_functions)
+
 ## Using multiple Spaces
 
 Sometimes a single model inference will not be enough: you might want to call multiple models by piping them (using the output of model A as the input of model B). `Series` can achieve this. Other times, you might want to run two models in parallel to compare them. `Parallel` can do this!
