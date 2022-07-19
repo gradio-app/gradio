@@ -95,7 +95,7 @@
             <img src="/assets/img/dataflow.svg" class="mt-4">
           </div>
           {% for component in docs["component"] %}
-            {% with obj=component, is_class=True, parent="gradio" %}
+            {% with obj=component, is_class=True, is_component=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           {% endfor %}
