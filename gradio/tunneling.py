@@ -22,14 +22,14 @@ def handler(chan, host, port):
     try:
         sock.connect((host, port))
     except Exception as e:
-        verbose("Forwarding request to {}:{} failed: {}".format(host, port, e))
+        verbose(f"Forwarding request to {host}:{port} failed: {e}")
         return
 
     verbose(
-        "Connected!  Tunnel open {} -> {} -> {}".format(
-            chan.origin_addr, chan.getpeername(), (host, port)
-        )
+        "Connected! Tunnel open "
+        f"{chan.origin_addr} -> {chan.getpeername()} -> {(host, port)}"
     )
+
     while True:
         r, w, x = select.select([sock, chan], [], [])
         if sock in r:
@@ -44,11 +44,7 @@ def handler(chan, host, port):
             sock.send(data)
     chan.close()
     sock.close()
-    verbose(
-        "Tunnel closed from {}".format(
-            chan.origin_addr,
-        )
-    )
+    verbose(f"Tunnel closed from {chan.origin_addr}")
 
 
 def reverse_forward_tunnel(server_port, remote_host, remote_port, transport):
@@ -69,12 +65,9 @@ def verbose(s, debug_mode=False):
 
 def create_tunnel(payload, local_server, local_server_port):
     client = paramiko.SSHClient()
-    # client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.set_missing_host_key_policy(paramiko.WarningPolicy())
 
-    verbose(
-        "Connecting to ssh host {}:{} ...".format(payload["host"], int(payload["port"]))
-    )
+    verbose(f'Conecting to ssh host {payload["host"]}:{payload["port"]} ...')
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -85,17 +78,12 @@ def create_tunnel(payload, local_server, local_server_port):
                 pkey=paramiko.RSAKey.from_private_key(StringIO(payload["key"])),
             )
     except Exception as e:
-        print(
-            "*** Failed to connect to {}:{}: {}".format(
-                payload["host"], int(payload["port"]), e
-            )
-        )
+        print(f'*** Failed to connect to {payload["host"]}:{payload["port"]}: {e}')
         sys.exit(1)
 
     verbose(
-        "Now forwarding remote port {} to {}:{} ...".format(
-            int(payload["remote_port"]), local_server, local_server_port
-        )
+        f'Now forwarding remote port {payload["remote_port"]}'
+        f"to {local_server}:{local_server_port} ..."
     )
 
     thread = threading.Thread(

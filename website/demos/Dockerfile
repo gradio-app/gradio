@@ -10,6 +10,7 @@ COPY ./requirements.txt ./requirements.txt
 COPY ./setup.py ./setup.py
 COPY ./MANIFEST.in ./MANIFEST.in
 COPY ./README.md ./README.md
+COPY ./test ./test
 RUN python setup.py install
 WORKDIR /gradio
 COPY ./website ./website
