@@ -109,7 +109,7 @@ import gradio as gr
 gr.Interface(
     predict,
     inputs=[
-        gr.inputs.Slider(0, 1000, label='Seed', default=42),
+        gr.Slider(0, 1000, label='Seed', default=42),
     ],
     outputs="image",
 ).launch()
@@ -127,8 +127,8 @@ Generating 4 punks at a time is a good start, but maybe we'd like to control how
 gr.Interface(
     predict,
     inputs=[
-        gr.inputs.Slider(0, 1000, label='Seed', default=42),
-        gr.inputs.Slider(4, 64, label='Number of Punks', step=1, default=10), # Adding another slider!
+        gr.Slider(0, 1000, label='Seed', default=42),
+        gr.Slider(4, 64, label='Number of Punks', step=1, default=10), # Adding another slider!
     ],
     outputs="image",
 ).launch()
@@ -215,8 +215,8 @@ def predict(seed, num_punks):
 gr.Interface(
     predict,
     inputs=[
-        gr.inputs.Slider(0, 1000, label='Seed', default=42),
-        gr.inputs.Slider(4, 64, label='Number of Punks', step=1, default=10),
+        gr.Slider(0, 1000, label='Seed', default=42),
+        gr.Slider(4, 64, label='Number of Punks', step=1, default=10),
     ],
     outputs="image",
     examples=[[123, 15], [42, 29], [456, 8], [1337, 35]],

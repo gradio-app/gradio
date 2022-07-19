@@ -2,7 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/abidlabs/streaming-asr-paused, https://huggingface.co/spaces/abidlabs/full-context-asr
 Tags: ASR, SPEECH, STREAMING
-Docs: audio, state, textbox
+Docs: audio, variable, textbox
 
 ## Introduction
 
@@ -54,7 +54,7 @@ def transcribe(audio):
 
 gr.Interface(
     fn=transcribe, 
-    inputs=gr.inputs.Audio(source="microphone", type="filepath"), 
+    inputs=gr.Audio(source="microphone", type="filepath"), 
     outputs="text").launch()
 ```
 
@@ -76,23 +76,23 @@ When adding state to a Gradio demo, you need to do a total of 3 things:
 
 * Add a `state` parameter to the function
 * Return the updated `state` at the end of the function
-* Add the `"state"` components to the `inputs` and `outputs` in `Interface`
+* Add the `"state"` components to the `inputs` and `outputs` in `Interface` 
 
 Here's what the code looks like:
 
 ```python
-import gradio as gr
-
 def transcribe(audio, state=""):
     text = p(audio)["text"]
     state += text + " "
     return state, state
 
+# Set the starting state to an empty string
+
 gr.Interface(
     fn=transcribe, 
     inputs=[
-        gr.inputs.Audio(source="microphone", type="filepath"), 
-        "state"
+        gr.Audio(source="microphone", type="filepath", streaming=True), 
+        "state" 
     ],
     outputs=[
         "textbox",
@@ -126,7 +126,7 @@ def transcribe(audio, state=""):
 gr.Interface(
     fn=transcribe, 
     inputs=[
-        gr.inputs.Audio(source="microphone", type="filepath"), 
+        gr.Audio(source="microphone", type="filepath", streaming=True), 
         "state"
     ],
     outputs=[
@@ -211,8 +211,8 @@ import gradio as gr
 gr.Interface(
     fn=transcribe, 
     inputs=[
-        gr.inputs.Audio(source="microphone", type="numpy"), 
-        "state"
+        gr.Audio(source="microphone", type="numpy"), 
+        "state" 
     ], 
     outputs= [
         "text", 

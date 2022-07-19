@@ -55,7 +55,7 @@ def calculator(num1, operation, num2):
 
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual"
 )
@@ -104,7 +104,7 @@ If we go back to the calculator example, the following code will create the inte
 ```python
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual",
     flagging_options=["wrong sign", "off by one", "other"]
@@ -137,7 +137,7 @@ hf_writer = gr.HuggingFaceDatasetSaver(HF_TOKEN, "crowdsourced-calculator-demo")
 
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual",
     flagging_options=["wrong sign", "off by one", "other"],

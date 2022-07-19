@@ -68,7 +68,7 @@ gr.Interface.load("huggingface/gpt2").launch();
 
 ```python
 gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", 
-    inputs=gr.inputs.Textbox(lines=5, label="Input Text")  # customizes the input component
+    inputs=gr.Textbox(lines=5, label="Input Text")  # customizes the input component
 ).launch()
 ```
 
@@ -123,7 +123,13 @@ This sets up a queue of workers to handle the predictions and return the respons
 
 Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
 
-Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things: (1) Pass in an extra parameter into your function, which represents the state of the interface. (2) At the end of the function, return the updated value of the state as an extra return value (3) Add the `'state'` input and `'state'` output components when creating your `Interface`. See the chatbot example below: 
+Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things:
+
+1. Pass in an extra parameter into your function, which represents the state of the interface.
+2. At the end of the function, return the updated value of the state as an extra return value.
+3. Add the `'state'` input and `'state'` output components when creating your `Interface`
+
+See the chatbot example below: 
 
 $code_chatbot_demo
 $demo_chatbot_demo
