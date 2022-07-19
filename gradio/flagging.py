@@ -70,6 +70,7 @@ class SimpleCSVLogger(FlaggingCallback):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             flagging_callback=SimpleCSVLogger())
     """
+
     def __init__(self):
         pass
 
@@ -120,6 +121,7 @@ class CSVLogger(FlaggingCallback):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
                             flagging_callback=CSVLogger())
     """
+
     def __init__(self):
         pass
 
