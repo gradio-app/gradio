@@ -42,10 +42,13 @@ You could either:
 Option 1 technically always works, but it often introduces unwanted complexity.
 
 Option 2 lets you borrow the functionality you want without tightly coupling our apps.
+
 All you have to do is call the `Blocks.load` class method in your source file.
 After that, you can use my translation app like a regular python function!
 
-Let's see an example of this:
+The following code snippet and demo shows how to use `Blocks.load`.
+
+Note that the variable `english_translator` is my english to german app, but its used in `generate_text` like a regular function.
 
 $code_generate_english_german
 
