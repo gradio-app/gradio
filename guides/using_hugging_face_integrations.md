@@ -102,7 +102,7 @@ import gradio as gr
 
 gr.Interface.load(
   "spaces/eugenesiow/remove-bg", 
-  inputs=[gr.inputs.Image(label="Input Image", source="webcam")]
+  inputs=[gr.Image(label="Input Image", source="webcam")]
 ).launch()
 ```
 
