@@ -105,7 +105,7 @@
             <img src="/assets/img/dataflow.svg" class="mt-4">
           </div>
           {% for component in docs["component"] %}
-            {% with obj=component, is_component=True, is_class=True, parent="gradio" %}
+            {% with obj=component, is_class=True, is_component=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           {% endfor %}
@@ -254,6 +254,19 @@
     if (navigator && navigator.clipboard) {
       addCopyButtons(navigator.clipboard);
     };
+
+
+    // Remove built-with-gradio footers and extra space from embedded components
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+          let shadowroot = g.shadowRoot;
+          let f = shadowroot.querySelector('footer');
+          f.classList.add('hidden');
+          let c = shadowroot.querySelector('.gradio-container');
+          c.style.removeProperty('min-height');
+        }
+      );
+    })
 
     </script>
   </body>
