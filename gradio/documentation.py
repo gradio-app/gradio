@@ -12,6 +12,15 @@ def set_documentation_group(m):
 
 
 def document(*fns):
+    """
+    Defines the @document decorator which adds classes or functions to the Gradio
+    documentation at www.gradio.app/docs.
+
+    Usage examples:
+    - Put @document() above a class to document the class and its constructor.
+    - Put @document(fn1, fn2) above a class to also document the class methods fn1 and fn2.
+    """
+
     def inner_doc(cls):
         global documentation_group
         classes_to_document[documentation_group].append((cls, fns))

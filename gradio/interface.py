@@ -42,7 +42,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-@document("launch", "load", "from_pipeline")
+@document("launch", "load", "from_pipeline", "integrate")
 class Interface(Blocks):
     """
     The Interface class is a high-level abstraction that allows you to create a

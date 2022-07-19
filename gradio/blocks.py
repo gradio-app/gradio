@@ -9,9 +9,11 @@ import random
 import sys
 import time
 import webbrowser
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
+import comet_ml
 from anyio import CapacityLimiter
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
@@ -914,16 +916,21 @@ class Blocks(BlockContext):
 
         return self.server_app, self.local_url, self.share_url
 
-    def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
+    def integrate(
+        self,
+        comet_ml: comet_ml.Experiment = None,
+        wandb: ModuleType("wandb") = None,
+        mlflow: ModuleType("mlflow") = None,
+    ) -> None:
         """
         A catch-all method for integrating with other libraries.
-        Should be run after launch()
+        This method should be run after launch()
         Parameters:
-            comet_ml (Experiment): If a comet_ml Experiment object is provided,
+            comet_ml: If a comet_ml Experiment object is provided,
             will integrate with the experiment and appear on Comet dashboard
-            wandb (module): If the wandb module is provided, will integrate
+            wandb: If the wandb module is provided, will integrate
             with it and appear on WandB dashboard
-            mlflow (module): If the mlflow module  is provided, will integrate
+            mlflow: If the mlflow module  is provided, will integrate
             with the experiment and appear on ML Flow dashboard
         """
         analytics_integration = ""
