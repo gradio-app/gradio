@@ -4,6 +4,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
   exit -1
 else
   echo "Building the website"
+  set -e
   cd website/homepage
   npm install
   npm run build

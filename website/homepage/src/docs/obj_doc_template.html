@@ -38,7 +38,7 @@
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and "default" not in param %}<!--
+  -->{% if "positional" in param["kind"] and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
