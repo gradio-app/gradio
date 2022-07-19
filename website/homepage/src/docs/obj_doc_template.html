@@ -53,6 +53,9 @@
   {% if is_component %}
   <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
   <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  {% if "examples-format" in obj["tags"]  %}
+  <p class="text-lg text-gray-500">Format expected for examples: {{ obj["tags"]["examples-format"] }}</p>
+  {% endif %}
   <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
   {% endif %}
   
@@ -74,7 +77,7 @@
               <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
               {% if "default" in param %}
               <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
-              {% else %}
+              {% elif "kwargs" not in param %}
               <p class="text-orange-600 font-semibold italic">required</p>
               {% endif %}
             </td>

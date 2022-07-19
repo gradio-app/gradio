@@ -12,6 +12,15 @@ def set_documentation_group(m):
 
 
 def document(*fns):
+    """
+    Defines the @document decorator which adds classes or functions to the Gradio
+    documentation at www.gradio.app/docs.
+
+    Usage examples:
+    - Put @document() above a class to document the class and its constructor.
+    - Put @document(fn1, fn2) above a class to also document the class methods fn1 and fn2.
+    """
+
     def inner_doc(cls):
         global documentation_group
         classes_to_document[documentation_group].append((cls, fns))
@@ -57,7 +66,9 @@ def document_fn(fn):
     description_doc = " ".join(description)
     parameter_docs = []
     for param_name, param in signature.parameters.items():
-        if param_name.startswith("_") or param_name == "kwargs":
+        if param_name.startswith("_"):
+            continue
+        if param_name == "kwargs" and param_name not in parameters:
             continue
         parameter_doc = {
             "name": param_name,
@@ -72,6 +83,8 @@ def document_fn(fn):
             if type(default) == str:
                 default = '"' + default + '"'
             parameter_doc["default"] = default
+        elif parameter_doc["doc"] is not None and "kwargs" in parameter_doc["doc"]:
+            parameter_doc["kwargs"] = True
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
@@ -128,7 +141,8 @@ def generate_documentation():
     for mode, class_list in classes_to_document.items():
         documentation[mode] = []
         for cls, fns in class_list:
-            _, parameter_doc, return_doc, _ = document_fn(cls.__init__)
+            fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
+            _, parameter_doc, return_doc, _ = document_fn(fn_to_document)
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import getpass
 import inspect
@@ -9,6 +8,7 @@ import random
 import sys
 import time
 import webbrowser
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
@@ -23,10 +23,12 @@ from gradio.utils import component_or_layout_class, delete_none
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    import comet_ml
+    import mlflow
+    import wandb
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
-    from gradio.routes import PredictBody
 
 
 class Block:
@@ -162,6 +164,11 @@ class BlockContext(Block):
         render: bool = True,
         **kwargs,
     ):
+        """
+        Parameters:
+            visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
+            render: If False, this will not be included in the Blocks config file at all.
+        """
         self.children = []
         super().__init__(visible=visible, render=render, **kwargs)
 
@@ -192,11 +199,24 @@ class class_or_instancemethod(classmethod):
         return descr_get(instance, type_)
 
 
+@document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
+    Updates component parameters.
+    This is a shorthand for using the update method on a component.
+    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+
+    Demos: blocks_update, blocks_essay_update
+
+    Parameters:
+        kwargs: Key-word arguments used to update the component's properties.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
+            number = gr.Number(value=2, interactive=True)
+            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
+        demo.launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
@@ -286,7 +306,10 @@ class Blocks(BlockContext):
         self.mode = mode
 
         self.is_running = False
+        self.local_url = None
         self.share_url = None
+        self.width = None
+        self.height = None
 
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -910,6 +933,60 @@ class Blocks(BlockContext):
             self.block_thread()
 
         return self.server_app, self.local_url, self.share_url
+
+    def integrate(
+        self,
+        comet_ml: comet_ml.Experiment = None,
+        wandb: ModuleType("wandb") = None,
+        mlflow: ModuleType("mlflow") = None,
+    ) -> None:
+        """
+        A catch-all method for integrating with other libraries. This method should be run after launch()
+        Parameters:
+            comet_ml: If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
+            wandb: If the wandb module is provided, will integrate with it and appear on WandB dashboard
+            mlflow: If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
+        """
+        analytics_integration = ""
+        if comet_ml is not None:
+            analytics_integration = "CometML"
+            comet_ml.log_other("Created from", "Gradio")
+            if self.share_url is not None:
+                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.end()
+            else:
+                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.end()
+        if wandb is not None:
+            analytics_integration = "WandB"
+            if self.share_url is not None:
+                wandb.log(
+                    {
+                        "Gradio panel": wandb.Html(
+                            '<iframe src="'
+                            + self.share_url
+                            + '" width="'
+                            + str(self.width)
+                            + '" height="'
+                            + str(self.height)
+                            + '" frameBorder="0"></iframe>'
+                        )
+                    }
+                )
+            else:
+                print(
+                    "The WandB integration requires you to "
+                    "`launch(share=True)` first."
+                )
+        if mlflow is not None:
+            analytics_integration = "MLFlow"
+            if self.share_url is not None:
+                mlflow.log_param("Gradio Interface Share Link", self.share_url)
+            else:
+                mlflow.log_param("Gradio Interface Local Link", self.local_url)
+        if self.analytics_enabled and analytics_integration:
+            data = {"integration": analytics_integration}
+            utils.integration_analytics(data)
 
     def close(self, verbose: bool = True) -> None:
         """

@@ -21,7 +21,7 @@ CACHED_FOLDER = "gradio_cached_examples"
 set_documentation_group("component-helpers")
 
 
-@document("cache_interface_examples", "load_from_cache", "process_example")
+@document()
 class Examples:
     """
     This class is a wrapper over the Dataset component and can be used to create Examples

@@ -2,8 +2,12 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.2
   node: circleci/node@5.0.2
+
 jobs:
-  build:
+  test:
+    parameters:
+      test-type:
+        type: string
     environment:
       NODE_OPTIONS: --max-old-space-size=4096
     docker:
@@ -60,7 +64,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest
+            coverage run -m pytest -m "<< parameters.test-type >>"
             coverage xml
       - codecov/upload:
           file: "coverage.xml"
@@ -69,3 +73,11 @@ jobs:
           destination: screenshots
       - store_test_results:
           path: test-reports/
+
+workflows:
+  backend:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              test-type: ["not flaky", "flaky"]
