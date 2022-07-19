@@ -14,6 +14,7 @@
             style="min-width: 18%">
         <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
         <a class="thin-link px-4 block" href="#interface">Interface</a>
+        <a class="thin-link px-4 block" href="#flagging">Flagging</a>
         <a class="thin-link px-4 block" href="#combining_interfaces">Combining Interfaces</a>
         <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
         <a class="thin-link px-4 block" href="#blocks-utils">Blocks Utilities</a>
@@ -38,14 +39,44 @@
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           </section>
+          <section id="flagging" class="pt-2">
+            <h3 class="text-4xl font-light my-4" id="flagging">Flagging</h3>
+            <p class="mt-8 mb-12 text-lg">
+              A Gradio Interface includes a "Flag" button that appears 
+              underneath the output. By default, clicking on the Flag button sends the input and output
+              data back to the machine where the gradio demo is running, and saves it to a log file.
+              But this default behavior can be changed. To set what happens when the Flag button is clicked, 
+              you pass an instance of a subclass of <em>FlaggingCallback</em> to the <em>flagging_callback</em> parameter 
+              in the <em>Interface</em> constructor. You can use one of the <em>FlaggingCallback</em> subclasses 
+              that are listed below, or you can create your own, which lets you do whatever 
+              you want with the data that is being flagged.
+            </p>
+
+            <div class="flex flex-col gap-10">
+            {% with obj=find_cls("CSVLogger"), parent="gradio", show_parameter_table=false %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+            </div>
+            
+            <h4 class="my-2 font-semibold">Flagging Guides</h4>
+              <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/using_flagging/">
+                  <div class="flex flex-col p-4 h-min">
+                    <p class="font-semibold group-hover:underline text-l">Flagging</p>
+                  </div>
+                </a>
+              </div>
+        </section>
+
           <section id="combining_interfaces" class="pt-2">
-            <h3 class="text-3xl font-light my-4" id="combining-interfaces">Combining Interfaces</h3>
+            <h3 class="text-4xl font-light my-4" id="combining-interfaces">Combining Interfaces</h3>
             <p class="mt-8 mb-12 text-lg">
               Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly.
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.
             </p>
+            
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("TabbedInterface"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
