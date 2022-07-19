@@ -13,7 +13,6 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
-import comet_ml
 from anyio import CapacityLimiter
 
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
@@ -25,10 +24,12 @@ from gradio.utils import component_or_layout_class, delete_none
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    import comet_ml
+    import mlflow
+    import wandb
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
-    from gradio.routes import PredictBody
 
 
 class Block:
@@ -923,15 +924,11 @@ class Blocks(BlockContext):
         mlflow: ModuleType("mlflow") = None,
     ) -> None:
         """
-        A catch-all method for integrating with other libraries.
-        This method should be run after launch()
+        A catch-all method for integrating with other libraries. This method should be run after launch()
         Parameters:
-            comet_ml: If a comet_ml Experiment object is provided,
-            will integrate with the experiment and appear on Comet dashboard
-            wandb: If the wandb module is provided, will integrate
-            with it and appear on WandB dashboard
-            mlflow: If the mlflow module  is provided, will integrate
-            with the experiment and appear on ML Flow dashboard
+            comet_ml: If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
+            wandb: If the wandb module is provided, will integrate with it and appear on WandB dashboard
+            mlflow: If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
         """
         analytics_integration = ""
         if comet_ml is not None:
