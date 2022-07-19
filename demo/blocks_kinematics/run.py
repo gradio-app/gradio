@@ -33,7 +33,7 @@ with demo:
         speed = gr.Slider(1, 30, 25, label="Speed")
         angle = gr.Slider(0, 90, 45, label="Angle")
     output = gr.Plot()
-    btn = gr.Button("Run")
+    btn = gr.Button(value="Run")
     btn.click(plot, [speed, angle], output)
 
 if __name__ == "__main__":

@@ -1342,7 +1342,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
-    Demos: image_mod
+    Demos: image_mod, image_mod_default_image
     """
 
     def __init__(
@@ -2839,7 +2839,7 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default text for the button to display.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
