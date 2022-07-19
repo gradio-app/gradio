@@ -28,8 +28,8 @@ for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
     demos_to_run += re.findall(DEMO_PATTERN, guide_content)
 # adding components to be embedded
 docs = generate_documentation()
-SUFFIX = "_component"
-demos_to_run += [f"{component['name']}{SUFFIX}" for component in docs["component"]]
+COMPONENT_SUFFIX = "_component"
+demos_to_run += [f"{component['name']}{COMPONENT_SUFFIX}" for component in docs["component"]]
 demos_to_run = list(set(demos_to_run))
 
 
@@ -37,7 +37,7 @@ failed_demos = []
 demo_port_sets = []
 for demo_name in demos_to_run:
     print(f" ----- {demo_name} ----- ")
-    if demo_name.endswith(SUFFIX):
+    if demo_name.endswith(COMPONENT_SUFFIX):
         demo_port_sets.append((demo_name, port))
     else:
         demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
