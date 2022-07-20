@@ -13,7 +13,7 @@ def calculator(num1, operation, num2):
 
 demo = gr.Interface(
     calculator,
-    [gr.Number(4), gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    [gr.Number(value=4), gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
         [5, "add", 3],

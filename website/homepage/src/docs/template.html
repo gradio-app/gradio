@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with description="Gradio Documentation" %}
+    {% with title="Gradio Docs", url="https://gradio.app/docs", image="/assets/img/meta-image.png", description="Browse Gradio Documentation and Examples" %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
@@ -16,6 +16,7 @@
         <a class="thin-link px-4 block" href="#interface">Interface</a>
         <a class="thin-link px-4 block" href="#combining_interfaces">Combining Interfaces</a>
         <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+        <a class="thin-link px-4 block" href="#blocks-utils">Blocks Utilities</a>
         <a class="link px-4 my-2 block" href="#components">Components
         </h4>
         {% for component in docs["component"] %}
@@ -58,8 +59,6 @@
             </div>
           </section>
           <section id="blocks" class="pt-2 mb-8">
-            <h3 class="text-3xl font-light my-4" id="building-with-blocks">Building with Blocks</h3>
-            <p class="mt-8 mb-12 text-lg">Want to build more customizable UIs? Take a look at how to build with Blocks.</p>
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("Blocks"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
@@ -73,6 +72,17 @@
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}
+            </div>
+          </section>
+          <section id="blocks-utils" class="pt-2 flex flex-col gap-10">
+            <h3 class="text-3xl font-light my-4" id="blocks-utils-header">Blocks Utilities</h3>
+            <p class="mb-12">Within Gradio Blocks, various functions exist to make it easier
+              to define events and data flows.
+            </p>
+            <div class="flex flex-col gap-10">
+              {% with obj=find_cls("update"), parent="gradio" %}
+                {% include "docs/obj_doc_template.html" %}
+              {% endwith %}
             </div>
           </section>
         </section>
@@ -95,7 +105,7 @@
             <img src="/assets/img/dataflow.svg" class="mt-4">
           </div>
           {% for component in docs["component"] %}
-            {% with obj=component, is_component=True, is_class=True, parent="gradio" %}
+            {% with obj=component, is_class=True, is_component=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           {% endfor %}
@@ -244,6 +254,19 @@
     if (navigator && navigator.clipboard) {
       addCopyButtons(navigator.clipboard);
     };
+
+
+    // Remove built-with-gradio footers and extra space from embedded components
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+          let shadowroot = g.shadowRoot;
+          let f = shadowroot.querySelector('footer');
+          f.classList.add('hidden');
+          let c = shadowroot.querySelector('.gradio-container');
+          c.style.removeProperty('min-height');
+        }
+      );
+    })
 
     </script>
   </body>

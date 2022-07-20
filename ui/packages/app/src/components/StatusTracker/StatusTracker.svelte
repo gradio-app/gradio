@@ -53,6 +53,7 @@
 	export let status: "complete" | "pending" | "error";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
+	export let visible: boolean = true;
 
 	let el: HTMLDivElement;
 
@@ -120,6 +121,7 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
+	class:!hidden={!visible}
 	bind:this={el}
 >
 	{#if status === "pending"}

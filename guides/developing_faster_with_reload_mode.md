@@ -40,7 +40,7 @@ In the terminal, run `gradio app.py`. That's it!
 
 Now, you'll see that after you'll see something like this:
 
-```
+```bash
 Launching in *reload mode* on: http://127.0.0.1:7860 (Press CTRL+C to quit)
 
 Watching...

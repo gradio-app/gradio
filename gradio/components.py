@@ -16,7 +16,15 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 import matplotlib.figure
 import numpy as np
@@ -1334,7 +1342,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
-    Demos: image_mod
+    Demos: image_mod, image_mod_default_image
     """
 
     def __init__(
@@ -1448,7 +1456,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             if self.type == "file":
                 warnings.warn(
                     "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                    DeprecationWarning,
                 )
                 return file_obj
             else:
@@ -1996,7 +2003,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         if self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             return file_obj
         elif self.type == "filepath":
@@ -2018,7 +2024,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         elif self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             name = x.name
         elif self.type == "numpy":
@@ -2332,7 +2337,10 @@ class File(Changeable, Clearable, IOComponent):
             else:
                 return process_single_file(x)
         else:
-            return [process_single_file(f) for f in x]
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -2394,17 +2402,13 @@ class File(Changeable, Clearable, IOComponent):
         )
 
 
-class DataframeData(TypedDict):
-    headers: List[str]
-    data: List[List[str | int | bool]]
-
-
+@document()
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
-
+    Examples-format: a {str} filepath to a csv with data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2835,7 +2839,7 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default text for the button to display.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -2883,6 +2887,7 @@ class Button(Clickable, IOComponent):
         )
 
 
+@document()
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
@@ -2905,12 +2910,12 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in color picker.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: default text to provide in color picker.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.cleared_value = "#000000"
@@ -3177,7 +3182,6 @@ class HighlightedText(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
-                DeprecationWarning,
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -3546,7 +3550,6 @@ class Carousel(IOComponent, Changeable):
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
-            DeprecationWarning,
         )
         if not isinstance(components, list):
             components = [components]
@@ -3659,7 +3662,6 @@ class Chatbot(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
-                DeprecationWarning,
             )
 
         self.value = self.postprocess(value)

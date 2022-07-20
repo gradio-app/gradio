@@ -20,7 +20,6 @@ class Textbox(components.Textbox):
     ):
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label, type=type)
 
@@ -42,7 +41,6 @@ class Image(components.Image):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         if plot:
             type = "plot"
@@ -63,7 +61,6 @@ class Video(components.Video):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(format=type, label=label)
 
@@ -82,7 +79,6 @@ class Audio(components.Audio):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(type=type, label=label)
 
@@ -100,7 +96,6 @@ class File(components.File):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label)
 
@@ -131,7 +126,6 @@ class Dataframe(components.Dataframe):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(
             headers=headers,
@@ -160,7 +154,6 @@ class Timeseries(components.Timeseries):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(x=x, y=y, label=label)
 
@@ -178,7 +171,6 @@ class State(components.Variable):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label)
 
@@ -203,7 +195,6 @@ class Label(components.Label):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(num_top_classes=num_top_classes, type=type, label=label)
 
@@ -247,7 +238,6 @@ class HighlightedText(components.HighlightedText):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(color_map=color_map, label=label, show_legend=show_legend)
 
@@ -265,7 +255,6 @@ class JSON(components.JSON):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label)
 
@@ -301,7 +290,6 @@ class Carousel(components.Carousel):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(components=components, label=label)
 
@@ -319,7 +307,6 @@ class Chatbot(components.Chatbot):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(label=label)
 
@@ -342,6 +329,5 @@ class Image3D(components.Model3D):
         """
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
         )
         super().__init__(clear_color=clear_color, label=label)

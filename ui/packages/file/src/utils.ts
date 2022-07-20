@@ -15,22 +15,14 @@ export const display_file_name = (
 	value: FileData | Array<FileData>
 ): string => {
 	var str: string;
-	if (Array.isArray(value)) {
-		if (value.length > 1) {
-			return value.length + " files";
-		} else {
-			str = value[0].name;
-		}
-	} else {
-		str = value.name;
-	}
+	str = value.name;
 	if (str.length > 30) {
 		return `${str.substr(0, 30)}...`;
 	} else return str;
 };
 
 export const download_files = (value: FileData | Array<FileData>): string => {
-	return Array.isArray(value) ? value[0].data : value.data;
+	return value.data;
 };
 
 export const display_file_size = (

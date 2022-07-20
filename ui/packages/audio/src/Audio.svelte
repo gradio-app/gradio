@@ -69,14 +69,14 @@
 				recording = false;
 			}
 			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+			audio_chunks = [];
 			value = {
 				data: await blob_to_data_url(audio_blob),
 				name
 			};
 			dispatch(streaming ? "stream" : "change", value);
-			const audioTracks = stream.getAudioTracks();
-			audioTracks.forEach((track) => track.stop());
 		});
+		inited = true;
 	}
 
 	async function record() {

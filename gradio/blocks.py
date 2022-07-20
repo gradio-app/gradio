@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import getpass
 import inspect
@@ -9,6 +8,7 @@ import random
 import sys
 import time
 import webbrowser
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
@@ -23,10 +23,12 @@ from gradio.utils import component_or_layout_class, delete_none
 set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    import comet_ml
+    import mlflow
+    import wandb
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
-    from gradio.routes import PredictBody
 
 
 class Block:
@@ -162,6 +164,11 @@ class BlockContext(Block):
         render: bool = True,
         **kwargs,
     ):
+        """
+        Parameters:
+            visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
+            render: If False, this will not be included in the Blocks config file at all.
+        """
         self.children = []
         super().__init__(visible=visible, render=render, **kwargs)
 
@@ -192,11 +199,24 @@ class class_or_instancemethod(classmethod):
         return descr_get(instance, type_)
 
 
+@document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters
-    @param kwargs: Updating component parameters
-    @return: Updated component parameters
+    Updates component parameters.
+    This is a shorthand for using the update method on a component.
+    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+
+    Demos: blocks_update, blocks_essay_update
+
+    Parameters:
+        kwargs: Key-word arguments used to update the component's properties.
+    Example:
+        import gradio as gr
+        with gr.Blocks() as demo:
+            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
+            number = gr.Number(value=2, interactive=True)
+            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
+        demo.launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
@@ -210,19 +230,24 @@ def skip() -> dict:
     return update()
 
 
-@document()
+@document("load")
 class Blocks(BlockContext):
     """
-    The Blocks class is a low-level API that allows you to create custom web
-    applications entirely in Python. Compared to the Interface class, Blocks offers
-    more flexibility and control over: (1) the layout of components (2) the events that
+    Blocks is Gradio's low-level API that allows you to create more custom web
+    applications and demos than Interfaces (yet still entirely in Python).
+
+
+    Compared to the Interface class, Blocks offers more flexibility and control over:
+    (1) the layout of components (2) the events that
     trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
     which can trigger the next level of outputs). Blocks also offers ways to group
-    together related demos e.g. using tabs.
+    together related demos such as with tabs.
+
 
     The basic usage of Blocks is as follows: create a Blocks object, then use it as a
     context (with the "with" statement), and then define layouts, components, or events
     within the Blocks context. Finally, call the launch() method to launch the demo.
+
     Example:
         import gradio as gr
         def update(name):
@@ -237,7 +262,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length, generate_english_german
     """
 
     def __init__(
@@ -286,7 +311,10 @@ class Blocks(BlockContext):
         self.mode = mode
 
         self.is_running = False
+        self.local_url = None
         self.share_url = None
+        self.width = None
+        self.height = None
 
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -658,21 +686,19 @@ class Blocks(BlockContext):
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
-        Parameters:
-            name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key (str | None): optional api key for use with Hugging Face Hub
-            alias (str | None): optional string used as the name of the loaded model instead of the default name
-            type (str): the type of the Blocks, either a standard `blocks` or `column`
-        Returns: Blocks instance
 
-        Instance method: adds an event for when the demo loads in the browser.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+
+
+        Instance method: adds an event for when the demo loads in the browser and returns None.
         Parameters:
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-        Returns: None
+            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional api key for use with Hugging Face Hub
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            fn: Instance Method - Callable function
+            inputs: Instance Method - input list
+            outputs: Instance Method - output list
         """
         if isinstance(self_or_cls, type):
             if name is None:
@@ -726,7 +752,8 @@ class Blocks(BlockContext):
     ) -> Tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
-        shareable link.
+        public link used by anyone to access the demo from their browser by setting share=True.
+
         Parameters:
             inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the interface in a new tab on the default browser.
@@ -758,7 +785,7 @@ class Blocks(BlockContext):
             def reverse(text):
                 return text[::-1]
             demo = gr.Interface(reverse, "text", "text")
-            demo.launch(share=True)
+            demo.launch(share=True, auth=("username", "password"))
         """
         self.dev_mode = False
         if (
@@ -910,6 +937,60 @@ class Blocks(BlockContext):
             self.block_thread()
 
         return self.server_app, self.local_url, self.share_url
+
+    def integrate(
+        self,
+        comet_ml: comet_ml.Experiment = None,
+        wandb: ModuleType("wandb") = None,
+        mlflow: ModuleType("mlflow") = None,
+    ) -> None:
+        """
+        A catch-all method for integrating with other libraries. This method should be run after launch()
+        Parameters:
+            comet_ml: If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
+            wandb: If the wandb module is provided, will integrate with it and appear on WandB dashboard
+            mlflow: If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
+        """
+        analytics_integration = ""
+        if comet_ml is not None:
+            analytics_integration = "CometML"
+            comet_ml.log_other("Created from", "Gradio")
+            if self.share_url is not None:
+                comet_ml.log_text("gradio: " + self.share_url)
+                comet_ml.end()
+            else:
+                comet_ml.log_text("gradio: " + self.local_url)
+                comet_ml.end()
+        if wandb is not None:
+            analytics_integration = "WandB"
+            if self.share_url is not None:
+                wandb.log(
+                    {
+                        "Gradio panel": wandb.Html(
+                            '<iframe src="'
+                            + self.share_url
+                            + '" width="'
+                            + str(self.width)
+                            + '" height="'
+                            + str(self.height)
+                            + '" frameBorder="0"></iframe>'
+                        )
+                    }
+                )
+            else:
+                print(
+                    "The WandB integration requires you to "
+                    "`launch(share=True)` first."
+                )
+        if mlflow is not None:
+            analytics_integration = "MLFlow"
+            if self.share_url is not None:
+                mlflow.log_param("Gradio Interface Share Link", self.share_url)
+            else:
+                mlflow.log_param("Gradio Interface Local Link", self.local_url)
+        if self.analytics_enabled and analytics_integration:
+            data = {"integration": analytics_integration}
+            utils.integration_analytics(data)
 
     def close(self, verbose: bool = True) -> None:
         """
