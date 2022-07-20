@@ -38,7 +38,7 @@ $code_gender_sentence_default_interpretation
 
 So what is happening under the hood? With these interpretation methods, Gradio runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue.
 
-You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the function must return a list where the number of elements corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input component - therefore the function must return a list where the number of elements corresponds to the number of input components. To see the format for interpretation for each input component, check the Docs.
 
 $code_gender_sentence_custom_interpretation
 
