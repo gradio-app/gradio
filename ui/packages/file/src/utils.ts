@@ -11,9 +11,7 @@ export const prettyBytes = (bytes: number): string => {
 	return bytes.toFixed(1) + " " + unit;
 };
 
-export const display_file_name = (
-	value: FileData | Array<FileData>
-): string => {
+export const display_file_name = (value: FileData): string => {
 	var str: string;
 	str = value.name;
 	if (str.length > 30) {
@@ -21,7 +19,7 @@ export const display_file_name = (
 	} else return str;
 };
 
-export const download_files = (value: FileData | Array<FileData>): string => {
+export const download_files = (value: FileData): string => {
 	return value.data;
 };
 
