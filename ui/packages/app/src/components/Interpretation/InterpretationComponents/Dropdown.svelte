@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
 
-	export let original: string;
 	export let interpretation: Array<number>;
-	export let theme: string;
 	export let choices: Array<string>;
 </script>
 
-<div class="input-dropdown" {theme}>
+<div class="input-dropdown">
 	<ul class="dropdown-menu">
 		{#each choices as choice, i}
 			<li
@@ -21,7 +19,7 @@
 </div>
 
 <style lang="postcss" global>
-	.input-dropdown[theme="default"] {
+	.input-dropdown {
 		.selector {
 			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
 		}

@@ -3,67 +3,66 @@ import Login from "./Login.svelte";
 import { Component as Loader } from "./components/StatusTracker";
 import { fn } from "./api";
 
+import type { ComponentMeta, Dependency, LayoutNode } from "./components/types";
+
 import * as t from "@gradio/theme";
 
 let id = -1;
 window.__gradio_loader__ = [];
 
-interface CustomWindow extends Window {
-	__gradio_mode__: "app" | "website";
-	launchGradio: Function;
-	launchGradioFromSpaces: Function;
-	gradio_config: Config;
-	scoped_css_attach: (link: HTMLLinkElement) => void;
-	__gradio_loader__: Array<{
-		$set: (args: any) => any;
-	}>;
-}
-
-declare let window: CustomWindow;
 declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
 
 const ENTRY_CSS = "__ENTRY_CSS__";
 const FONTS = "__FONTS_CSS__";
 
-interface Component {
-	name: string;
-	[key: string]: unknown;
-}
-
 interface Config {
 	auth_required: boolean | undefined;
-	allow_flagging: string;
-	allow_interpretation: boolean;
-	allow_screenshot: boolean;
-	article: string;
-	cached_examples: boolean;
-	css: null | string;
-	description: string;
-	examples: Array<unknown>;
-	examples_per_page: number;
-	favicon_path: null | string;
-	flagging_options: null | unknown;
-	fn: Function;
-	function_count: number;
-	input_components: Array<Component>;
-	output_components: Array<Component>;
-	layout: string;
-	live: boolean;
-	mode: "blocks" | "interface" | undefined;
+	auth_message: string;
+
+	components: ComponentMeta[];
+	css: string | null;
+	dependencies: Dependency[];
+	dev_mode: boolean;
 	enable_queue: boolean;
+	fn: ReturnType<typeof fn>;
+	layout: LayoutNode;
+	mode: "blocks" | "interface";
 	root: string;
-	show_input: boolean;
-	show_output: boolean;
-	simpler_description: string;
+	target: HTMLElement;
 	theme: string;
-	thumbnail: null | string;
 	title: string;
 	version: string;
-	space?: string;
-	detail: string;
-	dark: boolean;
-	dev_mode: boolean;
+	// allow_flagging: string;
+	// allow_interpretation: boolean;
+	// article: string;
+	// cached_examples: boolean;
+
+	// description: string;
+	// examples: Array<unknown>;
+	// examples_per_page: number;
+	// favicon_path: null | string;
+	// flagging_options: null | unknown;
+
+	// function_count: number;
+	// input_components: Array<ComponentMeta>;
+	// output_components: Array<ComponentMeta>;
+	// layout: string;
+	// live: boolean;
+	// mode: "blocks" | "interface" | undefined;
+	// enable_queue: boolean;
+	// root: string;
+	// show_input: boolean;
+	// show_output: boolean;
+	// simpler_description: string;
+	// theme: string;
+	// thumbnail: null | string;
+	// title: string;
+	// version: string;
+	// space?: string;
+	// detail: string;
+	// dark: boolean;
+	// dev_mode: boolean;
 }
 
 let app_id: string | null = null;
@@ -151,13 +150,11 @@ async function handle_config(
 	}
 
 	mount_custom_css(target, config.css);
-
-	if (config.dev_mode) {
-		reload_check(config.root);
-	}
-
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
+	}
+	if (config.dev_mode) {
+		reload_check(config.root);
 	}
 
 	config.target = target;
@@ -170,19 +167,25 @@ function mount_app(
 	target: HTMLElement | ShadowRoot | false,
 	wrapper: HTMLDivElement,
 	id: number,
-	autoscroll?: Boolean
+	autoscroll?: boolean
 ) {
+	//@ts-ignore
 	if (config.detail === "Not authenticated" || config.auth_required) {
-		const app = new Login({
+		new Login({
 			target: wrapper,
 			//@ts-ignore
-			props: { ...config, id }
+			props: {
+				auth_message: config.auth_message,
+				root: config.root,
+				//@ts-ignore
+				id: config.id
+			}
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn.bind(null, session_hash, config.root + "api/");
+		config.fn = fn(session_hash, config.root + "api/");
 
-		const app = new Blocks({
+		new Blocks({
 			target: wrapper,
 			//@ts-ignore
 			props: { ...config, target: wrapper, id, autoscroll: autoscroll }

@@ -1,9 +1,13 @@
-import { LoadingStatus, loading_status } from "./stores";
+import { loading_status } from "./stores";
 
 type StatusResponse =
 	| {
 			status: "COMPLETE";
-			data: { duration: number; average_duration: number; data: unknown };
+			data: {
+				duration: number;
+				average_duration: number;
+				data: Array<unknown>;
+			};
 	  }
 	| {
 			status: "QUEUED";
@@ -19,7 +23,7 @@ type StatusResponse =
 	  };
 
 interface Payload {
-	data: Record<string, unknown>;
+	data: Array<unknown>;
 	fn_index: number;
 }
 
@@ -43,14 +47,22 @@ async function post_data<
 	}
 
 	const output: Return = await response.json();
-
 	return output;
 }
+interface UpdateOutput {
+	__type__: string;
+	[key: string]: unknown;
+}
 
-export const fn = async (
-	session_hash: string,
-	api_endpoint: string,
-	{
+type Output = {
+	data: Array<UpdateOutput | unknown>;
+	duration?: number;
+	average_duration?: number;
+};
+
+export const fn =
+	(session_hash: string, api_endpoint: string) =>
+	async ({
 		action,
 		payload,
 		queue,
@@ -63,72 +75,71 @@ export const fn = async (
 		queue: boolean;
 		backend_fn: boolean;
 		frontend_fn: Function | undefined;
-		output_data: Array<any>;
-	}
-) => {
-	const fn_index = payload.fn_index;
+		output_data?: Output["data"];
+	}): Promise<unknown> => {
+		const fn_index = payload.fn_index;
 
-	if (frontend_fn !== undefined) {
-		payload.data = await frontend_fn(payload.data.concat(output_data));
-	}
-	if (backend_fn == false) {
-		return payload;
-	}
+		if (frontend_fn !== undefined) {
+			payload.data = await frontend_fn(payload.data.concat(output_data));
+		}
+		if (backend_fn == false) {
+			return payload;
+		}
 
-	if (queue && ["predict", "interpret"].includes(action)) {
-		loading_status.update(fn_index as number, "pending", null, null);
+		if (queue && ["predict", "interpret"].includes(action)) {
+			loading_status.update(fn_index as number, "pending", null, null);
 
-		const { hash, queue_position } = await post_data<{
-			hash: string;
-			queue_position: number;
-		}>(api_endpoint + "queue/push/", { ...payload, action, session_hash });
+			const { hash, queue_position } = await post_data<{
+				hash: string;
+				queue_position: number;
+			}>(api_endpoint + "queue/push/", { ...payload, action, session_hash });
 
-		loading_status.update(fn_index, "pending", queue_position, null);
+			loading_status.update(fn_index, "pending", queue_position, null);
 
-		for (;;) {
-			await delay(1);
+			for (;;) {
+				await delay(1);
 
-			const { status, data } = await post_data<StatusResponse>(
-				api_endpoint + "queue/status/",
-				{
-					hash: hash
-				}
-			);
-
-			if (status === "QUEUED") {
-				loading_status.update(fn_index, "pending", data, null);
-			} else if (status === "PENDING") {
-				loading_status.update(fn_index, "pending", 0, null);
-			} else if (status === "FAILED") {
-				loading_status.update(fn_index, "error", null, null);
-
-				throw new Error(status);
-			} else {
-				loading_status.update(
-					fn_index,
-					"complete",
-					null,
-					data.average_duration
+				const { status, data } = await post_data<StatusResponse>(
+					api_endpoint + "queue/status/",
+					{
+						hash: hash
+					}
 				);
 
-				return data;
+				if (status === "QUEUED") {
+					loading_status.update(fn_index, "pending", data, null);
+				} else if (status === "PENDING") {
+					loading_status.update(fn_index, "pending", 0, null);
+				} else if (status === "FAILED") {
+					loading_status.update(fn_index, "error", null, null);
+
+					throw new Error(status);
+				} else {
+					loading_status.update(
+						fn_index,
+						"complete",
+						null,
+						data.average_duration
+					);
+
+					return data;
+				}
 			}
+		} else {
+			loading_status.update(fn_index as number, "pending", null, null);
+
+			const output = await post_data(api_endpoint + action + "/", {
+				...payload,
+				session_hash
+			});
+
+			loading_status.update(
+				fn_index,
+				"complete",
+				null,
+				output.average_duration as number
+			);
+
+			return output;
 		}
-	} else {
-		loading_status.update(fn_index as number, "pending", null, null);
-
-		const output = await post_data(api_endpoint + action + "/", {
-			...payload,
-			session_hash
-		});
-
-		loading_status.update(
-			fn_index,
-			"complete",
-			null,
-			output.average_duration as number
-		);
-
-		return await output;
-	}
-};
+	};

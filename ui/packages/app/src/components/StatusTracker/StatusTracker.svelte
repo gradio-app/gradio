@@ -44,7 +44,7 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy, onMount } from "svelte";
+	import { onDestroy } from "svelte";
 	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
 
@@ -169,33 +169,5 @@
 
 	.error {
 		@apply text-red-400 font-mono font-semibold text-lg;
-	}
-	@keyframes blink {
-		0% {
-			opacity: 100%;
-		}
-		50% {
-			opacity: 60%;
-		}
-		100% {
-			opacity: 100%;
-		}
-	}
-	.blink {
-		animation: blink 2s infinite;
-	}
-	@keyframes bounce {
-		0% {
-			left: 0%;
-		}
-		50% {
-			left: 75%;
-		}
-		100% {
-			left: 0%;
-		}
-	}
-	.bounce {
-		animation: bounce 2s infinite linear;
 	}
 </style>

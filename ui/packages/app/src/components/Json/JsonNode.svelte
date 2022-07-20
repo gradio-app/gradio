@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let value: any;
 	export let theme: string;
-	export let style: string | null;
 	export let depth: number;
 	export let collapsed = depth > 4;
 </script>

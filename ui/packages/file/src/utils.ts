@@ -39,10 +39,10 @@ export const display_file_size = (
 	var total_size = 0;
 	if (Array.isArray(value)) {
 		for (var file of value) {
-			total_size += file.size;
+			if (file.size !== undefined) total_size += file.size;
 		}
 	} else {
-		total_size = value.size;
+		total_size = value.size || 0;
 	}
-	return prettyBytes(total_size || 0);
+	return prettyBytes(total_size);
 };

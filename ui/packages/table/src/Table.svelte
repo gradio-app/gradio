@@ -14,7 +14,9 @@
 	export let datatype: Datatype | Array<Datatype>;
 	export let label: string | null = null;
 	export let headers: Array<string> = [];
-	export let values: Array<Array<string | number>> = [[]];
+	export let values:
+		| Array<Array<string | number>>
+		| { data: Array<Array<string | number>>; headers: Array<string> } = [[]];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 
@@ -24,7 +26,7 @@
 
 	$: {
 		if (values && !Array.isArray(values)) {
-			if (Array.isArray(values.headers)) headers = values.headers;
+			headers = values.headers;
 			values =
 				values.data.length === 0
 					? [Array(headers.length).fill("")]
@@ -37,7 +39,7 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: { data: typeof values; headers: typeof headers };
+		change: { data: Array<Array<string | number>>; headers: Array<string> };
 	}>();
 
 	let editing: boolean | string = false;
@@ -54,7 +56,7 @@
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
 			const fill = Array(col_count[0] - _h.length)
 				.fill("")
-				.map((v, i) => `${i + _h.length}`);
+				.map((_, i) => `${i + _h.length}`);
 			_h = _h.concat(fill);
 		}
 
@@ -86,10 +88,10 @@
 				: data_row_length
 		)
 			.fill(0)
-			.map((x, i) =>
+			.map((_, i) =>
 				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
 					.fill(0)
-					.map((n, j) => {
+					.map((_, j) => {
 						const id = `${i}-${j}`;
 						els[id] = { input: null, cell: null };
 						return { value: _values?.[i]?.[j] ?? "", id };
@@ -109,8 +111,8 @@
 		}
 	}
 	$: if (!dequal(values, old_val)) {
-		data = process_data(values);
-		old_val = values;
+		data = process_data(values as Array<Array<string | number>>);
+		old_val = values as Array<Array<string | number>>;
 
 		refresh_focus();
 	}

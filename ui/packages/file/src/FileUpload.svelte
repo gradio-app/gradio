@@ -11,7 +11,7 @@
 		display_file_size
 	} from "./utils";
 
-	export let value: null | FileData | Array;
+	export let value: null | FileData | Array<FileData>;
 
 	export let drop_text: string = "Drop a file";
 	export let or_text: string = "or";
