@@ -73,7 +73,7 @@ def override_signature(name, signature):
             if cls["name"] == name:
                 cls["override_signature"] = signature
 
-override_signature("Blocks", "with gradio.Blocks(theme, analytics_enabled, mode):")
+override_signature("Blocks", "with gradio.Blocks():")
 override_signature("Row", "with gradio.Row():")
 override_signature("Column", "with gradio.Column():")
 override_signature("Tabs", "with gradio.Tabs():")
