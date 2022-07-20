@@ -36,7 +36,7 @@ describe("Textbox", () => {
 	test("changing the text should update the value", async () => {
 		const { component, getByLabelText, getByDisplayValue } = render(Textbox, {
 			show_label: true,
-			max_lines: 1,
+			max_lines: 10,
 			loading_status,
 			lines: 1,
 			mode: "dynamic",

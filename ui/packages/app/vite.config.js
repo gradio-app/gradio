@@ -12,7 +12,7 @@ import {
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
 // @ts-ignore
-import nested from "tailwindcss/nesting";
+import nested from "tailwindcss/nesting/index.js";
 
 const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
 const TEST_CDN = !!process.env.TEST_CDN;
