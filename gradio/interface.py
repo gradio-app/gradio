@@ -14,6 +14,7 @@ import weakref
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
+import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
@@ -177,10 +178,6 @@ class Interface(Blocks):
             **kwargs,
         )
 
-        if inspect.iscoroutinefunction(fn):
-            raise NotImplementedError(
-                "Async functions are not currently supported within interfaces. Please use Blocks API."
-            )
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -477,11 +474,7 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = (
-                lambda *args: self.run_prediction(args)[0]
-                if len(self.output_components) == 1
-                else self.run_prediction(args)
-            )
+            submit_fn = self.run_prediction
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                     super().load(submit_fn, None, self.output_components)
@@ -620,9 +613,11 @@ class Interface(Blocks):
         if (
             self.api_mode
         ):  # skip the preprocessing/postprocessing if sending to a remote API
-            output = self.run_prediction(params, called_directly=True)
+            output = utils.synchronize_async(
+                self.run_prediction, params, called_directly=True
+            )
         else:
-            output = self.process(params)
+            output = utils.synchronize_async(self.process, params)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -639,7 +634,7 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    def run_prediction(
+    async def run_prediction(
         self,
         processed_input: List[Any],
         called_directly: bool = False,
@@ -658,7 +653,12 @@ class Interface(Blocks):
                 for i, input_component in enumerate(self.input_components)
             ]
 
-        prediction = self.fn(*processed_input)
+        if inspect.iscoroutinefunction(self.fn):
+            prediction = await self.fn(*processed_input)
+        else:
+            prediction = await anyio.to_thread.run_sync(
+                self.fn(*processed_input), limiter=super().limiter
+            )
 
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
@@ -669,9 +669,9 @@ class Interface(Blocks):
                 for i, output_component in enumerate(self.output_components)
             ]
 
-        return prediction
+        return prediction[0] if len(self.output_components) == 1 else prediction
 
-    def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
+    async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
         self.run_prediction(), then postprocesses the output.
@@ -685,7 +685,7 @@ class Interface(Blocks):
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
         ]
-        predictions = self.run_prediction(processed_input)
+        predictions = await self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
@@ -694,11 +694,11 @@ class Interface(Blocks):
         ]
         return processed_output
 
-    def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
-                interpretation.run_interpret(self, raw_input)[0], raw_input
+                await interpretation.run_interpret(self, raw_input)[0], raw_input
             )
         ]
 

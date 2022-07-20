@@ -1,6 +1,7 @@
 """
 Ways to transform interfaces to produce new interfaces
 """
+import asyncio
 from typing import TYPE_CHECKING, List
 
 import gradio
@@ -34,11 +35,14 @@ class Parallel(gradio.Interface):
         for interface in interfaces:
             outputs.extend(interface.output_components)
 
-        def parallel_fn(*args):
-            return_values = []
-            for interface in interfaces:
-                value = interface.run_prediction(args)
-                return_values.extend(value)
+        async def parallel_fn(*args):
+            return_values = asyncio.gather(
+                *[interface.run_prediction(args) for interface in interfaces]
+            )
+            combined_list = []
+            for value in return_values:
+                combined_list.append(value)
+
             if len(outputs) == 1:
                 return return_values[0]
             return return_values
