@@ -31,7 +31,7 @@ def interpret_gender(sentence):
             score = -1
         interpretation.append((word, score))
     # Output must be a list of lists containing the same number of elements as inputs
-    # Each element corresponds to the interpretation scores for given input
+    # Each element corresponds to the interpretation scores for the given input
     return [interpretation]
 
 
