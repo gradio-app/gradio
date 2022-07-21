@@ -22,18 +22,6 @@
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
 
-	$: {
-		if (value && !Array.isArray(value)) {
-			if (Array.isArray(value.headers)) headers = value.headers;
-			value =
-				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
-		} else if (value === null) {
-			value = [Array(headers.length).fill("")];
-		} else {
-			value = value;
-		}
-	}
-
 	const dispatch = createEventDispatcher();
 
 	export let loading_status: LoadingStatus;

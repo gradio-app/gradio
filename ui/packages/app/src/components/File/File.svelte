@@ -53,6 +53,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {label} {show_label} />
+		<File value={_value} {label} {show_label} {file_count} />
 	{/if}
 </Block>

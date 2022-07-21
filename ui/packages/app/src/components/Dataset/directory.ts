@@ -11,6 +11,7 @@ import ExampleVideo from "./ExampleComponents/Video.svelte";
 import ExampleFile from "./ExampleComponents/File.svelte";
 import ExampleDataframe from "./ExampleComponents/Dataframe.svelte";
 import ExampleModel3D from "./ExampleComponents/Model3D.svelte";
+import ExampleColorPicker from "./ExampleComponents/ColorPicker.svelte";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -25,5 +26,6 @@ export const component_map = {
 	video: ExampleVideo,
 	file: ExampleFile,
 	dataframe: ExampleDataframe,
-	model3d: ExampleModel3D
+	model3d: ExampleModel3D,
+	colorpicker: ExampleColorPicker
 };

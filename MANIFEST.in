@@ -1,3 +1,6 @@
 recursive-include gradio/templates *
 recursive-include gradio/test_data *
+recursive-include test/test_files *
 include gradio/version.txt
+include requirements.txt
+include test/requirements.txt
