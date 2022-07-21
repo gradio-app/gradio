@@ -17,6 +17,8 @@ def classifier(text):
 def interpretation_function(text):
     explainer = shap.Explainer(sentiment_classifier)
     shap_values = explainer([text])
+    # Dimensions are (batch size, text size, number of classes)
+    # Since we care about positive sentiment, use index 1
     scores = list(zip(shap_values.data[0], shap_values.values[0, :, 1]))
 
     scores_desc = sorted(scores, key=lambda t: t[1])[::-1]

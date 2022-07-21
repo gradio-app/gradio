@@ -1,6 +1,8 @@
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.24/gradio.js"></script>
+
 # Custom Machine Learning Interpretations with Blocks
 Docs: Blocks
-TAGS: INTERPRETATION, SENTIMENT ANALYSIS
+Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
 **Prerequisite**: This Guide requires you to know about Blocks and the interpretation feature of Interfaces.
 Make sure to [read the Guide to Blocks first](/introduction_to_blocks) as well as the
@@ -25,7 +27,7 @@ Let's get started!
 ## Setting up the Blocks app
 
 Let's build a sentiment classification app with the Blocks API.
-This app will take an input text and output the probability that this text has either negative or positive sentiment.
+This app will take text as input and output the probability that this text expresses either negative or positive sentiment.
 We'll have a single input `Textbox` and a single output `Label` component.
 Below is the code for the app as well as the app itself.
 
@@ -51,6 +53,8 @@ with gr.Blocks() as demo:
     classify.click(classifier, input_text, label)
 demo.launch()
 ```
+
+<gradio-app space="freddyaboulton/sentiment-classification"> </gradio-app>
 
 ## Adding interpretations to the app
 
@@ -104,6 +108,9 @@ with gr.Blocks() as demo:
 
 demo.launch()
 ```
+
+<gradio-app space="freddyaboulton/sentiment-classification-interpretation"> </gradio-app>
+
 
 ## Customizing how the interpretation is displayed
 
@@ -167,10 +174,13 @@ demo.launch()
 
 You can see the demo below!
 
+<gradio-app space="freddyaboulton/sentiment-classification-interpretation-tabs"> </gradio-app>
+
 ## Closing remarks
 
 We did a deep dive 🤿 into how interpretations work and how you can add them to your Blocks app.
+
 We also showed how the Blocks API gives you the power to control how the interpretation is visualized in your app.
 
 Adding interpretations is a helpful way to make your users understand and gain trust in your model.
-Now you should have all the tools you need to add them to all of your apps!
+Now you have all the tools you need to add them to all of your apps!
