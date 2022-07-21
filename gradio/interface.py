@@ -46,15 +46,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 @document("launch", "load", "from_pipeline", "integrate")
 class Interface(Blocks):
     """
-    The Interface class is a high-level abstraction that allows you to create a
-    web-based demo around a machine learning model or arbitrary Python function
-    by specifying: (1) the function (2) the desired input components and (3) desired output components.
+    The Interface class is Gradio's main high-level abstraction, and allows you to create a
+    web-based GUI / demo around a machine learning model (or any Python function). You must specify
+    three parameters: (1) the function to create a GUI for (2) the desired input components and
+    (3) the desired output components. Further parameters can be specified to control the appearance
+    and behavior of the demo.
+
     Example:
         import gradio as gr
+
         def image_classifier(inp):
             return {'cat': 0.3, 'dog': 0.7}
+
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
-        demo.launch(share=True)
+        demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
     """
 
@@ -156,7 +161,7 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
-            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
+            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function. For more information on the different interpretation methods, see the Advanced Interface Features guide.
             num_shap: a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.

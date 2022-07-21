@@ -230,19 +230,24 @@ def skip() -> dict:
     return update()
 
 
-@document()
+@document("load")
 class Blocks(BlockContext):
     """
-    The Blocks class is a low-level API that allows you to create custom web
-    applications entirely in Python. Compared to the Interface class, Blocks offers
-    more flexibility and control over: (1) the layout of components (2) the events that
+    Blocks is Gradio's low-level API that allows you to create more custom web
+    applications and demos than Interfaces (yet still entirely in Python).
+
+
+    Compared to the Interface class, Blocks offers more flexibility and control over:
+    (1) the layout of components (2) the events that
     trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
     which can trigger the next level of outputs). Blocks also offers ways to group
-    together related demos e.g. using tabs.
+    together related demos such as with tabs.
+
 
     The basic usage of Blocks is as follows: create a Blocks object, then use it as a
     context (with the "with" statement), and then define layouts, components, or events
     within the Blocks context. Finally, call the launch() method to launch the demo.
+
     Example:
         import gradio as gr
         def update(name):
@@ -257,7 +262,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length, generate_english_german
     """
 
     def __init__(
@@ -681,21 +686,19 @@ class Blocks(BlockContext):
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
-        Parameters:
-            name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key (str | None): optional api key for use with Hugging Face Hub
-            alias (str | None): optional string used as the name of the loaded model instead of the default name
-            type (str): the type of the Blocks, either a standard `blocks` or `column`
-        Returns: Blocks instance
 
-        Instance method: adds an event for when the demo loads in the browser.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+
+
+        Instance method: adds an event for when the demo loads in the browser and returns None.
         Parameters:
-            fn: Callable function
-            inputs: input list
-            outputs: output list
-        Returns: None
+            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional api key for use with Hugging Face Hub
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            fn: Instance Method - Callable function
+            inputs: Instance Method - input list
+            outputs: Instance Method - output list
         """
         if isinstance(self_or_cls, type):
             if name is None:
@@ -749,7 +752,8 @@ class Blocks(BlockContext):
     ) -> Tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
-        shareable link.
+        public link used by anyone to access the demo from their browser by setting share=True.
+
         Parameters:
             inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the interface in a new tab on the default browser.
@@ -781,7 +785,7 @@ class Blocks(BlockContext):
             def reverse(text):
                 return text[::-1]
             demo = gr.Interface(reverse, "text", "text")
-            demo.launch(share=True)
+            demo.launch(share=True, auth=("username", "password"))
         """
         self.dev_mode = False
         if (

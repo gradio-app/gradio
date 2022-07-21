@@ -12,17 +12,19 @@ import operator
 import os
 import pathlib
 import shutil
-import sys
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-if sys.version_info[0] == 3 and sys.version_info[1] >= 8:
+if TYPE_CHECKING:
     from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 import matplotlib.figure
 import numpy as np
@@ -1340,7 +1342,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
-    Demos: image_mod
+    Demos: image_mod, image_mod_default_image
     """
 
     def __init__(
@@ -2400,11 +2402,6 @@ class File(Changeable, Clearable, IOComponent):
         )
 
 
-class DataframeData(TypedDict):
-    headers: List[str]
-    data: List[List[str | int | bool]]
-
-
 @document()
 class Dataframe(Changeable, IOComponent):
     """
@@ -2842,7 +2839,7 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default text for the button to display.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
