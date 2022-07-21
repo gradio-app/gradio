@@ -1,4 +1,5 @@
 <script>
+	// @ts-nocheck
 	import Carousel from "./Carousel.svelte";
 	import CarouselItem from "../CarouselItem/CarouselItem.svelte";
 	import api_logo from "../../../public/static/img/api-logo.svg";

@@ -11,7 +11,6 @@
 	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
-	export let show_label: boolean;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
 </script>
@@ -24,12 +23,5 @@
 >
 	<StatusTracker {...loading_status} />
 
-	<Checkbox
-		{label}
-		{show_label}
-		{style}
-		bind:value
-		on:change
-		disabled={mode === "static"}
-	/>
+	<Checkbox {label} {style} bind:value on:change disabled={mode === "static"} />
 </Block>

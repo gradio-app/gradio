@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher, onMount, tick } from "svelte";
+	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
 	interface Tab {
@@ -12,7 +12,6 @@
 	}
 
 	export let elem_id: string;
-	export let visible: boolean = true;
 	export let selected: number | string | object;
 
 	let tabs: Array<Tab> = [];

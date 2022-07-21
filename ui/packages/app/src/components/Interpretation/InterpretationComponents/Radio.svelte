@@ -3,11 +3,10 @@
 
 	export let original: string;
 	export let interpretation: Array<number>;
-	export let theme: string;
 	export let choices: Array<string>;
 </script>
 
-<div class="input-radio flex flex-wrap gap-2" {theme}>
+<div class="input-radio flex flex-wrap gap-2">
 	{#each choices as choice, i}
 		<button
 			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
@@ -23,7 +22,7 @@
 </div>
 
 <style lang="postcss">
-	.input-radio[theme="default"] {
+	.input-radio {
 		.radio-item {
 			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
 		}

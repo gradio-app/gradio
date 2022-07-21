@@ -3,10 +3,9 @@
 
 	export let original: boolean;
 	export let interpretation: [number, number];
-	export let theme: string;
 </script>
 
-<div class="input-checkbox inline-block" {theme}>
+<div class="input-checkbox inline-block">
 	<button
 		class="checkbox-item py-2 px-3 rounded cursor-pointer flex gap-1"
 		class:selected={original}
@@ -47,7 +46,7 @@
 	.selected .check {
 		@apply opacity-100;
 	}
-	.input-checkbox[theme="default"] {
+	.input-checkbox {
 		.checkbox-item {
 			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
 		}

@@ -3,18 +3,16 @@
 
 	export let original: number;
 	export let interpretation: Array<number>;
-	export let theme: string;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
 </script>
 
-<div class="input-slider text-center" {theme}>
+<div class="input-slider text-center">
 	<input
 		type="range"
 		class="range w-full appearance-none transition rounded h-4 bg-blue-400"
 		disabled
-		{original}
 		min={minimum}
 		max={maximum}
 		{step}
@@ -41,7 +39,7 @@
 		@apply appearance-none w-5 h-5 rounded cursor-pointer;
 	}
 
-	.input-slider[theme="default"] {
+	.input-slider {
 		.range {
 			@apply bg-white dark:bg-gray-800 shadow h-3 transition hover:shadow-md;
 		}

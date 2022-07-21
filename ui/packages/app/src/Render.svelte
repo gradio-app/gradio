@@ -1,37 +1,30 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
-	import { loading_status } from "./stores";
+	import type { ComponentMeta } from "./components/types";
 
 	export let root: string;
-	export let component;
-	export let instance_map;
+	export let component: !ComponentMeta["component"];
+	export let instance_map: Record<number, ComponentMeta>;
+
 	export let id: number;
-	export let props: {
-		style: Record<string, unknown>;
-		visible: boolean;
-		[key: string]: unknown;
-	};
-	interface LayoutNode {
-		id: number;
-		children: Array<LayoutNode>;
-	}
-	export let children: Array<LayoutNode>;
+	export let props: ComponentMeta["props"];
+
+	export let children: ComponentMeta["children"];
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean | undefined;
-	export let status_tracker_values: Record<number, string>;
 	export let parent: string | null = null;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
 	if (has_modes) {
-		if (props.interactive === false) {
-			props.mode = "static";
-		} else if (props.interactive === true) {
-			props.mode = "dynamic";
+		if ((props as any).interactive === false) {
+			(props as any).mode = "static";
+		} else if ((props as any).interactive === true) {
+			(props as any).mode = "dynamic";
 		} else if (dynamic_ids.has(id)) {
-			props.mode = "dynamic";
+			(props as any).mode = "dynamic";
 		} else {
-			props.mode = "static";
+			(props as any).mode = "static";
 		}
 	}
 
@@ -51,7 +44,9 @@
 		"dropdown"
 	];
 
-	function get_types(i) {
+	function get_types(i: number) {
+		if (!children) return;
+
 		const current =
 			children[i]?.id != undefined && instance_map[children[i].id];
 		const next =
@@ -60,9 +55,9 @@
 			children[i - 1]?.id != undefined && instance_map[children[i - 1].id];
 
 		return {
-			current: current?.type && forms.includes(current.type),
-			next: next?.type && forms.includes(next.type),
-			prev: prev?.type && forms.includes(prev.type)
+			current: current && current?.type && forms.includes(current.type),
+			next: next && next?.type && forms.includes(next.type),
+			prev: prev && prev?.type && forms.includes(prev.type)
 		};
 	}
 
@@ -72,8 +67,8 @@
 		});
 	}
 
-	function get_form_context(node, i) {
-		const { current, next, prev } = get_types(i);
+	function get_form_context(node: ComponentMeta, i: number) {
+		const { current, next, prev } = get_types(i) || {};
 
 		if (current && next && prev) {
 			node.props.form_position = "mid";
@@ -103,13 +98,13 @@
 	this={component}
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
-	elem_id={props.elem_id || id}
+	elem_id={("elem_id" in props && props.elem_id) || `${id}`}
 	on:prop_change={handle_prop_change}
 	{...props}
 	{root}
 >
 	{#if children && children.length}
-		{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
+		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}
 			<svelte:self
 				parent={instance_map[id].type}
 				{component}
@@ -117,7 +112,7 @@
 				{props}
 				{root}
 				{instance_map}
-				{children}
+				children={_children}
 				{dynamic_ids}
 				{has_modes}
 				on:destroy

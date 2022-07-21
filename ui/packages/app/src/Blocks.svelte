@@ -1,75 +1,48 @@
 <script lang="ts">
-	import type { SvelteComponentTyped } from "svelte";
-	import { onMount } from "svelte";
-	import { component_map } from "./components/directory";
-	import { loading_status, app_state } from "./stores";
-	import type { LoadingStatus } from "./components/StatusTracker/types";
-
+	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
+
+	import { component_map } from "./components/directory";
+	import { loading_status, app_state, LoadingStatusCollection } from "./stores";
+
+	import type {
+		ComponentMeta,
+		Dependency,
+		LayoutNode
+	} from "./components/types";
+	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
 	import ApiDocs from "./ApiDocs.svelte";
-	import { tick } from "svelte";
+
 	import logo from "./images/logo.svg";
+
 	setupi18n();
 
-	interface Component {
-		id: number;
-		type: string;
-		has_modes?: boolean;
-		props: {
-			name?: keyof typeof component_map;
-			css?: Record<string, string>;
-			visible?: boolean;
-			elem_id?: string;
-			[key: string]: unknown;
-			value?: unknown;
-		};
-		instance?: SvelteComponentTyped;
-		component?: any;
-		children?: Array<Component>;
-	}
-
-	interface LayoutNode {
-		id: number;
-		children: Array<LayoutNode>;
-	}
-
-	interface Dependency {
-		trigger: string;
-		targets: Array<number>;
-		inputs: Array<number>;
-		outputs: Array<number>;
-		backend_fn: boolean;
-		js: string | null;
-		scroll_to_output: boolean;
-		show_progress: boolean;
-		frontend_fn?: Function;
-		status_tracker: number | null;
-		status?: string;
-		queue: boolean | null;
-		api_name: string | null;
-		documentation?: Array<Array<string>>;
-	}
-
 	export let root: string;
-	export let fn: (...args: any) => Promise<unknown>;
-	export let components: Array<Component>;
+	export let fn: ReturnType<typeof api_fn>;
+	export let components: Array<ComponentMeta>;
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
-	export let theme: string;
 
 	export let enable_queue: boolean;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 	export let target: HTMLElement;
-	export let css: string;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
-	let rootNode: Component = { id: layout.id, type: "column", props: {} };
+	let rootNode: ComponentMeta = {
+		id: layout.id,
+		type: "column",
+		props: {},
+		has_modes: false,
+		instance: {} as ComponentMeta["instance"],
+		component: {} as ComponentMeta["component"]
+	};
+
 	components.push(rootNode);
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -114,16 +87,24 @@
 		return false;
 	}
 
-	const dynamic_ids = components.reduce((acc, { id, props }) => {
-		const is_input = is_dep(id, "inputs", dependencies);
-		const is_output = is_dep(id, "outputs", dependencies);
+	const dynamic_ids: Set<number> = components.reduce<Set<number>>(
+		(acc, { id, props }) => {
+			const is_input = is_dep(id, "inputs", dependencies);
+			const is_output = is_dep(id, "outputs", dependencies);
 
-		if (!is_input && !is_output && has_no_default_value(props.value))
-			acc.add(id); // default dynamic
-		if (is_input) acc.add(id);
+			if (
+				!is_input &&
+				!is_output &&
+				"value" in props &&
+				has_no_default_value(props?.value)
+			)
+				acc.add(id); // default dynamic
+			if (is_input) acc.add(id);
 
-		return acc;
-	}, new Set());
+			return acc;
+		},
+		new Set()
+	);
 
 	function has_no_default_value(value: any) {
 		return (
@@ -137,27 +118,47 @@
 	let instance_map = components.reduce((acc, next) => {
 		acc[next.id] = next;
 		return acc;
-	}, {} as { [id: number]: Component });
+	}, {} as { [id: number]: ComponentMeta });
 
-	function load_component<T extends keyof typeof component_map>(
+	type LoadedComponent = {
+		Component: ComponentMeta["component"];
+		modes?: Array<string>;
+	};
+
+	function load_component<T extends ComponentMeta["type"]>(
 		name: T
-	): Promise<{ name: T; component: SvelteComponentTyped }> {
+	): Promise<{
+		name: T;
+		component: LoadedComponent;
+	}> {
 		return new Promise(async (res, rej) => {
 			try {
 				const c = await component_map[name]();
-				res({ name, component: c });
+				res({
+					name,
+					component: c as LoadedComponent
+				});
 			} catch (e) {
 				console.error("failed to load: " + name);
+				console.error(e);
 				rej(e);
 			}
 		});
 	}
 
+	const component_set = new Set<
+		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+	>();
+	const _component_map = new Map<
+		ComponentMeta["type"],
+		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
+	>();
+
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
-		const _component = (await _component_map.get(instance.type)).component;
+		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
-		if (_component.modes.length > 1) {
+		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
 		}
 
@@ -167,9 +168,7 @@
 		}
 	}
 
-	const component_set = new Set();
-	const _component_map = new Map();
-	components.forEach((c) => {
+	components.forEach(async (c) => {
 		const _c = load_component(c.type);
 		component_set.add(_c);
 		_component_map.set(c.type, _c);
@@ -190,7 +189,7 @@
 			});
 	});
 
-	function set_prop(obj: Component, prop: string, val: any) {
+	function set_prop<T extends ComponentMeta>(obj: T, prop: string, val: any) {
 		if (!obj?.props) {
 			obj.props = {};
 		}
@@ -215,7 +214,7 @@
 				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
 				i
 			) => {
-				const target_instances: [number, Component][] = targets.map((t) => [
+				const target_instances: [number, ComponentMeta][] = targets.map((t) => [
 					t,
 					instance_map[t]
 				]);
@@ -240,11 +239,12 @@
 						queue: queue === null ? enable_queue : queue
 					})
 						.then((output) => {
-							output.data.forEach((value, i) => {
+							(output as { data: unknown[] }).data.forEach((value, i) => {
 								if (
 									typeof value === "object" &&
 									value !== null &&
-									value.__type__ == "update"
+									(value as { __type__: string; [key: string]: any })
+										.__type__ === "update"
 								) {
 									for (const [update_key, update_value] of Object.entries(
 										value
@@ -269,57 +269,60 @@
 					handled_dependencies[i] = [-1];
 				}
 
-				target_instances.forEach(([id, { instance }]: [number, Component]) => {
-					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					instance?.$on(trigger, () => {
-						if (loading_status.get_status_for_fn(i) === "pending") {
-							return;
-						}
+				target_instances.forEach(
+					([id, { instance }]: [number, ComponentMeta]) => {
+						if (handled_dependencies[i]?.includes(id) || !instance) return;
+						instance?.$on(trigger, () => {
+							if (loading_status.get_status_for_fn(i) === "pending") {
+								return;
+							}
 
-						// page events
-						fn({
-							action: "predict",
-							backend_fn,
-							frontend_fn,
-							payload: {
-								fn_index: i,
-								data: inputs.map((id) => instance_map[id].props.value)
-							},
-							output_data: outputs.map((id) => instance_map[id].props.value),
-							queue: queue === null ? enable_queue : queue
-						})
-							.then((output) => {
-								output.data.forEach((value, i) => {
-									if (
-										typeof value === "object" &&
-										value !== null &&
-										value.__type__ === "update"
-									) {
-										for (const [update_key, update_value] of Object.entries(
-											value
-										)) {
-											if (update_key === "__type__") {
-												continue;
-											} else {
-												instance_map[outputs[i]].props[update_key] =
-													update_value;
-											}
-										}
-										rootNode = rootNode;
-									} else {
-										instance_map[outputs[i]].props.value = value;
-									}
-								});
+							// page events
+							fn({
+								action: "predict",
+								backend_fn,
+								frontend_fn,
+								payload: {
+									fn_index: i,
+									data: inputs.map((id) => instance_map[id].props.value)
+								},
+								output_data: outputs.map((id) => instance_map[id].props.value),
+								queue: queue === null ? enable_queue : queue
 							})
-							.catch((error) => {
-								console.error(error);
-								loading_status.update(i, "error", 0, 0);
-							});
-					});
+								.then((output) => {
+									(output as { data: unknown[] }).data.forEach((value, i) => {
+										if (
+											typeof value === "object" &&
+											value !== null &&
+											(value as { __type__: string; [key: string]: any })
+												.__type__ === "update"
+										) {
+											for (const [update_key, update_value] of Object.entries(
+												value
+											)) {
+												if (update_key === "__type__") {
+													continue;
+												} else {
+													instance_map[outputs[i]].props[update_key] =
+														update_value;
+												}
+											}
+											rootNode = rootNode;
+										} else {
+											instance_map[outputs[i]].props.value = value;
+										}
+									});
+								})
+								.catch((error) => {
+									console.error(error);
+									loading_status.update(i, "error", 0, 0);
+								});
+						});
 
-					if (!handled_dependencies[i]) handled_dependencies[i] = [];
-					handled_dependencies[i].push(id);
-				});
+						if (!handled_dependencies[i]) handled_dependencies[i] = [];
+						handled_dependencies[i].push(id);
+					}
+				);
 			}
 		);
 	}
@@ -336,7 +339,7 @@
 		loading_status.register(i, v.inputs, v.outputs);
 	});
 
-	function set_status(statuses: Record<number, LoadingStatus>) {
+	function set_status(statuses: LoadingStatusCollection) {
 		if (window.__gradio_mode__ === "website") {
 			return;
 		}
@@ -413,13 +416,13 @@
 			<ApiDocs {components} {dependencies} {root} />
 		{:else if ready}
 			<Render
+				has_modes={rootNode.has_modes}
 				component={rootNode.component}
 				id={rootNode.id}
 				props={rootNode.props}
 				children={rootNode.children}
 				{dynamic_ids}
 				{instance_map}
-				{theme}
 				{root}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}

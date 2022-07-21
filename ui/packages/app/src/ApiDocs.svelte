@@ -1,18 +1,14 @@
 <script lang="ts">
-	interface Component {
-		id: number;
-		props: {
-			name: string;
-			label?: string;
-		};
-	}
+	import type { ComponentMeta } from "./components/types";
+
 	interface Dependency {
 		inputs: Array<number>;
 		outputs: Array<number>;
 		api_name: string | null;
 		documentation?: Array<Array<string | null>>;
 	}
-	export let components: Array<Component>;
+
+	export let components: Array<ComponentMeta>;
 	export let dependencies: Array<Dependency>;
 	export let root: string;
 

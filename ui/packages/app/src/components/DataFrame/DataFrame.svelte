@@ -26,7 +26,10 @@
 
 	export let loading_status: LoadingStatus;
 
-	async function handle_change({ detail }) {
+	async function handle_change(detail: {
+		data: Array<Array<string | number>>;
+		headers: Array<string>;
+	}) {
 		value = detail;
 		await tick();
 		dispatch("change", detail);
@@ -46,7 +49,7 @@
 		{col_count}
 		values={value}
 		{headers}
-		on:change={handle_change}
+		on:change={({ detail }) => handle_change(detail)}
 		editable={mode === "dynamic"}
 		{style}
 		{wrap}

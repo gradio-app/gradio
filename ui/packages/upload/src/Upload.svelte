@@ -3,7 +3,6 @@
 	import type { FileData } from "./types";
 
 	export let filetype: string | undefined = undefined;
-	export let theme: string = "default";
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight: boolean = true;
@@ -77,7 +76,6 @@
 		: ''}"
 	class:text-center={center}
 	class:flex
-	{theme}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
 	on:dragend|preventDefault|stopPropagation

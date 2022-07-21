@@ -39,7 +39,6 @@ jobs:
         run: pnpm format:check
       - name: typecheck
         run: pnpm ts:check
-        continue-on-error: true
       - name: unit tests
         run: pnpm test:run
   functional-test:

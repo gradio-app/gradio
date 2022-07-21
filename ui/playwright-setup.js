@@ -1,7 +1,7 @@
 import polka from "polka";
 import sirv from "sirv";
 import path from "path";
-import { dirname, join } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

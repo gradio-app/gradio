@@ -1,6 +1,6 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import { colors, ordered_colors } from "@gradio/theme";
+	import { colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 
 	export let value: Array<[string, string | number]> = [];

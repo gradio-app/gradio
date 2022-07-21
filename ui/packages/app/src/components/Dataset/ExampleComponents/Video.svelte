@@ -18,7 +18,7 @@
 
 <!-- svelte-ignore a11y-media-has-caption -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-{#if playable(value)}
+{#if playable()}
 	<video
 		muted
 		playsinline

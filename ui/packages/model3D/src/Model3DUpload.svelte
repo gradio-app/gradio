@@ -32,7 +32,7 @@
 		addNewModel();
 	}
 
-	async function handle_clear({ detail }: CustomEvent<null>) {
+	async function handle_clear() {
 		if (scene) {
 			scene.dispose();
 		}
