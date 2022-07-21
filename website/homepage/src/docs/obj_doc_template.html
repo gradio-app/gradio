@@ -66,7 +66,7 @@
     </div>
   {% endif %}
 
-  {% if show_parameter_table|default(true) %}
+  {% if (obj["parameters"]|length > 0 and obj["parameters"][0]["name"] != "self") or obj["parameters"]|length > 1 %}
   <table class="table-fixed w-full mt-6 leading-loose">
     <thead class="text-left">
       <tr>
