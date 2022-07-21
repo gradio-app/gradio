@@ -94,10 +94,7 @@
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
 {:else if value && value["type"] == "matplotlib"}
-	<div
-		class="output-image w-full flex justify-center items-center relative"
-		{theme}
-	>
+	<div class="output-image w-full flex justify-center items-center relative">
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<img class="w-full max-h-[30rem] object-contain" src={value["plot"]} />
 	</div>

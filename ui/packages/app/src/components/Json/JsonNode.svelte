@@ -1,11 +1,10 @@
 <script lang="ts">
 	export let value: any;
-	export let theme: string;
 	export let depth: number;
 	export let collapsed = depth > 4;
 </script>
 
-<div class="json-node inline" {theme}>
+<div class="json-node inline">
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button
@@ -20,7 +19,7 @@
 			<div class="json-children pl-4">
 				{#each value as node, i}
 					<div class="json-item">
-						{i}: <svelte:self value={node} depth={depth + 1} key={i} {theme} />
+						{i}: <svelte:self value={node} depth={depth + 1} key={i} />
 						{#if i !== value.length - 1}
 							,
 						{/if}
@@ -47,7 +46,6 @@
 							value={node[1]}
 							depth={depth + 1}
 							key={i}
-							{theme}
 						/><!--
             -->{#if i !== Object.keys(value).length - 1}<!--
             -->,
