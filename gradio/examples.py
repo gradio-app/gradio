@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from gradio.components import Dataset
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
+from gradio import utils
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
@@ -153,13 +154,11 @@ class Examples:
             self.cache_interface_examples()
 
         def load_example(example_id):
-            processed_input = self.processed_examples[example_id]
             if cache_examples:
-                processed_example = processed_input + self.load_from_cache(example_id)
-            if len(processed_example) == 1:
-                return processed_example[0]
+                processed_example = self.processed_examples[example_id] + self.load_from_cache(example_id)
             else:
-                return processed_example
+                processed_example = self.processed_examples[example_id]
+            return utils.resolve_singleton(processed_example)
 
         dataset.click(
             load_example,
