@@ -13,7 +13,7 @@ export function get_domains(
 	let _vs: number[];
 	if (Array.isArray(values)) {
 		_vs = values.reduce<number[]>((acc, { values }) => {
-			return [...acc, ...values.map(({ x, y }) => y)];
+			return [...acc, ...values.map(({ y }) => y)];
 		}, []);
 	} else {
 		_vs = values.values;
