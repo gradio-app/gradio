@@ -163,7 +163,7 @@ class CSVLogger(FlaggingCallback):
         if self.encryption_key:
             output = io.StringIO()
             if not is_new:
-                with open(log_filepath, "rb") as csvfile:
+                with open(log_filepath, "rb", encoding="utf-8") as csvfile:
                     encrypted_csv = csvfile.read()
                     decrypted_csv = encryptor.decrypt(
                         self.encryption_key, encrypted_csv
@@ -177,13 +177,13 @@ class CSVLogger(FlaggingCallback):
                 if is_new:
                     writer.writerow(headers)
                 writer.writerow(csv_data)
-            with open(log_filepath, "wb") as csvfile:
+            with open(log_filepath, "wb", encoding="utf-8") as csvfile:
                 csvfile.write(
                     encryptor.encrypt(self.encryption_key, output.getvalue().encode())
                 )
         else:
             if flag_index is None:
-                with open(log_filepath, "a", newline="") as csvfile:
+                with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
                     writer = csv.writer(
                         csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
                     )
@@ -191,14 +191,14 @@ class CSVLogger(FlaggingCallback):
                         writer.writerow(headers)
                     writer.writerow(csv_data)
             else:
-                with open(log_filepath) as csvfile:
+                with open(log_filepath, encoding="utf-8") as csvfile:
                     file_content = csvfile.read()
                     file_content = replace_flag_at_index(file_content)
                 with open(
-                    log_filepath, "w", newline=""
+                    log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
                     csvfile.write(file_content)
-        with open(log_filepath, "r") as csvfile:
+        with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
@@ -282,7 +282,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
 
-        with open(self.log_file, "a", newline="") as csvfile:
+        with open(self.log_file, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
@@ -338,7 +338,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
 
-        with open(self.log_file, "r") as csvfile:
+        with open(self.log_file, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
 
         self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))

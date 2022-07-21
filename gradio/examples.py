@@ -8,6 +8,7 @@ import os
 import shutil
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
+from gradio import utils
 from gradio.components import Dataset
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
@@ -153,13 +154,13 @@ class Examples:
             self.cache_interface_examples()
 
         def load_example(example_id):
-            processed_example = self.processed_examples[example_id]
             if cache_examples:
-                processed_example += self.load_from_cache(example_id)
-            if len(processed_example) == 1:
-                return processed_example[0]
+                processed_example = self.processed_examples[
+                    example_id
+                ] + self.load_from_cache(example_id)
             else:
-                return processed_example
+                processed_example = self.processed_examples[example_id]
+            return utils.resolve_singleton(processed_example)
 
         dataset.click(
             load_example,
