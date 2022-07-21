@@ -5,6 +5,7 @@
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
 
 	export let label: string = "ColorPicker";
 	export let elem_id: string = "";
@@ -13,7 +14,7 @@
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 
-	export let style: Record<string, unknown> = {};
+	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 

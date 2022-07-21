@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
 	import { Video } from "@gradio/icons";
 
@@ -66,7 +66,7 @@
 	{/if}
 {:else}
 	<ModifyUpload on:clear={handle_clear} />
-	{#if playable(value.name)}
+	{#if playable()}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<Player src={value.data} on:play on:pause on:ended mirror={mirror_webcam} />
 	{:else if value.size}
