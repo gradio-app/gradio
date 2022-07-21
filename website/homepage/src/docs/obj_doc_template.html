@@ -38,11 +38,16 @@
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and "default" not in param %}<!--
+  -->{% if "positional" in param["kind"] and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
+  {% endif %}
+  {% if is_component %}
+    <div class="embedded-component">
+      <gradio-app src="/demo/{{ obj['name'] }}_component" />
+    </div>
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}

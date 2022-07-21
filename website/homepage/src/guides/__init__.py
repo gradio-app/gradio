@@ -12,6 +12,7 @@ GUIDE_ASSETS_DIR = os.path.join(GUIDES_DIR, "assets", "guides")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
 TEMP_TEMPLATE = os.path.join(DIR, "temporary_template.html")
+UNDERSCORE_TOKEN = "!UNDERSCORE!"
 
 demos = {}
 for demo_folder in os.listdir(DEMOS_DIR):
@@ -80,7 +81,7 @@ for guide in guide_list:
     )
     guide_content = re.sub(
         r"\$demo_([a-z _\-0-9]+)",
-        lambda x: f"<gradio-app src='/demo/{x.group(1)}' />",
+        lambda x: f"<gradio-app src='/demo/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
         guide_content
     )
 
@@ -108,13 +109,13 @@ def build_guides(output_dir, jinja_env):
                 markdown2.markdown(
                     guide["content"],
                     extras=["target-blank-links", "header-ids", "tables", "fenced-code-blocks"],
-                )
+                ).replace(UNDERSCORE_TOKEN, "_")
             )
         template = jinja_env.get_template("guides/template.html")
         output_folder = os.path.join(output_dir, guide["name"])
         os.makedirs(output_folder)
         output_file = os.path.join(output_folder, "index.html")
-        output = template.render(code={}, demos={}, spaces=guide["spaces"])
+        output = template.render(code={}, demos={}, spaces=guide["spaces"], name=guide["name"], pretty_name=guide["pretty_name"])
         with open(output_file, "w") as index_html:
             index_html.write(output)
 
