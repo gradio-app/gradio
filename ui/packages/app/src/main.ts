@@ -177,8 +177,7 @@ function mount_app(
 			props: {
 				auth_message: config.auth_message,
 				root: config.root,
-				//@ts-ignore
-				id: config.id
+				id
 			}
 		});
 	} else {
