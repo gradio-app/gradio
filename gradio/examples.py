@@ -153,9 +153,9 @@ class Examples:
             self.cache_interface_examples()
 
         def load_example(example_id):
-            processed_example = self.processed_examples[example_id]
+            processed_input = self.processed_examples[example_id]
             if cache_examples:
-                processed_example += self.load_from_cache(example_id)
+                processed_example = processed_input + self.load_from_cache(example_id)
             if len(processed_example) == 1:
                 return processed_example[0]
             else:
