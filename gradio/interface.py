@@ -474,7 +474,7 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = self.run_prediction
+            submit_fn = self.submit_func
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                     super().load(submit_fn, None, self.output_components)
@@ -595,8 +595,7 @@ class Interface(Blocks):
 
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data)
-                    + [Column.update(visible=False), Column.update(visible=True)],
+                    self.interpret_func,
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
@@ -634,6 +633,9 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
+    async def submit_func(self, *args):
+        return await self.run_prediction(args)
+
     async def run_prediction(
         self,
         processed_input: List[Any],
@@ -657,9 +659,8 @@ class Interface(Blocks):
             prediction = await self.fn(*processed_input)
         else:
             prediction = await anyio.to_thread.run_sync(
-                self.fn(*processed_input), limiter=super().limiter
+                self.fn, *processed_input, limiter=self.limiter
             )
-
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
@@ -694,11 +695,17 @@ class Interface(Blocks):
         ]
         return processed_output
 
+    async def interpret_func(self, *args):
+        return await self.interpret(args) + [
+            Column.update(visible=False),
+            Column.update(visible=True),
+        ]
+
     async def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
-                await interpretation.run_interpret(self, raw_input)[0], raw_input
+                (await interpretation.run_interpret(self, raw_input))[0], raw_input
             )
         ]
 
