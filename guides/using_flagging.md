@@ -1,6 +1,6 @@
 # Using Flagging
 
-Related spaces: https://huggingface.co/spaces/aliabd/calculator-flagging-crowdsourced, https://huggingface.co/spaces/aliabd/calculator-flagging-options, https://huggingface.co/spaces/aliabd/calculator-flag-basic
+Related spaces: https://huggingface.co/spaces/gradio/calculator-flagging-crowdsourced, https://huggingface.co/spaces/gradio/calculator-flagging-options, https://huggingface.co/spaces/gradio/calculator-flag-basic
 Tags: FLAGGING, DATA
 
 ## Introduction
@@ -61,7 +61,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="gradio/calculator-flag-basic/">
+<gradio-app space="gradio/calculator-flag-basic/"></gradio-app>
 
 When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged. 
 
@@ -109,7 +109,7 @@ iface = gr.Interface(
 
 iface.launch()
 ```
-<gradio-app space="gradio/calculator-flagging-options/">
+<gradio-app space="gradio/calculator-flagging-options/"></gradio-app>
 
 When users click the flag button, the csv file will now include a column indicating the selected option.
 
@@ -156,7 +156,7 @@ instance of  `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
 the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
 because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default. Here's our demo:
 
-<gradio-app space="aliabd/calculator-flagging-crowdsourced/">
+<gradio-app space="gradio/calculator-flagging-crowdsourced/"></gradio-app>
 
 You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
 
