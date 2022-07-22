@@ -1,8 +1,8 @@
 # Image Classification in TensorFlow and Keras
 
-related_spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
-tags: VISION, MOBILENET, TENSORFLOW
-Docs: image, label
+Related spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
+Tags: VISION, MOBILENET, TENSORFLOW
+Docs: image, label, examples
 
 ## Introduction
 
@@ -74,8 +74,8 @@ Finally, we'll add one more parameter, the `examples`, which allows us to prepop
 import gradio as gr
 
 gr.Interface(fn=classify_image, 
-             inputs=gr.inputs.Image(shape=(224, 224)),
-             outputs=gr.outputs.Label(num_top_classes=3),
+             inputs=gr.Image(shape=(224, 224)),
+             outputs=gr.Label(num_top_classes=3),
              examples=["banana.jpg", "car.jpg"]).launch()
 ```
 

@@ -1,5 +1,6 @@
 analytics-python
 aiohttp
+h11<0.13,>=0.11
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]

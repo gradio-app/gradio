@@ -1,7 +1,7 @@
 # Using Flagging
 
-related_spaces: https://huggingface.co/spaces/aliabd/calculator-flagging-crowdsourced, https://huggingface.co/spaces/aliabd/calculator-flagging-options, https://huggingface.co/spaces/aliabd/calculator-flag-basic
-tags: FLAGGING, DATA
+Related spaces: https://huggingface.co/spaces/aliabd/calculator-flagging-crowdsourced, https://huggingface.co/spaces/aliabd/calculator-flagging-options, https://huggingface.co/spaces/aliabd/calculator-flag-basic
+Tags: FLAGGING, DATA
 
 ## Introduction
 
@@ -13,7 +13,7 @@ Gradio simplifies the collection of this data by including a FLAG button with ev
 
 Underneath the output interfaces, there is a button marked **Flag**. When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. 
 
-![flag button](website/src/assets/img/guides/using_flagging/flag_button.gif)
+![flag button](/assets/guides/flag_button.gif)
 
 There are four parameters `gr.Interface` that control how flagging works. We will go over them in greater detail.
 
@@ -55,7 +55,7 @@ def calculator(num1, operation, num2):
 
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual"
 )
@@ -104,7 +104,7 @@ If we go back to the calculator example, the following code will create the inte
 ```python
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual",
     flagging_options=["wrong sign", "off by one", "other"]
@@ -137,7 +137,7 @@ hf_writer = gr.HuggingFaceDatasetSaver(HF_TOKEN, "crowdsourced-calculator-demo")
 
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     allow_flagging="manual",
     flagging_options=["wrong sign", "off by one", "other"],
@@ -150,7 +150,7 @@ iface.launch()
 
 You can now see all the examples flagged above in this [public HF dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo/blob/main/data.csv).
 
-![flagging callback hf](website/src/assets/img/guides/using_flagging/flagging-callback-hf.png)
+![flagging callback hf](/assets/guides/flagging-callback-hf.png)
 
 We created the `gr.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, please contribute it to the repo! 
 

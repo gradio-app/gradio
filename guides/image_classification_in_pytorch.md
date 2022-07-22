@@ -1,8 +1,8 @@
 # Image Classification in PyTorch
 
-related_spaces: https://huggingface.co/spaces/abidlabs/pytorch-image-classifier, https://huggingface.co/spaces/pytorch/ResNet, https://huggingface.co/spaces/pytorch/ResNext, https://huggingface.co/spaces/pytorch/SqueezeNet
-tags: VISION, RESNET, PYTORCH
-Docs: image, label
+Related spaces: https://huggingface.co/spaces/abidlabs/pytorch-image-classifier, https://huggingface.co/spaces/pytorch/ResNet, https://huggingface.co/spaces/pytorch/ResNext, https://huggingface.co/spaces/pytorch/SqueezeNet
+Tags: VISION, RESNET, PYTORCH
+Docs: image, label, example
 
 ## Introduction
 
@@ -76,8 +76,8 @@ Finally, we'll add one more parameter, the `examples`, which allows us to prepop
 import gradio as gr
 
 gr.Interface(fn=predict, 
-             inputs=gr.inputs.Image(type="pil"),
-             outputs=gr.outputs.Label(num_top_classes=3),
+             inputs=gr.Image(type="pil"),
+             outputs=gr.Label(num_top_classes=3),
              examples=["lion.jpg", "cheetah.jpg"]).launch()
 ```
 

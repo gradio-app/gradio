@@ -2,10 +2,9 @@ FROM python:3.8
 
 RUN apt-get update
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
+RUN apt-get install -y nodejs jq
 RUN npm install -g npm@latest
-RUN apt-get --assume-yes install nginx libcairo2-dev pkg-config python3-dev
-RUN pip install pandas matplotlib
+RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
 WORKDIR /gradio
 COPY ./ui ./ui
@@ -18,9 +17,11 @@ RUN pnpm i
 RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
+COPY ./requirements.txt ./requirements.txt
 COPY ./setup.py ./setup.py
 COPY ./MANIFEST.in ./MANIFEST.in
 COPY ./README.md ./README.md
+COPY ./test ./test
 RUN python setup.py install
 WORKDIR /gradio
 COPY ./website ./website
@@ -30,16 +31,13 @@ WORKDIR /gradio
 COPY ./guides ./guides
 COPY ./demo ./demo
 WORKDIR /gradio/website/homepage
-ARG COLAB_NOTEBOOK_LINKS
-RUN mkdir -p generated dist
-RUN echo $COLAB_NOTEBOOK_LINKS > generated/colab_links.json
 RUN npm install
 RUN npm run build
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
-RUN cp -r /gradio/gradio/templates/cdn/static/. ./static/
-RUN cp -r /gradio/website/homepage/dist/. ./
+RUN cp -r /gradio/website/homepage/build/. ./
+RUN ASSETS_FILE=$(grep -oE index.[a-z0-9]+.js /gradio/gradio/templates/cdn/index.html) && find ./ -type f -exec sed -i -e "s/index.js/${ASSETS_FILE}/g" {} \;
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

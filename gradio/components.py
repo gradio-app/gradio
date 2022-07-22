@@ -10,12 +10,21 @@ import math
 import numbers
 import operator
 import os
+import pathlib
 import shutil
 import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 import matplotlib.figure
 import numpy as np
@@ -26,6 +35,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
+from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Changeable,
     Clearable,
@@ -36,6 +46,8 @@ from gradio.events import (
     Submittable,
 )
 from gradio.utils import component_or_layout_class
+
+set_documentation_group("component")
 
 
 class Component(Block):
@@ -176,8 +188,8 @@ class IOComponent(Component):
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
-        x (Any): Input to interface
-        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
+            x: Input to interface
+            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -197,11 +209,11 @@ class IOComponent(Component):
         """
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
-        x (Any): Input to interface
+            x: Input to interface
         Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
-        neighbor_values (List[Any]): Neighboring values to input x to compute for interpretation
-        interpret_kwargs (Dict[Any]): Keyword arguments to be passed to get_interpretation_scores
-        interpret_by_removal (bool): If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
+            neighbor_values: Neighboring values to input x to compute for interpretation
+            interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
+            interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
         """
         return [], {}, True
 
@@ -211,12 +223,11 @@ class IOComponent(Component):
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
-        x (Any): Input to interface
-        neighbors (List[Any]): Neighboring values to input x used for interpretation.
-        scores (List[float]): Output value corresponding to each neighbor in neighbors
-        kwargs (Dict[str, Any]): Any additional arguments passed from get_interpretation_neighbors.
+            x: Input to interface
+            neighbors: Neighboring values to input x used for interpretation.
+            scores: Output value corresponding to each neighbor in neighbors
         Returns:
-        (List[Any]): Arrangement of interpretation scores for interfaces to render.
+            Arrangement of interpretation scores for interfaces to render.
         """
         pass
 
@@ -257,13 +268,13 @@ class IOComponent(Component):
     def document_parameters(cls, target):
         if target == "input":
             doc = inspect.getdoc(cls.preprocess)
-            if "Parameters:\nx (" in doc:
-                return doc.split("Parameters:\nx ")[1].split("\n")[0]
+            if "Parameters:\n    x (" in doc:
+                return doc.split("Parameters:\n    x ")[1].split("\n")[0]
             return None
         elif target == "output":
             doc = inspect.getdoc(cls.postprocess)
-            if "Returns:\n" in doc:
-                return doc.split("Returns:\n")[1].split("\n")[0]
+            if "Returns:    \n" in doc:
+                return doc.split("Returns:\n    ")[1].split("\n")[0]
             return None
         else:
             raise ValueError("Invalid doumentation target.")
@@ -275,11 +286,13 @@ class IOComponent(Component):
         return config
 
 
+@document()
 class Textbox(Changeable, Submittable, IOComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
+    Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
     """
@@ -300,15 +313,15 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in textarea.
-        lines (int): minimum number of line rows to provide in textarea.
-        max_lines (int): maximum number of line rows to provide in textarea.
-        placeholder (str): placeholder hint to provide behind textarea.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: default text to provide in textarea.
+            lines: minimum number of line rows to provide in textarea.
+            max_lines: maximum number of line rows to provide in textarea.
+            placeholder: placeholder hint to provide behind textarea.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.lines = lines
         self.max_lines = max_lines
@@ -364,9 +377,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-        x (str): text
+            x: text
         Returns:
-        (str): text
+            text
         """
         if x is None:
             return None
@@ -377,8 +390,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
-        x (Any): Input to interface
-        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
+            x: Input to interface
+            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -397,8 +410,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
         Parameters:
-        separator (str): Separator to use to split input into tokens.
-        replacement (str): In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
+            separator: Separator to use to split input into tokens.
+            replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
         """
         self.interpretation_separator = separator
         self.interpretation_replacement = replacement
@@ -438,7 +451,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ) -> List[Tuple[str, float]]:
         """
         Returns:
-        (List[Tuple[str, float]]): Each tuple set represents a set of characters and their corresponding interpretation score.
+            Each tuple set represents a set of characters and their corresponding interpretation score.
         """
         result = []
         for token, score in zip(tokens, scores):
@@ -454,9 +467,9 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (str | None): text
+            y: text
         Returns:
-        (str | None): text
+            text
         """
         if y is None:
             return None
@@ -470,11 +483,13 @@ class Textbox(Changeable, Submittable, IOComponent):
         return x
 
 
+@document()
 class Number(Changeable, Submittable, IOComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
+    Examples-format: a {float} or {int} representing the number's value.
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
@@ -493,13 +508,13 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (float): default value.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
+            value: default value.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
         self.value = self.postprocess(value)
@@ -525,10 +540,10 @@ class Number(Changeable, Submittable, IOComponent):
         If precision is None, no rounding happens. If 0, num is converted to int.
 
         Parameters:
-        num (float | int): Number to round.
-        precision (int | None): Precision to round to.
+            num: Number to round.
+            precision: Precision to round to.
         Returns:
-        (float | int): rounded number
+            rounded number
         """
         if num is None:
             return None
@@ -565,9 +580,9 @@ class Number(Changeable, Submittable, IOComponent):
     def preprocess(self, x: float | None) -> float | None:
         """
         Parameters:
-        x (float | None): numeric input
+            x: numeric input
         Returns:
-        (float | None): number representing function input
+            number representing function input
         """
         if x is None:
             return None
@@ -576,7 +591,7 @@ class Number(Changeable, Submittable, IOComponent):
     def preprocess_example(self, x: float | None) -> float | None:
         """
         Returns:
-        (float | None): Number representing function input
+            Number representing function input
         """
         if x is None:
             return None
@@ -589,9 +604,9 @@ class Number(Changeable, Submittable, IOComponent):
         """
         Calculates interpretation scores of numeric values close to the input number.
         Parameters:
-        steps (int): Number of nearby values to measure in each direction (above and below the input number).
-        delta (float): Size of step in each direction between nearby values.
-        delta_type (str): "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
+            steps: Number of nearby values to measure in each direction (above and below the input number).
+            delta: Size of step in each direction between nearby values.
+            delta_type: "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
         """
         self.interpretation_steps = steps
         self.interpretation_delta = delta
@@ -622,7 +637,7 @@ class Number(Changeable, Submittable, IOComponent):
     ) -> List[Tuple[float, float]]:
         """
         Returns:
-        (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
+            Each tuple set represents a numeric value near the input and its corresponding interpretation score.
         """
         interpretation = list(zip(neighbors, scores))
         interpretation.insert(int(len(interpretation) / 2), [x, None])
@@ -637,9 +652,9 @@ class Number(Changeable, Submittable, IOComponent):
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        y (float | None): numeric output
+            y: numeric output
         Returns:
-        (float | None): number representing function output
+            number representing function output
         """
         if y is None:
             return None
@@ -653,11 +668,13 @@ class Number(Changeable, Submittable, IOComponent):
         return y
 
 
+@document()
 class Slider(Changeable, IOComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
+    Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -678,15 +695,15 @@ class Slider(Changeable, IOComponent):
     ):
         """
         Parameters:
-        minimum (float): minimum value for slider.
-        maximum (float): maximum value for slider.
-        value (float): default value.
-        step (float): increment between slider values.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            minimum: minimum value for slider.
+            maximum: maximum value for slider.
+            value: default value.
+            step: increment between slider values.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -745,16 +762,16 @@ class Slider(Changeable, IOComponent):
     def preprocess(self, x: float) -> float:
         """
         Parameters:
-        x (number): numeric input
+            x: numeric input
         Returns:
-        (number): numeric input
+            numeric input
         """
         return x
 
     def preprocess_example(self, x: float) -> float:
         """
         Returns:
-        (float): Number representing function input
+            Number representing function input
         """
         return x
 
@@ -762,7 +779,7 @@ class Slider(Changeable, IOComponent):
         """
         Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
         Parameters:
-        steps (int): Number of neighboring values to measure between the minimum and maximum values of the slider range.
+            steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
         """
         self.interpretation_steps = steps
         return self
@@ -778,7 +795,7 @@ class Slider(Changeable, IOComponent):
     ) -> List[float]:
         """
         Returns:
-        (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
+            Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
         """
         return scores
 
@@ -787,13 +804,13 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: float | None) -> float:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (float | None): numeric output
+            y: numeric output
         Returns:
-        (float): numeric output or minimum number if None
+            numeric output or minimum number if None
         """
         return self.minimum if y is None else y
 
@@ -813,12 +830,14 @@ class Slider(Changeable, IOComponent):
         )
 
 
+@document()
 class Checkbox(Changeable, IOComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
     Preprocessing: passes the status of the checkbox as a {bool} into the function.
     Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
+    Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -835,12 +854,12 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (bool): if True, checked by default.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: if True, checked by default.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
         self.value = self.postprocess(value)
@@ -882,16 +901,16 @@ class Checkbox(Changeable, IOComponent):
     def preprocess(self, x: bool) -> bool:
         """
         Parameters:
-        x (bool): boolean input
+            x: boolean input
         Returns:
-        (bool): boolean input
+            boolean input
         """
         return x
 
     def preprocess_example(self, x):
         """
         Returns:
-        (bool): Boolean representing function input
+            Boolean representing function input
         """
         return x
 
@@ -907,7 +926,7 @@ class Checkbox(Changeable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
         """
         Returns:
-        (Tuple[float, float]): The first value represents the interpretation score if the input is False, and the second if the input is True.
+            The first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         if x:
             return scores[0], None
@@ -918,13 +937,13 @@ class Checkbox(Changeable, IOComponent):
         return True
 
     # Output Functionalities
-    def postprocess(self, y):
+    def postprocess(self, y: bool) -> bool:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (bool): boolean output
+            y: boolean output
         Returns:
-        (bool): boolean output
+            boolean output
         """
         return y
 
@@ -935,12 +954,13 @@ class Checkbox(Changeable, IOComponent):
         return x
 
 
+@document()
 class CheckboxGroup(Changeable, IOComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
-
+    Examples-format: a {List[str]} representing the values to be checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -959,14 +979,14 @@ class CheckboxGroup(Changeable, IOComponent):
     ):
         """
         Parameters:
-        choices (List[str]): list of options to select from.
-        value (List[str]): default selected list of options.
-        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            choices: list of options to select from.
+            value: default selected list of options.
+            type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         self.cleared_value = []
@@ -1014,9 +1034,9 @@ class CheckboxGroup(Changeable, IOComponent):
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
         Parameters:
-        x (List[str]): list of selected choices
+            x: list of selected choices
         Returns:
-        (List[str] | List[int]): list of selected choices as strings or indices within choice list
+            list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -1049,7 +1069,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
         """
         Returns:
-        (List[Tuple[float, float]]): For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
+            For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
         """
         final_scores = []
         for choice, score in zip(self.choices, scores):
@@ -1073,13 +1093,13 @@ class CheckboxGroup(Changeable, IOComponent):
         return self.choices
 
     # Output Functionalities
-    def postprocess(self, y):
+    def postprocess(self, y: List[str]) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (List[str]): List of selected choices
+            y: List of selected choices
         Returns:
-        (List[str]): List of selected choices
+            List of selected choices
         """
         return [] if y is None else y
 
@@ -1105,11 +1125,13 @@ class CheckboxGroup(Changeable, IOComponent):
         )
 
 
+@document()
 class Radio(Changeable, IOComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
+    Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
@@ -1129,14 +1151,14 @@ class Radio(Changeable, IOComponent):
     ):
         """
         Parameters:
-        choices (List[str]): list of options to select from.
-        value (str): the button selected by default. If None, no button is selected by default.
-        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            choices: list of options to select from.
+            value: the button selected by default. If None, no button is selected by default.
+            type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
         self.type = type
@@ -1184,9 +1206,9 @@ class Radio(Changeable, IOComponent):
     def preprocess(self, x: str) -> str | int:
         """
         Parameters:
-        x (str): selected choice
+            x: selected choice
         Returns:
-        (str | int): selected choice as string or index within choice list
+            selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -1213,10 +1235,10 @@ class Radio(Changeable, IOComponent):
         choices.remove(x)
         return choices, {}
 
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+    def get_interpretation_scores(self, x, neighbors, scores, **kwargs) -> List:
         """
         Returns:
-        (List[float]): Each value represents the interpretation score corresponding to each choice.
+            Each value represents the interpretation score corresponding to each choice.
         """
         scores.insert(self.choices.index(x), None)
         return scores
@@ -1225,13 +1247,13 @@ class Radio(Changeable, IOComponent):
         return self.choices[0]
 
     # Output Functionalities
-    def postprocess(self, y):
+    def postprocess(self, y: str) -> str:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (str): string of choice
+            y: string of choice
         Returns:
-        (str): string of choice
+            string of choice
         """
         return y
 
@@ -1255,12 +1277,13 @@ class Radio(Changeable, IOComponent):
         )
 
 
+@document()
 class Dropdown(Radio):
     """
     Creates a dropdown of which only one entry can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-
+    Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -1279,14 +1302,14 @@ class Dropdown(Radio):
     ):
         """
         Parameters:
-        choices (List[str]): list of options to select from.
-        value (str): default value selected in dropdown. If None, no value is selected by default.
-        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            choices: list of options to select from.
+            value: default value selected in dropdown. If None, no value is selected by default.
+            type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Radio.__init__(
             self,
@@ -1312,13 +1335,14 @@ class Dropdown(Radio):
         )
 
 
+@document()
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
-
-    Demos: image_classifier, image_mod, webcam, digit_classifier, blocks_mask
+    Examples-format: a {str} filepath to a local file that contains the image.
+    Demos: image_mod, image_mod_default_image
     """
 
     def __init__(
@@ -1337,24 +1361,27 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
         Parameters:
-        value (Optional[str | PIL.Image | np.narray]): A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
-        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
-        image_mode (str): "RGB" if color, or "L" if black and white.
-        invert_colors (bool): whether to invert the image as a preprocessing step.
-        source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
+            shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
+            image_mode: "RGB" if color, or "L" if black and white.
+            invert_colors: whether to invert the image as a preprocessing step.
+            source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
+            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
+            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            streaming: If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            mirror_webcam: If True webcam will be mirrored. Default is True.
         """
+        self.mirror_webcam = mirror_webcam
         self.type = type
         self.value = self.postprocess(value)
         self.shape = shape
@@ -1388,6 +1415,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "tool": self.tool,
             "value": self.value,
             "streaming": self.streaming,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1428,7 +1456,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             if self.type == "file":
                 warnings.warn(
                     "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                    DeprecationWarning,
                 )
                 return file_obj
             else:
@@ -1440,12 +1467,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
 
-    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
+    def preprocess(self, x: str | Dict) -> np.array | PIL.Image | str | None:
         """
         Parameters:
-        x (str | dict): base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+            x: base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
         Returns:
-        (numpy.array | PIL.Image | str): image in requested format
+            image in requested format
         """
         if x is None:
             return x
@@ -1461,6 +1488,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
+        if self.source == "webcam" and self.mirror_webcam is True:
+            im = PIL.ImageOps.mirror(im)
 
         if not (self.tool == "sketch"):
             return self.format_image(im, fmt)
@@ -1473,6 +1502,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         }
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return processing_utils.encode_file_to_base64(x)
 
     def serialize(self, x, called_directly=False):
@@ -1498,11 +1529,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
 
-    def set_interpret_parameters(self, segments=16):
+    def set_interpret_parameters(self, segments: int = 16):
         """
         Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
         Parameters:
-        segments (int): Number of interpretation segments to split image into.
+            segments: Number of interpretation segments to split image into.
         """
         self.interpretation_segments = segments
         return self
@@ -1511,7 +1542,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Helper method that segments an image into superpixels using slic.
         Parameters:
-        x: base64 representation of an image
+            x: base64 representation of an image
         """
         x = processing_utils.decode_base64_to_image(x)
         if self.shape is not None:
@@ -1544,11 +1575,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Segments image into tokens, masks, and leave-one-out-tokens
         Parameters:
-        x: base64 representation of an image
+            x: base64 representation of an image
         Returns:
-        tokens: list of tokens, used by the get_masked_input() method
-        leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
-        masks: list of masks, used by the get_interpretation_neighbors() method
+            tokens: list of tokens, used by the get_masked_input() method
+            leave_one_out_tokens: list of left-out tokens, used by the get_interpretation_neighbors() method
+            masks: list of masks, used by the get_interpretation_neighbors() method
         """
         segments_slic, resized_and_cropped_image = self._segment_by_slic(x)
         tokens, masks, leave_one_out_tokens = [], [], []
@@ -1577,10 +1608,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
     def get_interpretation_scores(
         self, x, neighbors, scores, masks, tokens=None, **kwargs
-    ):
+    ) -> List[List[float]]:
         """
         Returns:
-        (List[List[float]]): A 2D array representing the interpretation score of each pixel of the image.
+            A 2D array representing the interpretation score of each pixel of the image.
         """
         x = processing_utils.decode_base64_to_image(x)
         if self.shape is not None:
@@ -1612,12 +1643,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
     # Output functions
 
-    def postprocess(self, y):
+    def postprocess(self, y: np.ndarray | PIL.Image | str) -> str:
         """
         Parameters:
-        y (numpy.array | PIL.Image | str): image in specified format
+            y: image in specified format
         Returns:
-        (str): base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -1673,12 +1704,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         Streamable.stream(self, fn, inputs, outputs, _js)
 
 
+@document()
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
-
+    Examples-format: a {str} filepath to a local file that contains the video.
     Demos: video_identity
     """
 
@@ -1693,21 +1725,24 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        mirror_webcam: bool = True,
         **kwargs,
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Video component is going to take.
-        format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: A path or URL for the default value that Video component is going to take.
+            format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
+            source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            mirror_webcam: If True webcma will be mirrored. Default is True.
         """
         self.format = format
         self.source = source
+        self.mirror_webcam = mirror_webcam
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -1723,6 +1758,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return {
             "source": self.source,
             "value": self.value,
+            "mirror_webcam": self.mirror_webcam,
             **IOComponent.get_config(self),
         }
 
@@ -1747,14 +1783,16 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (str): file path to video
+            file path to video
         """
         if x is None:
             return x
@@ -1771,9 +1809,19 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
+
         if self.format is not None and uploaded_format != self.format:
             output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+            ff.run()
+            return output_file_name
+        elif self.source == "webcam" and self.mirror_webcam is True:
+            path = pathlib.Path(file_name)
+            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+            ff = FFmpeg(
+                inputs={file_name: None},
+                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+            )
             ff.run()
             return output_file_name
         else:
@@ -1797,12 +1845,12 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y):
+    def postprocess(self, y: str) -> str:
         """
         Parameters:
-        y (str): path to video
+            y: path to video
         Returns:
-        (str): base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -1835,12 +1883,13 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         )
 
 
+@document()
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
-
+    Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     """
 
@@ -1860,15 +1909,15 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-        value (str | Tuple[int, numpy.array]): A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
-        source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
+            source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
+            type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            streaming: If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.source = source
@@ -1921,14 +1970,16 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Tuple[int, numpy.array] | str): audio in requested format
+            audio in requested format
         """
         if x is None:
             return x
@@ -1952,7 +2003,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         if self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             return file_obj
         elif self.type == "filepath":
@@ -1974,7 +2024,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         elif self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             name = x.name
         elif self.type == "numpy":
@@ -1991,11 +2040,11 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         file_data = processing_utils.encode_url_or_file_to_base64(name)
         return {"name": name, "data": file_data, "is_example": False}
 
-    def set_interpret_parameters(self, segments=8):
+    def set_interpret_parameters(self, segments: int = 8):
         """
         Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
         Parameters:
-        segments (int): Number of interpretation segments to split audio into.
+            segments: Number of interpretation segments to split audio into.
         """
         self.interpretation_segments = segments
         return self
@@ -2069,10 +2118,12 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def get_interpretation_scores(self, x, neighbors, scores, masks=None, tokens=None):
+    def get_interpretation_scores(
+        self, x, neighbors, scores, masks=None, tokens=None
+    ) -> List[float]:
         """
         Returns:
-        (List[float]): Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
+            Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
         """
         return list(scores)
 
@@ -2098,12 +2149,12 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
-    def postprocess(self, y):
+    def postprocess(self, y: Tuple[int, np.array] | str) -> str:
         """
         Parameters:
-        y (Tuple[int, numpy.array] | str): audio data in requested format
+            y: audio data in requested format
         Returns:
-        (str): base64 url data
+            base64 url data
         """
         if y is None:
             return None
@@ -2151,12 +2202,13 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         )
 
 
+@document()
 class File(Changeable, Clearable, IOComponent):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-
+    Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_two_files
     """
 
@@ -2175,14 +2227,14 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (Optional[str]): Default file to display, given as str file path
-        file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-        type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default file to display, given as str file path
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.file_count = file_count
         self.type = type
@@ -2224,7 +2276,9 @@ class File(Changeable, Clearable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
-        if isinstance(x, list):
+        if x is None:
+            return None
+        elif isinstance(x, list):
             return [
                 {
                     "name": file,
@@ -2242,12 +2296,12 @@ class File(Changeable, Clearable, IOComponent):
                 "is_example": True,
             }
 
-    def preprocess(self, x: List[Dict[str, str]] | None):
+    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
         """
         Parameters:
-        x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (file-object | bytes | List[file-object] | List[bytes]]): File objects in requested format
+            File objects in requested format
         """
         if x is None:
             return None
@@ -2283,7 +2337,10 @@ class File(Changeable, Clearable, IOComponent):
             else:
                 return process_single_file(x)
         else:
-            return [process_single_file(f) for f in x]
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -2303,12 +2360,12 @@ class File(Changeable, Clearable, IOComponent):
 
     # Output Functionalities
 
-    def postprocess(self, y):
+    def postprocess(self, y: str) -> Dict:
         """
         Parameters:
-        y (str): file path
+            y: file path
         Returns:
-        (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+            JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
         if y is None:
             return None
@@ -2345,12 +2402,13 @@ class File(Changeable, Clearable, IOComponent):
         )
 
 
+@document()
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
-
+    Examples-format: a {str} filepath to a csv with data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2378,22 +2436,22 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (List[List[Any]]): Default value as a 2-dimensional list of values.
-        headers (List[str] | None): List of str header names. If None, no headers are shown.
-        row_count (int | Tuple[int, str]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-        col_count (int | Tuple[int, str]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-        datatype (str | List[str]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
-        type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
-        label (str): component name in interface.
-        max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
-        max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
-        overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        wrap (Optional[bool]): if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
+            value: Default value as a 2-dimensional list of values.
+            headers: List of str header names. If None, no headers are shown.
+            row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+            col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
+            label: component name in interface.
+            max_rows: Maximum number of rows to display at once. Set to None for infinite.
+            max_cols: Maximum number of columns to display at once. Set to None for infinite.
+            overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horiztonally. Defaults to False.
         """
 
         self.wrap = wrap
@@ -2476,24 +2534,22 @@ class Dataframe(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[List[str | Number | bool]]):
+    def preprocess(self, x: DataframeData):
         """
         Parameters:
-        x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
+        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
         Returns:
-        (pandas.DataFrame | numpy.array | List[str | float | bool], List[List[str | float | bool]]): Dataframe in requested format
+            Dataframe in requested format
         """
         if self.type == "pandas":
-            if self.headers:
-                return pd.DataFrame(x, columns=self.headers)
+            if x.get("headers") is not None:
+                return pd.DataFrame(x["data"], columns=x.get("headers"))
             else:
-                return pd.DataFrame(x)
-        if self.col_count[0] == 1:
-            x = [row[0] for row in x]
+                return pd.DataFrame(x["data"])
         if self.type == "numpy":
-            return np.array(x)
+            return np.array(x["data"])
         elif self.type == "array":
-            return x
+            return x["data"]
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2517,12 +2573,12 @@ class Dataframe(Changeable, IOComponent):
     def generate_sample(self):
         return [[1, 2, 3], [4, 5, 6]]
 
-    def postprocess(self, y):
+    def postprocess(self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]):
         """
         Parameters:
-        y (str | pandas.DataFrame | numpy.array | List[str | float], List[List[str | float]]]): dataframe in given format
+            y: dataframe in given format
         Returns:
-        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return y
@@ -2540,8 +2596,6 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
-            if len(y) == 0 or not isinstance(y[0], list):
-                y = [y]
             return {
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
@@ -2590,12 +2644,13 @@ class Dataframe(Changeable, IOComponent):
         )
 
 
+@document()
 class Timeseries(Changeable, IOComponent):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
     Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
-
+    Examples-format: a {str} filepath of csv data with time series data.
     Demos: fraud_detector
     """
 
@@ -2615,15 +2670,15 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: File path for the timeseries csv file.
-        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y (str | List[str]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
-        label (str): component name in interface.
-        colors (List[str]): an ordered list of colors to use for each line plot
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will allow users to upload a timeseries csv; if False, can only be used to display timeseries data. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: File path for the timeseries csv file.
+            x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+            y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+            label: component name in interface.
+            colors: an ordered list of colors to use for each line plot
+            show_label: if True, will display label.
+            interactive: if True, will allow users to upload a timeseries csv; if False, can only be used to display timeseries data. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.x = x
@@ -2671,14 +2726,16 @@ class Timeseries(Changeable, IOComponent):
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "is_example": True}
 
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
-        x (Dict[data: List[List[str | number | bool]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+            x: Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
-        (pandas.DataFrame): Dataframe of timeseries data
+            Dataframe of timeseries data
         """
         if x is None:
             return x
@@ -2705,12 +2762,12 @@ class Timeseries(Changeable, IOComponent):
 
     # Output Functionalities
 
-    def postprocess(self, y):
+    def postprocess(self, y: str | pd.DataFrame) -> Dict:
         """
         Parameters:
-        y (str | pandas.DataFrame): csv or dataframe with timeseries data
+            y: csv or dataframe with timeseries data
         Returns:
-        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return None
@@ -2731,6 +2788,7 @@ class Timeseries(Changeable, IOComponent):
         )
 
 
+@document()
 class Variable(IOComponent):
     """
     Special hidden component that stores session state across runs of the demo by the
@@ -2741,6 +2799,8 @@ class Variable(IOComponent):
     Demos: chatbot_demo, blocks_simple_squares
     """
 
+    allow_string_shortcut = False
+
     def __init__(
         self,
         value: Any = None,
@@ -2748,7 +2808,7 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-        value (Any): the initial value of the state.
+            value: the initial value of the state.
         """
         self.value = deepcopy(value)
         self.stateful = True
@@ -2758,12 +2818,13 @@ class Variable(IOComponent):
         return self
 
 
+@document()
 class Button(Clickable, IOComponent):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
+
     Preprocessing: passes the button value as a {str} into the function
     Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
-
     Demos: blocks_inputs, blocks_kinematics
     """
 
@@ -2778,10 +2839,10 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default text for the button to display.
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.value = value
@@ -2826,11 +2887,13 @@ class Button(Clickable, IOComponent):
         )
 
 
+@document()
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
     Demos: color_picker
     """
 
@@ -2847,12 +2910,12 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in color picker.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: default text to provide in color picker.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.cleared_value = "#000000"
@@ -2942,13 +3005,14 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 ############################
 
 
+@document()
 class Label(Changeable, IOComponent):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
-    Demos: image_classifier, main_note, titanic_survival
+    Demos: main_note, titanic_survival
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -2966,12 +3030,12 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value(str): Default value to show in the component.
-        num_top_classes (int): number of most confident classes to show.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default value to show in the component.
+            num_top_classes: number of most confident classes to show.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
         self.value = self.postprocess(value)
@@ -2991,12 +3055,12 @@ class Label(Changeable, IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y):
+    def postprocess(self, y: Dict[str, float] | str | float) -> Dict:
         """
         Parameters:
-        y (Dict[str, float] | str | Number): a dictionary mapping labels to confidence value, or just a string/numerical label by itself
+            y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
         Returns:
-        (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
+            Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if y is None or y == {}:
             return None
@@ -3034,9 +3098,10 @@ class Label(Changeable, IOComponent):
         else:
             return y
 
-    def save_flagged(self, dir, label, data, encryption_key):
+    def save_flagged(self, dir, label, data, encryption_key) -> str | Dict:
         """
-        Returns: (str | Dict[str, number]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
+        Returns:
+            Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
         if "confidences" in data:
             return json.dumps(
@@ -3078,6 +3143,7 @@ class Label(Changeable, IOComponent):
         return IOComponent.style(self, container=container)
 
 
+@document()
 class HighlightedText(Changeable, IOComponent):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
@@ -3103,20 +3169,19 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (List[Tuple[str, str | Number | None]]): Default value to show.
-        show_legend (bool): whether to show span categories in a separate legend or inline.
-        combine_adjacent (bool): If True, will merge the labels of adjacent tokens belonging to the same category.
-        adjacent_separator (str): Specifies the separator to be used between tokens if combine_adjacent is True.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default value to show.
+            show_legend: whether to show span categories in a separate legend or inline.
+            combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
+            adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.color_map = color_map
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
-                DeprecationWarning,
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -3159,12 +3224,14 @@ class HighlightedText(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y):
+    def postprocess(
+        self, y: List[Tuple[str, str | float | None]]
+    ) -> List[Tuple[str, str | float | None]]:
         """
         Parameters:
-        y (List[Tuple[str, str | number | None]]): List of (word, category) tuples
+            y: List of (word, category) tuples
         Returns:
-        (List[Tuple[str, str | number | None]]): List of (word, category) tuples
+            List of (word, category) tuples
         """
         if y is None:
             return None
@@ -3201,9 +3268,9 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        rounded (bool | Tuple[bool, bool, bool, bool]): If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
-        color_map (Dict[str, str]): Map between category and respective colors.
-        container (bool): If True, will place the component in a container.
+            rounded: If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+            color_map: Map between category and respective colors.
+            container: If True, will place the component in a container.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
@@ -3211,6 +3278,7 @@ class HighlightedText(Changeable, IOComponent):
         return IOComponent.style(self, rounded=rounded, container=container)
 
 
+@document()
 class JSON(Changeable, IOComponent):
     """
     Used to display arbitrary JSON output prettily.
@@ -3232,11 +3300,11 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default value
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3271,12 +3339,12 @@ class JSON(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y):
+    def postprocess(self, y: Dict | List | str) -> Dict | List:
         """
         Parameters:
-        y (Dict | List | str]): JSON output
+            y: JSON output
         Returns:
-        (Dict | List): JSON output
+            JSON output
         """
         if isinstance(y, str):
             return json.dumps(y)
@@ -3293,6 +3361,7 @@ class JSON(Changeable, IOComponent):
         return IOComponent.style(self, container=container)
 
 
+@document()
 class HTML(Changeable, IOComponent):
     """
     Used to display arbitrary HTML output.
@@ -3314,11 +3383,11 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default value
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = value
         IOComponent.__init__(
@@ -3356,6 +3425,7 @@ class HTML(Changeable, IOComponent):
         return self
 
 
+@document()
 class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
@@ -3377,11 +3447,11 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-        value (Optional[List[np.ndarray | PIL.Image | str]]): List of images to display in the gallery by default
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: List of images to display in the gallery by default
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         super().__init__(
@@ -3414,12 +3484,12 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y):
+    def postprocess(self, y: List[np.ndarray | PIL.Image | str]) -> List[str]:
         """
         Parameters:
-        y (List[numpy.array | PIL.Image | str]): list of images
+            y: list of images
         Returns:
-        (str): list of base64 url data for images
+            list of base64 url data for images
         """
         if y is None:
             return []
@@ -3458,7 +3528,6 @@ class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
-    Demos: disease_report
     """
 
     def __init__(
@@ -3473,15 +3542,14 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (List[Component] | Component): Classes of component(s) that will be scrolled through.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            components: Classes of component(s) that will be scrolled through.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
-            DeprecationWarning,
         )
         if not isinstance(components, list):
             components = [components]
@@ -3519,12 +3587,12 @@ class Carousel(IOComponent, Changeable):
         }
         return updated_config
 
-    def postprocess(self, y):
+    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
         """
         Parameters:
-        y (List[List[Any]]): carousel output
+            y: carousel output
         Returns:
-        (List[List[Any]]): 2D array, where each sublist represents one set of outputs or 'slide' in the carousel
+            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
         """
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
@@ -3562,6 +3630,7 @@ class Carousel(IOComponent, Changeable):
         ]
 
 
+@document()
 class Chatbot(Changeable, IOComponent):
     """
     Displays a chatbot output showing both user submitted messages and responses
@@ -3584,16 +3653,15 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value to show in chatbot
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Default value to show in chatbot
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
-                DeprecationWarning,
             )
 
         self.value = self.postprocess(value)
@@ -3633,13 +3701,12 @@ class Chatbot(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y):
+    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Parameters:
-        y (List[Tuple[str, str]]): List of tuples representing the message and response
+            y: List of tuples representing the message and response
         Returns:
-        (List[Tuple[str, str]]): Returns same list of tuples
-
+            List of tuples representing the message and response
         """
         return y
 
@@ -3657,6 +3724,7 @@ class Chatbot(Changeable, IOComponent):
         )
 
 
+@document()
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
@@ -3679,12 +3747,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (Optional[str]): path to (.obj, glb, or .gltf) file to show in model3D viewer
-        clear_color (List[r, g, b, a]): background color of scene
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: path to (.obj, glb, or .gltf) file to show in model3D viewer
+            clear_color: background color of scene
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
         self.value = self.postprocess(value)
@@ -3721,14 +3789,16 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         return updated_config
 
     def preprocess_example(self, x):
+        if x is None:
+            return None
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+            x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (str): file path to 3D image model
+            file path to 3D image model
         """
         if x is None:
             return x
@@ -3762,12 +3832,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     # Output functions
 
-    def postprocess(self, y):
+    def postprocess(self, y: str) -> Dict[str, str]:
         """
         Parameters:
-        y (str): path to the model
+            y: path to the model
         Returns:
-        (Dict[name (str): file name, data (str): base64 url data] | None)
+            file name mapped to base64 url data
         """
         if y is None:
             return y
@@ -3794,6 +3864,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         )
 
 
+@document()
 class Plot(Changeable, Clearable, IOComponent):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
@@ -3815,11 +3886,11 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (Optional[matplotlib.figure.Figure | dict | plotly.graph_objects._figure.Figure]): Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         IOComponent.__init__(
@@ -3850,12 +3921,12 @@ class Plot(Changeable, Clearable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y):
+    def postprocess(self, y: str) -> Dict[str, str]:
         """
         Parameters:
-        y (str): plot data
+            y: plot data
         Returns:
-        (Dict[type (str): plot type, plot (str): plot base64 | json] | None)
+            plot type mapped to plot base64 data
         """
         if y is None:
             return None
@@ -3883,6 +3954,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return json.loads(data)
 
 
+@document()
 class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
@@ -3902,9 +3974,9 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-        value (str): Value to show in Markdown component
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: Value to show in Markdown component
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
@@ -3962,12 +4034,12 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
-        samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
-        headers (List[str]): Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
-        type (str): 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+            headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
+            type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
@@ -4071,7 +4143,7 @@ class StatusTracker(Component):
     ):
         """
         Parameters:
-        cover_container (bool): If True, will expand to cover parent container while function pending.
+            cover_container: If True, will expand to cover parent container while function pending.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.cover_container = cover_container

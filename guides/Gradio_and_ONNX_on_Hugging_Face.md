@@ -1,7 +1,7 @@
 # Gradio and ONNX on Hugging Face
 
-related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
-tags: ONNX, SPACES
+Related spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
+Tags: ONNX, SPACES
 Contributed by Gradio and the <a href="https://onnx.ai/">ONNX</a> team
 Docs: image, label
 
@@ -129,7 +129,7 @@ def inference(img):
 title = "EfficientNet-Lite4"
 description = "EfficientNet-Lite 4 is the largest variant and most accurate of the set of EfficientNet-Lite model. It is an integer-only quantized model that produces the highest accuracy of all of the EfficientNet models. It achieves 80.4% ImageNet top-1 accuracy, while still running in real-time (e.g. 30ms/image) on a Pixel 4 CPU."
 examples = [['catonnx.jpg']]
-gr.Interface(inference, gr.inputs.Image(type="filepath"), "label", title=title, description=description, examples=examples).launch()
+gr.Interface(inference, gr.Image(type="filepath"), "label", title=title, description=description, examples=examples).launch()
 ```
 
 

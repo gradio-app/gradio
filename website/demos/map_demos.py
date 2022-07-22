@@ -3,8 +3,10 @@ import os
 import re
 import subprocess
 import sys
+import pathlib
 
 from jinja2 import Template
+from gradio.documentation import generate_documentation
 
 GRADIO_DIR = os.path.join(os.getcwd(), os.pardir, os.pardir)
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
@@ -12,41 +14,56 @@ GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 sys.path.insert(0, GRADIO_DEMO_DIR)
 port = 7860
 
-demos_to_run = ["kitchen_sink", "gpt_j", "blocks_flipper", "blocks_speech_text_length", "sst_or_tts"]
-GRADIO_COMPONENTS_FILE = os.path.join(GRADIO_DIR, "gradio", "components.py")
-with open(GRADIO_COMPONENTS_FILE) as comp_file:
-    comp_text = comp_file.read()
-for demostr in re.findall(r'Demos:(.*)', comp_text):
-  demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
-DEMO_PATTERN = r'demos\["([A-Za-z0-9_]+)"]'
-for guide_filename in ["getting_started.md"]:
+demos_to_run = []
+for root, _, files in os.walk(pathlib.Path(GRADIO_DIR) / "gradio"):
+    for filename in files:
+        source_file = pathlib.Path(root) / filename
+        if source_file.suffix != ".py":
+            continue
+        with open(source_file, "r") as comp_file:
+            comp_text = comp_file.read()
+        for demostr in re.findall(r'Demos:(.*)', comp_text):
+            demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
+
+DEMO_PATTERN = r'\$demo_([A-Za-z0-9_]+)'
+for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
+    if not os.path.isfile(os.path.join(GRADIO_GUIDES_DIR, guide_filename)):
+        continue
     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
         guide_content = guide_file.read()
     demos_to_run += re.findall(DEMO_PATTERN, guide_content)
+# adding components to be embedded
+docs = generate_documentation()
+COMPONENT_SUFFIX = "_component"
+demos_to_run += [f"{component['name']}{COMPONENT_SUFFIX}" for component in docs["component"]]
 demos_to_run = list(set(demos_to_run))
+
 
 failed_demos = []
 demo_port_sets = []
 for demo_name in demos_to_run:
     print(f" ----- {demo_name} ----- ")
-    demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
-    requirements_file = os.path.join(demo_folder, "requirements.txt")
-    if os.path.exists(requirements_file):
-        try:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "-r", requirements_file]
-            )
-        except:
-            failed_demos.append(demo_name)
-            continue
-    setup_file = os.path.join(demo_folder, "setup.sh")
-    if os.path.exists(setup_file):
-        try:
-            subprocess.check_call(["sh", setup_file])
-        except subprocess.CalledProcessError:
-            failed_demos.append(demo_name)
-            continue
-    demo_port_sets.append((demo_name, port))
+    if demo_name.endswith(COMPONENT_SUFFIX):
+        demo_port_sets.append((demo_name, port))
+    else:
+        demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+        requirements_file = os.path.join(demo_folder, "requirements.txt")
+        if os.path.exists(requirements_file):
+            try:
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+                )
+            except:
+                failed_demos.append(demo_name)
+                continue
+        setup_file = os.path.join(demo_folder, "setup.sh")
+        if os.path.exists(setup_file):
+            try:
+                subprocess.check_call(["sh", setup_file])
+            except subprocess.CalledProcessError:
+                failed_demos.append(demo_name)
+                continue
+        demo_port_sets.append((demo_name, port))
     port += 1
 
 with open("nginx_template.conf") as nginx_template_conf:
