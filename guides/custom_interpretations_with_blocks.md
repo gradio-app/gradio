@@ -1,4 +1,4 @@
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.24/gradio.js"></script>
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.1.0/gradio.js"></script>
 
 # Custom Machine Learning Interpretations with Blocks
 Docs: Blocks
@@ -6,7 +6,7 @@ Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
 **Prerequisite**: This Guide requires you to know about Blocks and the interpretation feature of Interfaces.
 Make sure to [read the Guide to Blocks first](/introduction_to_blocks) as well as the
-interpretation section of the [Advanced Interface Features Guide](/advanced_interface_features).
+interpretation section of the [Advanced Interface Features Guide](/advanced_interface_features#interpreting-your-predictions).
 
 ## Introduction
 
@@ -175,6 +175,15 @@ demo.launch()
 You can see the demo below!
 
 <gradio-app space="freddyaboulton/sentiment-classification-interpretation-tabs"> </gradio-app>
+
+## Beyond Sentiment Classification
+Although we have focused on sentiment classification so far, you can add interpretations to almost any machine learning model.
+The output must be an `gr.Image` or `gr.Label` but the input can be almost anything (`gr.Number`, `gr.Slider`, `gr.Radio`, `gr.Image`).
+
+Here is a demo built with blocks of interpretations for an image classification model:
+
+<gradio-app space="freddyaboulton/image-classification-interpretation-blocks"> </gradio-app>
+
 
 ## Closing remarks
 
