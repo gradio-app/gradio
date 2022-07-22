@@ -5,32 +5,32 @@ Tags: FLAGGING, DATA
 
 ## Introduction
 
-When you deploy or demo a machine learning model, you may find that it behaves differently than how you expected (e.g. the model makes an incorrect prediction) when a user tries it with their own data. Capturing these "hard" data points is important because it allows you to make you machine learning model more reliable and robust.
+When you demo a machine learning model, you might want to collect data from users who try the model, particularly samples in which the model is not behaving as expected. Capturing these "hard" data points is valuable because it allows you to improve your machine learning model and make it more reliable and robust.
 
-Gradio simplifies the collection of this data by including a FLAG button with every `Interface`. This allows your user or tester to easily send data back to you, whether the model is running locally or has been shared by setting `share=True`. 
+Gradio simplifies the collection of this data by including a **Flag** button with every `Interface`. This allows a user or tester to easily send data back to the machine where the demo is running. In this Guide, we discuss more about how to use the flagging feature, both with `gradio.Interface` as well as with `gradio.Blocks`.
 
-## The **Flag** button 
+## The **Flag** button in `gradio.Interface`
 
-Underneath the output interfaces, there is a button marked **Flag**. When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. 
+Flagging with Gradio's `Interface` is especially easy. By default, underneath the output components, there is a button marked **Flag**. When a user testing your model sees input with interesting output, they can click the flag button to send the input and output sample back to the machine where the demo is running, and saves it to a CSV log file (by default). If the demo involves images, audio, video, or other types of files, these are saved separately in a parallel directory and the paths to these files are saved in the CSV file.
 
 ![flag button](/assets/guides/flag_button.gif)
 
-There are four parameters `gr.Interface` that control how flagging works. We will go over them in greater detail.
+There are four parameters `gradio.Interface` that control how flagging works. We will go over them in greater detail.
 
-* `allow_flagging`: this parameter can be set to either `"manual"`, `"auto"`, or `"never"`.                 
-    * `manual`: users will see a button to flag, and events are only flagged when it's clicked.
-    * `auto`: users will not see a button to flag, but every event will be flagged automatically. 
-    * `never`: users will not see a button to flag, and no event will be flagged. 
+* `allow_flagging`: this parameter can be set to either `"manual"` (default), `"auto"`, or `"never"`.                 
+    * `manual`: users will see a button to flag, and samples are only flagged when the button is clicked.
+    * `auto`: users will not see a button to flag, but every sample will be flagged automatically. 
+    * `never`: users will not see a button to flag, and no sample will be flagged. 
 * `flagging_options`: this parameter can be either `None` (default) or a list of strings.
     * If `None`, then the user simply clicks on the **Flag** button and no additional options are shown.
-    * If a list of strings are provided, this allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
-    * The chosen option is then piped along with the input and output.
+    * If a list of strings are provided, then the user sees several buttons, corresponding to each of the strings that are provided. For example, if the value of this parameter is `["Incorrect", "Ambiguous"]`, then buttons labeled **Flag as Incorrect** and **Flag as Ambiguous** appear. This only applies if `allow_flagging` is `"manual"`.
+    * The chosen option is then logged along with the input and output.
 * `flagging_dir`: this parameter takes a string.
     * It represents what to name the directory where flagged data is stored.
 * `flagging_callback`: this parameter takes an instance of a subclass of the `FlaggingCallback` class
     * Using this parameter allows you to write custom code that gets run when the flag button is clicked
     * By default, this is set to an instance of `gr.CSVLogger`
-    * One example is setting it to an instance of `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset.
+    * One example is setting it to an instance of `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset. (See more below.)
 
 ## What happens to flagged data?
 
@@ -63,8 +63,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<iframe src="https://hf.space/embed/aliabd/calculator-flag-basic/+" frameBorder="0" height="500" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-
+<gradio-app space="aliabd/calculator-flag-basic/">
 
 When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged. 
 
@@ -112,7 +111,7 @@ iface = gr.Interface(
 
 iface.launch()
 ```
-<iframe src="https://hf.space/embed/aliabd/calculator-flagging-options/+" frameBorder="0" height="500" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<gradio-app space="aliabd/calculator-flagging-options/">
 
 When users click the flag button, the csv file will now include a column indicating the selected option.
 
@@ -123,11 +122,17 @@ num1,operation,num2,Output,flag,timestamp
 6,subtract,1.5,3.5,off by one,2022-02-04 11:42:32.062512
 ```
 
-## Doing more with the data
+## The HuggingFaceDatasetSaver Callback
 
-Suppose you want to take some action on the flagged data, instead of just saving it. Perhaps you want to trigger your model to retrain, or even just share it with others in a cloud dataset. We've made this super easy with the `flagging_callback` parameter.
+Sometimes, saving the data to a local CSV file doesn't make sense. For example, on Hugging Face
+Spaces, developers typically don't have access to the underlying ephemeral machine hosting the Gradio
+demo. That's why, by default, flagging is turned off in Hugging Face Space. However,
+you may want to do something else with the flagged data.
 
-For example, below we're going to pipe flagged data from our calculator example into a crowd-sourced Hugging Face Dataset. 
+We've made this super easy with the `flagging_callback` parameter.
+
+For example, below we're going to pipe flagged data from our calculator example into a Hugging Face Dataset, e.g. so that we can build a "crowd-sourced" dataset:
+
 
 ```python
 import os
@@ -139,6 +144,7 @@ iface = gr.Interface(
     calculator,
     ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
+    description="Check out the crowd-sourced dataset at: [https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo)",
     allow_flagging="manual",
     flagging_options=["wrong sign", "off by one", "other"],
     flagging_callback=hf_writer
@@ -146,16 +152,26 @@ iface = gr.Interface(
 
 iface.launch()
 ```
-<iframe src="https://hf.space/embed/aliabd/calculator-flagging-crowdsourced/+" frameBorder="0" height="500" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-You can now see all the examples flagged above in this [public HF dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo/blob/main/data.csv).
+Notice that we define our own 
+instance of  `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
+the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
+since on Hugging Face Spaces, this is set to `"never"` by default. Here's our demo:
+
+<gradio-app space="aliabd/calculator-flagging-crowdsourced/">
+
+You can now see all the examples flagged above in this [public Hugging Face dataset](https://huggingface.co/datasets/aliabd/crowdsourced-calculator-demo).
 
 ![flagging callback hf](/assets/guides/flagging-callback-hf.png)
 
-We created the `gr.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, please contribute it to the repo! 
+We created the `gradio.HuggingFaceDatasetSaver` class, but you can pass your own custom class as long as it inherits from `FLaggingCallback` defined in [this file](https://github.com/gradio-app/gradio/blob/master/gradio/flagging.py). If you create a cool callback, contribute it to the repo! 
+
+## Flagging with Blocks
+
+
 
 ## Privacy
 
-Please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto`. We suggest including this info in the description so that it's read before the interface.
+Please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto` (when all of the data submitted through the demo is being flagged). We suggest including this info in the description.
 
 ### That's all! Happy building :) 
