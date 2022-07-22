@@ -61,7 +61,7 @@ iface = gr.Interface(
 iface.launch()
 ```
 
-<gradio-app space="aliabd/calculator-flag-basic/">
+<gradio-app space="gradio/calculator-flag-basic/">
 
 When you click the flag button above, the directory where the interface was launched will include a new flagged subfolder, with a csv file inside it. This csv file includes all the data that was flagged. 
 
@@ -109,7 +109,7 @@ iface = gr.Interface(
 
 iface.launch()
 ```
-<gradio-app space="aliabd/calculator-flagging-options/">
+<gradio-app space="gradio/calculator-flagging-options/">
 
 When users click the flag button, the csv file will now include a column indicating the selected option.
 
