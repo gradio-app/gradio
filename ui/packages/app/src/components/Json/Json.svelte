@@ -7,6 +7,7 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
+	import { _ } from "svelte-i18n";
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
@@ -37,7 +38,9 @@
 	<StatusTracker {...loading_status} />
 
 	{#if value && value !== '""'}
-		<JSON {value} />
+		<JSON 
+		value={value}
+		copy_to_clipboard={$_("interface.copy_to_clipboard")}/>
 	{:else}
 		<div class="h-full min-h-[6rem] flex justify-center items-center">
 			<div class="h-7 dark:text-white opacity-50"><JSONIcon /></div>
