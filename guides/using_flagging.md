@@ -13,9 +13,7 @@ Gradio simplifies the collection of this data by including a **Flag** button wit
 
 Flagging with Gradio's `Interface` is especially easy. By default, underneath the output components, there is a button marked **Flag**. When a user testing your model sees input with interesting output, they can click the flag button to send the input and output data back to the machine where the demo is running. The sample is saved to a CSV log file (by default). If the demo involves images, audio, video, or other types of files, these are saved separately in a parallel directory and the paths to these files are saved in the CSV file.
 
-![flag button](/assets/guides/flag_button.gif)
-
-There are four parameters `gradio.Interface` that control how flagging works. We will go over them in greater detail.
+There are [four parameters](/docs/#interface-header) in `gradio.Interface` that control how flagging works. We will go over them in greater detail.
 
 * `allow_flagging`: this parameter can be set to either `"manual"` (default), `"auto"`, or `"never"`.                 
     * `manual`: users will see a button to flag, and samples are only flagged when the button is clicked.
