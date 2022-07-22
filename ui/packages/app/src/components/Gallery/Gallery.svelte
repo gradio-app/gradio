@@ -7,6 +7,7 @@
 	import type { Styles } from "@gradio/utils";
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
+	import { _ } from "svelte-i18n";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -160,7 +161,7 @@
 						/>
 					</button>
 				{:else}
-					<p>Empty</p>
+					<p>{$_("interface.empty")}</p>
 				{/each}
 			</div>
 		</div>
