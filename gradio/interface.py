@@ -183,6 +183,8 @@ class Interface(Blocks):
             **kwargs,
         )
 
+        # TODO(faruk): Can we remove or move init configurations into Blocks? This long init function feels like coming from pre-Blocks era.
+
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -394,6 +396,7 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
+        # TODO(faruk): Can we move these into the flag component, when it is implemented?
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
@@ -426,6 +429,7 @@ class Interface(Blocks):
                         for flag_option in flagging_options
                     ]
 
+            # TODO(faruk): Can we remove the interface types?
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -539,16 +543,16 @@ class Interface(Blocks):
                 ),
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
-                    for component in self.input_components + self.output_components] + (
-                            [Column.update(visible=True)]
-                            if self.interface_type
-                            in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                                self.InterfaceTypes.UNIFIED,
-                            ]
-                            else []
-                        )
+                     for component in self.input_components + self.output_components] + (
+                        [Column.update(visible=True)]
+                        if self.interface_type
+                           in [
+                               self.InterfaceTypes.STANDARD,
+                               self.InterfaceTypes.INPUT_ONLY,
+                               self.InterfaceTypes.UNIFIED,
+                           ]
+                        else []
+                    )
                     + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
@@ -562,6 +566,7 @@ class Interface(Blocks):
                 def __call__(self, *flag_data):
                     self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
 
+            # TODO(faruk): Change with flag component when it is implemented..
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -598,6 +603,7 @@ class Interface(Blocks):
                     examples_per_page=examples_per_page,
                 )
 
+            # TODO(faruk): Change with interpretation component when implemented.
             if self.interpretation:
                 interpretation_btn.click(
                     self.interpret_func,
@@ -639,7 +645,9 @@ class Interface(Blocks):
         return repr
 
     async def submit_func(self, *args):
+
         prediction = await self.run_prediction(args)
+        # TODO(faruk): We don't have tuple or array clearence in Blocks, can we remove this and have one standart?
         return prediction[0] if len(self.output_components) == 1 else prediction
 
     async def run_prediction(
@@ -655,6 +663,9 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use "call_function" instead of manually serializing, and deserializing and running prediction.
+
         if self.api_mode:  # Serialize the input
             processed_input = [
                 input_component.serialize(processed_input[i], called_directly)
@@ -687,6 +698,8 @@ class Interface(Blocks):
             processed output: a list of processed  outputs to return as the prediction(s).
             duration: a list of time deltas measuring inference time for each prediction fn.
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use process_api instead of manually processing and running prediction.
         processed_input = [
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
