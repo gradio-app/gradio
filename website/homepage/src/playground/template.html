@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with title="Gradio Playground", url="https://gradio.app/playground", image="/assets/img/meta-image.png", description="Play Around with Gradio Demos" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <main class="container mx-auto px-4 flex gap-4">
+      <div class="demo-window fixed inset-0 overflow-y-auto h-full w-full my-4">
+        <div class="relative mx-auto my-auto p-5 w-11/12 rounded-md bg-white" style="top: 5%; height: 90%">
+          <div class="flex overflow-auto py-4">
+            {% for demo_name, _ in demos %}
+            <button
+              class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500"
+              name="{{ demo_name }}"
+              onclick="show_demo('{{ demo_name }}')"
+
+            >{{ demo_name }}</button>
+            {% endfor %}
+          </div>
+          {% for demo_name, demo_code in demos %}
+          <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
+            <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
+            <gradio-app src="/demo/{{ demo_name }}" />
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </main>
+    <script src="/assets/prism.js"></script>
+    <script>
+      window.__gradio_mode__ = "website";
+    </script>
+    <script type="module" src="/assets/index.js"></script>
+    {% include 'templates/footer.html' %}
+    <script>
+    const show_demo = (demo) => {
+      document.querySelectorAll(`.demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
+      document.querySelectorAll(`.demo-content`).forEach(n => n.classList.add('hidden'));
+      document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo');
+      document.querySelectorAll(`.demo-content[name=${demo}]`).forEach(n => n.classList.remove('hidden'));
+    }
+    window.onclick = function(event) {
+      if (event.target.classList.contains('demo-window')) {
+        document.querySelectorAll('.demo-window').forEach(n => n.classList.add('hidden'));
+      }
+    }
+
+    // add copy buttons to all codeblocks
+
+    const svgCopy =
+      '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path><path fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path></svg>';
+    const svgCheck =
+      '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" fill="rgb(255, 124, 1)" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"></path></svg>';
+
+
+    const addCopyButtons = (clipboard) => {
+        document.querySelectorAll("pre > code").forEach((codeBlock) => {
+        const button = document.createElement("button");
+        button.classList.add("clipboard-button");
+        button.type = "button";
+        button.innerHTML = svgCopy;
+        button.addEventListener("click", () => {
+          clipboard.writeText(codeBlock.innerText).then(
+            () => {
+              button.blur();
+              button.innerHTML = svgCheck;
+              setTimeout(() => (button.innerHTML = svgCopy), 2000);
+            },
+            (error) => (button.innerHTML = "Error")
+          );
+        });
+        const pre = codeBlock.parentNode;
+        pre.parentNode.insertBefore(button, pre);
+      });
+    };
+
+    if (navigator && navigator.clipboard) {
+      addCopyButtons(navigator.clipboard);
+    };
+
+
+    // Remove built-with-gradio footers and extra space from embedded components
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+          let shadowroot = g.shadowRoot;
+          let f = shadowroot.querySelector('footer');
+          f.classList.add('hidden');
+          let c = shadowroot.querySelector('.gradio-container');
+          c.style.removeProperty('min-height');
+        }
+      );
+    })
+
+    </script>
+  </body>
+</html>
