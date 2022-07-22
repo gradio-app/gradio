@@ -1,6 +1,5 @@
 # Advanced Interface Features
 
-Pinned: 1
 Docs: series, parallel
 
 **Prerequisite**: This Guide builds on the Quickstart. Make sure to [read the Quickstart first](/getting_started).
