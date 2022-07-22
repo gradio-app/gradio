@@ -68,6 +68,8 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 
+	console.log(enable_queue);
+
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };

@@ -67,6 +67,7 @@ export const fn = async (
 	}
 ) => {
 	const fn_index = payload.fn_index;
+	console.log("REQUEST");
 
 	if (frontend_fn !== undefined) {
 		payload.data = await frontend_fn(payload.data.concat(output_data));
@@ -74,6 +75,8 @@ export const fn = async (
 	if (backend_fn == false) {
 		return payload;
 	}
+
+	console.log(queue, action);
 
 	if (queue && ["predict", "interpret"].includes(action)) {
 		loading_status.update(fn_index as number, "pending", null, null);

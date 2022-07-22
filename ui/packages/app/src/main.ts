@@ -171,6 +171,7 @@ function mount_app(
 	id: number,
 	autoscroll?: Boolean
 ) {
+	console.log(config);
 	if (config.detail === "Not authenticated" || config.auth_required) {
 		const app = new Login({
 			target: wrapper,
