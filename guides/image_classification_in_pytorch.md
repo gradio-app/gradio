@@ -76,8 +76,8 @@ Finally, we'll add one more parameter, the `examples`, which allows us to prepop
 import gradio as gr
 
 gr.Interface(fn=predict, 
-             inputs=gr.inputs.Image(type="pil"),
-             outputs=gr.outputs.Label(num_top_classes=3),
+             inputs=gr.Image(type="pil"),
+             outputs=gr.Label(num_top_classes=3),
              examples=["lion.jpg", "cheetah.jpg"]).launch()
 ```
 

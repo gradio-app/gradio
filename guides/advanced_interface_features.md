@@ -1,6 +1,7 @@
 # Advanced Interface Features
 
 Pinned: 1
+Docs: series, parallel
 
 **Prerequisite**: This Guide builds on the Quickstart. Make sure to [read the Quickstart first](/getting_started).
 
@@ -37,7 +38,7 @@ $code_gender_sentence_default_interpretation
 
 So what is happening under the hood? With these interpretation methods, Gradio runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue.
 
-You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input component - therefore the function must return a list where the number of elements corresponds to the number of input components. To see the format for interpretation for each input component, check the Docs.
 
 $code_gender_sentence_custom_interpretation
 
@@ -67,7 +68,7 @@ gr.Interface.load("huggingface/gpt2").launch();
 
 ```python
 gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", 
-    inputs=gr.inputs.Textbox(lines=5, label="Input Text")  # customizes the input component
+    inputs=gr.Textbox(lines=5, label="Input Text")  # customizes the input component
 ).launch()
 ```
 
@@ -122,7 +123,13 @@ This sets up a queue of workers to handle the predictions and return the respons
 
 Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
 
-Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things: (1) Pass in an extra parameter into your function, which represents the state of the interface. (2) At the end of the function, return the updated value of the state as an extra return value (3) Add the `'state'` input and `'state'` output components when creating your `Interface`. See the chatbot example below: 
+Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things:
+
+1. Pass in an extra parameter into your function, which represents the state of the interface.
+2. At the end of the function, return the updated value of the state as an extra return value.
+3. Add the `'state'` input and `'state'` output components when creating your `Interface`
+
+See the chatbot example below: 
 
 $code_chatbot_demo
 $demo_chatbot_demo

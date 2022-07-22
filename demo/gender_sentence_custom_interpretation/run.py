@@ -14,6 +14,8 @@ def gender_of_sentence(sentence):
     return {"male": male_count / total, "female": female_count / total}
 
 
+# Number of arguments to interpretation function must
+# match number of inputs to prediction function
 def interpret_gender(sentence):
     result = gender_of_sentence(sentence)
     is_male = result["male"] > result["female"]
@@ -28,7 +30,9 @@ def interpret_gender(sentence):
         ):
             score = -1
         interpretation.append((word, score))
-    return interpretation
+    # Output must be a list of lists containing the same number of elements as inputs
+    # Each element corresponds to the interpretation scores for the given input
+    return [interpretation]
 
 
 demo = gr.Interface(

@@ -11,15 +11,15 @@ with gr.Blocks() as demo:
     
     txt = gr.Textbox(label="Input", lines=2)
     txt_2 = gr.Textbox(label="Input 2")
-    txt_3 = gr.Textbox("", label="Output")
-    btn = gr.Button("Submit")
+    txt_3 = gr.Textbox(value="", label="Output")
+    btn = gr.Button(value="Submit")
     btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
     
     with gr.Row():
         im = gr.Image()
         im_2 = gr.Image()
         
-    btn = gr.Button("Mirror Image")
+    btn = gr.Button(value="Mirror Image")
     btn.click(mirror, inputs=[im], outputs=[im_2])
         
     gr.Markdown("## Text Examples")

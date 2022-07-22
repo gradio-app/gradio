@@ -22,23 +22,14 @@
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
 
-	$: {
-		if (value && !Array.isArray(value)) {
-			if (Array.isArray(value.headers)) headers = value.headers;
-			value =
-				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
-		} else if (value === null) {
-			value = [Array(headers.length).fill("")];
-		} else {
-			value = value;
-		}
-	}
-
 	const dispatch = createEventDispatcher();
 
 	export let loading_status: LoadingStatus;
 
-	async function handle_change({ detail }) {
+	async function handle_change(detail: {
+		data: Array<Array<string | number>>;
+		headers: Array<string>;
+	}) {
 		value = detail;
 		await tick();
 		dispatch("change", detail);
@@ -58,7 +49,7 @@
 		{col_count}
 		values={value}
 		{headers}
-		on:change={handle_change}
+		on:change={({ detail }) => handle_change(detail)}
 		editable={mode === "dynamic"}
 		{style}
 		{wrap}

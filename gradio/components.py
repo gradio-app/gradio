@@ -16,7 +16,15 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 import matplotlib.figure
 import numpy as np
@@ -284,6 +292,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
+    Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
     """
@@ -480,6 +489,7 @@ class Number(Changeable, Submittable, IOComponent):
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
+    Examples-format: a {float} or {int} representing the number's value.
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
@@ -664,6 +674,7 @@ class Slider(Changeable, IOComponent):
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
+    Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -826,6 +837,7 @@ class Checkbox(Changeable, IOComponent):
 
     Preprocessing: passes the status of the checkbox as a {bool} into the function.
     Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
+    Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -948,7 +960,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
-
+    Examples-format: a {List[str]} representing the values to be checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -1119,6 +1131,7 @@ class Radio(Changeable, IOComponent):
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
+    Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
@@ -1270,7 +1283,7 @@ class Dropdown(Radio):
     Creates a dropdown of which only one entry can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-
+    Examples-format: a {str} representing the drop down value to select.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -1328,8 +1341,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
-
-    Demos: image_mod
+    Examples-format: a {str} filepath to a local file that contains the image.
+    Demos: image_mod, image_mod_default_image
     """
 
     def __init__(
@@ -1443,7 +1456,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             if self.type == "file":
                 warnings.warn(
                     "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                    DeprecationWarning,
                 )
                 return file_obj
             else:
@@ -1698,7 +1710,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
-
+    Examples-format: a {str} filepath to a local file that contains the video.
     Demos: video_identity
     """
 
@@ -1877,7 +1889,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
-
+    Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     """
 
@@ -1991,7 +2003,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         if self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             return file_obj
         elif self.type == "filepath":
@@ -2013,7 +2024,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         elif self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
             )
             name = x.name
         elif self.type == "numpy":
@@ -2198,7 +2208,7 @@ class File(Changeable, Clearable, IOComponent):
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-
+    Examples-format: a {str} path to a local file that populates the component.
     Demos: zip_to_json, zip_two_files
     """
 
@@ -2327,7 +2337,10 @@ class File(Changeable, Clearable, IOComponent):
             else:
                 return process_single_file(x)
         else:
-            return [process_single_file(f) for f in x]
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -2395,7 +2408,7 @@ class Dataframe(Changeable, IOComponent):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
-
+    Examples-format: a {str} filepath to a csv with data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2521,26 +2534,22 @@ class Dataframe(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(
-        self, x: List[List[str | Number | bool]]
-    ) -> pd.DataFrame | np.ndarray | List[List[str | float | bool]]:
+    def preprocess(self, x: DataframeData):
         """
         Parameters:
-            x: 2D array of str, numeric, or bool data
+        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
         Returns:
             Dataframe in requested format
         """
         if self.type == "pandas":
-            if self.headers:
-                return pd.DataFrame(x, columns=self.headers)
+            if x.get("headers") is not None:
+                return pd.DataFrame(x["data"], columns=x.get("headers"))
             else:
-                return pd.DataFrame(x)
-        if self.col_count[0] == 1:
-            x = [row[0] for row in x]
+                return pd.DataFrame(x["data"])
         if self.type == "numpy":
-            return np.array(x)
+            return np.array(x["data"])
         elif self.type == "array":
-            return x
+            return x["data"]
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2587,8 +2596,6 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
-            if len(y) == 0 or not isinstance(y[0], list):
-                y = [y]
             return {
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
@@ -2643,7 +2650,7 @@ class Timeseries(Changeable, IOComponent):
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
     Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
-
+    Examples-format: a {str} filepath of csv data with time series data.
     Demos: fraud_detector
     """
 
@@ -2832,7 +2839,7 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default text for the button to display.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -2880,11 +2887,13 @@ class Button(Clickable, IOComponent):
         )
 
 
+@document()
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
+    Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
     Demos: color_picker
     """
 
@@ -2901,12 +2910,12 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in color picker.
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        interactive (Optional[bool]): if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
-        visible (bool): If False, component will be hidden.
-        elem_id (Optional[str]): An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            value: default text to provide in color picker.
+            label: component name in interface.
+            show_label: if True, will display label.
+            interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
         self.cleared_value = "#000000"
@@ -3173,7 +3182,6 @@ class HighlightedText(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `HighlightedText.style()` ",
-                DeprecationWarning,
             )
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
@@ -3542,7 +3550,6 @@ class Carousel(IOComponent, Changeable):
         """
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
-            DeprecationWarning,
         )
         if not isinstance(components, list):
             components = [components]
@@ -3655,7 +3662,6 @@ class Chatbot(Changeable, IOComponent):
         if color_map is not None:
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
-                DeprecationWarning,
             )
 
         self.value = self.postprocess(value)
