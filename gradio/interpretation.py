@@ -21,6 +21,10 @@ async def run_interpret(interface, raw_input):
         ]
         original_output = await interface.run_prediction(processed_input)
         scores, alternative_outputs = [], []
+        
+        if len(interface.output_components) == 1:
+            original_output = [original_output]
+
         for i, (x, interp) in enumerate(zip(raw_input, interface.interpretation)):
             if interp == "default":
                 input_component = interface.input_components[i]
@@ -41,6 +45,10 @@ async def run_interpret(interface, raw_input):
                         neighbor_output = await interface.run_prediction(
                             processed_neighbor_input
                         )
+                        
+                        if len(interface.output_components) == 1:
+                            neighbor_output = [neighbor_output]
+                        
                         processed_neighbor_output = [
                             output_component.postprocess(neighbor_output[i])
                             for i, output_component in enumerate(
