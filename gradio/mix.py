@@ -41,11 +41,13 @@ class Parallel(gradio.Interface):
             )
             combined_list = []
             for value in return_values:
-                combined_list.append(value)
-
+                if type(value) is tuple:
+                    combined_list.extend(value)
+                else:  # If return_value is taken out of tuple by run_prediction
+                    combined_list.append(value)
             if len(outputs) == 1:
-                return return_values[0]
-            return return_values
+                return combined_list[0]
+            return combined_list
 
         parallel_fn.__name__ = " | ".join([io.__name__ for io in interfaces])
 
