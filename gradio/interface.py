@@ -639,7 +639,8 @@ class Interface(Blocks):
         return repr
 
     async def submit_func(self, *args):
-        return await self.run_prediction(args)
+        prediction = await self.run_prediction(args)
+        return prediction[0] if len(self.output_components) == 1 else prediction
 
     async def run_prediction(
         self,
@@ -674,8 +675,7 @@ class Interface(Blocks):
                 output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)
             ]
-
-        return prediction[0] if len(self.output_components) == 1 else prediction
+        return prediction
 
     async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
