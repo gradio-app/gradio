@@ -5,13 +5,13 @@ Tags: FLAGGING, DATA
 
 ## Introduction
 
-When you demo a machine learning model, you might want to collect data from users who try the model, particularly samples in which the model is not behaving as expected. Capturing these "hard" data points is valuable because it allows you to improve your machine learning model and make it more reliable and robust.
+When you demo a machine learning model, you might want to collect data from users who try the model, particularly data points in which the model is not behaving as expected. Capturing these "hard" data points is valuable because it allows you to improve your machine learning model and make it more reliable and robust.
 
 Gradio simplifies the collection of this data by including a **Flag** button with every `Interface`. This allows a user or tester to easily send data back to the machine where the demo is running. In this Guide, we discuss more about how to use the flagging feature, both with `gradio.Interface` as well as with `gradio.Blocks`.
 
 ## The **Flag** button in `gradio.Interface`
 
-Flagging with Gradio's `Interface` is especially easy. By default, underneath the output components, there is a button marked **Flag**. When a user testing your model sees input with interesting output, they can click the flag button to send the input and output sample back to the machine where the demo is running, and saves it to a CSV log file (by default). If the demo involves images, audio, video, or other types of files, these are saved separately in a parallel directory and the paths to these files are saved in the CSV file.
+Flagging with Gradio's `Interface` is especially easy. By default, underneath the output components, there is a button marked **Flag**. When a user testing your model sees input with interesting output, they can click the flag button to send the input and output data back to the machine where the demo is running. The sample is saved to a CSV log file (by default). If the demo involves images, audio, video, or other types of files, these are saved separately in a parallel directory and the paths to these files are saved in the CSV file.
 
 ![flag button](/assets/guides/flag_button.gif)
 
@@ -97,7 +97,7 @@ im/0.png,Output/0.png,2022-02-04 19:49:58.026963
 im/1.png,Output/1.png,2022-02-02 10:40:51.093412
 ```
 
-If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
+If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of these choices when flagging, and the option will be saved as an additional column to the CSV.
 
 If we go back to the calculator example, the following code will create the interface embedded below it.  
 ```python
@@ -156,7 +156,7 @@ iface.launch()
 Notice that we define our own 
 instance of  `gradio.HuggingFaceDatasetSaver` using our Hugging Face token and
 the name of a dataset we'd like to save samples to. In addition, we also set `allow_flagging="manual"`
-since on Hugging Face Spaces, this is set to `"never"` by default. Here's our demo:
+because on Hugging Face Spaces, `allow_flagging` is set to `"never"` by default. Here's our demo:
 
 <gradio-app space="aliabd/calculator-flagging-crowdsourced/">
 
@@ -168,10 +168,26 @@ We created the `gradio.HuggingFaceDatasetSaver` class, but you can pass your own
 
 ## Flagging with Blocks
 
+What about if you are using `gradio.Blocks`? On one hand, you have even more flexibility
+with Blocks -- you can write whatever Python code you want to run when a button is clicked,
+and assign that using the built-in events in Blocks.
 
+At the same time, you might want to use an existing `FlaggingCallback` to avoid writing extra code.
+This requires two steps:
+
+1. You have to run your callback's `.setup()` somewhere in the code prior to the 
+first time you flag data
+2. When the flagging button is clicked, then you trigger the callback's `.flag()` method,
+making sure to collect the arguments correctly and disabling the typical preprocessing. 
+
+Here is an example with an image sepia filter Blocks demo that lets you flag
+data using the default `CSVLogger`:
+
+$code_blocks_flag
+$demo_blocks_flag
 
 ## Privacy
 
-Please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto` (when all of the data submitted through the demo is being flagged). We suggest including this info in the description.
+Important Note: please make sure your users understand when the data they submit is being saved, and what you plan on doing with it. This is especially important when you use `allow_flagging=auto` (when all of the data submitted through the demo is being flagged)
 
 ### That's all! Happy building :) 
