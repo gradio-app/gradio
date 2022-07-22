@@ -26,6 +26,7 @@ from gradio.components import (
     Highlightedtext,
     HighlightedText,
     Image,
+    Interpretation,
     Json,
     Label,
     Markdown,
