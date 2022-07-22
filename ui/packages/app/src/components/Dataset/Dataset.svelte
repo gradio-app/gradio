@@ -1,27 +1,25 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
 
-	export let components: Array<string>;
+	export let components: Array<keyof typeof component_map>;
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Number | null = null;
+	export let value: number | null = null;
 	export let root: string;
 	export let samples_per_page: number = 10;
-
-	export let theme: string;
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
 	let samples_dir: string = root + "file/";
-	let sample_id: number | null = null;
 	let page = 0;
 	let gallery = headers.length === 1;
 	let paginate = samples.length > samples_per_page;
 
-	let selected_samples: Array<Array<unknown>>;
+	let selected_samples: Array<Array<any>>;
 	let page_count: number;
 	let visible_pages: Array<number> = [];
 	$: {
@@ -49,6 +47,15 @@
 			selected_samples = samples.slice();
 		}
 	}
+
+	$: component_meta = selected_samples.map((sample_row) =>
+		sample_row.map((sample_cell, j) => ({
+			value: sample_cell,
+			component: component_map[
+				components[j]
+			] as ComponentType<SvelteComponentDev>
+		}))
+	);
 </script>
 
 <div
@@ -77,6 +84,8 @@
 	{#if gallery}
 		<div class="gr-samples-gallery">
 			{#each selected_samples as sample_row, i}
+				<!-- {@const x = component_map[]} -->
+
 				<button
 					class="group rounded-lg"
 					on:click={() => {
@@ -84,12 +93,13 @@
 						dispatch("click", value);
 					}}
 				>
-					<svelte:component
-						this={component_map[components[0]]}
-						{theme}
-						value={sample_row[0]}
-						{samples_dir}
-					/>
+					{#if Object.keys(component_map).includes(components[0]) && component_map[components[0]]}
+						<svelte:component
+							this={component_meta[0][0].component}
+							value={sample_row[0]}
+							{samples_dir}
+						/>
+					{/if}
 				</button>
 			{/each}
 		</div>
@@ -108,7 +118,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each selected_samples as sample_row, i}
+					{#each component_meta as sample_row, i}
 						<tr
 							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
 							on:click={() => {
@@ -116,15 +126,12 @@
 								dispatch("click", value);
 							}}
 						>
-							{#each sample_row as sample_cell, j}
-								<td class="p-2">
-									<svelte:component
-										this={component_map[components[j]]}
-										{theme}
-										value={sample_cell}
-										{samples_dir}
-									/>
-								</td>
+							{#each sample_row as { value, component }, j}
+								{#if components[j] !== undefined && component_map[components[j]] !== undefined}
+									<td class="p-2">
+										<svelte:component this={component} {value} {samples_dir} />
+									</td>
+								{/if}
 							{/each}
 						</tr>
 					{/each}
