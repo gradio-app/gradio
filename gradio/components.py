@@ -3244,8 +3244,10 @@ class HighlightedText(Changeable, IOComponent):
                 list_format = []
                 index = 0
                 for entity in entities:
-                    list_format.append((text[index: entity["start"]], None))
-                    list_format.append((text[entity["start"]: entity["end"]], entity["entity"]))
+                    list_format.append((text[index : entity["start"]], None))
+                    list_format.append(
+                        (text[entity["start"] : entity["end"]], entity["entity"])
+                    )
                     index = entity["end"]
                 list_format.append((text[index:], None))
                 y = list_format
