@@ -2894,7 +2894,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
     Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
-    Demos: color_picker
+    Demos: color_picker, color_generator
     """
 
     def __init__(
