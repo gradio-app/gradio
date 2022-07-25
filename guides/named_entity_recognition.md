@@ -44,7 +44,7 @@ ner_pipeline("Does Chicago have any Pakistani restaurants")
 
 Output:
 
-```
+```bash
 [{'entity': 'I-LOC',
   'score': 0.9988978,
   'index': 2,
@@ -59,7 +59,7 @@ Output:
   'end': 31}]
 ```
 
-If you have such a model, it is very easy to hook it up to Gradio's `HighlightedText` component. All you need to do is pass in this **list of entities**, along with the **original text** the the model, together as dictionary, with the keys being `"entities"` and `"text"` respectively.
+If you have such a model, it is very easy to hook it up to Gradio's `HighlightedText` component. All you need to do is pass in this **list of entities**, along with the **original text** to the model, together as dictionary, with the keys being `"entities"` and `"text"` respectively.
 
 Here is a complete example:
 
