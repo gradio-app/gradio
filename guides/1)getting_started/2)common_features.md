@@ -4,7 +4,7 @@ Let's go through some of the most popular features of Gradio!
 
 ## Example Inputs
 
-You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
+You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs).
 
 $code_calculator
 $demo_calculator
@@ -73,6 +73,15 @@ im/1.png,Output/1.png
 
 If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
+## Styling
+
+Many components can be styled through the `style()` method. For example:
+
+```python
+img = gr.Image("lion.jpg").style(height='24', rounded=False)
+```
+
+Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
 
 ## Queuing
 
