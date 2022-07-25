@@ -203,19 +203,173 @@ class TestColorPicker(unittest.TestCase):
 
 ## Step 2 - Create a New Svelte Component
 
-The steps to create the frontend part of your new component and map it to its Python code are:
-
+Let's see the steps you need to follow to create the frontend of your new component and to map it to its python code:
 - Create a new UI-side Svelte component and figure out where to place it. The alternatives are: create a package for the new component in the [ui/packages folder](https://github.com/gradio-app/gradio/tree/main/ui/packages), if this is completely different from existing components or add the new component to an existing package, such as to the [form package](https://github.com/gradio-app/gradio/tree/main/ui/packages/form). The ColorPicker component for example, was included in the form package because it is similar to components that already exist.
-- Create a file with an appropriate name in the src folder of the package where you placed the Svelte component, note: the name must start with a capital letter. Initially add any text/html to this file so that the component renders something. 
-- Export this file inside [index.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/form/src/index.ts) by doing `export { default as FileName } from "./FileName.svelte"`, hence for the colorpicker component the export is performed by doing: `export { default as ColorPicker } from "./ColorPicker.svelte";`.
-- Create the real component in [ui/packages/app/components](https://github.com/gradio-app/gradio/tree/main/ui/packages/app/src/components), copy the folder of another component, rename it and edit the code inside it, keeping the structure.
-- Add the mapping for your component in the [directory.ts file](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/directory.ts). To do this, copy and paste the mapping line of any component and edit its text. The key name must be the lowercase version of the actual component name in the Python library. So for example, for the ColorPicker component the mapping looks like this: `colorpicker: () => import("./ColorPicker")`. 
+- Create a file with an appropriate name in the src folder of the package where you placed the Svelte component, note: the name must start with a capital letter. Initially add any text/html to this file so that the component renders something. The Svelte application code for the ColorPicker looks like this:
+
+```typescript
+<script lang="ts">
+	import { createEventDispatcher } from "svelte";
+	import { get_styles } from "@gradio/utils";
+	import { BlockTitle } from "@gradio/atoms";
+	import type { Styles } from "@gradio/utils";
+
+	export let value: string = "#000000";
+	export let style: Styles = {};
+	export let label: string;
+	export let disabled = false;
+	export let show_label: boolean = true;
+
+	$: value;
+	$: handle_change(value);
+
+	const dispatch = createEventDispatcher<{
+		change: string;
+		submit: undefined;
+	}>();
+
+	function handle_change(val: string) {
+		dispatch("change", val);
+	}
+
+	$: ({ classes } = get_styles(style, ["rounded", "border"]));
+</script>
+
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label class="block">
+	<BlockTitle {show_label}>{label}</BlockTitle>
+	<input
+		type="color"
+		class="gr-box-unrounded {classes}"
+		bind:value
+		{disabled}
+	/>
+</label>
+```
+
+- Export this file inside the index.ts file of the package where you placed the Svelte component by doing `export { default as FileName } from "./FileName.svelte"`. The ColorPicker file is exported in the [index.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/form/src/index.ts) file and the export is performed by doing: `export { default as ColorPicker } from "./ColorPicker.svelte";`.
+- Create the real component in [ui/packages/app/src/components](https://github.com/gradio-app/gradio/tree/main/ui/packages/app/src/components), copy the folder of another component, rename it and edit the code inside it, keeping the structure. Here you will have three files, the first file is for the Svelte application, and it will look like this:
+
+```typescript
+<svelte:options accessors={true} />
+
+<script lang="ts">
+	import { ColorPicker } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
+	import type { Styles } from "@gradio/utils";
+
+	export let label: string = "ColorPicker";
+	export let elem_id: string = "";
+	export let visible: boolean = true;
+	export let value: string;
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
+
+	export let style: Styles = {};
+
+	export let loading_status: LoadingStatus;
+
+	export let mode: "static" | "dynamic";
+</script>
+
+<Block
+	{visible}
+	{form_position}
+	{elem_id}
+	disable={typeof style.container === "boolean" && !style.container}
+>
+	<StatusTracker {...loading_status} />
+
+	<ColorPicker
+		{style}
+		bind:value
+		{label}
+		{show_label}
+		on:change
+		on:submit
+		disabled={mode === "static"}
+	/>
+</Block>
+```
+
+the second one contains the tests for the frontend, for example for the ColorPicker component:
+
+```typescript
+import { test, describe, assert, afterEach } from "vitest";
+import { cleanup, render } from "@gradio/tootils";
+
+import ColorPicker from "./ColorPicker.svelte";
+import type { LoadingStatus } from "../StatusTracker/types";
+
+const loading_status = {
+	eta: 0,
+	queue_position: 1,
+	status: "complete" as LoadingStatus["status"],
+	scroll_to_output: false,
+	visible: true,
+	fn_index: 0
+};
+
+describe("ColorPicker", () => {
+	afterEach(() => cleanup());
+
+	test("renders provided value", () => {
+		const { getByDisplayValue } = render(ColorPicker, {
+			loading_status,
+			show_label: true,
+			mode: "dynamic",
+			value: "#000000",
+			label: "ColorPicker"
+		});
+
+		const item: HTMLInputElement = getByDisplayValue("#000000");
+		assert.equal(item.value, "#000000");
+	});
+
+	test("changing the color should update the value", async () => {
+		const { component, getByDisplayValue } = render(ColorPicker, {
+			loading_status,
+			show_label: true,
+			mode: "dynamic",
+			value: "#000000",
+			label: "ColorPicker"
+		});
+
+		const item: HTMLInputElement = getByDisplayValue("#000000");
+
+		assert.equal(item.value, "#000000");
+
+		await component.$set({
+			value: "#FFFFFF"
+		});
+
+		assert.equal(component.value, "#FFFFFF");
+	});
+});
+```
+
+the third one is the index.ts file:
+
+```typescript
+export { default as Component } from "./ColorPicker.svelte";
+export const modes = ["static", "dynamic"];
+```
+
+- Add the mapping for your component in the [directory.ts file](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/directory.ts). To do this, copy and paste the mapping line of any component and edit its text. The key name must be the lowercase version of the actual component name in the Python library. So for example, for the ColorPicker component the mapping looks like this: 
+
+```typescript
+export const component_map = {
+...
+colorpicker: () => import("./ColorPicker"),
+...
+}
+```
 
 ### Step 2.1 . Writing Unit Test for Svelte Component
 
 When developing new components, you should also write a suite of unit tests for it. The tests should be placed in the new component's folder in a file named MyAwesomeComponent.test.ts. Again, as above, take a cue from the tests of other components (e.g. [Textbox.test.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/Textbox/Textbox.test.ts)) and add as many unit tests as you think are appropriate to test all the different aspects and functionalities of the new component.
-
-If you want, you can take a look at the [frontend tests](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/ColorPicker/ColorPicker.test.ts) written for the ColorPicker component.
 
 ### Step 3 - Create a New Demo
 
