@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import io
 import os
@@ -22,11 +23,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from pydantic import BaseModel
-from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
+from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
-from gradio import encryptor, queueing
+from gradio import encryptor
+from gradio.event_queue import Estimation, Event, Queue
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -226,16 +228,6 @@ class App(FastAPI):
                 if Path(app.cwd).resolve() in Path(path).resolve().parents:
                     return FileResponse(Path(path).resolve())
 
-        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-        async def queue_push(body: QueuePushBody):
-            job_hash, queue_position = queueing.push(body)
-            return {"hash": job_hash, "queue_position": queue_position}
-
-        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-        async def queue_status(body: QueueStatusBody):
-            status, data = queueing.get_status(body.hash)
-            return {"status": status, "data": data}
-
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
@@ -281,6 +273,40 @@ class App(FastAPI):
                         status_code=500,
                     )
             return await run_predict(body=body, username=username)
+
+        # TODO: remove prints
+        @app.websocket("/queue/join")
+        async def join_queue(websocket: WebSocket):
+            print("Connection Accepted")
+            await websocket.accept()
+            await websocket.send_json(Queue.get_estimation().dict())
+            e_hash = await websocket.receive_json()
+            print(f"Event Body Received: {e_hash}")
+            event = Event(websocket, e_hash["hash"])
+            Queue.push(event)
+            print("Joined queue")
+            while True:
+                await asyncio.sleep(60)
+                if websocket.application_state == WebSocketState.DISCONNECTED:
+                    return
+
+        @app.get(
+            "/queue/status",
+            dependencies=[Depends(login_check)],
+            response_model=Estimation,
+        )
+        async def get_queue_status():
+            return Queue.get_estimation()
+
+        @app.get(
+            "/start/queue",
+            dependencies=[Depends(login_check)],
+        )
+        async def start_queue():
+            from gradio.utils import run_coro_in_background
+
+            gradio.utils.run_coro_in_background(Queue.init)
+            return True
 
         return app
 
