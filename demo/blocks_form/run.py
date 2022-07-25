@@ -27,6 +27,5 @@ with gr.Blocks() as demo:
         [error_box, diagnosis_box, patient_summary_box],
     )
 
-
 if __name__ == "__main__":
     demo.launch()
