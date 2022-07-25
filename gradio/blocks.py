@@ -12,9 +12,10 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
+import requests
 from anyio import CapacityLimiter
 
-from gradio import encryptor, external, networking, queueing, routes, strings, utils
+from gradio import encryptor, event_queue, external, networking, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
@@ -290,6 +291,7 @@ class Blocks(BlockContext):
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
+        self.enable_queue = False
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -748,6 +750,11 @@ class Blocks(BlockContext):
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
         quiet: bool = False,
+        live_queue_updates=True,
+        queue_concurrency_count: int = 1,
+        data_gathering_start: int = 30,
+        update_intervals: int = 5,
+        duration_history_size=100,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -776,6 +783,11 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
+            live_queue_updates: If True, Queue will send estimations whenever a job is finished as well.
+            queue_concurrency_count: Number of max number concurrent jobs inside the Queue.
+            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big data(video or such) to not reach memory overflow.
+            update_intervals: Queue will send estimations to the clients using intervals determined by update_intervals.
+            duration_history_size: Queue duration estimation calculation window size.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -836,6 +848,22 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
 
+            if app.blocks.enable_queue:
+                if app.blocks.auth is not None or app.blocks.encrypt:
+                    raise ValueError(
+                        "Cannot queue with encryption or authentication enabled."
+                    )
+                event_queue.Queue.configure_queue(
+                    self.local_url,
+                    live_queue_updates,
+                    queue_concurrency_count,
+                    data_gathering_start,
+                    update_intervals,
+                    duration_history_size,
+                )
+                # Cannot run async functions in background other than app's scope.
+                # Workaround by triggering the app endpoint
+                requests.get(f"{self.local_url}start/queue")
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
@@ -933,6 +961,7 @@ class Blocks(BlockContext):
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
+
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
@@ -997,6 +1026,10 @@ class Blocks(BlockContext):
         Closes the Interface that was launched and frees the port.
         """
         try:
+            from gradio.event_queue import Queue
+
+            if self.enable_queue:
+                Queue.close()
             self.server.close()
             self.is_running = False
             if verbose:
@@ -1014,5 +1047,3 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            if self.enable_queue:
-                queueing.close()

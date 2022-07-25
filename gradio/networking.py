@@ -15,7 +15,6 @@ import fastapi
 import requests
 import uvicorn
 
-from gradio import queueing
 from gradio.routes import App
 from gradio.tunneling import create_tunnel
 
@@ -94,7 +93,7 @@ def start_server(
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
     ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, fastapi.FastAPI, Server]:
+) -> Tuple[int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server
@@ -142,14 +141,6 @@ def start_server(
 
     app = App.create_app(blocks)
 
-    if app.blocks.enable_queue:
-        if blocks.auth is not None or app.blocks.encrypt:
-            raise ValueError("Cannot queue with encryption or authentication enabled.")
-        queueing.init()
-        app.queue_thread = threading.Thread(
-            target=queueing.queue_thread, args=(path_to_local_server,)
-        )
-        app.queue_thread.start()
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
     config = uvicorn.Config(
