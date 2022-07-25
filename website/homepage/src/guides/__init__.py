@@ -37,7 +37,6 @@ def format_name(guide_name):
 
 guide_folders = sorted(os.listdir(GUIDES_DIR))
 guide_folders.remove("CONTRIBUTING.md")
-guide_folders.remove("etc")
 guide_folders.remove("assets")
 
 guides = []
