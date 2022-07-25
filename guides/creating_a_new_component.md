@@ -205,7 +205,7 @@ class TestColorPicker(unittest.TestCase):
 
 Let's see the steps you need to follow to create the frontend of your new component and to map it to its python code:
 - Create a new UI-side Svelte component and figure out where to place it. The options are: create a package for the new component in the [ui/packages folder](https://github.com/gradio-app/gradio/tree/main/ui/packages), if this is completely different from existing components or add the new component to an existing package, such as to the [form package](https://github.com/gradio-app/gradio/tree/main/ui/packages/form). The ColorPicker component for example, was included in the form package because it is similar to components that already exist.
-- Create a file with an appropriate name in the src folder of the package where you placed the Svelte component, note: the name must start with a capital letter. Initially add any text/html to this file so that the component renders something. The Svelte application code for the ColorPicker looks like this:
+- Create a file with an appropriate name in the src folder of the package where you placed the Svelte component, note: the name must start with a capital letter. This is the 'core' component and it's the generic component that has no knowledge of Gradio specific functionality. Initially add any text/html to this file so that the component renders something. The Svelte application code for the ColorPicker looks like this:
 
 ```typescript
 <script lang="ts">
@@ -248,7 +248,7 @@ Let's see the steps you need to follow to create the frontend of your new compon
 ```
 
 - Export this file inside the index.ts file of the package where you placed the Svelte component by doing `export { default as FileName } from "./FileName.svelte"`. The ColorPicker file is exported in the [index.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/form/src/index.ts) file and the export is performed by doing: `export { default as ColorPicker } from "./ColorPicker.svelte";`.
-- Create the Gradio specific component in [ui/packages/app/src/components](https://github.com/gradio-app/gradio/tree/main/ui/packages/app/src/components), copy the folder of another component, rename it and edit the code inside it, keeping the structure. 
+- Create the Gradio specific component in [ui/packages/app/src/components](https://github.com/gradio-app/gradio/tree/main/ui/packages/app/src/components). This is a Gradio wrapper that handles the specific logic of the library, passes the necessary data down to the core component and attaches any necessary event listeners. Copy the folder of another component, rename it and edit the code inside it, keeping the structure. 
 
 Here you will have three files, the first file is for the Svelte application, and it will look like this:
 
