@@ -8,6 +8,9 @@
 .thin-link {
   @apply hover:text-orange-500 transition-colors;
 }
+.thinner-link {
+  @apply hover:text-orange-500 transition-colors;
+}
 
 .group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
     display: flex;
@@ -80,6 +83,9 @@
   @apply border-orange-500 text-orange-500 md:border-l-2 pl-4;
 }
 .link.current-nav-link {
+  @apply border-orange-500 text-orange-500;
+}
+.thinner-link.current-nav-link {
   @apply border-orange-500 text-orange-500;
 }
 code.language-python {
