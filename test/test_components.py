@@ -1519,7 +1519,7 @@ class TestHighlightedText(unittest.TestCase):
             (" lives in ", None),
             ("Berlin", "LOC"),
             ("", None),
-        ]        
+        ]
         result_ = component.postprocess(result)
         self.assertEqual(result, result_)
 
@@ -1530,7 +1530,7 @@ class TestHighlightedText(unittest.TestCase):
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
         self.assertEqual(result, result_)
-        
+
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
@@ -1542,7 +1542,7 @@ class TestHighlightedText(unittest.TestCase):
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
         self.assertEqual([("", None), (text, "PER"), ("", None)], result_)
-        
+
     def test_component_functions(self):
         """
         get_config, save_flagged, restore_flagged
