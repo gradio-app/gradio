@@ -347,9 +347,10 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
         return line_count
 
+
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
-    A FlaggingCallback that saves flagged data to a HuggingFace dataset.
+    A FlaggingCallback that saves flagged data to a HuggingFace dataset in JSONL format.
     """
 
     def __init__(
@@ -410,8 +411,6 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         )
         self.repo.git_pull()
 
-        # Should filename be user-specified?
-        self.log_file = os.path.join(self.dataset_dir, "data.csv")
         self.infos_file = os.path.join(self.dataset_dir, "dataset_infos.json")
 
     def flag(
@@ -423,15 +422,14 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     ) -> int:
         self.repo.git_pull(lfs=True)
 
-        # Have main folder called `data`
-        # Get unique folder name using self.get_unique_name()
-        # create folde
-        # put all files inside that unique folder
-        # upload unique folder (with all its content) to repo
+        # Generate unique folder for the flagged sample
+        unique_name = self.get_unique_name()  # unique name for folder
+        folder_name = os.path.join(
+            self.dataset_dir, unique_name
+        )  # unique folder for specific example
+        os.makedirs(folder_name, exist_ok=True)
 
-        folder_name = os.path.join(self.dataset_dir,self.get_unique_name()) #unique folder for specific example
-        os.makedirs(folder_name,exist_ok=True)
-
+        # Now uses the existence of `dataset_infos.json` to determine if new
         is_new = not os.path.exists(self.infos_file)
 
         infos = {"flagged": {"features": {}}}
@@ -455,9 +453,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 if isinstance(component, tuple(file_preview_types)):
                     for _component, _type in file_preview_types.items():
                         if isinstance(component, _component):
-                            infos["flagged"]["features"][
-                                component.label + " file"
-                            ] = {"_type": _type}
+                            infos["flagged"]["features"][component.label + " file"] = {
+                                "_type": _type
+                            }
                             break
 
             infos["flagged"]["features"]["flag"] = {
@@ -465,48 +463,53 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 "_type": "Value",
             }
 
-        # Generate the row corresponding to the flagged sample
+        # Generate the row and header corresponding to the flagged sample
         csv_data = []
         headers = []
 
         for component, sample in zip(self.components, flag_data):
             headers.append(component.label)
+
+            try:
+                filepath = component.save_flagged(
+                    folder_name, component.label, sample, None
+                )
+            except Exception:
+                # Could not parse 'sample' (mostly) because it was None and `component.save_flagged` does not handle None cases. for example: Label (line 3109 of components.py raises an error if data is None)
+                filepath = None
+
             if isinstance(component, tuple(file_preview_types)):
                 headers.append(component.label + " file")
-           
-            filepath = component.save_flagged(
-                folder_name, component.label, sample, None
-            )
+
+                csv_data.append(
+                    "{}/resolve/main/{}/{}".format(
+                        self.path_to_dataset_repo, unique_name, filepath
+                    )
+                    if filepath is not None
+                    else None
+                )
 
             csv_data.append(filepath)
-            if isinstance(component, tuple(file_preview_types)):
-                csv_data.append(
-                    "{}/resolve/main/{}/{}".format(self.path_to_dataset_repo, folder_name,filepath)
-                )
         headers.append("flag")
         csv_data.append(flag_option if flag_option is not None else "")
-        metadata_dict = {}
-        for header, _csv_data in zip(headers,csv_data):
-            metadata_dict[header] = _csv_data
 
-        self.dump_json(metadata_dict,os.path.join(folder_name,'metadata.jsonl'))
-
+        # Creates metadata dict from row data and dumps it
+        metadata_dict = {
+            header: _csv_data for header, _csv_data in zip(headers, csv_data)
+        }
+        self.dump_json(metadata_dict, os.path.join(folder_name, "metadata.jsonl"))
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
 
-        line_count = len([f for f in os.scandir(self.dataset_dir) if os.path.isdir(f)]) - 2 #For .git and .gitattributesc
-        self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))
-
-        return 
+        self.repo.push_to_hub(commit_message="Flagged sample {}".format(unique_name))
+        return unique_name
 
     def get_unique_name(self):
-        return ''.join([random.choice(string.ascii_letters
-                + string.digits) for n in range(32)])
-    def dump_json(self,
-                  thing: dict,
-                  file_path: str) -> None:
-        with open(file_path,'w+',encoding="utf8") as f:
-            json.dump(thing,f)
+        return "".join(
+            [random.choice(string.ascii_letters + string.digits) for n in range(32)]
+        )
 
-
+    def dump_json(self, thing: dict, file_path: str) -> None:
+        with open(file_path, "w+", encoding="utf8") as f:
+            json.dump(thing, f)
