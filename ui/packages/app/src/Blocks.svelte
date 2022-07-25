@@ -67,8 +67,6 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 
-	console.log(enable_queue);
-
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
@@ -214,9 +212,19 @@
 
 		dependencies.forEach(
 			(
-				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
+				{
+					targets,
+					trigger,
+					inputs,
+					outputs,
+					queue,
+					backend_fn,
+					frontend_fn,
+					...rest
+				},
 				i
 			) => {
+				console.log({ queue, i });
 				const target_instances: [number, Component][] = targets.map((t) => [
 					t,
 					instance_map[t]
@@ -278,8 +286,10 @@
 							return;
 						}
 
+						console.log();
+
 						// page events
-						fn({
+						const req = fn({
 							action: "predict",
 							backend_fn,
 							frontend_fn,
@@ -288,35 +298,41 @@
 								data: inputs.map((id) => instance_map[id].props.value)
 							},
 							output_data: outputs.map((id) => instance_map[id].props.value),
-							queue: queue === null ? enable_queue : queue
-						})
-							.then((output) => {
-								output.data.forEach((value, i) => {
-									if (
-										typeof value === "object" &&
-										value !== null &&
-										value.__type__ === "update"
-									) {
-										for (const [update_key, update_value] of Object.entries(
-											value
-										)) {
-											if (update_key === "__type__") {
-												continue;
-											} else {
-												instance_map[outputs[i]].props[update_key] =
-													update_value;
-											}
+							queue: queue === null ? enable_queue : queue,
+							queue_callback: handle_update
+						});
+
+						function handle_update(output) {
+							console.log(output);
+							output.data.forEach((value, i) => {
+								if (
+									typeof value === "object" &&
+									value !== null &&
+									value.__type__ === "update"
+								) {
+									for (const [update_key, update_value] of Object.entries(
+										value
+									)) {
+										if (update_key === "__type__") {
+											continue;
+										} else {
+											instance_map[outputs[i]].props[update_key] = update_value;
 										}
-										rootNode = rootNode;
-									} else {
-										instance_map[outputs[i]].props.value = value;
 									}
-								});
-							})
-							.catch((error) => {
+									rootNode = rootNode;
+								} else {
+									instance_map[outputs[i]].props.value = value;
+								}
+							});
+						}
+
+						if (!(queue === null ? enable_queue : queue)) {
+							console.log("boo");
+							req.then(handle_update).catch((error) => {
 								console.error(error);
 								loading_status.update(i, "error", 0, 0);
 							});
+						}
 					});
 
 					if (!handled_dependencies[i]) handled_dependencies[i] = [];
