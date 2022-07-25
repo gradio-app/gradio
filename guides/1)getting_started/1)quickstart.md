@@ -109,4 +109,4 @@ $demo_blocks_flipper
 
 A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [Building with Blocks](/building_with_blocks) section of the guides. 
 
-Congrats, you're now familiar with the basics of Gradio 🥳. Onto the next guide - or skip around the curriculum if you wish!
+Congrats, you're now familiar with the basics of Gradio 🥳. Onto the [next guide](https://gradio.app/key_features) - or skip around the curriculum if you wish!
