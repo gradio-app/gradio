@@ -1,4 +1,4 @@
-# Common Features
+# Key Features
 
 Let's go through some of the most popular features of Gradio!
 
@@ -50,7 +50,7 @@ num1,operation,num2,Output
 6,subtract,1.5,4.5
 ```
 
-With the sepia interface shown above, we would have the flagged data stored in the flagged directory shown below:
+With the sepia interface shown earlier, we would have the flagged data stored in the flagged directory shown below:
 
 ```directory
 +-- sepia.py
@@ -98,8 +98,10 @@ With `Blocks`:
 with gr.Blocks() as demo:
     #...
 demo.launch(enable_queue=True)
+```
 
-# or to specify only certain functions for queueing
+Or to specify only certain functions for queueing in Blocks:
+```python
 with gr.Blocks() as demo2:
     num1 = gr.Number()
     num2 = gr.Number()
