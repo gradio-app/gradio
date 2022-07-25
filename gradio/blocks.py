@@ -205,8 +205,10 @@ def update(**kwargs) -> dict:
     Updates component parameters.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+    Note that your editor's autocompletion will suggest proper parameters
+    if you use the update class method.
 
-    Demos: blocks_update, blocks_essay_update
+    Demos: blocks_update, blocks_essay, blocks_essay_update
 
     Parameters:
         kwargs: Key-word arguments used to update the component's properties.
