@@ -8,7 +8,7 @@ Gradio demos can be easily shared publicly by setting `share=True` in the `launc
 demo.launch(share=True)
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. A share link usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a Gradio URL, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. A share link usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a Gradio URL, we are only a proxy for your local server, and do not store any data sent through your app.
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
@@ -20,7 +20,7 @@ Share links expire after 72 hours.
 
 If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. Hugging Face Spaces provides the infrastructure to permanently host your machine learning model for free! 
 
-You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
+You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio app from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
 ![Hosting Demo](/assets/guides/hf_demo.gif)
 
@@ -38,7 +38,7 @@ This will document the endpoint `/api/addition/` to the automatically generated 
 
 ## Authentication
 
-You may wish to put an authentication page in front of your interface to limit who can open your interface. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. Here's an example that provides password-based authentication for a single user named "admin":
+You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. Here's an example that provides password-based authentication for a single user named "admin":
 
 ```python
 demo.launch(auth=("admin", "pass1234"))
