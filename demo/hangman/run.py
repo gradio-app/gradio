@@ -14,7 +14,7 @@ with gr.Blocks() as demo:
                 label="Hangman",
                 value="_"*len(secret_word)
             )
-            used_letters_box = gr.Textbox()
+            used_letters_box = gr.Textbox(label="Used Letters")
 
     def guess_letter(letter, used_letters):
         used_letters.append(letter)

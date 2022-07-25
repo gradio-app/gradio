@@ -41,7 +41,7 @@ Note that `num1` can act as input to `num2`, and also vice-versa! As your apps g
 
 ## Function Return List vs Dict
 
-So far, you have seen event listener functions return a single value for every output component, in the order listed by the event listener. For example:
+So far, you have seen event listener functions with multiple outputs return a single value for each output component, in the order listed by the event listener. For example:
 
 ```python
 with gr.Blocks() as demo:
@@ -58,6 +58,8 @@ with gr.Blocks() as demo:
         outputs=[food_box, status_box]
     )
 ```
+
+Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
 
 Instead of returning a list of values corresponing to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. 
 
