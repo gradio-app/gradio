@@ -1508,6 +1508,41 @@ class TestLabel(unittest.TestCase):
 
 
 class TestHighlightedText(unittest.TestCase):
+    def test_postprocess(self):
+        """
+        postprocess
+        """
+        component = gr.HighlightedText()
+        result = [
+            ("", None),
+            ("Wolfgang", "PER"),
+            (" lives in ", None),
+            ("Berlin", "LOC"),
+            ("", None),
+        ]
+        result_ = component.postprocess(result)
+        self.assertEqual(result, result_)
+
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "PER", "start": 0, "end": 8},
+            {"entity": "LOC", "start": 18, "end": 24},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual(result, result_)
+
+        text = "I live there"
+        entities = []
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual([(text, None)], result_)
+
+        text = "Wolfgang"
+        entities = [
+            {"entity": "PER", "start": 0, "end": 8},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual([("", None), (text, "PER"), ("", None)], result_)
+
     def test_component_functions(self):
         """
         get_config, save_flagged, restore_flagged
