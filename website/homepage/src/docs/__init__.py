@@ -56,7 +56,8 @@ def add_supported_events():
             component["events"].append("edit()")
         if issubclass(component["class"], Submittable):
             component["events"].append("submit()")
-        component["events"] = ", ".join(component["events"])
+        if component["events"]:
+            component["events"] = ", ".join(component["events"])
 
 add_supported_events()
 
@@ -79,6 +80,7 @@ override_signature("Column", "with gradio.Column():")
 override_signature("Tabs", "with gradio.Tabs():")
 override_signature("Group", "with gradio.Group():")
 override_signature("Box", "with gradio.Box():")
+override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
 def find_cls(target_cls):

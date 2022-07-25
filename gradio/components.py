@@ -4015,10 +4015,13 @@ class Markdown(IOComponent, Changeable):
 ############################
 
 
+@document()
 class Dataset(Clickable, Component):
     """
-    Used to create a output widget for showing datasets. Used to render the examples
-    box in the interface.
+    Used to create an output widget for showing datasets. Used to render the examples
+    box.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
     def __init__(
@@ -4088,9 +4091,12 @@ class Dataset(Clickable, Component):
         )
 
 
+@document()
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {dict} with keys "original" and "interpretation".
     """
 
     def __init__(
@@ -4101,6 +4107,12 @@ class Interpretation(Component):
         elem_id: Optional[str] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+            component: Which component to show in the interpretation widget.
+            visible: Whether or not the interpretation is visible.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.component = component
 

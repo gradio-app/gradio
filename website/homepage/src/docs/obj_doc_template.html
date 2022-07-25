@@ -56,7 +56,9 @@
   {% if "examples-format" in obj["tags"]  %}
   <p class="text-lg text-gray-500">Format expected for examples: {{ obj["tags"]["examples-format"] }}</p>
   {% endif %}
+  {% if obj["events"]|length > 0 %}
   <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
+  {% endif %}
   {% endif %}
   
   {% if obj["example"] %}
