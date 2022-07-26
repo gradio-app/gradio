@@ -38,4 +38,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch(enable_queue=True)
+    demo.launch()
