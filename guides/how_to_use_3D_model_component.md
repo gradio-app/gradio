@@ -6,11 +6,9 @@ Docs: model3D
 
 ## Introduction
 
-3D models are becoming more popular in machine learning and make for some of the most fun demos to experiment with.
+3D models are becoming more popular in machine learning and make for some of the most fun demos to experiment with. Using `gradio`, you can easily build a demo of your 3D image model and share it with anyone. The Gradio 3D Model component accepts 3 file types including: *.obj*, *.glb*, & *.gltf*.
 
-Using `gradio`, you can easily build a demo of your 3D image model and share it with anyone.
-
-This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below:
+This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below. Play around with 3D object by clicking around, dragging and zooming:
 
 <iframe src="https://hf.space/embed/dawood/Model3D/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -52,11 +50,11 @@ Let's break down the code above:
 Creating the Interface:
 
 * `fn`: the prediction function that is used when the user clicks submit. In our case this is the `load_mesh` function.
-* `inputs`: create a model3D input component.
-* `outputs`: create a model3D output component.
+* `inputs`: create a model3D input component. The input expects an uploaded file as a {str} filepath.
+* `outputs`: create a model3D output component. The output component also expects a file as a {str} filepath.
   * `clear_color`: this is the background color of the 3D model canvas. Expects RGBa values.
   * `label`: the label that appears on the top left of the component.
-* `examples`: list of 3D model files. The 3D model component can accept .obj, .glb, and .gltf file types.
+* `examples`: list of 3D model files. The 3D model component can accept *.obj*, *.glb*, & *.gltf* file types.
 * `cache_examples`: saves the predicted output for the examples, to save time on inference.
 
 
