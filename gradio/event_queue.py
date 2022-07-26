@@ -87,7 +87,8 @@ class Queue:
             if not cls.EVENT_QUEUE:
                 await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
-            print(f"Start Processing, search for inactive job slots")
+
+            print(f"Searching for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
                 await asyncio.sleep(1)
                 continue
@@ -99,7 +100,6 @@ class Queue:
                 print(f"Start Processing, found event, popped event: {event}")
 
             cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
-
             run_coro_in_background(cls.process_event, event)
             run_coro_in_background(cls.gather_data_for_first_ranks)
             if cls.LIVE_QUEUE_UPDATES:
@@ -158,6 +158,7 @@ class Queue:
         Notify clients about events statuses in the queue periodically.
         """
         while not cls.STOP:
+            # TODO: if live update is true and queue size does not change, dont notify the clients
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
             if not cls.EVENT_QUEUE:
@@ -229,7 +230,7 @@ class Queue:
         if not client_awake:
             cls.clean_job(event)
             return
-
+        print(f"Process starts for event: {event}")
         begin_time = time.time()
         response = await Request(
             method=Request.Method.POST,
@@ -247,12 +248,15 @@ class Queue:
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, hash: str):
+    def __init__(self, websocket: fastapi.WebSocket):
         from gradio.routes import PredictBody
 
         self.websocket = websocket
-        self.hash = hash
+        self.hash = None
         self.data: None | PredictBody = None
+
+    def __repr__(self):
+        return f"hash:{self.hash}, data: {self.data}, ws:{self.websocket}"
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
