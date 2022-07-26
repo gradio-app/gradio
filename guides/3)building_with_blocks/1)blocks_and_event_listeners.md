@@ -39,6 +39,11 @@ $demo_reversible_flow
 
 Note that `num1` can act as input to `num2`, and also vice-versa! As your apps get more complex, you will have many data flows connecting various Components. 
 
+Here's an example of a "multi-step" demo, where the output of one model (a speech-to-text model) gets fed into the next model (a sentiment classifier).
+
+$code_blocks_speech_text_sentiment
+$demo_blocks_speech_text_sentiment
+
 ## Function Return List vs Dict
 
 So far, you have seen event listener functions with multiple outputs return a single value for each output component, in the order listed by the event listener. For example:
