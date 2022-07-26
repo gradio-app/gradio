@@ -2611,7 +2611,7 @@ class Dataframe(Changeable, IOComponent):
                 ]
             elif len(self.headers) > len(y[0]):
                 _headers = self.headers[0 : len(y[0])]
-            print(_headers)
+
             return {
                 "headers": _headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
