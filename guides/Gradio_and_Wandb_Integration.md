@@ -279,27 +279,17 @@ wandb.log({"Current Samples": out_table})
 
 
 
-Using LaunchGradioFromSpaces allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
+Using Web components, using the <gradio-app> tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
-```launchGradioFromSpaces("akhaliq/JoJoGAN", "#JoJoGAN-demo")```
+```<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>```
 
 Meanwhile, adding a Gradio Demo to a W&B Report takes just a few extra lines of code: 
 
 
 ```wandb.log({"Gradio panel": wandb.Html('''
-<link rel="stylesheet" href="https://gradio.s3-us-west-2.amazonaws.com/2.6.2/static/bundle.css">
-<div id="JoJoGAN-demo"></div>
-<script src="https://gradio.s3-us-west-2.amazonaws.com/2.6.2/static/bundle.js"></script>
-<script>
-launchGradioFromSpaces("akhaliq/JoJoGAN", "#JoJoGAN-demo")
-</script>
-<style>
-/* work around a weird bug */
-.gradio_app .gradio_bg[theme=huggingface] .gradio_interface .input_dropdown .dropdown:hover .dropdown_menu {
-    display: block;
-}
-</style>
-''', inject=False)})
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
+<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
+)
 ```
 
 ## How to contribute Gradio demos on HF spaces on the Wandb organization
