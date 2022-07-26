@@ -30,9 +30,10 @@
         <a class="link px-4 my-2 block" href="#events">Events</a>
         {% for event in docs["events"] %}
           {% for fn in event["fns"] %}
-          <a class="px-4 block thin-link" href="#{{ fn['name'].lower() }}">{{ fn["name"][0]|upper}}{{fn["name"][1:] }}</a>
+          <a class="px-4 block thin-link" href="#{{ fn['name'].lower() }}-event">{{ fn["name"][0]|upper}}{{fn["name"][1:] }}</a>
           {% endfor %}
         {% endfor %}
+          <a class="px-4 block thin-link" href="#load-event">Load</a>
       </div>
       <div class="flex flex-col">
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800 mb-1">
@@ -181,10 +182,12 @@
           </p>
         </div>
         {% for event in docs["events"] %}
-          {% with obj=event %}
             {% include "docs/event_template.html" %}
-          {% endwith %}
         {% endfor %}
+        <!-- Document the load event with the events as well-->
+        {% with event=find_cls("Blocks"), override_signature="demo.load(fn, inputs, outputs)" %}
+           {% include "docs/event_template.html" %}
+        {% endwith %}
       </section>
       </div>
     </main>

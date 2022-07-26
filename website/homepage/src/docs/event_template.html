@@ -1,11 +1,11 @@
-{% for obj in obj["fns"] %}
-<div class="obj" id="{{ obj['name'] }}">
+{% for obj in event["fns"] %}
+<div class="obj" id="{{ obj['name'] }}-event">
   <div class="flex flex-row items-center justify-between">
-    <h3 id="{{ obj['name'].lower() }}-header"
+    <h3 id="{{ obj['name'].lower() }}-event-header"
         class="text-3xl font-light my-4">{{ obj["name"][0]|upper}}{{obj["name"][1:] }}</h3>
   </div>
-  {% if obj['override_signature'] %}
-  <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
+  {% if override_signature %}
+  <div class="codeblock"><pre><code class="lang-python">{{ override_signature }}</code></pre></div>
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">component.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
