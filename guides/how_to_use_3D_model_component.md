@@ -2,7 +2,7 @@
 
 Related spaces: https://huggingface.co/spaces/dawood/Model3D, https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
 Tags: VISION, IMAGE
-Docs: model3D
+Docs: model3d
 
 ## Introduction
 
@@ -10,7 +10,7 @@ Docs: model3D
 
 This guide will show you how to build a demo for your 3D image model in a few lines of code; like the one below. Play around with 3D object by clicking around, dragging and zooming:
 
-<iframe src="https://hf.space/embed/dawood/Model3D/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<gradio-app space="dawood/Model3D"> </gradio-app>
 
 ### Prerequisites
 
@@ -62,11 +62,11 @@ Creating the Interface:
 
 Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
 
-<iframe src="https://hf.space/embed/radames/PIFu-Clothed-Human-Digitization/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
 
 Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
 
-<iframe src="https://hf.space/embed/radames/dpt-depth-estimation-3d-obj/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<gradio-app space="radames/dpt-depth-estimation-3d-obj"> </gradio-app>
 
 
 ----------
@@ -74,4 +74,4 @@ Below is a demo that uses the DPT model to predict the depth of an image and the
 And you're done! That's all the code you need to build an interface for your Model3D model. Here are some references that you may find useful:
 
 * Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
-* The final [chatbot demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
+* The final [3D Model Demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
