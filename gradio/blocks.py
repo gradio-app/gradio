@@ -202,7 +202,7 @@ class class_or_instancemethod(classmethod):
 @document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters.
+    Updates component properties.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
