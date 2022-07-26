@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { create_classes, get_styles } from "@gradio/utils";
+	import { get_styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { Styles } from "@gradio/utils";
 
@@ -7,12 +7,16 @@
 	export let style: Styles = {};
 	export let disabled: boolean = false;
 	export let label: string;
-	export let show_label: boolean;
+	// export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
-	function handle_change(evt: Event) {
-		value = evt.target?.checked;
+	function handle_change(
+		evt: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		}
+	) {
+		value = evt.currentTarget.checked;
 		dispatch("change", value);
 	}
 

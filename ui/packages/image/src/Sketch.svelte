@@ -1,4 +1,6 @@
 <script>
+	// @ts-nocheck
+
 	import { onMount, onDestroy, createEventDispatcher } from "svelte";
 	import { fade } from "svelte/transition";
 	import { LazyBrush } from "lazy-brush/src";
@@ -11,8 +13,8 @@
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
 
-	export let width;
-	export let height;
+	export let width = undefined;
+	export let height = undefined;
 
 	let mounted;
 
@@ -482,6 +484,7 @@
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}
 			on:mouseup={name === "interface" ? handle_draw_end : undefined}
 			on:mouseout={name === "interface" ? handle_draw_end : undefined}
+			on:blur={name === "interface" ? handle_draw_end : undefined}
 			on:touchstart={name === "interface" ? handle_draw_start : undefined}
 			on:touchmove={name === "interface" ? handle_draw_move : undefined}
 			on:touchend={name === "interface" ? handle_draw_end : undefined}

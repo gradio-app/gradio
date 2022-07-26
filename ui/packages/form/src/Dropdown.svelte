@@ -25,7 +25,7 @@
 		bind:value
 		{disabled}
 	>
-		{#each choices as choice, i}
+		{#each choices as choice}
 			<option>{choice}</option>
 		{/each}
 	</select>

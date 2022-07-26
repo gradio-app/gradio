@@ -21,6 +21,14 @@
 		"checkJs": true,
 		"outDir": "dist"
 	},
-	"exclude": ["**/dist/**/*", "**/public/**/*", "**/*.config.js", "dist"],
+	"exclude": [
+		"**/dist/**/*",
+		"**/public/**/*",
+		"**/*.config.js",
+		"dist",
+
+		"**/workbench/**/*",
+		"**/Plot.svelte"
+	],
 	"include": ["**/*.d.ts", "**/*.js", "**/*.ts", "**/*.svelte"]
 }

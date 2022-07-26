@@ -24,7 +24,6 @@
 	export let value: null | FileData | string = null;
 	export let name: string;
 	export let source: "microphone" | "upload";
-	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
@@ -67,7 +66,6 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			{name}
 			{source}
-			{type}
 			{pending}
 			{streaming}
 			on:edit

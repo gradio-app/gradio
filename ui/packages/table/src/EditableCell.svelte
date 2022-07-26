@@ -3,7 +3,13 @@
 	export let value: string | number = "";
 	export let el: HTMLInputElement | null;
 	export let header: boolean = false;
-	export let datatype: "str" | "markdown" | "html" | "number" | "bool" | "date";
+	export let datatype:
+		| "str"
+		| "markdown"
+		| "html"
+		| "number"
+		| "bool"
+		| "date" = "str";
 </script>
 
 {#if edit}

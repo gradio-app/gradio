@@ -1,4 +1,5 @@
 <script lang="ts">
+	// @ts-nocheck
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
@@ -34,7 +35,7 @@
 		(source === "upload" || source === "webcam") &&
 		tool === "sketch"
 	) {
-		value = { image: value, mask: null };
+		value = { image: value as string, mask: null };
 	}
 
 	function handle_upload({ detail }: CustomEvent<string>) {
@@ -68,7 +69,7 @@
 		drag: boolean;
 	}>();
 
-	$: dispatch("change", value);
+	$: dispatch("change", value as string);
 
 	let dragging = false;
 

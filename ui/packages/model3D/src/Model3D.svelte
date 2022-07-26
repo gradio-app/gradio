@@ -16,31 +16,31 @@
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
-	let engine: BABYLON.Engine;
+	let engine: BABYLON.Engine | null;
 
 	onMount(() => {
 		engine = new BABYLON.Engine(canvas, true);
 		window.addEventListener("resize", () => {
-			engine.resize();
+			engine?.resize();
 		});
 	});
 
 	afterUpdate(() => {
 		if (scene) {
 			scene.dispose();
-			engine.stopRenderLoop();
-			engine.dispose();
+			engine?.stopRenderLoop();
+			engine?.dispose();
 			engine = null;
 			engine = new BABYLON.Engine(canvas, true);
 			window.addEventListener("resize", () => {
-				engine.resize();
+				engine?.resize();
 			});
 		}
 		addNewModel();
 	});
 
 	function addNewModel() {
-		scene = new BABYLON.Scene(engine);
+		scene = new BABYLON.Scene(engine!);
 		scene.createDefaultCameraOrLight();
 		scene.clearColor = clearColor
 			? (scene.clearColor = new BABYLON.Color4(
@@ -51,9 +51,11 @@
 			  ))
 			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
 
-		engine.runRenderLoop(() => {
+		engine?.runRenderLoop(() => {
 			scene.render();
 		});
+
+		if (!value) return;
 
 		let base64_model_content = value["data"];
 		let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);

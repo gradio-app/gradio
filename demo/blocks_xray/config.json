@@ -1,5 +1,5 @@
 {
-  "version": "3.0.24\n",
+  "version": "3.1.1\n",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -64,6 +64,7 @@
         "source": "upload",
         "tool": "editor",
         "streaming": false,
+        "mirror_webcam": true,
         "show_label": true,
         "name": "image",
         "visible": true,
@@ -127,6 +128,7 @@
         "source": "upload",
         "tool": "editor",
         "streaming": false,
+        "mirror_webcam": true,
         "show_label": true,
         "name": "image",
         "visible": true,
@@ -188,6 +190,7 @@
   ],
   "theme": "default",
   "css": null,
+  "title": "Gradio",
   "enable_queue": false,
   "layout": {
     "id": 0,
@@ -277,11 +280,11 @@
       "show_progress": true,
       "documentation": [
         [
-          "(List[str]): list of selected choices",
-          "(str | dict): base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data"
+          null,
+          null
         ],
         [
-          "(Dict | List): JSON output"
+          null
         ]
       ]
     },
@@ -306,11 +309,11 @@
       "show_progress": true,
       "documentation": [
         [
-          "(List[str]): list of selected choices",
-          "(str | dict): base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data"
+          null,
+          null
         ],
         [
-          "(Dict | List): JSON output"
+          null
         ]
       ]
     },

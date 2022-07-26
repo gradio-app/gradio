@@ -4,11 +4,10 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let theme: string = "default";
 	export let show_label: boolean;
 </script>
 
-<div class="output-label" space-y-4 {theme}>
+<div class="output-label">
 	<div
 		class:sr-only={!show_label}
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center dark:text-slate-200"

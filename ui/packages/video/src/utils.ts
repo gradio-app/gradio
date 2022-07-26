@@ -9,7 +9,7 @@ export const prettyBytes = (bytes: number): string => {
 	return bytes.toFixed(1) + " " + unit;
 };
 
-export const playable = (filename: string): boolean => {
+export const playable = (): boolean => {
 	// let video_element = document.createElement("video");
 	// let mime_type = mime.lookup(filename);
 	// return video_element.canPlayType(mime_type) != "";

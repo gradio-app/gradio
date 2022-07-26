@@ -27,6 +27,8 @@
 
 	$: value, dispatch("change");
 	let dragging: boolean;
+
+	$: value = !value ? null : value;
 </script>
 
 <Block

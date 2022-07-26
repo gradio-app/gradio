@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
 	export let interpretation: Array<number>;
-	export let theme: string;
 </script>
 
-<div class="input-audio" {theme}>
+<div class="input-audio">
 	<div class="interpret_range flex">
 		{#each interpretation as interpret_value}
 			<div
@@ -14,6 +13,3 @@
 		{/each}
 	</div>
 </div>
-
-<style lang="postcss">
-</style>

@@ -5,11 +5,14 @@ export interface LoadingStatus {
 	status: "pending" | "error" | "complete";
 	queue_position: number | null;
 	fn_index: number;
-	outputs: Array<number>;
+	scroll_to_output?: boolean;
+	visible?: boolean;
 }
 
+export type LoadingStatusCollection = Record<number, LoadingStatus>;
+
 function create_loading_status_store() {
-	const store = writable<Record<string, Omit<LoadingStatus, "outputs">>>({});
+	const store = writable<LoadingStatusCollection>({});
 
 	const fn_inputs: Array<Array<number>> = [];
 	const fn_outputs: Array<Array<number>> = [];

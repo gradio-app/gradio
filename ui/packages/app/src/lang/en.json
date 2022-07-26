@@ -7,7 +7,11 @@
 		"drop_csv": "Drop CSV Here",
 		"click_to_upload": "Click to Upload",
 		"view_api": "view the api",
-		"built_with_Gradio": "built with gradio"
+		"built_with_Gradio": "built with gradio",
+		"copy_to_clipboard": "copy to clipboard",
+		"loading": "Loading",
+		"error": "ERROR",
+		"empty": "Empty"
 	},
 	"Submit": "Submit",
 	"Clear": "Clear",
