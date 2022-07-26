@@ -14,8 +14,12 @@ from gradio.utils import Request, run_coro_in_background
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
+    rank: Optional[int] = -1  # waiting duration for the xth rank:
+    # (rank-1) / queue_size * avg_concurrent_process_time + avg_concurrent_process_time
     queue_size: int
-    queue_duration: int
+    avg_process_time: float  # average duration for an event to get processed after the queue is finished
+    avg_concurrent_process_time: float  # average process duration divided by max_thread_count
+    queue_duration: int  # total_queue_duration = avg_concurrent_process_time * queue_size
 
 
 class Queue:
@@ -31,7 +35,9 @@ class Queue:
     DURATION_HISTORY_SIZE = 100
     DURATION_HISTORY = []
     # When there is no estimation is calculated, default estimation is 1 sec
-    ESTIMATION = 1
+    AVG_PROCESS_TIME = 1
+    AVG_CONCURRENT_PROCESS_TIME = 1
+    QUEUE_DURATION = 1
     LIVE_QUEUE_UPDATES = True
     SLEEP_WHEN_FREE = 0.001
 
@@ -81,7 +87,8 @@ class Queue:
             if not cls.EVENT_QUEUE:
                 await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
-            print(f"Start Processing, search for inactive job slots")
+
+            print(f"Searching for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
                 await asyncio.sleep(1)
                 continue
@@ -93,7 +100,6 @@ class Queue:
                 print(f"Start Processing, found event, popped event: {event}")
 
             cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
-
             run_coro_in_background(cls.process_event, event)
             run_coro_in_background(cls.gather_data_for_first_ranks)
             if cls.LIVE_QUEUE_UPDATES:
@@ -152,6 +158,7 @@ class Queue:
         Notify clients about events statuses in the queue periodically.
         """
         while not cls.STOP:
+            # TODO: if live update is true and queue size does not change, dont notify the clients
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
             if not cls.EVENT_QUEUE:
@@ -164,18 +171,25 @@ class Queue:
         estimation = cls.get_estimation()
         # Send all messages concurrently
         await asyncio.gather(
-            *[cls.send_estimation(event, estimation) for event in cls.EVENT_QUEUE]
+            *[
+                cls.send_estimation(event, estimation, rank)
+                for rank, event in enumerate(cls.EVENT_QUEUE)
+            ]
         )
 
     @classmethod
-    async def send_estimation(cls, event: Event, estimation: Estimation) -> None:
+    async def send_estimation(
+        cls, event: Event, estimation: Estimation, rank: int
+    ) -> None:
         """
         Send estimation about ETA to the client.
 
         Args:
             event:
-            estimation
+            estimation:
+            rank
         """
+        estimation.rank = rank
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
@@ -191,16 +205,22 @@ class Queue:
         cls.DURATION_HISTORY.append(duration)
         if len(cls.DURATION_HISTORY) > cls.DURATION_HISTORY_SIZE:
             cls.DURATION_HISTORY.pop(0)
-        cls.ESTIMATION = round(
-            sum(cls.DURATION_HISTORY) / len(cls.DURATION_HISTORY) / cls.MAX_THREAD_COUNT
-            + duration,
-            2,
+        duration_history_size = len(cls.DURATION_HISTORY)
+        cls.AVG_PROCESS_TIME = round(
+            sum(cls.DURATION_HISTORY) / duration_history_size, 2
         )
+        cls.AVG_CONCURRENT_PROCESS_TIME = round(
+            cls.AVG_PROCESS_TIME / max(cls.MAX_THREAD_COUNT, duration_history_size), 2
+        )
+        cls.QUEUE_DURATION = cls.AVG_CONCURRENT_PROCESS_TIME * len(cls.EVENT_QUEUE)
 
     @classmethod
     def get_estimation(cls) -> Estimation:
         return Estimation(
-            queue_size=len(cls.EVENT_QUEUE), queue_duration=cls.ESTIMATION
+            queue_size=len(cls.EVENT_QUEUE),
+            avg_process_time=cls.AVG_PROCESS_TIME,
+            avg_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
+            queue_duration=cls.QUEUE_DURATION,
         )
 
     @classmethod
@@ -210,7 +230,7 @@ class Queue:
         if not client_awake:
             cls.clean_job(event)
             return
-
+        print(f"Process starts for event: {event}")
         begin_time = time.time()
         response = await Request(
             method=Request.Method.POST,
@@ -228,12 +248,15 @@ class Queue:
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, hash: str):
+    def __init__(self, websocket: fastapi.WebSocket):
         from gradio.routes import PredictBody
 
         self.websocket = websocket
-        self.hash = hash
+        self.hash = None
         self.data: None | PredictBody = None
+
+    def __repr__(self):
+        return f"hash:{self.hash}, data: {self.data}, ws:{self.websocket}"
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)

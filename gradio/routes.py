@@ -280,11 +280,14 @@ class App(FastAPI):
             print("Connection Accepted")
             await websocket.accept()
             await websocket.send_json(Queue.get_estimation().dict())
-            e_hash = await websocket.receive_json()
+            event = Event(websocket)
+            e_hash = await event.get_message()
+            if e_hash is None:
+                return
             print(f"Event Body Received: {e_hash}")
-            event = Event(websocket, e_hash["hash"])
+            event.hash = e_hash["hash"]
             Queue.push(event)
-            print("Joined queue")
+            print("An event Joined the queue")
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
