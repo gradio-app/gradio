@@ -3,11 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import Block
+from gradio.documentation import set_documentation_group, document
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component, StatusTracker
 
+set_documentation_group("events")
 
+
+@document("change")
 class Changeable(Block):
     def change(
         self,
@@ -35,8 +39,7 @@ class Changeable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "change",
@@ -54,6 +57,7 @@ class Changeable(Block):
         )
 
 
+@document("click")
 class Clickable(Block):
     def click(
         self,
@@ -80,10 +84,7 @@ class Clickable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-            _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-            _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "click",
@@ -101,6 +102,7 @@ class Clickable(Block):
         )
 
 
+@document("submit")
 class Submittable(Block):
     def submit(
         self,
@@ -127,8 +129,7 @@ class Submittable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "submit",
@@ -146,6 +147,7 @@ class Submittable(Block):
         )
 
 
+@document("edit")
 class Editable(Block):
     def edit(
         self,
@@ -167,8 +169,7 @@ class Editable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "edit",
@@ -183,6 +184,7 @@ class Editable(Block):
         )
 
 
+@document("clear")
 class Clearable(Block):
     def clear(
         self,
@@ -204,8 +206,7 @@ class Clearable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "submit",
@@ -220,6 +221,7 @@ class Clearable(Block):
         )
 
 
+@document("play", "pause", "stop")
 class Playable(Block):
     def play(
         self,
@@ -240,8 +242,7 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "play",
@@ -274,8 +275,7 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "pause",
@@ -308,8 +308,7 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.set_event_trigger(
             "stop",
@@ -324,6 +323,7 @@ class Playable(Block):
         )
 
 
+@document("stream")
 class Streamable(Block):
     def stream(
         self,
@@ -346,8 +346,7 @@ class Streamable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
         self.streaming = True
         self.set_event_trigger(
