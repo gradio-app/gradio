@@ -61,13 +61,11 @@ Creating the Interface:
 ## Exploring mode complex Model3D Demos:
 
 Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
-
-<gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
-
-Below is a demo that uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object. Take a look at the [app.py](https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj/blob/main/app.py) file for a peek into the code and the model prediction function.
-
 <gradio-app space="radames/dpt-depth-estimation-3d-obj"> </gradio-app>
 
+Below is a demo that uses the PIFu model to convert an image of a clothed human into a 3D digitized model. Take a look at the [spaces.py](https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization/blob/main/PIFu/spaces.py) file for a peek into the code and the model prediction function.
+
+<gradio-app space="radames/PIFu-Clothed-Human-Digitization"> </gradio-app>
 
 ----------
 
