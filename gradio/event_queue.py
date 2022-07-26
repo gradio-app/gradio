@@ -14,8 +14,12 @@ from gradio.utils import Request, run_coro_in_background
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
+    rank: Optional[int] = -1  # waiting duration for the xth rank:
+    # (rank-1) / queue_size * avg_concurrent_process_time + avg_concurrent_process_time
     queue_size: int
-    queue_duration: int
+    avg_process_time: float  # average duration for an event to get processed after the queue is finished
+    avg_concurrent_process_time: float  # average process duration divided by max_thread_count
+    queue_duration: int  # total_queue_duration = avg_concurrent_process_time * queue_size
 
 
 class Queue:
@@ -31,7 +35,9 @@ class Queue:
     DURATION_HISTORY_SIZE = 100
     DURATION_HISTORY = []
     # When there is no estimation is calculated, default estimation is 1 sec
-    ESTIMATION = 1
+    AVG_PROCESS_TIME = 1
+    AVG_CONCURRENT_PROCESS_TIME = 1
+    QUEUE_DURATION = 1
     LIVE_QUEUE_UPDATES = True
     SLEEP_WHEN_FREE = 0.001
 
@@ -164,18 +170,25 @@ class Queue:
         estimation = cls.get_estimation()
         # Send all messages concurrently
         await asyncio.gather(
-            *[cls.send_estimation(event, estimation) for event in cls.EVENT_QUEUE]
+            *[
+                cls.send_estimation(event, estimation, rank)
+                for rank, event in enumerate(cls.EVENT_QUEUE)
+            ]
         )
 
     @classmethod
-    async def send_estimation(cls, event: Event, estimation: Estimation) -> None:
+    async def send_estimation(
+        cls, event: Event, estimation: Estimation, rank: int
+    ) -> None:
         """
         Send estimation about ETA to the client.
 
         Args:
             event:
-            estimation
+            estimation:
+            rank
         """
+        estimation.rank = rank
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
@@ -191,16 +204,22 @@ class Queue:
         cls.DURATION_HISTORY.append(duration)
         if len(cls.DURATION_HISTORY) > cls.DURATION_HISTORY_SIZE:
             cls.DURATION_HISTORY.pop(0)
-        cls.ESTIMATION = round(
-            sum(cls.DURATION_HISTORY) / len(cls.DURATION_HISTORY) / cls.MAX_THREAD_COUNT
-            + duration,
-            2,
+        duration_history_size = len(cls.DURATION_HISTORY)
+        cls.AVG_PROCESS_TIME = round(
+            sum(cls.DURATION_HISTORY) / duration_history_size, 2
         )
+        cls.AVG_CONCURRENT_PROCESS_TIME = round(
+            cls.AVG_PROCESS_TIME / max(cls.MAX_THREAD_COUNT, duration_history_size), 2
+        )
+        cls.QUEUE_DURATION = cls.AVG_CONCURRENT_PROCESS_TIME * len(cls.EVENT_QUEUE)
 
     @classmethod
     def get_estimation(cls) -> Estimation:
         return Estimation(
-            queue_size=len(cls.EVENT_QUEUE), queue_duration=cls.ESTIMATION
+            queue_size=len(cls.EVENT_QUEUE),
+            avg_process_time=cls.AVG_PROCESS_TIME,
+            avg_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
+            queue_duration=cls.QUEUE_DURATION,
         )
 
     @classmethod
