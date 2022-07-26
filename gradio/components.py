@@ -2462,7 +2462,9 @@ class Dataframe(Changeable, IOComponent):
 
         self.__validate_headers(headers, self.col_count[0])
 
-        self.headers = headers
+        self.headers = (
+            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+        )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
@@ -2482,8 +2484,11 @@ class Dataframe(Changeable, IOComponent):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
-        self.value = value if value is not None else self.test_input
-        self.value = self.__process_markdown(self.value, datatype)
+        self.value = (
+            self.postprocess(value)
+            if value is not None
+            else self.postprocess(self.test_input)
+        )
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -2597,6 +2602,7 @@ class Dataframe(Changeable, IOComponent):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
             return {
+                "headers": self.headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
         raise ValueError("Cannot process value as a Dataframe")
