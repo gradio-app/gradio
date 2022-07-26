@@ -16,7 +16,7 @@
         <input id="search"
                type="text"
                class="w-4/5 m-4 rounded-md focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-               placeholder="Quick search... ⌘-k / ctrl-k"
+               placeholder="Search... ⌘-k / ctrl-k"
                autocomplete="off"
                onkeyup="search(this.value);"/>
         </div>
@@ -305,6 +305,7 @@
 
       document.addEventListener('keydown', function (e) {
         if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
             document.getElementById('search').focus();
         }
       })
