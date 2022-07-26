@@ -72,4 +72,4 @@ Below is a demo that uses the PIFu model to convert an image of a clothed human 
 And you're done! That's all the code you need to build an interface for your Model3D model. Here are some references that you may find useful:
 
 * Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
-* The final [3D Model Demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
+* The first [3D Model Demo](https://huggingface.co/spaces/dawood/Model3D) and [complete code](https://huggingface.co/spaces/dawood/Model3D/tree/main) (on Hugging Face Spaces)
