@@ -12,10 +12,10 @@
     <main class="container mx-auto px-4 flex gap-4">
       <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
             style="min-width: 18%">
-        <div class="w-full sticky top-0">
+        <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
         <input id="search"
                type="text"
-               class="w-4/5 m-4 rounded-md focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+               class="w-4/5 m-4 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
                placeholder="Search... ⌘-k / ctrl-k"
                autocomplete="off"
                onkeyup="search(this.value);"/>
