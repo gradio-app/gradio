@@ -2894,7 +2894,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
     Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
-    Demos: color_picker
+    Demos: color_picker, color_generator
     """
 
     def __init__(
@@ -3148,14 +3148,14 @@ class HighlightedText(Changeable, IOComponent):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels.
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
 
     Demos: diff_texts, text_analysis
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
         *,
         color_map: Dict[str, str] = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
@@ -3206,7 +3206,7 @@ class HighlightedText(Changeable, IOComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
         color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
@@ -3225,8 +3225,8 @@ class HighlightedText(Changeable, IOComponent):
         return updated_config
 
     def postprocess(
-        self, y: List[Tuple[str, str | float | None]]
-    ) -> List[Tuple[str, str | float | None]]:
+        self, y: Optional[List[Tuple[str, str | float | None]] | Dict]
+    ) -> Optional[List[Tuple[str, str | float | None]]]:
         """
         Parameters:
             y: List of (word, category) tuples
@@ -3235,6 +3235,22 @@ class HighlightedText(Changeable, IOComponent):
         """
         if y is None:
             return None
+        if isinstance(y, dict):
+            text = y["text"]
+            entities = y["entities"]
+            if len(entities) == 0:
+                y = [(text, None)]
+            else:
+                list_format = []
+                index = 0
+                for entity in entities:
+                    list_format.append((text[index : entity["start"]], None))
+                    list_format.append(
+                        (text[entity["start"] : entity["end"]], entity["entity"])
+                    )
+                    index = entity["end"]
+                list_format.append((text[index:], None))
+                y = list_format
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
@@ -4015,10 +4031,13 @@ class Markdown(IOComponent, Changeable):
 ############################
 
 
+@document()
 class Dataset(Clickable, Component):
     """
-    Used to create a output widget for showing datasets. Used to render the examples
-    box in the interface.
+    Used to create an output widget for showing datasets. Used to render the examples
+    box.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
     def __init__(
@@ -4088,9 +4107,12 @@ class Dataset(Clickable, Component):
         )
 
 
+@document()
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {dict} with keys "original" and "interpretation".
     """
 
     def __init__(
@@ -4101,6 +4123,12 @@ class Interpretation(Component):
         elem_id: Optional[str] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+            component: Which component to show in the interpretation widget.
+            visible: Whether or not the interpretation is visible.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.component = component
 
