@@ -27,6 +27,10 @@
 
 	$: value, dispatch("change");
 	let dragging: boolean;
+
+	$: console.log($$props);
+
+	$: value = !value ? null : value;
 </script>
 
 <Block

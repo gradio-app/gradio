@@ -1,5 +1,5 @@
 <script lang="ts">
-	// @ts-nocheck
+	//@ts-nocheck
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image, Sketch as SketchIcon } from "@gradio/icons";
