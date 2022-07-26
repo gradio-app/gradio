@@ -2601,8 +2601,19 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
+
+            _headers = self.headers
+
+            if len(self.headers) < len(y[0]):
+                _headers = [
+                    *self.headers,
+                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                ]
+            elif len(self.headers) > len(y[0]):
+                _headers = self.headers[0 : len(y[0])]
+            print(_headers)
             return {
-                "headers": self.headers,
+                "headers": _headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
         raise ValueError("Cannot process value as a Dataframe")
