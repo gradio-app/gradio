@@ -79,7 +79,9 @@ If you wish for the user to provide a reason for flagging, you can pass a list o
 
 As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
 
-When a component is used as an input, Gradio automatically handles the *preprocessing* needed to convert the data from a type submitted by the user (such as a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array). Similarly, when a component is used as an output, Gradio automatically handles the *postprocessing* needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
+When a component is used as an input, Gradio automatically handles the *preprocessing* needed to convert the data from a type sent by the user's browser (such as a base64 representation of a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array). 
+
+Similarly, when a component is used as an output, Gradio automatically handles the *postprocessing* needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
 
 You can control the *preprocessing* using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
 
@@ -93,7 +95,7 @@ In contrast, here we keep the original size of the image, but invert the colors 
 img = gradio.Image(invert_colors=True, type="numpy")
 ```
 
-Postprocessing is a lot easier! Gradio automatically recognizes the format of the returned data (e.g. is the `Image` a `numpy` array or a `str` filepath) and postprocesses it into a format that can be displayed by the browser.
+Postprocessing is a lot easier! Gradio automatically recognizes the format of the returned data (e.g. is the `Image` a `numpy` array or a `str` filepath?) and postprocesses it into a format that can be displayed by the browser.
 
 Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-related parameters for each Component.
 
