@@ -16,7 +16,8 @@ In this Guide, we'll walk you through:
 
 Here's an example of an model trained and experiments tracked on wandb, try out the JoJoGAN demo below.
 
-<iframe src="https://hf.space/embed/akhaliq/JoJoGAN/+" frameBorder="0" height="810" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
+<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
 
 ## What is the Wandb?
 
