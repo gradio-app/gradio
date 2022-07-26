@@ -10,8 +10,16 @@
   <body>
     {% include "templates/navbar.html" %}
     <main class="container mx-auto px-4 flex gap-4">
-      <div class="navigation py-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+      <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
             style="min-width: 18%">
+        <div class="w-full sticky top-0">
+        <input id="search"
+               type="text"
+               class="w-4/5 m-4 rounded-md focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+               placeholder="Quick search..."
+               autocomplete="off"
+               onkeyup="search(this.value);"/>
+        </div>
         <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
         <a class="thin-link px-4 block" href="#interface">Interface</a>
         <div class="sub-links hidden" hash="#interface">
@@ -239,6 +247,7 @@
     });
 
     let mainNavSubLinks = document.querySelectorAll(".navigation .sub-links");
+
     window.addEventListener("scroll", event => {
       let fromTop = window.scrollY;
       mainNavSubLinks.forEach(subLinkDiv => {
@@ -251,10 +260,47 @@
         ) {
           subLinkDiv.classList.remove("hidden");
         } else {
-          subLinkDiv.classList.add("hidden");
+          if (document.querySelector("#search").value.length == 0) {
+            subLinkDiv.classList.add("hidden");
+          }
         }
       });
     });
+
+    const search = query => {
+      if (query.length > 0) {
+        query = query.toLowerCase();
+
+        mainNavSubLinks.forEach(subLinkDiv => { subLinkDiv.classList.remove("hidden"); })
+
+        var filtered_links = Array.from(mainNavLinks).filter(link => link.hash.toLowerCase().includes(query))
+        filtered_include_parent = Array.from(filtered_links);
+
+        filtered_links.forEach(link => {
+          if (link.parentElement.classList.contains("sub-links")) {
+            let id = link.parentElement.getAttribute('hash');
+            mainNavLinks.forEach(mainLink => {
+              if (mainLink.hash == id) {
+                filtered_include_parent.push(mainLink);
+              }
+            });
+        };
+        })
+      } else {
+
+        mainNavSubLinks.forEach(subLinkDiv => { subLinkDiv.classList.add("hidden"); })
+
+        var filtered_include_parent = Array.from(mainNavLinks);
+      }
+
+      mainNavLinks.forEach(link => {
+        if (filtered_include_parent.includes(link)) {
+          link.classList.remove("hidden");
+        } else {
+          link.classList.add("hidden");
+        }
+      })
+      }
 
     // adds anchor button when hovering over headers, except on touch devices where instead the header becomes a link
 
