@@ -149,8 +149,38 @@
         </section>
         <section id="update" class="pt-2 flex flex-col gap-10">
             <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
-            <p class="mb-12">The update function updates component properties. Works for both Interface and Blocks demos.
+            <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
+              a Blocks events returns a typical value, it updates the value of the 
+              output component. But it is also possible to update the <em>properties</em> 
+              of an output component (such as the number of lines of a `Textbox` or 
+              the visibility of an `Image`) by returning the component's `update()` function, 
+              which takes as parameters any of the constructor parameters for that component.
+              Here's an example:
             </p>
+            <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
+            <div class="codeblock">
+              <pre>
+<code class="lang-python">import gradio as gr
+
+  def change_textbox(choice):
+      if choice == "short":
+          return gr.Textbox.update(lines=2, visible=True)
+      elif choice == "long":
+          return gr.Textbox.update(lines=8, visible=True)
+      else:
+          return gr.Textbox.update(visible=False)
+  
+  
+  gr.Interface(
+      change_textbox,
+      gr.Radio(
+          ["short", "long", "none"], label="What kind of essay would you like to write?"
+      ),
+      gr.Textbox(lines=2),
+      live=True,
+  ).launch()</code></pre>
+            </div>
+        
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("update"), parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
