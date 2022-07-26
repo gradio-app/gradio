@@ -118,7 +118,8 @@ display_image(utils.make_grid(my_output, normalize=True, range=(-1, 1)), title='
 
 
 output = torch.cat([original_sample, sample], 0)
-display_image(utils.make_grid(output, normalize=True, range=(-1, 1), nrow=n_sample), title='Random samples')```
+display_image(utils.make_grid(output, normalize=True, range=(-1, 1), nrow=n_sample), title='Random samples')
+```
 
 4. Add style images for fine-tuning
 
@@ -167,7 +168,8 @@ latents = torch.stack(latents, 0)
 
 
 target_im = utils.make_grid(targets, normalize=True, range=(-1, 1))
-display_image(target_im, title='Style References')```
+display_image(target_im, title='Style References')
+```
 
 
 5. Finetune StyleGAN and W&B experiment tracking
@@ -272,7 +274,8 @@ for idx in tqdm(range(num_iter)):
 
 
 out_table = wandb.Table(data=samples, columns=column_names)
-wandb.log({"Current Samples": out_table})```
+wandb.log({"Current Samples": out_table})
+```
 
 
 
@@ -296,7 +299,8 @@ launchGradioFromSpaces("akhaliq/JoJoGAN", "#JoJoGAN-demo")
     display: block;
 }
 </style>
-''', inject=False)})```
+''', inject=False)})
+```
 
 ## How to contribute Gradio demos on HF spaces on the Wandb organization
 
