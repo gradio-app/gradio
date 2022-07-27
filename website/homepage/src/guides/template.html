@@ -14,7 +14,7 @@
            style="min-width: 18%">
         {% for category_guides in guides_by_category %}
           {% set hidden_category = loop.last and category != category_guides["category"] %}
-          <div class="category-link {% if loop.first %} mb-2 {% else %} my-2 {% endif %} font-semibold px-4 pt-2 text-ellipsis whitespace-nowrap block"
+          <div class="category-link {% if loop.first %} mb-2 {% else %} my-2 {% endif %} font-semibold px-4 pt-2 text-ellipsis block"
              style="max-width: 12rem">
             {{ category_guides["category"] }} 
             {% if hidden_category %}
