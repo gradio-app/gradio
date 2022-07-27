@@ -50,13 +50,16 @@
     </div>
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
+  <br>
   {% if is_component %}
-  <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
-  <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {{ obj["tags"]["preprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {{ obj["tags"]["postprocessing"] }}</p>
   {% if "examples-format" in obj["tags"]  %}
-  <p class="text-lg text-gray-500">Format expected for examples: {{ obj["tags"]["examples-format"] }}</p>
+  <p class="text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
   {% endif %}
-  <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
+  {% if obj["events"]|length > 0 %}
+  <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{{ obj["events"] }}</em></p>
+  {% endif %}
   {% endif %}
   
   {% if obj["example"] %}
