@@ -83,9 +83,16 @@ img = gr.Image("lion.jpg").style(height='24', rounded=False)
 
 Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
 
+For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
+
+```python
+with gr.Interface(css="body {background-color: red}") as demo:
+    ...
+```
+
 ## Queuing
 
-If your app expects heavy traffic, set `enable_queue` parameter in the `launch` method to `True` to prevent timeouts. You should also do this if the inference time of your function is long (> 1min). This will queue up calls so only a single call is processed at a time.
+If your app expects heavy traffic, set `enable_queue` parameter in the `launch` method to `True` to prevent timeouts. This will queue up calls so only a single call is processed at a time, using long polling. Long polling also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min). 
 
 With `Interface`:
 ```python
