@@ -18,17 +18,69 @@ Share links expire after 72 hours.
 
 ## Hosting on HF Spaces
 
-If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. Hugging Face Spaces provides the infrastructure to permanently host your machine learning model for free! 
+If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. [Hugging Face Spaces](http://huggingface.co/spaces/) provides the infrastructure to permanently host your machine learning model for free! 
 
-You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio app from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
+You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
 ![Hosting Demo](/assets/guides/hf_demo.gif)
+
+## Embedding Hosted Spaces
+
+Once you have hosted your app on Hugging Face Spaces, you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
+
+There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces.
+
+### Embedding with Web Components
+
+Using web components is faster then iframes, and will automatically adjust to other content on your site. To embed with Web Components:
+
+1. Import the gradio JS library into into your site by adding the script below in your site (replace {GRADIO_VERSION} in the URL with the library version of Gradio you are using). 
+
+    ```html
+&lt;script type="module"
+src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
+&lt;/script>
+    ```
+
+2. Add 
+    ```html
+&lt;gradio-app space="$user/$space_name">&lt;/gradio-app>
+    ```
+element where you want to place the app. Set the `space=` attribute with your user and space name. For example:
+
+    ```html
+&lt;gradio-app space="abidlabs/pytorch-image-classifier">&lt;/gradio-app>
+    ```
+
+<script>
+fetch("https://pypi.org/pypi/gradio/json"
+).then(r => r.json()
+).then(obj => {
+    let v = obj.info.version;
+    content = document.querySelector('.prose');
+    content.innerHTML = content.innerHTML.replaceAll("{GRADIO_VERSION}", v);
+});
+</script>
+
+### Embedding with IFrames
+
+To embed with IFrames instead, simply add this element:
+
+```html
+&lt;iframe src="https://hf.space/embed/$user/$space_name/+">&lt;/iframe>
+```
+
+For example: 
+
+```html
+&lt;iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+">&lt;/iframe>
+```
 
 ## API Page
 
 $demo_hello_world
 
-See the link to the "API" in the app above? This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
+See the "view api" link in footer of the app above? This is a page that documents the REST API that users can use to query the `Interface` function. `Blocks` apps can also generate an API page, though the API has to be explicitly named for each event listener, such as
 
 ```python
 btn.click(add, [num1, num2], output, api_name="addition")
