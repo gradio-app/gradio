@@ -112,3 +112,5 @@ with gr.Blocks() as demo2:
         lambda a, b: a * b, [num1, num2], output, queue=True)
 demo2.launch()
 ```
+
+Docs: Examples
