@@ -24,7 +24,7 @@
 </div>
 <div class="container mx-auto mb-6 px-4 grid grid-cols-1">
     <div class="demo space-y-2 md:col-span-3" demo="1">
-        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <div class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
             <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 <span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span><span class="token comment"># Implement your sketch recognition model here...</span>
@@ -37,7 +37,7 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
         </div>
     </div>
     <div class="demo space-y-2 md:col-span-3 hidden" demo="2">
-        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <div class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
             <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 <span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass </span><span class="token comment"> # Implement your question-answering model here...</span>
@@ -50,7 +50,7 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
         </div>
     </div>
     <div class="demo space-y-2 md:col-span-3 hidden" demo="3">
-        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <div class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
             <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 <span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass </span><span class="token comment"> # Implement your image segmentation model here...</span>
@@ -63,7 +63,7 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
         </div>
     </div>
     <div class="demo space-y-2 md:col-span-3 hidden" demo="4">
-        <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
+        <div class="codeblock rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
             <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 <span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass </span><span class="token comment"> # Generate a response depending on if audio1 and audio2 are spoken by same person or not</span>
@@ -77,6 +77,7 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
 </div>
 
 <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.1.1/gradio.js"></script>
+<script src="/assets/add_copy.js"></script>
 <script>
     let load_demo = demo_id => {
         document.querySelectorAll(".demo-tab").forEach(e => {
