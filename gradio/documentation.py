@@ -82,6 +82,8 @@ def document_fn(fn):
             default = param.default
             if type(default) == str:
                 default = '"' + default + '"'
+            if default.__class__.__module__ != "builtins":
+                default = f"{default.__class__.__name__}()"
             parameter_doc["default"] = default
         elif parameter_doc["doc"] is not None and "kwargs" in parameter_doc["doc"]:
             parameter_doc["kwargs"] = True
