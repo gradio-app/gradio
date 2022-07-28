@@ -41,6 +41,9 @@ class Changeable(Block):
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "change",
             fn,
@@ -86,6 +89,9 @@ class Clickable(Block):
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "click",
             fn,
@@ -131,6 +137,9 @@ class Submittable(Block):
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
@@ -171,6 +180,9 @@ class Editable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "edit",
             fn,
@@ -208,6 +220,9 @@ class Clearable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
@@ -244,6 +259,9 @@ class Playable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "play",
             fn,
@@ -277,6 +295,9 @@ class Playable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "pause",
             fn,
@@ -310,6 +331,9 @@ class Playable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "stop",
             fn,
@@ -348,6 +372,9 @@ class Streamable(Block):
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.streaming = True
         self.set_event_trigger(
             "stream",
