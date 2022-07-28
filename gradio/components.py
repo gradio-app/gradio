@@ -295,6 +295,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
+    Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
     def __init__(
@@ -677,6 +678,7 @@ class Slider(Changeable, IOComponent):
     Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, generate_tone, titanic_survival
+    Guides: create_your_own_friends_with_a_gan
     """
 
     def __init__(
@@ -1343,6 +1345,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
+    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
     """
 
     def __init__(
@@ -1891,6 +1894,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
+    Guides: real_time_speech_recognition
     """
 
     def __init__(
@@ -2797,6 +2801,7 @@ class Variable(IOComponent):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: chatbot_demo, blocks_simple_squares
+    Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
     allow_string_shortcut = False
@@ -3013,6 +3018,7 @@ class Label(Changeable, IOComponent):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
     Demos: main_note, titanic_survival
+    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3151,6 +3157,7 @@ class HighlightedText(Changeable, IOComponent):
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
 
     Demos: diff_texts, text_analysis
+    Guides: named_entity_recognition
     """
 
     def __init__(
@@ -3748,6 +3755,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
+    Guides: how_to_use_3D_model_component
     """
 
     def __init__(
@@ -4113,6 +4121,8 @@ class Interpretation(Component):
     Used to create an interpretation widget for a component.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {dict} with keys "original" and "interpretation".
+
+    Guides: custom_interpretations_with_blocks
     """
 
     def __init__(

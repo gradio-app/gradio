@@ -63,8 +63,15 @@ add_supported_events()
 
 def add_guides():
     for mode in docs:
-        for obj in docs[mode]:
-            obj["guides"] = [guide for guide in guides if obj["name"].lower() in guide["docs"]]
+        for cls in docs[mode]:
+            if "guides" not in cls["tags"]:
+                continue
+            cls["guides"] = []
+            docstring_guides = [guide.strip() for guide in cls["tags"]["guides"].split(",")]
+            for docstring_guide in docstring_guides:
+                for guide in guides:
+                    if docstring_guide == guide["name"]:
+                        cls["guides"].append(guide)
 
 add_guides()
 

@@ -2,8 +2,6 @@
 Tags: TRANSLATION, HUB, SPACES
 
 
-Docs: Blocks
-
 **Prerequisite**: This Guide builds on the Blocks Introduction. Make sure to [read that guide first](/introduction_to_blocks).
 
 ## Introduction

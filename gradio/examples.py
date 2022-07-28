@@ -31,6 +31,7 @@ class Examples:
     components. Optionally handles example caching for fast inference.
 
     Demos: blocks_inputs, fake_gan
+    Guides: using_hugging_face_integrations, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, create_your_own_friends_with_a_gan
     """
 
     def __init__(

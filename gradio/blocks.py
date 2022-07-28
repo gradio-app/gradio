@@ -283,6 +283,7 @@ class Blocks(BlockContext):
 
         demo.launch()
     Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Guides: custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
     def __init__(
