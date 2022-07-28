@@ -170,7 +170,7 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see the next section.
 
-![Sharing diagram](/assets/guides/sharing.svg)
+<img style="width: 40%" src="/assets/guides/sharing.svg">
 
 ## Hosting Gradio Demo on Spaces 🤗
 
