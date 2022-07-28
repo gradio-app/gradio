@@ -3392,6 +3392,7 @@ class HTML(Changeable, IOComponent):
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
+    Guides: key_features
     """
 
     def __init__(
@@ -3986,6 +3987,7 @@ class Markdown(IOComponent, Changeable):
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
+    Guides: key_features
     """
 
     def __init__(
