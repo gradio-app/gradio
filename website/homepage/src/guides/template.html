@@ -9,42 +9,97 @@
   </head>
   <body>
     {% include "templates/navbar.html" %}
-    <div class="container relative mx-auto px-4 pt-8 pb-12">
-      {% if spaces %}
-        <div id='spaces-holder' class="mb-4">
-          <a href='https://hf.co/spaces' target='_blank'>
-            <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
-          </a>
-          <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
-
-          {% for space in spaces %}
-          <div class='space-link inline-block m-1 px-1 rounded-md'>
-            <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
+    <div class="container mx-auto px-4 flex gap-4 relative">
+      <div class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+           style="min-width: 18%">
+        {% for category_guides in guides_by_category %}
+          {% set hidden_category = loop.last and category != category_guides["category"] %}
+          <div class="category-link {% if loop.first %} mb-2 {% else %} my-2 {% endif %} font-semibold px-4 pt-2 text-ellipsis block"
+             style="max-width: 12rem">
+            {{ category_guides["category"] }} 
+            {% if hidden_category %}
+            <button class="block show-guides" onclick="show_all_guides()"> [ show ] </button>
+            {% endif %}
           </div>
+          {% for guide in category_guides["guides"] %}
+            <a class="guide-link {% if name == guide['name'] %} current-nav-link pb-1{% endif %} {% if hidden_category %} hidden {% endif %} -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+               style="max-width: 12rem"
+               href="{{ guide['url'] }}">{{ guide['pretty_name'] }}</a>
+            {% if name == guide['name'] %}
+              <div class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
+              </div>
+            {% endif %}
           {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="w-full">
+        {% if spaces %}
+          <div id='spaces-holder' class="mb-4">
+            <a href='https://hf.co/spaces' target='_blank'>
+              <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1"
+                   src='/assets/img/spaces-logo.svg'>
+            </a>
+            <p class="m-0 inline text-lg font-normal">Related Spaces:</p>
+            {% for space in spaces %}
+              <div class='space-link inline-block m-1 px-1 rounded-md'>
+                <a href='{{ space }}' target='_blank' class="no-underline">{{ space[30:] }}</a>
+              </div>
+            {% endfor %}
           </div>
-      {% endif %}
-      <div class="prose max-w-full">
-        {% include "guides/temporary_template.html" %}
+        {% endif %}
+        <div class="prose text-lg max-w-full">{% include "guides/temporary_template.html" %}</div>
+        <div class="flex justify-between mt-4">
+          {% if prev_guide is not none %}
+            <a href="{{ prev_guide['url'] }}"
+               class="text-left p-4 bg-gray-50 hover:underline">
+              <div class="text-gray-600 block">&lt; Previous</div>
+              <div class="text-lg font-semibold">{{ prev_guide['pretty_name'] }}</div>
+            </a>
+          {% else %}
+            <div></div>
+          {% endif %}
+          {% if next_guide is not none %}
+            <a href="{{ next_guide['url'] }}"
+               class="text-right p-4 bg-gray-50 hover:underline">
+              <div class="text-gray-600 block">Next &gt;</div>
+              <div class="text-lg font-semibold">{{ next_guide['pretty_name'] }}</div>
+            </a>
+          {% else %}
+            <div></div>
+          {% endif %}
+        </div>
       </div>
     </div>
     <script src="/assets/prism.js"></script>
-    <script>
-      window.__gradio_mode__ = "website";
-    </script>
+    <script>window.__gradio_mode__ = "website";</script>
     <script type="module" src="/assets/index.js"></script>
     <script src="/assets/add_anchors.js"></script>
     <script src="/assets/add_copy.js"></script>
     {% include 'templates/footer.html' %}
     <script>
-      // color related spaces
+      let sidebar = document.querySelector(".side-navigation")
+      let target_link = document.querySelector(".current-nav-link");
+      if (target_link.previousElementSibling.classList.contains("category-link")) {
+        target_link = target_link.previousElementSibling;
+      }
+      sidebar.scrollTop = target_link.offsetTop
+      document.querySelectorAll(".prose h2").forEach(subheader => {
+        document.querySelector(".navigation").innerHTML += `
+          <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>
+        `
+      })
 
       const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
-
       document.querySelectorAll(".space-link").forEach(guide => {
         const color = COLORS[Math.floor(Math.random() * COLORS.length)]
         guide.classList.add(color);
       })
+
+      const show_all_guides = () => {
+        document.querySelectorAll(".guide-link").forEach(g => g.classList.remove("hidden"));
+        document.querySelector(".show-guides").remove();
+      }
     </script>
+    <script>{% include 'templates/links.js' %}</script>
   </body>
 </html>
