@@ -11,7 +11,7 @@
     {% include "templates/navbar.html" %}
     <main class="container mx-auto px-4 flex gap-4">
       <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-            style="min-width: 18%">
+            style="min-width: 20%">
         <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
         <input id="search"
                type="search"
@@ -312,6 +312,11 @@
         if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
             e.preventDefault();
             document.getElementById('search').focus();
+        }
+        if (e.key == 'Escape') {
+            document.getElementById('search').value = '';
+            document.getElementById('search').blur();
+            search('');
         }
       })
 
