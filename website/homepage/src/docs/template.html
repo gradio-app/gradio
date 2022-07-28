@@ -35,7 +35,7 @@
         <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
           <section class="pt-2">
             <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos">Building Demos</h2>
-            {% with obj=find_cls("Interface"), parent="gradio" %}
+            {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           </section>
@@ -93,7 +93,7 @@
           </section>
           <section id="blocks" class="pt-2 mb-8">
             <div class="flex flex-col gap-10">
-              {% with obj=find_cls("Blocks"), parent="gradio" %}
+              {% with obj=find_cls("Blocks"), is_class=True, parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
