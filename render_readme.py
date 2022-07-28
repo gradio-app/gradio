@@ -4,18 +4,10 @@ from os.path import exists, getmtime, join
 from jinja2 import BaseLoader, Environment, TemplateNotFound
 
 README_TEMPLATE = "readme_template.md"
-GETTING_STARTED_TEMPLATE = "getting_started.md"
+GETTING_STARTED_TEMPLATE = "guides/1)getting_started/1)quickstart.md"
 
-with open(join("guides", GETTING_STARTED_TEMPLATE), encoding="utf-8") as getting_started_file:
+with open(GETTING_STARTED_TEMPLATE, encoding="utf-8") as getting_started_file:
     getting_started = getting_started_file.read()
-
-getting_started = "\n".join(
-        [
-            line
-            for i, line in enumerate(getting_started.split("\n"))
-            if not line.startswith("Pinned: ")
-        ]
-    )
 
 code_tags = re.findall(r'\$code_([^\s]+)', getting_started)
 demo_tags = re.findall(r'\$demo_([^\s]+)', getting_started)
@@ -27,7 +19,6 @@ for code_src in code_tags:
         python_code = python_code.replace(
             'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
         )
-        python_code = python_code.replace("\n\n\n", "\n\n")
         code[code_src] = "```python\n" + python_code + "\n```"
 
 for demo_src in demo_tags:
