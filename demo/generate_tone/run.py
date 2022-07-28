@@ -1,9 +1,7 @@
 import numpy as np
-
 import gradio as gr
 
 notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
 
 def generate_tone(note, octave, duration):
     sr = 48000
@@ -14,7 +12,6 @@ def generate_tone(note, octave, duration):
     audio = (20000 * np.sin(audio * (2 * np.pi * frequency))).astype(np.int16)
     return sr, audio
 
-
 demo = gr.Interface(
     generate_tone,
     [
@@ -24,6 +21,5 @@ demo = gr.Interface(
     ],
     "audio",
 )
-
 if __name__ == "__main__":
     demo.launch()

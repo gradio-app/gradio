@@ -76,6 +76,7 @@
         {% for component in docs["component-helpers"] %}
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
+        <a class="thin-link px-4 block" href="#update">Update</a>
       </div>
       <div class="flex flex-col">
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800 mb-1">
@@ -158,17 +159,6 @@
               {% endfor %}
             </div>
           </section>
-          <section id="blocks-utils" class="pt-2 flex flex-col gap-10">
-            <h3 class="text-3xl font-light my-4" id="blocks-utils-header">Blocks Utilities</h3>
-            <p class="mb-12">Within Gradio Blocks, various functions exist to make it easier
-              to define events and data flows.
-            </p>
-            <div class="flex flex-col gap-10">
-              {% with obj=find_cls("update"), parent="gradio" %}
-                {% include "docs/obj_doc_template.html" %}
-              {% endwith %}
-            </div>
-          </section>
         </section>
         <section id="components" class="pt-2 flex flex-col gap-10">
           <div>
@@ -209,6 +199,22 @@
             {% endwith %}
           {% endfor %}
         </section>
+        <section id="update" class="pt-2 flex flex-col gap-10">
+            <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
+            <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
+              a Blocks events returns a typical value, it updates the value of the 
+              output component. But it is also possible to update the <em>properties</em> 
+              of an output component (such as the number of lines of a `Textbox` or 
+              the visibility of an `Image`) by returning the component's `update()` function, 
+              which takes as parameters any of the constructor parameters for that component.
+              Here's an example:
+            </p>
+            <div class="flex flex-col gap-10">
+              {% with obj=find_cls("update"), parent="gradio" %}
+                {% include "docs/obj_doc_template.html" %}
+              {% endwith %}
+            </div>
+          </section>
       </div>
     </main>
     <script src="/assets/prism.js"></script>
@@ -216,7 +222,15 @@
       window.__gradio_mode__ = "website";
     </script>
     <script type="module" src="/assets/index.js"></script>
+    <script src="/assets/add_anchors.js"></script>
+    <script src="/assets/add_copy.js"></script>
     {% include 'templates/footer.html' %}
+    <script>
+    {% include 'templates/links.js' %}
+    </script>
+    <script>
+    {% include 'templates/guide-color.js' %}
+    </script>
     <script>
     const show_demo = (component, demo) => {
       document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
@@ -368,40 +382,6 @@
       guide.classList.add(start_color);
       guide.classList.add(end_color);
     })
-
-
-    // add copy buttons to all codeblocks
-
-    const svgCopy =
-      '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path><path fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path></svg>';
-    const svgCheck =
-      '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" fill="rgb(255, 124, 1)" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"></path></svg>';
-
-
-    const addCopyButtons = (clipboard) => {
-        document.querySelectorAll("pre > code").forEach((codeBlock) => {
-        const button = document.createElement("button");
-        button.classList.add("clipboard-button");
-        button.type = "button";
-        button.innerHTML = svgCopy;
-        button.addEventListener("click", () => {
-          clipboard.writeText(codeBlock.innerText).then(
-            () => {
-              button.blur();
-              button.innerHTML = svgCheck;
-              setTimeout(() => (button.innerHTML = svgCopy), 2000);
-            },
-            (error) => (button.innerHTML = "Error")
-          );
-        });
-        const pre = codeBlock.parentNode;
-        pre.parentNode.insertBefore(button, pre);
-      });
-    };
-
-    if (navigator && navigator.clipboard) {
-      addCopyButtons(navigator.clipboard);
-    };
 
 
     // Remove built-with-gradio footers and extra space from embedded components

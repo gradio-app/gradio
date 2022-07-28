@@ -22,20 +22,28 @@ for root, _, files in os.walk(pathlib.Path(GRADIO_DIR) / "gradio"):
             continue
         with open(source_file, "r") as comp_file:
             comp_text = comp_file.read()
-        for demostr in re.findall(r'Demos:(.*)', comp_text):
-            demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
+        for demostr in re.findall(r"Demos:(.*)", comp_text):
+            demos_to_run += re.findall(r"([a-zA-Z0-9_]+)", demostr)
 
-DEMO_PATTERN = r'\$demo_([A-Za-z0-9_]+)'
-for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
-    if not os.path.isfile(os.path.join(GRADIO_GUIDES_DIR, guide_filename)):
+DEMO_PATTERN = r"\$demo_([A-Za-z0-9_]+)"
+for guide_folder in os.listdir(GRADIO_GUIDES_DIR):
+    guide_folder = os.path.join(GRADIO_GUIDES_DIR, guide_folder)
+    if os.path.isfile(guide_folder) or guide_folder.endswith("assets"):
         continue
-    with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
-        guide_content = guide_file.read()
-    demos_to_run += re.findall(DEMO_PATTERN, guide_content)
+    for guide_filename in os.listdir(guide_folder):
+        guide_filename = os.path.join(guide_folder, guide_filename)
+        if not os.path.isfile(guide_filename):
+            continue
+        with open(guide_filename) as guide_file:
+            guide_content = guide_file.read()
+        demos_to_run += re.findall(DEMO_PATTERN, guide_content)
+
 # adding components to be embedded
 docs = generate_documentation()
 COMPONENT_SUFFIX = "_component"
-demos_to_run += [f"{component['name']}{COMPONENT_SUFFIX}" for component in docs["component"]]
+demos_to_run += [
+    f"{component['name']}{COMPONENT_SUFFIX}" for component in docs["component"]
+]
 demos_to_run = list(set(demos_to_run))
 
 
