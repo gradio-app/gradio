@@ -69,7 +69,6 @@ for guide_folder in guide_folders:
         tags = get_labeled_metadata("Tags:")
         spaces = get_labeled_metadata("Related spaces:")
         contributor = get_labeled_metadata("Contributed by", is_list=False)
-        pinned = get_labeled_metadata("Pinned:", is_list=False)
 
         url = f"/{guide_name}/"
 
@@ -108,7 +107,6 @@ for guide_folder in guide_folders:
             "spaces": spaces,
             "url": url,
             "contributor": contributor,
-            "pinned": pinned,
         }
         guides.append(guide_data)
         guides_by_category[-1]["guides"].append(guide_data)
