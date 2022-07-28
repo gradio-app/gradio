@@ -87,6 +87,7 @@
 }
 .thinner-link.current-nav-link {
   @apply border-orange-500 text-orange-500;
+}
 
 /* docs */
 .selected-demo {
