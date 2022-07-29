@@ -174,12 +174,6 @@
     <script src="/assets/add_copy.js"></script>
     {% include 'templates/footer.html' %}
     <script>
-    {% include 'templates/links.js' %}
-    </script>
-    <script>
-    {% include 'templates/guide-color.js' %}
-    </script>
-    <script>
     const show_demo = (component, demo) => {
       document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
       document.querySelectorAll(`#${component} .demo-content`).forEach(n => n.classList.add('hidden'));
@@ -209,20 +203,6 @@
       });
     });
 
-    const COLOR_SETS = [
-      ["from-green-100", "to-green-50"],
-      ["from-yellow-100", "to-yellow-50"],
-      ["from-red-100", "to-red-50"],
-      ["from-blue-100", "to-blue-50"],
-      ["from-pink-100", "to-pink-50"],
-      ["from-purple-100", "to-purple-50"],
-    ]
-    document.querySelectorAll(".guide-box").forEach(guide => {
-      const [start_color, end_color] = COLOR_SETS[Math.floor(Math.random() * COLOR_SETS.length)]
-      guide.classList.add(start_color);
-      guide.classList.add(end_color);
-    })
-
 
     // Remove built-with-gradio footers and extra space from embedded components
     window.addEventListener('load', function () {
@@ -235,7 +215,6 @@
         }
       );
     })
-
-    </script>
+  </script>
   </body>
 </html>
