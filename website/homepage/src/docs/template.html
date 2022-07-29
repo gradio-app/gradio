@@ -170,9 +170,12 @@
       window.__gradio_mode__ = "website";
     </script>
     <script type="module" src="/assets/index.js"></script>
-    <script src="/assets/add_anchors.js"></script>
-    <script src="/assets/add_copy.js"></script>
     {% include 'templates/footer.html' %}
+    <script>{% include 'templates/guide-color.js' %}</script>
+    <script>{% include 'templates/add_anchors.js' %}</script>
+    <script>{% include 'templates/add_copy.js' %}</script>
+    <script>{% include 'templates/links-nav.js' %}</script>
+
     <script>
     const show_demo = (component, demo) => {
       document.querySelectorAll(`#${component} .demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
@@ -185,23 +188,6 @@
         document.querySelectorAll('.demo-window').forEach(n => n.classList.add('hidden'));
       }
     }
-
-    let mainNavLinks = document.querySelectorAll(".navigation a");
-    window.addEventListener("scroll", event => {
-      let fromTop = window.scrollY;
-      mainNavLinks.forEach(link => {
-        let section = document.querySelector(link.hash);
-
-        if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
-        ) {
-          link.classList.add("current-nav-link");
-        } else {
-          link.classList.remove("current-nav-link");
-        }
-      });
-    });
 
 
     // Remove built-with-gradio footers and extra space from embedded components
