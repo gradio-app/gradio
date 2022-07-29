@@ -73,8 +73,6 @@
     <script src="/assets/prism.js"></script>
     <script>window.__gradio_mode__ = "website";</script>
     <script type="module" src="/assets/index.js"></script>
-    <script src="/assets/add_anchors.js"></script>
-    <script src="/assets/add_copy.js"></script>
     {% include 'templates/footer.html' %}
     <script>
       let sidebar = document.querySelector(".side-navigation")
@@ -100,6 +98,7 @@
         document.querySelector(".show-guides").remove();
       }
     </script>
-    <script>{% include 'templates/links.js' %}</script>
-  </body>
+    <script>{% include 'templates/links-nav.js' %}</script>
+    <script>{% include 'templates/add_anchors.js' %}</script>
+    <script>{% include 'templates/add_copy.js' %}</script>  </body>
 </html>
