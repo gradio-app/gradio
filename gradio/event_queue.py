@@ -6,7 +6,6 @@ import time
 from typing import List, Optional
 
 import fastapi
-from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
@@ -14,12 +13,12 @@ from gradio.utils import Request, run_coro_in_background
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
-    rank: Optional[int] = -1  # waiting duration for the xth rank:
-    # (rank-1) / queue_size * avg_concurrent_process_time + avg_concurrent_process_time
+    rank: Optional[int] = -1
     queue_size: int
-    avg_process_time: float  # average duration for an event to get processed after the queue is finished
-    avg_concurrent_process_time: float  # average process duration divided by max_thread_count
-    queue_duration: int  # total_queue_duration = avg_concurrent_process_time * queue_size
+    avg_event_process_time: float  # TODO(faruk): might be removed if not used by frontend in the future
+    avg_event_concurrent_process_time: float  # TODO(faruk): might be removed if not used by frontend in the future
+    rank_eta: Optional[int] = -1
+    queue_eta: int
 
 
 class Queue:
@@ -161,10 +160,8 @@ class Queue:
             # TODO: if live update is true and queue size does not change, dont notify the clients
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
-            if not cls.EVENT_QUEUE:
-                continue
-
-            await cls.broadcast_estimation()
+            if cls.EVENT_QUEUE:
+                await cls.broadcast_estimation()
 
     @classmethod
     async def broadcast_estimation(cls) -> None:
@@ -190,6 +187,9 @@ class Queue:
             rank
         """
         estimation.rank = rank
+        estimation.rank_eta = (
+            estimation.rank - 1
+        ) * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
@@ -218,9 +218,9 @@ class Queue:
     def get_estimation(cls) -> Estimation:
         return Estimation(
             queue_size=len(cls.EVENT_QUEUE),
-            avg_process_time=cls.AVG_PROCESS_TIME,
-            avg_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
-            queue_duration=cls.QUEUE_DURATION,
+            avg_event_process_time=cls.AVG_PROCESS_TIME,
+            avg_event_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
+            queue_eta=cls.QUEUE_DURATION,
         )
 
     @classmethod
