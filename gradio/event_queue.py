@@ -68,8 +68,9 @@ class Queue:
     async def init(
         cls,
     ) -> None:
-        run_coro_in_background(Queue.notify_clients)
         run_coro_in_background(Queue.start_processing)
+        if not cls.LIVE_QUEUE_UPDATES:
+            run_coro_in_background(Queue.notify_clients)
 
     @classmethod
     def close(cls):
@@ -157,7 +158,6 @@ class Queue:
         Notify clients about events statuses in the queue periodically.
         """
         while not cls.STOP:
-            # TODO: if live update is true and queue size does not change, dont notify the clients
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
             if cls.EVENT_QUEUE:
@@ -243,8 +243,19 @@ class Queue:
             {"msg": "process_completed", "output": response.json}
         )
         if client_awake:
-            await event.disconnect()
+            run_coro_in_background(cls.wait_in_inactive, event)
         cls.clean_job(event)
+
+    @classmethod
+    async def wait_in_inactive(cls, event: Event) -> None:
+        """
+        Waits the event until it receives the join_back message or loses ws connection.
+        """
+        event.data = None
+        client_awake = await event.get_message()
+        if client_awake:
+            if client_awake["msg"] == "join_back":
+                cls.EVENT_QUEUE.append(event)
 
 
 class Event:

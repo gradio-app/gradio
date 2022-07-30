@@ -783,10 +783,10 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
-            live_queue_updates: If True, Queue will send estimations whenever a job is finished as well.
+            live_queue_updates: If True, Queue will send estimations to clients whenever a job is finished instead of periodically.
             queue_concurrency_count: Number of max number concurrent jobs inside the Queue.
             queue_data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big data(video or such) to not reach memory overflow.
-            queue_update_intervals: Queue will send estimations to the clients using intervals determined by update_intervals.
+            queue_update_intervals: Queue will send estimations to the clients in intervals=update_intervals
             queue_duration_history_size: Queue duration estimation calculation window size.
         Returns:
             app: FastAPI app object that is running the demo
