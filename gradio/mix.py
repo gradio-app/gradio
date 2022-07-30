@@ -85,7 +85,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = await interface.call_function(0, data)
+                data = (await interface.call_function(0, data))[0]
                 if len(interface.output_components) == 1:
                     data = [data]
 
