@@ -4,8 +4,8 @@ import os
 import unittest
 import unittest.mock as mock
 
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from gradio import Interface, close_all, queueing, routes
 
@@ -96,7 +96,7 @@ class TestRoutes(unittest.TestCase):
 class TestApp:
     def test_create_app(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
-        assert isinstance(app,FastAPI)
+        assert isinstance(app, FastAPI)
 
 
 class TestAuthenticatedRoutes(unittest.TestCase):
