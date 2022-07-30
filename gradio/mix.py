@@ -75,7 +75,7 @@ class Series(gradio.Interface):
             an Interface object connecting the given models
         """
 
-        def connected_fn(*data):
+        async def connected_fn(*data):
             for idx, interface in enumerate(interfaces):
                 # skip preprocessing for first interface since the Series interface will include it
                 if idx > 0 and not (interface.api_mode):
@@ -85,7 +85,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = interface.fn(*data)
+                data = await interface.call_function(0, data)
                 if len(interface.output_components) == 1:
                     data = [data]
 
