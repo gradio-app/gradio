@@ -80,6 +80,14 @@ class Queue:
     def resume(cls):
         cls.STOP = False
 
+    @classmethod
+    def get_active_worker_count(cls) -> int:
+        count = 0
+        for worker in cls.ACTIVE_JOBS:
+            if worker is not None:
+                count += 1
+        return count
+
     # TODO: Remove prints
     @classmethod
     async def start_processing(cls) -> None:
@@ -184,12 +192,12 @@ class Queue:
         Args:
             event:
             estimation:
-            rank
+            rank:
         """
         estimation.rank = rank
-        estimation.rank_eta = (
-            estimation.rank - 1
-        ) * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+        estimation.rank_eta = round(
+            estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+        )
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
