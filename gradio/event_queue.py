@@ -43,26 +43,25 @@ class Queue:
     @classmethod
     def configure_queue(
         cls,
-        server_path: str,
-        live_queue_updates=True,
-        queue_concurrency_count: int = 1,
-        data_gathering_start: int = 30,
-        update_intervals: int = 5,
-        duration_history_size=100,
+        live_queue_updates: bool,
+        queue_concurrency_count: int,
+        data_gathering_start: int,
+        update_intervals: int,
+        duration_history_size: int,
     ):
         """
-        See Blocks.launch() docstring for the explanation of parameters.
+        See Blocks.configure_queue() docstring for the explanation of parameters.
         """
-
-        if live_queue_updates is False and update_intervals == 5:
-            update_intervals = 10
-        cls.SERVER_PATH = server_path
         cls.LIVE_QUEUE_UPDATES = live_queue_updates
         cls.MAX_THREAD_COUNT = queue_concurrency_count
         cls.DATA_GATHERING_STARTS_AT = data_gathering_start
         cls.UPDATE_INTERVALS = update_intervals
         cls.DURATION_HISTORY_SIZE = duration_history_size
         cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
+
+    @classmethod
+    def set_url(cls, url: str):
+        cls.SERVER_PATH = url
 
     @classmethod
     async def init(
@@ -148,7 +147,7 @@ class Queue:
         """
         Gather data for the event
 
-        Args:
+        Parameters:
             event:
         """
         if not event.data:
@@ -189,7 +188,7 @@ class Queue:
         """
         Send estimation about ETA to the client.
 
-        Args:
+        Parameters:
             event:
             estimation:
             rank:
@@ -207,7 +206,7 @@ class Queue:
         """
         Update estimation by last x element's average duration.
 
-        Args:
+        Parameters:
             duration:
         """
         cls.DURATION_HISTORY.append(duration)
