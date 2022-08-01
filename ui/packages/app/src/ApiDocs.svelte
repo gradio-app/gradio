@@ -1,12 +1,5 @@
 <script lang="ts">
-	import type { ComponentMeta } from "./components/types";
-
-	interface Dependency {
-		inputs: Array<number>;
-		outputs: Array<number>;
-		api_name: string | null;
-		documentation?: Array<Array<Array<string>>>;
-	}
+	import type { ComponentMeta, Dependency } from "./components/types";
 
 	export let components: Array<ComponentMeta>;
 	export let dependencies: Array<Dependency>;
