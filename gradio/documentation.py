@@ -73,7 +73,6 @@ def document_fn(fn):
         parameter_doc = {
             "name": param_name,
             "annotation": param.annotation,
-            "kind": param.kind.description,
             "doc": parameters.get(param_name),
         }
         if param_name in parameters:
