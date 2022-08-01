@@ -254,6 +254,13 @@ class IOComponent(Component):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Style the component.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+            container: If true, will place the component in a container.
+        """
         if rounded is not None:
             self._style["rounded"] = rounded
         if border is not None:
@@ -269,7 +276,7 @@ class IOComponent(Component):
         return config
 
 
-@document()
+@document("change", "submit", "style")
 class Textbox(Changeable, Submittable, IOComponent):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -464,7 +471,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         return x
 
 
-@document()
+@document("change", "submit", "style")
 class Number(Changeable, Submittable, IOComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -648,7 +655,7 @@ class Number(Changeable, Submittable, IOComponent):
         return y
 
 
-@document()
+@document("change", "style")
 class Slider(Changeable, IOComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
@@ -802,13 +809,18 @@ class Slider(Changeable, IOComponent):
         self,
         container: Optional[bool] = None,
     ):
+        """
+        Style the slider.
+        Parameters:
+            container: If true, will place the component in a container.
+        """
         return IOComponent.style(
             self,
             container=container,
         )
 
 
-@document()
+@document("change", "style")
 class Checkbox(Changeable, IOComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
@@ -931,7 +943,7 @@ class Checkbox(Changeable, IOComponent):
         return x
 
 
-@document()
+@document("change", "style")
 class CheckboxGroup(Changeable, IOComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -1091,6 +1103,13 @@ class CheckboxGroup(Changeable, IOComponent):
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Style the CheckboxGroup.
+        Parameters:
+            rounded: If true, will round the corners.
+            item_container: If True, will place the items in a container.
+            container: If true, will place the component in a container.
+        """
         if item_container is not None:
             self._style["item_container"] = item_container
 
@@ -1101,7 +1120,7 @@ class CheckboxGroup(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "style")
 class Radio(Changeable, IOComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
@@ -1243,6 +1262,12 @@ class Radio(Changeable, IOComponent):
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Style the radio.
+        Parameters:
+            item_container: If True, will place items in a container.
+            container: If true, will place the component in a container.
+        """
         if item_container is not None:
             self._style["item_container"] = item_container
 
@@ -1252,7 +1277,7 @@ class Radio(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "style")
 class Dropdown(Radio):
     """
     Creates a dropdown of which only one entry can be selected.
@@ -1305,12 +1330,19 @@ class Dropdown(Radio):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Style the Dropdown.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+            container: If true, will place the component in a container.
+        """
         return IOComponent.style(
             self, rounded=rounded, border=border, container=container
         )
 
 
-@document()
+@document("edit", "clear", "change", "stream", "change")
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1650,6 +1682,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         height: Optional[int] = None,
         width: Optional[int] = None,
     ):
+        """
+        Style the Image.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            height: Height of the image.
+            width: Width of the image.
+        """
         self._style["height"] = height
         self._style["width"] = width
         return IOComponent.style(
@@ -1665,19 +1704,20 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         _js: Optional[str] = None,
     ):
         """
+        This event is triggered when the user streams the component (e.g. a live webcam
+        component)
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
         """
+        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
         Streamable.stream(self, fn, inputs, outputs, _js)
 
 
-@document()
+@document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1848,6 +1888,13 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         height: Optional[int] = None,
         width: Optional[int] = None,
     ):
+        """
+        Style the video.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            height: Height of the video.
+            width: Width of the video.
+        """
         self._style["height"] = height
         self._style["width"] = width
         return IOComponent.style(
@@ -1856,7 +1903,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         )
 
 
-@document()
+@document("change", "clear", "play", "pause", "stop", "stream", "style")
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -2152,13 +2199,14 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         _js: Optional[str] = None,
     ):
         """
+        This event is triggered when the user streams the component (e.g. a live webcam
+        component)
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
         """
+        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
@@ -2169,13 +2217,18 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the audio.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "clear", "style")
 class File(Changeable, Clearable, IOComponent):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -2367,13 +2420,18 @@ class File(Changeable, Clearable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the file.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "style")
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2628,13 +2686,18 @@ class Dataframe(Changeable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the DataFrame.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "style")
 class Timeseries(Changeable, IOComponent):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -2770,6 +2833,11 @@ class Timeseries(Changeable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the Timeseries.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -2806,7 +2874,7 @@ class Variable(IOComponent):
         return self
 
 
-@document()
+@document("click", "style")
 class Button(Clickable, IOComponent):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -2863,6 +2931,13 @@ class Button(Clickable, IOComponent):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the button.
+        Parameters:
+            rounded: If true, will round the corners. Can also specify whether each corner should be rounded with a tuple where the elements correspond to top-left, top-right, bottom-right, bottom-left.
+            full_width: If true, the button will span the full width of the container.
+            border: If true, will include a border. Can also specify whether each border should be included with a tuple where the elements correspond to top, right, bottom, left edge.
+        """
         if full_width is not None:
             self._style["full_width"] = full_width
         if margin is not None:
@@ -2875,7 +2950,7 @@ class Button(Clickable, IOComponent):
         )
 
 
-@document()
+@document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
@@ -2991,7 +3066,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 ############################
 
 
-@document()
+@document("change", "style")
 class Label(Changeable, IOComponent):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -3126,10 +3201,15 @@ class Label(Changeable, IOComponent):
         self,
         container: Optional[bool] = None,
     ):
+        """
+        Style the label
+        Parameters:
+            container: If true, will add a container to the label.
+        """
         return IOComponent.style(self, container=container)
 
 
-@document()
+@document("change", "style")
 class HighlightedText(Changeable, IOComponent):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
@@ -3270,7 +3350,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-            rounded: If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+            rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
             container: If True, will place the component in a container.
         """
@@ -3280,7 +3360,7 @@ class HighlightedText(Changeable, IOComponent):
         return IOComponent.style(self, rounded=rounded, container=container)
 
 
-@document()
+@document("change", "style")
 class JSON(Changeable, IOComponent):
     """
     Used to display arbitrary JSON output prettily.
@@ -3360,10 +3440,15 @@ class JSON(Changeable, IOComponent):
         return json.loads(data)
 
     def style(self, container: Optional[bool] = None):
+        """
+        Style the JSON.
+        Parameters:
+            container: If true, will place the JSON in a container.
+        """
         return IOComponent.style(self, container=container)
 
 
-@document()
+@document("change")
 class HTML(Changeable, IOComponent):
     """
     Used to display arbitrary HTML output.
@@ -3427,7 +3512,7 @@ class HTML(Changeable, IOComponent):
         return self
 
 
-@document()
+@document("style")
 class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
@@ -3518,6 +3603,13 @@ class Gallery(IOComponent):
         height: Optional[str] = None,
         container: Optional[bool] = None,
     ):
+        """
+        Style the gallery.
+        Parameters:
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            height: Height of the gallery.
+            container: If true, will place gallery in a container.
+        """
         if grid is not None:
             self._style["grid"] = grid
         if height is not None:
@@ -3632,7 +3724,7 @@ class Carousel(IOComponent, Changeable):
         ]
 
 
-@document()
+@document("change", "style")
 class Chatbot(Changeable, IOComponent):
     """
     Displays a chatbot output showing both user submitted messages and responses
@@ -3715,8 +3807,16 @@ class Chatbot(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        color_map: Optional[Dict[str, str]] = None,
+        color_map: Optional[List[str, str]] = None,
     ):
+        """
+        Style the chatbot.
+        Parameters:
+            rounded: If true, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
+            color_map: List containing colors to apply to chat bubbles.
+        Returns:
+
+        """
         if color_map is not None:
             self._style["color_map"] = color_map
 
@@ -3726,7 +3826,7 @@ class Chatbot(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "edit", "clear", "style")
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
@@ -3858,13 +3958,18 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the Model3d component.
+        Args:
+            rounded: If true, will round the corners of the Model3d component. If a tuple, will round the corners of the Model3d according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
@@ -3954,7 +4059,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return json.loads(data)
 
 
-@document()
+@document("change")
 class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
@@ -4021,7 +4126,7 @@ class Markdown(IOComponent, Changeable):
 ############################
 
 
-@document()
+@document("click", "style")
 class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
@@ -4090,6 +4195,12 @@ class Dataset(Clickable, Component):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        Style the Dataset component.
+        Parameters:
+            rounded: If true, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
+            border: If true, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,

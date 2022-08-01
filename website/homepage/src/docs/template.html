@@ -27,13 +27,6 @@
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
         <a class="thin-link px-4 block" href="#update">Update</a>
-        <a class="link px-4 my-2 block" href="#events">Events</a>
-        {% for event in docs["events"] %}
-          {% for fn in event["fns"] %}
-          <a class="px-4 block thin-link" href="#{{ fn['name'].lower() }}-event">{{ fn["name"][0]|upper}}{{fn["name"][1:] }}</a>
-          {% endfor %}
-        {% endfor %}
-          <a class="px-4 block thin-link" href="#load-event">Load</a>
       </div>
       <div class="flex flex-col">
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 rounded-full text-orange-800 mb-1">
@@ -170,25 +163,6 @@
               {% endwith %}
             </div>
           </section>
-      <section id="events" class="pt-2 flex flex-col gap-10 mb-8">
-        <div>
-          <h2 id="events-header"
-              class="text-4xl font-light mb-2 pt-2 text-orange-500">Events</h2>
-          <p class="mt-8 text-lg">
-           Events give you control of when your functions are run in the app. For example,
-           on a Button, the `click` event will trigger the function when the button is clicked. Each component
-           and many layouts have specific events that they support. You can find the events that a component supports
-           by going to its documentation.
-          </p>
-        </div>
-        {% for event in docs["events"] %}
-            {% include "docs/event_template.html" %}
-        {% endfor %}
-        <!-- Document the load event with the events as well-->
-        {% with event=find_cls("Blocks"), override_signature="demo.load(fn, inputs, outputs)" %}
-           {% include "docs/event_template.html" %}
-        {% endwith %}
-      </section>
       </div>
     </main>
     <script src="/assets/prism.js"></script>

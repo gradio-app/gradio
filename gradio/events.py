@@ -3,15 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import Block
-from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component, StatusTracker
 
-set_documentation_group("events")
 
-
-@document("change")
 class Changeable(Block):
     def change(
         self,
@@ -60,7 +56,6 @@ class Changeable(Block):
         )
 
 
-@document("click")
 class Clickable(Block):
     def click(
         self,
@@ -108,7 +103,6 @@ class Clickable(Block):
         )
 
 
-@document("submit")
 class Submittable(Block):
     def submit(
         self,
@@ -156,7 +150,6 @@ class Submittable(Block):
         )
 
 
-@document("edit")
 class Editable(Block):
     def edit(
         self,
@@ -196,7 +189,6 @@ class Editable(Block):
         )
 
 
-@document("clear")
 class Clearable(Block):
     def clear(
         self,
@@ -236,7 +228,6 @@ class Clearable(Block):
         )
 
 
-@document("play", "pause", "stop")
 class Playable(Block):
     def play(
         self,
@@ -347,7 +338,6 @@ class Playable(Block):
         )
 
 
-@document("stream")
 class Streamable(Block):
     def stream(
         self,
