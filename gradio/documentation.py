@@ -1,4 +1,5 @@
 import inspect
+from typing import Callable, Dict, List, Optional, Tuple
 
 classes_to_document = {}
 documentation_group = None
@@ -29,7 +30,17 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn):
+def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
+    """
+    Generates documentation for any function.
+    Parameters:
+        fn: Function to document
+    Returns:
+        description: General description of fn
+        parameters: A list of dicts for each parameter, storing data for the parameter name, annotation and doc
+        return: A dict storing data for the returned annotation and doc
+        example: Code for an example use of the fn
+    """
     doc_str = inspect.getdoc(fn)
     doc_lines = doc_str.split("\n")
     signature = inspect.signature(fn)
@@ -187,7 +198,7 @@ def document_component_api(component_cls, target):
     Returns:
         doc: Description of value expected / returned by Component
         annotation: Type expected / returned by Component
-    """   
+    """
     if target == "input":
         _, parameter_docs, _, _ = document_fn(component_cls.preprocess)
         if len(parameter_docs) > 1:
