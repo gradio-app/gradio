@@ -290,7 +290,12 @@ wandb.log({"Current Samples": out_table})
 
 Using Web components, using the <gradio-app> tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
-```<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>```
+```
+<script type="module"
+src="https://gradio.s3-us-west-2.amazonaws.com/3.1.1/gradio.js">
+</script>
+<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
+```
 
 Meanwhile, adding a Gradio Demo to a W&B Report takes just a few extra lines of code: 
 
