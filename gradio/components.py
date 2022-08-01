@@ -782,7 +782,6 @@ class Slider(Changeable, IOComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
-    
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -2332,7 +2331,6 @@ class File(Changeable, Clearable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-
     def postprocess(self, y: str) -> Dict:
         """
         Parameters:
@@ -2546,7 +2544,9 @@ class Dataframe(Changeable, IOComponent):
     def generate_sample(self):
         return [[1, 2, 3], [4, 5, 6]]
 
-    def postprocess(self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]) -> Dict:
+    def postprocess(
+        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]
+    ) -> Dict:
         """
         Parameters:
             y: dataframe in given format
@@ -2732,7 +2732,6 @@ class Timeseries(Changeable, IOComponent):
 
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
-
 
     def postprocess(self, y: str | pd.DataFrame) -> Dict:
         """
