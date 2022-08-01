@@ -48,13 +48,15 @@ Let's get started!
 
 1. Create a W&B account
 
-Follow these quick instructions to create your free account if you don’t have one already. It shouldn't take more than a couple minutes. Once you're done (or if you've already got an account), next, we'll run a quick colab. 
+Follow [these quick instructions](https://app.wandb.ai/login) to create your free account if you don’t have one already. It shouldn't take more than a couple minutes. Once you're done (or if you've already got an account), next, we'll run a quick colab. 
 
 
 2. Open Colab Install Gradio and W&B
 
 
 We'll be following along with the colab provided in the JoJoGAN repo with some minor modifications to use Wandb and Gradio more effectively. 
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mchong6/JoJoGAN/blob/main/stylize.ipynb)
 
 Install Gradio and Wandb at the top:
 
@@ -299,6 +301,56 @@ wandb.log({"Gradio panel": wandb.Html('''
 <gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
 )
 ```
+
+Lastly, here's how to save, download, and load your model (and Gradio demo)
+
+
+6. Save and Download Model
+
+```
+torch.save({"g": generator.state_dict()}, "your-model-name.pt")
+
+
+from google.colab import files
+files.download('your-model-name.pt') 
+```
+
+
+
+
+7. Load Model and Gradio Demo
+
+```
+ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
+generatoryourmodelname.load_state_dict(ckptjojo["g"], strict=False)
+
+
+Full spaces demo code here: https://huggingface.co/spaces/akhaliq/JoJoGAN/edit/main/app.py
+import gradio as gr
+
+
+title = "JoJoGAN"
+description = "Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below."
+
+
+article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2112.11641' target='_blank'>JoJoGAN: One Shot Face Stylization</a>| <a href='https://github.com/mchong6/JoJoGAN' target='_blank'>Github Repo Pytorch</a></p> <center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_jojogan' alt='visitor badge'></center>"
+
+
+examples=[['mona.png','Jinx']]
+gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
+
+
+## Conclusion
+
+We hope you enjoyed this brief demo of embedding a Gradio demo to a W&B report! Thanks for making it to the end. To recap:
+
+* Only one single reference image is needed for fine-tuning JoJoGAN which usually takes about 1 minute on a GPU in colab. After training, style can be applied to any input image. Read more in the paper.
+
+* W&B tracks experiments with just a few lines of code added to a colab and you can visualize, sort, and understand your experiments in a single, centralized dashboard.
+
+* Gradio, meanwhile, demos the model in a user friendly interface to share anywhere on the web. 
+
+
 
 ## How to contribute Gradio demos on HF spaces on the Wandb organization
 
