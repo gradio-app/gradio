@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import pytest
+from requests import head
 
 import gradio as gr
 from gradio import media_data
@@ -1038,11 +1039,14 @@ class TestDataframe(unittest.TestCase):
                 "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "value": [
-                    ["", "", ""],
-                    ["", "", ""],
-                    ["", "", ""],
-                ],
+                "value": {
+                    "data": [
+                        ["", "", ""],
+                        ["", "", ""],
+                        ["", "", ""],
+                    ],
+                    "headers": ["Name", "Age", "Member"],
+                },
                 "name": "dataframe",
                 "show_label": True,
                 "label": "Dataframe Input",
@@ -1063,26 +1067,11 @@ class TestDataframe(unittest.TestCase):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
 
-        # Output functionalities
         dataframe_output = gr.Dataframe()
-        output = dataframe_output.postprocess(np.zeros((2, 2)))
-        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]]})
-        output = dataframe_output.postprocess([[1, 3, 5]])
-        self.assertDictEqual(output, {"data": [[1, 3, 5]]})
-        output = dataframe_output.postprocess(
-            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
-        )
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]],
-            },
-        )
         self.assertEqual(
             dataframe_output.get_config(),
             {
-                "headers": None,
+                "headers": [1, 2, 3],
                 "max_rows": 20,
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
@@ -1095,13 +1084,36 @@ class TestDataframe(unittest.TestCase):
                 "datatype": ["str", "str", "str"],
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "value": [
-                    ["", "", ""],
-                    ["", "", ""],
-                    ["", "", ""],
-                ],
+                "value": {
+                    "data": [
+                        ["", "", ""],
+                        ["", "", ""],
+                        ["", "", ""],
+                    ],
+                    "headers": [1, 2, 3],
+                },
                 "interactive": None,
                 "wrap": False,
+            },
+        )
+
+    def test_postprocess(self):
+        """
+        postprocess
+        """
+        dataframe_output = gr.Dataframe()
+        output = dataframe_output.postprocess(np.zeros((2, 2)))
+        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
+        output = dataframe_output.postprocess([[1, 3, 5]])
+        self.assertDictEqual(output, {"data": [[1, 3, 5]], "headers": [1, 2, 3]})
+        output = dataframe_output.postprocess(
+            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
+        )
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["num", "prime"],
+                "data": [[2, True], [3, True], [4, False]],
             },
         )
         with self.assertRaises(ValueError):
@@ -1128,6 +1140,26 @@ class TestDataframe(unittest.TestCase):
                 },
             )
 
+        # When the headers don't match the data
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True], [3, True]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two"],
+                "data": [[2, True], [3, True]],
+            },
+        )
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two", "three", 4],
+                "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            },
+        )
+
     def test_in_interface_as_input(self):
         """
         Interface, process,
@@ -1135,7 +1167,7 @@ class TestDataframe(unittest.TestCase):
         x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
         self.assertEqual(iface.process([x_data]), [6])
-        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]]}
+        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
 
         def get_last(my_list):
             return my_list[-1][-1]
@@ -1153,7 +1185,8 @@ class TestDataframe(unittest.TestCase):
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
         self.assertEqual(
-            iface.process([{"data": [[2, 3, 4]]}])[0], {"data": [[True, False, True]]}
+            iface.process([{"data": [[2, 3, 4]]}])[0],
+            {"data": [[True, False, True]], "headers": [1, 2, 3]},
         )
 
 
