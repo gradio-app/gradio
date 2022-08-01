@@ -361,6 +361,6 @@ We hope you enjoyed this brief demo of embedding a Gradio demo to a W&B report! 
 ## How to contribute Gradio demos on HF spaces on the Wandb organization
 
 * Create an account on Hugging Face [here](https://huggingface.co/join).
-* Add Gradio Demo under your username, see this [blog post](https://huggingface.co/blog/gradio-spaces) for setting up Gradio Demo on Hugging Face. 
+* Add Gradio Demo under your username, see this [course](https://huggingface.co/course/chapter9/4?fw=pt) for setting up Gradio Demo on Hugging Face. 
 * Request to join wandb organization [here](https://huggingface.co/wandb).
 * Once approved transfer model from your username to Wandb organization
