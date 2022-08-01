@@ -347,7 +347,7 @@ gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=
 ## you can also use the new Gradio Blocks API like this
 
 with gr.Blocks() as demo:
-    gr.Markdown("#Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below.")
+    gr.Markdown("# Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below.")
     with gr.Row():
         inp = [gr.Image(type="pil"),gr.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")]
         out = gr.Image(type="file")
@@ -358,7 +358,7 @@ with gr.Blocks() as demo:
         out = gr.Image(type="file")
         fn=inference,
         cache_examples=True)
-        
+
     btn = gr.Button("Run")
     btn.click(fn=inference, inputs=inp, outputs=out)
 
