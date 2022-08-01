@@ -26,7 +26,8 @@ function program_required() {
 #   None
 #######################################
 function pip_required() {
-  program_required "pip" "https://pip.pypa.io/en/stable/installing/"
+  program_required "pip" "https://pip.pypa.io/en/stable/installation/"
+
 }
 
 #######################################
@@ -41,6 +42,17 @@ function npm_required() {
 }
 
 #######################################
+# Check for the PNPM program.
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function pnpm_required() {
+  program_required "pnpm" "https://pnpm.io/6.x/installation"
+}
+
+#######################################
 # Check for the CircleCI program.
 # Arguments:
 #   None
@@ -49,17 +61,6 @@ function npm_required() {
 #######################################
 function circleci_required() {
   program_required "circleci" "https://circleci.com/docs/1.0/local-cli/"
-}
-
-#######################################
-# Check for the PNPM program.
-# Arguments:
-#   None
-# Outputs:
-#   None
-#######################################
-function pnpm_required() {
-  program_required "pnpm" "https://pnpm.js.org/en/latest/installation/"
 }
 
 #######################################
