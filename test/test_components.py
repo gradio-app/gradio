@@ -1096,11 +1096,11 @@ class TestDataframe(unittest.TestCase):
                 "wrap": False,
             },
         )
-            
+
     def test_postprocess(self):
         """
         postprocess
-        """        
+        """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess(np.zeros((2, 2)))
         self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
@@ -1139,7 +1139,7 @@ class TestDataframe(unittest.TestCase):
                     "data": [[2, True], [3, True], [4, False]],
                 },
             )
-            
+
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True], [3, True]])
@@ -1159,8 +1159,6 @@ class TestDataframe(unittest.TestCase):
                 "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
             },
         )
-        
-        
 
     def test_in_interface_as_input(self):
         """
