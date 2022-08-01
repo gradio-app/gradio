@@ -1106,7 +1106,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Style the CheckboxGroup.
         Parameters:
-            rounded: If true, will round the corners.
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             item_container: If True, will place the items in a container.
             container: If true, will place the component in a container.
         """
@@ -2934,9 +2934,9 @@ class Button(Clickable, IOComponent):
         """
         Style the button.
         Parameters:
-            rounded: If true, will round the corners. Can also specify whether each corner should be rounded with a tuple where the elements correspond to top-left, top-right, bottom-right, bottom-left.
+            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             full_width: If true, the button will span the full width of the container.
-            border: If true, will include a border. Can also specify whether each border should be included with a tuple where the elements correspond to top, right, bottom, left edge.
+            border: If true, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
         """
         if full_width is not None:
             self._style["full_width"] = full_width
