@@ -31,6 +31,7 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
+	let app_mode = window.__gradio_mode__ === "app";
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -407,10 +408,10 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={window.__gradio_mode__ === "app"}
+		class:flex-grow={app_mode}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />
