@@ -343,6 +343,7 @@ article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2112.116
 
 examples=[['mona.png','Jinx']]
 gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
+```
 
 
 ## Conclusion
