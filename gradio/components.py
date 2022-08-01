@@ -264,21 +264,6 @@ class IOComponent(Component):
             self._style["container"] = container
         return self
 
-    @classmethod
-    def document_parameters(cls, target):
-        if target == "input":
-            doc = inspect.getdoc(cls.preprocess)
-            if "Parameters:\n    x (" in doc:
-                return doc.split("Parameters:\n    x ")[1].split("\n")[0]
-            return None
-        elif target == "output":
-            doc = inspect.getdoc(cls.postprocess)
-            if "Returns:    \n" in doc:
-                return doc.split("Returns:\n    ")[1].split("\n")[0]
-            return None
-        else:
-            raise ValueError("Invalid doumentation target.")
-
     @staticmethod
     def add_interactive_to_config(config, interactive):
         if interactive is not None:
@@ -2537,7 +2522,7 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: DataframeData):
         """
         Parameters:
-        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
+            x: 2D array of str, numeric, or bool data
         Returns:
             Dataframe in requested format
         """
@@ -2953,14 +2938,13 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    # Input Functionalities
     def preprocess(self, x: str | None) -> Any:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-        x (str): text
+            x: text
         Returns:
-        (str): text
+            text
         """
         if x is None:
             return None
@@ -2984,9 +2968,9 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (str | None): text
+            y: text
         Returns:
-        (str | None): text
+            text
         """
         if y is None:
             return None

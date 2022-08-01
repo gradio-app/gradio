@@ -177,3 +177,16 @@ def generate_documentation():
                 )
             documentation[mode].append(cls_documentation)
     return documentation
+
+
+def document_component_api(component_cls, target):
+    if target == "input":
+        _, parameter_docs, _, _ = document_fn(component_cls.preprocess)
+        if len(parameter_docs) > 1:
+            return parameter_docs[1]["doc"], str(parameter_docs[1]["annotation"])
+        return None, None
+    elif target == "output":
+        _, _, return_docs, _ = document_fn(component_cls.postprocess)
+        return return_docs.get("doc"), str(return_docs.get("annotation"))
+    else:
+        raise ValueError("Invalid doumentation target.")
