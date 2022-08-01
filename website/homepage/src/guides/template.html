@@ -9,119 +9,96 @@
   </head>
   <body>
     {% include "templates/navbar.html" %}
-    <div class="container relative mx-auto px-4 pt-8 pb-12">
-      {% if spaces %}
-        <div id='spaces-holder' class="mb-4">
-          <a href='https://hf.co/spaces' target='_blank'>
-            <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
-          </a>
-          <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
-
-          {% for space in spaces %}
-          <div class='space-link inline-block m-1 px-1 rounded-md'>
-            <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
+    <div class="container mx-auto px-4 flex gap-4 relative">
+      <div class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+           style="min-width: 18%">
+        {% for category_guides in guides_by_category %}
+          {% set hidden_category = loop.last and category != category_guides["category"] %}
+          <div class="category-link {% if loop.first %} mb-2 {% else %} my-2 {% endif %} font-semibold px-4 pt-2 text-ellipsis block"
+             style="max-width: 12rem">
+            {{ category_guides["category"] }} 
+            {% if hidden_category %}
+            <button class="block show-guides" onclick="show_all_guides()"> [ show ] </button>
+            {% endif %}
           </div>
+          {% for guide in category_guides["guides"] %}
+            <a class="guide-link {% if name == guide['name'] %} current-nav-link pb-1{% endif %} {% if hidden_category %} hidden {% endif %} -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+               style="max-width: 12rem"
+               href="{{ guide['url'] }}">{{ guide['pretty_name'] }}</a>
+            {% if name == guide['name'] %}
+              <div class="navigation max-w-full bg-gradient-to-r from-orange-50 to-orange-100 p-2 mx-2 border-l-2 border-orange-500 mb-2">
+              </div>
+            {% endif %}
           {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="w-full">
+        {% if spaces %}
+          <div id='spaces-holder' class="mb-4">
+            <a href='https://hf.co/spaces' target='_blank'>
+              <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1"
+                   src='/assets/img/spaces-logo.svg'>
+            </a>
+            <p class="m-0 inline text-lg font-normal">Related Spaces:</p>
+            {% for space in spaces %}
+              <div class='space-link inline-block m-1 px-1 rounded-md'>
+                <a href='{{ space }}' target='_blank' class="no-underline">{{ space[30:] }}</a>
+              </div>
+            {% endfor %}
           </div>
-      {% endif %}
-      <div class="prose max-w-full">
-        {% include "guides/temporary_template.html" %}
+        {% endif %}
+        <div class="prose text-lg max-w-full">{% include "guides/temporary_template.html" %}</div>
+        <div class="flex justify-between mt-4">
+          {% if prev_guide is not none %}
+            <a href="{{ prev_guide['url'] }}"
+               class="text-left p-4 bg-gray-50 hover:underline">
+              <div class="text-gray-600 block">&lt; Previous</div>
+              <div class="text-lg font-semibold">{{ prev_guide['pretty_name'] }}</div>
+            </a>
+          {% else %}
+            <div></div>
+          {% endif %}
+          {% if next_guide is not none %}
+            <a href="{{ next_guide['url'] }}"
+               class="text-right p-4 bg-gray-50 hover:underline">
+              <div class="text-gray-600 block">Next &gt;</div>
+              <div class="text-lg font-semibold">{{ next_guide['pretty_name'] }}</div>
+            </a>
+          {% else %}
+            <div></div>
+          {% endif %}
+        </div>
       </div>
     </div>
     <script src="/assets/prism.js"></script>
-    <script>
-      window.__gradio_mode__ = "website";
-    </script>
+    <script>window.__gradio_mode__ = "website";</script>
     <script type="module" src="/assets/index.js"></script>
     {% include 'templates/footer.html' %}
     <script>
-      // adds anchor button when hovering over headers, except on touch devices where instead the header becomes a link
-
-      function createAnchorTag(link) {
-              let a = document.createElement('a');
-              a.href = link;
-              a.classList.add("invisible", "group-hover-visible");
-              let img = document.createElement('img');
-              img.classList.add("anchor-img")
-              img.src = "/assets/img/anchor.svg";
-              a.appendChild(img);
-              return a;
-          }
-      function createMobileAnchorTag(link) {
-              let a = document.createElement('a');
-              a.href = link;
-              a.classList.add("no-underline")
-              return a;
-          }
-
-      var headers = document.querySelectorAll("h2, h3");
-
-      function isTouchDevice() {
-              return (('ontouchstart' in window) ||
-                 (navigator.maxTouchPoints > 0) ||
-                 (navigator.msMaxTouchPoints > 0));
-            }
-
-      if (isTouchDevice()) {
-            for (let i = 0; i < headers.length; i++) {
-              let link = '#' + headers[i].id;
-              var parent = headers[i].parentNode;
-              var wrapper = createMobileAnchorTag(link);
-              parent.replaceChild(wrapper, headers[i]);
-              wrapper.appendChild(headers[i]);
-            }
-      } else {
-            for (let i = 0; i < headers.length; i++) {
-              headers[i].classList.add("group")
-              let link = '#' + headers[i].id;
-              var anchorTag = createAnchorTag(link);
-              headers[i].appendChild(createAnchorTag(link));
-            }
+      let sidebar = document.querySelector(".side-navigation")
+      let target_link = document.querySelector(".current-nav-link");
+      if (target_link.previousElementSibling.classList.contains("category-link")) {
+        target_link = target_link.previousElementSibling;
       }
-
-      // color related spaces
+      sidebar.scrollTop = target_link.offsetTop
+      document.querySelectorAll(".prose h2").forEach(subheader => {
+        document.querySelector(".navigation").innerHTML += `
+          <a class='subheading block thin-link -indent-2 ml-4 mr-2' href='#${subheader.id}'>${subheader.innerText}</a>
+        `
+      })
 
       const COLORS = ["bg-green-50", "bg-yellow-50", "bg-red-50", "bg-pink-50", "bg-purple-50"];
-
       document.querySelectorAll(".space-link").forEach(guide => {
         const color = COLORS[Math.floor(Math.random() * COLORS.length)]
         guide.classList.add(color);
       })
 
-      // add copy buttons to all codeblocks
-
-      const svgCopy =
-        '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path><path fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path></svg>';
-      const svgCheck =
-        '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true"><path fill-rule="evenodd" fill="rgb(255, 124, 1)" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"></path></svg>';
-
-
-      const addCopyButtons = (clipboard) => {
-          document.querySelectorAll("pre > code").forEach((codeBlock) => {
-          const button = document.createElement("button");
-          button.classList.add("clipboard-button");
-          button.type = "button";
-          button.innerHTML = svgCopy;
-          button.addEventListener("click", () => {
-            clipboard.writeText(codeBlock.innerText).then(
-              () => {
-                button.blur();
-                button.innerHTML = svgCheck;
-                setTimeout(() => (button.innerHTML = svgCopy), 2000);
-              },
-              (error) => (button.innerHTML = "Error")
-            );
-          });
-          const pre = codeBlock.parentNode;
-          pre.parentNode.insertBefore(button, pre);
-        });
-      };
-
-      if (navigator && navigator.clipboard) {
-        addCopyButtons(navigator.clipboard);
-      };
-
-
+      const show_all_guides = () => {
+        document.querySelectorAll(".guide-link").forEach(g => g.classList.remove("hidden"));
+        document.querySelector(".show-guides").remove();
+      }
     </script>
-  </body>
+    <script>{% include 'templates/links-nav.js' %}</script>
+    <script>{% include 'templates/add_anchors.js' %}</script>
+    <script>{% include 'templates/add_copy.js' %}</script>  </body>
 </html>

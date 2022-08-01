@@ -213,12 +213,30 @@ def update(**kwargs) -> dict:
     Parameters:
         kwargs: Key-word arguments used to update the component's properties.
     Example:
+        # Blocks Example
         import gradio as gr
         with gr.Blocks() as demo:
             radio = gr.Radio([1, 2, 4], label="Set the value of the number")
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
+        # Interface example
+        import gradio as gr
+        def change_textbox(choice):
+          if choice == "short":
+              return gr.Textbox.update(lines=2, visible=True)
+          elif choice == "long":
+              return gr.Textbox.update(lines=8, visible=True)
+          else:
+              return gr.Textbox.update(visible=False)
+        gr.Interface(
+          change_textbox,
+          gr.Radio(
+              ["short", "long", "none"], label="What kind of essay would you like to write?"
+          ),
+          gr.Textbox(lines=2),
+          live=True,
+        ).launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
@@ -264,7 +282,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
     """
 
     def __init__(
