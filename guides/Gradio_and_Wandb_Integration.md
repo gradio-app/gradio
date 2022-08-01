@@ -23,6 +23,9 @@ Here's an example of an model trained and experiments tracked on wandb, try out 
 
 Weights and Biases (W&B) allows data scientists and machine learning scientists to track their machine learning experiments at every stage, from training to production. Any metric can be aggregated over samples and shown in panels in a customizable and searchable dashboard, like below:
 
+<img alt="Screen Shot 2022-08-01 at 5 54 59 PM" src="https://user-images.githubusercontent.com/81195143/182252755-4a0e1ca8-fd25-40ff-8c91-c9da38aaa9ec.png">
+
+
 ## What are Hugging Face Spaces & Gradio?
 
 ### Gradio
