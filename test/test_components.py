@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import pytest
+from requests import head
 
 import gradio as gr
 from gradio import media_data
@@ -1066,22 +1067,7 @@ class TestDataframe(unittest.TestCase):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
 
-        # Output functionalities
         dataframe_output = gr.Dataframe()
-        output = dataframe_output.postprocess(np.zeros((2, 2)))
-        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
-        output = dataframe_output.postprocess([[1, 3, 5]])
-        self.assertDictEqual(output, {"data": [[1, 3, 5]], "headers": [1, 2, 3]})
-        output = dataframe_output.postprocess(
-            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
-        )
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]],
-            },
-        )
         self.assertEqual(
             dataframe_output.get_config(),
             {
@@ -1110,6 +1096,26 @@ class TestDataframe(unittest.TestCase):
                 "wrap": False,
             },
         )
+            
+    def test_postprocess(self):
+        """
+        postprocess
+        """        
+        dataframe_output = gr.Dataframe()
+        output = dataframe_output.postprocess(np.zeros((2, 2)))
+        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
+        output = dataframe_output.postprocess([[1, 3, 5]])
+        self.assertDictEqual(output, {"data": [[1, 3, 5]], "headers": [1, 2, 3]})
+        output = dataframe_output.postprocess(
+            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
+        )
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["num", "prime"],
+                "data": [[2, True], [3, True], [4, False]],
+            },
+        )
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.postprocess(0)
@@ -1133,6 +1139,28 @@ class TestDataframe(unittest.TestCase):
                     "data": [[2, True], [3, True], [4, False]],
                 },
             )
+            
+        # When the headers don't match the data
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True], [3, True]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two"],
+                "data": [[2, True], [3, True]],
+            },
+        )
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two", "three", 4],
+                "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            },
+        )
+        
+        
 
     def test_in_interface_as_input(self):
         """
