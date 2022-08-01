@@ -343,6 +343,26 @@ article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2112.116
 
 examples=[['mona.png','Jinx']]
 gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
+
+## you can also use the new Gradio Blocks API like this
+
+with gr.Blocks() as demo:
+    gr.Markdown("#Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below.")
+    with gr.Row():
+        inp = [gr.Image(type="pil"),gr.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")]
+        out = gr.Image(type="file")
+
+     gr.Examples(
+        examples=[os.path.join(os.path.dirname(__file__), "mona.png"),'Jinx'],
+        inp = [gr.Image(type="pil"),gr.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")]
+        out = gr.Image(type="file")
+        fn=inference,
+        cache_examples=True)
+        
+    btn = gr.Button("Run")
+    btn.click(fn=inference, inputs=inp, outputs=out)
+
+demo.launch()
 ```
 
 
