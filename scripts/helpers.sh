@@ -27,7 +27,6 @@ function program_required() {
 #######################################
 function pip_required() {
   program_required "pip" "https://pip.pypa.io/en/stable/installation/"
-
 }
 
 #######################################
