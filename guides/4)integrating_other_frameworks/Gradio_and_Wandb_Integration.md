@@ -1,4 +1,4 @@
-# Gradio and Wandb Integration
+# Gradio and W&B Integration
 
 Related spaces: https://huggingface.co/spaces/akhaliq/JoJoGAN
 Tags: WANDB, SPACES
