@@ -8,8 +8,8 @@
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
 		"preview": "vite preview",
-		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
-		"test:browser:debug": "pnpx playwright test test/ --debug --config=../../playwright.config.js"
+		"test:browser": "pnpm dlx playwright test test/ --config=../../playwright.config.js",
+		"test:browser:debug": "pnpm dlx playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^0.0.1",
