@@ -17,7 +17,11 @@ from anyio import CapacityLimiter
 from gradio import encryptor, external, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import document, set_documentation_group
+from gradio.documentation import (
+    document,
+    document_component_api,
+    set_documentation_group,
+)
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -144,8 +148,14 @@ class Block:
         }
         if api_name is not None:
             dependency["documentation"] = [
-                [component.document_parameters("input") for component in inputs],
-                [component.document_parameters("output") for component in outputs],
+                [
+                    document_component_api(component.__class__, "input")
+                    for component in inputs
+                ],
+                [
+                    document_component_api(component.__class__, "output")
+                    for component in outputs
+                ],
             ]
         Context.root_block.dependencies.append(dependency)
 

@@ -177,7 +177,6 @@ class IOComponent(Component):
                 "is_example": True,
             }
 
-    # Input Functionalities
     def preprocess(self, x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
@@ -237,7 +236,6 @@ class IOComponent(Component):
         """
         pass
 
-    # Output Functionalities
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
@@ -263,21 +261,6 @@ class IOComponent(Component):
         if container is not None:
             self._style["container"] = container
         return self
-
-    @classmethod
-    def document_parameters(cls, target):
-        if target == "input":
-            doc = inspect.getdoc(cls.preprocess)
-            if "Parameters:\n    x (" in doc:
-                return doc.split("Parameters:\n    x ")[1].split("\n")[0]
-            return None
-        elif target == "output":
-            doc = inspect.getdoc(cls.postprocess)
-            if "Returns:    \n" in doc:
-                return doc.split("Returns:\n    ")[1].split("\n")[0]
-            return None
-        else:
-            raise ValueError("Invalid doumentation target.")
 
     @staticmethod
     def add_interactive_to_config(config, interactive):
@@ -372,8 +355,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    # Input Functionalities
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
@@ -462,8 +444,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "Hello World"
 
-    # Output Functionalities
-    def postprocess(self, y: str | None):
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -646,7 +627,6 @@ class Number(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> float:
         return self.round_to_precision(1, self.precision)
 
-    # Output Functionalities
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -802,9 +782,7 @@ class Slider(Changeable, IOComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
-        # Output Functionalities
-
-    def postprocess(self, y: float | None) -> float:
+    def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -936,7 +914,6 @@ class Checkbox(Changeable, IOComponent):
     def generate_sample(self):
         return True
 
-    # Output Functionalities
     def postprocess(self, y: bool) -> bool:
         """
         Any postprocessing needed to be performed on function output.
@@ -1092,8 +1069,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def generate_sample(self):
         return self.choices
 
-    # Output Functionalities
-    def postprocess(self, y: List[str]) -> List[str]:
+    def postprocess(self, y: List[str] | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -1246,7 +1222,6 @@ class Radio(Changeable, IOComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    # Output Functionalities
     def postprocess(self, y: str) -> str:
         """
         Any postprocessing needed to be performed on function output.
@@ -1640,8 +1615,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
-
-    # Output functions
 
     def postprocess(self, y: np.ndarray | PIL.Image | str) -> str:
         """
@@ -2358,8 +2331,6 @@ class File(Changeable, Clearable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    # Output Functionalities
-
     def postprocess(self, y: str) -> Dict:
         """
         Parameters:
@@ -2462,7 +2433,9 @@ class Dataframe(Changeable, IOComponent):
 
         self.__validate_headers(headers, self.col_count[0])
 
-        self.headers = headers
+        self.headers = (
+            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+        )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
@@ -2482,8 +2455,11 @@ class Dataframe(Changeable, IOComponent):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
-        self.value = value if value is not None else self.test_input
-        self.value = self.__process_markdown(self.value, datatype)
+        self.value = (
+            self.postprocess(value)
+            if value is not None
+            else self.postprocess(self.test_input)
+        )
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -2537,7 +2513,7 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: DataframeData):
         """
         Parameters:
-        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
+            x: 2D array of str, numeric, or bool data
         Returns:
             Dataframe in requested format
         """
@@ -2573,7 +2549,9 @@ class Dataframe(Changeable, IOComponent):
     def generate_sample(self):
         return [[1, 2, 3], [4, 5, 6]]
 
-    def postprocess(self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]):
+    def postprocess(
+        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]
+    ) -> Dict:
         """
         Parameters:
             y: dataframe in given format
@@ -2596,7 +2574,19 @@ class Dataframe(Changeable, IOComponent):
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
+
+            _headers = self.headers
+
+            if len(self.headers) < len(y[0]):
+                _headers = [
+                    *self.headers,
+                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                ]
+            elif len(self.headers) > len(y[0]):
+                _headers = self.headers[0 : len(y[0])]
+
             return {
+                "headers": _headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
         raise ValueError("Cannot process value as a Dataframe")
@@ -2759,8 +2749,6 @@ class Timeseries(Changeable, IOComponent):
 
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
-
-    # Output Functionalities
 
     def postprocess(self, y: str | pd.DataFrame) -> Dict:
         """
@@ -2953,14 +2941,13 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    # Input Functionalities
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-        x (str): text
+            x: text
         Returns:
-        (str): text
+            text
         """
         if x is None:
             return None
@@ -2979,14 +2966,13 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "#000000"
 
-    # Output Functionalities
-    def postprocess(self, y: str | None):
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (str | None): text
+            y: text
         Returns:
-        (str | None): text
+            text
         """
         if y is None:
             return None
@@ -3055,7 +3041,7 @@ class Label(Changeable, IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: Dict[str, float] | str | float) -> Dict:
+    def postprocess(self, y: Dict[str, float] | str | float | None) -> Dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -3355,7 +3341,7 @@ class JSON(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: Dict | List | str) -> Dict | List:
+    def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
         """
         Parameters:
             y: JSON output
@@ -3500,7 +3486,7 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str]) -> List[str]:
+    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
         """
         Parameters:
             y: list of images
@@ -3846,9 +3832,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
-    # Output functions
-
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: path to the model
@@ -3937,7 +3921,7 @@ class Plot(Changeable, Clearable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: plot data
@@ -3998,7 +3982,13 @@ class Markdown(IOComponent, Changeable):
         self.md = MarkdownIt()
         self.value = self.postprocess(value)
 
-    def postprocess(self, y):
+    def postprocess(self, y: str | None) -> str | None:
+        """
+        Parameters:
+            y: markdown representation
+        Returns:
+            HTML rendering of markdown
+        """
         if y is None:
             return None
         unindented_y = inspect.cleandoc(y)
@@ -4152,7 +4142,7 @@ class Interpretation(Component):
     def style(self):
         return self
 
-    def postprocess(self, y):
+    def postprocess(self, y: Any) -> Any:
         return y
 
 

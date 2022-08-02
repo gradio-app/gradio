@@ -84,8 +84,10 @@
 	});
 
 	onDestroy(() => {
-		document.removeChild(main_script);
-		plugin_scripts.forEach((child) => document.removeChild(child));
+		if (main_script in document.children) {
+			document.removeChild(main_script);
+			plugin_scripts.forEach((child) => document.removeChild(child));
+		}
 	});
 </script>
 
