@@ -14,6 +14,7 @@ old_version="$(cat gradio/version.txt)"
 read -p "Current version is ${old_version}. What is the new version? " new_version
 echo "So you want to release version ${new_version}. Updating gradio/version.txt..."
 echo "${new_version}" > gradio/version.txt
+GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn

@@ -9,6 +9,7 @@ aws_required
 # You should first run `upload_to_pypi.sh` to update the version number and
 # pull the latest version of the code.
 new_version="$(cat gradio/version.txt)"
+GRADIO_VERSION=$new_version
 
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn
