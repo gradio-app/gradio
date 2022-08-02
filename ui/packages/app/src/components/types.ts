@@ -30,7 +30,7 @@ export interface Dependency {
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;
-	documentation?: Array<Array<string>>;
+	documentation?: Array<Array<Array<string>>>;
 }
 
 export interface LayoutNode {
