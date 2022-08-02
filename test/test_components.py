@@ -1042,8 +1042,6 @@ class TestDataframe(unittest.TestCase):
                 "value": {
                     "data": [
                         ["", "", ""],
-                        ["", "", ""],
-                        ["", "", ""],
                     ],
                     "headers": ["Name", "Age", "Member"],
                 },
@@ -1086,8 +1084,6 @@ class TestDataframe(unittest.TestCase):
                 "col_count": (3, "dynamic"),
                 "value": {
                     "data": [
-                        ["", "", ""],
-                        ["", "", ""],
                         ["", "", ""],
                     ],
                     "headers": [1, 2, 3],
