@@ -355,7 +355,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
@@ -444,7 +444,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "Hello World"
 
-    def postprocess(self, y: str | None) -> str:
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -1069,7 +1069,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def generate_sample(self):
         return self.choices
 
-    def postprocess(self, y: List[str]) -> List[str]:
+    def postprocess(self, y: List[str] | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -2924,7 +2924,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
@@ -2949,7 +2949,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "#000000"
 
-    def postprocess(self, y: str | None) -> str:
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -3024,7 +3024,7 @@ class Label(Changeable, IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: Dict[str, float] | str | float) -> Dict:
+    def postprocess(self, y: Dict[str, float] | str | float | None) -> Dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -3324,7 +3324,7 @@ class JSON(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: Dict | List | str) -> Dict | List:
+    def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
         """
         Parameters:
             y: JSON output
@@ -3469,7 +3469,7 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str]) -> List[str]:
+    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
         """
         Parameters:
             y: list of images
@@ -3815,7 +3815,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: path to the model
@@ -3904,7 +3904,7 @@ class Plot(Changeable, Clearable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: plot data
@@ -3965,7 +3965,7 @@ class Markdown(IOComponent, Changeable):
         self.md = MarkdownIt()
         self.value = self.postprocess(value)
 
-    def postprocess(self, y: str) -> str:
+    def postprocess(self, y: str | None) -> str | None:
         """
         Parameters:
             y: markdown representation
@@ -4125,7 +4125,7 @@ class Interpretation(Component):
     def style(self):
         return self
 
-    def postprocess(self, y):
+    def postprocess(self, y: Any) -> Any:
         return y
 
 
