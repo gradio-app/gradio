@@ -15,8 +15,8 @@ rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn
 cd ui
 pnpm i
-pnpm build
-pnpm build:cdn
+GRADIO_VERSION=$new_version pnpm build
+GRADIO_VERSION=$new_version pnpm build:cdn
 cd ..
 aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive
 cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
