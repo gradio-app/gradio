@@ -33,8 +33,9 @@
 	}
 
 	async function handle_clear() {
-		if (scene) {
+		if (scene && engine) {
 			scene.dispose();
+			engine.dispose();
 		}
 		value = null;
 		await tick();
@@ -59,9 +60,11 @@
 	let engine: BABYLON.Engine;
 
 	function addNewModel() {
-		if (scene) {
+		if (scene && engine) {
 			scene.dispose();
+			engine.dispose();
 		}
+		
 		engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
@@ -87,8 +90,8 @@
 		}
 
 		BABYLON.SceneLoader.Append(
-			"",
 			url,
+			"",
 			scene,
 			() => {
 				scene.createDefaultCamera(true, true, true);
