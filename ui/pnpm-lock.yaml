@@ -19,6 +19,7 @@ importers:
       happy-dom: ^2.49.0
       node-html-parser: ^5.3.3
       npm-run-all: ^4.1.5
+      playwright: ^1.22.2
       plotly.js-dist-min: ^2.10.1
       polka: ^1.0.0-next.22
       postcss: ^8.4.5
@@ -50,6 +51,7 @@ importers:
       happy-dom: 2.49.0
       node-html-parser: 5.3.3
       npm-run-all: 4.1.5
+      playwright: 1.22.2
       plotly.js-dist-min: 2.11.1
       polka: 1.0.0-next.22
       postcss: 8.4.6
