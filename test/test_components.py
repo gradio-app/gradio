@@ -1829,5 +1829,13 @@ def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
     assert data == data_restored
 
 
+@patch("gradio.Slider.get_random_value", return_value=7)
+def test_slider_get_random_value_on_load(mock_get_random_value):
+    slider = gr.Slider(value="random", minimum=-5, maximum=10)
+    assert slider.should_randomize
+    assert slider.value == 7
+    assert slider.get_random_value_on_load()["value"] == 7
+
+
 if __name__ == "__main__":
     unittest.main()

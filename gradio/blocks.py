@@ -45,6 +45,7 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
+        self.should_randomize = False
 
     def render(self):
         """
@@ -129,7 +130,7 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-
+        # breakpoint()
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         dependency = {
             "targets": [self._id] if not no_target else [],
@@ -165,6 +166,12 @@ class Block:
             "elem_id": self.elem_id,
             "style": self._style,
         }
+
+    def get_random_value_on_load(self):
+        """Function to get a random value from the block when the app loads.
+
+        No-op meant to be extended by children.
+        """
 
 
 class BlockContext(Block):
@@ -693,6 +700,7 @@ class Blocks(BlockContext):
 
     def __exit__(self, *args):
         Context.block = self.parent
+        self.configure_random_values()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -1047,3 +1055,16 @@ class Blocks(BlockContext):
             self.server.close()
             if self.enable_queue:
                 queueing.close()
+
+    def configure_random_values(self):
+        """Add a load event for every component whose initial value should be randomized."""
+        for component in Context.root_block.blocks.values():
+            if component.should_randomize:
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+                self.set_event_trigger(
+                    "load",
+                    component.get_random_value_on_load,
+                    None,
+                    component,
+                    no_target=True,
+                )

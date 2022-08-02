@@ -11,6 +11,7 @@ import numbers
 import operator
 import os
 import pathlib
+import random
 import shutil
 import tempfile
 import uuid
@@ -35,7 +36,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block
+from gradio.blocks import Block, Blocks, update
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Changeable,
@@ -673,7 +674,7 @@ class Slider(Changeable, IOComponent):
         self,
         minimum: float = 0,
         maximum: float = 100,
-        value: Optional[float] = None,
+        value: Optional[float | str] = None,
         *,
         step: Optional[float] = None,
         label: Optional[str] = None,
@@ -687,7 +688,7 @@ class Slider(Changeable, IOComponent):
         Parameters:
             minimum: minimum value for slider.
             maximum: maximum value for slider.
-            value: default value.
+            value: default value. If "random", the value will be randomly selected when the app loads in the browser.
             step: increment between slider values.
             label: component name in interface.
             show_label: if True, will display label.
@@ -702,6 +703,9 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
+        should_randomize = value == "random"
+        if should_randomize:
+            value = self.get_random_value()
         self.value = self.postprocess(value)
         self.cleared_value = self.value
         self.test_input = self.value
@@ -715,6 +719,8 @@ class Slider(Changeable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
+        # Set attribute after parent class sets to default value of False
+        self.should_randomize = should_randomize
 
     def get_config(self):
         return {
@@ -724,6 +730,12 @@ class Slider(Changeable, IOComponent):
             "value": self.value,
             **IOComponent.get_config(self),
         }
+
+    def get_random_value(self):
+        return random.randrange(int(self.minimum), int(self.maximum))
+
+    def get_random_value_on_load(self):
+        return update(value=self.get_random_value())
 
     @staticmethod
     def update(
