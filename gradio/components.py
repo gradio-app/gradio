@@ -36,7 +36,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block, Blocks, update
+from gradio.blocks import Block, update
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Changeable,
@@ -666,7 +666,7 @@ class Slider(Changeable, IOComponent):
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, generate_tone, titanic_survival
+    Demos: sentence_builder, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create_your_own_friends_with_a_gan
     """
 

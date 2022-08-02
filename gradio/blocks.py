@@ -699,6 +699,7 @@ class Blocks(BlockContext):
 
     def __exit__(self, *args):
         Context.block = self.parent
+        # Configure the random values before root_block is reset
         self.configure_random_values()
         if self.parent is None:
             Context.root_block = None
