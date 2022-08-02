@@ -3,23 +3,23 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
-		"workbench": "pnpm dev --filter @gradio/workbench",
-		"dev": "pnpm dev --filter @gradio/app",
-		"build": "pnpm build:local --filter @gradio/app --emptyOutDir",
-		"build:cdn": "pnpm build:cdn --filter @gradio/app --emptyOutDir",
-		"build:website": "pnpm build:website --filter @gradio/app --emptyOutDir",
+		"workbench": "pnpm --filter @gradio/workbench dev",
+		"dev": "pnpm --filter @gradio/app dev",
+		"build": "pnpm --filter @gradio/app build:local --emptyOutDir",
+		"build:cdn": "pnpm --filter @gradio/app build:cdn --emptyOutDir",
+		"build:website": "pnpm --filter @gradio/app build:website --emptyOutDir",
 		"build:cdn-local": "TEST_CDN=TRUE pnpm build:cdn",
 		"preview:cdn-server": "sirv ../gradio/templates/cdn --single --port=4321 --cors",
-		"preview:cdn-app": "pnpm dev --filter @gradio/cdn-test",
+		"preview:cdn-app": "pnpm --filter @gradio/cdn-test dev",
 		"preview:cdn-local": "run-p preview:cdn-server preview:cdn-app",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "vitest dev",
 		"test:run": "vitest run",
-		"test:browser": "pnpm test:browser --filter @gradio/app",
+		"test:browser": "pnpm --filter @gradio/app test:browser",
 		"test:browser:full": "run-s build test:browser",
-		"test:browser:debug": "pnpm test:browser:debug --filter @gradio/app"
+		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug"
 	},
 	"type": "module",
 	"author": "",
@@ -27,7 +27,7 @@
 	"private": true,
 	"dependencies": {
 		"@gradio/tootils": "workspace:^0.0.1",
-		"@playwright/test": "^1.20.0",
+		"@playwright/test": "^1.24.2",
 		"@sveltejs/vite-plugin-svelte": "^1.0.0-next.44",
 		"@tailwindcss/forms": "^0.5.0",
 		"@testing-library/dom": "^8.11.3",
@@ -39,6 +39,7 @@
 		"happy-dom": "^2.49.0",
 		"node-html-parser": "^5.3.3",
 		"npm-run-all": "^4.1.5",
+		"playwright": "^1.24.2",
 		"plotly.js-dist-min": "^2.10.1",
 		"polka": "^1.0.0-next.22",
 		"postcss": "^8.4.5",
@@ -58,7 +59,6 @@
 		"vitest": "^0.12.7"
 	},
 	"devDependencies": {
-		"@types/tailwindcss": "^3.1.0",
 		"@types/three": "^0.138.0"
 	}
 }
