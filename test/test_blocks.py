@@ -214,6 +214,7 @@ def test_slider_random_value_config():
         else:
             assert component.should_randomize
     assert all([dep["trigger"] == "load" for dep in demo.config["dependencies"]])
+    assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
 
 if __name__ == "__main__":
