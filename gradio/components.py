@@ -3637,7 +3637,8 @@ class Gallery(IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         files = []
         gallery_path = os.path.join(dir, data)
-        for file in os.listdir():
+        # Sort to preserve order
+        for file in sorted(os.listdir(gallery_path)):
             file_path = os.path.join(gallery_path, file)
             img = processing_utils.encode_file_to_base64(
                 file_path, encryption_key=encryption_key
