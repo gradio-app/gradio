@@ -64,7 +64,7 @@
 			scene.dispose();
 			engine.dispose();
 		}
-		
+
 		engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
