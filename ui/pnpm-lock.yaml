@@ -281,11 +281,13 @@ importers:
     specifiers:
       '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
+      '@types/d3-dsv': ^3.0.0
       d3-dsv: ^3.0.1
       dequal: ^2.0.2
     dependencies:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
+      '@types/d3-dsv': 3.0.0
       d3-dsv: 3.0.1
       dequal: 2.0.2
 
@@ -1281,7 +1283,6 @@ packages:
 
   /@types/d3-dsv/3.0.0:
     resolution: {integrity: sha512-o0/7RlMl9p5n6FQDptuJVMxDf/7EDEv2SYEO/CwdG2tr1hTfUVi0Iavkk2ax+VpaQ/1jVhpnj5rq1nj8vwhn2A==}
-    dev: true
 
   /@types/d3-path/3.0.0:
     resolution: {integrity: sha512-0g/A+mZXgFkQxN3HniRDbXMN79K3CdTpLsevj+PXiTcb2hVyvkZUBg37StmgCQkaD84cUJ4uaDAWq7UJOQy2Tg==}
