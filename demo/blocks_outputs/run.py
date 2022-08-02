@@ -21,6 +21,10 @@ def make_markdown():
     ]
 
 
+def fill_one():
+    return [[1, 2, 3]]
+
+
 with gr.Blocks() as demo:
     with gr.Column():
         txt = gr.Textbox(label="Small Textbox", lines=1, show_label=False)
