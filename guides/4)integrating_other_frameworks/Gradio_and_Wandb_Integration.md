@@ -3,7 +3,7 @@
 Related spaces: https://huggingface.co/spaces/akhaliq/JoJoGAN
 Tags: WANDB, SPACES
 Contributed by Gradio team
-Docs: image, Dropdown
+Docs: image, dropdown
 
 
 ## Introduction
