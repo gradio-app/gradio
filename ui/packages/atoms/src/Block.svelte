@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { create_classes, get_styles } from "../../utils";
+	import { get_styles } from "../../utils";
 	import type { Styles } from "@gradio/utils";
 
 	import { getContext } from "svelte";

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { create_classes } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let variant: "default" | "panel" = "default";
-	export let parent: string | null = null;
-	export let style: Record<string, unknown> = {};
+	export let style: Styles = {};
 </script>
 
 <div

@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
 
-	export let original: string;
 	export let interpretation: Array<[number, number]>;
-	export let theme: string;
 </script>
 
 <div class="input-number">
@@ -25,10 +23,10 @@
 		-webkit-appearance: none;
 		margin: 0;
 	}
-	input[type="number"] {
+	input {
 		-moz-appearance: textfield;
 	}
-	.input-number[theme="default"] {
+	.input-number {
 		@apply shadow transition hover:shadow-md dark:bg-gray-800;
 	}
 </style>

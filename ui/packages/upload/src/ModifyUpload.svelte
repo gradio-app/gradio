@@ -9,8 +9,6 @@
 	export let editable: boolean = false;
 	export let absolute: boolean = true;
 
-	export let style: string | null = "";
-
 	const dispatch = createEventDispatcher<{ edit: FileData; clear: null }>();
 </script>
 

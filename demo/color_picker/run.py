@@ -35,8 +35,8 @@ demo = gr.Interface(
     inputs=inputs,
     outputs=outputs,
     examples=[
-        [os.path.join(os.path.dirname(__file__), "lion.jpg"), "#ff0000"],
-        [os.path.join(os.path.dirname(__file__), "lion.jpg"), "#0000FF"],
+        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#ff0000"],
+        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#0000FF"],
     ],
 )
 
