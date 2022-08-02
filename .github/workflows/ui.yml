@@ -53,7 +53,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm dlx playwright install chromium
+      - run: pnpm exec playwright install chromium
       - run: pnpm build
       - run: pnpm test:browser
       - name: Upload failed tests screenshots
