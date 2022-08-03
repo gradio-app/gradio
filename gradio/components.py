@@ -257,7 +257,7 @@ class IOComponent(Component):
         """
         Style the component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container.
         """
@@ -1106,7 +1106,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Style the CheckboxGroup.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             item_container: If True, will place the items in a container.
             container: If True, will place the component in a container.
         """
@@ -1333,7 +1333,7 @@ class Dropdown(Radio):
         """
         Style the Dropdown.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container.
         """
@@ -1685,7 +1685,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Style the Image.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the image.
             width: Width of the image.
         """
@@ -1891,7 +1891,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         """
         Style the video.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the video.
             width: Width of the video.
         """
@@ -2220,7 +2220,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         """
         Style the audio.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2423,7 +2423,7 @@ class File(Changeable, Clearable, IOComponent):
         """
         Style the file.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2689,7 +2689,7 @@ class Dataframe(Changeable, IOComponent):
         """
         Style the DataFrame.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2836,7 +2836,7 @@ class Timeseries(Changeable, IOComponent):
         """
         Style the Timeseries.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2934,7 +2934,7 @@ class Button(Clickable, IOComponent):
         """
         Style the button.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             full_width: If True, the button will span the full width of the container.
             border: If True, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
         """
@@ -3606,7 +3606,7 @@ class Gallery(IOComponent):
         """
         Style the gallery.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the gallery.
             container: If True, will place gallery in a container.
         """
