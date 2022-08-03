@@ -13,8 +13,8 @@ importers:
       '@testing-library/user-event': ^13.5.0
       '@types/three': ^0.138.0
       autoprefixer: ^10.4.4
-      babylonjs: ^4.2.1
-      babylonjs-loaders: ^4.2.1
+      babylonjs: ^5.17.1
+      babylonjs-loaders: ^5.17.1
       happy-dom: ^2.49.0
       node-html-parser: ^5.3.3
       npm-run-all: ^4.1.5
@@ -45,8 +45,8 @@ importers:
       '@testing-library/svelte': 3.1.0_svelte@3.49.0
       '@testing-library/user-event': 13.5.0_gzufz4q333be4gqfrvipwvqt6a
       autoprefixer: 10.4.4_postcss@8.4.6
-      babylonjs: 4.2.2
-      babylonjs-loaders: 4.2.2
+      babylonjs: 5.17.1
+      babylonjs-loaders: 5.17.1
       happy-dom: 2.49.0
       node-html-parser: 5.3.3
       npm-run-all: 4.1.5
@@ -987,6 +987,10 @@ packages:
     resolution: {integrity: sha512-LCQgW1lM+EpKK4yWMiPEgi6ONwJ7W4JrSu3t9JixNRgvnic72OnN2f0bt91rE30EJr1ZaokvkXD/aEiBp/Juyg==}
     dev: false
 
+  /babylonjs-gltf2interface/5.17.1:
+    resolution: {integrity: sha512-QVT+jSVd/8zCiXojd4X3j9USGErrrd6oiB6PWOvnX/o2WSjrHvyEfIvgXHMNLoai8kTXv+qg3N1wwF6JMOovIA==}
+    dev: false
+
   /babylonjs-loaders/4.2.2:
     resolution: {integrity: sha512-IuShR5N4zkDMzKEGsCZ0uZDCn07BLLj8LlKwyiSwFR1V9KxAALkt2INTMCdXjuWELTcZEALZlyO85mKJ2pDPHw==}
     dependencies:
@@ -994,8 +998,20 @@ packages:
       babylonjs-gltf2interface: 4.2.2
     dev: false
 
+  /babylonjs-loaders/5.17.1:
+    resolution: {integrity: sha512-GnHoOPpkShJHbs5CiDEoG94+WcCNC1xIQ6OduSxEl4vKU1gjJ2iimCjG6nSzbzfqFHSuwWbAZTWI5UyNrxJFNQ==}
+    dependencies:
+      babylonjs: 5.17.1
+      babylonjs-gltf2interface: 5.17.1
+    dev: false
+
   /babylonjs/4.2.2:
     resolution: {integrity: sha512-p7mTi6+nLuWJTLbwxEJxLOh/QMHMV2KA0bviEoQSK5VtsAq1F0JghoOZYRs4aEqAZF/deFPWvMQk1vbXJ+4eEA==}
+    dev: false
+
+  /babylonjs/5.17.1:
+    resolution: {integrity: sha512-YzzIeR/dHKnAlax1ftq++61l2d1WuzDFnVlhUjmKtTdEcDQwHhsBVb9O4+D9PTXhW2iMclEFPEwwOYRv4UmCFA==}
+    requiresBuild: true
     dev: false
 
   /balanced-match/1.0.2:
