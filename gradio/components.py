@@ -3626,13 +3626,19 @@ class Gallery(IOComponent):
             return None
 
         label = processing_utils.strip_invalid_filename_characters(label)
-        # Save all the files belonging to this gallery at gallery_path
-        gallery_path = f"{label}_{str(uuid.uuid4())}"
+        # join the label with the dir so that one directory stores all gallery
+        # outputs, e.g. <dir>/<component-label>
+        dir = os.path.join(dir, label)
+
+        # Save all the files belonging to this gallery in the gallery_path directory
+        gallery_path = str(uuid.uuid4())
+
         for img_data in data:
             self.save_flagged_file(dir, gallery_path, img_data, encryption_key)
+
         # In the csv file, the row corresponding to this sample will list
-        # the path where all sub-images are stored.
-        return gallery_path
+        # the path where all sub-images are stored, e.g. <component-label>/<uuid>
+        return os.path.join(label, gallery_path)
 
     def restore_flagged(self, dir, data, encryption_key):
         files = []

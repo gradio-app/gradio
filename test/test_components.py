@@ -1822,7 +1822,7 @@ def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
     ]
     label = "Gallery, 1"
     path = gallery.save_flagged(str(tmp_path), label, data, encryption_key=None)
-    assert path == "Gallery 1_my-uuid"
+    assert path == os.path.join("Gallery 1", "my-uuid")
     assert sorted(os.listdir(os.path.join(tmp_path, path))) == ["0.png", "1.jpg"]
 
     data_restored = gallery.restore_flagged(tmp_path, path, encryption_key=None)
