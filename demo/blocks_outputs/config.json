@@ -176,7 +176,7 @@
       "type": "dataframe",
       "props": {
         "datatype": "str",
-        "row_count": 3,
+        "row_count": 1,
         "col_count": 3,
         "default_value": [
           [

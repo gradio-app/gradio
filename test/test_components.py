@@ -1037,12 +1037,10 @@ class TestDataframe(unittest.TestCase):
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": ["str", "str", "str"],
-                "row_count": (3, "dynamic"),
+                "row_count": (1, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": {
                     "data": [
-                        ["", "", ""],
-                        ["", "", ""],
                         ["", "", ""],
                     ],
                     "headers": ["Name", "Age", "Member"],
@@ -1082,12 +1080,10 @@ class TestDataframe(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "datatype": ["str", "str", "str"],
-                "row_count": (3, "dynamic"),
+                "row_count": (1, "dynamic"),
                 "col_count": (3, "dynamic"),
                 "value": {
                     "data": [
-                        ["", "", ""],
-                        ["", "", ""],
                         ["", "", ""],
                     ],
                     "headers": [1, 2, 3],

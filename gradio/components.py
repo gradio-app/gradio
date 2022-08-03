@@ -2390,7 +2390,7 @@ class Dataframe(Changeable, IOComponent):
         value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
-        row_count: int | Tuple[int, str] = (3, "dynamic"),
+        row_count: int | Tuple[int, str] = (1, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = None,
         datatype: str | List[str] = "str",
         type: str = "pandas",
