@@ -255,7 +255,7 @@ class IOComponent(Component):
         container: Optional[bool] = None,
     ):
         """
-        Style the component.
+        This method can be used to change the appearance of the component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
@@ -810,7 +810,7 @@ class Slider(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
-        Style the slider.
+        This method can be used to change the appearance of the slider.
         Parameters:
             container: If True, will place the component in a container.
         """
@@ -1104,7 +1104,7 @@ class CheckboxGroup(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
-        Style the CheckboxGroup.
+        This method can be used to change the appearance of the CheckboxGroup.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             item_container: If True, will place the items in a container.
@@ -1263,7 +1263,7 @@ class Radio(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
-        Style the radio.
+        This method can be used to change the appearance of the radio component.
         Parameters:
             item_container: If True, will place items in a container.
             container: If True, will place the component in a container.
@@ -1331,7 +1331,7 @@ class Dropdown(Radio):
         container: Optional[bool] = None,
     ):
         """
-        Style the Dropdown.
+        This method can be used to change the appearance of the Dropdown.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
@@ -1683,7 +1683,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         width: Optional[int] = None,
     ):
         """
-        Style the Image.
+        This method can be used to change the appearance of the Image component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the image.
@@ -1889,7 +1889,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         width: Optional[int] = None,
     ):
         """
-        Style the video.
+        This method can be used to change the appearance of the video component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the video.
@@ -2218,7 +2218,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the audio.
+        This method can be used to change the appearance of the audio component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
@@ -2421,7 +2421,7 @@ class File(Changeable, Clearable, IOComponent):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the file.
+        This method can be used to change the appearance of the file component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
@@ -2687,7 +2687,7 @@ class Dataframe(Changeable, IOComponent):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the DataFrame.
+        This method can be used to change the appearance of the DataFrame component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
@@ -2834,7 +2834,7 @@ class Timeseries(Changeable, IOComponent):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the Timeseries.
+        This method can be used to change the appearance of the TimeSeries component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
@@ -2932,7 +2932,7 @@ class Button(Clickable, IOComponent):
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the button.
+        This method can be used to change the appearance of the button component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             full_width: If True, the button will span the full width of the container.
@@ -3202,7 +3202,7 @@ class Label(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
-        Style the label
+        This method can be used to change the appearance of the label component.
         Parameters:
             container: If True, will add a container to the label.
         """
@@ -3349,6 +3349,7 @@ class HighlightedText(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
+        This method can be used to change the appearance of the HighlightedText component.
         Parameters:
             rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
@@ -3441,7 +3442,7 @@ class JSON(Changeable, IOComponent):
 
     def style(self, container: Optional[bool] = None):
         """
-        Style the JSON.
+        This method can be used to change the appearance of the JSON component.
         Parameters:
             container: If True, will place the JSON in a container.
         """
@@ -3604,7 +3605,7 @@ class Gallery(IOComponent):
         container: Optional[bool] = None,
     ):
         """
-        Style the gallery.
+        This method can be used to change the appearance of the gallery component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the gallery.
@@ -3810,7 +3811,7 @@ class Chatbot(Changeable, IOComponent):
         color_map: Optional[List[str, str]] = None,
     ):
         """
-        Style the chatbot.
+        This method can be used to change the appearance of the Chatbot component.
         Parameters:
             rounded: If True, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: List containing colors to apply to chat bubbles.
@@ -3959,9 +3960,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the Model3d component.
+        This method can be used to change the appearance of the Model3D component.
         Args:
-            rounded: If True, will round the corners of the Model3d component. If a tuple, will round the corners of the Model3d according to the values in the tuple, starting from top left and proceeding clock-wise.
+            rounded: If True, will round the corners of the Model3D component. If a tuple, will round the corners of the Model3D according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -4196,7 +4197,7 @@ class Dataset(Clickable, Component):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         """
-        Style the Dataset component.
+        This method can be used to change the appearance of the Dataset component.
         Parameters:
             rounded: If True, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
