@@ -67,7 +67,7 @@ Install Gradio and Wandb at the top:
 Code as follows: 
 
 
-```
+```python
 plt.rcParams['figure.dpi'] = 150
 pretrained = 'arcane_multi' #@param ['art', 'arcane_multi', 'supergirl', 'arcane_jinx', 'arcane_caitlyn', 'jojo_yasuho', 'jojo', 'disney']
 #@markdown Preserve color tries to preserve color of original image by limiting family of allowable transformations. Otherwise, the stylized image will inherit the colors of the reference images, leading to heavier stylizations.
@@ -133,7 +133,7 @@ display_image(utils.make_grid(output, normalize=True, range=(-1, 1), nrow=n_samp
 Next, you'll upload some of your own images for style. Upload those images in colab and add the names of the images as shown below:
 
 
-```
+```python
 Upload your own style images into the style_images folder and type it into the field in the following format without the directory name. Upload multiple style images to do multi-shot image translation
 names = ['arcane_caitlyn.jpeg', 'arcane_jinx.jpeg', 'arcane_jayce.jpeg', 'arcane_viktor.jpeg'] #@param {type:"raw"}
 
@@ -184,7 +184,7 @@ display_image(target_im, title='Style References')
 
 This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces.
 
-```
+```python
 #@title Finetune StyleGAN
 #@markdown alpha controls the strength of the style
 alpha =  1.0 #@param {type:"slider", min:0, max:1, step:0.1}
@@ -290,7 +290,7 @@ wandb.log({"Current Samples": out_table})
 
 Using Web components, using the <gradio-app> tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
-```
+```python
 <script type="module"
 src="https://gradio.s3-us-west-2.amazonaws.com/3.1.1/gradio.js">
 </script>
@@ -300,7 +300,7 @@ src="https://gradio.s3-us-west-2.amazonaws.com/3.1.1/gradio.js">
 Meanwhile, adding a Gradio Demo to a W&B Report takes just a few extra lines of code: 
 
 
-```
+```python
 wandb.log({"Gradio panel": wandb.Html('''
 <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
 <gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
@@ -312,7 +312,7 @@ Lastly, here's how to save, download, and load your model (and Gradio demo)
 
 6. Save and Download Model
 
-```
+```python
 torch.save({"g": generator.state_dict()}, "your-model-name.pt")
 
 
@@ -325,7 +325,7 @@ files.download('your-model-name.pt')
 
 7. Load Model and Gradio Demo
 
-```
+```python
 ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
 generatoryourmodelname.load_state_dict(ckptjojo["g"], strict=False)
 
