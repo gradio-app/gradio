@@ -60,7 +60,9 @@ We'll be following along with the colab provided in the JoJoGAN repo with some m
 
 Install Gradio and Wandb at the top:
 
-`!pip install gradio wandb`
+```
+!pip install gradio wandb
+```
 
 3. Follow the instruction in colab to setup and try out a pretrained model
 
