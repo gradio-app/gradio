@@ -25,7 +25,7 @@ class Changeable(Block):
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
-        or uploads an image)
+        or uploads an image). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -73,6 +73,7 @@ class Clickable(Block):
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -120,6 +121,8 @@ class Submittable(Block):
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
+        This method can be used when this component is in a Gradio Blocks.
+
 
         Parameters:
             fn: Callable function
@@ -164,7 +167,7 @@ class Editable(Block):
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
-        built-in editor.
+        built-in editor. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -203,7 +206,7 @@ class Clearable(Block):
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
-        using the X button for the component.
+        using the X button for the component. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -241,7 +244,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user plays the component (e.g. audio or video)
+        This event is triggered when the user plays the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -277,7 +281,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user pauses the component (e.g. audio or video)
+        This event is triggered when the user pauses the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -313,7 +318,8 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user stops the component (e.g. audio or video)
+        This event is triggered when the user stops the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -353,7 +359,7 @@ class Streamable(Block):
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
-        component)
+        component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
