@@ -13,6 +13,7 @@ import os
 import pathlib
 import shutil
 import tempfile
+import uuid
 import warnings
 from copy import deepcopy
 from types import ModuleType
@@ -122,7 +123,7 @@ class IOComponent(Component):
         """
         Saved flagged file and returns filepath
         """
-        label = "".join([char for char in label if char.isalnum() or char in "._- "])
+        label = processing_utils.strip_invalid_filename_characters(label)
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
         if os.path.exists(output_dir):
@@ -3617,6 +3618,39 @@ class Gallery(IOComponent):
             self._style["height"] = height
 
         return IOComponent.style(self, rounded=rounded, container=container)
+
+    def save_flagged(
+        self, dir: str, label: Optional[str], data: List[str], encryption_key: bool
+    ) -> None | str:
+        if data is None:
+            return None
+
+        label = processing_utils.strip_invalid_filename_characters(label)
+        # join the label with the dir so that one directory stores all gallery
+        # outputs, e.g. <dir>/<component-label>
+        dir = os.path.join(dir, label)
+
+        # Save all the files belonging to this gallery in the gallery_path directory
+        gallery_path = str(uuid.uuid4())
+
+        for img_data in data:
+            self.save_flagged_file(dir, gallery_path, img_data, encryption_key)
+
+        # In the csv file, the row corresponding to this sample will list
+        # the path where all sub-images are stored, e.g. <component-label>/<uuid>
+        return os.path.join(label, gallery_path)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        files = []
+        gallery_path = os.path.join(dir, data)
+        # Sort to preserve order
+        for file in sorted(os.listdir(gallery_path)):
+            file_path = os.path.join(gallery_path, file)
+            img = processing_utils.encode_file_to_base64(
+                file_path, encryption_key=encryption_key
+            )
+            files.append(img)
+        return files
 
 
 class Carousel(IOComponent, Changeable):
