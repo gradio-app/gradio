@@ -60,7 +60,7 @@ We'll be following along with the colab provided in the JoJoGAN repo with some m
 
 Install Gradio and Wandb at the top:
 
-```
+```python
 !pip install gradio wandb
 ```
 
