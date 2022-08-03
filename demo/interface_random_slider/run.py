@@ -8,7 +8,7 @@ def func(slider_1, slider_2):
 demo = gr.Interface(
     func,
     [
-        gr.Slider(value="random", minimum=1.5, maximum=250000.89),
+        gr.Slider(minimum=1.5, maximum=250000.89, randomize=True),
         gr.Slider(value=15, minimum=5, maximum=30),
     ],
     "number",

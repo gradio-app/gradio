@@ -203,16 +203,16 @@ def test_slider_random_value_config():
             value=11.2, minimum=-10.2, maximum=15, label="Non-random Slider (Static)"
         )
         gr.Slider(
-            value="random", minimum=100, maximum=200, label="Random Slider (Input 1)"
+            randomize=True, minimum=100, maximum=200, label="Random Slider (Input 1)"
         )
         gr.Slider(
-            value="random", minimum=10, maximum=23.2, label="Random Slider (Input 2)"
+            randomize=True, minimum=10, maximum=23.2, label="Random Slider (Input 2)"
         )
     for component in demo.blocks.values():
         if "Non-random" in component.label:
-            assert not component.should_randomize
+            assert not component.randomize
         else:
-            assert component.should_randomize
+            assert component.randomize
     assert all([dep["trigger"] == "load" for dep in demo.config["dependencies"]])
     assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 

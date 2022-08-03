@@ -682,6 +682,7 @@ class Slider(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        randomize: bool = False,
         **kwargs,
     ):
         """
@@ -695,6 +696,7 @@ class Slider(Changeable, IOComponent):
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -703,8 +705,7 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        should_randomize = value == "random"
-        if should_randomize:
+        if randomize:
             value = self.get_random_value()
         self.value = self.postprocess(value)
         self.cleared_value = self.value
@@ -717,10 +718,9 @@ class Slider(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            randomize=randomize,
             **kwargs,
         )
-        # Set attribute after parent class sets to default value of False
-        self.should_randomize = should_randomize
 
     def get_config(self):
         return {

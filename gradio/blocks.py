@@ -36,7 +36,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
+    def __init__(
+        self, *, render=True, elem_id=None, visible=True, randomize=False, **kwargs
+    ):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
@@ -45,7 +47,7 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
-        self.should_randomize = False
+        self.randomize = randomize
 
     def render(self):
         """
@@ -1059,7 +1061,7 @@ class Blocks(BlockContext):
     def configure_random_values(self):
         """Add a load event for every component whose initial value should be randomized."""
         for component in Context.root_block.blocks.values():
-            if component.should_randomize:
+            if component.randomize:
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
