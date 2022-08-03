@@ -689,7 +689,7 @@ class Slider(Changeable, IOComponent):
         Parameters:
             minimum: minimum value for slider.
             maximum: maximum value for slider.
-            value: default value. If "random", the value will be randomly selected when the app loads in the browser.
+            value: default value.
             step: increment between slider values.
             label: component name in interface.
             show_label: if True, will display label.
