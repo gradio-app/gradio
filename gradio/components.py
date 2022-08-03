@@ -188,7 +188,7 @@ class IOComponent(Component):
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
             x: Input to interface
-            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -257,9 +257,9 @@ class IOComponent(Component):
         """
         Style the component.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
-            container: If true, will place the component in a container.
+            container: If True, will place the component in a container.
         """
         if rounded is not None:
             self._style["rounded"] = rounded
@@ -380,7 +380,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
             x: Input to interface
-            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -812,7 +812,7 @@ class Slider(Changeable, IOComponent):
         """
         Style the slider.
         Parameters:
-            container: If true, will place the component in a container.
+            container: If True, will place the component in a container.
         """
         return IOComponent.style(
             self,
@@ -1106,9 +1106,9 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Style the CheckboxGroup.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             item_container: If True, will place the items in a container.
-            container: If true, will place the component in a container.
+            container: If True, will place the component in a container.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
@@ -1266,7 +1266,7 @@ class Radio(Changeable, IOComponent):
         Style the radio.
         Parameters:
             item_container: If True, will place items in a container.
-            container: If true, will place the component in a container.
+            container: If True, will place the component in a container.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
@@ -1333,9 +1333,9 @@ class Dropdown(Radio):
         """
         Style the Dropdown.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
-            container: If true, will place the component in a container.
+            container: If True, will place the component in a container.
         """
         return IOComponent.style(
             self, rounded=rounded, border=border, container=container
@@ -1685,7 +1685,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         Style the Image.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             height: Height of the image.
             width: Width of the image.
         """
@@ -1891,7 +1891,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         """
         Style the video.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             height: Height of the video.
             width: Width of the video.
         """
@@ -1936,7 +1936,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.value = self.postprocess(value)
@@ -2220,7 +2220,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         """
         Style the audio.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2423,7 +2423,7 @@ class File(Changeable, Clearable, IOComponent):
         """
         Style the file.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2689,7 +2689,7 @@ class Dataframe(Changeable, IOComponent):
         """
         Style the DataFrame.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2836,7 +2836,7 @@ class Timeseries(Changeable, IOComponent):
         """
         Style the Timeseries.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -2934,9 +2934,9 @@ class Button(Clickable, IOComponent):
         """
         Style the button.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
-            full_width: If true, the button will span the full width of the container.
-            border: If true, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            full_width: If True, the button will span the full width of the container.
+            border: If True, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
         """
         if full_width is not None:
             self._style["full_width"] = full_width
@@ -3204,7 +3204,7 @@ class Label(Changeable, IOComponent):
         """
         Style the label
         Parameters:
-            container: If true, will add a container to the label.
+            container: If True, will add a container to the label.
         """
         return IOComponent.style(self, container=container)
 
@@ -3443,7 +3443,7 @@ class JSON(Changeable, IOComponent):
         """
         Style the JSON.
         Parameters:
-            container: If true, will place the JSON in a container.
+            container: If True, will place the JSON in a container.
         """
         return IOComponent.style(self, container=container)
 
@@ -3606,9 +3606,9 @@ class Gallery(IOComponent):
         """
         Style the gallery.
         Parameters:
-            rounded: If true, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top and proceeding clock-wise.
             height: Height of the gallery.
-            container: If true, will place gallery in a container.
+            container: If True, will place gallery in a container.
         """
         if grid is not None:
             self._style["grid"] = grid
@@ -3812,7 +3812,7 @@ class Chatbot(Changeable, IOComponent):
         """
         Style the chatbot.
         Parameters:
-            rounded: If true, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
+            rounded: If True, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: List containing colors to apply to chat bubbles.
         Returns:
 
@@ -3961,7 +3961,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         """
         Style the Model3d component.
         Args:
-            rounded: If true, will round the corners of the Model3d component. If a tuple, will round the corners of the Model3d according to the values in the tuple, starting from top left and proceeding clock-wise.
+            rounded: If True, will round the corners of the Model3d component. If a tuple, will round the corners of the Model3d according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
@@ -4198,8 +4198,8 @@ class Dataset(Clickable, Component):
         """
         Style the Dataset component.
         Parameters:
-            rounded: If true, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If true, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+            rounded: If True, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
+            border: If True, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
