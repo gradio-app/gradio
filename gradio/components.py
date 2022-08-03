@@ -259,7 +259,7 @@ class IOComponent(Component):
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if rounded is not None:
             self._style["rounded"] = rounded
@@ -812,7 +812,7 @@ class Slider(Changeable, IOComponent):
         """
         This method can be used to change the appearance of the slider.
         Parameters:
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         return IOComponent.style(
             self,
@@ -1108,7 +1108,7 @@ class CheckboxGroup(Changeable, IOComponent):
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             item_container: If True, will place the items in a container.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
@@ -1266,7 +1266,7 @@ class Radio(Changeable, IOComponent):
         This method can be used to change the appearance of the radio component.
         Parameters:
             item_container: If True, will place items in a container.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
@@ -1335,7 +1335,7 @@ class Dropdown(Radio):
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         return IOComponent.style(
             self, rounded=rounded, border=border, container=container
@@ -3204,7 +3204,7 @@ class Label(Changeable, IOComponent):
         """
         This method can be used to change the appearance of the label component.
         Parameters:
-            container: If True, will add a container to the label.
+            container: If True, will add a container to the label - providing some extra padding around the border.
         """
         return IOComponent.style(self, container=container)
 
@@ -3353,7 +3353,7 @@ class HighlightedText(Changeable, IOComponent):
         Parameters:
             rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
@@ -3444,7 +3444,7 @@ class JSON(Changeable, IOComponent):
         """
         This method can be used to change the appearance of the JSON component.
         Parameters:
-            container: If True, will place the JSON in a container.
+            container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
         return IOComponent.style(self, container=container)
 
@@ -3609,7 +3609,7 @@ class Gallery(IOComponent):
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the gallery.
-            container: If True, will place gallery in a container.
+            container: If True, will place gallery in a container - providing some extra padding around the border.
         """
         if grid is not None:
             self._style["grid"] = grid
