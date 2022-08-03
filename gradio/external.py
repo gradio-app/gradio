@@ -291,7 +291,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
     }
 
     kwargs = dict(interface_info, **kwargs)
-    kwargs["api_mode"] = True  # So interface doesn't run pre/postprocess.
+    kwargs["_api_mode"] = True  # So interface doesn't run pre/postprocess.
     interface = gradio.Interface(**kwargs)
     return interface
 
@@ -414,7 +414,7 @@ def get_spaces_interface(model_name, config, alias, **kwargs):
     config["fn"] = fn
 
     kwargs = dict(config, **kwargs)
-    kwargs["api_mode"] = True
+    kwargs["_api_mode"] = True
     interface = gradio.Interface(**kwargs)
     return interface
 

@@ -274,7 +274,7 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
-        self.api_mode = kwargs.get("api_mode", False)
+        self.api_mode = kwargs.get("_api_mode", False)
         self.fn = fn
         self.fn_durations = [0, 0]
         self.__name__ = fn.__name__
