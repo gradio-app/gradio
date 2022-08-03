@@ -193,6 +193,7 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
+        breakpoint()
         example_set = self.examples[example_id]
         raw_input = [
             self.inputs[i].preprocess_example(example)
