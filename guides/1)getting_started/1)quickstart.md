@@ -68,7 +68,7 @@ When using the `Image` component as input, your function will receive a NumPy ar
 You can also set the datatype used by the component with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
 ```python
-gr.Image(type='filepath', shape=...)
+gr.Image(type="filepath", shape=...)
 ```
 
 Also note that our input `Image` component comes with an edit button 🖉, which allows for cropping and zooming into images. Manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!

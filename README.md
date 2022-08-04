@@ -142,8 +142,8 @@ import gradio as gr
 
 def sepia(input_img):
     sepia_filter = np.array([
-        [0.393, 0.769, 0.189],
-        [0.349, 0.686, 0.168],
+        [0.393, 0.769, 0.189], 
+        [0.349, 0.686, 0.168], 
         [0.272, 0.534, 0.131]
     ])
     sepia_img = input_img.dot(sepia_filter.T)
@@ -161,7 +161,7 @@ When using the `Image` component as input, your function will receive a NumPy ar
 You can also set the datatype used by the component with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
 ```python
-gr.Image(type='filepath', shape=...)
+gr.Image(type="filepath", shape=...)
 ```
 
 Also note that our input `Image` component comes with an edit button 🖉, which allows for cropping and zooming into images. Manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!
@@ -229,10 +229,10 @@ with gr.Blocks() as demo:
                 image_input = gr.Image()
                 image_output = gr.Image()
             image_button = gr.Button("Flip")
-
+    
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
-
+    
 demo.launch()
 ```
 
