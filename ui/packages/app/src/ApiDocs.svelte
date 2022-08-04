@@ -1,12 +1,5 @@
 <script lang="ts">
-	import type { ComponentMeta } from "./components/types";
-
-	interface Dependency {
-		inputs: Array<number>;
-		outputs: Array<number>;
-		api_name: string | null;
-		documentation?: Array<Array<string | null>>;
-	}
+	import type { ComponentMeta, Dependency } from "./components/types";
 
 	export let components: Array<ComponentMeta>;
 	export let dependencies: Array<Dependency>;
@@ -64,14 +57,9 @@
 						&#123;<br />
 						&nbsp;&nbsp;"data": [<br />
 						{#each dependency.documentation[0] as dependency_doc, i}
-							&nbsp;&nbsp;&nbsp;&nbsp;{dependency_doc?.substring(
-								0,
-								dependency_doc.indexOf(")") + 1
-							)},
+							&nbsp;&nbsp;&nbsp;&nbsp;{dependency_doc[1]},
 							<span class="text-pink-400 dark:text-pink-600"
-								>// represents {dependency_doc?.substring(
-									dependency_doc.indexOf(": ") + 2
-								)} of
+								>// represents {dependency_doc[0]} of
 								{((label) => {
 									return label ? "'" + label + "'" : "the";
 								})(
@@ -96,14 +84,9 @@
 						&#123;<br />
 						&nbsp;&nbsp;"data": [<br />
 						{#each dependency.documentation[1] as dependency_doc, i}
-							&nbsp;&nbsp;&nbsp;&nbsp;{dependency_doc?.substring(
-								0,
-								dependency_doc.indexOf(")") + 1
-							)},
+							&nbsp;&nbsp;&nbsp;&nbsp;{dependency_doc[1]},
 							<span class="text-pink-400 dark:text-pink-600"
-								>// represents {dependency_doc?.substring(
-									dependency_doc.indexOf(": ") + 2
-								)} of
+								>// represents {dependency_doc[0]} of
 								{((label) => {
 									return label ? "'" + label + "'" : "the";
 								})(

@@ -1,9 +1,11 @@
 import json
 import os
+import pathlib
 import tempfile
 import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
+from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1036,13 +1038,14 @@ class TestDataframe(unittest.TestCase):
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": ["str", "str", "str"],
-                "row_count": (3, "dynamic"),
+                "row_count": (1, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "value": [
-                    ["", "", ""],
-                    ["", "", ""],
-                    ["", "", ""],
-                ],
+                "value": {
+                    "data": [
+                        ["", "", ""],
+                    ],
+                    "headers": ["Name", "Age", "Member"],
+                },
                 "name": "dataframe",
                 "show_label": True,
                 "label": "Dataframe Input",
@@ -1063,26 +1066,11 @@ class TestDataframe(unittest.TestCase):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.preprocess(x_data)
 
-        # Output functionalities
         dataframe_output = gr.Dataframe()
-        output = dataframe_output.postprocess(np.zeros((2, 2)))
-        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]]})
-        output = dataframe_output.postprocess([[1, 3, 5]])
-        self.assertDictEqual(output, {"data": [[1, 3, 5]]})
-        output = dataframe_output.postprocess(
-            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
-        )
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]],
-            },
-        )
         self.assertEqual(
             dataframe_output.get_config(),
             {
-                "headers": None,
+                "headers": [1, 2, 3],
                 "max_rows": 20,
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
@@ -1093,15 +1081,36 @@ class TestDataframe(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "datatype": ["str", "str", "str"],
-                "row_count": (3, "dynamic"),
+                "row_count": (1, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "value": [
-                    ["", "", ""],
-                    ["", "", ""],
-                    ["", "", ""],
-                ],
+                "value": {
+                    "data": [
+                        ["", "", ""],
+                    ],
+                    "headers": [1, 2, 3],
+                },
                 "interactive": None,
                 "wrap": False,
+            },
+        )
+
+    def test_postprocess(self):
+        """
+        postprocess
+        """
+        dataframe_output = gr.Dataframe()
+        output = dataframe_output.postprocess(np.zeros((2, 2)))
+        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
+        output = dataframe_output.postprocess([[1, 3, 5]])
+        self.assertDictEqual(output, {"data": [[1, 3, 5]], "headers": [1, 2, 3]})
+        output = dataframe_output.postprocess(
+            pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
+        )
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["num", "prime"],
+                "data": [[2, True], [3, True], [4, False]],
             },
         )
         with self.assertRaises(ValueError):
@@ -1128,6 +1137,26 @@ class TestDataframe(unittest.TestCase):
                 },
             )
 
+        # When the headers don't match the data
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True], [3, True]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two"],
+                "data": [[2, True], [3, True]],
+            },
+        )
+        dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
+        output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
+        self.assertDictEqual(
+            output,
+            {
+                "headers": ["one", "two", "three", 4],
+                "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+            },
+        )
+
     def test_in_interface_as_input(self):
         """
         Interface, process,
@@ -1135,7 +1164,7 @@ class TestDataframe(unittest.TestCase):
         x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
         self.assertEqual(iface.process([x_data]), [6])
-        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]]}
+        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
 
         def get_last(my_list):
             return my_list[-1][-1]
@@ -1153,7 +1182,8 @@ class TestDataframe(unittest.TestCase):
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
         self.assertEqual(
-            iface.process([{"data": [[2, 3, 4]]}])[0], {"data": [[True, False, True]]}
+            iface.process([{"data": [[2, 3, 4]]}])[0],
+            {"data": [[True, False, True]], "headers": [1, 2, 3]},
         )
 
 
@@ -1776,6 +1806,27 @@ class TestColorPicker(unittest.TestCase):
         """
         component = gr.ColorPicker("#000000")
         self.assertEqual(component.get_config().get("value"), "#000000")
+
+
+@patch("uuid.uuid4", return_value="my-uuid")
+def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
+    gallery = gr.Gallery()
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+    data = [
+        gr.processing_utils.encode_file_to_base64(
+            pathlib.Path(test_file_dir, "bus.png")
+        ),
+        gr.processing_utils.encode_file_to_base64(
+            pathlib.Path(test_file_dir, "cheetah1.jpg")
+        ),
+    ]
+    label = "Gallery, 1"
+    path = gallery.save_flagged(str(tmp_path), label, data, encryption_key=None)
+    assert path == os.path.join("Gallery 1", "my-uuid")
+    assert sorted(os.listdir(os.path.join(tmp_path, path))) == ["0.png", "1.jpg"]
+
+    data_restored = gallery.restore_flagged(tmp_path, path, encryption_key=None)
+    assert data == data_restored
 
 
 if __name__ == "__main__":
