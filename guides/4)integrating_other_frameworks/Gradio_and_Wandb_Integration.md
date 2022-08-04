@@ -5,7 +5,6 @@ Tags: WANDB, SPACES
 Contributed by Gradio team
 Docs: image, dropdown
 
-
 ## Introduction
 
 In this Guide, we'll walk you through:
@@ -16,8 +15,7 @@ In this Guide, we'll walk you through:
 
 Here's an example of an model trained and experiments tracked on wandb, try out the JoJoGAN demo below.
 
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
-<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
+<iframe src="https://hf.space/embed/akhaliq/JoJoGAN/+" frameBorder="0" height="810" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ## What is the Wandb?
 
@@ -290,23 +288,19 @@ wandb.log({"Current Samples": out_table})
 
 
 
-Using Web components, using the <gradio-app> tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
+Using Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
-```python
-<script type="module"
-src="https://gradio.s3-us-west-2.amazonaws.com/3.1.1/gradio.js">
-</script>
-<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
+```html
+&lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
 ```
 
 Meanwhile, adding a Gradio Demo to a W&B Report takes just a few extra lines of code: 
 
 
-```python
+```html
 wandb.log({"Gradio panel": wandb.Html('''
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
-<gradio-app space="akhaliq/JoJoGAN"> </gradio-app>
-)
+&lt;script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"&gt; &lt;script&gt;
+&lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;)
 ```
 
 Lastly, here's how to save, download, and load your model (and Gradio demo)
