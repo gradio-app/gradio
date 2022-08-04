@@ -1,3 +1,4 @@
+import { get } from "svelte/store";
 import { loading_status } from "./stores";
 
 type StatusResponse =
@@ -27,12 +28,6 @@ interface Payload {
 	fn_index: number;
 }
 
-function delay(n: number) {
-	return new Promise(function (resolve) {
-		setTimeout(resolve, n * 1000);
-	});
-}
-
 async function post_data<
 	Return extends Record<string, unknown> = Record<string, unknown>
 >(url: string, body: unknown): Promise<Return> {
@@ -60,6 +55,8 @@ type Output = {
 	average_duration?: number;
 };
 
+const ws_map = new Map();
+
 export const fn =
 	(session_hash: string, api_endpoint: string) =>
 	async ({
@@ -68,7 +65,8 @@ export const fn =
 		queue,
 		backend_fn,
 		frontend_fn,
-		output_data
+		output_data,
+		queue_callback
 	}: {
 		action: string;
 		payload: Payload;
@@ -76,6 +74,7 @@ export const fn =
 		backend_fn: boolean;
 		frontend_fn: Function | undefined;
 		output_data?: Output["data"];
+		queue_callback: Function;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
@@ -87,46 +86,68 @@ export const fn =
 		}
 
 		if (queue && ["predict", "interpret"].includes(action)) {
-			loading_status.update(fn_index as number, "pending", null, null);
+			loading_status.update(fn_index as number, "pending", null, null, null);
 
-			const { hash, queue_position } = await post_data<{
-				hash: string;
-				queue_position: number;
-			}>(api_endpoint + "queue/push/", { ...payload, action, session_hash });
+			function send_message(fn: number, data: any) {
+				ws_map.get(fn).connection.send(JSON.stringify(data));
+			}
 
-			loading_status.update(fn_index, "pending", queue_position, null);
+			if (ws_map.get(fn_index)) {
+				send_message(fn_index, payload);
+			} else {
+				const websocket_data = {
+					connection: new WebSocket(
+						`ws://${api_endpoint
+							.replace("http://", "")
+							.replace("/api/", "")}/queue/join`
+					),
+					hash: Math.random().toString(36).substring(2)
+				};
 
-			for (;;) {
-				await delay(1);
+				ws_map.set(fn_index, websocket_data);
 
-				const { status, data } = await post_data<StatusResponse>(
-					api_endpoint + "queue/status/",
-					{
-						hash: hash
+				websocket_data.connection.onopen = () => {
+					send_message(fn_index, { hash: session_hash });
+				};
+
+				websocket_data.connection.onclose = () => {
+					console.log("close");
+				};
+
+				websocket_data.connection.onmessage = function (event) {
+					const data = JSON.parse(event.data);
+
+					switch (data.msg) {
+						case "send_data":
+							send_message(fn_index, payload);
+							break;
+						case "estimation":
+							loading_status.update(
+								fn_index,
+								get(loading_status)[data.fn_index]?.status || "pending",
+								data.queue_size,
+								data.rank,
+								data.avg_process_time
+							);
+							break;
+						case "process_completed":
+							loading_status.update(
+								fn_index,
+								"complete",
+								null,
+								null,
+								data.output.average_duration
+							);
+							queue_callback(data.output);
+							break;
+						case "process_starts":
+							loading_status.update(fn_index, "pending", data.rank, 0, null);
+							break;
 					}
-				);
-
-				if (status === "QUEUED") {
-					loading_status.update(fn_index, "pending", data, null);
-				} else if (status === "PENDING") {
-					loading_status.update(fn_index, "pending", 0, null);
-				} else if (status === "FAILED") {
-					loading_status.update(fn_index, "error", null, null);
-
-					throw new Error(status);
-				} else {
-					loading_status.update(
-						fn_index,
-						"complete",
-						null,
-						data.average_duration
-					);
-
-					return data;
-				}
+				};
 			}
 		} else {
-			loading_status.update(fn_index as number, "pending", null, null);
+			loading_status.update(fn_index as number, "pending", null, null, null);
 
 			const output = await post_data(api_endpoint + action + "/", {
 				...payload,
@@ -136,6 +157,7 @@ export const fn =
 			loading_status.update(
 				fn_index,
 				"complete",
+				null,
 				null,
 				output.average_duration as number
 			);
