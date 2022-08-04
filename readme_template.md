@@ -1,10 +1,10 @@
 <div align="center">
 
-  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br><br>
+  [<img src="readme_files/gradio.svg" alt="gradio" width=300>](https://gradio.app)<br>
   <em>Build & share delightful machine learning apps easily</em>
 
-  [![CircleCI](https://img.shields.io/circleci/build/gh/gradio-app/gradio)](https://circleci.com/gh/gradio-app/gradio)
-  [![Codecov branch](https://img.shields.io/codecov/c/github/gradio-app/gradio/main)]()
+  [<img src="https://circleci.com/gh/gradio-app/gradio.svg?style=svg" alt="circleci">](https://circleci.com/gh/gradio-app/gradio)
+  [<img src="https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg" alt="codecov">](https://app.codecov.io/gh/gradio-app/gradio)
   [![PyPI](https://img.shields.io/pypi/v/gradio)](https://pypi.org/project/gradio/)
   [![PyPI downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/)
   ![Python version](https://img.shields.io/badge/python-3.7+-important)
