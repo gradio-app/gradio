@@ -1,16 +1,17 @@
 import json
 import os
+import pathlib
 import tempfile
 import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
+from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
 import pytest
-from requests import head
 
 import gradio as gr
 from gradio import media_data
@@ -1805,6 +1806,27 @@ class TestColorPicker(unittest.TestCase):
         """
         component = gr.ColorPicker("#000000")
         self.assertEqual(component.get_config().get("value"), "#000000")
+
+
+@patch("uuid.uuid4", return_value="my-uuid")
+def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
+    gallery = gr.Gallery()
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+    data = [
+        gr.processing_utils.encode_file_to_base64(
+            pathlib.Path(test_file_dir, "bus.png")
+        ),
+        gr.processing_utils.encode_file_to_base64(
+            pathlib.Path(test_file_dir, "cheetah1.jpg")
+        ),
+    ]
+    label = "Gallery, 1"
+    path = gallery.save_flagged(str(tmp_path), label, data, encryption_key=None)
+    assert path == os.path.join("Gallery 1", "my-uuid")
+    assert sorted(os.listdir(os.path.join(tmp_path, path))) == ["0.png", "1.jpg"]
+
+    data_restored = gallery.restore_flagged(tmp_path, path, encryption_key=None)
+    assert data == data_restored
 
 
 if __name__ == "__main__":

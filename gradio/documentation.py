@@ -115,7 +115,7 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
 def document_cls(cls):
     doc_str = inspect.getdoc(cls)
     if doc_str is None:
-        return "", {}
+        return "", {}, ""
     tags = {}
     description_lines = []
     mode = "description"
