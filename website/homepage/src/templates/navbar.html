@@ -1,11 +1,11 @@
 <div
-  class="container mx-auto flex flex-row flex-wrap justify-between sm:flex-col lg:flex-row relative items-center px-4 py-5 gap-6 text-md z-50 lg:text-lg sm:text-md"
+  class="container mx-auto flex flex-wrap justify-between flex-row relative items-center px-4 py-5 gap-6 text-lg z-50"
 >
   <a href="/">
     <img src="/assets/gradio.svg" >
   </a>
   <svg
-    class="h-8 w-8 sm:hidden"
+    class="h-8 w-8 md:hidden"
     viewBox="-10 -10 20 20"
     onclick='document.querySelector("nav").classList.toggle("hidden"),document.querySelector("nav").classList.toggle("flex")'
   >
@@ -14,7 +14,7 @@
     <rect x="-7" y="4" width="14" height="2"></rect>
   </svg>
   <nav
-    class="hidden w-full flex-col gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-12"
+    class="hidden w-full flex-col gap-3 md:flex md:w-auto md:flex-row md:gap-6"
   >
     <a class="thin-link flex items-center gap-3" href="/getting_started"
       ><span>⚡</span> <span>Quickstart</span>
@@ -70,7 +70,7 @@
     </div>
     <a class="thin-link flex items-center gap-3" href="https://github.com/gradio-app/gradio"
       >
-    <img src="/assets/img/github-black.svg" class="w-4 lg:w-6 sm:w-4"> Github
+    <img src="/assets/img/github-black.svg" class="w-6"> Github
     </a>
   </nav>
 </div>
