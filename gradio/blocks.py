@@ -36,9 +36,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(
-        self, *, render=True, elem_id=None, visible=True, randomize=False, **kwargs
-    ):
+    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
@@ -47,7 +45,6 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
-        self.randomize = randomize
 
     def render(self):
         """
@@ -167,12 +164,6 @@ class Block:
             "elem_id": self.elem_id,
             "style": self._style,
         }
-
-    def get_random_value_on_load(self):
-        """Function to get a random value from the block when the app loads.
-
-        No-op meant to be extended by children.
-        """
 
 
 class BlockContext(Block):
@@ -702,7 +693,7 @@ class Blocks(BlockContext):
     def __exit__(self, *args):
         Context.block = self.parent
         # Configure the random values before root_block is reset
-        self.configure_random_values()
+        self.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -1058,14 +1049,16 @@ class Blocks(BlockContext):
             if self.enable_queue:
                 queueing.close()
 
-    def configure_random_values(self):
+    def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
+        from gradio.components import IOComponent
+
         for component in Context.root_block.blocks.values():
-            if component.randomize:
+            if isinstance(component, IOComponent) and component.attach_load_event:
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
-                    component.get_random_value_on_load,
+                    component.load_fn,
                     None,
                     component,
                     no_target=True,

@@ -36,7 +36,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
-from gradio.blocks import Block, update
+from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Changeable,
@@ -87,6 +87,7 @@ class IOComponent(Component):
         visible: bool = True,
         requires_permissions: bool = False,
         elem_id: Optional[str] = None,
+        load_fn: Optional[Callable] = None,
         **kwargs,
     ):
         self.label = label
@@ -95,6 +96,12 @@ class IOComponent(Component):
         self.interactive = interactive
 
         self.set_interpret_parameters()
+        if callable(load_fn):
+            self.attach_load_event = True
+            self.load_fn = load_fn
+        else:
+            self.attach_load_event = False
+            self.load_fn = None
 
         super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
@@ -277,6 +284,16 @@ class IOComponent(Component):
             config["mode"] = "dynamic" if interactive else "static"
         return config
 
+    @staticmethod
+    def get_load_fn_and_initial_value(value):
+        if callable(value):
+            initial_value = value()
+            load_fn = value
+        else:
+            initial_value = value
+            load_fn = None
+        return load_fn, initial_value
+
 
 @document("change", "submit", "style")
 class Textbox(Changeable, Submittable, IOComponent):
@@ -319,7 +336,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -330,6 +348,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -487,7 +506,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[float] = None,
+        value: Optional[float | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -508,7 +527,8 @@ class Number(Changeable, Submittable, IOComponent):
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -674,7 +694,7 @@ class Slider(Changeable, IOComponent):
         self,
         minimum: float = 0,
         maximum: float = 100,
-        value: Optional[float | str] = None,
+        value: Optional[float | Callable] = None,
         *,
         step: Optional[float] = None,
         label: Optional[str] = None,
@@ -705,9 +725,12 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
+
         if randomize:
-            value = self.get_random_value()
-        self.value = self.postprocess(value)
+            value = self.get_random_value
+
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -718,7 +741,7 @@ class Slider(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            randomize=randomize,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -733,9 +756,6 @@ class Slider(Changeable, IOComponent):
 
     def get_random_value(self):
         return random.randrange(int(self.minimum), int(self.maximum))
-
-    def get_random_value_on_load(self):
-        return update(value=self.get_random_value())
 
     @staticmethod
     def update(
@@ -867,6 +887,8 @@ class Checkbox(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.value = self.postprocess(value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -876,6 +898,7 @@ class Checkbox(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -995,7 +1018,8 @@ class CheckboxGroup(Changeable, IOComponent):
         self.choices = choices or []
         self.cleared_value = []
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1005,6 +1029,7 @@ class CheckboxGroup(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1173,7 +1198,8 @@ class Radio(Changeable, IOComponent):
         self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1183,6 +1209,7 @@ class Radio(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1406,7 +1433,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         self.mirror_webcam = mirror_webcam
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1427,6 +1455,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1772,7 +1801,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         self.format = format
         self.source = source
         self.mirror_webcam = mirror_webcam
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1780,6 +1810,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1956,7 +1987,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1975,6 +2007,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2281,7 +2314,8 @@ class File(Changeable, Clearable, IOComponent):
         """
         self.file_count = file_count
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2290,6 +2324,7 @@ class File(Changeable, Clearable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2884,7 +2919,8 @@ class Variable(IOComponent):
         Parameters:
             value: the initial value of the state.
         """
-        self.value = deepcopy(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = deepcopy(initial_value)
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
 
@@ -2918,8 +2954,11 @@ class Button(Clickable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = initial_value
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
         self.variant = variant
 
     def get_config(self):
@@ -2998,7 +3037,8 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = "#000000"
         self.test_input = value
         IOComponent.__init__(
@@ -3008,6 +3048,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3118,13 +3159,15 @@ class Label(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3272,13 +3315,15 @@ class HighlightedText(Changeable, IOComponent):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3409,13 +3454,15 @@ class JSON(Changeable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3498,13 +3545,15 @@ class HTML(Changeable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3562,12 +3611,14 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         super().__init__(
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3812,8 +3863,8 @@ class Chatbot(Changeable, IOComponent):
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
-
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.color_map = color_map
 
         IOComponent.__init__(
@@ -3822,6 +3873,7 @@ class Chatbot(Changeable, IOComponent):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3913,13 +3965,15 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -4053,13 +4107,15 @@ class Plot(Changeable, Clearable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -4140,9 +4196,12 @@ class Markdown(IOComponent, Changeable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
         self.md = MarkdownIt()
-        self.value = self.postprocess(value)
 
     def postprocess(self, y: str | None) -> str | None:
         """
