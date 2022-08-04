@@ -80,8 +80,8 @@ You'll notice that in order to make the demo, we created a `gradio.Interface`. T
 The core `Interface` class is initialized with three required parameters:
 
 - `fn`: the function to wrap a UI around
-- `inputs`: which component(s) to use for the input (e.g. `"text"` or `"image"` or `"audio"`)
-- `outputs`: which component(s) to use for the output (e.g. `"text"` or `"image"` `"label"`)
+- `inputs`: which component(s) to use for the input (e.g. `"text"`, `"image"` or `"audio"`)
+- `outputs`: which component(s) to use for the output (e.g. `"text"`, `"image"` or `"label"`)
 
 Let's take a closer look at these components used to provide input and output.
 
