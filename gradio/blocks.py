@@ -659,7 +659,7 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
-
+        breakpoint()
         for _id, block in self.blocks.items():
             config["components"].append(
                 {

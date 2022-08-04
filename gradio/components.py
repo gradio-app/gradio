@@ -755,7 +755,21 @@ class Slider(Changeable, IOComponent):
         }
 
     def get_random_value(self):
-        return random.randrange(int(self.minimum), int(self.maximum))
+        # Goal is to generate a possible value of the slider
+        # without generating all possible values
+        # We randomly pick a step among all possible steps and add  to the minimum
+        n_steps = int((self.maximum - self.minimum) / self.step)
+        step = random.randint(0, n_steps)
+        value = self.minimum + step * self.step
+
+        # Round to the number of decimals in the step
+        # So that UI doesn't display really long decimals due to arithmetic
+        # If the step doesn't have any decimals, find will return -1
+        n_decimals = max(str(self.step)[::-1].find("."), 0)
+        if n_decimals:
+            value = round(value, n_decimals)
+
+        return value
 
     @staticmethod
     def update(
