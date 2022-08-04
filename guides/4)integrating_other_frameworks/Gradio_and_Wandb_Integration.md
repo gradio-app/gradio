@@ -62,73 +62,8 @@ Let's get started!
 !pip install gradio wandb
     ```
 
-3. Follow the instruction in colab to setup and try out a pretrained model
 
-    Code as follows: 
-
-
-    ```python
-    plt.rcParams['figure.dpi'] = 150
-    pretrained = 'arcane_multi' #@param ['art', 'arcane_multi', 'supergirl', 'arcane_jinx', 'arcane_caitlyn', 'jojo_yasuho', 'jojo', 'disney']
-    #@markdown Preserve color tries to preserve color of original image by limiting family of allowable transformations. Otherwise, the stylized image will inherit the colors of the reference images, leading to heavier stylizations.
-    preserve_color = False #@param{type:"boolean"}
-
-
-    if preserve_color:
-        ckpt = f'{pretrained}_preserve_color.pt'
-    else:
-        ckpt = f'{pretrained}.pt'
-
-
-    # load base version if preserve_color version not available
-    try:
-        downloader.download_file(ckpt)
-    except:
-        ckpt = f'{pretrained}.pt'
-        downloader.download_file(ckpt)
-
-
-    ckpt = torch.load(os.path.join('models', ckpt), map_location=lambda storage, loc: storage)
-    generator.load_state_dict(ckpt["g"], strict=False)
-
-
-    #@title Generate results
-    n_sample =  5#@param {type:"number"}
-    seed = 3000 #@param {type:"number"}
-
-
-    torch.manual_seed(seed)
-    with torch.no_grad():
-        generator.eval()
-        z = torch.randn(n_sample, latent_dim, device=device)
-
-
-        original_sample = original_generator([z], truncation=0.7, truncation_latent=mean_latent)
-        sample = generator([z], truncation=0.7, truncation_latent=mean_latent)
-
-
-        original_my_sample = original_generator(my_w, input_is_latent=True)
-        my_sample = generator(my_w, input_is_latent=True)
-
-
-    # display reference images
-    if pretrained == 'arcane_multi':
-        style_path = f'style_images_aligned/arcane_jinx.png'
-    else:   
-        style_path = f'style_images_aligned/{pretrained}.png'
-    style_image = transform(Image.open(style_path)).unsqueeze(0).to(device)
-    face = transform(aligned_face).unsqueeze(0).to(device)
-
-
-    my_output = torch.cat([style_image, face, my_sample], 0)
-    display_image(utils.make_grid(my_output, normalize=True, range=(-1, 1)), title='My sample')
-
-
-    output = torch.cat([original_sample, sample], 0)
-    display_image(utils.make_grid(output, normalize=True, range=(-1, 1), nrow=n_sample), title='Random samples')
-    ```
-
-4. Add style images for fine-tuning
+3. Add style images for fine-tuning
 
     Next, you'll upload some of your own images for style. Upload those images in colab and add the names of the images as shown below:
 
@@ -180,7 +115,7 @@ Let's get started!
     ```
 
 
-5. Finetune StyleGAN and W&B experiment tracking
+4. Finetune StyleGAN and W&B experiment tracking
 
     This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces.
 
@@ -306,7 +241,7 @@ Let's get started!
     Lastly, here's how to save, download, and load your model (and Gradio demo)
 
 
-6. Save and Download Model
+5. Save and Download Model
 
     ```python
     torch.save({"g": generator.state_dict()}, "your-model-name.pt")
@@ -319,7 +254,7 @@ Let's get started!
 
 
 
-7. Load Model and Gradio Demo
+6. Load Model and Gradio Demo
 
     ```python
     ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
