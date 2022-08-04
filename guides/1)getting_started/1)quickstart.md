@@ -12,13 +12,13 @@ Gradio allows you to **build demos and share them, all in Python.** And usually 
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
-1\. Install Gradio using PIP:
+1\. Install Gradio using pip:
 
 ```bash
 pip install gradio
 ```
 
-2\. Run the code below as a Python script or in a Jupyter Notebook ([Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing) also is a good option):
+2\. Run the code below as a Python script or in a Jupyter Notebook (or [Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)):
 
 $code_hello_world
 
@@ -32,9 +32,9 @@ You'll notice that in order to make the demo, we created a `gradio.Interface`. T
 
 The core `Interface` class is initialized with three required parameters:
 
-- `fn`: The function to wrap a UI around.
-- `inputs`: Which component(s) to use for the input. e.g. `"text"` or `"image"` or `"audio"`
-- `outputs`: Which component(s) to use for the output. e.g. `"text"` or `"image"` `"label"`
+- `fn`: the function to wrap a UI around
+- `inputs`: which component(s) to use for the input (e.g. `"text"` or `"image"` or `"audio"`)
+- `outputs`: which component(s) to use for the output (e.g. `"text"` or `"image"` `"label"`)
 
 Let's take a closer look at these components used to provide input and output.
 
