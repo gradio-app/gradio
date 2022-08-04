@@ -59,7 +59,7 @@ Let's get started!
     Install Gradio and Wandb at the top:
 
     ```python
-    !pip install gradio wandb
+!pip install gradio wandb
     ```
 
 3. Follow the instruction in colab to setup and try out a pretrained model
