@@ -230,13 +230,16 @@ class TestLoadFromPipeline(unittest.TestCase):
         self.assertIsNotNone(output)
 
 
-def test_interface_load_cache_examples():
+def test_interface_load_cache_examples(tmp_path):
+    import pathlib
+    from unittest import mock
     test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-    gr.Blocks.load(
-        name="models/google/vit-base-patch16-224",
-        examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
-        cache_examples=True,
-    )
+    with mock.patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        gr.Interface.load(
+            name="models/google/vit-base-patch16-224",
+            examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+            cache_examples=True,
+        )
 
 
 if __name__ == "__main__":
