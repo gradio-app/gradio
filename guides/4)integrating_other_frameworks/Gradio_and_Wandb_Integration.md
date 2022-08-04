@@ -139,29 +139,17 @@ Let's get started!
     column_names = ["Referece (y)", "Style Code(w)", "Real Face Image(x)"]
 
 
-    if use_wandb:
-        wandb.init(project="JoJoGAN")
-        config = wandb.config
-        config.num_iter = num_iter
-        config.preserve_color = preserve_color
-        wandb.log(
-        {"Style reference": [wandb.Image(transforms.ToPILImage()(target_im))]},
-        step=0)
-        wandb.log({"Gradio panel": wandb.Html('''
-    <link rel="stylesheet" href="https://gradio.s3-us-west-2.amazonaws.com/2.6.2/static/bundle.css">
-    <div id="JoJoGAN-demo"></div>
-    <script src="https://gradio.s3-us-west-2.amazonaws.com/2.6.2/static/bundle.js"></script>
-    <script>
-    launchGradioFromSpaces("akhaliq/JoJoGAN", "#JoJoGAN-demo")
-    </script>
-    <style>
-    /* work around a weird bug */
-    .gradio_app .gradio_bg[theme=huggingface] .gradio_interface .input_dropdown .dropdown:hover .dropdown_menu {
-        display: block;
-    }
-    </style>
-    ''', inject=False)})
-
+    wandb.init(project="JoJoGAN")
+    config = wandb.config
+    config.num_iter = num_iter
+    config.preserve_color = preserve_color
+    wandb.log(
+    {"Style reference": [wandb.Image(transforms.ToPILImage()(target_im))]},
+    step=0)
+    wandb.log({"Gradio panel": wandb.Html('''
+    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"> </script>
+    <gradio-app space="akhaliq/JoJoGAN"> <gradio-app>
+    ''')})
 
     lpips_fn = lpips.LPIPS(net='vgg').to(device)
 
