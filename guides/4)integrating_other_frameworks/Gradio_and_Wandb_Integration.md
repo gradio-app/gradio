@@ -63,59 +63,7 @@ Let's get started!
     ```
 
 
-3. Add style images for fine-tuning
-
-    Next, you'll upload some of your own images for style. Upload those images in colab and add the names of the images as shown below:
-
-
-    ```python
-    Upload your own style images into the style_images folder and type it into the field in the following format without the directory name. Upload multiple style images to do multi-shot image translation
-    names = ['arcane_caitlyn.jpeg', 'arcane_jinx.jpeg', 'arcane_jayce.jpeg', 'arcane_viktor.jpeg'] #@param {type:"raw"}
-
-
-    targets = []
-    latents = []
-
-
-    for name in names:
-        style_path = os.path.join('style_images', name)
-        assert os.path.exists(style_path), f"{style_path} does not exist!"
-
-
-        name = strip_path_extension(name)
-
-
-        # crop and align the face
-        style_aligned_path = os.path.join('style_images_aligned', f'{name}.png')
-        if not os.path.exists(style_aligned_path):
-            style_aligned = align_face(style_path)
-            style_aligned.save(style_aligned_path)
-        else:
-            style_aligned = Image.open(style_aligned_path).convert('RGB')
-
-
-        # GAN invert
-        style_code_path = os.path.join('inversion_codes', f'{name}.pt')
-        if not os.path.exists(style_code_path):
-            latent = e4e_projection(style_aligned, style_code_path, device)
-        else:
-            latent = torch.load(style_code_path)['latent']
-
-
-        targets.append(transform(style_aligned).to(device))
-        latents.append(latent.to(device))
-
-
-    targets = torch.stack(targets, 0)
-    latents = torch.stack(latents, 0)
-
-
-    target_im = utils.make_grid(targets, normalize=True, range=(-1, 1))
-    display_image(target_im, title='Style References')
-    ```
-
-
-4. Finetune StyleGAN and W&B experiment tracking
+3. Finetune StyleGAN and W&B experiment tracking
 
     This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces.
 
@@ -131,7 +79,6 @@ Let's get started!
     #@markdown Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
     num_iter = 200 #@param {type:"number"}
     #@markdown Log training on wandb and interval for image logging
-    use_wandb = True #@param {type:"boolean"}
     log_interval = 50 #@param {type:"number"}
 
 
@@ -146,10 +93,7 @@ Let's get started!
     wandb.log(
     {"Style reference": [wandb.Image(transforms.ToPILImage()(target_im))]},
     step=0)
-    wandb.log({"Gradio panel": wandb.Html('''
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"> </script>
-    <gradio-app space="akhaliq/JoJoGAN"> <gradio-app>
-    ''')})
+  
 
     lpips_fn = lpips.LPIPS(net='vgg').to(device)
 
@@ -182,22 +126,22 @@ Let's get started!
         img = generator(in_latent, input_is_latent=True)
         loss = lpips_fn(F.interpolate(img, size=(256,256), mode='area'), F.interpolate(targets, size=(256,256), mode='area')).mean()
         
-        if use_wandb:
-            wandb.log({"loss": loss}, step=idx)
-            if idx % log_interval == 0:
-                generator.eval()
-                my_sample = generator(my_w, input_is_latent=True)
-                generator.train()
-                my_sample = transforms.ToPILImage()(utils.make_grid(my_sample, normalize=True, range=(-1, 1)))
-                wandb.log(
-                {"Current stylization": [wandb.Image(my_sample)]},
-                step=idx)
-            table_data = [
-                    wandb.Image(transforms.ToPILImage()(target_im)),
-                    wandb.Image(img),
-                    wandb.Image(my_sample),
-                ]
-                samples.append(table_data)
+
+        wandb.log({"loss": loss}, step=idx)
+        if idx % log_interval == 0:
+            generator.eval()
+            my_sample = generator(my_w, input_is_latent=True)
+            generator.train()
+            my_sample = transforms.ToPILImage()(utils.make_grid(my_sample, normalize=True, range=(-1, 1)))
+            wandb.log(
+            {"Current stylization": [wandb.Image(my_sample)]},
+            step=idx)
+        table_data = [
+                wandb.Image(transforms.ToPILImage()(target_im)),
+                wandb.Image(img),
+                wandb.Image(my_sample),
+            ]
+            samples.append(table_data)
 
 
         g_optim.zero_grad()
@@ -209,27 +153,10 @@ Let's get started!
     wandb.log({"Current Samples": out_table})
     ```
 
-
-
-    Using Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
-
-    ```html
-    &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
-    ```
-
-    Meanwhile, adding a Gradio Demo to a W&B Report takes just a few extra lines of code: 
-
-
-    ```html
-    wandb.log({"Gradio panel": wandb.Html('''
-    &lt;script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"&gt; &lt;script&gt;
-    &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;)
-    ```
-
     Lastly, here's how to save, download, and load your model (and Gradio demo)
 
 
-5. Save and Download Model
+4. Save and Download Model
 
     ```python
     torch.save({"g": generator.state_dict()}, "your-model-name.pt")
@@ -242,7 +169,7 @@ Let's get started!
 
 
 
-6. Load Model and Gradio Demo
+5. Load Model and Gradio Demo
 
     ```python
     ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
@@ -261,7 +188,7 @@ Let's get started!
 
 
     examples=[['mona.png','Jinx']]
-    gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
+    demo = gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True)
 
     ## you can also use the new Gradio Blocks API like this
 
@@ -281,7 +208,22 @@ Let's get started!
         btn = gr.Button("Run")
         btn.click(fn=inference, inputs=inp, outputs=out)
 
-    demo.launch()
+    ```
+
+    6. Integrate Gradio
+
+    The last step—integrating your Gradio demo with your W&B dashboard—is just one extra line:
+    demo.integrate(wandb=wandb)
+
+    Live Demo
+    
+    Once you call integrate, a demo will be created and you can integrate it into your dashboard or report
+
+
+    Outside of W&B with Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
+
+    ```html
+    &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
     ```
 
 
