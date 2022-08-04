@@ -1,4 +1,5 @@
 import os
+import pathlib
 import unittest
 
 import pytest
@@ -227,6 +228,15 @@ class TestLoadFromPipeline(unittest.TestCase):
         pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
         output = pipe("My name is Sylvain and I work at Hugging Face in Brooklyn")
         self.assertIsNotNone(output)
+
+
+def test_interface_load_cache_examples():
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+    gr.Blocks.load(
+        name="models/google/vit-base-patch16-224",
+        examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+        cache_examples=True,
+    )
 
 
 if __name__ == "__main__":
