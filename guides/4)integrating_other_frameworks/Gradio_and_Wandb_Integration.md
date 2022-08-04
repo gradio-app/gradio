@@ -188,7 +188,7 @@ Let's get started!
 
 
     examples=[['mona.png','Jinx']]
-    demo = gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True)
+    demo = gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
 
     ## you can also use the new Gradio Blocks API like this
 
@@ -207,6 +207,8 @@ Let's get started!
 
         btn = gr.Button("Run")
         btn.click(fn=inference, inputs=inp, outputs=out)
+
+    demo.launch()
 
     ```
 
