@@ -1829,5 +1829,22 @@ def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
     assert data == data_restored
 
 
+@patch("gradio.Slider.get_random_value", return_value=7)
+def test_slider_get_random_value_on_load(mock_get_random_value):
+    slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
+    assert slider.attach_load_event
+    assert slider.value == 7
+    assert slider.load_fn() == 7
+
+
+@patch("random.randint", return_value=3)
+def test_slider_rounds_when_using_default_randomizer(mock_randint):
+    slider = gr.Slider(minimum=0, maximum=1, randomize=True, step=0.1)
+    # If get_random_value didn't round, this test would fail
+    # because 0.30000000000000004 != 0.3
+    assert slider.get_random_value() == 0.3
+    mock_randint.assert_called()
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import io
 import random
 import sys
@@ -195,6 +196,56 @@ class TestBlocks(unittest.TestCase):
         )
         demo.share_url = None
         demo.close()
+
+
+def test_slider_random_value_config():
+    with gr.Blocks() as demo:
+        gr.Slider(
+            value=11.2, minimum=-10.2, maximum=15, label="Non-random Slider (Static)"
+        )
+        gr.Slider(
+            randomize=True, minimum=100, maximum=200, label="Random Slider (Input 1)"
+        )
+        gr.Slider(
+            randomize=True, minimum=10, maximum=23.2, label="Random Slider (Input 2)"
+        )
+    for component in demo.blocks.values():
+        if isinstance(component, gr.components.IOComponent):
+            if "Non-random" in component.label:
+                assert not component.attach_load_event
+            else:
+                assert component.attach_load_event
+    dependencies_on_load = [
+        dep["trigger"] == "load" for dep in demo.config["dependencies"]
+    ]
+    assert all(dependencies_on_load)
+    assert len(dependencies_on_load) == 2
+    assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+
+
+def test_io_components_attach_load_events_when_value_is_fn():
+    classes_to_check = gr.components.IOComponent.__subclasses__()
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        children = subclass.__subclasses__()
+
+        if children:
+            classes_to_check.extend(children)
+        if "value" in inspect.signature(subclass).parameters:
+            subclasses.append(subclass)
+
+    interface = gr.Interface(
+        lambda *args: None,
+        inputs=[comp(value=lambda: None) for comp in subclasses],
+        outputs=None,
+    )
+
+    dependencies_on_load = [
+        dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+    ]
+    assert len(dependencies_on_load) == len(subclasses)
 
 
 if __name__ == "__main__":
