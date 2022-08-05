@@ -149,6 +149,7 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -274,7 +275,7 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
-        self.api_mode = False
+        self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
         self.__name__ = fn.__name__
@@ -600,7 +601,7 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=self.fn,
+                    fn=submit_fn,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                 )
@@ -668,7 +669,7 @@ class Interface(Blocks):
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
-        if self.api_mode:  # Deerialize the input
+        if self.api_mode:  # Deserialize the input
             prediction = [
                 output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)

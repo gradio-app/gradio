@@ -1,5 +1,7 @@
 import os
+import pathlib
 import unittest
+from unittest.mock import patch
 
 import pytest
 import transformers
@@ -227,6 +229,16 @@ class TestLoadFromPipeline(unittest.TestCase):
         pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
         output = pipe("My name is Sylvain and I work at Hugging Face in Brooklyn")
         self.assertIsNotNone(output)
+
+
+def test_interface_load_cache_examples(tmp_path):
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        gr.Interface.load(
+            name="models/google/vit-base-patch16-224",
+            examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+            cache_examples=True,
+        )
 
 
 if __name__ == "__main__":
