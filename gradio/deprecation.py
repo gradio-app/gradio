@@ -38,8 +38,6 @@ def check_deprecated_parameters(cls: str, **kwargs) -> None:
             kwargs.pop(key)
             # Interestingly, using DeprecationWarning causes warning to not appear.
             warnings.warn(value)
-    if "_api_mode" in kwargs:
-        kwargs.pop("_api_mode")
 
     if len(kwargs) != 0:
         warnings.warn(

@@ -149,6 +149,7 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -274,7 +275,7 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
-        self.api_mode = kwargs.get("_api_mode", False)
+        self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
         self.__name__ = fn.__name__
