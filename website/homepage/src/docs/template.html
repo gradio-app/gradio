@@ -92,7 +92,7 @@
             <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
-                {% with obj=layout, parent="gradio" %}
+                {% with obj=layout, is_class=True, parent="gradio" %}
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}
