@@ -62,3 +62,11 @@ highlighted_text_output_2 = [
 ]
 
 highlighted_text = "Does Chicago have any Pakistani restaurants"
+
+
+def random_model3d():
+    model_3d = random.choice(
+        [os.path.join(model3d_dir, model) for model in os.listdir(model3d_dir) if model != "source.txt"]
+    )
+    print(model_3d)
+    return model_3d

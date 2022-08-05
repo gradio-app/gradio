@@ -5,14 +5,14 @@ import string
 import os
 import pandas as pd
 
-from .constants import (
+from constants import (
     file_dir,
     img_dir,
     highlighted_text,
     highlighted_text_output_2,
     highlighted_text_output_1,
     random_plot,
-    model3d_dir,
+    random_model3d,
 )
 
 
@@ -87,11 +87,7 @@ demo = gr.Interface(
         gr.Chatbot(
             value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
         ),
-        gr.Model3D(
-            value=lambda: random.choice(
-                [os.path.join(model3d_dir, model) for model in os.listdir(model3d_dir)]
-            )
-        ),
+        gr.Model3D(value=random_model3d),
         gr.Plot(value=random_plot),
         gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
     ],

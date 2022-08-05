@@ -323,7 +323,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in textarea.
+            value: default text to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
@@ -518,7 +518,7 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -710,7 +710,7 @@ class Slider(Changeable, IOComponent):
         Parameters:
             minimum: minimum value for slider.
             maximum: maximum value for slider.
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
             label: component name in interface.
             show_label: if True, will display label.
@@ -894,7 +894,7 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: if True, checked by default.
+            value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -1021,7 +1021,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: default selected list of options.
+            value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1201,7 +1201,7 @@ class Radio(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: the button selected by default. If None, no button is selected by default.
+            value: the button selected by default. If None, no button is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1359,7 +1359,7 @@ class Dropdown(Radio):
         """
         Parameters:
             choices: list of options to select from.
-            value: default value selected in dropdown. If None, no value is selected by default.
+            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1430,7 +1430,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
@@ -1802,7 +1802,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take.
+            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -1991,7 +1991,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
+            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: component name in interface.
@@ -2317,7 +2317,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path
+            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: component name in interface.
@@ -2531,7 +2531,7 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value as a 2-dimensional list of values.
+            value: Default value as a 2-dimensional list of values. If callable, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
@@ -2792,7 +2792,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: File path for the timeseries csv file.
+            value: File path for the timeseries csv file. If callable, the function will be called whenever the app loads to set the initial value of the component.
             x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
             y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
             label: component name in interface.
@@ -2936,7 +2936,7 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-            value: the initial value of the state.
+            value: the initial value of the state. If callable, the function will be called whenever the app loads to set the initial value of the component.
         """
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = deepcopy(initial_value)
@@ -2968,7 +2968,7 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default text for the button to display.
+            value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3049,7 +3049,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in color picker.
+            value: default text to provide in color picker. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -3170,7 +3170,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in the component.
+            value: Default value to show in the component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: component name in interface.
             show_label: if True, will display label.
@@ -3317,7 +3317,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show.
+            value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
             show_legend: whether to show span categories in a separate legend or inline.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
@@ -3467,7 +3467,7 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3558,7 +3558,7 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3624,7 +3624,7 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-            value: List of images to display in the gallery by default
+            value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3872,7 +3872,7 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in chatbot
+            value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3976,7 +3976,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: path to (.obj, glb, or .gltf) file to show in model3D viewer
+            value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene
             label: component name in interface.
             show_label: if True, will display label.
@@ -4120,7 +4120,7 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -4211,7 +4211,7 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-            value: Value to show in Markdown component
+            value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
