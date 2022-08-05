@@ -2304,7 +2304,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | List[str] | Callable  ] = None,
+        value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
         type: str = "file",
