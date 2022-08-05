@@ -213,15 +213,15 @@ Let's get started!
 
     ```
 
-    6. Integrate Gradio
+6. Integrate Gradio
 
     The last step—integrating your Gradio demo with your W&B dashboard—is just one extra line:
-    demo.integrate(wandb=wandb)
 
-    Live Demo
+    ```
+    demo.integrate(wandb=wandb)
+    ```
     
     Once you call integrate, a demo will be created and you can integrate it into your dashboard or report
-
 
     Outside of W&B with Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
