@@ -309,7 +309,7 @@ class Textbox(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str | Callable] = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -538,6 +538,7 @@ class Number(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -882,7 +883,7 @@ class Checkbox(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: bool = False,
+        value: bool | Callable = False,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -903,7 +904,6 @@ class Checkbox(Changeable, IOComponent):
         self.test_input = True
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
-        self.value = self.postprocess(value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -1009,7 +1009,7 @@ class CheckboxGroup(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] = None,
+        value: List[str] | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
