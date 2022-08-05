@@ -8,6 +8,9 @@
 .thin-link {
   @apply hover:text-orange-500 transition-colors;
 }
+.thinner-link {
+  @apply hover:text-orange-500 transition-colors;
+}
 
 .group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
     display: flex;
@@ -82,6 +85,9 @@
 .link.current-nav-link {
   @apply border-orange-500 text-orange-500;
 }
+.thinner-link.current-nav-link {
+  @apply border-orange-500 text-orange-500;
+}
 
 /* docs */
 .selected-demo {
@@ -115,4 +121,11 @@ code.language-python {
 }
 .codeblock:hover > .clipboard-button {
   @apply opacity-100 duration-200;
+}
+
+[type="search"]::-webkit-search-cancel-button {
+  @apply appearance-none h-5 w-5;
+  -webkit-appearance: none;
+  background-image: url("assets/img/esc.svg");
+  background-size: 20px 20px;
 }

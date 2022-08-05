@@ -2,7 +2,6 @@
 
 Related spaces: https://huggingface.co/spaces/dawood/Model3D, https://huggingface.co/spaces/radames/PIFu-Clothed-Human-Digitization, https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
 Tags: VISION, IMAGE
-Docs: model3d
 
 ## Introduction
 
