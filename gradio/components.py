@@ -11,6 +11,7 @@ import numbers
 import operator
 import os
 import pathlib
+import random
 import shutil
 import tempfile
 import uuid
@@ -86,6 +87,7 @@ class IOComponent(Component):
         visible: bool = True,
         requires_permissions: bool = False,
         elem_id: Optional[str] = None,
+        load_fn: Optional[Callable] = None,
         **kwargs,
     ):
         self.label = label
@@ -94,6 +96,12 @@ class IOComponent(Component):
         self.interactive = interactive
 
         self.set_interpret_parameters()
+        if callable(load_fn):
+            self.attach_load_event = True
+            self.load_fn = load_fn
+        else:
+            self.attach_load_event = False
+            self.load_fn = None
 
         super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
@@ -276,6 +284,16 @@ class IOComponent(Component):
             config["mode"] = "dynamic" if interactive else "static"
         return config
 
+    @staticmethod
+    def get_load_fn_and_initial_value(value):
+        if callable(value):
+            initial_value = value()
+            load_fn = value
+        else:
+            initial_value = value
+            load_fn = None
+        return load_fn, initial_value
+
 
 @document("change", "submit", "style")
 class Textbox(Changeable, Submittable, IOComponent):
@@ -291,7 +309,7 @@ class Textbox(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str | Callable] = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -305,7 +323,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in textarea.
+            value: default text to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
@@ -318,7 +336,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -329,6 +348,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -486,7 +506,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[float] = None,
+        value: Optional[float | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -498,7 +518,7 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -507,7 +527,8 @@ class Number(Changeable, Submittable, IOComponent):
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -517,6 +538,7 @@ class Number(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -665,7 +687,7 @@ class Slider(Changeable, IOComponent):
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, generate_tone, titanic_survival
+    Demos: sentence_builder, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create_your_own_friends_with_a_gan
     """
 
@@ -673,7 +695,7 @@ class Slider(Changeable, IOComponent):
         self,
         minimum: float = 0,
         maximum: float = 100,
-        value: Optional[float] = None,
+        value: Optional[float | Callable] = None,
         *,
         step: Optional[float] = None,
         label: Optional[str] = None,
@@ -681,19 +703,21 @@ class Slider(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        randomize: bool = False,
         **kwargs,
     ):
         """
         Parameters:
             minimum: minimum value for slider.
             maximum: maximum value for slider.
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -702,7 +726,12 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.value = self.postprocess(value)
+
+        if randomize:
+            value = self.get_random_value
+
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -713,6 +742,7 @@ class Slider(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -724,6 +754,23 @@ class Slider(Changeable, IOComponent):
             "value": self.value,
             **IOComponent.get_config(self),
         }
+
+    def get_random_value(self):
+        # Goal is to generate a possible value of the slider
+        # without generating all possible values
+        # We randomly pick a step among all possible steps and add  to the minimum
+        n_steps = int((self.maximum - self.minimum) / self.step)
+        step = random.randint(0, n_steps)
+        value = self.minimum + step * self.step
+
+        # Round to the number of decimals in the step
+        # So that UI doesn't display really long decimals due to arithmetic
+        # If the step doesn't have any decimals, find will return -1
+        n_decimals = max(str(self.step)[::-1].find("."), 0)
+        if n_decimals:
+            value = round(value, n_decimals)
+
+        return value
 
     @staticmethod
     def update(
@@ -836,7 +883,7 @@ class Checkbox(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: bool = False,
+        value: bool | Callable = False,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -847,7 +894,7 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: if True, checked by default.
+            value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -855,7 +902,8 @@ class Checkbox(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -864,6 +912,7 @@ class Checkbox(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -960,7 +1009,7 @@ class CheckboxGroup(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] = None,
+        value: List[str] | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -972,7 +1021,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: default selected list of options.
+            value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -983,7 +1032,8 @@ class CheckboxGroup(Changeable, IOComponent):
         self.choices = choices or []
         self.cleared_value = []
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -993,6 +1043,7 @@ class CheckboxGroup(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1138,7 +1189,7 @@ class Radio(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1150,7 +1201,7 @@ class Radio(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: the button selected by default. If None, no button is selected by default.
+            value: the button selected by default. If None, no button is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1161,7 +1212,8 @@ class Radio(Changeable, IOComponent):
         self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1171,6 +1223,7 @@ class Radio(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1294,7 +1347,7 @@ class Dropdown(Radio):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1306,7 +1359,7 @@ class Dropdown(Radio):
         """
         Parameters:
             choices: list of options to select from.
-            value: default value selected in dropdown. If None, no value is selected by default.
+            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1377,7 +1430,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
@@ -1394,7 +1447,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         self.mirror_webcam = mirror_webcam
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1415,6 +1469,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1733,7 +1788,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         format: Optional[str] = None,
         source: str = "upload",
@@ -1747,7 +1802,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take.
+            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -1760,7 +1815,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         self.format = format
         self.source = source
         self.mirror_webcam = mirror_webcam
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1768,6 +1824,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1920,7 +1977,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.array]] = None,
+        value: Optional[str | Tuple[int, np.array] | Callable] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1934,7 +1991,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
+            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: component name in interface.
@@ -1944,7 +2001,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1963,6 +2021,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2245,7 +2304,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | List[str]] = None,
+        value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2258,7 +2317,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path
+            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: component name in interface.
@@ -2269,7 +2328,8 @@ class File(Changeable, Clearable, IOComponent):
         """
         self.file_count = file_count
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2278,6 +2338,7 @@ class File(Changeable, Clearable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2450,7 +2511,7 @@ class Dataframe(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]] | Callable] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
@@ -2470,7 +2531,7 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value as a 2-dimensional list of values.
+            value: Default value as a 2-dimensional list of values. If callable, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
@@ -2518,9 +2579,11 @@ class Dataframe(Changeable, IOComponent):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+
         self.value = (
-            self.postprocess(value)
-            if value is not None
+            self.postprocess(initial_value)
+            if initial_value is not None
             else self.postprocess(self.test_input)
         )
 
@@ -2534,6 +2597,7 @@ class Dataframe(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2714,7 +2778,7 @@ class Timeseries(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2728,7 +2792,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: File path for the timeseries csv file.
+            value: File path for the timeseries csv file. If callable, the function will be called whenever the app loads to set the initial value of the component.
             x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
             y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
             label: component name in interface.
@@ -2738,7 +2802,8 @@ class Timeseries(Changeable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2751,6 +2816,7 @@ class Timeseries(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2870,11 +2936,12 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-            value: the initial value of the state.
+            value: the initial value of the state. If callable, the function will be called whenever the app loads to set the initial value of the component.
         """
-        self.value = deepcopy(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = deepcopy(initial_value)
         self.stateful = True
-        IOComponent.__init__(self, **kwargs)
+        IOComponent.__init__(self, load_fn=load_fn, **kwargs)
 
     def style(self):
         return self
@@ -2892,7 +2959,7 @@ class Button(Clickable, IOComponent):
 
     def __init__(
         self,
-        value: str = "Run",
+        value: str | Callable = "Run",
         *,
         variant: str = "secondary",
         visible: bool = True,
@@ -2901,13 +2968,16 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default text for the button to display.
+            value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = initial_value
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
         self.variant = variant
 
     def get_config(self):
@@ -2968,7 +3038,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: str = None,
+        value: str | Callable = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2979,14 +3049,15 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in color picker.
+            value: default text to provide in color picker. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = "#000000"
         self.test_input = value
         IOComponent.__init__(
@@ -2996,6 +3067,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3087,7 +3159,7 @@ class Label(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -3098,7 +3170,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in the component.
+            value: Default value to show in the component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: component name in interface.
             show_label: if True, will display label.
@@ -3106,13 +3178,15 @@ class Label(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3229,7 +3303,7 @@ class HighlightedText(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict | Callable] = None,
         *,
         color_map: Dict[str, str] = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
@@ -3243,7 +3317,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show.
+            value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
             show_legend: whether to show span categories in a separate legend or inline.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
@@ -3260,13 +3334,15 @@ class HighlightedText(Changeable, IOComponent):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3381,7 +3457,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3391,19 +3467,21 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3470,7 +3548,7 @@ class HTML(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3480,19 +3558,21 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3534,7 +3614,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[np.ndarray | PIL.Image | str]] = None,
+        value: Optional[List[np.ndarray | PIL.Image | str] | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3544,18 +3624,20 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-            value: List of images to display in the gallery by default
+            value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         super().__init__(
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3779,7 +3861,7 @@ class Chatbot(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[Tuple[str, str]]] = None,
+        value: Optional[List[Tuple[str, str]] | Callable] = None,
         color_map: Dict[str, str] = None,  # Parameter moved to Chatbot.style()
         *,
         label: Optional[str] = None,
@@ -3790,7 +3872,7 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in chatbot
+            value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3800,8 +3882,8 @@ class Chatbot(Changeable, IOComponent):
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
-
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.color_map = color_map
 
         IOComponent.__init__(
@@ -3810,6 +3892,7 @@ class Chatbot(Changeable, IOComponent):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3882,7 +3965,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         clear_color: List[float] = None,
         label: Optional[str] = None,
@@ -3893,7 +3976,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: path to (.obj, glb, or .gltf) file to show in model3D viewer
+            value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene
             label: component name in interface.
             show_label: if True, will display label.
@@ -3901,13 +3984,15 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -4025,7 +4110,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value=None,
+        value: Optional[Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -4035,19 +4120,21 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -4116,7 +4203,7 @@ class Markdown(IOComponent, Changeable):
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
@@ -4124,13 +4211,16 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-            value: Value to show in Markdown component
+            value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
 
     def postprocess(self, y: str | None) -> str | None:
         """
