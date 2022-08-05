@@ -13,12 +13,14 @@ from gradio import utils
 from gradio.components import Dataset
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
+from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
     from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
+LOG_FILE = "log.csv"
 
 set_documentation_group("component-helpers")
 
@@ -46,7 +48,7 @@ class Examples:
     ):
         """
         Parameters:
-            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided.
+            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
@@ -78,18 +80,18 @@ class Examples:
                 raise FileNotFoundError(
                     "Could not find examples directory: " + examples
                 )
-            log_file = os.path.join(examples, "log.csv")
-            if not os.path.exists(log_file):
+            os.chdir(examples)
+            if not os.path.exists(LOG_FILE):
                 if len(inputs) == 1:
-                    examples = [[e] for e in os.listdir(examples)]
+                    examples = [[e] for e in os.listdir('.')]
                 else:
+                    os.chdir(original_directory)
                     raise FileNotFoundError(
                         "Could not find log file (required for multiple inputs): "
-                        + log_file
+                        + LOG_FILE
                     )
             else:
-                with open(log_file) as logs:
-                    os.chdir(examples)
+                with open(LOG_FILE) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
                         examples[i][0 : len(inputs)] for i in range(1, len(examples))
@@ -127,12 +129,6 @@ class Examples:
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
 
-        dataset = Dataset(
-            components=inputs_with_examples,
-            samples=non_none_examples,
-            type="index",
-        )
-
         self.processed_examples = [
             [
                 component.preprocess_example(sample)
@@ -142,6 +138,12 @@ class Examples:
         ]
 
         os.chdir(original_directory)
+
+        dataset = Dataset(
+            components=inputs_with_examples,
+            samples=non_none_examples,
+            type="index",
+        )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
@@ -156,14 +158,15 @@ class Examples:
             else:
                 processed_example = self.processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
-
-        dataset.click(
-            load_example,
-            inputs=[dataset],
-            outputs=inputs_with_examples + (outputs if cache_examples else []),
-            _postprocess=False,
-            queue=False,
-        )
+        
+        if Context.root_block:
+            dataset.click(
+                load_example,
+                inputs=[dataset],
+                outputs=inputs_with_examples + (outputs if cache_examples else []),
+                _postprocess=False,
+                queue=False,
+            )
 
     def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""
