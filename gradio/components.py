@@ -1189,7 +1189,7 @@ class Radio(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1347,7 +1347,7 @@ class Dropdown(Radio):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1788,7 +1788,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         format: Optional[str] = None,
         source: str = "upload",
@@ -1977,7 +1977,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.array]] = None,
+        value: Optional[str | Tuple[int, np.array] | Callable] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -2304,7 +2304,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | List[str]] = None,
+        value: Optional[str | List[str] | Callable  ] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2511,7 +2511,7 @@ class Dataframe(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]] | Callable] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
@@ -2579,9 +2579,11 @@ class Dataframe(Changeable, IOComponent):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+
         self.value = (
-            self.postprocess(value)
-            if value is not None
+            self.postprocess(initial_value)
+            if initial_value is not None
             else self.postprocess(self.test_input)
         )
 
@@ -2595,6 +2597,7 @@ class Dataframe(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2775,7 +2778,7 @@ class Timeseries(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2799,7 +2802,8 @@ class Timeseries(Changeable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2812,6 +2816,7 @@ class Timeseries(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2954,7 +2959,7 @@ class Button(Clickable, IOComponent):
 
     def __init__(
         self,
-        value: str = "Run",
+        value: str | Callable = "Run",
         *,
         variant: str = "secondary",
         visible: bool = True,
@@ -3033,7 +3038,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: str = None,
+        value: str | Callable = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3154,7 +3159,7 @@ class Label(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -3298,7 +3303,7 @@ class HighlightedText(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict | Callable] = None,
         *,
         color_map: Dict[str, str] = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
@@ -3452,7 +3457,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3543,7 +3548,7 @@ class HTML(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3609,7 +3614,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[np.ndarray | PIL.Image | str]] = None,
+        value: Optional[List[np.ndarray | PIL.Image | str] | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3856,7 +3861,7 @@ class Chatbot(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[Tuple[str, str]]] = None,
+        value: Optional[List[Tuple[str, str]] | Callable] = None,
         color_map: Dict[str, str] = None,  # Parameter moved to Chatbot.style()
         *,
         label: Optional[str] = None,
@@ -3960,7 +3965,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         clear_color: List[float] = None,
         label: Optional[str] = None,
@@ -4105,7 +4110,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value=None,
+        value: Optional[Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -4198,7 +4203,7 @@ class Markdown(IOComponent, Changeable):
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
@@ -4210,12 +4215,12 @@ class Markdown(IOComponent, Changeable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.md = MarkdownIt()
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
         )
-        self.md = MarkdownIt()
 
     def postprocess(self, y: str | None) -> str | None:
         """
