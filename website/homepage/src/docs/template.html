@@ -35,7 +35,7 @@
         <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
           <section class="pt-2">
             <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos">Building Demos</h2>
-            {% with obj=find_cls("Interface"), parent="gradio" %}
+            {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
           </section>
@@ -59,15 +59,6 @@
               {% endwith %}
             {% endfor %}
             </div>
-            
-            <h4 class="my-2 font-semibold">Flagging Guides</h4>
-              <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
-                <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/using_flagging/">
-                  <div class="flex flex-col p-4 h-min">
-                    <p class="font-semibold group-hover:underline text-l">Flagging</p>
-                  </div>
-                </a>
-              </div>
         </section>
 
           <section id="combining_interfaces" class="pt-2">
@@ -93,7 +84,7 @@
           </section>
           <section id="blocks" class="pt-2 mb-8">
             <div class="flex flex-col gap-10">
-              {% with obj=find_cls("Blocks"), parent="gradio" %}
+              {% with obj=find_cls("Blocks"), is_class=True, parent="gradio" %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
@@ -101,7 +92,7 @@
             <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
-                {% with obj=layout, parent="gradio" %}
+                {% with obj=layout, is_class=True, parent="gradio" %}
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}

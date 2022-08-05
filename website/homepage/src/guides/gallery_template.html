@@ -34,12 +34,12 @@
                   <h2 class="group-hover:underline text-lg">{{ guide.pretty_name }}</h2>
                   <div class="tags-holder">
                     {% if guide.tags is not none %}
-                      <p class="text-gray-600">
-                        {% for tag in guide.tags %}
-                          {{ tag }}
-                          {% if not loop.last %},{% endif %}
-                        {% endfor %}
-                      </p>
+                      <p class="text-gray-600"><!--
+                        -->{% for tag in guide.tags %}<!--
+                          -->{{ tag }}<!--
+                          -->{% if not loop.last %}, {% endif %}<!--
+                        -->{% endfor %}<!--
+                    --></p>
                     {% endif %}
                   </div>
                 </div>

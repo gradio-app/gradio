@@ -2,7 +2,6 @@
 
 Related spaces: https://huggingface.co/spaces/nateraw/quickdraw
 Tags: SKETCHPAD, LABELS, LIVE
-Docs: image, label
 
 ## Introduction
 

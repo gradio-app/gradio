@@ -2,7 +2,6 @@
 
 Related spaces: https://huggingface.co/spaces/abidlabs/streaming-asr-paused, https://huggingface.co/spaces/abidlabs/full-context-asr
 Tags: ASR, SPEECH, STREAMING
-Docs: audio, variable, textbox
 
 ## Introduction
 
