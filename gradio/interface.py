@@ -180,6 +180,7 @@ class Interface(Blocks):
             mode="interface",
             css=css,
             title=title,
+            theme=theme,
             **kwargs,
         )
 
@@ -735,18 +736,35 @@ class TabbedInterface(Blocks):
     """
 
     def __init__(
-        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+        self, 
+        interface_list: List[Interface], 
+        tab_names: Optional[List[str]] = None,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,        
+        title: str = "Gradio",
+        css: Optional[str] = None,
     ):
         """
         Parameters:
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            theme: which theme to use - right now, only "default" is supported.
+            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            mode: a human-friendly name for the kind of Blocks interface being created.
+            title: The tab title to display when this is opened in a browser window.
+            css: custom css or path to custom css file to apply to entire Blocks
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
+        super().__init__(
+            theme=theme,
+            analytics_enabled=analytics_enabled,
+            mode="tabbed_interface",
+            title=title,
+            css=css,
+        )
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
-        super().__init__()
         with self:
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):
