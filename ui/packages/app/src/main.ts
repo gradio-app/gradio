@@ -13,8 +13,6 @@ window.__gradio_loader__ = [];
 declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
 
-console.log(BACKEND_URL);
-
 const ENTRY_CSS = "__ENTRY_CSS__";
 const FONTS = "__FONTS_CSS__";
 
@@ -89,14 +87,11 @@ async function get_source_config(source: string): Promise<Config> {
 
 async function get_config(source: string | null) {
 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
-		console.log("FIRST", BACKEND_URL);
 		let config = await fetch(BACKEND_URL + "config");
 		const result = await config.json();
 		return result;
 	} else if (source) {
 		if (!source.endsWith("/")) {
-			console.log("FIRST", source);
-
 			source += "/";
 		}
 		const config = await get_source_config(source);

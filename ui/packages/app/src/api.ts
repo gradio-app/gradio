@@ -35,7 +35,7 @@ const WS_ENDPOINT =
 	BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
 		? `ws://${BACKEND_URL.replace("http://", "")}queue/join`
 		: `ws://${location.host}/queue/join`;
-console.log(BACKEND_URL);
+
 async function post_data<
 	Return extends Record<string, unknown> = Record<string, unknown>
 >(url: string, body: unknown): Promise<Return> {
@@ -103,7 +103,6 @@ export const fn =
 			if (ws_map.get(fn_index)) {
 				send_message(fn_index, payload);
 			} else {
-				console.log(api_endpoint);
 				const websocket_data = {
 					connection: new WebSocket(WS_ENDPOINT),
 					hash: Math.random().toString(36).substring(2)

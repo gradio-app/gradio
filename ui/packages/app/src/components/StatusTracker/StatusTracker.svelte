@@ -108,8 +108,6 @@
 
 	$: formatted_eta = eta && (eta * ((queue_size || 0) + 1)).toFixed(1);
 	$: formatted_timer = timer_diff.toFixed(1);
-
-	// $: console.log($$props);
 </script>
 
 <div
