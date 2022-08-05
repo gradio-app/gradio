@@ -68,17 +68,17 @@ Let's get started!
     This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces.
 
     ```python
-    #@title Finetune StyleGAN
-    #@markdown alpha controls the strength of the style
+    #Finetune StyleGAN
+    #alpha controls the strength of the style
     alpha =  1.0 #@param {type:"slider", min:0, max:1, step:0.1}
     alpha = 1-alpha
 
 
-    #@markdown Tries to preserve color of original image by limiting family of allowable transformations. Set to false if you want to transfer color from reference image. This also leads to heavier stylization
+    #Tries to preserve color of original image by limiting family of allowable transformations. Set to false if you want to transfer color from reference image. This also leads to heavier stylization
     preserve_color = True #@param{type:"boolean"}
-    #@markdown Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
+    #Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
     num_iter = 200 #@param {type:"number"}
-    #@markdown Log training on wandb and interval for image logging
+    #Log training on wandb and interval for image logging
     log_interval = 50 #@param {type:"number"}
 
 
