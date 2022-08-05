@@ -736,11 +736,11 @@ class TabbedInterface(Blocks):
     """
 
     def __init__(
-        self, 
-        interface_list: List[Interface], 
+        self,
+        interface_list: List[Interface],
         tab_names: Optional[List[str]] = None,
         theme: str = "default",
-        analytics_enabled: Optional[bool] = None,        
+        analytics_enabled: Optional[bool] = None,
         title: str = "Gradio",
         css: Optional[str] = None,
     ):
