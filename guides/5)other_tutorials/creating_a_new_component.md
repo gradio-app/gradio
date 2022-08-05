@@ -1,7 +1,5 @@
 # How to Create a New Component
 
-Docs: component
-
 ## Introduction
 
 The purpose of this guide is to illustrate how to add a new component, which you can use in your Gradio applications. The guide will be complemented by code snippets showing step by step how the [ColorPicker](https://gradio.app/docs/#colorpicker) component was added.

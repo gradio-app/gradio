@@ -78,5 +78,3 @@ gr.Series(generator, translator).launch()  # this demo generates text, then tran
 ```
 
 And of course, you can also mix `Parallel` and `Series` together whenever that makes sense!
-
-Docs: parallel, series

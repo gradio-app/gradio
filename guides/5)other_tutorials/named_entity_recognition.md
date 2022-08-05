@@ -2,7 +2,6 @@
 
 Related spaces: https://huggingface.co/spaces/rajistics/biobert_ner_demo, https://huggingface.co/spaces/abidlabs/ner, https://huggingface.co/spaces/rajistics/Financial_Analyst_AI
 Tags: NER, TEXT, HIGHLIGHT
-Docs: highlightedtext
 
 ## Introduction
 
