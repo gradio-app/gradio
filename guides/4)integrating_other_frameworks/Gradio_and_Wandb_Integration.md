@@ -217,7 +217,7 @@ Let's get started!
 
     The last step—integrating your Gradio demo with your W&B dashboard—is just one extra line:
 
-    ```
+    ```python
     demo.integrate(wandb=wandb)
     ```
     
