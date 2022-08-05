@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import io
 import random
 import sys
@@ -220,6 +221,31 @@ def test_slider_random_value_config():
     assert all(dependencies_on_load)
     assert len(dependencies_on_load) == 2
     assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+
+
+def test_io_components_attach_load_events_when_value_is_fn():
+    classes_to_check = gr.components.IOComponent.__subclasses__()
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        children = subclass.__subclasses__()
+
+        if children:
+            classes_to_check.extend(children)
+        if "value" in inspect.signature(subclass).parameters:
+            subclasses.append(subclass)
+
+    interface = gr.Interface(
+        lambda x: x,
+        inputs=[comp(value=lambda: None) for comp in subclasses],
+        outputs=None,
+    )
+
+    dependencies_on_load = [
+        dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+    ]
+    assert len(dependencies_on_load) == len(subclasses)
 
 
 if __name__ == "__main__":

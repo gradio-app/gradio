@@ -2941,7 +2941,7 @@ class Variable(IOComponent):
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = deepcopy(initial_value)
         self.stateful = True
-        IOComponent.__init__(self, **kwargs)
+        IOComponent.__init__(self, load_fn=load_fn, **kwargs)
 
     def style(self):
         return self
