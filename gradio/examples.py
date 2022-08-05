@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import os
 import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from gradio import utils
@@ -60,6 +61,8 @@ class Examples:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
+        original_directory = Path().absolute()
+
         if examples is None:
             raise ValueError("The parameter `examples` cannot be None")
         elif isinstance(examples, list) and (
@@ -86,9 +89,10 @@ class Examples:
                     )
             else:
                 with open(log_file) as logs:
+                    os.chdir(examples)
                     examples = list(csv.reader(logs))
-                    examples = examples[
-                        1:, : len(inputs)
+                    examples = [
+                        examples[i][0 : len(inputs)] for i in range(1, len(examples))
                     ]  # remove header and unnecessary columns
 
         else:
@@ -136,6 +140,8 @@ class Examples:
             ]
             for example in non_none_examples
         ]
+
+        os.chdir(original_directory)
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
