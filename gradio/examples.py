@@ -222,7 +222,6 @@ class Examples:
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         for component, cell in zip(self.outputs, example):
-            print("self.cached_folder", self.cached_folder, "cell", cell)
             output.append(
                 component.restore_flagged(
                     self.cached_folder,
