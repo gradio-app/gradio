@@ -4206,7 +4206,6 @@ class Dataset(Clickable, Component):
         self.headers = headers or [c.label or "" for c in self.components]
         if all([header == "" for header in self.headers]):
             self.headers = []
-        print(self.headers)
         self.samples = samples
 
     def get_config(self):
