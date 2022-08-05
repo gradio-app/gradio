@@ -78,9 +78,7 @@ class Examples:
             log_file = os.path.join(examples, "log.csv")
             if not os.path.exists(log_file):
                 if len(inputs) == 1:
-                    exampleset = [
-                        [os.path.join(examples, item)] for item in os.listdir(examples)
-                    ]
+                    exampleset = [[e] for e in os.listdir(examples)]
                 else:
                     raise FileNotFoundError(
                         "Could not find log file (required for multiple inputs): "
@@ -90,13 +88,17 @@ class Examples:
                 with open(log_file) as logs:
                     exampleset = list(csv.reader(logs))
                     exampleset = exampleset[1:]  # remove header
+            print("exampleset", exampleset)
+            print("inputs + outputs", inputs + outputs)
             for i, example in enumerate(exampleset):
+                print("example", example)
                 for j, (component, cell) in enumerate(
                     zip(
                         inputs + outputs,
                         example,
                     )
                 ):
+                    print("component", component, "cell", cell, "example", example, "i", i, "j", j) 
                     exampleset[i][j] = component.restore_flagged(
                         examples,
                         cell,
@@ -225,6 +227,7 @@ class Examples:
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         for component, cell in zip(self.outputs, example):
+            print("self.cached_folder", self.cached_folder, "cell", cell) 
             output.append(
                 component.restore_flagged(
                     self.cached_folder,
