@@ -41,17 +41,16 @@ class TestExamples:
 
 class TestExamplesDataset:
     def test_no_headers(self):
-        examples = gr.Examples(
-            "test/test_files/images_log", [gr.Image(), gr.Text()]
-        )
+        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
         assert examples.dataset.headers == []
 
     def test_all_headers(self):
         examples = gr.Examples(
-            "test/test_files/images_log", [gr.Image(label="im"), gr.Text(label="your text")]
+            "test/test_files/images_log",
+            [gr.Image(label="im"), gr.Text(label="your text")],
         )
         assert examples.dataset.headers == ["im", "your text"]
-    
+
     def test_some_headers(self):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
