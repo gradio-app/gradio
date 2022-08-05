@@ -237,7 +237,7 @@ def test_io_components_attach_load_events_when_value_is_fn():
             subclasses.append(subclass)
 
     interface = gr.Interface(
-        lambda x: x,
+        lambda *args: None,
         inputs=[comp(value=lambda: None) for comp in subclasses],
         outputs=None,
     )

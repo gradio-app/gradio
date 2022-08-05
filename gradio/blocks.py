@@ -14,7 +14,16 @@ from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, T
 import anyio
 from anyio import CapacityLimiter
 
-from gradio import encryptor, external, networking, queueing, routes, strings, utils
+from gradio import (
+    components,
+    encryptor,
+    external,
+    networking,
+    queueing,
+    routes,
+    strings,
+    utils,
+)
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import (
@@ -691,7 +700,7 @@ class Blocks(BlockContext):
 
     def __exit__(self, *args):
         Context.block = self.parent
-        # Configure the random values before root_block is reset
+        # Configure the load events before root_block is reset
         self.attach_load_events()
         if self.parent is None:
             Context.root_block = None
@@ -1050,10 +1059,12 @@ class Blocks(BlockContext):
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
-        from gradio.components import IOComponent
 
         for component in Context.root_block.blocks.values():
-            if isinstance(component, IOComponent) and component.attach_load_event:
+            if (
+                isinstance(component, components.IOComponent)
+                and component.attach_load_event
+            ):
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",

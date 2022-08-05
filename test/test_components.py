@@ -1840,8 +1840,10 @@ def test_slider_get_random_value_on_load(mock_get_random_value):
 @patch("random.randint", return_value=3)
 def test_slider_rounds_when_using_default_randomizer(mock_randint):
     slider = gr.Slider(minimum=0, maximum=1, randomize=True, step=0.1)
-    # 0 + 0.1 * 3 = 0.30000000000000004 in python so we test we round to the number of decimals of step
+    # If get_random_value didn't round, this test would fail
+    # because 0.30000000000000004 != 0.3
     assert slider.get_random_value() == 0.3
+    mock_randint.assert_called()
 
 
 if __name__ == "__main__":
