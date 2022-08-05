@@ -4203,7 +4203,10 @@ class Dataset(Clickable, Component):
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
-        self.headers = headers or [c.label for c in self.components]
+        self.headers = headers or [c.label or "" for c in self.components]
+        if all([header == "" for header in self.headers]):
+            self.headers = []
+        print(self.headers)
         self.samples = samples
 
     def get_config(self):

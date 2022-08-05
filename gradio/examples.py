@@ -11,9 +11,9 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from gradio import utils
 from gradio.components import Dataset
+from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
-from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
@@ -83,7 +83,7 @@ class Examples:
             os.chdir(examples)
             if not os.path.exists(LOG_FILE):
                 if len(inputs) == 1:
-                    examples = [[e] for e in os.listdir('.')]
+                    examples = [[e] for e in os.listdir(".")]
                 else:
                     os.chdir(original_directory)
                     raise FileNotFoundError(
@@ -139,13 +139,13 @@ class Examples:
 
         os.chdir(original_directory)
 
-        dataset = Dataset(
+        self.dataset = Dataset(
             components=inputs_with_examples,
             samples=non_none_examples,
             type="index",
         )
 
-        self.cached_folder = os.path.join(CACHED_FOLDER, str(dataset._id))
+        self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
         if cache_examples:
             self.cache_interface_examples()
@@ -158,11 +158,11 @@ class Examples:
             else:
                 processed_example = self.processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
-        
+
         if Context.root_block:
-            dataset.click(
+            self.dataset.click(
                 load_example,
-                inputs=[dataset],
+                inputs=[self.dataset],
                 outputs=inputs_with_examples + (outputs if cache_examples else []),
                 _postprocess=False,
                 queue=False,
