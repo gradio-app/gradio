@@ -56,6 +56,7 @@ Let's get started!
     Install Gradio and Wandb at the top:
 
     ```sh
+
     pip install gradio wandb
     ```
 
@@ -155,6 +156,7 @@ Let's get started!
 4. Save and Download Model
 
     ```python
+
     torch.save({"g": generator.state_dict()}, "your-model-name.pt")
 
 
@@ -165,6 +167,7 @@ Let's get started!
 5. Load Model and Gradio Demo
 
     ```python
+
     ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
     generatoryourmodelname.load_state_dict(ckptjojo["g"], strict=False)
 
@@ -209,6 +212,7 @@ Let's get started!
     The last step—integrating your Gradio demo with your W&B dashboard—is just one extra line:
 
     ```python
+
     demo.integrate(wandb=wandb)
     ```
 
@@ -217,6 +221,7 @@ Let's get started!
     Outside of W&B with Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
 
     ```html
+    
     &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
     ```
 
