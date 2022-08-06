@@ -43,14 +43,11 @@ Now, let's walk you through how to do this on your own. We'll make the assumptio
 
 Let's get started!
 
-
 1. Create a W&B account
 
     Follow [these quick instructions](https://app.wandb.ai/login) to create your free account if you don’t have one already. It shouldn't take more than a couple minutes. Once you're done (or if you've already got an account), next, we'll run a quick colab. 
 
-
 2. Open Colab Install Gradio and W&B
-
 
     We'll be following along with the colab provided in the JoJoGAN repo with some minor modifications to use Wandb and Gradio more effectively. 
 
@@ -58,10 +55,9 @@ Let's get started!
 
     Install Gradio and Wandb at the top:
 
-    ```python
-!pip install gradio wandb
+    ```sh
+    pip install gradio wandb
     ```
-
 
 3. Finetune StyleGAN and W&B experiment tracking
 
@@ -69,18 +65,18 @@ Let's get started!
 
     ```python
     
-    # Finetune StyleGAN
-    # alpha controls the strength of the style
-    alpha =  1.0 # {type:"slider", min:0, max:1, step:0.1}
+    #Finetune StyleGAN
+    #alpha controls the strength of the style
+    alpha =  1.0 #{type:"slider", min:0, max:1, step:0.1}
     alpha = 1-alpha
 
 
-    # Tries to preserve color of original image by limiting family of allowable transformations. Set to false if you want to transfer color from reference image. This also leads to heavier stylization
+    #Tries to preserve color of original image by limiting family of allowable transformations. Set to false if you want to transfer color from reference image. This also leads to heavier stylization
     preserve_color = True #{type:"boolean"}
-    # Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
+    #Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
     num_iter = 200 # {type:"number"}
-    # Log training on wandb and interval for image logging
-    log_interval = 50 # {type:"number"}
+    #Log training on wandb and interval for image logging
+    log_interval = 50 #{type:"number"}
 
 
     samples = []
@@ -99,7 +95,7 @@ Let's get started!
     lpips_fn = lpips.LPIPS(net='vgg').to(device)
 
 
-    # reset generator
+    #reset generator
     del generator
     generator = deepcopy(original_generator)
 
@@ -107,7 +103,7 @@ Let's get started!
     g_optim = optim.Adam(generator.parameters(), lr=2e-3, betas=(0, 0.99))
 
 
-    # Which layers to swap for generating a family of plausible real images -> fake image
+    #Which layers to swap for generating a family of plausible real images -> fake image
     if preserve_color:
         id_swap = [7,9,11,15,16,17]
     else:
@@ -156,7 +152,6 @@ Let's get started!
 
     Lastly, here's how to save, download, and load your model (and Gradio demo)
 
-
 4. Save and Download Model
 
     ```python
@@ -166,9 +161,6 @@ Let's get started!
     from google.colab import files
     files.download('your-model-name.pt') 
     ```
-
-
-
 
 5. Load Model and Gradio Demo
 
@@ -210,7 +202,6 @@ Let's get started!
         btn.click(fn=inference, inputs=inp, outputs=out)
 
     demo.launch()
-
     ```
 
 6. Integrate Gradio
@@ -220,7 +211,7 @@ Let's get started!
     ```python
     demo.integrate(wandb=wandb)
     ```
-    
+
     Once you call integrate, a demo will be created and you can integrate it into your dashboard or report
 
     Outside of W&B with Web components, using the gradio-app tags allows anyone can embed Gradio demos on HF spaces directly into their blogs, websites, documentation, etc.:
@@ -228,7 +219,6 @@ Let's get started!
     ```html
     &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
     ```
-
 
 ## Conclusion
 
@@ -239,8 +229,6 @@ We hope you enjoyed this brief demo of embedding a Gradio demo to a W&B report! 
 * W&B tracks experiments with just a few lines of code added to a colab and you can visualize, sort, and understand your experiments in a single, centralized dashboard.
 
 * Gradio, meanwhile, demos the model in a user friendly interface to share anywhere on the web. 
-
-
 
 ## How to contribute Gradio demos on HF spaces on the Wandb organization
 
