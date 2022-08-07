@@ -3,7 +3,7 @@
 	import type { ComponentMeta } from "./components/types";
 
 	export let root: string;
-	export let component: !ComponentMeta["component"];
+	export let component: ComponentMeta["component"];
 	export let instance_map: Record<number, ComponentMeta>;
 
 	export let id: number;
