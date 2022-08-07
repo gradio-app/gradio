@@ -15,7 +15,7 @@ from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
-    from gradio.components import Component
+    from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
 
@@ -37,8 +37,8 @@ class Examples:
     def __init__(
         self,
         examples: List[Any] | List[List[Any]] | str,
-        inputs: Component | List[Component],
-        outputs: Optional[Component | List[Component]] = None,
+        inputs: IOComponent | List[IOComponent],
+        outputs: Optional[IOComponent | List[IOComponent]] = None,
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -143,7 +143,7 @@ class Examples:
 
         self.processed_examples = [
             [
-                component.preprocess_example(sample)
+                component.postprocess(sample)
                 for component, sample in zip(inputs_with_examples, example)
             ]
             for example in non_none_examples

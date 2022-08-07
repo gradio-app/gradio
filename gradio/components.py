@@ -201,12 +201,6 @@ class IOComponent(Component):
         """
         return x
 
-    def preprocess_example(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on an example before being passed to the main function.
-        """
-        return x
-
     def set_interpret_parameters(self):
         """
         Set any parameters for interpretation.
@@ -405,15 +399,6 @@ class Textbox(Changeable, Submittable, IOComponent):
             called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
-
-    def preprocess_example(self, x: str | None) -> Any:
-        """
-        Any preprocessing needed to be performed on an example before being passed to the main function.
-        """
-        if x is None:
-            return None
-        else:
-            return str(x)
 
     def set_interpret_parameters(
         self, separator: str = " ", replacement: Optional[str] = None
