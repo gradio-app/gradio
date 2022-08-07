@@ -4293,9 +4293,12 @@ class Dataset(Clickable, Component):
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
-        self.headers = headers or [c.label or "" for c in self.components]
-        if all([header == "" for header in self.headers]):
+        if headers is not None:
+            self.headers = headers
+        elif all([c.label is None for c in self.components]):
             self.headers = []
+        else:
+            self.headers = [c.label or "" for c in self.components]
         self.samples = samples
 
     def get_config(self):
