@@ -63,7 +63,7 @@ class Examples:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        original_directory = Path().absolute()
+        working_directory = Path().absolute()
 
         if examples is None:
             raise ValueError("The parameter `examples` cannot be None")
@@ -80,18 +80,17 @@ class Examples:
                 raise FileNotFoundError(
                     "Could not find examples directory: " + examples
                 )
-            os.chdir(examples)
-            if not os.path.exists(LOG_FILE):
+            working_directory = examples
+            if not os.path.exists(os.path.join(examples, LOG_FILE)):
                 if len(inputs) == 1:
-                    examples = [[e] for e in os.listdir(".")]
+                    examples = [[e] for e in os.listdir(examples)]
                 else:
-                    os.chdir(original_directory)
                     raise FileNotFoundError(
                         "Could not find log file (required for multiple inputs): "
                         + LOG_FILE
                     )
             else:
-                with open(LOG_FILE) as logs:
+                with open(os.path.join(examples, LOG_FILE)) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
                         examples[i][0 : len(inputs)] for i in range(1, len(examples))
@@ -129,15 +128,14 @@ class Examples:
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
 
-        self.processed_examples = [
-            [
-                component.preprocess_example(sample)
-                for component, sample in zip(inputs_with_examples, example)
+        with utils.set_directory(working_directory):
+            self.processed_examples = [
+                [
+                    component.preprocess_example(sample)
+                    for component, sample in zip(inputs_with_examples, example)
+                ]
+                for example in non_none_examples
             ]
-            for example in non_none_examples
-        ]
-
-        os.chdir(original_directory)
 
         self.dataset = Dataset(
             components=inputs_with_examples,
