@@ -95,7 +95,7 @@ class Queue:
                 await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
 
-            print(f"Searching for inactive job slots")
+            print("Searching for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
                 print("All threads busy")
                 await asyncio.sleep(1)
@@ -103,7 +103,7 @@ class Queue:
 
             # Using mutex to avoid editing a list in use
             async with cls.LOCK:
-                print(f"Start Processing, found inactive job slot, now popping event")
+                print("Start Processing, found inactive job slot, now popping event")
                 event = cls.EVENT_QUEUE.pop(0)
                 print(f"Start Processing, found event, popped event: {event}")
 
@@ -250,6 +250,8 @@ class Queue:
         client_awake = await event.send_message(
             {"msg": "process_completed", "output": response.json}
         )
+        if client_awake:
+            run_coro_in_background(cls.wait_in_inactive, event)
         cls.clean_job(event)
 
     @classmethod
@@ -261,7 +263,9 @@ class Queue:
         client_awake = await event.get_message()
         if client_awake:
             if client_awake.get("msg") == "join_back":
-                cls.EVENT_QUEUE.append(event)
+                cls.push(event)
+            else:
+                await event.disconnect()
 
 
 class Event:
