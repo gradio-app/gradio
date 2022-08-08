@@ -4,7 +4,6 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
-from abc import abstractmethod
 import inspect
 import json
 import math
@@ -72,13 +71,34 @@ class Component(Block):
             "name": self.get_block_name(),
             **super().get_config(),
         }
+        
+
+class SimpleSerializable():
+    def serialize(self, x: Any, called_directly: bool) -> Any:
+        """
+        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Parameters:
+            x: Input to interface
+            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
+        """
+        return x
+
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
+class FileSerailizable():
+    pass
 
 
 class IOComponent(Component):
     """
     A base class for defining methods that all input/output components should have.
     """
-
     def __init__(
         self,
         *,
@@ -113,20 +133,6 @@ class IOComponent(Component):
             "interactive": self.interactive,
             **super().get_config(),
         }
-
-    def save_flagged(
-        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
-    ) -> Any:
-        """
-        Saves flagged data from component
-        """
-        return data
-
-    def restore_flagged(self, dir, data, encryption_key):
-        """
-        Restores flagged data from logs
-        """
-        return data
 
     def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
         """
@@ -193,14 +199,6 @@ class IOComponent(Component):
         """
         raise NotImplementedError("This method should be implemented in subclass.")
 
-    def serialize(self, x: Any, called_directly: bool) -> Any:
-        """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
-        Parameters:
-            x: Input to interface
-            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
-        """
-        raise NotImplementedError("This method should be implemented in subclass.")
 
     def set_interpret_parameters(self):
         """
@@ -246,12 +244,6 @@ class IOComponent(Component):
         """
         raise NotImplementedError("This method should be implemented in subclass.")
 
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        raise NotImplementedError("This method should be implemented in subclass.")
-
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
@@ -291,7 +283,7 @@ class IOComponent(Component):
 
 
 @document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent):
+class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -379,14 +371,28 @@ class Textbox(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def serialize(self, x: Any, called_directly: bool) -> Any:
+    def generate_sample(self) -> str:
+        return "Hello World"
+
+    def preprocess(self, x: str | None) -> str | None:
         """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Any preprocessing needed to be performed on function input.
         Parameters:
-            x: Input to interface
-            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
+            x: text
+        Returns:
+            text
         """
-        return x
+        return None if x is None else str(x)
+
+    def postprocess(self, y: str | None) -> str | None:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: text
+        Returns:
+            text
+        """
+        return None if y is None else str(y)
 
     def set_interpret_parameters(
         self, separator: str = " ", replacement: Optional[str] = None
@@ -443,31 +449,10 @@ class Textbox(Changeable, Submittable, IOComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
-    def generate_sample(self) -> str:
-        return "Hello World"
-
-    def postprocess(self, y: str | None) -> str | None:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: text
-        Returns:
-            text
-        """
-        if y is None:
-            return None
-        else:
-            return str(y)
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent):
+class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -516,7 +501,7 @@ class Number(Changeable, Submittable, IOComponent):
         )
 
     @staticmethod
-    def round_to_precision(
+    def _round_to_precision(
         num: float | int | None, precision: int | None
     ) -> float | int | None:
         """
@@ -571,7 +556,20 @@ class Number(Changeable, Submittable, IOComponent):
         """
         if x is None:
             return None
-        return self.round_to_precision(x, self.precision)
+        return self._round_to_precision(x, self.precision)
+
+    def postprocess(self, y: float | None) -> float | None:
+        """
+        Any postprocessing needed to be performed on function output.
+
+        Parameters:
+            y: numeric output
+        Returns:
+            number representing function output
+        """
+        if y is None:
+            return None
+        return self._round_to_precision(y, self.precision)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -589,7 +587,7 @@ class Number(Changeable, Submittable, IOComponent):
         return self
 
     def get_interpretation_neighbors(self, x: float | int) -> Tuple[List[float], Dict]:
-        x = self.round_to_precision(x, self.precision)
+        x = self._round_to_precision(x, self.precision)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
@@ -619,31 +617,11 @@ class Number(Changeable, Submittable, IOComponent):
         return interpretation
 
     def generate_sample(self) -> float:
-        return self.round_to_precision(1, self.precision)
-
-    def postprocess(self, y: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-
-        Parameters:
-            y: numeric output
-        Returns:
-            number representing function output
-        """
-        if y is None:
-            return None
-        else:
-            return self.round_to_precision(y, self.precision)
-
-    def deserialize(self, y):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return y
+        return self._round_to_precision(1, self.precision)
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent):
+class Slider(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -719,20 +697,13 @@ class Slider(Changeable, IOComponent):
         }
 
     def get_random_value(self):
-        # Goal is to generate a possible value of the slider
-        # without generating all possible values
-        # We randomly pick a step among all possible steps and add  to the minimum
         n_steps = int((self.maximum - self.minimum) / self.step)
         step = random.randint(0, n_steps)
         value = self.minimum + step * self.step
-
-        # Round to the number of decimals in the step
-        # So that UI doesn't display really long decimals due to arithmetic
-        # If the step doesn't have any decimals, find will return -1
+        # Round to number of decimals in step so that UI doesn't display long decimals
         n_decimals = max(str(self.step)[::-1].find("."), 0)
         if n_decimals:
             value = round(value, n_decimals)
-
         return value
 
     @staticmethod
@@ -759,6 +730,9 @@ class Slider(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
+    def generate_sample(self) -> float:
+        return self.maximum
+
     def preprocess(self, x: float) -> float:
         """
         Parameters:
@@ -767,6 +741,17 @@ class Slider(Changeable, IOComponent):
             numeric input
         """
         return x
+    
+    def postprocess(self, y: float | None) -> float | None:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: numeric output
+        Returns:
+            numeric output or minimum number if None
+        """
+        return self.minimum if y is None else y
+    
 
     def set_interpret_parameters(self, steps: int = 8) -> "Slider":
         """
@@ -792,25 +777,6 @@ class Slider(Changeable, IOComponent):
         """
         return scores
 
-    def generate_sample(self) -> float:
-        return self.maximum
-
-    def postprocess(self, y: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: numeric output
-        Returns:
-            numeric output or minimum number if None
-        """
-        return self.minimum if y is None else y
-
-    def deserialize(self, y):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return y
-
     def style(
         self,
         container: Optional[bool] = None,
@@ -827,7 +793,7 @@ class Slider(Changeable, IOComponent):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent):
+class Checkbox(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -896,6 +862,9 @@ class Checkbox(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
+    def generate_sample(self):
+        return True
+
     def preprocess(self, x: bool) -> bool:
         """
         Parameters:
@@ -904,6 +873,16 @@ class Checkbox(Changeable, IOComponent):
             boolean input
         """
         return x
+    
+    def postprocess(self, y: bool) -> bool:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: boolean output
+        Returns:
+            boolean output
+        """
+        return y
 
     def set_interpret_parameters(self):
         """
@@ -924,28 +903,9 @@ class Checkbox(Changeable, IOComponent):
         else:
             return None, scores[0]
 
-    def generate_sample(self):
-        return True
-
-    def postprocess(self, y: bool) -> bool:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: boolean output
-        Returns:
-            boolean output
-        """
-        return y
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
-
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent):
+class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -1023,6 +983,9 @@ class CheckboxGroup(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
+    def generate_sample(self):
+        return self.choices
+
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
         Parameters:
@@ -1040,6 +1003,16 @@ class CheckboxGroup(Changeable, IOComponent):
                 + str(self.type)
                 + ". Please choose from: 'value', 'index'."
             )
+
+    def postprocess(self, y: List[str] | None) -> List[str]:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: List of selected choices
+        Returns:
+            List of selected choices
+        """
+        return [] if y is None else y
 
     def set_interpret_parameters(self):
         """
@@ -1081,25 +1054,6 @@ class CheckboxGroup(Changeable, IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def generate_sample(self):
-        return self.choices
-
-    def postprocess(self, y: List[str] | None) -> List[str]:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: List of selected choices
-        Returns:
-            List of selected choices
-        """
-        return [] if y is None else y
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
-
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
@@ -1124,7 +1078,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent):
+class Radio(Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1203,6 +1157,9 @@ class Radio(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
+    def generate_sample(self):
+        return self.choices[0]
+
     def preprocess(self, x: str) -> str | int:
         """
         Parameters:
@@ -1224,6 +1181,16 @@ class Radio(Changeable, IOComponent):
                 + ". Please choose from: 'value', 'index'."
             )
 
+    def postprocess(self, y: str) -> str:
+        """
+        Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: string of choice
+        Returns:
+            string of choice
+        """
+        return y
+
     def set_interpret_parameters(self):
         """
         Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
@@ -1242,25 +1209,6 @@ class Radio(Changeable, IOComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
-
-    def generate_sample(self):
-        return self.choices[0]
-
-    def postprocess(self, y: str) -> str:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: string of choice
-        Returns:
-            string of choice
-        """
-        return y
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
 
     def style(
         self,
@@ -1452,7 +1400,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def format_image(
+    def _format_image(
         self, im: Optional[PIL.Image], fmt: str
     ) -> np.array | PIL.Image | str | None:
         """Helper method to format an image based on self.type"""
@@ -1482,6 +1430,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
 
+    def generate_sample(self):
+        return deepcopy(media_data.BASE64_IMAGE)
+
     def preprocess(self, x: str | Dict) -> np.array | PIL.Image | str | None:
         """
         Parameters:
@@ -1507,37 +1458,39 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             im = PIL.ImageOps.mirror(im)
 
         if not (self.tool == "sketch"):
-            return self.format_image(im, fmt)
+            return self._format_image(im, fmt)
 
         mask_im = processing_utils.decode_base64_to_image(mask)
         mask_fmt = mask_im.format
         return {
-            "image": self.format_image(im, fmt),
-            "mask": self.format_image(mask_im, mask_fmt),
+            "image": self._format_image(im, fmt),
+            "mask": self._format_image(mask_im, mask_fmt),
         }
 
-    def serialize(self, x, called_directly=False):
-        # if called directly, can assume it's a URL or filepath
-        if self.type == "filepath" or called_directly:
-            return processing_utils.encode_url_or_file_to_base64(x)
-        elif self.type == "file":
-            return processing_utils.encode_url_or_file_to_base64(x.name)
-        elif self.type in ("numpy", "pil"):
-            if self.type == "numpy":
-                x = PIL.Image.fromarray(np.uint8(x)).convert("RGB")
-            fmt = x.format
-            file_obj = tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
-            )
-            x.save(file_obj.name)
-            return processing_utils.encode_url_or_file_to_base64(file_obj.name)
+    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
+        """
+        Parameters:
+            y: image as a numpy array, PIL Image, string filepath, or Path filepath
+        Returns:
+            base64 url data
+        """
+        if y is None:
+            return None
+        if isinstance(y, np.ndarray):
+            dtype = "numpy"
+        elif isinstance(y, PIL.Image.Image):
+            dtype = "pil"
+        elif isinstance(y, (str, Path)):
+            dtype = "file"
         else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'pil', 'filepath'."
-            )
+            raise ValueError("Cannot process this value as an Image")
+        if dtype in ["numpy", "pil"]:
+            if dtype == "pil":
+                y = np.array(y)
+            out_y = processing_utils.encode_array_to_base64(y)
+        elif dtype == "file":
+            out_y = processing_utils.encode_url_or_file_to_base64(y)
+        return out_y
 
     def set_interpret_parameters(self, segments: int = 16):
         """
@@ -1648,33 +1601,28 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             os.path.join(dir, data), encryption_key=encryption_key
         )
 
-    def generate_sample(self):
-        return deepcopy(media_data.BASE64_IMAGE)
-
-    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
-        """
-        Parameters:
-            y: image as a numpy array, PIL Image, string filepath, or Path filepath
-        Returns:
-            base64 url data
-        """
-        if y is None:
-            return None
-        if isinstance(y, np.ndarray):
-            dtype = "numpy"
-        elif isinstance(y, PIL.Image.Image):
-            dtype = "pil"
-        elif isinstance(y, (str, Path)):
-            dtype = "file"
+    def serialize(self, x, called_directly=False):
+        # if called directly, can assume it's a URL or filepath
+        if self.type == "filepath" or called_directly:
+            return processing_utils.encode_url_or_file_to_base64(x)
+        elif self.type == "file":
+            return processing_utils.encode_url_or_file_to_base64(x.name)
+        elif self.type in ("numpy", "pil"):
+            if self.type == "numpy":
+                x = PIL.Image.fromarray(np.uint8(x)).convert("RGB")
+            fmt = x.format
+            file_obj = tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=("." + fmt.lower() if fmt is not None else ".png"),
+            )
+            x.save(file_obj.name)
+            return processing_utils.encode_url_or_file_to_base64(file_obj.name)
         else:
-            raise ValueError("Cannot process this value as an Image")
-        if dtype in ["numpy", "pil"]:
-            if dtype == "pil":
-                y = np.array(y)
-            out_y = processing_utils.encode_array_to_base64(y)
-        elif dtype == "file":
-            out_y = processing_utils.encode_url_or_file_to_base64(y)
-        return out_y
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'numpy', 'pil', 'filepath'."
+            )
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name

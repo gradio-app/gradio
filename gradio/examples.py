@@ -131,7 +131,7 @@ class Examples:
         with utils.set_directory(working_directory):
             self.processed_examples = [
                 [
-                    component.preprocess_example(sample)
+                    component.postprocess(sample)
                     for component, sample in zip(inputs_with_examples, example)
                 ]
                 for example in non_none_examples
