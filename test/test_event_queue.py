@@ -3,7 +3,6 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
-from websocket import create_connection
 
 import gradio as gr
 
@@ -21,7 +20,7 @@ class TestQueue:
             button.click(wait, [text], [text])
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
-        with client.websocket_connect("/queue/join") as websocket:
+        with client.websocket_connect("/queue/join", open_timeout=2) as websocket:
             assert {
                 "msg": "estimation",
                 "queue_size": 0,
