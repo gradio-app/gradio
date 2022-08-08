@@ -21,6 +21,7 @@ class TestQueue:
             button.click(wait, [text], [text])
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
+        print(local_url, client, time)
         # with client.websocket_connect("/queue/join") as websocket:
         #     assert {
         #         "msg": "estimation",
