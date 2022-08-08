@@ -1,18 +1,10 @@
 import asyncio
-import time
-import unittest.mock as mock
 
 import pytest
-import pytest_asyncio
 from fastapi.testclient import TestClient
-from fastapi.websockets import WebSocket
-from httpx import AsyncClient
 from websocket import create_connection
 
 import gradio as gr
-import gradio.event_queue
-import gradio.event_queue as event_queue
-from gradio.routes import PredictBody
 
 
 class TestQueue:
@@ -31,8 +23,12 @@ class TestQueue:
         with client.websocket_connect("/queue/join") as websocket:
             assert {
                 "msg": "estimation",
-                "queue_duration": 1,
                 "queue_size": 0,
+                "avg_event_concurrent_process_time": 1.0,
+                "avg_event_process_time": 1.0,
+                "queue_eta": 1,
+                "rank": -1,
+                "rank_eta": -1,
             } == websocket.receive_json()
             websocket.send_json({"hash": "0001"})
             while True:
