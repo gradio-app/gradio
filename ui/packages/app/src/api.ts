@@ -108,7 +108,7 @@ export const fn =
 			ws_map.set(fn_index, websocket_data);
 
 			websocket_data.connection.onopen = () => {
-				console.log("open")
+				console.log("open");
 				send_message(fn_index, { hash: session_hash });
 			};
 
@@ -118,7 +118,7 @@ export const fn =
 
 			websocket_data.connection.onmessage = function (event) {
 				const data = JSON.parse(event.data);
-				console.log("go", data)
+				console.log("go", data);
 
 				switch (data.msg) {
 					case "send_data":
@@ -149,7 +149,6 @@ export const fn =
 						break;
 				}
 			};
-
 		} else {
 			loading_status.update(fn_index as number, "pending", null, null, null);
 
