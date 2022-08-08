@@ -212,7 +212,10 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=Non
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension, dir=dir,
+            delete=False,
+            prefix=prefix,
+            suffix="." + extension,
+            dir=dir,
         )
     if encryption_key is not None:
         data = encryptor.encrypt(encryption_key, data)
@@ -224,7 +227,7 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=Non
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-        
+
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:
@@ -234,7 +237,10 @@ def create_tmp_copy_of_file(file_path, dir=None):
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension, dir=dir,
+            delete=False,
+            prefix=prefix,
+            suffix="." + extension,
+            dir=dir,
         )
     shutil.copy2(file_path, file_obj.name)
     return file_obj

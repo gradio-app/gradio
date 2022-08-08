@@ -4,20 +4,20 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
-from abc import ABC, abstractclassmethod
 import inspect
 import json
 import math
 import numbers
 import operator
 import os
-from pathlib import Path
 import random
 import shutil
 import tempfile
 import uuid
 import warnings
+from abc import ABC, abstractclassmethod
 from copy import deepcopy
+from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
@@ -53,7 +53,8 @@ from gradio.utils import component_or_layout_class
 set_documentation_group("component")
 
 
-TMP_FOLDER = 'tmp/'
+TMP_FOLDER = "tmp/"
+
 
 class Component(Block):
     """
@@ -74,7 +75,7 @@ class Component(Block):
             "name": self.get_block_name(),
             **super().get_config(),
         }
-        
+
 
 class Serializable(ABC):
     @abstractclassmethod
@@ -95,17 +96,16 @@ class Serializable(ABC):
 class SimpleSerializable(Serializable):
     def serialize(self, x: Any, called_directly: bool) -> Any:
         """
-        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op. 
+        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
         Parameters:
             x: Input to interface
             called_directly: if True, the component is part of an Interface/Blocks was called as a function, otherwise, it is being used via the GUI
         """
         return x
 
-
     def deserialize(self, x, save_dir=None):
         """
-        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op. 
+        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
         """
         return x
 
@@ -115,19 +115,19 @@ class FileSerailizable(Serializable):
         """
         Convert from serialized representation (e.g. base64) to a human-friendly version (string path to file)
         Optionally, save the file to the directory specified by save_dir
-        """        
+        """
         if isinstance(x, dict) and "data" in x:
             file = processing_utils.decode_base64_to_file(x["data"])
         else:
             file = processing_utils.decode_base64_to_file(x)
         return file.name
-            
 
 
 class IOComponent(Component, Serializable):
     """
     A base class for defining methods that all input/output components should have.
     """
+
     def __init__(
         self,
         *,
@@ -168,7 +168,6 @@ class IOComponent(Component, Serializable):
         Any preprocessing needed to be performed on function input.
         """
         raise NotImplementedError("This method should be implemented in subclass.")
-
 
     def set_interpret_parameters(self):
         """
@@ -418,7 +417,6 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             result.append((token, score))
             result.append((self.interpretation_separator, 0))
         return result
-
 
 
 @document("change", "submit", "style")
@@ -711,7 +709,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
             numeric input
         """
         return x
-    
+
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -721,7 +719,6 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
             numeric output or minimum number if None
         """
         return self.minimum if y is None else y
-    
 
     def set_interpret_parameters(self, steps: int = 8) -> "Slider":
         """
@@ -843,7 +840,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
             boolean input
         """
         return x
-    
+
     def postprocess(self, y: bool) -> bool:
         """
         Any postprocessing needed to be performed on function output.
@@ -1776,16 +1773,16 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
         """
         if y is None:
             return None
-        
+
         returned_format = y.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
-        
+
         y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
-                
+
         return {
             "name": y.name,
             "data": None,
@@ -2957,7 +2954,6 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             return None
         else:
             return str(y)
-
 
 
 ############################
