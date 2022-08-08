@@ -790,6 +790,7 @@ class Blocks(BlockContext):
             update_intervals,
             duration_history_size,
         )
+        return self
 
     def launch(
         self,
