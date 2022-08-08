@@ -43,20 +43,15 @@ class Queue:
     @classmethod
     def configure_queue(
         cls,
-        server_path: str,
-        live_queue_updates=True,
-        queue_concurrency_count: int = 1,
-        data_gathering_start: int = 30,
-        update_intervals: int = 5,
-        duration_history_size=100,
+        live_queue_updates: bool,
+        queue_concurrency_count: int,
+        data_gathering_start: int,
+        update_intervals: int,
+        duration_history_size: int,
     ):
         """
-        See Blocks.launch() docstring for the explanation of parameters.
+        See Blocks.configure_queue() docstring for the explanation of parameters.
         """
-
-        if live_queue_updates is False and update_intervals == 5:
-            update_intervals = 10
-        cls.SERVER_PATH = server_path
         cls.LIVE_QUEUE_UPDATES = live_queue_updates
         cls.MAX_THREAD_COUNT = queue_concurrency_count
         cls.DATA_GATHERING_STARTS_AT = data_gathering_start
@@ -65,11 +60,16 @@ class Queue:
         cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
 
     @classmethod
+    def set_url(cls, url: str):
+        cls.SERVER_PATH = url
+
+    @classmethod
     async def init(
         cls,
     ) -> None:
-        run_coro_in_background(Queue.notify_clients)
         run_coro_in_background(Queue.start_processing)
+        if not cls.LIVE_QUEUE_UPDATES:
+            run_coro_in_background(Queue.notify_clients)
 
     @classmethod
     def close(cls):
@@ -78,6 +78,14 @@ class Queue:
     @classmethod
     def resume(cls):
         cls.STOP = False
+
+    @classmethod
+    def get_active_worker_count(cls) -> int:
+        count = 0
+        for worker in cls.ACTIVE_JOBS:
+            if worker is not None:
+                count += 1
+        return count
 
     # TODO: Remove prints
     @classmethod
@@ -139,7 +147,7 @@ class Queue:
         """
         Gather data for the event
 
-        Args:
+        Parameters:
             event:
         """
         if not event.data:
@@ -157,7 +165,6 @@ class Queue:
         Notify clients about events statuses in the queue periodically.
         """
         while not cls.STOP:
-            # TODO: if live update is true and queue size does not change, dont notify the clients
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
             if cls.EVENT_QUEUE:
@@ -181,15 +188,15 @@ class Queue:
         """
         Send estimation about ETA to the client.
 
-        Args:
+        Parameters:
             event:
             estimation:
-            rank
+            rank:
         """
         estimation.rank = rank
-        estimation.rank_eta = (
-            estimation.rank - 1
-        ) * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+        estimation.rank_eta = round(
+            estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+        )
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
@@ -199,7 +206,7 @@ class Queue:
         """
         Update estimation by last x element's average duration.
 
-        Args:
+        Parameters:
             duration:
         """
         cls.DURATION_HISTORY.append(duration)
@@ -243,8 +250,19 @@ class Queue:
             {"msg": "process_completed", "output": response.json}
         )
         if client_awake:
-            await event.disconnect()
+            run_coro_in_background(cls.wait_in_inactive, event)
         cls.clean_job(event)
+
+    @classmethod
+    async def wait_in_inactive(cls, event: Event) -> None:
+        """
+        Waits the event until it receives the join_back message or loses ws connection.
+        """
+        event.data = None
+        client_awake = await event.get_message()
+        if client_awake:
+            if client_awake["msg"] == "join_back":
+                cls.EVENT_QUEUE.append(event)
 
 
 class Event:
