@@ -737,11 +737,9 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            live_queue_updates:
-                If True, Queue will send estimations to clients whenever a job is finished.
-                If False will send estimations periodically, might be preferred when events have very short process-times.
+            live_queue_updates: If true, Queue will send estimations to clients whenever a job is finished. Otherwise will send estimations periodically, might be preferred when events have very short process-times.
             concurrency_count: Number of max number concurrent jobs inside the Queue.
-            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big sized data(video or such) to not overflow the memory.
+            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big sized data (video or such) to not overflow the memory.
             update_intervals: Queue will send estimations to the clients in intervals=update_intervals when live_queue_updates==false
             duration_history_size: Queue duration estimation calculation window size.
         """
@@ -872,7 +870,7 @@ class Blocks(BlockContext):
                 event_queue.Queue.set_url(self.local_url)
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                requests.get(f"{self.local_url}start/queue")
+                requests.get(f"{self.local_url}queue/start")
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,

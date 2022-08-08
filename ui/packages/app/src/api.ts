@@ -100,56 +100,56 @@ export const fn =
 				ws_map.get(fn).connection.send(JSON.stringify(data));
 			}
 
-			if (ws_map.get(fn_index)) {
-				send_message(fn_index, payload);
-			} else {
-				const websocket_data = {
-					connection: new WebSocket(WS_ENDPOINT),
-					hash: Math.random().toString(36).substring(2)
-				};
+			const websocket_data = {
+				connection: new WebSocket(WS_ENDPOINT),
+				hash: Math.random().toString(36).substring(2)
+			};
 
-				ws_map.set(fn_index, websocket_data);
+			ws_map.set(fn_index, websocket_data);
 
-				websocket_data.connection.onopen = () => {
-					send_message(fn_index, { hash: session_hash });
-				};
+			websocket_data.connection.onopen = () => {
+				console.log("open")
+				send_message(fn_index, { hash: session_hash });
+			};
 
-				websocket_data.connection.onclose = () => {
-					console.log("close");
-				};
+			websocket_data.connection.onclose = () => {
+				console.log("close");
+			};
 
-				websocket_data.connection.onmessage = function (event) {
-					const data = JSON.parse(event.data);
+			websocket_data.connection.onmessage = function (event) {
+				const data = JSON.parse(event.data);
+				console.log("go", data)
 
-					switch (data.msg) {
-						case "send_data":
-							send_message(fn_index, payload);
-							break;
-						case "estimation":
-							loading_status.update(
-								fn_index,
-								get(loading_status)[data.fn_index]?.status || "pending",
-								data.queue_size,
-								data.rank,
-								data.avg_process_time
-							);
-							break;
-						case "process_completed":
-							loading_status.update(
-								fn_index,
-								"complete",
-								null,
-								null,
-								data.output.average_duration
-							);
-							queue_callback(data.output);
-							break;
-						case "process_starts":
-							loading_status.update(fn_index, "pending", data.rank, 0, null);
-							break;
-					}
-				};
-			}
+				switch (data.msg) {
+					case "send_data":
+						send_message(fn_index, payload);
+						break;
+					case "estimation":
+						loading_status.update(
+							fn_index,
+							get(loading_status)[data.fn_index]?.status || "pending",
+							data.queue_size,
+							data.rank,
+							data.avg_process_time
+						);
+						break;
+					case "process_completed":
+						loading_status.update(
+							fn_index,
+							"complete",
+							null,
+							null,
+							data.output.average_duration
+						);
+						queue_callback(data.output);
+						websocket_data.connection.close();
+						break;
+					case "process_starts":
+						loading_status.update(fn_index, "pending", data.rank, 0, null);
+						break;
+				}
+			};
+
 		} else {
 			loading_status.update(fn_index as number, "pending", null, null, null);
 
