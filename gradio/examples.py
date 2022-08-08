@@ -93,7 +93,7 @@ class Examples:
                 with open(os.path.join(examples, LOG_FILE)) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
-                        examples[i][0 : len(inputs)] for i in range(1, len(examples))
+                        examples[i][:len(inputs)] for i in range(1, len(examples))
                     ]  # remove header and unnecessary columns
 
         else:
