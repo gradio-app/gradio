@@ -1771,8 +1771,8 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
 
     def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
-        Processes a video to ensure that it is in the correct format before 
-        returning it to the front end. 
+        Processes a video to ensure that it is in the correct format before
+        returning it to the front end.
         Parameters:
             y: a path to video file
         Returns:
@@ -2094,11 +2094,11 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
-            
+
         y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
-        
+
         return {"name": y.name, "data": None, "is_file": True}
-    
+
     def stream(
         self,
         fn: Callable,
@@ -2211,7 +2211,6 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-
     def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
         """
         Parameters:
@@ -2290,8 +2289,8 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
                     "size": os.path.getsize(file),
                     "data": processing_utils.create_tmp_copy_of_file(
                         file, dir=TMP_FOLDER
-                        ),
-                    "is_file": True
+                    ),
+                    "is_file": True,
                 }
                 for file in y
             ]
@@ -2299,9 +2298,8 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
             return {
                 "name": os.path.basename(y),
                 "size": os.path.getsize(y),
-                "data": processing_utils.create_tmp_copy_of_file(
-                        y, dir=TMP_FOLDER),
-                "is_file": True
+                "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
+                "is_file": True,
             }
 
     def restore_flagged(self, dir, data, encryption_key):
