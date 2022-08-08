@@ -302,7 +302,7 @@ class App(FastAPI):
             return Queue.get_estimation()
 
         @app.get(
-            "/start/queue",
+            "/queue/start",
             dependencies=[Depends(login_check)],
         )
         async def start_queue():

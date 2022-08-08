@@ -97,6 +97,7 @@ class Queue:
 
             print(f"Searching for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
+                print("All threads busy")
                 await asyncio.sleep(1)
                 continue
 
@@ -237,7 +238,7 @@ class Queue:
         if not client_awake:
             cls.clean_job(event)
             return
-        print(f"Process starts for event: {event}")
+        print(f"Process starts for event: {event.hash}")
         begin_time = time.time()
         response = await Request(
             method=Request.Method.POST,
@@ -249,8 +250,6 @@ class Queue:
         client_awake = await event.send_message(
             {"msg": "process_completed", "output": response.json}
         )
-        if client_awake:
-            run_coro_in_background(cls.wait_in_inactive, event)
         cls.clean_job(event)
 
     @classmethod
@@ -261,7 +260,7 @@ class Queue:
         event.data = None
         client_awake = await event.get_message()
         if client_awake:
-            if client_awake["msg"] == "join_back":
+            if client_awake.get("msg") == "join_back":
                 cls.EVENT_QUEUE.append(event)
 
 

@@ -118,7 +118,7 @@
 >
 	{#if status === "pending"}
 		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text">
+		<div class="meta-text dark:text-gray-400">
 			{#if queue_position !== null && queue_position > 0}
 				queue: {queue_position}/{queue_size} |
 			{:else if queue_position === 0}
