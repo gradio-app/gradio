@@ -314,6 +314,7 @@ class TestRequest:
         assert client_response.has_exception is True
         assert isinstance(client_response.exception, Exception)
 
+
 def make_mock_response(return_value):
     return Response(201, json=return_value)
 
