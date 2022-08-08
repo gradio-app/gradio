@@ -11,7 +11,7 @@ import math
 import numbers
 import operator
 import os
-import pathlib
+from pathlib import Path
 import random
 import shutil
 import tempfile
@@ -191,7 +191,7 @@ class IOComponent(Component):
         """
         Any preprocessing needed to be performed on function input.
         """
-        raise NotImplementedError("This method should be implemented in a subclass.")
+        raise NotImplementedError("This method should be implemented in subclass.")
 
     def serialize(self, x: Any, called_directly: bool) -> Any:
         """
@@ -200,7 +200,7 @@ class IOComponent(Component):
             x: Input to interface
             called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
-        return x
+        raise NotImplementedError("This method should be implemented in subclass.")
 
     def set_interpret_parameters(self):
         """
@@ -244,13 +244,13 @@ class IOComponent(Component):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return y
+        raise NotImplementedError("This method should be implemented in subclass.")
 
     def deserialize(self, x):
         """
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
-        return x
+        raise NotImplementedError("This method should be implemented in subclass.")
 
     def style(
         self,
@@ -573,16 +573,6 @@ class Number(Changeable, Submittable, IOComponent):
             return None
         return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: float | None) -> float | None:
-        """
-        Returns:
-            Number representing function input
-        """
-        if x is None:
-            return None
-        else:
-            return self.round_to_precision(x, self.precision)
-
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
     ):
@@ -778,13 +768,6 @@ class Slider(Changeable, IOComponent):
         """
         return x
 
-    def preprocess_example(self, x: float) -> float:
-        """
-        Returns:
-            Number representing function input
-        """
-        return x
-
     def set_interpret_parameters(self, steps: int = 8) -> "Slider":
         """
         Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
@@ -919,13 +902,6 @@ class Checkbox(Changeable, IOComponent):
             x: boolean input
         Returns:
             boolean input
-        """
-        return x
-
-    def preprocess_example(self, x):
-        """
-        Returns:
-            Boolean representing function input
         """
         return x
 
@@ -1376,7 +1352,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
-    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
+    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
     Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
@@ -1540,11 +1516,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "mask": self.format_image(mask_im, mask_fmt),
         }
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return processing_utils.encode_file_to_base64(x)
-
     def serialize(self, x, called_directly=False):
         # if called directly, can assume it's a URL or filepath
         if self.type == "filepath" or called_directly:
@@ -1680,10 +1651,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
 
-    def postprocess(self, y: np.ndarray | PIL.Image | str) -> str:
+    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
-            y: image in specified format
+            y: image as a numpy array, PIL Image, string filepath, or Path filepath
         Returns:
             base64 url data
         """
@@ -1693,7 +1664,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             dtype = "numpy"
         elif isinstance(y, PIL.Image.Image):
             dtype = "pil"
-        elif isinstance(y, str):
+        elif isinstance(y, (str, Path)):
             dtype = "file"
         else:
             raise ValueError("Cannot process this value as an Image")
@@ -1863,7 +1834,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             ff.run()
             return output_file_name
         elif self.source == "webcam" and self.mirror_webcam is True:
-            path = pathlib.Path(file_name)
+            path = Path(file_name)
             output_file_name = str(path.with_stem(f"{path.stem}_flip"))
             ff = FFmpeg(
                 inputs={file_name: None},
@@ -2822,11 +2793,6 @@ class Timeseries(Changeable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return {"name": x, "is_example": True}
-
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
@@ -3074,15 +3040,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             x: text
         Returns:
             text
-        """
-        if x is None:
-            return None
-        else:
-            return str(x)
-
-    def preprocess_example(self, x: str | None) -> Any:
-        """
-        Any preprocessing needed to be performed on an example before being passed to the main function.
         """
         if x is None:
             return None
