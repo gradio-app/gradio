@@ -1846,5 +1846,43 @@ def test_slider_rounds_when_using_default_randomizer(mock_randint):
     mock_randint.assert_called()
 
 
+def test_dataframe_postprocess_all_types():
+    df = pd.DataFrame(
+        {
+            "date_1": pd.date_range("2021-01-01", periods=2),
+            "date_2": pd.date_range("2022-02-15", periods=2).strftime("%B %d, %Y, %r"),
+            "number": np.array([0.2233, 0.57281]),
+            "number_2": np.array([84, 23]).astype(np.int),
+            "bool": [True, False],
+            "markdown": ["# Hello", "# Goodbye"],
+        }
+    )
+    component = gr.Dataframe(
+        datatype=["date", "date", "number", "number", "bool", "markdown"]
+    )
+    output = component.postprocess(df)
+    assert output == {
+        "headers": list(df.columns),
+        "data": [
+            [
+                pd.Timestamp("2021-01-01 00:00:00"),
+                "February 15, 2022, 12:00:00 AM",
+                0.2233,
+                84,
+                True,
+                "<h1>Hello</h1>\n",
+            ],
+            [
+                pd.Timestamp("2021-01-02 00:00:00"),
+                "February 16, 2022, 12:00:00 AM",
+                0.57281,
+                23,
+                False,
+                "<h1>Goodbye</h1>\n",
+            ],
+        ],
+    }
+
+
 if __name__ == "__main__":
     unittest.main()
