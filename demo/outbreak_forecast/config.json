@@ -1,13 +1,18 @@
 {
-  "mode": "blocks",
+  "version": "3.1.1\n",
+  "mode": "interface",
+  "dev_mode": true,
   "components": [
     {
       "id": 7,
       "type": "row",
       "props": {
         "type": "row",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {
+          "equal_height": false,
+          "mobile_collapse": true
+        }
       }
     },
     {
@@ -16,8 +21,8 @@
       "props": {
         "type": "column",
         "variant": "panel",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -26,8 +31,8 @@
       "props": {
         "type": "column",
         "variant": "default",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -39,11 +44,11 @@
           "Plotly",
           "Bokeh"
         ],
-        "default_value": "Matplotlib",
         "label": "Plot Type",
         "show_label": true,
         "name": "dropdown",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -53,11 +58,12 @@
         "minimum": 1,
         "maximum": 4,
         "step": 0.01,
-        "default_value": 3.2,
+        "value": 3.2,
         "label": "R",
         "show_label": true,
         "name": "slider",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -71,11 +77,11 @@
           "April",
           "May"
         ],
-        "default_value": "January",
         "label": "Month",
         "show_label": true,
         "name": "dropdown",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -88,25 +94,27 @@
           "Mexico",
           "UK"
         ],
-        "default_value": [
+        "value": [
           "USA",
           "Canada"
         ],
         "label": "Countries",
         "show_label": true,
         "name": "checkboxgroup",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 4,
       "type": "checkbox",
       "props": {
-        "default_value": false,
+        "value": false,
         "label": "Social Distancing?",
         "show_label": true,
         "name": "checkbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -114,26 +122,32 @@
       "type": "row",
       "props": {
         "type": "row",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {
+          "mobile_collapse": false
+        }
       }
     },
     {
       "id": 11,
       "type": "button",
       "props": {
-        "default_value": "Clear",
+        "value": "Clear",
+        "variant": "secondary",
         "name": "button",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
       "id": 12,
       "type": "button",
       "props": {
-        "default_value": "Submit",
+        "value": "Submit",
+        "variant": "primary",
         "name": "button",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -142,8 +156,8 @@
       "props": {
         "type": "column",
         "variant": "panel",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -152,7 +166,8 @@
       "props": {
         "cover_container": true,
         "name": "statustracker",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -163,7 +178,8 @@
         "show_label": true,
         "interactive": false,
         "name": "plot",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -171,21 +187,83 @@
       "type": "row",
       "props": {
         "type": "row",
-        "css": {},
-        "default_value": true
+        "visible": true,
+        "style": {
+          "mobile_collapse": false
+        }
       }
     },
     {
       "id": 16,
       "type": "button",
       "props": {
-        "default_value": "Flag",
+        "value": "Flag",
+        "variant": "secondary",
         "name": "button",
-        "css": {}
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "dataset",
+      "props": {
+        "components": [
+          "dropdown",
+          "slider",
+          "dropdown",
+          "checkboxgroup",
+          "checkbox"
+        ],
+        "headers": [
+          "Plot Type",
+          "R",
+          "Month",
+          "Countries",
+          "Social Distancing?"
+        ],
+        "samples": [
+          [
+            "Matplotlib",
+            2,
+            "March",
+            [
+              "Mexico",
+              "UK"
+            ],
+            true
+          ],
+          [
+            "Plotly",
+            3.6,
+            "February",
+            [
+              "Canada",
+              "Mexico",
+              "UK"
+            ],
+            false
+          ],
+          [
+            "Bokeh",
+            1.2,
+            "May",
+            [
+              "UK"
+            ],
+            true
+          ]
+        ],
+        "type": "index",
+        "name": "dataset",
+        "visible": true,
+        "style": {}
       }
     }
   ],
   "theme": "default",
+  "css": null,
+  "title": "Gradio",
   "enable_queue": false,
   "layout": {
     "id": 6,
@@ -249,27 +327,13 @@
             ]
           }
         ]
+      },
+      {
+        "id": 17
       }
     ]
   },
   "dependencies": [
-    {
-      "targets": [
-        16
-      ],
-      "trigger": "click",
-      "inputs": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "outputs": [],
-      "status_tracker": null,
-      "queue": null
-    },
     {
       "targets": [
         12
@@ -285,8 +349,25 @@
       "outputs": [
         5
       ],
+      "backend_fn": true,
+      "js": null,
       "status_tracker": 14,
-      "queue": null
+      "queue": null,
+      "api_name": "predict",
+      "scroll_to_output": true,
+      "show_progress": true,
+      "documentation": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null
+        ]
+      ]
     },
     {
       "targets": [
@@ -303,8 +384,59 @@
         5,
         9
       ],
+      "backend_fn": false,
+      "js": "() => [null, 3.2, null, [], null, null, {\"variant\": null, \"visible\": true, \"__type__\": \"update\"}]\n                ",
       "status_tracker": null,
-      "queue": null
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
+    },
+    {
+      "targets": [
+        16
+      ],
+      "trigger": "click",
+      "inputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "outputs": [],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": null,
+      "queue": false,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
+    },
+    {
+      "targets": [
+        17
+      ],
+      "trigger": "click",
+      "inputs": [
+        17
+      ],
+      "outputs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": null,
+      "queue": false,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     }
   ]
 }
