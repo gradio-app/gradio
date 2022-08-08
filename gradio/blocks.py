@@ -17,8 +17,8 @@ from anyio import CapacityLimiter
 
 from gradio import (
     components,
-    event_queue,
     encryptor,
+    event_queue,
     external,
     networking,
     queueing,
