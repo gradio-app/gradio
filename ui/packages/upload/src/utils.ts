@@ -10,7 +10,7 @@ export function normalise_file(
 			name: "file_data",
 			data: file
 		};
-	} else if (file.is_example) {
+	} else {
 		file.data = root + "file/" + file.name;
 	}
 	return file;

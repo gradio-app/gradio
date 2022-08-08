@@ -197,7 +197,9 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
+def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     prefix = None
     if file_path is not None:
@@ -207,10 +209,10 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
             prefix = filename[0 : filename.index(".")]
             extension = filename[filename.index(".") + 1 :]
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension
+            delete=False, prefix=prefix, suffix="." + extension, dir=dir,
         )
     if encryption_key is not None:
         data = encryptor.encrypt(encryption_key, data)
@@ -219,17 +221,20 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
     return file_obj
 
 
-def create_tmp_copy_of_file(file_path):
+def create_tmp_copy_of_file(file_path, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+        
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension
+            delete=False, prefix=prefix, suffix="." + extension, dir=dir,
         )
     shutil.copy2(file_path, file_obj.name)
     return file_obj

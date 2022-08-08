@@ -4,6 +4,7 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+from abc import ABC, abstractclassmethod
 import inspect
 import json
 import math
@@ -52,6 +53,8 @@ from gradio.utils import component_or_layout_class
 set_documentation_group("component")
 
 
+TMP_FOLDER = 'tmp/'
+
 class Component(Block):
     """
     A base class for defining the methods that all gradio components should have.
@@ -73,29 +76,55 @@ class Component(Block):
         }
         
 
-class SimpleSerializable():
+class Serializable(ABC):
+    @abstractclassmethod
+    def serialize():
+        """
+        Convert data from human-readable format to serialized format.
+        """
+        pass
+
+    @abstractclassmethod
+    def deserialize():
+        """
+        Convert data from serialized format to human-readable format.
+        """
+        pass
+
+
+class SimpleSerializable(Serializable):
     def serialize(self, x: Any, called_directly: bool) -> Any:
         """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op. 
         Parameters:
             x: Input to interface
-            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
+            called_directly: if True, the component is part of an Interface/Blocks was called as a function, otherwise, it is being used via the GUI
         """
         return x
 
 
-    def deserialize(self, x):
+    def deserialize(self, x, save_dir=None):
         """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op. 
         """
         return x
 
 
-class FileSerailizable():
-    pass
+class FileSerailizable(Serializable):
+    def deserialize(self, x, save_dir=None):
+        """
+        Convert from serialized representation (e.g. base64) to a human-friendly version (string path to file)
+        Optionally, save the file to the directory specified by save_dir
+        """        
+        if isinstance(x, dict) and "data" in x:
+            file = processing_utils.decode_base64_to_file(x["data"])
+        else:
+            file = processing_utils.decode_base64_to_file(x)
+        return file.name
+            
 
 
-class IOComponent(Component):
+class IOComponent(Component, Serializable):
     """
     A base class for defining methods that all input/output components should have.
     """
@@ -133,65 +162,6 @@ class IOComponent(Component):
             "interactive": self.interactive,
             **super().get_config(),
         }
-
-    def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
-        """
-        Saved flagged file and returns filepath
-        """
-        label = processing_utils.strip_invalid_filename_characters(label)
-        old_file_name = file.name
-        output_dir = os.path.join(dir, label)
-        if os.path.exists(output_dir):
-            file_index = len(os.listdir(output_dir))
-        else:
-            os.makedirs(output_dir)
-            file_index = 0
-        new_file_name = str(file_index)
-        if "." in old_file_name:
-            uploaded_format = old_file_name.split(".")[-1].lower()
-            new_file_name += "." + uploaded_format
-        file.close()
-        shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
-        return label + "/" + new_file_name
-
-    def save_flagged_file(
-        self,
-        dir: str,
-        label: str,
-        data: Any,
-        encryption_key: bool,
-        file_path: Optional[str] = None,
-    ) -> Optional[str]:
-        """
-        Saved flagged data (e.g. image or audio) as a file and returns filepath
-        """
-        if data is None:
-            return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
-        return self.save_file(file, dir, label)
-
-    def restore_flagged_file(
-        self,
-        dir: str,
-        file: str,
-        encryption_key: bool,
-        as_data: bool = False,
-    ) -> Dict[str, Any]:
-        """
-        Loads flagged data from file and returns it
-        """
-        if as_data:
-            data = processing_utils.encode_file_to_base64(
-                os.path.join(dir, file), encryption_key=encryption_key
-            )
-            return {"name": file, "data": data}
-        else:
-            return {
-                "name": os.path.join(dir, file),
-                "data": os.path.join(dir, file),
-                "file_name": file,
-                "is_example": True,
-            }
 
     def preprocess(self, x: Any) -> Any:
         """
@@ -1296,7 +1266,7 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerailizable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1590,17 +1560,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to image file
-        """
-        return self.save_flagged_file(dir, label, data, encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return processing_utils.encode_file_to_base64(
-            os.path.join(dir, data), encryption_key=encryption_key
-        )
-
     def serialize(self, x, called_directly=False):
         # if called directly, can assume it's a URL or filepath
         if self.type == "filepath" or called_directly:
@@ -1623,9 +1582,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
                 + str(self.type)
                 + ". Please choose from: 'numpy', 'pil', 'filepath'."
             )
-
-    def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
 
     def style(
         self,
@@ -1669,7 +1625,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, IOComponent):
+class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
     """
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
@@ -1820,20 +1776,20 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         """
         if y is None:
             return None
+        
         returned_format = y.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
+        
+        y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
+                
         return {
-            "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y),
+            "name": y.name,
+            "data": None,
         }
-
-    def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x["data"])
-        return file.name
 
     def style(
         self,
@@ -1857,7 +1813,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
+class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerailizable):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
@@ -2143,10 +2099,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             y = file.name
         return processing_utils.encode_url_or_file_to_base64(y)
 
-    def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x)
-        return file.name
-
     def stream(
         self,
         fn: Callable,
@@ -2185,7 +2137,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, IOComponent):
+class File(Changeable, Clearable, IOComponent, FileSerailizable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2366,10 +2318,6 @@ class File(Changeable, Clearable, IOComponent):
                 "size": os.path.getsize(y),
                 "data": processing_utils.encode_file_to_base64(y),
             }
-
-    def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x["data"])
-        return file.name
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
@@ -2835,7 +2783,7 @@ class Variable(IOComponent):
 
 
 @document("click", "style")
-class Button(Clickable, IOComponent):
+class Button(Clickable, IOComponent, SimpleSerializable):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
 
@@ -2914,7 +2862,7 @@ class Button(Clickable, IOComponent):
 
 
 @document("change", "submit", "style")
-class ColorPicker(Changeable, Submittable, IOComponent):
+class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
@@ -3010,11 +2958,6 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         else:
             return str(y)
 
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
 
 
 ############################
