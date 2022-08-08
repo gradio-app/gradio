@@ -25,7 +25,7 @@ class Changeable(Block):
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
-        or uploads an image)
+        or uploads an image). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -35,9 +35,11 @@ class Changeable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "change",
             fn,
@@ -71,6 +73,7 @@ class Clickable(Block):
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
@@ -80,11 +83,11 @@ class Clickable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-            _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-            _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "click",
             fn,
@@ -118,6 +121,8 @@ class Submittable(Block):
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
+        This method can be used when this component is in a Gradio Blocks.
+
 
         Parameters:
             fn: Callable function
@@ -127,9 +132,11 @@ class Submittable(Block):
             status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
@@ -160,16 +167,18 @@ class Editable(Block):
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
-        built-in editor.
+        built-in editor. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "edit",
             fn,
@@ -197,16 +206,18 @@ class Clearable(Block):
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
-        using the X button for the component.
+        using the X button for the component. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
@@ -233,16 +244,19 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user plays the component (e.g. audio or video)
+        This event is triggered when the user plays the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "play",
             fn,
@@ -267,16 +281,19 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user pauses the component (e.g. audio or video)
+        This event is triggered when the user pauses the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "pause",
             fn,
@@ -301,16 +318,19 @@ class Playable(Block):
         _postprocess: bool = True,
     ):
         """
-        This event is triggered when the user stops the component (e.g. audio or video)
+        This event is triggered when the user stops the component (e.g. audio or video).
+        This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "stop",
             fn,
@@ -339,16 +359,18 @@ class Streamable(Block):
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
-        component)
+        component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
+            queue: If True, will place the request on the queue, if the queue exists
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.streaming = True
         self.set_event_trigger(
             "stream",

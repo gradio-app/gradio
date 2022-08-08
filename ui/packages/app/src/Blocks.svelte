@@ -31,6 +31,7 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
+	let app_mode = window.__gradio_mode__ === "app";
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -382,13 +383,13 @@
 
 		if (color_mode !== null) {
 			if (color_mode === "dark") {
-				target.classList.add("dark");
+				darkmode();
 			} else if (color_mode === "system") {
 				use_system_theme();
 			}
 			// light is default, so we don't need to do anything else
 		} else if (url.searchParams.get("__dark-theme") === "true") {
-			target.classList.add("dark");
+			darkmode();
 		} else {
 			use_system_theme();
 		}
@@ -404,7 +405,16 @@
 			const is_dark =
 				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
 
-			if (is_dark) target.classList.add("dark");
+			if (is_dark) {
+				darkmode();
+			}
+		}
+	}
+
+	function darkmode() {
+		target.classList.add("dark");
+		if (app_mode) {
+			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
 		}
 	}
 
@@ -423,10 +433,10 @@
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
 	<div
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={window.__gradio_mode__ === "app"}
+		class:flex-grow={app_mode}
 	>
 		{#if api_docs_visible}
 			<ApiDocs {components} {dependencies} {root} />

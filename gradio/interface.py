@@ -60,6 +60,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
+    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features
     """
 
     # stores references to all currently existing Interface instances
@@ -149,6 +150,7 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -179,6 +181,7 @@ class Interface(Blocks):
             mode="interface",
             css=css,
             title=title,
+            theme=theme,
             **kwargs,
         )
 
@@ -274,7 +277,7 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
-        self.api_mode = False
+        self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
         self.__name__ = fn.__name__
@@ -600,7 +603,7 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=self.fn,
+                    fn=submit_fn,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                 )
@@ -668,7 +671,7 @@ class Interface(Blocks):
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
-        if self.api_mode:  # Deerialize the input
+        if self.api_mode:  # Deserialize the input
             prediction = [
                 output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)
@@ -734,18 +737,31 @@ class TabbedInterface(Blocks):
     """
 
     def __init__(
-        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+        self,
+        interface_list: List[Interface],
+        tab_names: Optional[List[str]] = None,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,
+        css: Optional[str] = None,
     ):
         """
         Parameters:
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            theme: which theme to use - right now, only "default" is supported.
+            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            css: custom css or path to custom css file to apply to entire Blocks
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
+        super().__init__(
+            theme=theme,
+            analytics_enabled=analytics_enabled,
+            mode="tabbed_interface",
+            css=css,
+        )
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
-        super().__init__()
         with self:
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):

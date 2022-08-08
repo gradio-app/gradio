@@ -1,13 +1,14 @@
 import gradio as gr
 import numpy as np
 
-with gr.Blocks() as demo:
-    inp = gr.Image(source="webcam")
-    out = gr.Image()
+def flip(im):
+    return np.flipud(im)
 
-    def flip(im):
-        return np.flipud(im)
-    inp.stream(flip, [inp], [out])
-
+demo = gr.Interface(
+    flip, 
+    gr.Image(source="webcam", streaming=True), 
+    "image",
+    live=True
+)
 if __name__ == "__main__":
     demo.launch()
