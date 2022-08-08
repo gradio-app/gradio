@@ -1912,13 +1912,13 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
         """
         if x is None:
             return x
-        file_name, file_data, is_example = (
+        file_name, file_data, is_file = (
             x["name"],
             x["data"],
-            x.get("is_example", False),
+            x.get("is_file", False),
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        if is_example:
+        if is_file:
             file_obj = processing_utils.create_tmp_copy_of_file(file_name)
         else:
             file_obj = processing_utils.decode_base64_to_file(
@@ -2078,15 +2078,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return {"name": x, "data": None, "is_example": True}
-
-    def postprocess(self, y: Tuple[int, np.array] | str) -> str:
+    def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
         """
         Parameters:
-            y: audio data in requested format
+            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string of the path to an audio file, or None.
         Returns:
             base64 url data
         """
@@ -2099,7 +2094,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
-        return processing_utils.encode_url_or_file_to_base64(y)
+            
+        y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
+        
+        return {"name": y.name, "data": None, "is_file": True}
     
     def stream(
         self,
