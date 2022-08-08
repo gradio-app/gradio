@@ -314,22 +314,6 @@ class TestRequest:
         assert client_response.has_exception is True
         assert isinstance(client_response.exception, Exception)
 
-    @mock.patch("gradio.utils.Request._validate_response_data")
-    @pytest.mark.asyncio
-    async def test_exception_type(self, validate_response_data):
-        class ResponseValidationException(Exception):
-            message = "Response object is not valid."
-
-        validate_response_data.side_effect = Exception()
-
-        client_response: Request = await Request(
-            method=Request.Method.GET,
-            url="https://reqres.in/api/users",
-            exception_type=ResponseValidationException,
-        )
-        assert isinstance(client_response.exception, ResponseValidationException)
-
-
 def make_mock_response(return_value):
     return Response(201, json=return_value)
 
