@@ -1715,17 +1715,19 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
         """
         if x is None:
             return x
-        file_name, file_data, is_example = (
+
+        file_name, file_data, is_file = (
             x["name"],
             x["data"],
-            x.get("is_example", False),
+            x.get("is_file", False),
         )
-        if is_example:
+        if is_file:
             file = processing_utils.create_tmp_copy_of_file(file_name)
         else:
             file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
+
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
 
@@ -1748,7 +1750,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
 
     def serialize(self, x, called_directly):
         data = processing_utils.encode_url_or_file_to_base64(x)
-        return {"name": x, "data": data, "is_example": False}
+        return {"name": x, "data": data}
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -1783,10 +1785,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
 
         y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
 
-        return {
-            "name": y.name,
-            "data": None,
-        }
+        return {"name": y.name, "data": None, "is_file": True}
 
     def style(
         self,
@@ -1898,11 +1897,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return {"name": x, "data": None, "is_example": True}
-
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
@@ -1917,6 +1911,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             x["data"],
             x.get("is_example", False),
         )
+        print(file_name)
+        print(file_data)
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_example:
             file_obj = processing_utils.create_tmp_copy_of_file(file_name)
@@ -2077,6 +2073,11 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
+
+    def preprocess_example(self, x):
+        if x is None:
+            return None
+        return {"name": x, "data": None, "is_example": True}
 
     def postprocess(self, y: Tuple[int, np.array] | str) -> str:
         """
