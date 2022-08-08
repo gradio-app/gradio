@@ -4,6 +4,7 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+from abc import abstractmethod
 import inspect
 import json
 import math
@@ -190,7 +191,7 @@ class IOComponent(Component):
         """
         Any preprocessing needed to be performed on function input.
         """
-        return x
+        raise NotImplementedError("This method should be implemented in a subclass.")
 
     def serialize(self, x: Any, called_directly: bool) -> Any:
         """
@@ -377,19 +378,6 @@ class Textbox(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-
-    def preprocess(self, x: str | None) -> str | None:
-        """
-        Any preprocessing needed to be performed on function input.
-        Parameters:
-            x: text
-        Returns:
-            text
-        """
-        if x is None:
-            return None
-        else:
-            return str(x)
 
     def serialize(self, x: Any, called_directly: bool) -> Any:
         """
