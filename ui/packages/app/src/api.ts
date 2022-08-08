@@ -130,7 +130,7 @@ export const fn =
 							get(loading_status)[data.fn_index]?.status || "pending",
 							data.queue_size,
 							data.rank,
-							data.avg_process_time
+							data.rank_eta > 0 ? data.rank_eta : null
 						);
 						break;
 					case "process_completed":

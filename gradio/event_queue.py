@@ -196,7 +196,7 @@ class Queue:
         """
         estimation.rank = rank
         estimation.rank_eta = round(
-            estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+            (estimation.rank + 1) * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
         )
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:

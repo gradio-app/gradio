@@ -63,9 +63,9 @@
 	let timer_diff = 0;
 
 	$: progress =
-		eta === null || !timer_diff
+		eta === null || eta <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / (eta * ((queue_size || 0) + 1)), 1);
+			: Math.min(timer_diff / eta, 1);
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -106,7 +106,7 @@
 		(status === "pending" || status === "complete") &&
 		scroll_into_view(el, $app_state.autoscroll);
 
-	$: formatted_eta = eta && (eta * ((queue_size || 0) + 1)).toFixed(1);
+	$: formatted_eta = eta && eta.toFixed(1);
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
