@@ -727,6 +727,32 @@ class Blocks(BlockContext):
         self.children = []
         return self
 
+    def configure_queue(
+        self,
+        live_queue_updates: bool = True,
+        concurrency_count: int = 1,
+        data_gathering_start: int = 30,
+        update_intervals: int = 5,
+        duration_history_size: int = 100,
+    ):
+        """
+        Parameters:
+            live_queue_updates:
+                If True, Queue will send estimations to clients whenever a job is finished.
+                If False will send estimations periodically, might be preferred when events have very short process-times.
+            concurrency_count: Number of max number concurrent jobs inside the Queue.
+            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big sized data(video or such) to not overflow the memory.
+            update_intervals: Queue will send estimations to the clients in intervals=update_intervals when live_queue_updates==false
+            duration_history_size: Queue duration estimation calculation window size.
+        """
+        event_queue.Queue.configure_queue(
+            live_queue_updates,
+            concurrency_count,
+            data_gathering_start,
+            update_intervals,
+            duration_history_size,
+        )
+
     def launch(
         self,
         inline: bool = None,
@@ -750,11 +776,6 @@ class Blocks(BlockContext):
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
         quiet: bool = False,
-        live_queue_updates=True,
-        queue_concurrency_count: int = 1,
-        data_gathering_start: int = 30,
-        update_intervals: int = 5,
-        duration_history_size=100,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -783,11 +804,6 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
-            live_queue_updates: If True, Queue will send estimations whenever a job is finished as well.
-            queue_concurrency_count: Number of max number concurrent jobs inside the Queue.
-            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big data(video or such) to not reach memory overflow.
-            update_intervals: Queue will send estimations to the clients using intervals determined by update_intervals.
-            duration_history_size: Queue duration estimation calculation window size.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -853,14 +869,7 @@ class Blocks(BlockContext):
                     raise ValueError(
                         "Cannot queue with encryption or authentication enabled."
                     )
-                event_queue.Queue.configure_queue(
-                    self.local_url,
-                    live_queue_updates,
-                    queue_concurrency_count,
-                    data_gathering_start,
-                    update_intervals,
-                    duration_history_size,
-                )
+                event_queue.Queue.set_url(self.local_url)
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
                 requests.get(f"{self.local_url}start/queue")
@@ -1026,10 +1035,8 @@ class Blocks(BlockContext):
         Closes the Interface that was launched and frees the port.
         """
         try:
-            from gradio.event_queue import Queue
-
             if self.enable_queue:
-                Queue.close()
+                event_queue.Queue.close()
             self.server.close()
             self.is_running = False
             if verbose:
