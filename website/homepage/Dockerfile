@@ -35,7 +35,7 @@ RUN npm install
 RUN npm run build
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
-RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
+RUN cp -r /gradio/gradio/templates/frontend/assets/. ./assets/
 RUN cp -r /gradio/website/homepage/build/. ./
 RUN ASSETS_FILE=$(grep -oE index.[a-z0-9]+.js /gradio/gradio/templates/cdn/index.html) && find ./ -type f -exec sed -i -e "s/index.js/${ASSETS_FILE}/g" {} \;
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
