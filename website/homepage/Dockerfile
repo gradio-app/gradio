@@ -14,7 +14,7 @@ RUN npm i pnpm@6 -g
 WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
-RUN pnpm build:website
+RUN pnpm build
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
