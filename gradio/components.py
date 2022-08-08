@@ -1709,9 +1709,11 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-            x: JSON object with filename as 'name' property and base64 data as 'data' property
+            a dictionary with the following keys: 'name' (containing the file path
+            to a video), 'data' (with either the file URL or base64 representation of
+            the video), and 'is_file` (True if `data` contains the file URL).
         Returns:
-            file path to video
+            a string file path to the preprocessed video
         """
         if x is None:
             return x
@@ -1764,14 +1766,18 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
         return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
+        """Generates a random video for testing the API."""
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y: str) -> str:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
+        Processes a video to ensure that it is in the correct format before 
+        returning it to the front end. 
         Parameters:
-            y: path to video
+            y: a path to video file
         Returns:
-            base64 url data
+            a dictionary with the following keys: 'name' (containing the file path
+            to a temporary copy of the video), 'data' (None), and 'is_file` (True).
         """
         if y is None:
             return None
@@ -1911,8 +1917,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             x["data"],
             x.get("is_example", False),
         )
-        print(file_name)
-        print(file_data)
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_example:
             file_obj = processing_utils.create_tmp_copy_of_file(file_name)
@@ -2096,7 +2100,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
         return processing_utils.encode_url_or_file_to_base64(y)
-
+    
     def stream(
         self,
         fn: Callable,
