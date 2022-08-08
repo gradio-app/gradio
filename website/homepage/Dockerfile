@@ -22,7 +22,7 @@ COPY ./setup.py ./setup.py
 COPY ./MANIFEST.in ./MANIFEST.in
 COPY ./README.md ./README.md
 COPY ./test ./test
-RUN python setup.py install
+RUN pip install .
 WORKDIR /gradio
 COPY ./website ./website
 WORKDIR /gradio/website/homepage
