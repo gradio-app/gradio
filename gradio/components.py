@@ -1704,7 +1704,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
     def preprocess_example(self, x):
         if x is None:
             return None
-        return {"name": x, "data": None, "is_example": True}
+        return {"name": x, "data": None, "is_file": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
@@ -1967,7 +1967,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             )
 
         file_data = processing_utils.encode_url_or_file_to_base64(name)
-        return {"name": name, "data": file_data, "is_example": False}
+        return {"name": name, "data": file_data, "is_file": False}
 
     def set_interpret_parameters(self, segments: int = 8):
         """
@@ -1979,7 +1979,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
         return self
 
     def tokenize(self, x):
-        if x.get("is_example"):
+        if x.get("is_file"):
             sample_rate, data = processing_utils.audio_from_file(x["name"])
         else:
             file_obj = processing_utils.decode_base64_to_file(x["data"])
@@ -2066,8 +2066,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
             data_string = data
         else:
             data_string = data["data"]
-            is_example = data.get("is_example", False)
-            if is_example:
+            is_file = data.get("is_file", False)
+            if is_file:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
         return self.save_flagged_file(dir, label, data_string, encryption_key)
@@ -2211,26 +2211,6 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        elif isinstance(x, list):
-            return [
-                {
-                    "name": file,
-                    "data": None,
-                    "size": os.path.getsize(file),
-                    "is_example": True,
-                }
-                for file in x
-            ]
-        else:
-            return {
-                "name": x,
-                "data": None,
-                "size": os.path.getsize(x),
-                "is_example": True,
-            }
 
     def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
         """
@@ -2243,20 +2223,20 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
             return None
 
         def process_single_file(f):
-            file_name, data, is_example = (
+            file_name, data, is_file = (
                 f["name"],
                 f["data"],
-                f.get("is_example", False),
+                f.get("is_file", False),
             )
             if self.type == "file":
-                if is_example:
+                if is_file:
                     return processing_utils.create_tmp_copy_of_file(file_name)
                 else:
                     return processing_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
             elif self.type == "bytes":
-                if is_example:
+                if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
                 return processing_utils.decode_base64_to_binary(data)[0]
@@ -2308,7 +2288,10 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
                 {
                     "name": os.path.basename(file),
                     "size": os.path.getsize(file),
-                    "data": processing_utils.encode_file_to_base64(file),
+                    "data": processing_utils.create_tmp_copy_of_file(
+                        file, dir=TMP_FOLDER
+                        ),
+                    "is_file": True
                 }
                 for file in y
             ]
@@ -2316,7 +2299,9 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
             return {
                 "name": os.path.basename(y),
                 "size": os.path.getsize(y),
-                "data": processing_utils.encode_file_to_base64(y),
+                "data": processing_utils.create_tmp_copy_of_file(
+                        y, dir=TMP_FOLDER),
+                "is_file": True
             }
 
     def restore_flagged(self, dir, data, encryption_key):
@@ -2698,7 +2683,7 @@ class Timeseries(Changeable, IOComponent):
         """
         if x is None:
             return x
-        elif x.get("is_example"):
+        elif x.get("is_file"):
             dataframe = pd.read_csv(x["name"])
         else:
             dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
@@ -3842,7 +3827,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def preprocess_example(self, x):
         if x is None:
             return None
-        return {"name": x, "data": None, "is_example": True}
+        return {"name": x, "data": None, "is_file": True}
 
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
@@ -3853,12 +3838,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         """
         if x is None:
             return x
-        file_name, file_data, is_example = (
+        file_name, file_data, is_file = (
             x["name"],
             x["data"],
-            x.get("is_example", False),
+            x.get("is_file", False),
         )
-        if is_example:
+        if is_file:
             file = processing_utils.create_tmp_copy_of_file(file_name)
         else:
             file = processing_utils.decode_base64_to_file(
