@@ -21,7 +21,6 @@ from gradio import (
     event_queue,
     external,
     networking,
-    queueing,
     routes,
     strings,
     utils,
@@ -1093,8 +1092,6 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            if self.enable_queue:
-                queueing.close()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
