@@ -354,7 +354,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     A FlaggingCallback that saves flagged data to a Hugging Face dataset in JSONL format.
 
     Each data sample is saved in a different JSONL file,
-    allowing multiple users to use flagging simultaneously. 
+    allowing multiple users to use flagging simultaneously.
     Saving to a single CSV would cause errors as only one user can edit at the same time.
 
     """
@@ -389,7 +389,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     def setup(self, components: List[Component], flagging_dir: str):
         """
         Params:
-        components List[Component]: list of components for flagging 
+        components List[Component]: list of components for flagging
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
