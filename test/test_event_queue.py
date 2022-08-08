@@ -1,9 +1,9 @@
 import asyncio
+import time
 
 import pytest
 from fastapi.testclient import TestClient
 from websocket import create_connection
-import time
 
 import gradio as gr
 
