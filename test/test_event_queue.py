@@ -21,17 +21,17 @@ class TestQueue:
             button.click(wait, [text], [text])
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
-        print(local_url, client, time)
-        # with client.websocket_connect("/queue/join") as websocket:
-        #     assert {
-        #         "msg": "estimation",
-        #         "queue_size": 0,
-        #         "avg_event_concurrent_process_time": 1.0,
-        #         "avg_event_process_time": 1.0,
-        #         "queue_eta": 1,
-        #         "rank": -1,
-        #         "rank_eta": -1,
-        #     } == websocket.receive_json()
+        with client.websocket_connect("/queue/join") as websocket:
+            print(local_url, client, time, websocket)
+            # assert {
+            #     "msg": "estimation",
+            #     "queue_size": 0,
+            #     "avg_event_concurrent_process_time": 1.0,
+            #     "avg_event_process_time": 1.0,
+            #     "queue_eta": 1,
+            #     "rank": -1,
+            #     "rank_eta": -1,
+            # } == websocket.receive_json()
         #     websocket.send_json({"hash": "0001"})
         #     TIME_LIMIT = 10
         #     while TIME_LIMIT > 0:
