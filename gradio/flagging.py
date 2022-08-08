@@ -279,7 +279,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
-        self.repo.git_pull(lfs=True)
+        self.repo.git_pull()
 
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
@@ -348,9 +348,15 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return line_count
 
 
+# It's a callback that saves flagged data to a HuggingFace dataset in JSONL format
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
-    A FlaggingCallback that saves flagged data to a HuggingFace dataset in JSONL format.
+    A FlaggingCallback that saves flagged data to a Hugging Face dataset in JSONL format.
+
+    Each data sample is saved in a different JSONL file,
+    allowing multiple users to use flagging simultaneously. 
+    Saving to a single CSV would cause errors as only one user can edit at the same time.
+
     """
 
     def __init__(
@@ -383,6 +389,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     def setup(self, components: List[Component], flagging_dir: str):
         """
         Params:
+        components List[Component]: list of components for flagging 
         flagging_dir (str): local directory where the dataset is cloned,
         updated, and pushed from.
         """
@@ -420,14 +427,14 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
-        self.repo.git_pull(lfs=True)
+        self.repo.git_pull(rebase=True)
 
         # Generate unique folder for the flagged sample
         unique_name = self.get_unique_name()  # unique name for folder
         folder_name = os.path.join(
             self.dataset_dir, unique_name
         )  # unique folder for specific example
-        os.makedirs(folder_name, exist_ok=True)
+        os.makedirs(folder_name)
 
         # Now uses the existence of `dataset_infos.json` to determine if new
         is_new = not os.path.exists(self.infos_file)
@@ -436,10 +443,8 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
         # File previews for certain input and output types
         file_preview_types = {
-            gr.inputs.Audio: "Audio",
-            gr.outputs.Audio: "Audio",
-            gr.inputs.Image: "Image",
-            gr.outputs.Image: "Image",
+            gr.Audio: "Audio",
+            gr.Image: "Image",
         }
 
         # Generate the headers and dataset_infos
