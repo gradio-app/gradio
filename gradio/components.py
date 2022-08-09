@@ -251,12 +251,6 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.lines = lines
-        self.max_lines = max_lines
-        self.placeholder = placeholder
-        self.cleared_value = ""
-        self.test_input = value
-        self.interpret_by_tokens = True
         IOComponent.__init__(
             self,
             label=label,
@@ -267,6 +261,12 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        self.lines = lines
+        self.max_lines = max_lines
+        self.placeholder = placeholder
+        self.cleared_value = ""
+        self.test_input = value
+        self.interpret_by_tokens = True
 
     def get_config(self):
         return {
@@ -412,9 +412,6 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
-        self.precision = precision
-        self.test_input = self.value if self.value is not None else 1
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -425,6 +422,9 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        self.precision = precision
+        self.test_input = self.value if self.value is not None else 1
+        self.interpret_by_tokens = False
 
     @staticmethod
     def _round_to_precision(
@@ -593,13 +593,8 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-
         if randomize:
             value = self.get_random_value
-
-        self.cleared_value = self.value
-        self.test_input = self.value
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -610,6 +605,10 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        self.cleared_value = self.value
+        self.test_input = self.value
+        self.interpret_by_tokens = False
+        
 
     def get_config(self):
         return {
@@ -856,7 +855,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[List[str]] = None,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2221,14 +2220,6 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-
-        self.value = (
-            self.postprocess(initial_value)
-            if initial_value is not None
-            else self.postprocess(self.test_input)
-        )
-
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2555,10 +2546,8 @@ class Variable(IOComponent, SimpleSerializable):
         Parameters:
             value: the initial value of the state. If callable, the function will be called whenever the app loads to set the initial value of the component.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = deepcopy(initial_value)
         self.stateful = True
-        IOComponent.__init__(self, value=value, **kwargs)
+        IOComponent.__init__(self, value=deepcopy(value), **kwargs)
 
     def style(self):
         return self
@@ -2590,8 +2579,6 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = initial_value
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2606,7 +2593,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[str] = None,
         variant: Optional[str] = None,
         visible: Optional[bool] = None,
     ):
@@ -2694,7 +2681,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2759,7 +2746,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: Optional[str | Callable] = None,
+        value: Optional[Dict[str, float] | str | float | Callable] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2770,7 +2757,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            value: Default value to show in the component. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: component name in interface.
             show_label: if True, will display label.
@@ -2840,7 +2827,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Dict[str, float] | str | float] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
