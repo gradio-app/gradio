@@ -11,9 +11,11 @@ import os
 import pkgutil
 import random
 import warnings
+from contextlib import contextmanager
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
 
 import aiohttp
@@ -583,3 +585,14 @@ class Request:
     @property
     def status(self):
         return self._status
+
+
+@contextmanager
+def set_directory(path: Path):
+    """Context manager that sets the working directory to the given path."""
+    origin = Path().absolute()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(origin)
