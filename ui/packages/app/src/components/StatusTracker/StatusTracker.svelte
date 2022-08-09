@@ -49,6 +49,7 @@
 	import Loader from "./Loader.svelte";
 
 	export let eta: number | null = null;
+	export let queue: boolean = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error";
@@ -61,6 +62,7 @@
 	let _timer: boolean = false;
 	let timer_start = 0;
 	let timer_diff = 0;
+	let old_eta: number | null = null;
 
 	$: progress =
 		eta === null || eta <= 0 || !timer_diff
@@ -106,7 +108,18 @@
 		(status === "pending" || status === "complete") &&
 		scroll_into_view(el, $app_state.autoscroll);
 
-	$: formatted_eta = eta && eta.toFixed(1);
+	let formatted_eta: string | null = null;
+	$: {
+		if (eta === null) {
+			eta = old_eta;
+		} else if (queue) {
+			eta = (performance.now() - timer_start) / 1000 + eta;
+		}
+		if (eta !== null) {
+			formatted_eta = eta.toFixed(1);
+			old_eta = eta;
+		}
+	}
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
@@ -119,8 +132,8 @@
 	{#if status === "pending"}
 		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
 		<div class="meta-text dark:text-gray-400">
-			{#if queue_position !== null && queue_position > 0}
-				queue: {queue_position}/{queue_size} |
+			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
