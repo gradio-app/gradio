@@ -1599,11 +1599,6 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return {"name": x, "data": None, "is_file": True}
-
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
@@ -2106,20 +2101,18 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
-                    "name": os.path.basename(file),
+                    "name": processing_utils.create_tmp_copy_of_file(file, dir=TMP_FOLDER).name,
                     "size": os.path.getsize(file),
-                    "data": processing_utils.create_tmp_copy_of_file(
-                        file, dir=TMP_FOLDER
-                    ),
+                    "data": None,
                     "is_file": True,
                 }
                 for file in y
             ]
         else:
             return {
-                "name": os.path.basename(y),
+                "name": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER).name,
                 "size": os.path.getsize(y),
-                "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
+                "data": None,
                 "is_file": True,
             }
 
@@ -3558,11 +3551,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         }
         return updated_config
 
-    def preprocess_example(self, x):
-        if x is None:
-            return None
-        return {"name": x, "data": None, "is_file": True}
-
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
@@ -3599,8 +3587,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         if y is None:
             return y
         data = {
-            "name": os.path.basename(y),
-            "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
+            "name": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER).name,
+            "data": None,
             "is_file": True,
         }
         return data
