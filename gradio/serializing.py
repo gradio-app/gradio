@@ -46,7 +46,7 @@ class FileSerializable(Serializable):
         """
         data = processing_utils.encode_url_or_file_to_base64(x)
         return {"name": x, "data": data, "is_file": False}
-        
+
     def deserialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert from serialized representation of a file (base64) to a human-friendly version (string filepath)
