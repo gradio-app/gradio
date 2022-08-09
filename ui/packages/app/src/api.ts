@@ -94,7 +94,14 @@ export const fn =
 		}
 
 		if (queue && ["predict", "interpret"].includes(action)) {
-			loading_status.update(fn_index as number, "pending", queue, null, null, null);
+			loading_status.update(
+				fn_index as number,
+				"pending",
+				queue,
+				null,
+				null,
+				null
+			);
 
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn).connection.send(JSON.stringify(data));
@@ -147,12 +154,26 @@ export const fn =
 						websocket_data.connection.close();
 						break;
 					case "process_starts":
-						loading_status.update(fn_index, "pending", queue, data.rank, 0, null);
+						loading_status.update(
+							fn_index,
+							"pending",
+							queue,
+							data.rank,
+							0,
+							null
+						);
 						break;
 				}
 			};
 		} else {
-			loading_status.update(fn_index as number, "pending", queue, null, null, null);
+			loading_status.update(
+				fn_index as number,
+				"pending",
+				queue,
+				null,
+				null,
+				null
+			);
 
 			const output = await post_data(api_endpoint + action + "/", {
 				...payload,
