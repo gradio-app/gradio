@@ -942,15 +942,6 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
             final_scores.append(score_set)
         return final_scores
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[str]])
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
@@ -1629,9 +1620,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-            a dictionary with the following keys: 'name' (containing the file path
-            to a video), 'data' (with either the file URL or base64 representation of
-            the video), and 'is_file` (True if `data` contains the file URL).
+            x: a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).
         Returns:
             a string file path to the preprocessed video
         """
@@ -1669,21 +1658,6 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             return output_file_name
         else:
             return file_name
-
-    def serialize(self, x, called_directly):
-        data = processing_utils.encode_url_or_file_to_base64(x)
-        return {"name": x, "data": data}
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to video file
-        """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         """Generates a random video for testing the API."""
@@ -1865,30 +1839,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
                 + ". Please choose from: 'numpy', 'filepath'."
             )
 
-    def serialize(self, x, called_directly):
-        if x is None:
-            return None
-        if self.type == "filepath" or called_directly:
-            name = x
-        elif self.type == "file":
-            warnings.warn(
-                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-            )
-            name = x.name
-        elif self.type == "numpy":
-            file = tempfile.NamedTemporaryFile(delete=False)
-            name = file.name
-            processing_utils.audio_to_file(x[0], x[1], name)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'filepath'."
-            )
-
-        file_data = processing_utils.encode_url_or_file_to_base64(name)
-        return {"name": name, "data": file_data, "is_file": False}
-
     def set_interpret_parameters(self, segments: int = 8):
         """
         Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
@@ -1975,25 +1925,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
         """
         return list(scores)
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to audio file
-        """
-        if data is None:
-            data_string = None
-        elif isinstance(data, str):
-            data_string = data
-        else:
-            data_string = data["data"]
-            is_file = data.get("is_file", False)
-            if is_file:
-                file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
-                return self.save_file(file_obj, dir, label)
-        return self.save_flagged_file(dir, label, data_string, encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -2177,19 +2108,6 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             else:
                 return process_single_file(x)
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to file
-        """
-        if isinstance(data, list):
-            return self.save_flagged_file(
-                dir, label, None if data is None else data[0]["data"], encryption_key
-            )
-        else:
-            return self.save_flagged_file(
-                dir, label, data["data"], encryption_key, data["name"]
-            )
-
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
@@ -2221,9 +2139,6 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
                 "is_file": True,
             }
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
     def style(
         self,

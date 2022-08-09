@@ -1281,7 +1281,8 @@ class TestLabel(unittest.TestCase):
         self.assertDictEqual(label, {"label": "happy"})
         self.assertEqual(label_output.deserialize(y), y)
         self.assertEqual(label_output.deserialize(label), y)
-        label_output = gr.Label()
+        
+        y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
         self.assertDictEqual(
             label,
