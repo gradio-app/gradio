@@ -201,7 +201,8 @@ class Queue:
                 estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
             )
             if None not in cls.ACTIVE_JOBS:
-                estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME
+                # Add estimated amount of time for a thread to get empty 
+                estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME 
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
