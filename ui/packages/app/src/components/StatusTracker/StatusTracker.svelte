@@ -115,7 +115,7 @@
 		} else if (queue) {
 			eta = (performance.now() - timer_start) / 1000 + eta;
 		}
-		if (eta !== null) {
+		if (eta != null) {
 			formatted_eta = eta.toFixed(1);
 			old_eta = eta;
 		}
