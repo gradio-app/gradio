@@ -113,7 +113,14 @@ class Queue:
                 run_coro_in_background(cls.broadcast_estimation)
 
     @classmethod
-    def push(cls, event: Event):
+    def push(cls, event: Event) -> int:
+        """
+        Add event to queue
+        Parameters:
+            event: Event to add to Queue
+        Returns:
+            rank of submitted Event
+        """
         cls.EVENT_QUEUE.append(event)
         return len(cls.EVENT_QUEUE) - 1
 

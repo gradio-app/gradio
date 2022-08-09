@@ -276,7 +276,7 @@
 					if (!(queue === null ? enable_queue : queue)) {
 						req.then(handle_update).catch((error) => {
 							console.error(error);
-							loading_status.update(i, "error", 0, 0, 0);
+							loading_status.update(i, "error", queue, 0, 0, 0);
 						});
 					}
 
@@ -308,7 +308,7 @@
 							if (!(queue === null ? enable_queue : queue)) {
 								req.then(handle_update).catch((error) => {
 									console.error(error);
-									loading_status.update(i, "error", 0, 0, 0);
+									loading_status.update(i, "error", queue, 0, 0, 0);
 								});
 							}
 						});
