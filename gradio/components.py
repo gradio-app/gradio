@@ -11,11 +11,9 @@ import numbers
 import operator
 import os
 import random
-import shutil
 import tempfile
 import uuid
 import warnings
-from abc import ABC, abstractclassmethod
 from copy import deepcopy
 from pathlib import Path
 from types import ModuleType
@@ -48,6 +46,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.serializing import Serializable, SimpleSerializable, FileSerializable, JSONSerializable
 from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
@@ -75,52 +74,6 @@ class Component(Block):
             "name": self.get_block_name(),
             **super().get_config(),
         }
-
-
-class Serializable(ABC):
-    @abstractclassmethod
-    def serialize():
-        """
-        Convert data from human-readable format to serialized format.
-        """
-        pass
-
-    @abstractclassmethod
-    def deserialize():
-        """
-        Convert data from serialized format to human-readable format.
-        """
-        pass
-
-
-class SimpleSerializable(Serializable):
-    def serialize(self, x: Any, called_directly: bool) -> Any:
-        """
-        Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
-        Parameters:
-            x: Input to interface
-            called_directly: if True, the component is part of an Interface/Blocks was called as a function, otherwise, it is being used via the GUI
-        """
-        return x
-
-    def deserialize(self, x, save_dir=None):
-        """
-        Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
-        """
-        return x
-
-
-class FileSerailizable(Serializable):
-    def deserialize(self, x, save_dir=None):
-        """
-        Convert from serialized representation (e.g. base64) to a human-friendly version (string path to file)
-        Optionally, save the file to the directory specified by save_dir
-        """
-        if isinstance(x, dict) and "data" in x:
-            file = processing_utils.decode_base64_to_file(x["data"])
-        else:
-            file = processing_utils.decode_base64_to_file(x)
-        return file.name
 
 
 class IOComponent(Component, Serializable):
@@ -167,7 +120,7 @@ class IOComponent(Component, Serializable):
         """
         Any preprocessing needed to be performed on function input.
         """
-        raise NotImplementedError("This method should be implemented in subclass.")
+        return x
 
     def set_interpret_parameters(self):
         """
@@ -211,7 +164,7 @@ class IOComponent(Component, Serializable):
         """
         Any postprocessing needed to be performed on function output.
         """
-        raise NotImplementedError("This method should be implemented in subclass.")
+        return y
 
     def style(
         self,
@@ -701,15 +654,6 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
     def generate_sample(self) -> float:
         return self.maximum
 
-    def preprocess(self, x: float) -> float:
-        """
-        Parameters:
-            x: numeric input
-        Returns:
-            numeric input
-        """
-        return x
-
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -831,25 +775,6 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
     def generate_sample(self):
         return True
-
-    def preprocess(self, x: bool) -> bool:
-        """
-        Parameters:
-            x: boolean input
-        Returns:
-            boolean input
-        """
-        return x
-
-    def postprocess(self, y: bool) -> bool:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: boolean output
-        Returns:
-            boolean output
-        """
-        return y
 
     def set_interpret_parameters(self):
         """
@@ -1148,16 +1073,6 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: str) -> str:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: string of choice
-        Returns:
-            string of choice
-        """
-        return y
-
     def set_interpret_parameters(self):
         """
         Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
@@ -1263,7 +1178,7 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerailizable):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1622,7 +1537,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerail
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
+class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     """
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
@@ -1815,7 +1730,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerailizable):
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerailizable):
+class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerializable):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
@@ -2137,7 +2052,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerail
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, IOComponent, FileSerailizable):
+class File(Changeable, Clearable, IOComponent, FileSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2321,7 +2236,7 @@ class File(Changeable, Clearable, IOComponent, FileSerailizable):
 
 
 @document("change", "style")
-class Dataframe(Changeable, IOComponent):
+class Dataframe(Changeable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
@@ -2483,19 +2398,6 @@ class Dataframe(Changeable, IOComponent):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[str | float]]) 2D array
-        """
-        return json.dumps(data)
-        # TODO: (faruk) output was dumping differently, how to converge?
-        # return json.dumps(data["data"])
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-        # TODO: (faruk) output was dumping differently, how to converge?
-        # return {"data": json.loads(data)}
-
     def generate_sample(self):
         return [[1, 2, 3], [4, 5, 6]]
 
@@ -2590,7 +2492,7 @@ class Dataframe(Changeable, IOComponent):
 
 
 @document("change", "style")
-class Timeseries(Changeable, IOComponent):
+class Timeseries(Changeable, IOComponent, JSONSerializable):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
@@ -2690,15 +2592,6 @@ class Timeseries(Changeable, IOComponent):
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[str | float]]) 2D array
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
 
@@ -2734,7 +2627,7 @@ class Timeseries(Changeable, IOComponent):
 
 
 @document()
-class Variable(IOComponent):
+class Variable(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the Variable is cleared when the user refreshes the page.
@@ -3026,7 +2919,7 @@ class Label(Changeable, IOComponent):
             "float label, or a dictionary whose keys are labels and values are confidences. "
             "Instead, got a {}".format(type(y))
         )
-
+        
     def deserialize(self, y):
         if y is None:
             return None
@@ -3042,28 +2935,6 @@ class Label(Changeable, IOComponent):
             return {k["label"]: k["confidence"] for k in y["confidences"]}
         else:
             return y
-
-    def save_flagged(self, dir, label, data, encryption_key) -> str | Dict:
-        """
-        Returns:
-            Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
-        """
-        if "confidences" in data:
-            return json.dumps(
-                {
-                    example["label"]: example["confidence"]
-                    for example in data["confidences"]
-                }
-            )
-        else:
-            return data["label"]
-
-    def restore_flagged(self, dir, data, encryption_key):
-        try:
-            data = json.loads(data)
-            return self.postprocess(data)
-        except ValueError:
-            return data
 
     @staticmethod
     def update(
@@ -3094,7 +2965,7 @@ class Label(Changeable, IOComponent):
 
 
 @document("change", "style")
-class HighlightedText(Changeable, IOComponent):
+class HighlightedText(Changeable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
@@ -3223,12 +3094,6 @@ class HighlightedText(Changeable, IOComponent):
         else:
             return y
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
@@ -3249,7 +3114,7 @@ class HighlightedText(Changeable, IOComponent):
 
 
 @document("change", "style")
-class JSON(Changeable, IOComponent):
+class JSON(Changeable, IOComponent, JSONSerializable):
     """
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
@@ -3323,12 +3188,6 @@ class JSON(Changeable, IOComponent):
         else:
             return y
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
     def style(self, container: Optional[bool] = None):
         """
         This method can be used to change the appearance of the JSON component.
@@ -3339,7 +3198,7 @@ class JSON(Changeable, IOComponent):
 
 
 @document("change")
-class HTML(Changeable, IOComponent):
+class HTML(Changeable, IOComponent, SimpleSerializable):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
@@ -3653,7 +3512,7 @@ class Carousel(IOComponent, Changeable):
 
 
 @document("change", "style")
-class Chatbot(Changeable, IOComponent):
+class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
     Displays a chatbot output showing both user submitted messages and responses
     Preprocessing: this component does *not* accept input.
@@ -3756,7 +3615,7 @@ class Chatbot(Changeable, IOComponent):
 
 
 @document("change", "edit", "clear", "style")
-class Model3D(Changeable, Editable, Clearable, IOComponent):
+class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str} filepath.
@@ -3850,17 +3709,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         file_name = file.name
         return file_name
 
-    def serialize(self, x, called_directly):
-        raise NotImplementedError()
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to 3D image model file
-        """
-        return self.save_flagged_file(
-            dir, label, data["data"], encryption_key, data["name"]
-        )
-
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
@@ -3875,16 +3723,10 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
             return y
         data = {
             "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y),
+            "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
+            "is_file": True
         }
         return data
-
-    def deserialize(self, x):
-        file = processing_utils.decode_base64_to_file(x["data"], file_path=x["name"])
-        return file.name
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key, as_data=True)
 
     def style(
         self,
@@ -3902,7 +3744,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
 
 @document("change", "clear")
-class Plot(Changeable, Clearable, IOComponent):
+class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
@@ -3983,18 +3825,9 @@ class Plot(Changeable, Clearable, IOComponent):
     def style(self):
         return self
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[str]])
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
 
 @document("change")
-class Markdown(IOComponent, Changeable):
+class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
     Used to render arbitrary Markdown output.
     Preprocessing: this component does *not* accept input.

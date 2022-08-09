@@ -2,6 +2,7 @@
 .eggs/
 gradio.egg-info
 dist/
+tmp/
 *.pyc
 __pycache__/
 *.py[cod]
