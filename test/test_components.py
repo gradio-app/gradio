@@ -554,7 +554,7 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image_input.preprocess(img).size, (30, 10))
         self.assertEqual(image_input.postprocess("test/test_files/bus.png"), img)
         self.assertEqual(image_input.serialize("test/test_files/bus.png", True), img)
- 
+
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"

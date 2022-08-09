@@ -91,7 +91,9 @@ class SimpleCSVLogger(FlaggingCallback):
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
-            save_dir = os.path.join(flagging_dir, utils.strip_invalid_filename_characters(component.label))
+            save_dir = os.path.join(
+                flagging_dir, utils.strip_invalid_filename_characters(component.label)
+            )
             csv_data.append(
                 component.deserialize(
                     sample,
@@ -151,7 +153,12 @@ class CSVLogger(FlaggingCallback):
         if flag_index is None:
             csv_data = []
             for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
-                save_dir = os.path.join(flagging_dir, utils.strip_invalid_filename_characters(component.label or f"component {idx}"))
+                save_dir = os.path.join(
+                    flagging_dir,
+                    utils.strip_invalid_filename_characters(
+                        component.label or f"component {idx}"
+                    ),
+                )
                 csv_data.append(
                     component.deserialize(
                         sample,
@@ -351,10 +358,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                save_dir = os.path.join(self.dataset_dir, utils.strip_invalid_filename_characters(component.label))
-                filepath = component.deserialize(
-                    sample, save_dir, None
+                save_dir = os.path.join(
+                    self.dataset_dir,
+                    utils.strip_invalid_filename_characters(component.label),
                 )
+                filepath = component.deserialize(sample, save_dir, None)
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
                     csv_data.append(
