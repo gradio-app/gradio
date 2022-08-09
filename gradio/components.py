@@ -2082,16 +2082,17 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         sample_rate, data = processing_utils.audio_from_file(
             file_obj.name, crop_min=crop_min, crop_max=crop_max
         )
-        processing_utils.audio_to_file(sample_rate, data, file_obj.name)
-        if self.type == "file":
-            warnings.warn(
-                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-            )
-            return file_obj
-        elif self.type == "filepath":
-            return file_obj.name
-        elif self.type == "numpy":
-            return processing_utils.audio_from_file(file_obj.name)
+        if self.type == "numpy":
+            return sample_rate, data
+        elif self.type in ["file", "filepath"]:
+            processing_utils.audio_to_file(sample_rate, data, file_obj.name)
+            if self.type == "file":
+                warnings.warn(
+                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
+                )
+                return file_obj
+            else:
+                return file_obj.name
         else:
             raise ValueError(
                 "Unknown type: "

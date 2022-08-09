@@ -53,7 +53,6 @@ cosine_sim = torch.nn.CosineSimilarity(dim=-1)
 def similarity_fn(path1, path2):
     if not (path1 and path2):
         return '<b style="color:red">ERROR: Please record audio for *both* speakers!</b>'
-    breakpoint()
     wav1, _ = apply_effects_file(path1, EFFECTS)
     wav2, _ = apply_effects_file(path2, EFFECTS)
     print(wav1.shape, wav2.shape)
@@ -116,7 +115,7 @@ examples = [
     ["samples/naomi_watts.mp3", "samples/kirsten_dunst.wav"],
 ]
 
-interface = gr.Interface(
+demo = gr.Interface(
     fn=similarity_fn,
     inputs=inputs,
     outputs=output,
@@ -129,4 +128,7 @@ interface = gr.Interface(
     live=False,
     examples=examples,
 )
-interface.launch(enable_queue=True)
+
+if __name__ == "__main__":
+    demo.launch()
+
