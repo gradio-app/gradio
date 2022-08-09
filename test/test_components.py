@@ -1904,7 +1904,7 @@ def test_dataframe_postprocess_only_dates():
 
 
 def test_audio_preprocess_can_be_read_by_scipy():
-    x_wav = deepcopy(media_data.BASE64_AUDIO)
+    x_wav = deepcopy(media_data.BASE64_MICROPHONE)
     audio_input = gr.Audio(type="filepath")
     output = audio_input.preprocess(x_wav)
     read(output)
