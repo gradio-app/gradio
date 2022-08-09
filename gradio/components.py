@@ -2846,7 +2846,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Label(Changeable, IOComponent):
+class Label(Changeable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
