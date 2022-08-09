@@ -14,10 +14,23 @@ from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, T
 import anyio
 from anyio import CapacityLimiter
 
-from gradio import encryptor, external, networking, queueing, routes, strings, utils
+from gradio import (
+    components,
+    encryptor,
+    external,
+    networking,
+    queueing,
+    routes,
+    strings,
+    utils,
+)
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import document, set_documentation_group
+from gradio.documentation import (
+    document,
+    document_component_api,
+    set_documentation_group,
+)
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -125,7 +138,6 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         dependency = {
             "targets": [self._id] if not no_target else [],
@@ -144,8 +156,14 @@ class Block:
         }
         if api_name is not None:
             dependency["documentation"] = [
-                [component.document_parameters("input") for component in inputs],
-                [component.document_parameters("output") for component in outputs],
+                [
+                    document_component_api(component.__class__, "input")
+                    for component in inputs
+                ],
+                [
+                    document_component_api(component.__class__, "output")
+                    for component in outputs
+                ],
             ]
         Context.root_block.dependencies.append(dependency)
 
@@ -202,21 +220,41 @@ class class_or_instancemethod(classmethod):
 @document()
 def update(**kwargs) -> dict:
     """
-    Updates component parameters.
+    Updates component properties.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+    Note that your editor's autocompletion will suggest proper parameters
+    if you use the update method on the component.
 
-    Demos: blocks_update, blocks_essay_update
+    Demos: blocks_essay, blocks_update, blocks_essay_update
 
     Parameters:
         kwargs: Key-word arguments used to update the component's properties.
     Example:
+        # Blocks Example
         import gradio as gr
         with gr.Blocks() as demo:
             radio = gr.Radio([1, 2, 4], label="Set the value of the number")
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
+        # Interface example
+        import gradio as gr
+        def change_textbox(choice):
+          if choice == "short":
+              return gr.Textbox.update(lines=2, visible=True)
+          elif choice == "long":
+              return gr.Textbox.update(lines=8, visible=True)
+          else:
+              return gr.Textbox.update(visible=False)
+        gr.Interface(
+          change_textbox,
+          gr.Radio(
+              ["short", "long", "none"], label="What kind of essay would you like to write?"
+          ),
+          gr.Textbox(lines=2),
+          live=True,
+        ).launch()
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
@@ -262,7 +300,8 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_length, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
     def __init__(
@@ -629,7 +668,6 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
-
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -662,6 +700,8 @@ class Blocks(BlockContext):
 
     def __exit__(self, *args):
         Context.block = self.parent
+        # Configure the load events before root_block is reset
+        self.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -1016,3 +1056,21 @@ class Blocks(BlockContext):
             self.server.close()
             if self.enable_queue:
                 queueing.close()
+
+    def attach_load_events(self):
+        """Add a load event for every component whose initial value should be randomized."""
+
+        for component in Context.root_block.blocks.values():
+            if (
+                isinstance(component, components.IOComponent)
+                and component.attach_load_event
+            ):
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+                self.set_event_trigger(
+                    "load",
+                    component.load_fn,
+                    None,
+                    component,
+                    no_target=True,
+                    queue=False,
+                )

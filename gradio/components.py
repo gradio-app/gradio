@@ -11,8 +11,10 @@ import numbers
 import operator
 import os
 import pathlib
+import random
 import shutil
 import tempfile
+import uuid
 import warnings
 from copy import deepcopy
 from types import ModuleType
@@ -85,6 +87,7 @@ class IOComponent(Component):
         visible: bool = True,
         requires_permissions: bool = False,
         elem_id: Optional[str] = None,
+        load_fn: Optional[Callable] = None,
         **kwargs,
     ):
         self.label = label
@@ -93,6 +96,12 @@ class IOComponent(Component):
         self.interactive = interactive
 
         self.set_interpret_parameters()
+        if callable(load_fn):
+            self.attach_load_event = True
+            self.load_fn = load_fn
+        else:
+            self.attach_load_event = False
+            self.load_fn = None
 
         super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
@@ -122,7 +131,7 @@ class IOComponent(Component):
         """
         Saved flagged file and returns filepath
         """
-        label = "".join([char for char in label if char.isalnum() or char in "._- "])
+        label = processing_utils.strip_invalid_filename_characters(label)
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
         if os.path.exists(output_dir):
@@ -177,7 +186,6 @@ class IOComponent(Component):
                 "is_example": True,
             }
 
-    # Input Functionalities
     def preprocess(self, x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
@@ -189,7 +197,7 @@ class IOComponent(Component):
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
             x: Input to interface
-            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -237,7 +245,6 @@ class IOComponent(Component):
         """
         pass
 
-    # Output Functionalities
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.
@@ -256,6 +263,13 @@ class IOComponent(Component):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
         if rounded is not None:
             self._style["rounded"] = rounded
         if border is not None:
@@ -264,29 +278,24 @@ class IOComponent(Component):
             self._style["container"] = container
         return self
 
-    @classmethod
-    def document_parameters(cls, target):
-        if target == "input":
-            doc = inspect.getdoc(cls.preprocess)
-            if "Parameters:\n    x (" in doc:
-                return doc.split("Parameters:\n    x ")[1].split("\n")[0]
-            return None
-        elif target == "output":
-            doc = inspect.getdoc(cls.postprocess)
-            if "Returns:    \n" in doc:
-                return doc.split("Returns:\n    ")[1].split("\n")[0]
-            return None
-        else:
-            raise ValueError("Invalid doumentation target.")
-
     @staticmethod
     def add_interactive_to_config(config, interactive):
         if interactive is not None:
             config["mode"] = "dynamic" if interactive else "static"
         return config
 
+    @staticmethod
+    def get_load_fn_and_initial_value(value):
+        if callable(value):
+            initial_value = value()
+            load_fn = value
+        else:
+            initial_value = value
+            load_fn = None
+        return load_fn, initial_value
 
-@document()
+
+@document("change", "submit", "style")
 class Textbox(Changeable, Submittable, IOComponent):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -295,11 +304,12 @@ class Textbox(Changeable, Submittable, IOComponent):
     Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
+    Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str | Callable] = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -313,7 +323,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in textarea.
+            value: default text to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
@@ -326,7 +336,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -337,6 +348,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -372,8 +384,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    # Input Functionalities
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
@@ -391,7 +402,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
             x: Input to interface
-            called_directly: if true, the interface was called(), otherwise, it is being used via the GUI
+            called_directly: if True, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -462,8 +473,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "Hello World"
 
-    # Output Functionalities
-    def postprocess(self, y: str | None):
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -483,7 +493,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         return x
 
 
-@document()
+@document("change", "submit", "style")
 class Number(Changeable, Submittable, IOComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -496,7 +506,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[float] = None,
+        value: Optional[float | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -508,7 +518,7 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -517,7 +527,8 @@ class Number(Changeable, Submittable, IOComponent):
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -527,6 +538,7 @@ class Number(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -646,7 +658,6 @@ class Number(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> float:
         return self.round_to_precision(1, self.precision)
 
-    # Output Functionalities
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -668,7 +679,7 @@ class Number(Changeable, Submittable, IOComponent):
         return y
 
 
-@document()
+@document("change", "style")
 class Slider(Changeable, IOComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
@@ -676,14 +687,15 @@ class Slider(Changeable, IOComponent):
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, generate_tone, titanic_survival
+    Demos: sentence_builder, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
+    Guides: create_your_own_friends_with_a_gan
     """
 
     def __init__(
         self,
         minimum: float = 0,
         maximum: float = 100,
-        value: Optional[float] = None,
+        value: Optional[float | Callable] = None,
         *,
         step: Optional[float] = None,
         label: Optional[str] = None,
@@ -691,19 +703,21 @@ class Slider(Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        randomize: bool = False,
         **kwargs,
     ):
         """
         Parameters:
             minimum: minimum value for slider.
             maximum: maximum value for slider.
-            value: default value.
+            value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -712,7 +726,12 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.value = self.postprocess(value)
+
+        if randomize:
+            value = self.get_random_value
+
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -723,6 +742,7 @@ class Slider(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -734,6 +754,23 @@ class Slider(Changeable, IOComponent):
             "value": self.value,
             **IOComponent.get_config(self),
         }
+
+    def get_random_value(self):
+        # Goal is to generate a possible value of the slider
+        # without generating all possible values
+        # We randomly pick a step among all possible steps and add  to the minimum
+        n_steps = int((self.maximum - self.minimum) / self.step)
+        step = random.randint(0, n_steps)
+        value = self.minimum + step * self.step
+
+        # Round to the number of decimals in the step
+        # So that UI doesn't display really long decimals due to arithmetic
+        # If the step doesn't have any decimals, find will return -1
+        n_decimals = max(str(self.step)[::-1].find("."), 0)
+        if n_decimals:
+            value = round(value, n_decimals)
+
+        return value
 
     @staticmethod
     def update(
@@ -802,9 +839,7 @@ class Slider(Changeable, IOComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
-        # Output Functionalities
-
-    def postprocess(self, y: float | None) -> float:
+    def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -824,13 +859,18 @@ class Slider(Changeable, IOComponent):
         self,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the slider.
+        Parameters:
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
         return IOComponent.style(
             self,
             container=container,
         )
 
 
-@document()
+@document("change", "style")
 class Checkbox(Changeable, IOComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
@@ -843,7 +883,7 @@ class Checkbox(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: bool = False,
+        value: bool | Callable = False,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -854,7 +894,7 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: if True, checked by default.
+            value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -862,7 +902,8 @@ class Checkbox(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -871,6 +912,7 @@ class Checkbox(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -936,7 +978,6 @@ class Checkbox(Changeable, IOComponent):
     def generate_sample(self):
         return True
 
-    # Output Functionalities
     def postprocess(self, y: bool) -> bool:
         """
         Any postprocessing needed to be performed on function output.
@@ -954,7 +995,7 @@ class Checkbox(Changeable, IOComponent):
         return x
 
 
-@document()
+@document("change", "style")
 class CheckboxGroup(Changeable, IOComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
@@ -968,7 +1009,7 @@ class CheckboxGroup(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] = None,
+        value: List[str] | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -980,7 +1021,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: default selected list of options.
+            value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -991,7 +1032,8 @@ class CheckboxGroup(Changeable, IOComponent):
         self.choices = choices or []
         self.cleared_value = []
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1001,6 +1043,7 @@ class CheckboxGroup(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1092,8 +1135,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def generate_sample(self):
         return self.choices
 
-    # Output Functionalities
-    def postprocess(self, y: List[str]) -> List[str]:
+    def postprocess(self, y: List[str] | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -1115,6 +1157,13 @@ class CheckboxGroup(Changeable, IOComponent):
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the CheckboxGroup.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            item_container: If True, will place the items in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
         if item_container is not None:
             self._style["item_container"] = item_container
 
@@ -1125,7 +1174,7 @@ class CheckboxGroup(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "style")
 class Radio(Changeable, IOComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
@@ -1140,7 +1189,7 @@ class Radio(Changeable, IOComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1152,7 +1201,7 @@ class Radio(Changeable, IOComponent):
         """
         Parameters:
             choices: list of options to select from.
-            value: the button selected by default. If None, no button is selected by default.
+            value: the button selected by default. If None, no button is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1163,7 +1212,8 @@ class Radio(Changeable, IOComponent):
         self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1173,6 +1223,7 @@ class Radio(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1246,7 +1297,6 @@ class Radio(Changeable, IOComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    # Output Functionalities
     def postprocess(self, y: str) -> str:
         """
         Any postprocessing needed to be performed on function output.
@@ -1268,6 +1318,12 @@ class Radio(Changeable, IOComponent):
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the radio component.
+        Parameters:
+            item_container: If True, will place items in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
         if item_container is not None:
             self._style["item_container"] = item_container
 
@@ -1277,7 +1333,7 @@ class Radio(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "style")
 class Dropdown(Radio):
     """
     Creates a dropdown of which only one entry can be selected.
@@ -1291,7 +1347,7 @@ class Dropdown(Radio):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1303,7 +1359,7 @@ class Dropdown(Radio):
         """
         Parameters:
             choices: list of options to select from.
-            value: default value selected in dropdown. If None, no value is selected by default.
+            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1330,12 +1386,19 @@ class Dropdown(Radio):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the Dropdown.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
         return IOComponent.style(
             self, rounded=rounded, border=border, container=container
         )
 
 
-@document()
+@document("edit", "clear", "change", "stream", "change")
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1343,6 +1406,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
+    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app, create_your_own_friends_with_a_gan
     """
 
     def __init__(
@@ -1366,7 +1430,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take.
+            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             shape: (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
@@ -1383,7 +1447,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         """
         self.mirror_webcam = mirror_webcam
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1404,6 +1469,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1641,8 +1707,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
 
-    # Output functions
-
     def postprocess(self, y: np.ndarray | PIL.Image | str) -> str:
         """
         Parameters:
@@ -1677,6 +1741,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         height: Optional[int] = None,
         width: Optional[int] = None,
     ):
+        """
+        This method can be used to change the appearance of the Image component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            height: Height of the image.
+            width: Width of the image.
+        """
         self._style["height"] = height
         self._style["width"] = width
         return IOComponent.style(
@@ -1692,19 +1763,20 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         _js: Optional[str] = None,
     ):
         """
+        This event is triggered when the user streams the component (e.g. a live webcam
+        component)
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
         """
+        # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
         Streamable.stream(self, fn, inputs, outputs, _js)
 
 
-@document()
+@document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
@@ -1716,7 +1788,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         format: Optional[str] = None,
         source: str = "upload",
@@ -1730,7 +1802,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Video component is going to take.
+            value: A path or URL for the default value that Video component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
@@ -1743,7 +1815,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         self.format = format
         self.source = source
         self.mirror_webcam = mirror_webcam
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1751,6 +1824,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -1875,6 +1949,13 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         height: Optional[int] = None,
         width: Optional[int] = None,
     ):
+        """
+        This method can be used to change the appearance of the video component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            height: Height of the video.
+            width: Width of the video.
+        """
         self._style["height"] = height
         self._style["width"] = width
         return IOComponent.style(
@@ -1883,7 +1964,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         )
 
 
-@document()
+@document("change", "clear", "play", "pause", "stop", "stream", "style")
 class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -1891,11 +1972,12 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
+    Guides: real_time_speech_recognition
     """
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.array]] = None,
+        value: Optional[str | Tuple[int, np.array] | Callable] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1909,17 +1991,18 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     ):
         """
         Parameters:
-            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take.
+            value: A path, URL, or [sample_rate, numpy array] tuple for the default value that Audio component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
-            streaming: If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
+            streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1938,6 +2021,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2179,13 +2263,14 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         _js: Optional[str] = None,
     ):
         """
+        This event is triggered when the user streams the component (e.g. a live webcam
+        component)
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
         """
+        #             _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "microphone":
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
@@ -2196,13 +2281,18 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the audio component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "clear", "style")
 class File(Changeable, Clearable, IOComponent):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
@@ -2214,7 +2304,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str | List[str]] = None,
+        value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2227,7 +2317,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path
+            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: component name in interface.
@@ -2238,7 +2328,8 @@ class File(Changeable, Clearable, IOComponent):
         """
         self.file_count = file_count
         self.type = type
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2247,6 +2338,7 @@ class File(Changeable, Clearable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2358,8 +2450,6 @@ class File(Changeable, Clearable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    # Output Functionalities
-
     def postprocess(self, y: str) -> Dict:
         """
         Parameters:
@@ -2396,13 +2486,18 @@ class File(Changeable, Clearable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the file component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "style")
 class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
@@ -2416,10 +2511,10 @@ class Dataframe(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]] | Callable] = None,
         *,
         headers: Optional[List[str]] = None,
-        row_count: int | Tuple[int, str] = (3, "dynamic"),
+        row_count: int | Tuple[int, str] = (1, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = None,
         datatype: str | List[str] = "str",
         type: str = "pandas",
@@ -2436,11 +2531,11 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value as a 2-dimensional list of values.
+            value: Default value as a 2-dimensional list of values. If callable, the function will be called whenever the app loads to set the initial value of the component.
             headers: List of str header names. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
             label: component name in interface.
             max_rows: Maximum number of rows to display at once. Set to None for infinite.
@@ -2462,7 +2557,9 @@ class Dataframe(Changeable, IOComponent):
 
         self.__validate_headers(headers, self.col_count[0])
 
-        self.headers = headers
+        self.headers = (
+            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+        )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
@@ -2482,8 +2579,13 @@ class Dataframe(Changeable, IOComponent):
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
 
-        self.value = value if value is not None else self.test_input
-        self.value = self.__process_markdown(self.value, datatype)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+
+        self.value = (
+            self.postprocess(initial_value)
+            if initial_value is not None
+            else self.postprocess(self.test_input)
+        )
 
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -2495,6 +2597,7 @@ class Dataframe(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2537,7 +2640,7 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: DataframeData):
         """
         Parameters:
-        x (Dict[headers: List[str], data: List[List[str | int | bool]]]): 2D array of str, numeric, or bool data
+            x: 2D array of str, numeric, or bool data
         Returns:
             Dataframe in requested format
         """
@@ -2573,7 +2676,9 @@ class Dataframe(Changeable, IOComponent):
     def generate_sample(self):
         return [[1, 2, 3], [4, 5, 6]]
 
-    def postprocess(self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]):
+    def postprocess(
+        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]
+    ) -> Dict:
         """
         Parameters:
             y: dataframe in given format
@@ -2586,17 +2691,33 @@ class Dataframe(Changeable, IOComponent):
             y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+                "data": Dataframe.__process_markdown(
+                    y.to_dict(orient="split")["data"], self.datatype
+                ),
             }
         if isinstance(y, pd.DataFrame):
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+                "data": Dataframe.__process_markdown(
+                    y.to_dict(orient="split")["data"], self.datatype
+                ),
             }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
                 y = y.tolist()
+
+            _headers = self.headers
+
+            if len(self.headers) < len(y[0]):
+                _headers = [
+                    *self.headers,
+                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                ]
+            elif len(self.headers) > len(y[0]):
+                _headers = self.headers[: len(y[0])]
+
             return {
+                "headers": _headers,
                 "data": Dataframe.__process_markdown(y, self.datatype),
             }
         raise ValueError("Cannot process value as a Dataframe")
@@ -2638,13 +2759,18 @@ class Dataframe(Changeable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the DataFrame component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "style")
 class Timeseries(Changeable, IOComponent):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
@@ -2656,7 +2782,7 @@ class Timeseries(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2670,7 +2796,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: File path for the timeseries csv file.
+            value: File path for the timeseries csv file. If callable, the function will be called whenever the app loads to set the initial value of the component.
             x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
             y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
             label: component name in interface.
@@ -2680,7 +2806,8 @@ class Timeseries(Changeable, IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2693,6 +2820,7 @@ class Timeseries(Changeable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2760,8 +2888,6 @@ class Timeseries(Changeable, IOComponent):
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
 
-    # Output Functionalities
-
     def postprocess(self, y: str | pd.DataFrame) -> Dict:
         """
         Parameters:
@@ -2782,6 +2908,11 @@ class Timeseries(Changeable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the TimeSeries component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -2797,6 +2928,7 @@ class Variable(IOComponent):
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
     Demos: chatbot_demo, blocks_simple_squares
+    Guides: creating_a_chatbot, real_time_speech_recognition
     """
 
     allow_string_shortcut = False
@@ -2808,17 +2940,18 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-            value: the initial value of the state.
+            value: the initial value of the state. If callable, the function will be called whenever the app loads to set the initial value of the component.
         """
-        self.value = deepcopy(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = deepcopy(initial_value)
         self.stateful = True
-        IOComponent.__init__(self, **kwargs)
+        IOComponent.__init__(self, load_fn=load_fn, **kwargs)
 
     def style(self):
         return self
 
 
-@document()
+@document("click", "style")
 class Button(Clickable, IOComponent):
     """
     Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
@@ -2830,7 +2963,7 @@ class Button(Clickable, IOComponent):
 
     def __init__(
         self,
-        value: str = "Run",
+        value: str | Callable = "Run",
         *,
         variant: str = "secondary",
         visible: bool = True,
@@ -2839,13 +2972,16 @@ class Button(Clickable, IOComponent):
     ):
         """
         Parameters:
-            value: Default text for the button to display.
+            value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = initial_value
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
         self.variant = variant
 
     def get_config(self):
@@ -2875,6 +3011,13 @@ class Button(Clickable, IOComponent):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the button component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            full_width: If True, the button will span the full width of the container.
+            border: If True, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
+        """
         if full_width is not None:
             self._style["full_width"] = full_width
         if margin is not None:
@@ -2887,19 +3030,19 @@ class Button(Clickable, IOComponent):
         )
 
 
-@document()
+@document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent):
     """
     Creates a color picker for user to select a color as string input.
     Preprocessing: passes selected color value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets color picker value to it.
     Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
-    Demos: color_picker
+    Demos: color_picker, color_generator
     """
 
     def __init__(
         self,
-        value: str = None,
+        value: str | Callable = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2910,14 +3053,15 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-            value: default text to provide in color picker.
+            value: default text to provide in color picker. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.cleared_value = "#000000"
         self.test_input = value
         IOComponent.__init__(
@@ -2927,6 +3071,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -2953,14 +3098,13 @@ class ColorPicker(Changeable, Submittable, IOComponent):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    # Input Functionalities
-    def preprocess(self, x: str | None) -> Any:
+    def preprocess(self, x: str | None) -> str | None:
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-        x (str): text
+            x: text
         Returns:
-        (str): text
+            text
         """
         if x is None:
             return None
@@ -2979,14 +3123,13 @@ class ColorPicker(Changeable, Submittable, IOComponent):
     def generate_sample(self) -> str:
         return "#000000"
 
-    # Output Functionalities
-    def postprocess(self, y: str | None):
+    def postprocess(self, y: str | None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-        y (str | None): text
+            y: text
         Returns:
-        (str | None): text
+            text
         """
         if y is None:
             return None
@@ -3005,7 +3148,7 @@ class ColorPicker(Changeable, Submittable, IOComponent):
 ############################
 
 
-@document()
+@document("change", "style")
 class Label(Changeable, IOComponent):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
@@ -3013,13 +3156,14 @@ class Label(Changeable, IOComponent):
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
     Demos: main_note, titanic_survival
+    Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
     """
 
     CONFIDENCES_KEY = "confidences"
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -3030,7 +3174,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in the component.
+            value: Default value to show in the component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: component name in interface.
             show_label: if True, will display label.
@@ -3038,13 +3182,15 @@ class Label(Changeable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3055,7 +3201,7 @@ class Label(Changeable, IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: Dict[str, float] | str | float) -> Dict:
+    def postprocess(self, y: Dict[str, float] | str | float | None) -> Dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -3140,22 +3286,28 @@ class Label(Changeable, IOComponent):
         self,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the label component.
+        Parameters:
+            container: If True, will add a container to the label - providing some extra padding around the border.
+        """
         return IOComponent.style(self, container=container)
 
 
-@document()
+@document("change", "style")
 class HighlightedText(Changeable, IOComponent):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels.
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
 
     Demos: diff_texts, text_analysis
+    Guides: named_entity_recognition
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict | Callable] = None,
         *,
         color_map: Dict[str, str] = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
@@ -3169,7 +3321,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show.
+            value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
             show_legend: whether to show span categories in a separate legend or inline.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
@@ -3186,13 +3338,15 @@ class HighlightedText(Changeable, IOComponent):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3206,7 +3360,7 @@ class HighlightedText(Changeable, IOComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
         color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
@@ -3225,8 +3379,8 @@ class HighlightedText(Changeable, IOComponent):
         return updated_config
 
     def postprocess(
-        self, y: List[Tuple[str, str | float | None]]
-    ) -> List[Tuple[str, str | float | None]]:
+        self, y: Optional[List[Tuple[str, str | float | None]] | Dict]
+    ) -> Optional[List[Tuple[str, str | float | None]]]:
         """
         Parameters:
             y: List of (word, category) tuples
@@ -3235,6 +3389,22 @@ class HighlightedText(Changeable, IOComponent):
         """
         if y is None:
             return None
+        if isinstance(y, dict):
+            text = y["text"]
+            entities = y["entities"]
+            if len(entities) == 0:
+                y = [(text, None)]
+            else:
+                list_format = []
+                index = 0
+                for entity in entities:
+                    list_format.append((text[index : entity["start"]], None))
+                    list_format.append(
+                        (text[entity["start"] : entity["end"]], entity["entity"])
+                    )
+                    index = entity["end"]
+                list_format.append((text[index:], None))
+                y = list_format
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
@@ -3267,10 +3437,11 @@ class HighlightedText(Changeable, IOComponent):
         container: Optional[bool] = None,
     ):
         """
+        This method can be used to change the appearance of the HighlightedText component.
         Parameters:
-            rounded: If True, will round the corners of the text. If a tuple, will round the corners of the text according to the values in the tuple, starting from top left and proceeding clock-wise.
+            rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
-            container: If True, will place the component in a container.
+            container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
@@ -3278,7 +3449,7 @@ class HighlightedText(Changeable, IOComponent):
         return IOComponent.style(self, rounded=rounded, container=container)
 
 
-@document()
+@document("change", "style")
 class JSON(Changeable, IOComponent):
     """
     Used to display arbitrary JSON output prettily.
@@ -3290,7 +3461,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3300,19 +3471,21 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3339,7 +3512,7 @@ class JSON(Changeable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: Dict | List | str) -> Dict | List:
+    def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
         """
         Parameters:
             y: JSON output
@@ -3358,10 +3531,15 @@ class JSON(Changeable, IOComponent):
         return json.loads(data)
 
     def style(self, container: Optional[bool] = None):
+        """
+        This method can be used to change the appearance of the JSON component.
+        Parameters:
+            container: If True, will place the JSON in a container - providing some extra padding around the border.
+        """
         return IOComponent.style(self, container=container)
 
 
-@document()
+@document("change")
 class HTML(Changeable, IOComponent):
     """
     Used to display arbitrary HTML output.
@@ -3369,11 +3547,12 @@ class HTML(Changeable, IOComponent):
     Postprocessing: expects a valid HTML {str}.
 
     Demos: text_analysis
+    Guides: key_features
     """
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3383,19 +3562,21 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = value
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3425,7 +3606,7 @@ class HTML(Changeable, IOComponent):
         return self
 
 
-@document()
+@document("style")
 class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
@@ -3437,7 +3618,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[np.ndarray | PIL.Image | str]] = None,
+        value: Optional[List[np.ndarray | PIL.Image | str] | Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3447,18 +3628,20 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-            value: List of images to display in the gallery by default
+            value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         super().__init__(
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3484,7 +3667,7 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str]) -> List[str]:
+    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
         """
         Parameters:
             y: list of images
@@ -3516,12 +3699,52 @@ class Gallery(IOComponent):
         height: Optional[str] = None,
         container: Optional[bool] = None,
     ):
+        """
+        This method can be used to change the appearance of the gallery component.
+        Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            height: Height of the gallery.
+            container: If True, will place gallery in a container - providing some extra padding around the border.
+        """
         if grid is not None:
             self._style["grid"] = grid
         if height is not None:
             self._style["height"] = height
 
         return IOComponent.style(self, rounded=rounded, container=container)
+
+    def save_flagged(
+        self, dir: str, label: Optional[str], data: List[str], encryption_key: bool
+    ) -> None | str:
+        if data is None:
+            return None
+
+        label = processing_utils.strip_invalid_filename_characters(label)
+        # join the label with the dir so that one directory stores all gallery
+        # outputs, e.g. <dir>/<component-label>
+        dir = os.path.join(dir, label)
+
+        # Save all the files belonging to this gallery in the gallery_path directory
+        gallery_path = str(uuid.uuid4())
+
+        for img_data in data:
+            self.save_flagged_file(dir, gallery_path, img_data, encryption_key)
+
+        # In the csv file, the row corresponding to this sample will list
+        # the path where all sub-images are stored, e.g. <component-label>/<uuid>
+        return os.path.join(label, gallery_path)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        files = []
+        gallery_path = os.path.join(dir, data)
+        # Sort to preserve order
+        for file in sorted(os.listdir(gallery_path)):
+            file_path = os.path.join(gallery_path, file)
+            img = processing_utils.encode_file_to_base64(
+                file_path, encryption_key=encryption_key
+            )
+            files.append(img)
+        return files
 
 
 class Carousel(IOComponent, Changeable):
@@ -3630,7 +3853,7 @@ class Carousel(IOComponent, Changeable):
         ]
 
 
-@document()
+@document("change", "style")
 class Chatbot(Changeable, IOComponent):
     """
     Displays a chatbot output showing both user submitted messages and responses
@@ -3642,7 +3865,7 @@ class Chatbot(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[List[Tuple[str, str]]] = None,
+        value: Optional[List[Tuple[str, str]] | Callable] = None,
         color_map: Dict[str, str] = None,  # Parameter moved to Chatbot.style()
         *,
         label: Optional[str] = None,
@@ -3653,7 +3876,7 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-            value: Default value to show in chatbot
+            value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3663,8 +3886,8 @@ class Chatbot(Changeable, IOComponent):
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
-
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         self.color_map = color_map
 
         IOComponent.__init__(
@@ -3673,6 +3896,7 @@ class Chatbot(Changeable, IOComponent):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3713,8 +3937,16 @@ class Chatbot(Changeable, IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        color_map: Optional[Dict[str, str]] = None,
+        color_map: Optional[List[str, str]] = None,
     ):
+        """
+        This method can be used to change the appearance of the Chatbot component.
+        Parameters:
+            rounded: If True, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
+            color_map: List containing colors to apply to chat bubbles.
+        Returns:
+
+        """
         if color_map is not None:
             self._style["color_map"] = color_map
 
@@ -3724,7 +3956,7 @@ class Chatbot(Changeable, IOComponent):
         )
 
 
-@document()
+@document("change", "edit", "clear", "style")
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
@@ -3732,11 +3964,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Postprocessing: expects function to return a {str} path to a file of type (.obj, glb, or .gltf)
 
     Demos: model3D
+    Guides: how_to_use_3D_model_component
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
+        value: Optional[str | Callable] = None,
         *,
         clear_color: List[float] = None,
         label: Optional[str] = None,
@@ -3747,7 +3980,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: path to (.obj, glb, or .gltf) file to show in model3D viewer
+            value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene
             label: component name in interface.
             show_label: if True, will display label.
@@ -3755,13 +3988,15 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3830,9 +4065,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
-    # Output functions
-
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: path to the model
@@ -3858,13 +4091,18 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the Model3D component.
+        Args:
+            rounded: If True, will round the corners of the Model3D component. If a tuple, will round the corners of the Model3D according to the values in the tuple, starting from top left and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
         )
 
 
-@document()
+@document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
@@ -3876,7 +4114,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value=None,
+        value: Optional[Callable] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3886,19 +4124,21 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            load_fn=load_fn,
             **kwargs,
         )
 
@@ -3921,7 +4161,7 @@ class Plot(Changeable, Clearable, IOComponent):
         }
         return updated_config
 
-    def postprocess(self, y: str) -> Dict[str, str]:
+    def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
             y: plot data
@@ -3954,7 +4194,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return json.loads(data)
 
 
-@document()
+@document("change")
 class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
@@ -3962,11 +4202,12 @@ class Markdown(IOComponent, Changeable):
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
     Demos: blocks_hello, blocks_kinematics
+    Guides: key_features
     """
 
     def __init__(
         self,
-        value: str = "",
+        value: str | Callable = "",
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
@@ -3974,15 +4215,24 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-            value: Value to show in Markdown component
+            value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
-        self.value = self.postprocess(value)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+        )
 
-    def postprocess(self, y):
+    def postprocess(self, y: str | None) -> str | None:
+        """
+        Parameters:
+            y: markdown representation
+        Returns:
+            HTML rendering of markdown
+        """
         if y is None:
             return None
         unindented_y = inspect.cleandoc(y)
@@ -4015,10 +4265,13 @@ class Markdown(IOComponent, Changeable):
 ############################
 
 
+@document("click", "style")
 class Dataset(Clickable, Component):
     """
-    Used to create a output widget for showing datasets. Used to render the examples
-    box in the interface.
+    Used to create an output widget for showing datasets. Used to render the examples
+    box.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
     def __init__(
@@ -4044,7 +4297,12 @@ class Dataset(Clickable, Component):
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
-        self.headers = headers or [c.label for c in self.components]
+        if headers is not None:
+            self.headers = headers
+        elif all([c.label is None for c in self.components]):
+            self.headers = []
+        else:
+            self.headers = [c.label or "" for c in self.components]
         self.samples = samples
 
     def get_config(self):
@@ -4081,6 +4339,12 @@ class Dataset(Clickable, Component):
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
+        """
+        This method can be used to change the appearance of the Dataset component.
+        Parameters:
+            rounded: If True, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
+            border: If True, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
+        """
         return IOComponent.style(
             self,
             rounded=rounded,
@@ -4088,9 +4352,14 @@ class Dataset(Clickable, Component):
         )
 
 
+@document()
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {dict} with keys "original" and "interpretation".
+
+    Guides: custom_interpretations_with_blocks
     """
 
     def __init__(
@@ -4101,6 +4370,12 @@ class Interpretation(Component):
         elem_id: Optional[str] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+            component: Which component to show in the interpretation widget.
+            visible: Whether or not the interpretation is visible.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.component = component
 
@@ -4124,7 +4399,7 @@ class Interpretation(Component):
     def style(self):
         return self
 
-    def postprocess(self, y):
+    def postprocess(self, y: Any) -> Any:
         return y
 
 
