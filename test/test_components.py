@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import pytest
-from scipy.io.wavfile import read
+from scipy.io import wavfile
 
 import gradio as gr
 from gradio import media_data
@@ -1907,7 +1907,7 @@ def test_audio_preprocess_can_be_read_by_scipy():
     x_wav = deepcopy(media_data.BASE64_MICROPHONE)
     audio_input = gr.Audio(type="filepath")
     output = audio_input.preprocess(x_wav)
-    read(output)
+    wavfile.read(output)
 
 
 if __name__ == "__main__":

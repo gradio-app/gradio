@@ -98,21 +98,7 @@ examples = [
     ["samples/cate_blanch.mp3", "samples/cate_blanch_3.mp3"],
     ["samples/cate_blanch_2.mp3", "samples/cate_blanch_3.mp3"],
     ["samples/heath_ledger.mp3", "samples/heath_ledger_2.mp3"],
-    ["samples/heath_ledger.mp3", "samples/heath_ledger_3.mp3"],
-    ["samples/heath_ledger_2.mp3", "samples/heath_ledger_3.mp3"],
-    ["samples/russel_crowe.mp3", "samples/russel_crowe_2.mp3"],
     ["samples/cate_blanch.mp3", "samples/kirsten_dunst.wav"],
-    ["samples/russel_crowe.mp3", "samples/kirsten_dunst.wav"],
-    ["samples/russel_crowe_2.mp3", "samples/kirsten_dunst.wav"],
-    ["samples/leonardo_dicaprio.mp3", "samples/denzel_washington.mp3"],
-    ["samples/heath_ledger.mp3", "samples/denzel_washington.mp3"],
-    ["samples/heath_ledger_2.mp3", "samples/denzel_washington.mp3"],
-    ["samples/leonardo_dicaprio.mp3", "samples/russel_crowe.mp3"],
-    ["samples/leonardo_dicaprio.mp3", "samples/russel_crowe_2.mp3"],
-    ["samples/naomi_watts.mp3", "samples/denzel_washington.mp3"],
-    ["samples/naomi_watts.mp3", "samples/leonardo_dicaprio.mp3"],
-    ["samples/naomi_watts.mp3", "samples/cate_blanch_2.mp3"],
-    ["samples/naomi_watts.mp3", "samples/kirsten_dunst.wav"],
 ]
 
 demo = gr.Interface(
