@@ -251,6 +251,10 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.lines = lines
+        self.max_lines = max_lines
+        self.placeholder = placeholder
+        self.interpret_by_tokens = True
         IOComponent.__init__(
             self,
             label=label,
@@ -261,12 +265,8 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
-        self.lines = lines
-        self.max_lines = max_lines
-        self.placeholder = placeholder
         self.cleared_value = ""
         self.test_input = value
-        self.interpret_by_tokens = True
 
     def get_config(self):
         return {
@@ -412,6 +412,8 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
+        self.precision = precision
+        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -422,9 +424,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
-        self.precision = precision
         self.test_input = self.value if self.value is not None else 1
-        self.interpret_by_tokens = False
 
     @staticmethod
     def _round_to_precision(
@@ -996,7 +996,6 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
         self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -1008,6 +1007,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        self.cleared_value = self.value
 
     def get_config(self):
         return {
