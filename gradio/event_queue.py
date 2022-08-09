@@ -13,11 +13,11 @@ from gradio.utils import Request, run_coro_in_background
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
-    rank: Optional[int] = -1
+    rank: Optional[int] = None
     queue_size: int
-    avg_event_process_time: float  # TODO(faruk): might be removed if not used by frontend in the future
-    avg_event_concurrent_process_time: float  # TODO(faruk): might be removed if not used by frontend in the future
-    rank_eta: Optional[int] = -1
+    avg_event_process_time: Optional[float]
+    avg_event_concurrent_process_time: Optional[float]
+    rank_eta: Optional[int] = None
     queue_eta: int
 
 
@@ -33,9 +33,8 @@ class Queue:
     SERVER_PATH = None
     DURATION_HISTORY_SIZE = 100
     DURATION_HISTORY = []
-    # When there is no estimation is calculated, default estimation is 1 sec
-    AVG_PROCESS_TIME = 1
-    AVG_CONCURRENT_PROCESS_TIME = 1
+    AVG_PROCESS_TIME = None
+    AVG_CONCURRENT_PROCESS_TIME = None
     QUEUE_DURATION = 1
     LIVE_QUEUE_UPDATES = True
     SLEEP_WHEN_FREE = 0.001
@@ -114,8 +113,16 @@ class Queue:
                 run_coro_in_background(cls.broadcast_estimation)
 
     @classmethod
-    def push(cls, event: Event):
+    def push(cls, event: Event) -> int:
+        """
+        Add event to queue
+        Parameters:
+            event: Event to add to Queue
+        Returns:
+            rank of submitted Event
+        """
         cls.EVENT_QUEUE.append(event)
+        return len(cls.EVENT_QUEUE) - 1
 
     @classmethod
     def clean_job(cls, event: Event):
@@ -195,9 +202,14 @@ class Queue:
             rank:
         """
         estimation.rank = rank
-        estimation.rank_eta = round(
-            (estimation.rank + 1) * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
-        )
+
+        if cls.AVG_CONCURRENT_PROCESS_TIME is not None:
+            estimation.rank_eta = (
+                estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+            )
+            if None not in cls.ACTIVE_JOBS:
+                # Add estimated amount of time for a thread to get empty
+                estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME
         client_awake = await event.send_message(estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
@@ -218,7 +230,7 @@ class Queue:
             sum(cls.DURATION_HISTORY) / duration_history_size, 2
         )
         cls.AVG_CONCURRENT_PROCESS_TIME = round(
-            cls.AVG_PROCESS_TIME / max(cls.MAX_THREAD_COUNT, duration_history_size), 2
+            cls.AVG_PROCESS_TIME / min(cls.MAX_THREAD_COUNT, duration_history_size), 2
         )
         cls.QUEUE_DURATION = cls.AVG_CONCURRENT_PROCESS_TIME * len(cls.EVENT_QUEUE)
 
@@ -246,7 +258,7 @@ class Queue:
             json=event.data,
         )
         end_time = time.time()
-        cls.update_estimation(duration=round(end_time - begin_time, 3))
+        cls.update_estimation(end_time - begin_time)
         client_awake = await event.send_message(
             {"msg": "process_completed", "output": response.json}
         )

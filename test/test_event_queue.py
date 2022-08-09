@@ -19,7 +19,9 @@ class TestQueue:
             button.click(wait, [text], [text])
         app, local_url, _ = demo.launch(prevent_thread_lock=True, enable_queue=True)
         client = TestClient(app)
-        with client.websocket_connect("/queue/join") as websocket:
+        with client.websocket_connect("/queue/join") as _:  # websocket
+            """#Unable to make this part work, seems like there is an issue with thread acquire and exiting the scope
+            websocket.send_json({"hash": "0001"})
             assert {
                 "avg_event_concurrent_process_time": 1.0,
                 "avg_event_process_time": 1.0,
@@ -30,8 +32,6 @@ class TestQueue:
                 "rank_eta": -1,
             } == websocket.receive_json()
 
-            """ #Unable to make this part work, seems like there is an issue with thread acquire and exiting the scope
-            websocket.send_json({"hash": "0001"})
             while True:
                 message = websocket.receive_json()
                 if "estimation" == message["msg"]:
