@@ -1,7 +1,7 @@
 import os
 import shutil
 import jinja2
-from src import index, guides, docs, playground
+from src import index, guides, docs, recipes
 
 SRC_DIR = "src"
 BUILD_DIR = "build"
@@ -16,5 +16,5 @@ shutil.copytree(
 index.build(BUILD_DIR, jinja_env)
 guides.build(BUILD_DIR, jinja_env)
 docs.build(BUILD_DIR, jinja_env)
-playground.build(BUILD_DIR, jinja_env)
+recipes.build(BUILD_DIR, jinja_env)
 
