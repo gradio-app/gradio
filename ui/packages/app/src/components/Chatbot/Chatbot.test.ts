@@ -7,7 +7,6 @@ import type { LoadingStatus } from "../StatusTracker/types";
 const loading_status = {
 	eta: 0,
 	queue_position: 1,
-	queue_size: 1,
 	status: "complete" as LoadingStatus["status"],
 	scroll_to_output: false,
 	visible: true,
