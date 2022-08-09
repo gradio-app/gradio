@@ -48,6 +48,7 @@ from gradio.events import (
 )
 from gradio.serializing import (
     FileSerializable,
+    ImgSerializable,
     JSONSerializable,
     Serializable,
     SimpleSerializable,
@@ -1165,7 +1166,7 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerializable):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.

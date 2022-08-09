@@ -84,10 +84,23 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
+def save_array_to_file(image_array, dir=None):
+    pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)    
+    pil_image.save(file_obj)
+    return file_obj
+
+
+def save_pil_to_file(pil_image, dir=None):
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)    
+    pil_image.save(file_obj)
+    return file_obj
+
+
 def encode_array_to_base64(image_array):
     with BytesIO() as output_bytes:
-        PIL_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        PIL_image.save(output_bytes, "PNG")
+        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
+        pil_image.save(output_bytes, "PNG")
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
@@ -222,6 +235,21 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=Non
     file_obj.write(data)
     file_obj.flush()
     return file_obj
+
+
+def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
+    try:
+        ### Download the file using requests library
+        response = requests.get(file_path_or_url, stream=True)
+        if file_path_or_url.find('/'):
+            new_file_path = file_path_or_url.rsplit('/', 1)[1]
+        else:
+            new_file_path = "file.txt"
+        with open(new_file_path, 'wb') as out_file:
+            shutil.copyfileobj(response.raw, out_file)            
+        del response
+    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
+        return create_tmp_copy_of_file(file_path_or_url, dir)
 
 
 def create_tmp_copy_of_file(file_path, dir=None):
