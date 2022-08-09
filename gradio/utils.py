@@ -598,3 +598,7 @@ def set_directory(path: Path):
         yield
     finally:
         os.chdir(origin)
+
+
+def strip_invalid_filename_characters(filename: str) -> str:
+    return "".join([char for char in filename if char.isalnum() or char in "._- "])

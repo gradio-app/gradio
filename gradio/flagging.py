@@ -13,7 +13,7 @@ from gradio import encryptor, utils
 from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
-    from gradio.components import Component
+    from gradio.components import IOComponent
 
 set_documentation_group("flagging")
 
@@ -24,7 +24,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -74,7 +74,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -91,11 +91,11 @@ class SimpleCSVLogger(FlaggingCallback):
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
+            save_dir = os.path.join(flagging_dir, utils.strip_invalid_filename_characters(component.label))
             csv_data.append(
-                component.save_flagged(
-                    flagging_dir,
-                    component.label,
+                component.deserialize(
                     sample,
+                    save_dir,
                     None,
                 )
             )
@@ -128,7 +128,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: List[Component],
+        components: List[IOComponent],
         flagging_dir: str,
         encryption_key: Optional[str] = None,
     ):
@@ -151,12 +151,12 @@ class CSVLogger(FlaggingCallback):
         if flag_index is None:
             csv_data = []
             for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
+                save_dir = os.path.join(flagging_dir, utils.strip_invalid_filename_characters(component.label or f"component {idx}"))
                 csv_data.append(
-                    component.save_flagged(
-                        flagging_dir,
-                        component.label or f"component {idx}",
+                    component.deserialize(
                         sample,
-                        self.encryption_key,
+                        save_dir=save_dir,
+                        encryption_key=self.encryption_key,
                     )
                     if sample is not None
                     else ""
@@ -262,7 +262,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.organization_name = organization
         self.dataset_private = private
 
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
@@ -351,8 +351,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                filepath = component.save_flagged(
-                    self.dataset_dir, component.label, sample, None
+                save_dir = os.path.join(self.dataset_dir, utils.strip_invalid_filename_characters(component.label))
+                filepath = component.deserialize(
+                    sample, save_dir, None
                 )
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):

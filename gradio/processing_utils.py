@@ -527,5 +527,3 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     return image.astype(dtype_out)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])

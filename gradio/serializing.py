@@ -31,7 +31,7 @@ class SimpleSerializable(Serializable):
         """
         return x
 
-    def deserialize(self, x, save_dir=None):
+    def deserialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
         """
@@ -39,7 +39,7 @@ class SimpleSerializable(Serializable):
 
 
 class FileSerializable(Serializable):
-    def deserialize(self, x, save_dir=None):
+    def deserialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert from serialized representation of a file (base64) to a human-friendly version (string filepath)
         Optionally, save the file to the directory specified by save_dir
@@ -52,13 +52,13 @@ class FileSerializable(Serializable):
 
 
 class JSONSerializable(Serializable):
-    def serialize(self, x, save_dir=None):
+    def serialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
         """
         return json.dumps(x)
 
-    def deserialize(self, x, save_dir=None):
+    def deserialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
         """
