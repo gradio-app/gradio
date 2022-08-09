@@ -279,7 +279,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[str] = None,
         lines: Optional[int] = None,
         max_lines: Optional[int] = None,
         placeholder: Optional[str] = None,
@@ -458,7 +458,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[float] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -632,7 +632,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[float] = None,
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         step: Optional[float] = None,
@@ -758,7 +758,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[bool] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
