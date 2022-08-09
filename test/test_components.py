@@ -1884,5 +1884,23 @@ def test_dataframe_postprocess_all_types():
     }
 
 
+def test_dataframe_postprocess_only_dates():
+    df = pd.DataFrame(
+        {
+            "date_1": pd.date_range("2021-01-01", periods=2),
+            "date_2": pd.date_range("2022-02-15", periods=2),
+        }
+    )
+    component = gr.Dataframe(datatype=["date", "date"])
+    output = component.postprocess(df)
+    assert output == {
+        "headers": list(df.columns),
+        "data": [
+            [pd.Timestamp("2021-01-01 00:00:00"), pd.Timestamp("2022-02-15 00:00:00")],
+            [pd.Timestamp("2021-01-02 00:00:00"), pd.Timestamp("2022-02-16 00:00:00")],
+        ],
+    }
+
+
 if __name__ == "__main__":
     unittest.main()
