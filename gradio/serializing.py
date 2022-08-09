@@ -40,6 +40,7 @@ class SimpleSerializable(Serializable):
 
 class ImgSerializable(Serializable):
     """Special case for Image components. TODO: make Image components follow the same pattern as other FileSerializable components"""
+
     def serialize(self, x, save_dir=None, encryption_key=None):
         """
         Convert from human-friendly version of a file (string filepath) to a seralized representation (base64)

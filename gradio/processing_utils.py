@@ -86,13 +86,13 @@ def encode_plot_to_base64(plt):
 
 def save_array_to_file(image_array, dir=None):
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)    
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj)
     return file_obj
 
 
 def save_pil_to_file(pil_image, dir=None):
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)    
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj)
     return file_obj
 
@@ -241,12 +241,12 @@ def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
     try:
         ### Download the file using requests library
         response = requests.get(file_path_or_url, stream=True)
-        if file_path_or_url.find('/'):
-            new_file_path = file_path_or_url.rsplit('/', 1)[1]
+        if file_path_or_url.find("/"):
+            new_file_path = file_path_or_url.rsplit("/", 1)[1]
         else:
             new_file_path = "file.txt"
-        with open(new_file_path, 'wb') as out_file:
-            shutil.copyfileobj(response.raw, out_file)            
+        with open(new_file_path, "wb") as out_file:
+            shutil.copyfileobj(response.raw, out_file)
         del response
     except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
         return create_tmp_copy_of_file(file_path_or_url, dir)

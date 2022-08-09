@@ -104,9 +104,9 @@ class IOComponent(Component, Serializable):
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
-        
+
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)        
+        self.value = self.postprocess(initial_value)
 
         self.set_interpret_parameters()
         if callable(load_fn):
@@ -609,7 +609,6 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
-        
 
     def get_config(self):
         return {
@@ -2102,7 +2101,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
-                    "name": processing_utils.create_tmp_copy_of_file(file, dir=TMP_FOLDER).name,
+                    "name": processing_utils.create_tmp_copy_of_file(
+                        file, dir=TMP_FOLDER
+                    ).name,
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
@@ -2111,7 +2112,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             ]
         else:
             return {
-                "name": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER).name,
+                "name": processing_utils.create_tmp_copy_of_file(
+                    y, dir=TMP_FOLDER
+                ).name,
                 "size": os.path.getsize(y),
                 "data": None,
                 "is_file": True,
