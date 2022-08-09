@@ -2193,7 +2193,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             headers: List of str header names. If None, no headers are shown.
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+            datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
             label: component name in interface.
             max_rows: Maximum number of rows to display at once. Set to None for infinite.
@@ -2336,12 +2336,16 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+                "data": Dataframe.__process_markdown(
+                    y.to_dict(orient="split")["data"], self.datatype
+                ),
             }
         if isinstance(y, pd.DataFrame):
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(y.values.tolist(), self.datatype),
+                "data": Dataframe.__process_markdown(
+                    y.to_dict(orient="split")["data"], self.datatype
+                ),
             }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
@@ -2355,7 +2359,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
                     *list(range(len(self.headers) + 1, len(y[0]) + 1)),
                 ]
             elif len(self.headers) > len(y[0]):
-                _headers = self.headers[0 : len(y[0])]
+                _headers = self.headers[: len(y[0])]
 
             return {
                 "headers": _headers,
