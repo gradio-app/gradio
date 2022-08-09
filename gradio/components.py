@@ -2079,11 +2079,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
-        if crop_min != 0 or crop_max != 100:
-            sample_rate, data = processing_utils.audio_from_file(
-                file_obj.name, crop_min=crop_min, crop_max=crop_max
-            )
-            processing_utils.audio_to_file(sample_rate, data, file_obj.name)
+        sample_rate, data = processing_utils.audio_from_file(
+            file_obj.name, crop_min=crop_min, crop_max=crop_max
+        )
+        processing_utils.audio_to_file(sample_rate, data, file_obj.name)
         if self.type == "file":
             warnings.warn(
                 "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
