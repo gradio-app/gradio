@@ -3,6 +3,7 @@ import { writable } from "svelte/store";
 export interface LoadingStatus {
 	eta: number | null;
 	status: "pending" | "error" | "complete";
+	queue: boolean;
 	queue_position: number | null;
 	queue_size: number | null;
 	fn_index: number;
@@ -26,6 +27,7 @@ function create_loading_status_store() {
 	function update(
 		fn_index: LoadingStatus["fn_index"],
 		status: LoadingStatus["status"],
+		queue: LoadingStatus["queue"],
 		size: LoadingStatus["queue_size"],
 		position: LoadingStatus["queue_position"],
 		eta: LoadingStatus["eta"]
@@ -88,9 +90,10 @@ function create_loading_status_store() {
 			outputs_to_update.forEach(
 				({ id, queue_position, queue_size, eta, status }) => {
 					outputs[id] = {
+						queue: queue,
 						queue_size: queue_size,
 						queue_position: queue_position,
-						eta: eta || outputs[id]?.eta,
+						eta: eta,
 						status,
 						fn_index
 					};
