@@ -89,6 +89,7 @@ class IOComponent(Component, Serializable):
     def __init__(
         self,
         *,
+        value: Any = None,
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
@@ -102,6 +103,9 @@ class IOComponent(Component, Serializable):
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
+        
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
+        self.value = self.postprocess(initial_value)        
 
         self.set_interpret_parameters()
         if callable(load_fn):
@@ -250,8 +254,6 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -262,7 +264,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -411,8 +413,6 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -422,7 +422,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -597,8 +597,6 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
         if randomize:
             value = self.get_random_value
 
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -609,7 +607,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -740,8 +738,6 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -750,7 +746,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -838,8 +834,6 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
         self.choices = choices or []
         self.cleared_value = []
         self.type = type
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -849,7 +843,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -1003,8 +997,6 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
         self.choices = choices or []
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1014,7 +1006,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -1222,8 +1214,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerial
         """
         self.mirror_webcam = mirror_webcam
         self.type = type
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1244,7 +1234,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerial
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -1571,8 +1561,6 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         self.format = format
         self.source = source
         self.mirror_webcam = mirror_webcam
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1580,7 +1568,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -1745,8 +1733,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1765,7 +1751,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             visible=visible,
             elem_id=elem_id,
             requires_permissions=requires_permissions,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2023,8 +2009,6 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         """
         self.file_count = file_count
         self.type = type
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2033,7 +2017,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2255,7 +2239,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2451,8 +2435,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2465,7 +2447,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2576,7 +2558,7 @@ class Variable(IOComponent, SimpleSerializable):
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = deepcopy(initial_value)
         self.stateful = True
-        IOComponent.__init__(self, load_fn=load_fn, **kwargs)
+        IOComponent.__init__(self, value=value, **kwargs)
 
     def style(self):
         return self
@@ -2611,7 +2593,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = initial_value
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+            self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
         self.variant = variant
 
@@ -2691,8 +2673,6 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.cleared_value = "#000000"
         self.test_input = value
         IOComponent.__init__(
@@ -2702,7 +2682,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2798,15 +2778,13 @@ class Label(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -2932,15 +2910,13 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3065,15 +3041,13 @@ class JSON(Changeable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3150,15 +3124,13 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3216,14 +3188,12 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         super().__init__(
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3468,8 +3438,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             warnings.warn(
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         self.color_map = color_map
 
         IOComponent.__init__(
@@ -3478,7 +3446,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3570,15 +3538,13 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3695,15 +3661,13 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
             self,
             label=label,
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            load_fn=load_fn,
+            value=value,
             **kwargs,
         )
 
@@ -3776,10 +3740,8 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.md = MarkdownIt()
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, load_fn=load_fn, **kwargs
+            self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
     def postprocess(self, y: str | None) -> str | None:
