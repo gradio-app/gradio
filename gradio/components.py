@@ -46,7 +46,12 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
-from gradio.serializing import Serializable, SimpleSerializable, FileSerializable, JSONSerializable
+from gradio.serializing import (
+    FileSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
@@ -2919,7 +2924,7 @@ class Label(Changeable, IOComponent):
             "float label, or a dictionary whose keys are labels and values are confidences. "
             "Instead, got a {}".format(type(y))
         )
-        
+
     def deserialize(self, y):
         if y is None:
             return None
@@ -3724,7 +3729,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         data = {
             "name": os.path.basename(y),
             "data": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER),
-            "is_file": True
+            "is_file": True,
         }
         return data
 

@@ -1,9 +1,9 @@
-
-from abc import ABC, abstractclassmethod
 import json
+from abc import ABC, abstractclassmethod
 from typing import Any
 
 from gradio import processing_utils
+
 
 class Serializable(ABC):
     @abstractclassmethod
@@ -49,15 +49,15 @@ class FileSerializable(Serializable):
         else:
             file = processing_utils.decode_base64_to_file(x)
         return file.name
-    
-    
+
+
 class JSONSerializable(Serializable):
     def serialize(self, x, save_dir=None):
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
         """
         return json.dumps(x)
-    
+
     def deserialize(self, x, save_dir=None):
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
