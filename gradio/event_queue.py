@@ -197,7 +197,9 @@ class Queue:
         estimation.rank = rank
 
         if cls.AVG_CONCURRENT_PROCESS_TIME is not None:
-            estimation.rank_eta = estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+            estimation.rank_eta = (
+                estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+            )
             if None not in cls.ACTIVE_JOBS:
                 estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME
         client_awake = await event.send_message(estimation.dict())
