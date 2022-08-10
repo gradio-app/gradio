@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import warnings
 from io import BytesIO
+import json
 
 import numpy as np
 import requests
@@ -251,6 +252,21 @@ def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
     except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
         return create_tmp_copy_of_file(file_path_or_url, dir)
 
+def dict_or_str_to_json_file(jsn, dir=None):
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".json",
+        dir=dir,
+        mode="w+"
+    )
+    if isinstance(jsn, str):
+        jsn = json.loads(jsn)
+    json.dump(jsn, file_obj)
+    file_obj.flush()
+    return file_obj
+
+def json_file_to_str(file_path):
+    return json.dumps(json.load(file_path))
 
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:

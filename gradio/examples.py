@@ -229,7 +229,7 @@ class Examples:
         output = []
         for component, cell in zip(self.outputs, example):
             output.append(
-                component.restore_flagged(
+                component.serialize(
                     self.cached_folder,
                     cell,
                     None,

@@ -91,12 +91,15 @@ class JSONSerializable(Serializable):
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
         """
-        return json.dumps(x)
+        # Write a temporary json file from a dict
+        
+        return processing_utils.json_file_to_dict(x)
 
     def deserialize(
         self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
     ):
+        print(x)
         """
-        Convert from serialized representation (json string) to a human-friendly version (string path to file)
+        Convert from serialized representation (json string) to a human-friendly version (string path to json file)
         """
-        return json.loads(x)
+        return processing_utils.dict_or_str_to_json_file(x, dir=save_dir)
