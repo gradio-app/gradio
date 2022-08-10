@@ -1,4 +1,4 @@
-from huggingface_hub import create_repo, HfApi
+import huggingface_hub
 import pathlib
 import tempfile
 import shutil
@@ -40,8 +40,8 @@ def upload_demo_to_space(
                                 """
             readme.open("w").write(textwrap.dedent(readme_content))
 
-        api = HfApi()
-        create_repo(
+        api = huggingface_hub.HfApi()
+        huggingface_hub.create_repo(
             space_id,
             space_sdk="gradio",
             repo_type="space",
