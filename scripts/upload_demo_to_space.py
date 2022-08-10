@@ -1,10 +1,11 @@
-import huggingface_hub
-import pathlib
-import tempfile
-import shutil
 import argparse
-from typing import Optional
+import pathlib
+import shutil
+import tempfile
 import textwrap
+from typing import Optional
+
+import huggingface_hub
 
 
 def upload_demo_to_space(
