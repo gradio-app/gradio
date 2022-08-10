@@ -56,3 +56,26 @@ jobs:
         with:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
+  spaces-test-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+      - name: get release name
+        run: echo "GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_ENV
+      - name: Upload kitchen sink to spaces
+        run: |
+          python scripts/upload_demo_to_space.py kitchen_sink \
+          ${{ format('gradio-test-deploys/{0}_kitchen_sink, ${{ env.GRADIO_VERSION }}) }} \
+          ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+          --gradio-version  ${{ env.GRADIO_VERSION }} >> url.txt
+          echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
+      - name: Comment On Release PR
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+          Deployed a demo with this version at ${{ env.SPACE_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
