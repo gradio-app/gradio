@@ -2804,22 +2804,6 @@ class Label(Changeable, IOComponent, JSONSerializable):
             "Instead, got a {}".format(type(y))
         )
 
-    def deserialize(self, y):
-        if y is None:
-            return None
-        # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if isinstance(y, (str, numbers.Number)) or (
-            "label" in y and not ("confidences" in y.keys())
-        ):
-            if isinstance(y, (str, numbers.Number)):
-                return y
-            else:
-                return y["label"]
-        if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
-            return {k["label"]: k["confidence"] for k in y["confidences"]}
-        else:
-            return y
-
     @staticmethod
     def update(
         value: Optional[Dict[str, float] | str | float] = None,

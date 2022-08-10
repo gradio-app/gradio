@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json
+import numbers
 from abc import ABC, abstractclassmethod
 from typing import Any
 
@@ -11,14 +11,14 @@ class Serializable(ABC):
     @abstractclassmethod
     def serialize():
         """
-        Convert data from human-readable format to serialized format.
+        Convert data from human-readable format to serialized format for a browser.
         """
         pass
 
     @abstractclassmethod
     def deserialize():
         """
-        Convert data from serialized format to human-readable format.
+        Convert data from serialized format for a browser to human-readable format.
         """
         pass
 
@@ -69,8 +69,7 @@ class FileSerializable(Serializable):
         Convert from human-friendly version of a file (string filepath) to a seralized representation (base64)
         Optionally, save the file to the directory specified by save_dir
         """
-        data = processing_utils.encode_url_or_file_to_base64(x)
-        return {"name": x, "data": data, "is_file": False}
+        return {"name": x, "data": None, "is_file": True}
 
     def deserialize(
         self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
@@ -98,8 +97,7 @@ class JSONSerializable(Serializable):
     def deserialize(
         self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
     ):
-        print(x)
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to json file)
         """
-        return processing_utils.dict_or_str_to_json_file(x, dir=save_dir)
+        return processing_utils.dict_or_str_to_json_file(x, dir=save_dir).name

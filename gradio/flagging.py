@@ -159,7 +159,6 @@ class CSVLogger(FlaggingCallback):
                         component.label or f"component {idx}"
                     ),
                 )
-                print(component)
                 csv_data.append(
                     component.deserialize(
                         sample,
