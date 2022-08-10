@@ -90,7 +90,7 @@ class OutputPreprocessing(unittest.TestCase):
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
     def test_create_tmp_copy_of_file(self):
-        f = open('text.txt', 'r')
+        f = open("text.txt", "r")
         temp_file = gr.processing_utils.create_tmp_copy_of_file("test.txt")
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
         f.close()
