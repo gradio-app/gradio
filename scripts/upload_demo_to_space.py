@@ -1,11 +1,10 @@
-import argparse
+from huggingface_hub import create_repo, HfApi
 import pathlib
-import shutil
 import tempfile
-import textwrap
+import shutil
+import argparse
 from typing import Optional
-
-import huggingface_hub
+import textwrap
 
 
 def upload_demo_to_space(
@@ -41,8 +40,8 @@ def upload_demo_to_space(
                                 """
             readme.open("w").write(textwrap.dedent(readme_content))
 
-        api = huggingface_hub.HfApi()
-        huggingface_hub.create_repo(
+        api = HfApi()
+        create_repo(
             space_id,
             space_sdk="gradio",
             repo_type="space",
