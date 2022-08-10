@@ -5,6 +5,7 @@ import unittest.mock as mock
 from contextlib import contextmanager
 
 import mlflow
+import pytest
 import requests
 import wandb
 from fastapi.testclient import TestClient
@@ -104,9 +105,12 @@ class TestInterface(unittest.TestCase):
         self.assertTrue(prediction_fn.__name__ in repr[0])
         self.assertEqual(len(repr[0]), len(repr[1]))
 
-    def test_interface_none_interp(self):
+    @pytest.mark.asyncio
+    async def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores = interface.interpret(["quickest brown fox"])[0]["interpretation"]
+        scores = (await interface.interpret(["quickest brown fox"]))[0][
+            "interpretation"
+        ]
         self.assertIsNone(scores)
 
     @mock.patch("webbrowser.open")
