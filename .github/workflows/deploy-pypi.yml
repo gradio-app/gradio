@@ -77,5 +77,5 @@ jobs:
         uses: thollander/actions-comment-pull-request@v1
         with:
           message: |
-          ${{ format( "Deployed a demo with this version at {0}", ${{ env.SPACE_URL }}) }}
+            ${{ format( "Deployed a demo with this version at {0}", ${{ env.SPACE_URL }}) }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
