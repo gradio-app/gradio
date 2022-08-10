@@ -253,6 +253,9 @@ def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
         return create_tmp_copy_of_file(file_path_or_url, dir)
 
 def dict_or_str_to_json_file(jsn, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+        
     file_obj = tempfile.NamedTemporaryFile(
         delete=False,
         suffix=".json",

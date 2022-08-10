@@ -170,9 +170,10 @@ class IOComponent(Component, Serializable):
         """
         pass
 
-    def postprocess(self, y):
+    def postprocess(self, y, dir=None):
         """
-        Any postprocessing needed to be performed on function output.
+        Any postprocessing needed to be performed on function output. Optionally,
+        store the postprocessed sample in directory `dir`.
         """
         return y
 
@@ -306,19 +307,20 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     def preprocess(self, x: str | None) -> str | None:
         """
-        Any preprocessing needed to be performed on function input.
+        Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
-            x: text
+            x: sample input to preprocess.
         Returns:
             text
         """
         return None if x is None else str(x)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> str | None:
         """
-        Any postprocessing needed to be performed on function output.
+        Postproccess the function output y by converting it to a str before passing it to the frontend.
         Parameters:
-            y: text
+            y: function output to postprocess.
+            dir: ignored
         Returns:
             text
         """
@@ -485,12 +487,13 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
             return None
         return self._round_to_precision(x, self.precision)
 
-    def postprocess(self, y: float | None) -> float | None:
+    def postprocess(self, y: float | None, dir: str | None = None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
 
         Parameters:
             y: numeric output
+            dir: ignored
         Returns:
             number representing function output
         """
@@ -656,11 +659,12 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
     def generate_sample(self) -> float:
         return self.maximum
 
-    def postprocess(self, y: float | None) -> float | None:
+    def postprocess(self, y: float | None, dir: str | None = None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
             y: numeric output
+            dir: ignored
         Returns:
             numeric output or minimum number if None
         """
@@ -894,11 +898,12 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: List[str] | None) -> List[str]:
+    def postprocess(self, y: List[str] | None, dir: str | None = None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
             y: List of selected choices
+            dir: ignored
         Returns:
             List of selected choices
         """
@@ -1334,10 +1339,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             "mask": self._format_image(mask_im, mask_fmt),
         }
 
-    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
+    def postprocess(self, y: np.ndarray | PIL.Image | str | Path, dir: str | None = None) -> str:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string filepath, or Path filepath
+            dir: ignored
         Returns:
             base64 url data
         """
@@ -1645,12 +1651,13 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """Generates a random video for testing the API."""
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> Dict[str, str] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
             y: a path to video file
+            dir: the directory in which the temporary video file should be created
         Returns:
             a dictionary with the following keys: 'name' (containing the file path
             to a temporary copy of the video), 'data' (None), and 'is_file` (True).
@@ -1909,10 +1916,11 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
-    def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
+    def postprocess(self, y: Tuple[int, np.array] | str | None, dir: str | None = None) -> str | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string of the path to an audio file, or None.
+            dir: the directory in which the temporary audio file should be created
         Returns:
             base64 url data
         """
@@ -2089,10 +2097,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def postprocess(self, y: str) -> Dict:
+    def postprocess(self, y: str, dir: str | None = None) -> Dict:
         """
         Parameters:
             y: file path
+            dir: the directory in which the temporary file should be created
         Returns:
             JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
@@ -2294,11 +2303,12 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         return [[1, 2, 3], [4, 5, 6]]
 
     def postprocess(
-        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]
+        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]], dir: str | None = None
     ) -> Dict:
         """
         Parameters:
             y: dataframe in given format
+            dir: ignored
         Returns:
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
@@ -2489,10 +2499,11 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
 
-    def postprocess(self, y: str | pd.DataFrame) -> Dict:
+    def postprocess(self, y: str | pd.DataFrame, dir: str | None = None) -> Dict:
         """
         Parameters:
             y: csv or dataframe with timeseries data
+            dir: ignored
         Returns:
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
@@ -2709,11 +2720,12 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     def generate_sample(self) -> str:
         return "#000000"
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
             y: text
+            dir: ignored
         Returns:
             text
         """
@@ -2779,10 +2791,11 @@ class Label(Changeable, IOComponent, JSONSerializable):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: Dict[str, float] | str | float | None) -> Dict | None:
+    def postprocess(self, y: Dict[str, float] | str | float | None, dir: str | None = None) -> Dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
+            dir: ignored
         Returns:
             Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
@@ -2933,11 +2946,12 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         return updated_config
 
     def postprocess(
-        self, y: Optional[List[Tuple[str, str | float | None]] | Dict]
+        self, y: Optional[List[Tuple[str, str | float | None]] | Dict], dir: str | None = None
     ) -> Optional[List[Tuple[str, str | float | None]]]:
         """
         Parameters:
             y: List of (word, category) tuples
+            dir: ignored
         Returns:
             List of (word, category) tuples
         """
@@ -3058,10 +3072,11 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
+    def postprocess(self, y: Dict | List | str | None, dir: str | None = None) -> Dict | List | None:
         """
         Parameters:
             y: JSON output
+            dir: ignored
         Returns:
             JSON output
         """
@@ -3203,10 +3218,11 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
+    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None, dir: str | None = None) -> List[str]:
         """
         Parameters:
             y: list of images
+            dir: ignored
         Returns:
             list of base64 url data for images
         """
@@ -3346,10 +3362,11 @@ class Carousel(IOComponent, Changeable):
         }
         return updated_config
 
-    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
+    def postprocess(self, y: List[List[Any]], dir: str | None = None) -> List[List[Any]]:
         """
         Parameters:
             y: carousel output
+            dir: ignored
         Returns:
             2D array, where each sublist represents one set of outputs or 'slide' in the carousel
         """
@@ -3459,10 +3476,11 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(self, y: List[Tuple[str, str]], dir: str | None = None) -> List[Tuple[str, str]]:
         """
         Parameters:
             y: List of tuples representing the message and response
+            dir: ignored
         Returns:
             List of tuples representing the message and response
         """
@@ -3581,10 +3599,11 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> Dict[str, str] | None:
         """
         Parameters:
             y: path to the model
+            dir: ignored
         Returns:
             file name mapped to base64 url data
         """
@@ -3669,10 +3688,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> Dict[str, str] | None:
         """
         Parameters:
             y: plot data
+            dir: ignored
         Returns:
             plot type mapped to plot base64 data
         """
@@ -3723,10 +3743,11 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, dir: str | None = None) -> str | None:
         """
         Parameters:
             y: markdown representation
+            dir: ignored
         Returns:
             HTML rendering of markdown
         """
@@ -3896,7 +3917,7 @@ class Interpretation(Component):
     def style(self):
         return self
 
-    def postprocess(self, y: Any) -> Any:
+    def postprocess(self, y: Any, dir: str | None = None) -> Any:
         return y
 
 

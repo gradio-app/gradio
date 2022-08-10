@@ -93,7 +93,7 @@ class JSONSerializable(Serializable):
         """
         # Write a temporary json file from a dict
         
-        return processing_utils.json_file_to_dict(x)
+        return processing_utils.json_file_to_str(x)
 
     def deserialize(
         self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
