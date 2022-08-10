@@ -89,11 +89,10 @@ class OutputPreprocessing(unittest.TestCase):
         )
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
-    """ #TODO: Fix errors relating to test.txt
     def test_create_tmp_copy_of_file(self):
+        os.system("touch test.txt")
         temp_file = gr.processing_utils.create_tmp_copy_of_file("test.txt")
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
-    """
 
     float_dtype_list = [
         float,
