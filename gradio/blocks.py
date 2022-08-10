@@ -64,6 +64,7 @@ class Block:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
+            self.temp_dir = Context.root_block.temp_dir
 
     def unrender(self):
         """

@@ -58,9 +58,6 @@ from gradio.utils import component_or_layout_class
 set_documentation_group("component")
 
 
-TMP_FOLDER = "tmp/"
-
-
 class Component(Block):
     """
     A base class for defining the methods that all gradio components should have.
@@ -1666,7 +1663,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             ff.run()
             y = output_file_name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
+        y = processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None))
 
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -1927,7 +1924,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER)
+        y = processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None))
 
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -2103,7 +2100,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             return [
                 {
                     "name": processing_utils.create_tmp_copy_of_file(
-                        file, dir=TMP_FOLDER
+                        file, dir=getattr(self, "temp_dir", None)
                     ).name,
                     "size": os.path.getsize(file),
                     "data": None,
@@ -2114,7 +2111,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         else:
             return {
                 "name": processing_utils.create_tmp_copy_of_file(
-                    y, dir=TMP_FOLDER
+                    y, dir=getattr(self, "temp_dir", None)
                 ).name,
                 "size": os.path.getsize(y),
                 "data": None,
@@ -3592,7 +3589,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         if y is None:
             return y
         data = {
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=TMP_FOLDER).name,
+            "name": processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None)).name,
             "data": None,
             "is_file": True,
         }
