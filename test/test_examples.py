@@ -10,25 +10,25 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class TestExamples:
     @pytest.mark.asyncio
     async def test_handle_single_input(self):
-        examples = await gr.Examples(["hello", "hi"], gr.Textbox()).setup()
+        examples = await gr.Examples(["hello", "hi"], gr.Textbox()).create()
         assert examples.processed_examples == [["hello"], ["hi"]]
 
-        examples = await gr.Examples([["hello"]], gr.Textbox()).setup()
+        examples = await gr.Examples([["hello"]], gr.Textbox()).create()
         assert examples.processed_examples == [["hello"]]
 
-        examples = await gr.Examples(["test/test_files/bus.png"], gr.Image()).setup()
+        examples = await gr.Examples(["test/test_files/bus.png"], gr.Image()).create()
         assert examples.processed_examples == [[gr.media_data.BASE64_IMAGE]]
 
     @pytest.mark.asyncio
     async def test_handle_multiple_inputs(self):
         examples = await gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
-        ).setup()
+        ).create()
         assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
 
     @pytest.mark.asyncio
     async def test_handle_directory(self):
-        examples = await gr.Examples("test/test_files/images", gr.Image()).setup()
+        examples = await gr.Examples("test/test_files/images", gr.Image()).create()
         assert examples.processed_examples == [
             [gr.media_data.BASE64_IMAGE],
             [gr.media_data.BASE64_IMAGE],
@@ -38,7 +38,7 @@ class TestExamples:
     async def test_handle_directory_with_log_file(self):
         examples = await gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
-        ).setup()
+        ).create()
         assert examples.processed_examples == [
             [gr.media_data.BASE64_IMAGE, "hello"],
             [gr.media_data.BASE64_IMAGE, "hi"],
@@ -50,7 +50,7 @@ class TestExamplesDataset:
     async def test_no_headers(self):
         examples = await gr.Examples(
             "test/test_files/images_log", [gr.Image(), gr.Text()]
-        ).setup()
+        ).create()
         assert examples.dataset.headers == []
 
     @pytest.mark.asyncio
@@ -58,14 +58,14 @@ class TestExamplesDataset:
         examples = await gr.Examples(
             "test/test_files/images_log",
             [gr.Image(label="im"), gr.Text(label="your text")],
-        ).setup()
+        ).create()
         assert examples.dataset.headers == ["im", "your text"]
 
     @pytest.mark.asyncio
     async def test_some_headers(self):
         examples = await gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
-        ).setup()
+        ).create()
         assert examples.dataset.headers == ["im", ""]
 
 

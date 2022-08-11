@@ -28,6 +28,27 @@ LOG_FILE = "log.csv"
 set_documentation_group("component-helpers")
 
 
+def create_example(
+    examples: List[Any] | List[List[Any]] | str,
+    inputs: Component | List[Component],
+    outputs: Optional[Component | List[Component]] = None,
+    fn: Optional[Callable] = None,
+    cache_examples: bool = False,
+    examples_per_page: int = 10,
+):
+    """Top-level coroutine function that creates Examples. Provided for backwards compatibility, e.g. so that gr.Examples can be used ."""
+    examples = Examples(
+        examples=examples,
+        inputs=inputs,
+        outputs=outputs,
+        fn=fn,
+        cache_examples=cache_examples,
+        examples_per_page=examples_per_page,
+    )
+    # TODO: run Examples.create synchronously
+    # TODO: export this function as gr.Examples for backwards compatibility
+
+
 @document()
 class Examples:
     """
@@ -150,7 +171,7 @@ class Examples:
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
         self.cache_examples = cache_examples
 
-    async def setup(self) -> Examples:
+    async def create(self) -> Examples:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
         if self.cache_examples:
