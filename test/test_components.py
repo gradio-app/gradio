@@ -1916,6 +1916,7 @@ def test_audio_preprocess_can_be_read_by_scipy():
 
 
 def test_video_postprocess_converts_to_playable_format(test_file_dir):
+    # This file has a playable container but not playable codec
     with tempfile.NamedTemporaryFile(suffix="bad_video.mp4") as tmp_not_playable_vid:
         bad_vid = str(test_file_dir / "bad_video_sample.mp4")
         assert not processing_utils.video_is_playable(bad_vid)
@@ -1923,6 +1924,7 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         playable_vid = gr.Video().postprocess(tmp_not_playable_vid.name)
         assert processing_utils.video_is_playable(playable_vid["name"])
 
+    # This file has a playable codec but not a playable container
     with tempfile.NamedTemporaryFile(
         suffix="playable_but_bad_container.mkv"
     ) as tmp_not_playable_vid:
