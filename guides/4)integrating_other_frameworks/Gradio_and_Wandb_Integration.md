@@ -239,8 +239,8 @@ Let's get started!
 
 
 
-    demo = gr.Interface(inference, [gr.inputs.Image(type="pil")], gr.outputs.Image(type="file"),title=title,description=description,article=article).launch(share=True)
-
+    demo = gr.Interface(inference, [gr.inputs.Image(type="pil")], gr.outputs.Image(type="file"),title=title,description=description,article=article)
+    demo.launch(share=True)
 
     ## you can also use the new Gradio Blocks API like this
 
