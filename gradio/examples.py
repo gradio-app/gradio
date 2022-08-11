@@ -20,7 +20,6 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio import Interface
     from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
@@ -31,8 +30,8 @@ set_documentation_group("component-helpers")
 
 def create_examples(
     examples: List[Any] | List[List[Any]] | str,
-    inputs: Component | List[Component],
-    outputs: Optional[Component | List[Component]] = None,
+    inputs: IOComponent | List[IOComponent],
+    outputs: Optional[IOComponent | List[IOComponent]] = None,
     fn: Optional[Callable] = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -83,7 +82,7 @@ class Examples:
             examples_per_page: how many examples to show per page (this parameter currently has no effect)
         """
         if _initiated_directly:
-            raise warnings.warn(
+            warnings.warn(
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
@@ -225,24 +224,19 @@ class Examples:
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 try:
-                    prediction = await self.process_example(example_id)
+                    prediction = await self.predict_example(example_id)
                     cache_logger.flag(prediction)
                 except Exception as e:
                     shutil.rmtree(self.cached_folder)
                     raise e
 
-    async def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
+    async def predict_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
         """Loads an example from the interface and returns its prediction.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        example_set = self.examples[example_id]
-        raw_input = [
-            self.inputs[i].preprocess_example(example)
-            for i, example in enumerate(example_set)
-        ]
         processed_input = [
-            input_component.preprocess(raw_input[i])
+            input_component.preprocess(self.processed_examples[example_id][i])
             for i, input_component in enumerate(self.inputs)
         ]
         if inspect.iscoroutinefunction(self.fn):
@@ -255,8 +249,6 @@ class Examples:
             predictions = [predictions]
         processed_output = [
             output_component.postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
             for i, output_component in enumerate(self.outputs)
         ]
 

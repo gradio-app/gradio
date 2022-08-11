@@ -3047,6 +3047,8 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         Returns:
             JSON output
         """
+        if y is None:
+            return None
         if isinstance(y, str):
             return json.dumps(y)
         else:
@@ -3320,6 +3322,8 @@ class Carousel(IOComponent, Changeable):
         Returns:
             2D array, where each sublist represents one set of outputs or 'slide' in the carousel
         """
+        if y is None:
+            return None
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
                 y = [[z] for z in y]
