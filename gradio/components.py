@@ -1455,29 +1455,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
-    def serialize(self, x, called_directly=False):
-        # if called directly, can assume it's a URL or filepath
-        if self.type == "filepath" or called_directly:
-            return processing_utils.encode_url_or_file_to_base64(x)
-        elif self.type == "file":
-            return processing_utils.encode_url_or_file_to_base64(x.name)
-        elif self.type in ("numpy", "pil"):
-            if self.type == "numpy":
-                x = PIL.Image.fromarray(np.uint8(x)).convert("RGB")
-            fmt = x.format
-            file_obj = tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=("." + fmt.lower() if fmt is not None else ".png"),
-            )
-            x.save(file_obj.name)
-            return processing_utils.encode_url_or_file_to_base64(file_obj.name)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'pil', 'filepath'."
-            )
-
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,

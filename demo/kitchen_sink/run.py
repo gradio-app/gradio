@@ -30,7 +30,7 @@ def fn(
     df1,
     df2,
 ):
-    return (
+    return_value = [
         (text1 if single_checkbox else text2)
         + ", selected:"
         + ", ".join(checkboxes),  # Text
@@ -81,7 +81,9 @@ def fn(
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
         df2,  # Timeseries
-    )
+    ]
+    num = 1
+    return tuple(return_value[:num] + [None]*(13-num))
 
 
 demo = gr.Interface(
@@ -154,6 +156,7 @@ demo = gr.Interface(
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
+    cache_examples=True,
 )
 
 if __name__ == "__main__":
