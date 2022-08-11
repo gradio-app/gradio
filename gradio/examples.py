@@ -7,6 +7,7 @@ import csv
 import inspect
 import os
 import shutil
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
@@ -44,6 +45,7 @@ def create_examples(
         fn=fn,
         cache_examples=cache_examples,
         examples_per_page=examples_per_page,
+        _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
     return examples_obj
@@ -69,6 +71,7 @@ class Examples:
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
+        _initiated_directly=True,
     ):
         """
         Parameters:
@@ -79,6 +82,11 @@ class Examples:
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
             examples_per_page: how many examples to show per page (this parameter currently has no effect)
         """
+        if _initiated_directly:
+            raise warnings.warn(
+                "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
+            )
+
         if cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
 
@@ -122,7 +130,8 @@ class Examples:
 
         else:
             raise ValueError(
-                "The parameter `examples` must either be a directory or a nested "
+                "The parameter `examples` must either be a string directory or a list"
+                "(if there is only 1 input component) or (more generally), a nested "
                 "list, where each sublist represents a set of inputs."
             )
 
