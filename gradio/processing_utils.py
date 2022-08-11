@@ -537,11 +537,7 @@ def video_is_playable(video_filepath: str) -> bool:
         .ogg -> theora
     """
     try:
-        playable_container = pathlib.Path(video_filepath).suffix.lower() in [
-            ".mp4",
-            ".webm",
-            ".ogg",
-        ]
+        container = pathlib.Path(video_filepath).suffix.lower()
         output = subprocess.run(
             [
                 "ffprobe",
@@ -557,9 +553,12 @@ def video_is_playable(video_filepath: str) -> bool:
             stderr=subprocess.PIPE,
         )
         output = json.loads(output.stdout)
-        video_codecs = output["streams"][0]["codec_name"]
-        playable_codec = video_codecs.lower() in ["h264", "theora", "vp9"]
-        return playable_container and playable_codec
+        video_codec = output["streams"][0]["codec_name"]
+        return (container, video_codec) in [
+            (".mp4", "h264"),
+            (".ogg", "theora"),
+            (".webm", "vp9"),
+        ]
     # If anything goes wrong, assume the video can be played to not convert downstream
     except Exception:
         return True
@@ -569,7 +568,7 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
     output_path = pathlib.Path(video_path).with_suffix(".mp4")
     with tempfile.NamedTemporaryFile() as tmp_file:
         shutil.copy2(video_path, tmp_file.name)
-        # ffmpeg will automatically use avc1 codec (playable in browser) when converting to mp4
+        # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
         ff = FFmpeg(
             inputs={tmp_file.name: None},
             outputs={output_path: None},
