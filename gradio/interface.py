@@ -18,7 +18,7 @@ import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils
+from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -32,7 +32,6 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
