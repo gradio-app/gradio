@@ -14,6 +14,7 @@ import weakref
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
+import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
@@ -185,10 +186,8 @@ class Interface(Blocks):
             **kwargs,
         )
 
-        if inspect.iscoroutinefunction(fn):
-            raise NotImplementedError(
-                "Async functions are not currently supported within interfaces. Please use Blocks API."
-            )
+        # TODO(faruk): Can we remove or move init configurations into Blocks? This long init function feels like coming from pre-Blocks era.
+
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -400,6 +399,7 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
+        # TODO(faruk): Can we move these into the flag component, when it is implemented?
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
@@ -432,6 +432,7 @@ class Interface(Blocks):
                         for flag_option in flagging_options
                     ]
 
+            # TODO(faruk): Can we remove the interface types?
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -485,11 +486,7 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = (
-                lambda *args: self.run_prediction(args)[0]
-                if len(self.output_components) == 1
-                else self.run_prediction(args)
-            )
+            submit_fn = self.submit_func
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                     super().load(submit_fn, None, self.output_components)
@@ -549,16 +546,16 @@ class Interface(Blocks):
                 ),
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
-                    for component in self.input_components + self.output_components] + (
-                            [Column.update(visible=True)]
-                            if self.interface_type
-                            in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                                self.InterfaceTypes.UNIFIED,
-                            ]
-                            else []
-                        )
+                     for component in self.input_components + self.output_components] + (
+                        [Column.update(visible=True)]
+                        if self.interface_type
+                           in [
+                               self.InterfaceTypes.STANDARD,
+                               self.InterfaceTypes.INPUT_ONLY,
+                               self.InterfaceTypes.UNIFIED,
+                           ]
+                        else []
+                    )
                     + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
@@ -572,6 +569,7 @@ class Interface(Blocks):
                 def __call__(self, *flag_data):
                     self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
 
+            # TODO(faruk): Change with flag component when it is implemented..
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -608,10 +606,10 @@ class Interface(Blocks):
                     examples_per_page=examples_per_page,
                 )
 
+            # TODO(faruk): Change with interpretation component when implemented.
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data)
-                    + [Column.update(visible=False), Column.update(visible=True)],
+                    self.interpret_func,
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
@@ -628,9 +626,11 @@ class Interface(Blocks):
         if (
             self.api_mode
         ):  # skip the preprocessing/postprocessing if sending to a remote API
-            output = self.run_prediction(params, called_directly=True)
+            output = utils.synchronize_async(
+                self.run_prediction, params, called_directly=True
+            )
         else:
-            output = self.process(params)
+            output = utils.synchronize_async(self.process, params)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -647,7 +647,13 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    def run_prediction(
+    async def submit_func(self, *args):
+
+        prediction = await self.run_prediction(args)
+        # TODO(faruk): We don't have tuple or array clearence in Blocks, can we remove this and have one standart?
+        return prediction[0] if len(self.output_components) == 1 else prediction
+
+    async def run_prediction(
         self,
         processed_input: List[Any],
         called_directly: bool = False,
@@ -660,14 +666,21 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use "call_function" instead of manually serializing, and deserializing and running prediction.
+
         if self.api_mode:  # Serialize the input
             processed_input = [
                 input_component.serialize(processed_input[i], called_directly)
                 for i, input_component in enumerate(self.input_components)
             ]
 
-        prediction = self.fn(*processed_input)
-
+        if inspect.iscoroutinefunction(self.fn):
+            prediction = await self.fn(*processed_input)
+        else:
+            prediction = await anyio.to_thread.run_sync(
+                self.fn, *processed_input, limiter=self.limiter
+            )
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
@@ -676,10 +689,9 @@ class Interface(Blocks):
                 output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)
             ]
-
         return prediction
 
-    def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
+    async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
         self.run_prediction(), then postprocesses the output.
@@ -689,11 +701,13 @@ class Interface(Blocks):
             processed output: a list of processed  outputs to return as the prediction(s).
             duration: a list of time deltas measuring inference time for each prediction fn.
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use process_api instead of manually processing and running prediction.
         processed_input = [
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
         ]
-        predictions = self.run_prediction(processed_input)
+        predictions = await self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
@@ -702,11 +716,17 @@ class Interface(Blocks):
         ]
         return processed_output
 
-    def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret_func(self, *args):
+        return await self.interpret(args) + [
+            Column.update(visible=False),
+            Column.update(visible=True),
+        ]
+
+    async def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
-                interpretation.run_interpret(self, raw_input)[0], raw_input
+                (await interpretation.run_interpret(self, raw_input))[0], raw_input
             )
         ]
 
