@@ -1919,7 +1919,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y: str) -> str:
+    def postprocess(self, y: str) -> Optional[Dict[str, str]]:
         """
         Parameters:
             y: path to video
@@ -1929,6 +1929,11 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         if y is None:
             return None
         returned_format = y.split(".")[-1].lower()
+        if (
+            processing_utils.ffmpeg_installed()
+            and not processing_utils.video_is_playable(y)
+        ):
+            y = processing_utils.convert_video_to_playable_mp4(y)
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})

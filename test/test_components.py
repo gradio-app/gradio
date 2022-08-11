@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import shutil
 import tempfile
 import unittest
 from copy import deepcopy
@@ -15,7 +16,7 @@ import pytest
 from scipy.io import wavfile
 
 import gradio as gr
-from gradio import media_data
+from gradio import media_data, processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -1912,6 +1913,24 @@ def test_audio_preprocess_can_be_read_by_scipy():
     audio_input = gr.Audio(type="filepath")
     output = audio_input.preprocess(x_wav)
     wavfile.read(output)
+
+
+def test_video_postprocess_converts_to_playable_format(test_file_dir):
+    with tempfile.NamedTemporaryFile(suffix="bad_video.mp4") as tmp_not_playable_vid:
+        bad_vid = str(test_file_dir / "bad_video_sample.mp4")
+        assert not processing_utils.video_is_playable(bad_vid)
+        shutil.copy(bad_vid, tmp_not_playable_vid.name)
+        playable_vid = gr.Video().postprocess(tmp_not_playable_vid.name)
+        assert processing_utils.video_is_playable(playable_vid["name"])
+
+    with tempfile.NamedTemporaryFile(
+        suffix="playable_but_bad_container.mkv"
+    ) as tmp_not_playable_vid:
+        bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
+        assert not processing_utils.video_is_playable(bad_vid)
+        shutil.copy(bad_vid, tmp_not_playable_vid.name)
+        playable_vid = gr.Video().postprocess(tmp_not_playable_vid.name)
+        assert processing_utils.video_is_playable(playable_vid["name"])
 
 
 if __name__ == "__main__":

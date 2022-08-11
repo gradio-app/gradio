@@ -1,13 +1,17 @@
 import base64
+import json
 import mimetypes
 import os
+import pathlib
 import shutil
+import subprocess
 import tempfile
 import warnings
 from io import BytesIO
 
 import numpy as np
 import requests
+from ffmpy import FFmpeg
 from PIL import Image, ImageOps
 
 from gradio import encryptor
@@ -518,3 +522,58 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
 def strip_invalid_filename_characters(filename: str) -> str:
     return "".join([char for char in filename if char.isalnum() or char in "._- "])
+
+
+def ffmpeg_installed() -> bool:
+    return shutil.which("ffmpeg") is not None
+
+
+def video_is_playable(video_filepath: str) -> bool:
+    """Determines if a video is playable in the browser.
+
+    A video is playable if it has a playable container and codec.
+        .mp4 -> h264
+        .webm -> vp9
+        .ogg -> theora
+    """
+    try:
+        playable_container = pathlib.Path(video_filepath).suffix.lower() in [
+            ".mp4",
+            ".webm",
+            ".ogg",
+        ]
+        output = subprocess.run(
+            [
+                "ffprobe",
+                "-show_format",
+                "-show_streams",
+                "-select_streams",
+                "v",
+                "-print_format",
+                "json",
+                video_filepath,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        output = json.loads(output.stdout)
+        video_codecs = output["streams"][0]["codec_name"]
+        playable_codec = video_codecs.lower() in ["h264", "theora", "vp9"]
+        return playable_container and playable_codec
+    # If anything goes wrong, assume the video can be played to not convert downstream
+    except Exception:
+        return True
+
+
+def convert_video_to_playable_mp4(video_path: str) -> str:
+    output_path = pathlib.Path(video_path).with_suffix(".mp4")
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        shutil.copy2(video_path, tmp_file.name)
+        # ffmpeg will automatically use avc1 codec (playable in browser) when converting to mp4
+        ff = FFmpeg(
+            inputs={tmp_file.name: None},
+            outputs={output_path: None},
+            global_options="-y -loglevel quiet",
+        )
+        ff.run()
+    return str(output_path)
