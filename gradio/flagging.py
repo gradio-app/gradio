@@ -20,6 +20,16 @@ if TYPE_CHECKING:
 
 set_documentation_group("flagging")
 
+def get_dataset_features_info():
+    infos = {"flagged": {"features": {}}}
+
+    # File previews for certain input and output types
+    file_preview_types = {
+        gr.Audio: "Audio",
+        gr.Image: "Image"
+    }
+    return infos,file_preview_types
+
 
 class FlaggingCallback(ABC):
     """
@@ -310,18 +320,12 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.repo.git_pull()
 
         is_new = not os.path.exists(self.log_file)
-        infos = {"flagged": {"features": {}}}
 
         with open(self.log_file, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
-            file_preview_types = {
-                gr.inputs.Audio: "Audio",
-                gr.outputs.Audio: "Audio",
-                gr.inputs.Image: "Image",
-                gr.outputs.Image: "Image",
-            }
+            infos,file_preview_types = get_dataset_features_info()
 
             # Generate the headers and dataset_infos
             if is_new:
@@ -455,7 +459,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
-        self.repo.git_pull(rebase=True)
+        self.repo.git_pull()
 
         # Generate unique folder for the flagged sample
         unique_name = self.get_unique_name()  # unique name for folder
@@ -467,13 +471,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         # Now uses the existence of `dataset_infos.json` to determine if new
         is_new = not os.path.exists(self.infos_file)
 
-        infos = {"flagged": {"features": {}}}
 
         # File previews for certain input and output types
-        file_preview_types = {
-            gr.Audio: "Audio",
-            gr.Image: "Image",
-        }
+        infos,file_preview_types = get_dataset_features_info()
 
         # Generate the headers and dataset_infos
         if is_new:
