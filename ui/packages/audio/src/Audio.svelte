@@ -11,7 +11,7 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
-	//@ts-ignore
+	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
 
 	export let value: null | { name: string; data: string } = null;
@@ -26,7 +26,7 @@
 	export let upload_text: string = "click to upload";
 
 	// TODO: make use of this
-	export let type: "normal" | "numpy" = "normal";
+	// export let type: "normal" | "numpy" = "normal";
 
 	let recording = false;
 	let recorder: MediaRecorder;
@@ -51,7 +51,7 @@
 		return new Promise((fulfill, reject) => {
 			let reader = new FileReader();
 			reader.onerror = reject;
-			reader.onload = (e) => fulfill(reader.result as string);
+			reader.onload = () => fulfill(reader.result as string);
 			reader.readAsDataURL(blob);
 		});
 	}
@@ -69,14 +69,14 @@
 				recording = false;
 			}
 			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+			audio_chunks = [];
 			value = {
 				data: await blob_to_data_url(audio_blob),
 				name
 			};
 			dispatch(streaming ? "stream" : "change", value);
-			const audioTracks = stream.getAudioTracks();
-			audioTracks.forEach((track) => track.stop());
 		});
+		inited = true;
 	}
 
 	async function record() {

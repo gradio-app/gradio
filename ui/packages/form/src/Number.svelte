@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { get_styles } from "@gradio/utils";
-	import { BlockTitle, Block } from "@gradio/atoms";
+	import { BlockTitle } from "@gradio/atoms";
 	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;

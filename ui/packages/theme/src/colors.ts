@@ -13,8 +13,8 @@ export const ordered_colors = [
 	"pink"
 ] as const;
 interface ColorPair {
-	primary: number;
-	secondary: number;
+	primary: string;
+	secondary: string;
 }
 
 interface Colors {

@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: 6
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -39,7 +39,6 @@ jobs:
         run: pnpm format:check
       - name: typecheck
         run: pnpm ts:check
-        continue-on-error: true
       - name: unit tests
         run: pnpm test:run
   functional-test:
@@ -48,14 +47,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: 6
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpx playwright install chromium
+      - run: pnpm exec playwright install chromium
       - run: pnpm build
       - run: pnpm test:browser
       - name: Upload failed tests screenshots
