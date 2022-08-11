@@ -34,9 +34,11 @@ declare let BACKEND_URL: string;
 const WS_PROTOCOL = location.protocol === "https:" ? "wss:" : "ws:";
 const WS_HOST =
 	BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
-		? BACKEND_URL.replace("http://", "").slice(0,-1)
+		? BACKEND_URL.replace("http://", "").slice(0, -1)
 		: location.host;
-const WS_PATH = `${location.pathname === "/" ? "" : location.pathname}/queue/join`
+const WS_PATH = `${
+	location.pathname === "/" ? "" : location.pathname
+}/queue/join`;
 const WS_ENDPOINT = `${WS_PROTOCOL}//${WS_HOST}${WS_PATH}`;
 
 async function post_data<
