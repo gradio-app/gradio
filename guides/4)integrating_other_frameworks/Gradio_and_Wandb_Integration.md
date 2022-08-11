@@ -66,23 +66,16 @@ Let's get started!
 
     ```python
     
-    #Finetune StyleGAN
-    #alpha controls the strength of the style
-    alpha =  1.0 #{type:"slider", min:0, max:1, step:0.1}
+    alpha =  1.0 
     alpha = 1-alpha
 
-
-    #Tries to preserve color of original image by limiting family of allowable transformations. Set to false if you want to transfer color from reference image. This also leads to heavier stylization
-    preserve_color = True #{type:"boolean"}
-    #Number of finetuning steps. Different style reference may require different iterations. Try 200~500 iterations.
-    num_iter = 200 # {type:"number"}
-    #Log training on wandb and interval for image logging
-    log_interval = 50 #{type:"number"}
+    preserve_color = True 
+    num_iter = 100 
+    log_interval = 50 
 
 
     samples = []
     column_names = ["Referece (y)", "Style Code(w)", "Real Face Image(x)"]
-
 
     wandb.init(project="JoJoGAN")
     config = wandb.config
@@ -91,38 +84,36 @@ Let's get started!
     wandb.log(
     {"Style reference": [wandb.Image(transforms.ToPILImage()(target_im))]},
     step=0)
-  
 
-    lpips_fn = lpips.LPIPS(net='vgg').to(device)
+    # load discriminator for perceptual loss
+    discriminator = Discriminator(1024, 2).eval().to(device)
+    ckpt = torch.load('models/stylegan2-ffhq-config-f.pt', map_location=lambda storage, loc: storage)
+    discriminator.load_state_dict(ckpt["d"], strict=False)
 
-
-    #reset generator
+    # reset generator
     del generator
     generator = deepcopy(original_generator)
 
-
     g_optim = optim.Adam(generator.parameters(), lr=2e-3, betas=(0, 0.99))
 
-
-    #Which layers to swap for generating a family of plausible real images -> fake image
+    # Which layers to swap for generating a family of plausible real images -> fake image
     if preserve_color:
-        id_swap = [7,9,11,15,16,17]
+        id_swap = [9,11,15,16,17]
     else:
         id_swap = list(range(7, generator.n_latent))
 
-
     for idx in tqdm(range(num_iter)):
-        if preserve_color:
-            random_alpha = 0
-        else:
-            random_alpha = np.random.uniform(alpha, 1)
         mean_w = generator.get_latent(torch.randn([latents.size(0), latent_dim]).to(device)).unsqueeze(1).repeat(1, generator.n_latent, 1)
         in_latent = latents.clone()
         in_latent[:, id_swap] = alpha*latents[:, id_swap] + (1-alpha)*mean_w[:, id_swap]
 
-
         img = generator(in_latent, input_is_latent=True)
-        loss = lpips_fn(F.interpolate(img, size=(256,256), mode='area'), F.interpolate(targets, size=(256,256), mode='area')).mean()
+
+        with torch.no_grad():
+            real_feat = discriminator(targets)
+        fake_feat = discriminator(img)
+
+        loss = sum([F.l1_loss(a, b) for a, b in zip(fake_feat, real_feat)])/len(fake_feat)
         
 
         wandb.log({"loss": loss}, step=idx)
@@ -139,13 +130,11 @@ Let's get started!
                 wandb.Image(img),
                 wandb.Image(my_sample),
             ]
-            samples.append(table_data)
-
+        samples.append(table_data)
 
         g_optim.zero_grad()
         loss.backward()
         g_optim.step()
-
 
     out_table = wandb.Table(data=samples, columns=column_names)
     wandb.log({"Current Samples": out_table})
@@ -168,12 +157,78 @@ Let's get started!
 
     ```python
 
-    ckptyourmodelname = torch.load('your-model-name.pt', map_location=lambda storage, loc: storage)
-    generatoryourmodelname.load_state_dict(ckptjojo["g"], strict=False)
-
-
-    Full spaces demo code here: https://huggingface.co/spaces/akhaliq/JoJoGAN/edit/main/app.py
     import gradio as gr
+    from PIL import Image
+    import torch
+    import gradio as gr
+    torch.backends.cudnn.benchmark = True
+    from torchvision import transforms, utils
+    from util import *
+    import math
+    import random
+    import numpy as np
+    from torch import nn, autograd, optim
+    from torch.nn import functional as F
+    from tqdm import tqdm
+    import lpips
+    from model import *
+    from e4e_projection import projection as e4e_projection
+
+
+    #from e4e_projection import projection as e4e_projection
+
+    from copy import deepcopy
+    import imageio
+
+    import os
+    import sys
+    import torchvision.transforms as transforms
+    from argparse import Namespace
+    from e4e.models.psp import pSp
+    from util import *
+    from huggingface_hub import hf_hub_download
+
+
+    latent_dim = 512
+    device="cuda"
+    model_path_s = hf_hub_download(repo_id="akhaliq/jojogan-stylegan2-ffhq-config-f", filename="stylegan2-ffhq-config-f.pt")
+    original_generator = Generator(1024, latent_dim, 8, 2).to(device)
+    ckpt = torch.load(model_path_s, map_location=lambda storage, loc: storage)
+    original_generator.load_state_dict(ckpt["g_ema"], strict=False)
+    mean_latent = original_generator.mean_latent(10000)
+
+    generator = deepcopy(original_generator)
+
+    ckpt = torch.load("/content/JoJoGAN/your-model-name.pt", map_location=lambda storage, loc: storage)
+    generator.load_state_dict(ckpt["g"], strict=False)
+    generator.eval()
+
+    plt.rcParams['figure.dpi'] = 150
+
+
+
+    transform = transforms.Compose(
+        [
+            transforms.Resize((1024, 1024)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
+
+
+    def inference(img):  
+        img.save('out.jpg')  
+        aligned_face = align_face('out.jpg')
+
+        my_w = e4e_projection(aligned_face, "out.pt", device).unsqueeze(0)  
+        with torch.no_grad():
+            my_sample = generator(my_w, input_is_latent=True)
+                
+        
+        npimage = my_sample[0].cpu().permute(1, 2, 0).detach().numpy()
+        imageio.imwrite('filename.jpeg', npimage)
+        return 'filename.jpeg'
+    #Full spaces demo code here: https://huggingface.co/spaces/akhaliq/JoJoGAN/edit/main/app.py
 
 
     title = "JoJoGAN"
@@ -183,23 +238,18 @@ Let's get started!
     article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2112.11641' target='_blank'>JoJoGAN: One Shot Face Stylization</a>| <a href='https://github.com/mchong6/JoJoGAN' target='_blank'>Github Repo Pytorch</a></p> <center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_jojogan' alt='visitor badge'></center>"
 
 
-    examples=[['mona.png','Jinx']]
-    demo = gr.Interface(inference, [gr.inputs.Image(type="pil"),gr.inputs.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")], gr.outputs.Image(type="file"),title=title,description=description,article=article,allow_flagging=False,examples=examples,allow_screenshot=False,enable_queue=True).launch()
+
+    demo = gr.Interface(inference, [gr.inputs.Image(type="pil")], gr.outputs.Image(type="file"),title=title,description=description,article=article).launch(share=True)
+
 
     ## you can also use the new Gradio Blocks API like this
 
     with gr.Blocks() as demo:
         gr.Markdown("# Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below.")
         with gr.Row():
-            inp = [gr.Image(type="pil"),gr.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")]
+            inp = gr.Image(type="pil")
             out = gr.Image(type="file")
 
-        gr.Examples(
-            examples=[os.path.join(os.path.dirname(__file__), "mona.png"),'Jinx'],
-            inp = [gr.Image(type="pil"),gr.Dropdown(choices=['JoJo', 'Disney','Jinx','Caitlyn','Yasuho','Arcane Multi','Art','Spider-Verse'], type="value", default='JoJo', label="Model")]
-            out = gr.Image(type="file")
-            fn=inference,
-            cache_examples=True)
 
         btn = gr.Button("Run")
         btn.click(fn=inference, inputs=inp, outputs=out)
