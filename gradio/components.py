@@ -1779,7 +1779,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
-    Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
+    combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec.
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
