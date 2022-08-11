@@ -1933,6 +1933,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(y)
         ):
+            warnings.warn(
+                "Video does not have browser-compatible container or codec. Converting to mp4"
+            )
             y = processing_utils.convert_video_to_playable_mp4(y)
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
