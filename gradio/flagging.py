@@ -21,17 +21,53 @@ if TYPE_CHECKING:
 set_documentation_group("flagging")
 
 
-def get_dataset_features_info():
+def get_dataset_features_info(is_new, components, flag_data):
     """
-    It returns a dictionary of information about the dataset, and a dictionary of file preview types.
-    This is used by `HuggingFaceDatasetSaver` and `HuggingFaceDatasetJSONSaver` classes.
+    It takes in a list of components and a list of flag data and returns a dataset features info
+    
+    Parameters:
+    is_new: boolean, whether the dataset is new or not
+    components: list of components
+    flag_data: a list of lists of data that is flagged. Each list is a list of data for a single
+    component
 
-    :return: A tuple of two dictionaries.
+    Returns:
+    infos: a dictionary of the dataset features
+    file_preview_types: dictionary mapping of gradio components to appropriate string.
+    header: list of header strings 
+
     """
     infos = {"flagged": {"features": {}}}
     # File previews for certain input and output types
     file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
-    return infos, file_preview_types
+    headers = []
+
+    # Generate the headers and dataset_infos
+    if is_new:
+
+        for component, sample in zip(components, flag_data):
+            headers.append(component.label)
+            headers.append(component.label)
+            infos["flagged"]["features"][component.label] = {
+                "dtype": "string",
+                "_type": "Value",
+            }
+            if isinstance(component, tuple(file_preview_types)):
+                headers.append(component.label + " file")
+                for _component, _type in file_preview_types.items():
+                    if isinstance(component, _component):
+                        infos["flagged"]["features"][component.label + " file"] = {
+                            "_type": _type
+                        }
+                        break
+
+        headers.append("flag")
+        infos["flagged"]["features"]["flag"] = {
+            "dtype": "string",
+            "_type": "Value",
+        }
+
+    return infos, file_preview_types, headers
 
 
 class FlaggingCallback(ABC):
@@ -108,12 +144,7 @@ class SimpleCSVLogger(FlaggingCallback):
         csv_data = []
         for component, sample in zip(self.components, flag_data):
             csv_data.append(
-                component.save_flagged(
-                    flagging_dir,
-                    component.label,
-                    sample,
-                    None,
-                )
+                component.save_flagged(flagging_dir, component.label, sample, None,)
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
@@ -184,11 +215,7 @@ class CSVLogger(FlaggingCallback):
                 headers = [
                     component.label or f"component {idx}"
                     for idx, component in enumerate(self.components)
-                ] + [
-                    "flag",
-                    "username",
-                    "timestamp",
-                ]
+                ] + ["flag", "username", "timestamp",]
 
         def replace_flag_at_index(file_content):
             file_content = io.StringIO(file_content)
@@ -328,34 +355,12 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
-            infos, file_preview_types = get_dataset_features_info()
+            infos, file_preview_types, headers = get_dataset_features_info(
+                is_new, self.components, flag_data
+            )
 
             # Generate the headers and dataset_infos
             if is_new:
-                headers = []
-
-                for component, sample in zip(self.components, flag_data):
-                    headers.append(component.label)
-                    headers.append(component.label)
-                    infos["flagged"]["features"][component.label] = {
-                        "dtype": "string",
-                        "_type": "Value",
-                    }
-                    if isinstance(component, tuple(file_preview_types)):
-                        headers.append(component.label + " file")
-                        for _component, _type in file_preview_types.items():
-                            if isinstance(component, _component):
-                                infos["flagged"]["features"][
-                                    component.label + " file"
-                                ] = {"_type": _type}
-                                break
-
-                headers.append("flag")
-                infos["flagged"]["features"]["flag"] = {
-                    "dtype": "string",
-                    "_type": "Value",
-                }
-
                 writer.writerow(headers)
 
             # Generate the row corresponding to the flagged sample
@@ -475,28 +480,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         is_new = not os.path.exists(self.infos_file)
 
         # File previews for certain input and output types
-        infos, file_preview_types = get_dataset_features_info()
-
-        # Generate the headers and dataset_infos
-        if is_new:
-
-            for component, sample in zip(self.components, flag_data):
-                infos["flagged"]["features"][component.label] = {
-                    "dtype": "string",
-                    "_type": "Value",
-                }
-                if isinstance(component, tuple(file_preview_types)):
-                    for _component, _type in file_preview_types.items():
-                        if isinstance(component, _component):
-                            infos["flagged"]["features"][component.label + " file"] = {
-                                "_type": _type
-                            }
-                            break
-
-            infos["flagged"]["features"]["flag"] = {
-                "dtype": "string",
-                "_type": "Value",
-            }
+        infos, file_preview_types, _ = get_dataset_features_info(
+            is_new, self.components, flag_data
+        )
 
         # Generate the row and header corresponding to the flagged sample
         csv_data = []
