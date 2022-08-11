@@ -3231,36 +3231,21 @@ class Gallery(IOComponent):
 
         return IOComponent.style(self, rounded=rounded, container=container)
 
-    def save_flagged(
-        self, dir: str, label: Optional[str], data: List[str], encryption_key: bool
+    def deserialize(
+        self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
     ) -> None | str:
-        if data is None:
+        if x is None:
             return None
+        gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        for img_data in x:
+            ImgSerializable.deserialize(gallery_path, img_data)
+        return gallery_path
 
-        label = processing_utils.strip_invalid_filename_characters(label)
-        # join the label with the dir so that one directory stores all gallery
-        # outputs, e.g. <dir>/<component-label>
-        dir = os.path.join(dir, label)
-
-        # Save all the files belonging to this gallery in the gallery_path directory
-        gallery_path = str(uuid.uuid4())
-
-        for img_data in data:
-            self.save_flagged_file(dir, gallery_path, img_data, encryption_key)
-
-        # In the csv file, the row corresponding to this sample will list
-        # the path where all sub-images are stored, e.g. <component-label>/<uuid>
-        return os.path.join(label, gallery_path)
-
-    def restore_flagged(self, dir, data, encryption_key):
+    def serialize(self, x: Any, called_directly: bool = False):
         files = []
-        gallery_path = os.path.join(dir, data)
-        # Sort to preserve order
-        for file in sorted(os.listdir(gallery_path)):
-            file_path = os.path.join(gallery_path, file)
-            img = processing_utils.encode_file_to_base64(
-                file_path, encryption_key=encryption_key
-            )
+        for file in os.listdir(x):
+            file_path = os.path.join(x, file)
+            img = ImgSerializable.serialize(file_path)
             files.append(img)
         return files
 
