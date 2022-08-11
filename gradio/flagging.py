@@ -5,9 +5,9 @@ import datetime
 import io
 import json
 import os
-import uuid
 import random
 import string
+import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -20,15 +20,18 @@ if TYPE_CHECKING:
 
 set_documentation_group("flagging")
 
-def get_dataset_features_info():
-    infos = {"flagged": {"features": {}}}
 
+def get_dataset_features_info():
+    """
+    It returns a dictionary of information about the dataset, and a dictionary of file preview types.
+    This is used by `HuggingFaceDatasetSaver` and `HuggingFaceDatasetJSONSaver` classes.
+
+    :return: A tuple of two dictionaries.
+    """
+    infos = {"flagged": {"features": {}}}
     # File previews for certain input and output types
-    file_preview_types = {
-        gr.Audio: "Audio",
-        gr.Image: "Image"
-    }
-    return infos,file_preview_types
+    file_preview_types = {gr.Audio: "Audio", gr.Image: "Image"}
+    return infos, file_preview_types
 
 
 class FlaggingCallback(ABC):
@@ -325,7 +328,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
-            infos,file_preview_types = get_dataset_features_info()
+            infos, file_preview_types = get_dataset_features_info()
 
             # Generate the headers and dataset_infos
             if is_new:
@@ -471,9 +474,8 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         # Now uses the existence of `dataset_infos.json` to determine if new
         is_new = not os.path.exists(self.infos_file)
 
-
         # File previews for certain input and output types
-        infos,file_preview_types = get_dataset_features_info()
+        infos, file_preview_types = get_dataset_features_info()
 
         # Generate the headers and dataset_infos
         if is_new:
@@ -508,7 +510,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                     folder_name, component.label, sample, None
                 )
             except Exception:
-                # Could not parse 'sample' (mostly) because it was None and `component.save_flagged` does not handle None cases. for example: Label (line 3109 of components.py raises an error if data is None)
+                # Could not parse 'sample' (mostly) because it was None and `component.save_flagged`
+                #  does not handle None cases.
+                # for example: Label (line 3109 of components.py raises an error if data is None)
                 filepath = None
 
             if isinstance(component, tuple(file_preview_types)):
