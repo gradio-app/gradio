@@ -5,6 +5,7 @@ import datetime
 import io
 import json
 import os
+import uuid
 import random
 import string
 from abc import ABC, abstractmethod
@@ -398,7 +399,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         except (ImportError, ModuleNotFoundError):
             raise ImportError(
                 "Package `huggingface_hub` not found is needed "
-                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
+                "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
             )
         path_to_dataset_repo = huggingface_hub.create_repo(
             name=self.dataset_name,
@@ -511,9 +512,8 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         return unique_name
 
     def get_unique_name(self):
-        return "".join(
-            [random.choice(string.ascii_letters + string.digits) for n in range(32)]
-        )
+        id = uuid.uuid4()
+        return str(id)
 
     def dump_json(self, thing: dict, file_path: str) -> None:
         with open(file_path, "w+", encoding="utf8") as f:
