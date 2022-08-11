@@ -5,15 +5,28 @@ GRADIO_DIR = "../../"
 TEMPLATE_FILE = os.path.join(DIR, "template.html")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
-demo_list = ["hello_world", "hello_world_2", "hello_world_3", "sepia_filter", "sales_projections",
-         "calculator", "calculator_live", "blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_sentiment",
-         "blocks_essay"]
-demos = []
-for demo in demo_list:
-    demo_file = os.path.join(DEMOS_DIR, demo, "run.py")
+demos = [
+    {"name": "Hello World", "dir": "hello_world", "code": None},
+    {"name": "Sepia Filter", "dir": "sepia_filter", "code": None},
+    {"name": "Sales Projections", "dir": "sales_projections", "code": None},
+    {"name": "Calculator", "dir": "calculator", "code": None},
+    {"name": "Calculator Live", "dir": "calculator_live", "code": None},
+    {"name": "Hello World (Blocks)", "dir": "blocks_hello", "code": None},
+    {"name": "Image and Text Flipper", "dir": "blocks_flipper", "code": None},
+    {"name": "GPT", "dir": "blocks_gpt", "code": None},
+    {"name": "Sentiment Analysis", "dir": "blocks_speech_text_sentiment", "code": None},
+    {"name": "Image Classification with Keras", "dir": "image_classifier", "code": None},
+    {"name": "Image Classification with Pytorch", "dir": "image_classifier_2", "code": None},
+    {"name": "Titanic Survival", "dir": "titanic_survival", "code": None},
+    {"name": "Outbreak Forecast", "dir": "outbreak_forecast", "code": None},
+    {"name": "GPT-J", "dir": "gpt_j", "code": None},
+]
+
+for demo in demos:
+    demo_file = os.path.join(DEMOS_DIR, demo["dir"], "run.py")
     with open(demo_file) as run_py:
         demo_code = run_py.read()
-    demos.append((demo, demo_code))
+    demo["code"] = demo_code
 
 
 def build(output_dir, jinja_env):
