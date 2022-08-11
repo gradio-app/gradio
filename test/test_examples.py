@@ -68,6 +68,15 @@ class TestProcessExamples:
         assert prediction[0] == "Hello World"
 
     @pytest.mark.asyncio
+    async def test_coroutine_process_example(self):
+        async def coroutine(x):
+            return "Hello " + x
+
+        io = gr.Interface(coroutine, "text", "text", examples=[["World"]])
+        prediction = await io.examples_handler.process_example(0)
+        assert prediction[0] == "Hello World"
+
+    @pytest.mark.asyncio
     async def test_caching(self):
         io = gr.Interface(
             lambda x: "Hello " + x,

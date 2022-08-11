@@ -242,9 +242,7 @@ class Examples:
         if inspect.iscoroutinefunction(self.fn):
             predictions = await self.fn(*processed_input)
         else:
-            predictions = await anyio.to_thread.run_sync(
-                self.fn, *processed_input, limiter=self.limiter
-            )
+            predictions = await anyio.to_thread.run_sync(self.fn, *processed_input)
         if len(self.outputs) == 1:
             predictions = [predictions]
         processed_output = [
