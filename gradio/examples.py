@@ -4,10 +4,13 @@ Defines helper methods useful for loading and caching Interface examples.
 from __future__ import annotations
 
 import csv
+import inspect
 import os
 import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+
+import anyio
 
 from gradio import utils
 from gradio.components import Dataset
@@ -145,14 +148,19 @@ class Examples:
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
-        if cache_examples:
-            self.cache_interface_examples()
+        self.cache_examples = cache_examples
 
-        def load_example(example_id):
-            if cache_examples:
+    async def setup(self) -> Examples:
+        """Caches the examples if self.cache_examples is True and creates the Dataset
+        component to hold the examples"""
+        if self.cache_examples:
+            await self.cache_interface_examples()
+
+        async def load_example(example_id):
+            if self.cache_examples:
                 processed_example = self.processed_examples[
                     example_id
-                ] + self.load_from_cache(example_id)
+                ] + await self.load_from_cache(example_id)
             else:
                 processed_example = self.processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
@@ -161,12 +169,14 @@ class Examples:
             self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
-                outputs=inputs_with_examples + (outputs if cache_examples else []),
+                outputs=self.inputs_with_examples
+                + (self.outputs if self.cache_examples else []),
                 _postprocess=False,
                 queue=False,
             )
+        return self
 
-    def cache_interface_examples(self) -> None:
+    async def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""
         if os.path.exists(self.cached_file):
             print(
@@ -178,13 +188,13 @@ class Examples:
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 try:
-                    prediction = self.process_example(example_id)
+                    prediction = await self.process_example(example_id)
                     cache_logger.flag(prediction)
                 except Exception as e:
                     shutil.rmtree(self.cached_folder)
                     raise e
 
-    def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
+    async def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
         """Loads an example from the interface and returns its prediction.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -198,7 +208,12 @@ class Examples:
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.inputs)
         ]
-        predictions = self.fn(*processed_input)
+        if inspect.iscoroutinefunction(self.fn):
+            predictions = await self.fn(*processed_input)
+        else:
+            predictions = await anyio.to_thread.run_sync(
+                self.fn, *processed_input, limiter=self.limiter
+            )
         if len(self.outputs) == 1:
             predictions = [predictions]
         processed_output = [
@@ -210,7 +225,7 @@ class Examples:
 
         return processed_output
 
-    def load_from_cache(self, example_id: int) -> List[Any]:
+    async def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
