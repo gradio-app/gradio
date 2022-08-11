@@ -29,7 +29,7 @@ class Queue:
     DATA_GATHERING_STARTS_AT = 30
     UPDATE_INTERVALS = 10
     ACTIVE_JOBS: List[None | Event] = [None]
-    LOCK = asyncio.Lock()
+    DELETE_LOCK = asyncio.Lock()
     SERVER_PATH = None
     DURATION_HISTORY_SIZE = 100
     DURATION_HISTORY = []
@@ -101,16 +101,14 @@ class Queue:
                 continue
 
             # Using mutex to avoid editing a list in use
-            async with cls.LOCK:
+            async with cls.DELETE_LOCK:
                 print("Start Processing, found inactive job slot, now popping event")
                 event = cls.EVENT_QUEUE.pop(0)
                 print(f"Start Processing, found event, popped event: {event}")
 
             cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
             run_coro_in_background(cls.process_event, event)
-            run_coro_in_background(cls.gather_data_for_first_ranks)
-            if cls.LIVE_QUEUE_UPDATES:
-                run_coro_in_background(cls.broadcast_estimation)
+            run_coro_in_background(cls.gather_data_and_broadcast_estimations)
 
     @classmethod
     def push(cls, event: Event) -> int:
@@ -131,18 +129,28 @@ class Queue:
     @classmethod
     async def clean_event(cls, event: Event) -> None:
         # Using mutex to avoid editing a list in use
-        async with cls.LOCK:
+        async with cls.DELETE_LOCK:
             # TODO: Might log number of cleaned events in the future
             try:  # TODO: Might search with event hash to speed up
                 cls.EVENT_QUEUE.remove(event)
-            except ValueError:
-                pass
+            except ValueError as er:
+                print(f"{er}, {event}")
+
+    @classmethod
+    async def gather_data_and_broadcast_estimations(cls) -> None:
+        """
+        Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
+        """
+        await cls.gather_data_for_first_ranks()
+        if cls.LIVE_QUEUE_UPDATES:
+            await cls.broadcast_estimations()
 
     @classmethod
     async def gather_data_for_first_ranks(cls) -> None:
         """
         Gather data for the first x events.
         """
+        # Send all messages concurrently
         await asyncio.gather(
             *[
                 cls.gather_event_data(event)
@@ -176,10 +184,10 @@ class Queue:
             await asyncio.sleep(cls.UPDATE_INTERVALS)
             print(f"Event Queue: {cls.EVENT_QUEUE}")
             if cls.EVENT_QUEUE:
-                await cls.broadcast_estimation()
+                await cls.broadcast_estimations()
 
     @classmethod
-    async def broadcast_estimation(cls) -> None:
+    async def broadcast_estimations(cls) -> None:
         estimation = cls.get_estimation()
         # Send all messages concurrently
         await asyncio.gather(
