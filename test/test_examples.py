@@ -1,19 +1,71 @@
 import os
-import unittest
 
-from gradio import Interface, examples
+import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestProcessExamples(unittest.TestCase):
+class TestExamples:
+    def test_handle_single_input(self):
+        examples = gr.Examples(["hello", "hi"], gr.Textbox())
+        assert examples.processed_examples == [["hello"], ["hi"]]
+
+        examples = gr.Examples([["hello"]], gr.Textbox())
+        assert examples.processed_examples == [["hello"]]
+
+        examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
+        assert examples.processed_examples == [[gr.media_data.BASE64_IMAGE]]
+
+    def test_handle_multiple_inputs(self):
+        examples = gr.Examples(
+            [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
+        )
+        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+
+    def test_handle_directory(self):
+        examples = gr.Examples("test/test_files/images", gr.Image())
+        assert examples.processed_examples == [
+            [gr.media_data.BASE64_IMAGE],
+            [gr.media_data.BASE64_IMAGE],
+        ]
+
+    def test_handle_directory_with_log_file(self):
+        examples = gr.Examples(
+            "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
+        )
+        assert examples.processed_examples == [
+            [gr.media_data.BASE64_IMAGE, "hello"],
+            [gr.media_data.BASE64_IMAGE, "hi"],
+        ]
+
+
+class TestExamplesDataset:
+    def test_no_headers(self):
+        examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
+        assert examples.dataset.headers == []
+
+    def test_all_headers(self):
+        examples = gr.Examples(
+            "test/test_files/images_log",
+            [gr.Image(label="im"), gr.Text(label="your text")],
+        )
+        assert examples.dataset.headers == ["im", "your text"]
+
+    def test_some_headers(self):
+        examples = gr.Examples(
+            "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
+        )
+        assert examples.dataset.headers == ["im", ""]
+
+
+class TestProcessExamples:
     def test_process_example(self):
-        io = Interface(lambda x: "Hello " + x, "text", "text", examples=[["World"]])
+        io = gr.Interface(lambda x: "Hello " + x, "text", "text", examples=[["World"]])
         prediction = io.examples_handler.process_example(0)
-        self.assertEquals(prediction[0], "Hello World")
+        assert prediction[0] == "Hello World"
 
     def test_caching(self):
-        io = Interface(
+        io = gr.Interface(
             lambda x: "Hello " + x,
             "text",
             "text",
@@ -23,8 +75,4 @@ class TestProcessExamples(unittest.TestCase):
         io.examples_handler.cache_interface_examples()
         prediction = io.examples_handler.load_from_cache(1)
         io.close()
-        self.assertEquals(prediction[0], "Hello Dunya")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert prediction[0] == "Hello Dunya"

@@ -37,6 +37,7 @@ class Row(BlockContext):
                 gr.Image("lion.jpg")
                 gr.Image("tiger.jpg")
         demo.launch()
+    Guides: controlling_layout
     """
 
     def get_config(self):
@@ -77,6 +78,7 @@ class Column(BlockContext):
                 with gradio.Column():
                     btn1 = gr.Button("Button 1")
                     btn2 = gr.Button("Button 2")
+    Guides: controlling_layout
     """
 
     def __init__(
@@ -85,7 +87,9 @@ class Column(BlockContext):
         variant: str = "default",
     ):
         """
-        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+        Parameters:
+            visible: If False, column will be hidden but included in the Blocks config file (its visibility can later be updated).
+            variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
         super().__init__(visible=visible)
@@ -124,6 +128,7 @@ class Tabs(BlockContext):
                 with gradio.TabItem("Tiger"):
                     gr.Image("tiger.jpg")
                     gr.Button("New Tiger")
+    Guides: controlling_layout
     """
 
     def __init__(self, selected: Optional[int | str] = None, **kwargs):

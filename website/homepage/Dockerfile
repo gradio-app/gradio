@@ -14,6 +14,7 @@ RUN npm i pnpm@6 -g
 WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
+RUN pnpm build
 RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
@@ -21,7 +22,8 @@ COPY ./requirements.txt ./requirements.txt
 COPY ./setup.py ./setup.py
 COPY ./MANIFEST.in ./MANIFEST.in
 COPY ./README.md ./README.md
-RUN python setup.py install
+COPY ./test ./test
+RUN pip install .
 WORKDIR /gradio
 COPY ./website ./website
 WORKDIR /gradio/website/homepage

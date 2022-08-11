@@ -1,6 +1,7 @@
 """
 Ways to transform interfaces to produce new interfaces
 """
+import asyncio
 from typing import TYPE_CHECKING, List
 
 import gradio
@@ -19,6 +20,7 @@ class Parallel(gradio.Interface):
     The Interfaces to put in Parallel must share the same input components (but can have different output components).
 
     Demos: interface_parallel, interface_parallel_load
+    Guides: advanced_interface_features
     """
 
     def __init__(self, *interfaces: gradio.Interface, **options):
@@ -34,14 +36,16 @@ class Parallel(gradio.Interface):
         for interface in interfaces:
             outputs.extend(interface.output_components)
 
-        def parallel_fn(*args):
-            return_values = []
-            for interface in interfaces:
-                value = interface.run_prediction(args)
-                return_values.extend(value)
+        async def parallel_fn(*args):
+            return_values = await asyncio.gather(
+                *[interface.run_prediction(args) for interface in interfaces]
+            )
+            combined_list = []
+            for value in return_values:
+                combined_list.extend(value)
             if len(outputs) == 1:
-                return return_values[0]
-            return return_values
+                return combined_list[0]
+            return combined_list
 
         parallel_fn.__name__ = " | ".join([io.__name__ for io in interfaces])
 
@@ -61,6 +65,7 @@ class Series(gradio.Interface):
     and so the input and output components must agree between the interfaces).
 
     Demos: interface_series, interface_series_load
+    Guides: advanced_interface_features
     """
 
     def __init__(self, *interfaces: gradio.Interface, **options):
@@ -72,7 +77,7 @@ class Series(gradio.Interface):
             an Interface object connecting the given models
         """
 
-        def connected_fn(*data):
+        async def connected_fn(*data):
             for idx, interface in enumerate(interfaces):
                 # skip preprocessing for first interface since the Series interface will include it
                 if idx > 0 and not (interface.api_mode):
@@ -82,7 +87,7 @@ class Series(gradio.Interface):
                     ]
 
                 # run all of predictions sequentially
-                data = interface.fn(*data)
+                data = (await interface.call_function(0, data))[0]
                 if len(interface.output_components) == 1:
                     data = [data]
 

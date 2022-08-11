@@ -8,15 +8,17 @@ jobs:
     parameters:
       test-type:
         type: string
+      python-version:
+        type: string
     environment:
       NODE_OPTIONS: --max-old-space-size=4096
     docker:
-      - image: circleci/python:3.9.2-browsers
+      - image: cimg/python:<< parameters.python-version >>-browsers
     steps:
       - checkout
       - run: mkdir test-reports
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps4-{{ .Branch }}-{{ checksum "requirements.txt" }}-<< parameters.python-version >>
       - run:
           name: Install ffmpeg
           command: |
@@ -25,16 +27,12 @@ jobs:
       - run:
           name: Install Python deps in a venv
           command: |
-            python3 -m venv venv
+            python -m venv venv
             . venv/bin/activate
             bash scripts/install_gradio.sh
             bash scripts/install_test_requirements.sh
-      - run:
-          command: |
-            chromedriver --version
-          name: Check chrome driver install
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          key: deps4-{{ .Branch }}-{{ checksum "requirements.txt" }}-<< parameters.python-version >>
           paths:
             - "venv"
       - node/install:
@@ -81,3 +79,4 @@ workflows:
           matrix:
             parameters:
               test-type: ["not flaky", "flaky"]
+              python-version: ["3.9.2", "3.7.13"]

@@ -1,12 +1,9 @@
 import gradio as gr
 
-
-def update(name):
+def welcome(name):
     return f"Welcome to Gradio, {name}!"
 
-demo = gr.Blocks()
-
-with demo:
+with gr.Blocks() as demo:
     gr.Markdown(
     """
     # Hello World!
@@ -14,11 +11,7 @@ with demo:
     """)
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
-    
-    inp.change(fn=update, 
-               inputs=inp, 
-               outputs=out)
+    inp.change(welcome, inp, out)
 
-    gr.Image("lion.jpg").style(height=54, width=240)
-
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()

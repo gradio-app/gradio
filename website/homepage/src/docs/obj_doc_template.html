@@ -23,7 +23,7 @@
   {% endif %}
   <div class="flex flex-row items-center justify-between">
     <h3 id="{{ obj['name'].lower() }}-header"
-        class="text-3xl font-light my-4">{{ obj['name'] }}</h3>
+        class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
     {% if obj['demos'] %}
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
@@ -38,22 +38,38 @@
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and "default" not in param %}<!--
+  -->{% if "positional" in param["kind"] and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
   {% endif %}
-  <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   {% if is_component %}
-  <p class="mb-2 text-lg text-gray-500">As input, {{ obj["tags"]["preprocessing"] }}</p>
-  <p class="mb-2 text-lg text-gray-500">As output, {{ obj["tags"]["postprocessing"] }}</p>
-  {% if "examples-format" in obj["tags"]  %}
-  <p class="text-lg text-gray-500">Format expected for examples: {{ obj["tags"]["examples-format"] }}</p>
+    <div class="embedded-component">
+      <gradio-app src="/demo/{{ obj['name'] }}_component" />
+    </div>
   {% endif %}
-  <p class="text-lg text-gray-500">Supported events: <em>{{ obj["events"] }}</em></p>
+  <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
+  <br>
+  {% if is_component %}
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {{ obj["tags"]["preprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {{ obj["tags"]["postprocessing"] }}</p>
+  {% if "examples-format" in obj["tags"]  %}
+  <p class="text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
+  {% endif %}
+  {% if obj["events"]|length > 0 %}
+  <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{{ obj["events"] }}</em></p>
+  {% endif %}
   {% endif %}
   
+  {% if obj["example"] %}
+    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
+    <div class="codeblock">
+      <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
+    </div>
+  {% endif %}
+
+  {% if (obj["parameters"]|length > 0 and obj["parameters"][0]["name"] != "self") or obj["parameters"]|length > 1 %}
   <table class="table-fixed w-full mt-6 leading-loose">
     <thead class="text-left">
       <tr>
@@ -72,7 +88,7 @@
               <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
               {% if "default" in param %}
               <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
-              {% else %}
+              {% elif "kwargs" not in param %}
               <p class="text-orange-600 font-semibold italic">required</p>
               {% endif %}
             </td>
@@ -84,6 +100,8 @@
       {% endfor %}
     </tbody>
   </table>
+  {%endif%}
+  
   {% if is_component and obj["string_shortcuts"] %}
   <table class="mb-4 table-fixed w-full mt-6">
     <thead class="text-left">
@@ -106,25 +124,19 @@
     </tbody>
   </table>
   {% endif %}
-  {% if obj["example"] %}
-    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
-    <div class="codeblock">
-      <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
-    </div>
-  {% endif %}
   {% if "fns" in obj and obj["fns"]|length %}
     <h4 class="mt-4 p-3 font-semibold">Methods</h4>
       <div class="flex flex-col gap-8 pl-12">
         {% for fn in obj["fns"] %}
-          {% with obj=fn, is_class=False, parent=parent + "." + obj["name"] %}
+          {% with obj=fn, is_class=False, is_component=False, parent=parent + "." + obj["name"] %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
         {% endfor %}
-      <div class="ml-12">
+      <div class="ml-12"> </div>
     </div>
   {% endif %}
   {% if is_class %}
-   <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
       {% if obj["guides"] %}
         <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
           {% for guide in obj["guides"] %}

@@ -56,14 +56,22 @@ def add_supported_events():
             component["events"].append("edit()")
         if issubclass(component["class"], Submittable):
             component["events"].append("submit()")
-        component["events"] = ", ".join(component["events"])
+        if component["events"]:
+            component["events"] = ", ".join(component["events"])
 
 add_supported_events()
 
 def add_guides():
     for mode in docs:
-        for obj in docs[mode]:
-            obj["guides"] = [guide for guide in guides if obj["name"].lower() in guide["docs"]]
+        for cls in docs[mode]:
+            if "guides" not in cls["tags"]:
+                continue
+            cls["guides"] = []
+            docstring_guides = [guide.strip() for guide in cls["tags"]["guides"].split(",")]
+            for docstring_guide in docstring_guides:
+                for guide in guides:
+                    if docstring_guide == guide["name"]:
+                        cls["guides"].append(guide)
 
 add_guides()
 
@@ -73,12 +81,13 @@ def override_signature(name, signature):
             if cls["name"] == name:
                 cls["override_signature"] = signature
 
-override_signature("Blocks", "with gradio.Blocks(theme, analytics_enabled, mode):")
+override_signature("Blocks", "with gradio.Blocks():")
 override_signature("Row", "with gradio.Row():")
 override_signature("Column", "with gradio.Column():")
 override_signature("Tabs", "with gradio.Tabs():")
 override_signature("Group", "with gradio.Group():")
 override_signature("Box", "with gradio.Box():")
+override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
 def find_cls(target_cls):

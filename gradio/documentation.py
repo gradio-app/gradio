@@ -1,4 +1,5 @@
 import inspect
+from typing import Callable, Dict, List, Optional, Tuple
 
 classes_to_document = {}
 documentation_group = None
@@ -12,6 +13,15 @@ def set_documentation_group(m):
 
 
 def document(*fns):
+    """
+    Defines the @document decorator which adds classes or functions to the Gradio
+    documentation at www.gradio.app/docs.
+
+    Usage examples:
+    - Put @document() above a class to document the class and its constructor.
+    - Put @document(fn1, fn2) above a class to also document the class methods fn1 and fn2.
+    """
+
     def inner_doc(cls):
         global documentation_group
         classes_to_document[documentation_group].append((cls, fns))
@@ -20,7 +30,17 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn):
+def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
+    """
+    Generates documentation for any function.
+    Parameters:
+        fn: Function to document
+    Returns:
+        description: General description of fn
+        parameters: A list of dicts for each parameter, storing data for the parameter name, annotation and doc
+        return: A dict storing data for the returned annotation and doc
+        example: Code for an example use of the fn
+    """
     doc_str = inspect.getdoc(fn)
     doc_lines = doc_str.split("\n")
     signature = inspect.signature(fn)
@@ -64,7 +84,6 @@ def document_fn(fn):
         parameter_doc = {
             "name": param_name,
             "annotation": param.annotation,
-            "kind": param.kind.description,
             "doc": parameters.get(param_name),
         }
         if param_name in parameters:
@@ -73,7 +92,11 @@ def document_fn(fn):
             default = param.default
             if type(default) == str:
                 default = '"' + default + '"'
+            if default.__class__.__module__ != "builtins":
+                default = f"{default.__class__.__name__}()"
             parameter_doc["default"] = default
+        elif parameter_doc["doc"] is not None and "kwargs" in parameter_doc["doc"]:
+            parameter_doc["kwargs"] = True
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
@@ -92,7 +115,7 @@ def document_fn(fn):
 def document_cls(cls):
     doc_str = inspect.getdoc(cls)
     if doc_str is None:
-        return "", {}
+        return "", {}, ""
     tags = {}
     description_lines = []
     mode = "description"
@@ -164,3 +187,25 @@ def generate_documentation():
                 )
             documentation[mode].append(cls_documentation)
     return documentation
+
+
+def document_component_api(component_cls, target):
+    """
+    Used for the view API page in the app itself. Generates documentation based on the pre/postprocess methods of the Component.
+    Parameters:
+        component_cls: The IOComponent in the app to document
+        target: Either "input" or "output", which sets whether to return input or output Component documentation
+    Returns:
+        doc: Description of value expected / returned by Component
+        annotation: Type expected / returned by Component
+    """
+    if target == "input":
+        _, parameter_docs, _, _ = document_fn(component_cls.preprocess)
+        if len(parameter_docs) > 1:
+            return parameter_docs[1]["doc"], str(parameter_docs[1]["annotation"])
+        return None, None
+    elif target == "output":
+        _, _, return_docs, _ = document_fn(component_cls.postprocess)
+        return return_docs.get("doc"), str(return_docs.get("annotation"))
+    else:
+        raise ValueError("Invalid doumentation target.")

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { create_classes } from "@gradio/utils";
-	export let parent: string | null = null;
-	export let style: Record<string, unknown> = {};
+	import type { Styles } from "@gradio/utils";
+
+	export let style: Styles = {};
 	export let elem_id: string;
 	export let visible: boolean = true;
 

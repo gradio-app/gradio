@@ -33,7 +33,7 @@
 <BlockTitle {show_label}>{label}</BlockTitle>
 
 <div class="flex flex-wrap gap-2" data-testid="checkbox-group">
-	{#each choices as choice, i}
+	{#each choices as choice}
 		<label
 			class:!cursor-not-allowed={disabled}
 			class="gr-input-label flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner {item_container}"

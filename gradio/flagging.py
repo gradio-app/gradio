@@ -13,9 +13,12 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 import gradio as gr
 from gradio import encryptor, utils
+from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
     from gradio.components import Component
+
+set_documentation_group("flagging")
 
 
 class FlaggingCallback(ABC):
@@ -57,11 +60,22 @@ class FlaggingCallback(ABC):
         pass
 
 
+@document()
 class SimpleCSVLogger(FlaggingCallback):
     """
-    A simple example implementation of the FlaggingCallback abstract class
-    provided for illustrative purposes.
+    A simplified implementation of the FlaggingCallback abstract class
+    provided for illustrative purposes.  Each flagged sample (both the input and output data)
+    is logged to a CSV file on the machine running the gradio app.
+    Example:
+        import gradio as gr
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            flagging_callback=SimpleCSVLogger())
     """
+
+    def __init__(self):
+        pass
 
     def setup(self, components: List[Component], flagging_dir: str):
         self.components = components
@@ -98,11 +112,22 @@ class SimpleCSVLogger(FlaggingCallback):
         return line_count
 
 
+@document()
 class CSVLogger(FlaggingCallback):
     """
-    The default implementation of the FlaggingCallback abstract class.
-    Logs the input and output data to a CSV file. Supports encryption.
+    The default implementation of the FlaggingCallback abstract class. Each flagged
+    sample (both the input and output data) is logged to a CSV file with headers on the machine running the gradio app.
+    Example:
+        import gradio as gr
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            flagging_callback=CSVLogger())
+    Guides: using_flagging
     """
+
+    def __init__(self):
+        pass
 
     def setup(
         self,
@@ -166,7 +191,7 @@ class CSVLogger(FlaggingCallback):
         if self.encryption_key:
             output = io.StringIO()
             if not is_new:
-                with open(log_filepath, "rb") as csvfile:
+                with open(log_filepath, "rb", encoding="utf-8") as csvfile:
                     encrypted_csv = csvfile.read()
                     decrypted_csv = encryptor.decrypt(
                         self.encryption_key, encrypted_csv
@@ -180,13 +205,13 @@ class CSVLogger(FlaggingCallback):
                 if is_new:
                     writer.writerow(headers)
                 writer.writerow(csv_data)
-            with open(log_filepath, "wb") as csvfile:
+            with open(log_filepath, "wb", encoding="utf-8") as csvfile:
                 csvfile.write(
                     encryptor.encrypt(self.encryption_key, output.getvalue().encode())
                 )
         else:
             if flag_index is None:
-                with open(log_filepath, "a", newline="") as csvfile:
+                with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
                     writer = csv.writer(
                         csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
                     )
@@ -194,49 +219,51 @@ class CSVLogger(FlaggingCallback):
                         writer.writerow(headers)
                     writer.writerow(csv_data)
             else:
-                with open(log_filepath) as csvfile:
+                with open(log_filepath, encoding="utf-8") as csvfile:
                     file_content = csvfile.read()
                     file_content = replace_flag_at_index(file_content)
                 with open(
-                    log_filepath, "w", newline=""
+                    log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
                     csvfile.write(file_content)
-        with open(log_filepath, "r") as csvfile:
+        with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
 
+@document()
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
-    A FlaggingCallback that saves flagged data to a HuggingFace dataset.
+    A callback that saves each flagged sample (both the input and output data)
+    to a HuggingFace dataset.
+    Example:
+        import gradio as gr
+        hf_writer = gr.HuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
+        def image_classifier(inp):
+            return {'cat': 0.3, 'dog': 0.7}
+        demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                            allow_flagging="manual", flagging_callback=hf_writer)
+    Guides: using_flagging
     """
 
     def __init__(
         self,
-        hf_foken: str,
+        hf_token: str,
         dataset_name: str,
         organization: Optional[str] = None,
         private: bool = False,
-        verbose: bool = True,
     ):
         """
-        Params:
-        hf_token (str): The token to use to access the huggingface API.
-        dataset_name (str): The name of the dataset to save the data to, e.g.
-            "image-classifier-1"
-        organization (str): The name of the organization to which to attach
-            the datasets. If None, the dataset attaches to the user only.
-        private (bool): If the dataset does not already exist, whether it
-            should be created as a private dataset or public. Private datasets
-            may require paid huggingface.co accounts
-        verbose (bool): Whether to print out the status of the dataset
-            creation.
+        Parameters:
+            hf_token: The HuggingFace token to use to create (and write the flagged sample to) the HuggingFace dataset.
+            dataset_name: The name of the dataset to save the data to, e.g. "image-classifier-1"
+            organization: The organization to save the dataset under. The hf_token must provide write access to this organization. If not provided, saved under the name of the user corresponding to the hf_token.
+            private: Whether the dataset should be private (defaults to False).
         """
-        self.hf_foken = hf_foken
+        self.hf_token = hf_token
         self.dataset_name = dataset_name
         self.organization_name = organization
         self.dataset_private = private
-        self.verbose = verbose
 
     def setup(self, components: List[Component], flagging_dir: str):
         """
@@ -253,7 +280,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             )
         path_to_dataset_repo = huggingface_hub.create_repo(
             name=self.dataset_name,
-            token=self.hf_foken,
+            token=self.hf_token,
             private=self.dataset_private,
             repo_type="dataset",
             exist_ok=True,
@@ -265,7 +292,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.repo = huggingface_hub.Repository(
             local_dir=self.dataset_dir,
             clone_from=path_to_dataset_repo,
-            use_auth_token=self.hf_foken,
+            use_auth_token=self.hf_token,
         )
         self.repo.git_pull()
 
@@ -285,7 +312,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         is_new = not os.path.exists(self.log_file)
         infos = {"flagged": {"features": {}}}
 
-        with open(self.log_file, "a", newline="") as csvfile:
+        with open(self.log_file, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
@@ -341,7 +368,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
 
-        with open(self.log_file, "r") as csvfile:
+        with open(self.log_file, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
 
         self.repo.push_to_hub(commit_message="Flagged sample #{}".format(line_count))

@@ -5,18 +5,16 @@ including various methods for constructing an interface and then launching it.
 
 from __future__ import annotations
 
-import copy
-import csv
 import inspect
 import json
 import os
-import random
 import re
 import warnings
 import weakref
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
+import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
@@ -45,19 +43,25 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-@document("launch", "load", "from_pipeline")
+@document("launch", "load", "from_pipeline", "integrate")
 class Interface(Blocks):
     """
-    The Interface class is a high-level abstraction that allows you to create a
-    web-based demo around a machine learning model or arbitrary Python function
-    by specifying: (1) the function (2) the desired input components and (3) desired output components.
+    Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo
+    around a machine learning model (or any Python function) in a few lines of code.
+    You must specify three parameters: (1) the function to create a GUI for (2) the desired input components and
+    (3) the desired output components. Additional parameters can be used to control the appearance
+    and behavior of the demo.
+
     Example:
         import gradio as gr
+
         def image_classifier(inp):
             return {'cat': 0.3, 'dog': 0.7}
+
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
-        demo.launch(share=True)
+        demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
+    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features
     """
 
     # stores references to all currently existing Interface instances
@@ -147,6 +151,7 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -158,7 +163,7 @@ class Interface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
-            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
+            interpretation: function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function. For more information on the different interpretation methods, see the Advanced Interface Features guide.
             num_shap: a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
@@ -177,13 +182,12 @@ class Interface(Blocks):
             mode="interface",
             css=css,
             title=title,
+            theme=theme,
             **kwargs,
         )
 
-        if inspect.iscoroutinefunction(fn):
-            raise NotImplementedError(
-                "Async functions are not currently supported within interfaces. Please use Blocks API."
-            )
+        # TODO(faruk): Can we remove or move init configurations into Blocks? This long init function feels like coming from pre-Blocks era.
+
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -272,7 +276,7 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
-        self.api_mode = False
+        self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
         self.__name__ = fn.__name__
@@ -395,6 +399,7 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
+        # TODO(faruk): Can we move these into the flag component, when it is implemented?
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
@@ -427,6 +432,7 @@ class Interface(Blocks):
                         for flag_option in flagging_options
                     ]
 
+            # TODO(faruk): Can we remove the interface types?
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -480,11 +486,7 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = (
-                lambda *args: self.run_prediction(args)[0]
-                if len(self.output_components) == 1
-                else self.run_prediction(args)
-            )
+            submit_fn = self.submit_func
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                     super().load(submit_fn, None, self.output_components)
@@ -544,16 +546,16 @@ class Interface(Blocks):
                 ),
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
-                    for component in self.input_components + self.output_components] + (
-                            [Column.update(visible=True)]
-                            if self.interface_type
-                            in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                                self.InterfaceTypes.UNIFIED,
-                            ]
-                            else []
-                        )
+                     for component in self.input_components + self.output_components] + (
+                        [Column.update(visible=True)]
+                        if self.interface_type
+                           in [
+                               self.InterfaceTypes.STANDARD,
+                               self.InterfaceTypes.INPUT_ONLY,
+                               self.InterfaceTypes.UNIFIED,
+                           ]
+                        else []
+                    )
                     + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
@@ -567,6 +569,7 @@ class Interface(Blocks):
                 def __call__(self, *flag_data):
                     self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
 
+            # TODO(faruk): Change with flag component when it is implemented..
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -598,15 +601,15 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=self.fn,
+                    fn=submit_fn,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                 )
 
+            # TODO(faruk): Change with interpretation component when implemented.
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data)
-                    + [Column.update(visible=False), Column.update(visible=True)],
+                    self.interpret_func,
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
@@ -623,9 +626,11 @@ class Interface(Blocks):
         if (
             self.api_mode
         ):  # skip the preprocessing/postprocessing if sending to a remote API
-            output = self.run_prediction(params, called_directly=True)
+            output = utils.synchronize_async(
+                self.run_prediction, params, called_directly=True
+            )
         else:
-            output = self.process(params)
+            output = utils.synchronize_async(self.process, params)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -642,7 +647,13 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    def run_prediction(
+    async def submit_func(self, *args):
+
+        prediction = await self.run_prediction(args)
+        # TODO(faruk): We don't have tuple or array clearence in Blocks, can we remove this and have one standart?
+        return prediction[0] if len(self.output_components) == 1 else prediction
+
+    async def run_prediction(
         self,
         processed_input: List[Any],
         called_directly: bool = False,
@@ -655,26 +666,32 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use "call_function" instead of manually serializing, and deserializing and running prediction.
+
         if self.api_mode:  # Serialize the input
             processed_input = [
                 input_component.serialize(processed_input[i], called_directly)
                 for i, input_component in enumerate(self.input_components)
             ]
 
-        prediction = self.fn(*processed_input)
-
+        if inspect.iscoroutinefunction(self.fn):
+            prediction = await self.fn(*processed_input)
+        else:
+            prediction = await anyio.to_thread.run_sync(
+                self.fn, *processed_input, limiter=self.limiter
+            )
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
 
-        if self.api_mode:  # Deerialize the input
+        if self.api_mode:  # Deserialize the input
             prediction = [
                 output_component.deserialize(prediction[i])
                 for i, output_component in enumerate(self.output_components)
             ]
-
         return prediction
 
-    def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
+    async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
         self.run_prediction(), then postprocesses the output.
@@ -684,11 +701,13 @@ class Interface(Blocks):
             processed output: a list of processed  outputs to return as the prediction(s).
             duration: a list of time deltas measuring inference time for each prediction fn.
         """
+        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
+        # However we need to use process_api instead of manually processing and running prediction.
         processed_input = [
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
         ]
-        predictions = self.run_prediction(processed_input)
+        predictions = await self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
@@ -697,11 +716,17 @@ class Interface(Blocks):
         ]
         return processed_output
 
-    def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret_func(self, *args):
+        return await self.interpret(args) + [
+            Column.update(visible=False),
+            Column.update(visible=True),
+        ]
+
+    async def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
-                interpretation.run_interpret(self, raw_input)[0], raw_input
+                (await interpretation.run_interpret(self, raw_input))[0], raw_input
             )
         ]
 
@@ -722,59 +747,6 @@ class Interface(Blocks):
             self.process(raw_input)
             print("PASSED")
 
-    def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
-        """
-        A catch-all method for integrating with other libraries.
-        Should be run after launch()
-        Parameters:
-            comet_ml (Experiment): If a comet_ml Experiment object is provided,
-            will integrate with the experiment and appear on Comet dashboard
-            wandb (module): If the wandb module is provided, will integrate
-            with it and appear on WandB dashboard
-            mlflow (module): If the mlflow module  is provided, will integrate
-            with the experiment and appear on ML Flow dashboard
-        """
-        analytics_integration = ""
-        if comet_ml is not None:
-            analytics_integration = "CometML"
-            comet_ml.log_other("Created from", "Gradio")
-            if self.share_url is not None:
-                comet_ml.log_text("gradio: " + self.share_url)
-                comet_ml.end()
-            else:
-                comet_ml.log_text("gradio: " + self.local_url)
-                comet_ml.end()
-        if wandb is not None:
-            analytics_integration = "WandB"
-            if self.share_url is not None:
-                wandb.log(
-                    {
-                        "Gradio panel": wandb.Html(
-                            '<iframe src="'
-                            + self.share_url
-                            + '" width="'
-                            + str(self.width)
-                            + '" height="'
-                            + str(self.height)
-                            + '" frameBorder="0"></iframe>'
-                        )
-                    }
-                )
-            else:
-                print(
-                    "The WandB integration requires you to "
-                    "`launch(share=True)` first."
-                )
-        if mlflow is not None:
-            analytics_integration = "MLFlow"
-            if self.share_url is not None:
-                mlflow.log_param("Gradio Interface Share Link", self.share_url)
-            else:
-                mlflow.log_param("Gradio Interface Local Link", self.local_url)
-        if self.analytics_enabled and analytics_integration:
-            data = {"integration": analytics_integration}
-            utils.integration_analytics(data)
-
 
 @document()
 class TabbedInterface(Blocks):
@@ -785,18 +757,31 @@ class TabbedInterface(Blocks):
     """
 
     def __init__(
-        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+        self,
+        interface_list: List[Interface],
+        tab_names: Optional[List[str]] = None,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,
+        css: Optional[str] = None,
     ):
         """
         Parameters:
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            theme: which theme to use - right now, only "default" is supported.
+            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            css: custom css or path to custom css file to apply to entire Blocks
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
+        super().__init__(
+            theme=theme,
+            analytics_enabled=analytics_enabled,
+            mode="tabbed_interface",
+            css=css,
+        )
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
-        super().__init__()
         with self:
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):
