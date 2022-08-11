@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -59,12 +61,14 @@ class TestExamplesDataset:
 
 
 class TestProcessExamples:
-    def test_process_example(self):
+    @pytest.mark.asyncio
+    async def test_process_example(self):
         io = gr.Interface(lambda x: "Hello " + x, "text", "text", examples=[["World"]])
-        prediction = io.examples_handler.process_example(0)
+        prediction = await io.examples_handler.process_example(0)
         assert prediction[0] == "Hello World"
 
-    def test_caching(self):
+    @pytest.mark.asyncio
+    async def test_caching(self):
         io = gr.Interface(
             lambda x: "Hello " + x,
             "text",
@@ -72,7 +76,7 @@ class TestProcessExamples:
             examples=[["World"], ["Dunya"], ["Monde"]],
         )
         io.launch(prevent_thread_lock=True)
-        io.examples_handler.cache_interface_examples()
-        prediction = io.examples_handler.load_from_cache(1)
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(1)
         io.close()
         assert prediction[0] == "Hello Dunya"
