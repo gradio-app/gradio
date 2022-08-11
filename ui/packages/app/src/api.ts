@@ -31,11 +31,6 @@ interface Payload {
 declare let BUILD_MODE: string;
 declare let BACKEND_URL: string;
 
-const WS_ENDPOINT =
-	BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
-		? `ws://${BACKEND_URL.replace("http://", "")}queue/join`
-		: `ws://${location.host}/queue/join`;
-
 async function post_data<
 	Return extends Record<string, unknown> = Record<string, unknown>
 >(url: string, body: unknown): Promise<Return> {
@@ -66,7 +61,7 @@ type Output = {
 const ws_map = new Map();
 
 export const fn =
-	(session_hash: string, api_endpoint: string) =>
+	(session_hash: string, api_endpoint: string, is_space: boolean) =>
 	async ({
 		action,
 		payload,
@@ -106,6 +101,19 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn).connection.send(JSON.stringify(data));
 			}
+
+			var ws_protocol = location.protocol === "https:" ? "wss:" : "ws:";
+			if (is_space) {
+				var ws_path = location.pathname.slice(6, -2); // remove 'embed' from start, '+' from end
+				var ws_host = "spaces.huggingface.tech";
+			} else {
+				var ws_path = location.pathname === "/" ? "" : location.pathname;
+				var ws_host =
+					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
+						? BACKEND_URL.replace("http://", "").slice(0, -1)
+						: location.host;
+			}
+			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}/queue/join`;
 
 			const websocket_data = {
 				connection: new WebSocket(WS_ENDPOINT),

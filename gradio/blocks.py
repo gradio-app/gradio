@@ -666,6 +666,7 @@ class Blocks(BlockContext):
             "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
+            "is_space": self.is_space,
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch
