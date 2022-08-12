@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 import pandas as pd
-import bokeh.plotting as bk
-from bokeh.models import ColumnDataSource
-from bokeh.embed import json_item
 
 import gradio as gr
 
@@ -42,15 +39,10 @@ def outbreak(plot_type, r, month, countries, social_distancing):
                    yaxis_title="Days Since Day 0")
         return fig
     else:
-        source = ColumnDataSource(df)
-        p = bk.figure(title="Outbreak in " + month, x_axis_label="Cases", y_axis_label="Days Since Day 0")
-        for country in countries:
-            p.line(x='day', y=country, line_width=2, source=source)
-        item_text = json_item(p, "plotDiv")
-        return item_text
+        raise ValueError("A plot type must be selected")
 
 inputs = [
-        gr.Dropdown(["Matplotlib", "Plotly", "Bokeh"], label="Plot Type"),
+        gr.Dropdown(["Matplotlib", "Plotly"], label="Plot Type"),
         gr.Slider(1, 4, 3.2, label="R"),
         gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
         gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries", 
@@ -62,7 +54,6 @@ outputs = gr.Plot()
 demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs, examples=[
         ["Matplotlib", 2, "March", ["Mexico", "UK"], True],
         ["Plotly", 3.6, "February", ["Canada", "Mexico", "UK"], False],
-        ["Bokeh", 1.2, "May", ["UK"], True]
     ], cache_examples=True)
 
 
