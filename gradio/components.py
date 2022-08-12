@@ -1640,7 +1640,9 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             ff.run()
             y = output_file_name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None))
+        y = processing_utils.create_tmp_copy_of_file(
+            y, dir=getattr(self, "temp_dir", None)
+        )
 
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -1901,7 +1903,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None))
+        y = processing_utils.create_tmp_copy_of_file(
+            y, dir=getattr(self, "temp_dir", None)
+        )
 
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -2094,7 +2098,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 "data": None,
                 "is_file": True,
             }
-    
+
     def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
         serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
         serialized["size"] = os.path.getsize(serialized["name"])
@@ -3547,7 +3551,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         if y is None:
             return y
         data = {
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=getattr(self, "temp_dir", None)).name,
+            "name": processing_utils.create_tmp_copy_of_file(
+                y, dir=getattr(self, "temp_dir", None)
+            ).name,
             "data": None,
             "is_file": True,
         }

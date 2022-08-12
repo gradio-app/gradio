@@ -223,7 +223,11 @@ class App(FastAPI):
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
             else:
-                if Path(app.cwd).resolve() in Path(path).resolve().parents or Path(app.blocks.temp_dir).resolve() in Path(path).resolve().parents:
+                if (
+                    Path(app.cwd).resolve() in Path(path).resolve().parents
+                    or Path(app.blocks.temp_dir).resolve()
+                    in Path(path).resolve().parents
+                ):
                     return FileResponse(Path(path).resolve())
 
         @app.post("/api/queue/push/", dependencies=[Depends(login_check)])

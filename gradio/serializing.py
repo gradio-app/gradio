@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from abc import ABC, abstractclassmethod
 import os
+from abc import ABC, abstractclassmethod
 from typing import Any, Dict
 
 from gradio import processing_utils
@@ -16,7 +16,9 @@ class Serializable(ABC):
         pass
 
     @abstractclassmethod
-    def deserialize(x: Any, save_dir: str | None = None, encryption_key: bytes | None = None):
+    def deserialize(
+        x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
+    ):
         """
         Convert data from serialized format for a browser to human-readable format.
         """
@@ -45,7 +47,9 @@ class SimpleSerializable(Serializable):
 class ImgSerializable(Serializable):
     """Special case for Image components. TODO: make Image components follow the same pattern as other FileSerializable components"""
 
-    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False) -> str:
+    def serialize(
+        self, x: str, load_dir: str = "", called_directly: bool = False
+    ) -> str:
         """
         Convert from human-friendly version of a file (string filepath) to a seralized representation (base64)
         Optionally, save the file to the directory specified by save_dir
@@ -68,7 +72,9 @@ class ImgSerializable(Serializable):
 
 
 class FileSerializable(Serializable):
-    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False) -> Any:
+    def serialize(
+        self, x: str, load_dir: str = "", called_directly: bool = False
+    ) -> Any:
         """
         Convert from human-friendly version of a file (string filepath) to a seralized representation (base64)
         """
@@ -93,17 +99,22 @@ class FileSerializable(Serializable):
 
 
 class JSONSerializable(Serializable):
-    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False) -> str:
+    def serialize(
+        self, x: str, load_dir: str = "", called_directly: bool = False
+    ) -> str:
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to file)
         """
         # Write a temporary json file from a dict
         if x is None or x == "":
-            return None       
+            return None
         return processing_utils.file_to_json(os.path.join(x))
 
     def deserialize(
-        self, x: str | Dict, save_dir: str | None = None, encryption_key: bytes | None = None
+        self,
+        x: str | Dict,
+        save_dir: str | None = None,
+        encryption_key: bytes | None = None,
     ) -> str:
         """
         Convert from serialized representation (json string) to a human-friendly version (string path to json file)
