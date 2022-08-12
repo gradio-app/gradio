@@ -468,7 +468,7 @@ class Blocks(BlockContext):
             else:
                 serialized_input = block.serialize(params[i])
                 processed_input.append(serialized_input)
-        
+
         if not self.api_mode:
             processed_input = self.preprocess_data(fn_index, processed_input, None)
 
@@ -476,14 +476,14 @@ class Blocks(BlockContext):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
-            
+
         print("predictions", predictions)
 
         if not self.api_mode:
-            predictions = self.postprocess_data(fn_index, predictions, None)           
+            predictions = self.postprocess_data(fn_index, predictions, None)
         elif len(dependency["outputs"]) == 1:
-            predictions = (predictions, )
-            
+            predictions = (predictions,)
+
         output_copy = copy.deepcopy(predictions)
         predictions = []
         for o, output_id in enumerate(dependency["outputs"]):

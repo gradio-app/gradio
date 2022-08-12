@@ -26,7 +26,9 @@ class Serializable(ABC):
 
 
 class SimpleSerializable(Serializable):
-    def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False) -> Any:
+    def serialize(
+        self, x: Any, load_dir: str = "", called_directly: bool = False
+    ) -> Any:
         """
         Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
         Parameters:
@@ -76,7 +78,7 @@ class FileSerializable(Serializable):
         self, x: str, load_dir: str = "", called_directly: bool = False
     ) -> Any:
         """
-        Convert from human-friendly version of a file (string filepath) to a 
+        Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
         """
         if x is None or x == "":
