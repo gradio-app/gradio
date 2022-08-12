@@ -457,46 +457,47 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         block_fn = self.fns[fn_index]
 
-        if self.api_mode:
-            processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    raise ValueError(
-                        "Cannot call Blocks object as a function if any of"
-                        " the inputs are stateful."
-                    )
-                else:
-                    serialized_input = block.serialize(params[i], True)
-                    processed_input.append(serialized_input)
-        else:
-            processed_input = self.preprocess_data(fn_index, params, None)
+        processed_input = []
+        for i, input_id in enumerate(dependency["inputs"]):
+            block = self.blocks[input_id]
+            if getattr(block, "stateful", False):
+                raise ValueError(
+                    "Cannot call Blocks object as a function if any of"
+                    " the inputs are stateful."
+                )
+            else:
+                serialized_input = block.serialize(params[i])
+                processed_input.append(serialized_input)
+        
+        if not self.api_mode:
+            processed_input = self.preprocess_data(fn_index, processed_input, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
+            
+        print("predictions", predictions)
 
-        if len(dependency["outputs"]) == 1:
-            predictions = [predictions]
+        if not self.api_mode:
+            predictions = self.postprocess_data(fn_index, predictions, None)           
+        elif len(dependency["outputs"]) == 1:
+            predictions = (predictions, )
+            
+        output_copy = copy.deepcopy(predictions)
+        predictions = []
+        for o, output_id in enumerate(dependency["outputs"]):
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                raise ValueError(
+                    "Cannot call Blocks object as a function if any of"
+                    " the outputs are stateful."
+                )
+            else:
+                deserialized = block.deserialize(output_copy[o])
+                predictions.append(deserialized)
 
-        if self.api_mode:
-            output_copy = copy.deepcopy(predictions)
-            processed_output = []
-            for o, output_id in enumerate(dependency["outputs"]):
-                block = self.blocks[output_id]
-                if getattr(block, "stateful", False):
-                    raise ValueError(
-                        "Cannot call Blocks object as a function if any of"
-                        " the outputs are stateful."
-                    )
-                else:
-                    deserialized = block.deserialize(output_copy[o])
-                    processed_output.append(deserialized)
-        else:
-            processed_output = self.postprocess_data(fn_index, predictions, None)
-
-        return utils.resolve_singleton(processed_output)
+        return utils.resolve_singleton(predictions)
 
     def __str__(self):
         return self.__repr__()

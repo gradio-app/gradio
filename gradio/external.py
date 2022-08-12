@@ -591,7 +591,6 @@ def load_from_pipeline(pipeline):
             data = pipeline(*data)
         else:
             data = pipeline(**data)
-        # print("Before postprocessing", data)
         output = pipeline_info["postprocess"](data)
         return output
 

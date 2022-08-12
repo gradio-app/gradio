@@ -185,8 +185,6 @@ class Interface(Blocks):
             **kwargs,
         )
 
-        # TODO(faruk): Can we remove or move init configurations into Blocks? This long init function feels like coming from pre-Blocks era.
-
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -431,7 +429,6 @@ class Interface(Blocks):
                         for flag_option in flagging_options
                     ]
 
-            # TODO(faruk): Can we remove the interface types?
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -621,20 +618,6 @@ class Interface(Blocks):
 
         self.config = self.get_config_file()
 
-    def __call__(self, *params):
-        print("self.api_mode: ", self.api_mode)
-        print("params ", params)
-        if (
-            self.api_mode
-        ):  # skip the preprocessing/postprocessing if sending to a remote API
-            output = utils.synchronize_async(
-                self.run_prediction, params, called_directly=True
-            )
-        else:
-            output = utils.synchronize_async(self.process, params)
-        print("Output:", output)
-        return output[0] if len(output) == 1 else output
-
     def __str__(self):
         return self.__repr__()
 
@@ -650,9 +633,7 @@ class Interface(Blocks):
         return repr
 
     async def submit_func(self, *args):
-
         prediction = await self.run_prediction(args)
-        # TODO(faruk): We don't have tuple or array clearence in Blocks, can we remove this and have one standart?
         return prediction[0] if len(self.output_components) == 1 else prediction
 
     async def run_prediction(

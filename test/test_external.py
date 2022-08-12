@@ -188,7 +188,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
         try:
             output = io("gradio/test_data/lion.jpg")
-            self.assertGreater(output["lion"], 0.5)
+            self.assertGreater(json.load(open(output))["lion"], 0.5)
         except TooManyRequestsError:
             pass
 

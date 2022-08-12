@@ -23,17 +23,17 @@ class TestSeries:
         series = mix.Series(io1, io2)
         assert await series.process(["Hello"]) == ["Hello World!"]
 
-    # @pytest.mark.asyncio
-    # @pytest.mark.flaky
-    # async def test_with_external(self):
-    #     io1 = gr.Interface.load("spaces/abidlabs/image-identity")
-    #     io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
-    #     series = mix.Series(io1, io2)
-    #     try:
-    #         output = series("gradio/test_data/lion.jpg")
-    #         assert output["lion"] > 0.5
-    #     except TooManyRequestsError:
-    #         pass
+    @pytest.mark.asyncio
+    @pytest.mark.flaky
+    async def test_with_external(self):
+        io1 = gr.Interface.load("spaces/abidlabs/image-identity")
+        io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
+        series = mix.Series(io1, io2)
+        try:
+            output = series("gradio/test_data/lion.jpg")
+            assert output["lion"] > 0.5
+        except TooManyRequestsError:
+            pass
 
 
 class TestParallel:
