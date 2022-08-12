@@ -82,4 +82,12 @@ jobs:
           message: |
             Deployed a demo with this version at ${{ env.SPACE_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Comment on Slack
+        uses: slackapi/slack-github-action@v1.21.0
+        with:
+          payload: |
+            {
+              "text": "@here Checkout out the deploy for ${{ env.GRADIO_VERSION }} at ${{ env.SPACE_URL }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
