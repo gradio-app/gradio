@@ -918,7 +918,6 @@ class TestFile(unittest.TestCase):
                 "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
             },
         )
-        file_output = gr.File()
 
 
 class TestDataframe(unittest.TestCase):
@@ -1417,7 +1416,6 @@ class TestHighlightedText(unittest.TestCase):
                 "interactive": None,
             },
         )
-        ht = {"pos": "Hello ", "neg": "World"}
 
     async def test_in_interface(self):
         """
@@ -1455,7 +1453,6 @@ class TestJSON(unittest.TestCase):
         self.assertTrue(
             js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
         )
-        js = {"pos": "Hello ", "neg": "World"}
         self.assertEqual(
             js_output.get_config(),
             {

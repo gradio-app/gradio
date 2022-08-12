@@ -621,7 +621,7 @@ class Blocks(BlockContext):
     async def process_api(
         self,
         fn_index: int,
-        raw_input: List[Any],
+        inputs: List[Any],
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -636,16 +636,18 @@ class Blocks(BlockContext):
         """
         block_fn = self.fns[fn_index]
 
-        processed_input = self.preprocess_data(fn_index, raw_input, state)
+        if not self.api_mode:
+            inputs = self.preprocess_data(fn_index, inputs, state)
 
-        predictions, duration = await self.call_function(fn_index, processed_input)
+        predictions, duration = await self.call_function(fn_index, inputs)
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
 
-        output = self.postprocess_data(fn_index, predictions, state)
+        if not self.api_mode:
+            predictions = self.postprocess_data(fn_index, predictions, state)
 
         return {
-            "data": output,
+            "data": predictions,
             "duration": duration,
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }

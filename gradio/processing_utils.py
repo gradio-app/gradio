@@ -240,7 +240,6 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=Non
 
 def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
     try:
-        ### Download the file using requests library
         response = requests.get(file_path_or_url, stream=True)
         if file_path_or_url.find("/"):
             new_file_path = file_path_or_url.rsplit("/", 1)[1]
