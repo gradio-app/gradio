@@ -1,3 +1,4 @@
+import filecmp
 import json
 import os
 import pathlib
@@ -728,9 +729,9 @@ class TestAudio(unittest.TestCase):
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
         self.assertEqual(output[1].shape, (8046,))
-        self.assertEqual(
-            audio_input.serialize("test/test_files/audio_sample.wav", True)["data"],
-            x_wav["data"],
+        assert filecmp.cmp(
+            "test/test_files/audio_sample.wav", 
+            audio_input.serialize("test/test_files/audio_sample.wav")["name"]
         )
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
@@ -754,31 +755,24 @@ class TestAudio(unittest.TestCase):
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
         self.assertIsNotNone(audio_input.preprocess(x_wav))
-        with self.assertWarns(UserWarning):
-            audio_input = gr.Audio(type="file")
-            audio_input.preprocess(x_wav)
-            with open("test/test_files/audio_sample.wav") as f:
-                audio_input.serialize(f, False)
+        
         audio_input = gr.Audio(type="filepath")
         self.assertIsInstance(audio_input.preprocess(x_wav), str)
         with self.assertRaises(ValueError):
             audio_input = gr.Audio(type="unknown")
             audio_input.preprocess(x_wav)
-            audio_input.serialize(x_wav, False)
+            audio_input.serialize(x_wav)
         audio_input = gr.Audio(type="numpy")
-        x_wav = gr.processing_utils.audio_from_file("test/test_files/audio_sample.wav")
-        self.assertIsInstance(audio_input.serialize(x_wav, False), dict)
 
         # Output functionalities
         y_audio = gr.processing_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="file")
-        self.assertTrue(
-            audio_output.postprocess(y_audio.name).startswith(
-                "data:audio/wav;base64,UklGRuI/AABXQVZFZm10IBAAA"
-            )
-        )
+        self.assertTrue(filecmp.cmp(
+            y_audio.name,
+            audio_output.postprocess(y_audio.name)["name"]
+        ))
         self.assertEqual(
             audio_output.get_config(),
             {
@@ -796,7 +790,11 @@ class TestAudio(unittest.TestCase):
         )
         self.assertTrue(
             audio_output.deserialize(
-                deepcopy(media_data.BASE64_AUDIO)["data"]
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_AUDIO)["data"],
+                    "is_file": False,
+                }                
             ).endswith(".wav")
         )
 
@@ -856,8 +854,8 @@ class TestFile(unittest.TestCase):
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
-        self.assertEqual(
-            file_input.serialize("test/test_files/sample_file.pdf", True),
+        assert filecmp.cmp(
+            file_input.serialize("test/test_files/sample_file.pdf")["name"],
             "test/test_files/sample_file.pdf",
         )
 
@@ -880,12 +878,6 @@ class TestFile(unittest.TestCase):
         self.assertIsNone(file_input.preprocess(None))
         x_file["is_example"] = True
         self.assertIsNotNone(file_input.preprocess(x_file))
-
-        file_input = gr.File("test/test_files/sample_file.pdf")
-        self.assertEqual(
-            file_input.get_config(),
-            deepcopy(media_data.FILE_TEMPLATE_CONTEXT),
-        )
 
     async def test_in_interface_as_input(self):
         """
