@@ -396,7 +396,6 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
-        # TODO(faruk): Can we move these into the flag component, when it is implemented?
         if self.allow_flagging != "never":
             if self.interface_type == self.InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
@@ -482,12 +481,11 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = self.submit_func
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                    super().load(submit_fn, None, self.output_components)
+                    super().load(self.run_prediction, None, self.output_components)
                     submit_btn.click(
-                        submit_fn,
+                        self.run_prediction,
                         None,
                         self.output_components,
                         api_name="predict",
@@ -498,7 +496,7 @@ class Interface(Blocks):
                         if isinstance(component, Streamable):
                             if component.streaming:
                                 component.stream(
-                                    submit_fn,
+                                    self.run_prediction,
                                     self.input_components,
                                     self.output_components,
                                 )
@@ -511,11 +509,11 @@ class Interface(Blocks):
                                 )
                         if isinstance(component, Changeable):
                             component.change(
-                                submit_fn, self.input_components, self.output_components
+                                self.run_prediction, self.input_components, self.output_components
                             )
             else:
                 submit_btn.click(
-                    submit_fn,
+                    self.run_prediction,
                     self.input_components,
                     self.output_components,
                     api_name="predict",
@@ -565,7 +563,6 @@ class Interface(Blocks):
                 def __call__(self, *flag_data):
                     self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
 
-            # TODO(faruk): Change with flag component when it is implemented..
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -597,12 +594,11 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=submit_fn,
+                    fn=self.run_prediction,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                 )
 
-            # TODO(faruk): Change with interpretation component when implemented.
             if self.interpretation:
                 interpretation_btn.click(
                     self.interpret_func,
@@ -632,14 +628,9 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    async def submit_func(self, *args):
-        prediction = await self.run_prediction(args)
-        return prediction[0] if len(self.output_components) == 1 else prediction
-
     async def run_prediction(
         self,
         processed_input: List[Any],
-        called_directly: bool = False,
     ) -> List[Any] | Tuple[List[Any], List[float]]:
         """
         Runs the prediction function with the given (already processed) inputs.
@@ -658,31 +649,6 @@ class Interface(Blocks):
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
         return prediction
-
-    async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
-        """
-        First preprocesses the input, then runs prediction using
-        self.run_prediction(), then postprocesses the output.
-        Parameters:
-            raw_input: a list of raw inputs to process and apply the prediction(s) on.
-        Returns:
-            processed output: a list of processed  outputs to return as the prediction(s).
-            duration: a list of time deltas measuring inference time for each prediction fn.
-        """
-        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
-        # However we need to use process_api instead of manually processing and running prediction.
-        processed_input = [
-            input_component.preprocess(raw_input[i])
-            for i, input_component in enumerate(self.input_components)
-        ]
-        predictions = await self.run_prediction(processed_input)
-        processed_output = [
-            output_component.postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_component in enumerate(self.output_components)
-        ]
-        return processed_output
 
     async def interpret_func(self, *args):
         return await self.interpret(args) + [
@@ -712,7 +678,7 @@ class Interface(Blocks):
             else:
                 raw_input.append(input_component.test_input)
         else:
-            self.process(raw_input)
+            self(raw_input)
             print("PASSED")
 
 

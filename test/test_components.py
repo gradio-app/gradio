@@ -110,7 +110,7 @@ class TestTextbox(unittest.TestCase):
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
-        self.assertEqual(await iface.process(["Hello"]), ["olleH"])
+        self.assertEqual(await iface(["Hello"]), ["olleH"])
         iface = gr.Interface(
             lambda sentence: max([len(word) for word in sentence.split()]),
             gr.Textbox(),
@@ -152,9 +152,9 @@ class TestTextbox(unittest.TestCase):
 
         """
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.Textbox())
-        self.assertEqual(await iface.process(["Hello"]), ["o"])
+        self.assertEqual(await iface(["Hello"]), ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
-        self.assertEqual(iface.process([10]), ["5.0"])
+        self.assertEqual(iface([10]), ["5.0"])
 
     def test_static(self):
         """
@@ -268,7 +268,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        self.assertEqual(iface.process([2]), ["4.0"])
+        self.assertEqual(iface([2]), ["4.0"])
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -291,7 +291,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
-        self.assertEqual(iface.process([2]), ["4"])
+        self.assertEqual(iface([2]), ["4"])
         iface = gr.Interface(
             lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
         )
@@ -315,7 +315,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
-        self.assertEqual(iface.process([2]), [4.0])
+        self.assertEqual(iface([2]), [4.0])
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -379,7 +379,7 @@ class TestSlider(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
-        self.assertEqual(iface.process([2]), ["4"])
+        self.assertEqual(iface([2]), ["4"])
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
@@ -439,7 +439,7 @@ class TestCheckbox(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
-        self.assertEqual(iface.process([True]), [1])
+        self.assertEqual(iface([True]), [1])
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
@@ -488,8 +488,8 @@ class TestCheckboxGroup(unittest.TestCase):
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
-        self.assertEqual(await iface.process([["a", "c"]]), ["a|c"])
-        self.assertEqual(await iface.process([[]]), [""])
+        self.assertEqual(await iface([["a", "c"]]), ["a|c"])
+        self.assertEqual(await iface([[]]), [""])
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
 
@@ -531,12 +531,12 @@ class TestRadio(unittest.TestCase):
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
-        self.assertEqual(iface.process(["c"]), ["cc"])
+        self.assertEqual(iface(["c"]), ["cc"])
         radio_input = gr.Radio(["a", "b", "c"], type="index")
         iface = gr.Interface(
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
-        self.assertEqual(iface.process(["c"]), [4])
+        self.assertEqual(iface(["c"]), [4])
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         self.assertEqual(scores, [-2.0, None, 2.0])
 
@@ -641,7 +641,7 @@ class TestImage(unittest.TestCase):
             gr.Image(shape=(30, 10), type="file"),
             "image",
         )
-        output = (await iface.process([img]))[0]
+        output = (await iface([img]))[0]
         self.assertEqual(
             gr.processing_utils.decode_base64_to_image(output).size, (10, 30)
         )
@@ -676,7 +676,7 @@ class TestImage(unittest.TestCase):
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         self.assertTrue(
-            (await iface.process([10, 20]))[0].startswith("data:image/png;base64")
+            (await iface([10, 20]))[0].startswith("data:image/png;base64")
         )
 
     def test_static(self):
@@ -701,7 +701,7 @@ class TestPlot(unittest.TestCase):
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = (await iface.process([10]))[0]
+        output = (await iface([10]))[0]
         self.assertEqual(output["type"], "matplotlib")
         self.assertTrue(output["plot"].startswith("data:image/png;base64"))
 
@@ -815,16 +815,16 @@ class TestAudio(unittest.TestCase):
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_data = (await iface.process([deepcopy(media_data.BASE64_AUDIO)]))[0]
+        reversed_data = (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0]
         reversed_input = {"name": "fake_name", "data": reversed_data}
         self.assertTrue(reversed_data.startswith("data:audio/wav;base64,UklGRgA/"))
         self.assertTrue(
-            (await iface.process([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
+            (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
                 "data:audio/wav;base64,UklGRgA/"
             )
         )
         self.maxDiff = None
-        reversed_reversed_data = (await iface.process([reversed_input]))[0]
+        reversed_reversed_data = (await iface([reversed_input]))[0]
         similarity = SequenceMatcher(
             a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
         ).ratio()
@@ -840,7 +840,7 @@ class TestAudio(unittest.TestCase):
 
         iface = gr.Interface(generate_noise, "slider", "audio")
         self.assertTrue(
-            (await iface.process([100]))[0].startswith("data:audio/wav;base64")
+            (await iface([100]))[0].startswith("data:audio/wav;base64")
         )
 
 
@@ -888,7 +888,7 @@ class TestFile(unittest.TestCase):
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        self.assertEqual(await iface.process([[x_file]]), [10558])
+        self.assertEqual(await iface([[x_file]]), [10558])
 
     async def test_as_component_as_output(self):
         """
@@ -902,7 +902,7 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(write_file, "text", "file")
         self.assertDictEqual(
-            (await iface.process(["hello world"]))[0],
+            (await iface(["hello world"]))[0],
             {
                 "name": "test.txt",
                 "size": 11,
@@ -1040,14 +1040,14 @@ class TestDataframe(unittest.TestCase):
         """
         x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
-        self.assertEqual(await iface.process([x_data]), [6])
+        self.assertEqual(await iface([x_data]), [6])
         x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
 
         def get_last(my_list):
             return my_list[-1][-1]
 
         iface = gr.Interface(get_last, "list", "text")
-        self.assertEqual(await iface.process([x_data]), ["Sal"])
+        self.assertEqual(await iface([x_data]), ["Sal"])
 
     async def test_in_interface_as_output(self):
         """
@@ -1059,7 +1059,7 @@ class TestDataframe(unittest.TestCase):
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
         self.assertEqual(
-            (await iface.process([{"data": [[2, 3, 4]]}]))[0],
+            (await iface([{"data": [[2, 3, 4]]}]))[0],
             {"data": [[True, False, True]], "headers": [1, 2, 3]},
         )
 
@@ -1121,7 +1121,7 @@ class TestVideo(unittest.TestCase):
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        self.assertEqual((await iface.process([x_video]))[0]["data"], x_video["data"])
+        self.assertEqual((await iface([x_video]))[0]["data"], x_video["data"])
 
 
 class TestTimeseries(unittest.TestCase):
@@ -1212,7 +1212,7 @@ class TestTimeseries(unittest.TestCase):
         }
         iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
         self.assertEqual(
-            await iface.process([x_timeseries]),
+            await iface([x_timeseries]),
             [
                 {
                     "headers": ["time", "retail", "food", "other"],
@@ -1243,7 +1243,7 @@ class TestTimeseries(unittest.TestCase):
             )
         }
         self.assertEqual(
-            await iface.process([df]),
+            await iface([df]),
             [
                 {
                     "headers": ["time", "retail", "food", "other"],
@@ -1337,7 +1337,7 @@ class TestLabel(unittest.TestCase):
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = (await iface.process([x_img]))[0]
+        output = (await iface([x_img]))[0]
         self.assertDictEqual(
             output,
             {
@@ -1430,7 +1430,7 @@ class TestHighlightedText(unittest.TestCase):
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
         self.assertListEqual(
-            (await iface.process(["Helloooo"]))[0],
+            (await iface(["Helloooo"]))[0],
             [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")],
         )
 
@@ -1484,7 +1484,7 @@ class TestJSON(unittest.TestCase):
             ["F", 30],
         ]
         self.assertDictEqual(
-            (await iface.process([{"data": y_data, "headers": ["gender", "age"]}]))[0],
+            (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0],
             {"M": 35, "F": 25, "O": 20},
         )
 
@@ -1518,7 +1518,7 @@ class TestHTML(unittest.TestCase):
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        self.assertEqual((await iface.process(["test"]))[0], "<strong>test</strong>")
+        self.assertEqual((await iface(["test"]))[0], "<strong>test</strong>")
 
 
 class TestModel3D(unittest.TestCase):
@@ -1548,7 +1548,7 @@ class TestModel3D(unittest.TestCase):
         """
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
         input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = (await iface.process([{"name": "Box.gltf", "data": input_data}]))[
+        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[
             0
         ]["data"]
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
@@ -1588,7 +1588,7 @@ class TestColorPicker(unittest.TestCase):
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
-        self.assertEqual(await iface.process(["#000000"]), ["#000000"])
+        self.assertEqual(await iface(["#000000"]), ["#000000"])
 
     async def test_in_interface_as_output(self):
         """
@@ -1596,7 +1596,7 @@ class TestColorPicker(unittest.TestCase):
 
         """
         iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
-        self.assertEqual(await iface.process(["#000000"]), ["#000000"])
+        self.assertEqual(await iface(["#000000"]), ["#000000"])
 
     def test_static(self):
         """

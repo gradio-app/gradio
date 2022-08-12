@@ -477,8 +477,6 @@ class Blocks(BlockContext):
         else:
             predictions = block_fn.fn(*processed_input)
 
-        print("predictions", predictions)
-
         if not self.api_mode:
             predictions = self.postprocess_data(fn_index, predictions, None)
         elif len(dependency["outputs"]) == 1:

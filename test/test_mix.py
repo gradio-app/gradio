@@ -21,7 +21,7 @@ class TestSeries:
         io1 = gr.Interface(lambda x: x + " World", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + "!", "textbox", gr.Textbox())
         series = mix.Series(io1, io2)
-        assert await series.process(["Hello"]) == ["Hello World!"]
+        assert await series(["Hello"]) == ["Hello World!"]
 
     @pytest.mark.asyncio
     @pytest.mark.flaky
@@ -42,7 +42,7 @@ class TestParallel:
         io1 = gr.Interface(lambda x: x + " World 1!", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        assert await parallel.process(["Hello"]) == ["Hello World 1!", "Hello World 2!"]
+        assert await parallel(["Hello"]) == ["Hello World 1!", "Hello World 2!"]
 
     @pytest.mark.asyncio
     async def test_multiple_return_in_interface(self):
@@ -51,7 +51,7 @@ class TestParallel:
         )
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        assert await parallel.process(["Hello"]) == [
+        assert await parallel(["Hello"]) == [
             "Hello",
             "HelloHello",
             "Hello World 2!",
