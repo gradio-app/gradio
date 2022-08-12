@@ -276,6 +276,8 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             input_string = params[0]
             response = utils.format_ner_list(input_string, ner_groups)
         output = pipeline["postprocess"](response)
+        if isinstance(pipeline["outputs"], components.Component):
+            output = [output]
         return output
 
     if alias is None:

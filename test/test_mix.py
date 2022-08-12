@@ -1,4 +1,5 @@
 import os
+import json
 import unittest
 
 import pytest
@@ -29,7 +30,7 @@ class TestSeries:
         series = mix.Series(io1, io2)
         try:
             output = series("gradio/test_data/lion.jpg")
-            assert output["lion"] > 0.5
+            assert json.load(open(output))["label"] == "lion"
         except TooManyRequestsError:
             pass
 
