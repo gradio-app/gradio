@@ -5,8 +5,6 @@ import datetime
 import io
 import json
 import os
-import random
-import string
 import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional
@@ -21,15 +19,13 @@ if TYPE_CHECKING:
 set_documentation_group("flagging")
 
 
-def get_dataset_features_info(is_new, components, flag_data):
+def get_dataset_features_info(is_new, components):
     """
-    It takes in a list of components and a list of flag data and returns a dataset features info
+    Takes in a list of components and returns a dataset features info
 
     Parameters:
     is_new: boolean, whether the dataset is new or not
     components: list of components
-    flag_data: a list of lists of data that is flagged. Each list is a list of data for a single
-    component
 
     Returns:
     infos: a dictionary of the dataset features
@@ -45,7 +41,7 @@ def get_dataset_features_info(is_new, components, flag_data):
     # Generate the headers and dataset_infos
     if is_new:
 
-        for component, sample in zip(components, flag_data):
+        for component in components:
             headers.append(component.label)
             headers.append(component.label)
             infos["flagged"]["features"][component.label] = {
@@ -365,8 +361,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
             # File previews for certain input and output types
             infos, file_preview_types, headers = get_dataset_features_info(
-                is_new, self.components, flag_data
-            )
+                is_new, self.components)
 
             # Generate the headers and dataset_infos
             if is_new:
@@ -490,7 +485,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
         # File previews for certain input and output types
         infos, file_preview_types, _ = get_dataset_features_info(
-            is_new, self.components, flag_data
+            is_new, self.components
         )
 
         # Generate the row and header corresponding to the flagged sample
@@ -506,7 +501,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 )
             except Exception:
                 # Could not parse 'sample' (mostly) because it was None and `component.save_flagged`
-                #  does not handle None cases.
+                # does not handle None cases.
                 # for example: Label (line 3109 of components.py raises an error if data is None)
                 filepath = None
 
