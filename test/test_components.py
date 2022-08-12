@@ -675,9 +675,7 @@ class TestImage(unittest.TestCase):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue(
-            (await iface([10, 20]))[0].startswith("data:image/png;base64")
-        )
+        self.assertTrue((await iface([10, 20]))[0].startswith("data:image/png;base64"))
 
     def test_static(self):
         """
@@ -839,9 +837,7 @@ class TestAudio(unittest.TestCase):
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        self.assertTrue(
-            (await iface([100]))[0].startswith("data:audio/wav;base64")
-        )
+        self.assertTrue((await iface([100]))[0].startswith("data:audio/wav;base64"))
 
 
 class TestFile(unittest.TestCase):
@@ -1548,9 +1544,9 @@ class TestModel3D(unittest.TestCase):
         """
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
         input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[
-            0
-        ]["data"]
+        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[0][
+            "data"
+        ]
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 

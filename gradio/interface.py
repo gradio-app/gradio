@@ -509,7 +509,9 @@ class Interface(Blocks):
                                 )
                         if isinstance(component, Changeable):
                             component.change(
-                                self.run_prediction, self.input_components, self.output_components
+                                self.run_prediction,
+                                self.input_components,
+                                self.output_components,
                             )
             else:
                 submit_btn.click(
