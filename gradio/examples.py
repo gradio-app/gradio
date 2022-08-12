@@ -35,6 +35,7 @@ def create_examples(
     fn: Optional[Callable] = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
+    _api_mode: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -44,6 +45,7 @@ def create_examples(
         fn=fn,
         cache_examples=cache_examples,
         examples_per_page=examples_per_page,
+        _api_mode=_api_mode,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -70,7 +72,8 @@ class Examples:
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
-        _initiated_directly=True,
+        _api_mode: bool = False,
+        _initiated_directly: bool = True,
     ):
         """
         Parameters:
@@ -159,6 +162,7 @@ class Examples:
         self.fn = fn
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
+        self._api_mode = _api_mode
 
         with utils.set_directory(working_directory):
             self.processed_examples = [
@@ -227,22 +231,24 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        processed_input = [
-            input_component.preprocess(self.processed_examples[example_id][i])
-            for i, input_component in enumerate(self.inputs)
-        ]
+        processed_input = self.processed_examples[example_id]
+        if not self._api_mode:
+            processed_input = [
+                input_component.preprocess(processed_input[i])
+                for i, input_component in enumerate(self.inputs)
+            ]
         if inspect.iscoroutinefunction(self.fn):
             predictions = await self.fn(*processed_input)
         else:
             predictions = await anyio.to_thread.run_sync(self.fn, *processed_input)
         if len(self.outputs) == 1:
             predictions = [predictions]
-        processed_output = [
-            output_component.postprocess(predictions[i])
-            for i, output_component in enumerate(self.outputs)
-        ]
-
-        return processed_output
+        if not self._api_mode:
+            predictions = [
+                output_component.postprocess(predictions[i])
+                for i, output_component in enumerate(self.outputs)
+            ]
+        return predictions
 
     async def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface.

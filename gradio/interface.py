@@ -599,6 +599,7 @@ class Interface(Blocks):
                     fn=self.run_prediction,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
+                    _api_mode=_api_mode,
                 )
 
             if self.interpretation:
