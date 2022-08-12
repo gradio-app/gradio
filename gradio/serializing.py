@@ -28,7 +28,7 @@ class Serializable(ABC):
 class SimpleSerializable(Serializable):
     def serialize(
         self, x: Any, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Any
+    ) -> Any:
         """
         Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
         Parameters:
