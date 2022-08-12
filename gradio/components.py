@@ -169,8 +169,7 @@ class IOComponent(Component, Serializable):
 
     def postprocess(self, y):
         """
-        Any postprocessing needed to be performed on function output. Optionally,
-        store the postprocessed sample in directory `dir`.
+        Any postprocessing needed to be performed on function output.
         """
         return y
 

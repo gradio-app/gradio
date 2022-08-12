@@ -20,7 +20,7 @@
 	});
 
 	afterUpdate(() => {
-		if (value != null && value.is_example) {
+		if (value != null && value.is_file) {
 			addNewModel();
 		}
 	});
@@ -80,8 +80,8 @@
 		if (!value) return;
 
 		let url: string;
-		if (value.is_example) {
-			url = value.data;
+		if (value.is_file) {
+			url = value.name;
 		} else {
 			let base64_model_content = value.data;
 			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
