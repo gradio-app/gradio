@@ -175,14 +175,6 @@ class Examples:
             type="index",
         )
 
-        self.processed_examples = [
-            [
-                component.postprocess(sample)
-                for component, sample in zip(inputs_with_examples, example)
-            ]
-            for example in non_none_examples
-        ]
-
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
         self.cache_examples = cache_examples

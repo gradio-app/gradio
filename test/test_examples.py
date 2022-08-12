@@ -73,7 +73,7 @@ class TestProcessExamples:
             return "Hello " + x
 
         io = gr.Interface(coroutine, "text", "text", examples=[["World"]])
-        prediction = await io.examples_handler.process_example(0)
+        prediction = await io.examples_handler.predict_example(0)
         assert prediction[0] == "Hello World"
 
     @pytest.mark.asyncio
