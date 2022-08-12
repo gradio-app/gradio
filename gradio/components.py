@@ -1781,7 +1781,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
-    combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec.
+    combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
+    that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
+    If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.

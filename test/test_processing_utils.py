@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import unittest
 from copy import deepcopy
+from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -157,6 +158,19 @@ def test_convert_video_to_playable_mp4(test_file_dir):
             tmp_not_playable_vid.name
         )
         assert gr.processing_utils.video_is_playable(playable_vid)
+
+
+@patch("ffmpy.FFmpeg.run", side_effect=Exception)
+def test_video_conversion_returns_original_video_if_fails(mock_run, test_file_dir):
+    with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+        shutil.copy(
+            str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
+        )
+        playable_vid = gr.processing_utils.convert_video_to_playable_mp4(
+            tmp_not_playable_vid.name
+        )
+        # If the conversion succeeded it'd be .mp4
+        assert pathlib.Path(playable_vid).suffix == ".avi"
 
 
 if __name__ == "__main__":

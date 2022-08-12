@@ -565,14 +565,18 @@ def video_is_playable(video_filepath: str) -> bool:
 
 
 def convert_video_to_playable_mp4(video_path: str) -> str:
-    output_path = pathlib.Path(video_path).with_suffix(".mp4")
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        shutil.copy2(video_path, tmp_file.name)
-        # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
-        ff = FFmpeg(
-            inputs={str(tmp_file.name): None},
-            outputs={str(output_path): None},
-            global_options="-y -loglevel quiet",
-        )
-        ff.run()
+    """Convert the video to mp4. If something goes wrong return the original video."""
+    try:
+        output_path = pathlib.Path(video_path).with_suffix(".mp4")
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            shutil.copy2(video_path, tmp_file.name)
+            # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
+            ff = FFmpeg(
+                inputs={str(tmp_file.name): None},
+                outputs={str(output_path): None},
+                global_options="-y -loglevel quiet",
+            )
+            ff.run()
+    except:
+        output_path = video_path
     return str(output_path)
