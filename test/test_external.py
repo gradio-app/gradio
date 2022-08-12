@@ -180,7 +180,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
             output = io("I am happy, I love you")
-            self.assertGreater(output["POSITIVE"], 0.5)
+            self.assertGreater(json.load(open(output))["POSITIVE"], 0.5)
         except TooManyRequestsError:
             pass
 
