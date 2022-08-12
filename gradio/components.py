@@ -2766,6 +2766,9 @@ class Label(Changeable, IOComponent, JSONSerializable):
         if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
         if isinstance(y, dict):
+            if "confidences" in y and isinstance(y["confidences"], dict):
+                y = y["confidences"]
+                y = {c["label"]: c["confidence"] for c in y}
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
@@ -2892,8 +2895,8 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         return updated_config
 
     def postprocess(
-        self, y: Optional[List[Tuple[str, str | float | None]] | Dict]
-    ) -> Optional[List[Tuple[str, str | float | None]]]:
+        self, y: List[Tuple[str, str | float | None]] | Dict | None
+    ) -> List[Tuple[str, str | float | None]] | None:
         """
         Parameters:
             y: List of (word, category) tuples

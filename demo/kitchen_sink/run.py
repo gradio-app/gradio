@@ -34,11 +34,12 @@ def fn(
         (text1 if single_checkbox else text2)
         + ", selected:"
         + ", ".join(checkboxes),  # Text
-        {
-            "positive": num / (num + slider1 + slider2),
-            "negative": slider1 / (num + slider1 + slider2),
-            "neutral": slider2 / (num + slider1 + slider2),
-        },  # Label
+        "hello",
+        # {
+        #     "positive": num / (num + slider1 + slider2),
+        #     "negative": slider1 / (num + slider1 + slider2),
+        #     "neutral": slider2 / (num + slider1 + slider2),
+        # },  # Label
         (audio1[0], np.flipud(audio1[1]))
         if audio1 is not None
         else os.path.join(os.path.dirname(__file__), "files/cantina.wav"),  # Audio
@@ -82,7 +83,7 @@ def fn(
         np.random.randint(0, 10, (4, 4)),  # Dataframe
         df2,  # Timeseries
     ]
-    num = 1
+    num = 6
     return tuple(return_value[:num] + [None]*(13-num))
 
 

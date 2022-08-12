@@ -268,8 +268,8 @@ def dict_or_str_to_json_file(jsn, dir=None):
     file_obj.flush()
     return file_obj
 
-def json_file_to_str(file_path):
-    return json.dumps(json.load(open(file_path)))
+def file_to_json(file_path):
+    return json.load(open(file_path))
 
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:

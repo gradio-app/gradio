@@ -101,7 +101,7 @@ class JSONSerializable(Serializable):
         # Write a temporary json file from a dict
         if x is None or x == "":
             return None       
-        return processing_utils.json_file_to_str(os.path.join(x))
+        return processing_utils.file_to_json(os.path.join(x))
 
     def deserialize(
         self, x: str | Dict, save_dir: str | None = None, encryption_key: bytes | None = None
