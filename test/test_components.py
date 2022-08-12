@@ -926,7 +926,6 @@ class TestDataframe(unittest.TestCase):
         self.assertEqual(output["Age"][1], 24)
         self.assertEqual(output["Member"][0], False)
         self.assertEqual(dataframe_input.postprocess(x_data), x_data)
-        self.assertEqual(dataframe_input.serialize(x_data, True), x_data)
 
         self.assertIsInstance(dataframe_input.generate_sample(), list)
         dataframe_input = gr.Dataframe(
@@ -1099,20 +1098,24 @@ class TestVideo(unittest.TestCase):
         video_input = gr.Video(format="avi")
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
 
-        self.assertEqual(
-            video_input.serialize(x_video["name"], True)["data"], x_video["data"]
+        assert filecmp.cmp(
+            video_input.serialize(x_video["name"])["name"], 
+            x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
         self.assertTrue(
-            video_output.postprocess(y_vid_path)["data"].startswith(
-                "data:video/mp4;base64,"
+            video_output.postprocess(y_vid_path)["name"].endswith(
+                "mp4"
             )
         )
         self.assertTrue(
-            video_output.deserialize(deepcopy(media_data.BASE64_VIDEO)).endswith(".mp4")
+            video_output.deserialize(
+                {"name": None,
+                 "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                 "is_file": False}).endswith(".mp4")
         )
 
     async def test_in_interface(self):
@@ -1275,8 +1278,7 @@ class TestLabel(unittest.TestCase):
         label_output = gr.Label()
         label = label_output.postprocess(y)
         self.assertDictEqual(label, {"label": "happy"})
-        self.assertEqual(label_output.deserialize(y), y)
-        self.assertEqual(label_output.deserialize(label), y)
+        self.assertEqual(json.load(open(label_output.deserialize(label))), label)
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
@@ -1527,11 +1529,11 @@ class TestModel3D(unittest.TestCase):
         """
         get_config
         """
-        component = gr.components.Model3D("test/test_files/Box.gltf", label="Model")
+        component = gr.components.Model3D(None, label="Model")
         self.assertEqual(
             {
                 "clearColor": [0.2, 0.2, 0.2, 1.0],
-                "value": media_data.BASE64_MODEL3D,
+                "value": None,
                 "label": "Model",
                 "show_label": True,
                 "interactive": None,
@@ -1608,7 +1610,7 @@ class TestColorPicker(unittest.TestCase):
 
 
 @patch("uuid.uuid4", return_value="my-uuid")
-def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
+def test_gallery(mock_uuid):
     gallery = gr.Gallery()
     test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
     data = [
@@ -1619,13 +1621,12 @@ def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
             pathlib.Path(test_file_dir, "cheetah1.jpg")
         ),
     ]
-    label = "Gallery, 1"
-    path = gallery.save_flagged(str(tmp_path), label, data, encryption_key=None)
-    assert path == os.path.join("Gallery 1", "my-uuid")
-    assert sorted(os.listdir(os.path.join(tmp_path, path))) == ["0.png", "1.jpg"]
-
-    data_restored = gallery.restore_flagged(tmp_path, path, encryption_key=None)
-    assert data == data_restored
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = gallery.deserialize(data, tmpdir)
+        assert path.endswith("my-uuid")        
+        data_restored = gallery.serialize(path)
+        assert sorted(data) == sorted(data_restored)
 
 
 @patch("gradio.Slider.get_random_value", return_value=7)

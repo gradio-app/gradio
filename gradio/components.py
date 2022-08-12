@@ -2124,7 +2124,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
+    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
     Examples-format: a {str} filepath to a csv with data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
@@ -2278,7 +2278,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         return [[1, 2, 3], [4, 5, 6]]
 
     def postprocess(
-        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]]
+        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]] | Dict
     ) -> Dict:
         """
         Parameters:
@@ -2287,6 +2287,8 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
+            return self.postprocess(self.test_input)
+        if isinstance(y, Dict):
             return y
         if isinstance(y, str):
             y = pd.read_csv(y)
@@ -3223,20 +3225,20 @@ class Gallery(IOComponent):
         return IOComponent.style(self, rounded=rounded, container=container)
 
     def deserialize(
-        self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
+        self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
     ) -> None | str:
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
         for img_data in x:
-            ImgSerializable.deserialize(gallery_path, img_data)
-        return gallery_path
+            ImgSerializable.deserialize(self, img_data, gallery_path)
+        return os.path.abspath(gallery_path)
 
-    def serialize(self, x: Any, called_directly: bool = False):
+    def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            img = ImgSerializable.serialize(file_path)
+            img = ImgSerializable.serialize(self, file_path)
             files.append(img)
         return files
 
