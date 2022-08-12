@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 set_documentation_group("flagging")
 
 
-def get_dataset_features_info(is_new, components):
+def _get_dataset_features_info(is_new, components):
     """
     Takes in a list of components and returns a dataset features info
 
@@ -360,8 +360,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
-            infos, file_preview_types, headers = get_dataset_features_info(
-                is_new, self.components)
+            infos, file_preview_types, headers = _get_dataset_features_info(
+                is_new, self.components
+            )
 
             # Generate the headers and dataset_infos
             if is_new:
@@ -392,7 +393,6 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         return line_count
 
 
-# It's a callback that saves flagged data to a HuggingFace dataset in JSONL format
 class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     """
     A FlaggingCallback that saves flagged data to a Hugging Face dataset in JSONL format.
@@ -484,7 +484,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         is_new = not os.path.exists(self.infos_file)
 
         # File previews for certain input and output types
-        infos, file_preview_types, _ = get_dataset_features_info(
+        infos, file_preview_types, _ = _get_dataset_features_info(
             is_new, self.components
         )
 
