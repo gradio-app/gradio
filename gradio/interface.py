@@ -622,6 +622,8 @@ class Interface(Blocks):
         self.config = self.get_config_file()
 
     def __call__(self, *params):
+        print("self.api_mode: ", self.api_mode)
+        print("params ", params)
         if (
             self.api_mode
         ):  # skip the preprocessing/postprocessing if sending to a remote API
@@ -630,6 +632,7 @@ class Interface(Blocks):
             )
         else:
             output = utils.synchronize_async(self.process, params)
+        print("Output:", output)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -665,15 +668,6 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
-        # TODO(faruk): We might keep this function in interface for usage in mix or interpretation.
-        # However we need to use "call_function" instead of manually serializing, and deserializing and running prediction.
-
-        if self.api_mode:  # Serialize the input
-            processed_input = [
-                input_component.serialize(processed_input[i], called_directly)
-                for i, input_component in enumerate(self.input_components)
-            ]
-
         if inspect.iscoroutinefunction(self.fn):
             prediction = await self.fn(*processed_input)
         else:
@@ -682,12 +676,6 @@ class Interface(Blocks):
             )
         if prediction is None or len(self.output_components) == 1:
             prediction = [prediction]
-
-        if self.api_mode:  # Deserialize the input
-            prediction = [
-                output_component.deserialize(prediction[i])
-                for i, output_component in enumerate(self.output_components)
-            ]
         return prediction
 
     async def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:

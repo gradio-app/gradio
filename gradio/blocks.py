@@ -458,7 +458,7 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
 
         if self.api_mode:
-            serialized_params = []
+            processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
                 block = self.blocks[input_id]
                 if getattr(block, "stateful", False):
@@ -468,22 +468,21 @@ class Blocks(BlockContext):
                     )
                 else:
                     serialized_input = block.serialize(params[i], True)
-                    serialized_params.append(serialized_input)
+                    processed_input.append(serialized_input)
         else:
-            serialized_params = params
-
-        processed_input = self.preprocess_data(fn_index, serialized_params, None)
+            processed_input = self.preprocess_data(fn_index, params, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
-
-        output = self.postprocess_data(fn_index, predictions, None)
-
+        
+        if len(dependency["outputs"]) == 1:
+            predictions = [predictions]
+            
         if self.api_mode:
-            output_copy = copy.deepcopy(output)
-            deserialized_output = []
+            output_copy = copy.deepcopy(predictions)
+            processed_output = []
             for o, output_id in enumerate(dependency["outputs"]):
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
@@ -493,13 +492,11 @@ class Blocks(BlockContext):
                     )
                 else:
                     deserialized = block.deserialize(output_copy[o])
-                    deserialized_output.append(deserialized)
+                    processed_output.append(deserialized)
         else:
-            deserialized_output = output
+            processed_output = self.postprocess_data(fn_index, predictions, None)
 
-        if len(deserialized_output) == 1:
-            return deserialized_output[0]
-        return deserialized_output
+        return utils.resolve_singleton(processed_output)
 
     def __str__(self):
         return self.__repr__()

@@ -34,12 +34,11 @@ def fn(
         (text1 if single_checkbox else text2)
         + ", selected:"
         + ", ".join(checkboxes),  # Text
-        "hello",
-        # {
-        #     "positive": num / (num + slider1 + slider2),
-        #     "negative": slider1 / (num + slider1 + slider2),
-        #     "neutral": slider2 / (num + slider1 + slider2),
-        # },  # Label
+        {
+            "positive": num / (num + slider1 + slider2),
+            "negative": slider1 / (num + slider1 + slider2),
+            "neutral": slider2 / (num + slider1 + slider2),
+        },  # Label
         (audio1[0], np.flipud(audio1[1]))
         if audio1 is not None
         else os.path.join(os.path.dirname(__file__), "files/cantina.wav"),  # Audio
@@ -154,6 +153,7 @@ demo = gr.Interface(
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
+    cache_examples=True
 )
 
 if __name__ == "__main__":

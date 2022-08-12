@@ -16,7 +16,7 @@ from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type, List
 
 import aiohttp
 import analytics
@@ -290,7 +290,7 @@ def delete_none(_dict):
     return _dict
 
 
-def resolve_singleton(_list):
+def resolve_singleton(_list: List[Any] | Any) -> Any:
     if len(_list) == 1:
         return _list[0]
     else:

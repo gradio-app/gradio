@@ -1,4 +1,5 @@
 import os
+import json
 import pathlib
 import unittest
 from unittest.mock import patch
@@ -203,7 +204,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("spaces/abidlabs/titanic-survival")
         try:
             output = io("male", 77, 10)
-            self.assertLess(output["Survives"], 0.5)
+            assert json.load(open(output))["label"] == "Perishes"
         except TooManyRequestsError:
             pass
 
