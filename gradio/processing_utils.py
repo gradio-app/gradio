@@ -27,12 +27,12 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_url_or_file_to_base64(path):
+def encode_url_or_file_to_base64(path, encryption_key=None):
     try:
         requests.get(path)
-        return encode_url_to_base64(path)
+        return encode_url_to_base64(path, encryption_key=encryption_key)
     except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return encode_file_to_base64(path)
+        return encode_file_to_base64(path, encryption_key=encryption_key)
 
 
 def get_mimetype(filename):
@@ -68,8 +68,10 @@ def encode_file_to_base64(f, encryption_key=None):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url, encryption_key=None):
     encoded_string = base64.b64encode(requests.get(url).content)
+    if encryption_key:
+        encoded_string = encryptor.decrypt(encryption_key, encoded_string)   
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (
