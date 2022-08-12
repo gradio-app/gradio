@@ -24,7 +24,7 @@ set_documentation_group("flagging")
 def get_dataset_features_info(is_new, components, flag_data):
     """
     It takes in a list of components and a list of flag data and returns a dataset features info
-    
+
     Parameters:
     is_new: boolean, whether the dataset is new or not
     components: list of components
@@ -34,7 +34,7 @@ def get_dataset_features_info(is_new, components, flag_data):
     Returns:
     infos: a dictionary of the dataset features
     file_preview_types: dictionary mapping of gradio components to appropriate string.
-    header: list of header strings 
+    header: list of header strings
 
     """
     infos = {"flagged": {"features": {}}}
@@ -144,7 +144,12 @@ class SimpleCSVLogger(FlaggingCallback):
         csv_data = []
         for component, sample in zip(self.components, flag_data):
             csv_data.append(
-                component.save_flagged(flagging_dir, component.label, sample, None,)
+                component.save_flagged(
+                    flagging_dir,
+                    component.label,
+                    sample,
+                    None,
+                )
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
@@ -215,7 +220,11 @@ class CSVLogger(FlaggingCallback):
                 headers = [
                     component.label or f"component {idx}"
                     for idx, component in enumerate(self.components)
-                ] + ["flag", "username", "timestamp",]
+                ] + [
+                    "flag",
+                    "username",
+                    "timestamp",
+                ]
 
         def replace_flag_at_index(file_content):
             file_content = io.StringIO(file_content)
