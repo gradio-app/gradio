@@ -83,7 +83,7 @@ def fn(
         np.random.randint(0, 10, (4, 4)),  # Dataframe
         df2,  # Timeseries
     ]
-    num = 6
+    num = 12
     return tuple(return_value[:num] + [None]*(13-num))
 
 

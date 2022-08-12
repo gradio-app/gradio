@@ -50,7 +50,6 @@ class ImgSerializable(Serializable):
         Convert from human-friendly version of a file (string filepath) to a seralized representation (base64)
         Optionally, save the file to the directory specified by save_dir
         """
-        print("x", x, x=="")
         if x is None or x == "":
             return None
         return processing_utils.encode_url_or_file_to_base64(os.path.join(load_dir, x))

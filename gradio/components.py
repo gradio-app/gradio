@@ -2094,6 +2094,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 "data": None,
                 "is_file": True,
             }
+    
+    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
+        serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
+        serialized["size"] = os.path.getsize(serialized["name"])
+        return serialized
 
     def style(
         self,

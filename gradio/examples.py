@@ -262,7 +262,5 @@ class Examples:
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         for component, value in zip(self.outputs, example):
-            print("--", component, "--")
-            print(value)
             output.append(component.serialize(value, self.cached_folder))
         return output
