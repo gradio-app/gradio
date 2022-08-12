@@ -339,7 +339,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             clone_from=path_to_dataset_repo,
             use_auth_token=self.hf_token,
         )
-        self.repo.git_pull()
+        self.repo.git_pull(lfs=True)
 
         # Should filename be user-specified?
         self.log_file = os.path.join(self.dataset_dir, "data.csv")
@@ -352,7 +352,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
-        self.repo.git_pull()
+        self.repo.git_pull(lfs=True)
 
         is_new = not os.path.exists(self.log_file)
 
