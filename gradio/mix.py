@@ -38,8 +38,10 @@ class Parallel(gradio.Interface):
 
         async def parallel_fn(*args):
             return_values = await asyncio.gather(
-                *[interface.run_prediction(args) for interface in interfaces]
+                *[interface.run_prediction(*args) for interface in interfaces]
             )
+            if len(outputs) == 1:
+                return_values = [return_values]
             combined_list = []
             for value in return_values:
                 combined_list.extend(value)
