@@ -632,12 +632,12 @@ class Interface(Blocks):
 
     async def run_prediction(
         self,
-        processed_input: List[Any],
+        *processed_input,
     ) -> List[Any] | Tuple[List[Any], List[float]]:
         """
         Runs the prediction function with the given (already processed) inputs.
         Parameters:
-            processed_input (list): A list of processed inputs.
+            processed_input (Any): Any number of processed inputs, each of which corresponds to an input component.
             called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
         Returns:
             predictions (list): A list of predictions (not post-processed).
@@ -648,8 +648,6 @@ class Interface(Blocks):
             prediction = await anyio.to_thread.run_sync(
                 self.fn, *processed_input, limiter=self.limiter
             )
-        if prediction is None or len(self.output_components) == 1:
-            prediction = [prediction]
         return prediction
 
     async def interpret_func(self, *args):
