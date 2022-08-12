@@ -16,7 +16,17 @@ from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type, List
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    NewType,
+    Tuple,
+    Type,
+)
 
 import aiohttp
 import analytics

@@ -476,10 +476,10 @@ class Blocks(BlockContext):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
-        
+
         if len(dependency["outputs"]) == 1:
             predictions = [predictions]
-            
+
         if self.api_mode:
             output_copy = copy.deepcopy(predictions)
             processed_output = []

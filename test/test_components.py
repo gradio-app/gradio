@@ -730,8 +730,8 @@ class TestAudio(unittest.TestCase):
         self.assertEqual(output[0], 8000)
         self.assertEqual(output[1].shape, (8046,))
         assert filecmp.cmp(
-            "test/test_files/audio_sample.wav", 
-            audio_input.serialize("test/test_files/audio_sample.wav")["name"]
+            "test/test_files/audio_sample.wav",
+            audio_input.serialize("test/test_files/audio_sample.wav")["name"],
         )
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
@@ -755,7 +755,7 @@ class TestAudio(unittest.TestCase):
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
         self.assertIsNotNone(audio_input.preprocess(x_wav))
-        
+
         audio_input = gr.Audio(type="filepath")
         self.assertIsInstance(audio_input.preprocess(x_wav), str)
         with self.assertRaises(ValueError):
@@ -769,10 +769,9 @@ class TestAudio(unittest.TestCase):
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="file")
-        self.assertTrue(filecmp.cmp(
-            y_audio.name,
-            audio_output.postprocess(y_audio.name)["name"]
-        ))
+        self.assertTrue(
+            filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
+        )
         self.assertEqual(
             audio_output.get_config(),
             {
@@ -794,7 +793,7 @@ class TestAudio(unittest.TestCase):
                     "name": None,
                     "data": deepcopy(media_data.BASE64_AUDIO)["data"],
                     "is_file": False,
-                }                
+                }
             ).endswith(".wav")
         )
 
@@ -1099,23 +1098,21 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
 
         assert filecmp.cmp(
-            video_input.serialize(x_video["name"])["name"], 
-            x_video["name"]
+            video_input.serialize(x_video["name"])["name"], x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
-        self.assertTrue(
-            video_output.postprocess(y_vid_path)["name"].endswith(
-                "mp4"
-            )
-        )
+        self.assertTrue(video_output.postprocess(y_vid_path)["name"].endswith("mp4"))
         self.assertTrue(
             video_output.deserialize(
-                {"name": None,
-                 "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                 "is_file": False}).endswith(".mp4")
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                    "is_file": False,
+                }
+            ).endswith(".mp4")
         )
 
     async def test_in_interface(self):
@@ -1621,10 +1618,10 @@ def test_gallery(mock_uuid):
             pathlib.Path(test_file_dir, "cheetah1.jpg")
         ),
     ]
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         path = gallery.deserialize(data, tmpdir)
-        assert path.endswith("my-uuid")        
+        assert path.endswith("my-uuid")
         data_restored = gallery.serialize(path)
         assert sorted(data) == sorted(data_restored)
 
