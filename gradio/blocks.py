@@ -400,6 +400,7 @@ class Blocks(BlockContext):
         def iterate_over_children(children_list):
             for child_config in children_list:
                 id = child_config["id"]
+                breakpoint()
                 block = get_block_instance(id)
                 original_mapping[id] = block
 
@@ -437,6 +438,7 @@ class Blocks(BlockContext):
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
+            breakpoint()
             dependency = blocks.dependencies[0]
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]

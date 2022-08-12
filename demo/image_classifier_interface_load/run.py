@@ -1,10 +1,13 @@
 import gradio as gr
+import pathlib
 
-images = ["cheetah1.jpeg", "cheetah1.jpg", "lion.jpg"]
+current_dir = pathlib.Path(__file__)
+
+images = [current_dir / "cheetah1.jpeg", current_dir / "cheetah1.jpg", current_dir / "lion.jpg"]
 
 
 img_classifier = gr.Interface.load(
-    "models/google/vit-base-patch16-224", examples=images, cache_examples=True
+    "models/google/vit-base-patch16-224", examples=images, cache_examples=False
 )
 
 
@@ -17,9 +20,9 @@ using_img_classifier_as_function = gr.Interface(
     [gr.Image(type="filepath"), "text"],
     ["label", "text"],
     examples=[
-        ["cheetah1.jpeg", None],
-        ["cheetah1.jpg", "cheetah"],
-        ["lion.jpg", "lion"],
+        [current_dir / "cheetah1.jpeg", None],
+        [current_dir / "cheetah1.jpg", "cheetah"],
+        [current_dir / "lion.jpg", "lion"],
     ],
     cache_examples=True,
 )
