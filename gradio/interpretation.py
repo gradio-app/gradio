@@ -22,7 +22,7 @@ async def run_interpret(interface, raw_input):
         original_output = await interface.run_prediction(*processed_input)
         if len(interface.output_components) == 1:
             original_output = [original_output]
-        
+
         scores, alternative_outputs = [], []
 
         for i, (x, interp) in enumerate(zip(raw_input, interface.interpretation)):
