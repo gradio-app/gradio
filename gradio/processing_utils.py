@@ -71,7 +71,7 @@ def encode_file_to_base64(f, encryption_key=None):
 def encode_url_to_base64(url, encryption_key=None):
     encoded_string = base64.b64encode(requests.get(url).content)
     if encryption_key:
-        encoded_string = encryptor.decrypt(encryption_key, encoded_string)   
+        encoded_string = encryptor.decrypt(encryption_key, encoded_string)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (

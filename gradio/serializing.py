@@ -9,7 +9,9 @@ from gradio import processing_utils
 
 class Serializable(ABC):
     @abstractclassmethod
-    def serialize(self, x: Any, load_dir: str = "", encryption_key: bytes | None = None):
+    def serialize(
+        self, x: Any, load_dir: str = "", encryption_key: bytes | None = None
+    ):
         """
         Convert data from human-readable format to serialized format for a browser.
         """
@@ -48,25 +50,30 @@ class SimpleSerializable(Serializable):
 
 class ImgSerializable(Serializable):
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None) -> str:
+        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> str:
         """
-        Convert from human-friendly version of a file (string filepath) to a seralized 
+        Convert from human-friendly version of a file (string filepath) to a seralized
         representation (base64).
         """
         if x is None or x == "":
             return None
-        return processing_utils.encode_url_or_file_to_base64(os.path.join(load_dir, x), encryption_key=encryption_key)
+        return processing_utils.encode_url_or_file_to_base64(
+            os.path.join(load_dir, x), encryption_key=encryption_key
+        )
 
     def deserialize(
         self, x: str, save_dir: str | None = None, encryption_key: bytes | None = None
     ) -> str:
         """
-        Convert from serialized representation of a file (base64) to a human-friendly 
+        Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by save_dir
         """
         if x is None or x == "":
             return None
-        file = processing_utils.decode_base64_to_file(x, dir=save_dir, encryption_key=encryption_key)
+        file = processing_utils.decode_base64_to_file(
+            x, dir=save_dir, encryption_key=encryption_key
+        )
         return file.name
 
 
@@ -81,15 +88,19 @@ class FileSerializable(Serializable):
         if x is None or x == "":
             return None
         filename = os.path.join(load_dir, x)
-        return {"name": filename, 
-                "data": processing_utils.encode_url_or_file_to_base64(filename, encryption_key=encryption_key), 
-                "is_file": False}
+        return {
+            "name": filename,
+            "data": processing_utils.encode_url_or_file_to_base64(
+                filename, encryption_key=encryption_key
+            ),
+            "is_file": False,
+        }
 
     def deserialize(
         self, x: Dict, save_dir: str | None = None, encryption_key: bytes | None = None
     ):
         """
-        Convert from serialized representation of a file (base64) to a human-friendly 
+        Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
         """
         if x is None:
@@ -97,7 +108,9 @@ class FileSerializable(Serializable):
         if x.get("is_file", False):
             file = processing_utils.create_tmp_copy_of_file(x["name"], dir=save_dir)
         else:
-            file = processing_utils.decode_base64_to_file(x["data"], dir=save_dir, encryption_key=encryption_key)
+            file = processing_utils.decode_base64_to_file(
+                x["data"], dir=save_dir, encryption_key=encryption_key
+            )
         return file.name
 
 
@@ -106,7 +119,7 @@ class JSONSerializable(Serializable):
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
     ) -> str:
         """
-        Convert from a a human-friendly version (string path to json file) to a 
+        Convert from a a human-friendly version (string path to json file) to a
         serialized representation (json string)
         """
         # Write a temporary json file from a dict
@@ -121,7 +134,7 @@ class JSONSerializable(Serializable):
         encryption_key: bytes | None = None,
     ) -> str:
         """
-        Convert from serialized representation (json string) to a human-friendly 
+        Convert from serialized representation (json string) to a human-friendly
         version (string path to json file).  Optionally, save the file to the directory specified by `save_dir`
         """
         if x is None:
