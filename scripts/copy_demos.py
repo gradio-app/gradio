@@ -14,7 +14,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
             all_demos.append(p)
 
     to_exclude = ["blocks_demos", "rows_and_columns", "image_classifier_interface_load", "generate_english_german",
-                  "all_demos"]
+                  "all_demos", "kitchen_sink_random"]
     all_demos = [d for d in all_demos if d not in to_exclude]
 
     for demo in all_demos:
