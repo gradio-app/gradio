@@ -38,7 +38,7 @@ jobs:
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.8.1
     - name: Set up Demos
-      run: python scripts copy_demos.py https://gradio-builds-2.s3.amazonaws.com/gradio-${{ env.PR_VERSION }}-py3-none-any.whl
+      run: python scripts copy_demos.py https://gradio-builds.s3.amazonaws.com/gradio-${{ env.PR_VERSION }}-py3-none-any.whl
     - name: Upload kitchen sink to spaces
       run: |
         python scripts/upload_demo_to_space.py all_demos \
