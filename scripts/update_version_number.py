@@ -8,7 +8,7 @@ def update_version_number():
     version_file = pathlib.Path(pathlib.Path().absolute(), "gradio/version.txt")
     version_number = open(version_file, "r").readline()
     with open(version_file, "w") as version:
-        version.write(f"{version_number}+{pr_number}")
+        version.write(f"{version_number}.{pr_number}")
     return f"{version_number}.{pr_number}"
     
 
