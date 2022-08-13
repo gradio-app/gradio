@@ -9,7 +9,7 @@ def update_version_number():
     version_number = open(version_file, "r").readline()
     with open(version_file, "w") as version:
         version.write(f"{version_number}+{pr_number}")
-    return f"{version_number}+{pr_number}"
+    return f"{version_number}.{pr_number}"
     
 
 if __name__ == "__main__":
