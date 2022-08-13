@@ -35,7 +35,7 @@ jobs:
         pnpm build
         cd ..
         python3 setup.py bdist_wheel
-        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl "s3://gradio-builds/${{ env.PR_VERSION}}/
+        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ env.PR_VERSION}}/
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.8.1
     - name: Set up Demos
