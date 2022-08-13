@@ -1,6 +1,8 @@
 import shutil
 import os
 import pathlib
+import textwrap
+import argparse
 
 
 def copy_all_demos(source_dir: str, dest_dir: str):
@@ -23,6 +25,20 @@ def copy_all_demos(source_dir: str, dest_dir: str):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Copy all demos to all_demos and update requirements")
+    parser.add_argument("gradio_version", type=str, help="Gradio")
+    args = parser.parse_args()
+
     source_dir = pathlib.Path(pathlib.Path(__file__).parent, "..", "demo")
     dest_dir = pathlib.Path(pathlib.Path(__file__).parent, "..", "demo", "all_demos", "demos")
     copy_all_demos(source_dir, dest_dir)
+    reqs_file_path = pathlib.Path(pathlib.Path(__file__).parent, "..", "demo", "all_demos", "requirements.txt")
+    requirements = f"""
+    {args.gradio_version}
+    pypistats
+    plotly
+    opencv-python
+    transformers
+    torch
+    """
+    open(reqs_file_path, "w").write(textwrap.dedent(requirements))

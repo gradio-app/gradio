@@ -1,0 +1,53 @@
+name: Deploy to Spaces
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy-current-branch:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+    - name: Install pip
+      run: python -m pip install pip wheel
+    - name: Update version number for pr
+      run: |
+        python scripts/update_version_number.py > pr_version.txt
+        echo "PR_VERSION=$(cat pr_version.txt)" >> $GITHUB_ENV
+    - name: Build and publish pr package
+      run: | 
+        export AWS_ACCESS_KEY_ID=${{ secrets.BUILD_ACCESS_KEY }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.BUILD_ACCESS_SECRET_KEY }}
+        export AWS_DEFAULT_REGION=us-east-1
+        cd ui
+        pnpm i
+        pnpm build
+        cd ..
+        python3 setup.py bdist_wheel
+        aws s3 cp dist/gradio-${{ env.PR_VERSION }}-py3-none-any.whl "s3://gradio-builds/"
+    - name: Install Hub Client Library
+      run: pip install huggingface-hub==0.8.1
+    - name: Set up Demos
+      run: python scripts copy_demos.py https://gradio-builds-2.s3.amazonaws.com/gradio-${{ env.PR_VERSION }}-py3-none-any.whl
+    - name: Upload kitchen sink to spaces
+      run: |
+        python scripts/upload_demo_to_space.py all_demos \
+        freddyaboulton/${{ env.PR_VERSION }}-all-demos \
+        ${{ secrets.SPACES_DEPLOY_TOKEN }} > url.txt
+        echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
+    - name: Comment On Release PR
+      uses: thollander/actions-comment-pull-request@v1
+      with:
+        message: |
+          Deployed a demo with this version at ${{ env.SPACE_URL }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
