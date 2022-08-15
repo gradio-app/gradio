@@ -612,3 +612,9 @@ def set_directory(path: Path):
 
 def strip_invalid_filename_characters(filename: str) -> str:
     return "".join([char for char in filename if char.isalnum() or char in "._- "])
+
+
+def sanitize_for_csv(value: str) -> str:
+    value = value.replace("\"", "\"\"")
+    return "\"'" + value + "\""
+

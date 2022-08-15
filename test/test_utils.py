@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import unittest
 import unittest.mock as mock
@@ -25,10 +26,10 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
-    json,
     launch_analytics,
     readme_to_html,
     version_check,
+    sanitize_for_csv    
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -409,6 +410,13 @@ async def test_validate_and_fail_with_function(respx_mock):
         client_response.is_valid(raise_exceptions=True)
     assert client_response.exception is not None
 
+
+class TestSanitizeForCSV():
+    def test_unsafe():
+        assert sanitize_for_csv('=1+2";=1+2') == '"\'=1+2"";=1+2"'
+
+    def test_safe():
+        assert sanitize_for_csv("1aaa2") == '"\'1aaa2"'
 
 if __name__ == "__main__":
     unittest.main()
