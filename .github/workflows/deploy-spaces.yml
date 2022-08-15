@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy-current-branch:
+  deploy-current-pr:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -20,10 +20,10 @@ jobs:
         version: 7
     - name: Install pip
       run: python -m pip install pip wheel
-    - name: Update version number for pr
+    - name: Get PR Number
       run: |
-        python scripts/update_version_number.py > pr_version.txt
-        echo "PR_VERSION=$(cat pr_version.txt)" >> $GITHUB_ENV
+        python -c "import os;print(os.environ["GITHUB_REF"].split("/")[2])" > pr_number.txt
+        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
         echo "GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_ENV
     - name: Build and publish pr package
       run: | 
@@ -35,20 +35,22 @@ jobs:
         pnpm build
         cd ..
         python3 setup.py bdist_wheel
-        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ env.PR_VERSION}}/
+        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ env.PR_NUMBER}}/
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.8.1
     - name: Set up Demos
-      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ env.PR_VERSION }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ env.PR_NUMBER }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
     - name: Upload kitchen sink to spaces
       run: |
         python scripts/upload_demo_to_space.py all_demos \
-        freddyaboulton/${{ env.PR_VERSION }}-all-demos \
-        ${{ secrets.SPACES_DEPLOY_TOKEN }} > url.txt
+        gradio-pr-deploys/pr-${{ env.PR_NUMBER }}-all-demos \
+        ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+        --gradio-version ${{ env.GRADIO_VERSION }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
     - name: Comment On Release PR
       uses: thollander/actions-comment-pull-request@v1
       with:
         message: |
-          Deployed a demo with this version at ${{ env.SPACE_URL }}
+          All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
+        comment_includes: All the demos for this PR have been deployed at
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
