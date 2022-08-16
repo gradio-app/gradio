@@ -148,22 +148,26 @@
 			class:max-h-[55vh]={style.height !== "auto"}
 			class:xl:min-h-[450px]={style.height !== "auto"}
 		>
-			<div class=" grid  gap-2 {classes}" class:pt-6={show_label}>
-				{#each value as image, i}
-					<button
-						class="gallery-item"
-						on:click={() => (selected_image = can_zoom ? i : selected_image)}
-					>
-						<img
-							alt=""
-							class="h-full w-full overflow-hidden object-contain"
-							src={image}
-						/>
-					</button>
-				{:else}
-					<p>{$_("interface.empty")}</p>
-				{/each}
-			</div>
+			{#if value.length === 0}
+				<div class="h-full min-h-[15rem] flex justify-center items-center">
+					<div class="h-5 dark:text-white opacity-50"><Image /></div>
+				</div>
+			{:else}
+				<div class=" grid  gap-2 {classes}" class:pt-6={show_label}>
+					{#each value as image, i}
+						<button
+							class="gallery-item"
+							on:click={() => (selected_image = can_zoom ? i : selected_image)}
+						>
+							<img
+								alt=""
+								class="h-full w-full overflow-hidden object-contain"
+								src={image}
+							/>
+						</button>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </Block>
