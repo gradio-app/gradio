@@ -25,7 +25,7 @@ jobs:
         python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
         echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
         echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_ENV
-        echo "LOCAL_GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_ENV
+        echo $GRADIO_VERSION > gradio/version.txt
     - name: Build and publish pr package
       run: | 
         export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
@@ -36,11 +36,11 @@ jobs:
         pnpm build
         cd ..
         python3 setup.py bdist_wheel
-        aws s3 cp dist/gradio-${{ env.LOCAL_GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ env.PR_NUMBER}}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ env.GITHUB_SHA }}
     - name: Install Hub Client Library
       run: pip install huggingface-hub==0.8.1
     - name: Set up Demos
-      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ env.PR_NUMBER }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ env.GITHUB_SHA }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
     - name: Upload kitchen sink to spaces
       run: |
         python scripts/upload_demo_to_space.py all_demos \
