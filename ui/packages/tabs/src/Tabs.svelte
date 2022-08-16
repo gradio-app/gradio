@@ -45,7 +45,7 @@
 </script>
 
 <div class="tabs flex flex-col my-4" id={elem_id}>
-	<div class="flex border-b-2 dark:border-gray-700">
+	<div class="flex border-b-2 flex-wrap dark:border-gray-700">
 		{#each tabs as t (t.id)}
 			{#if t.id === $selected_tab}
 				<button

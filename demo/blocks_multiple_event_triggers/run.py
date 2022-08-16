@@ -28,7 +28,8 @@ with gr.Blocks() as demo:
 
     plt = gr.Plot()
     # You can add multiple event triggers in 2 lines like this
-    for event in [lib.change, time.change, demo.load]:
+    for event in [lib.change, time.change]:
         event(get_plot, [lib, time], [plt])
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()

@@ -1,5 +1,5 @@
 import gradio as gr
-
+import os
 
 def fn(mask):
     return [mask["image"], mask["mask"]]
@@ -11,7 +11,7 @@ with demo:
     with gr.Row():
         with gr.Column():
             img = gr.Image(
-                tool="sketch", source="upload", label="Mask", value="lion.jpg"
+                tool="sketch", source="upload", label="Mask", value=os.path.join(os.path.dirname(__file__), "lion.jpg")
             )
             with gr.Row():
                 btn = gr.Button("Run")
@@ -22,4 +22,5 @@ with demo:
     btn.click(fn=fn, inputs=img, outputs=[img2, img3])
 
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()

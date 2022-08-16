@@ -13,4 +13,6 @@ def random_sentence():
 
 
 demo = gr.Interface(fn=random_sentence, inputs=None, outputs="text")
-demo.launch()
+
+if __name__ == "__main__":
+    demo.launch()
