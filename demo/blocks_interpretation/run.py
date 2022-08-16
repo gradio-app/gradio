@@ -54,4 +54,5 @@ with gr.Blocks() as demo:
     classify.click(classifier, input_text, label)
     interpret.click(interpretation_function, input_text, [interpretation, interpretation_plot])
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
