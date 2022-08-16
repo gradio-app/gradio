@@ -25,6 +25,7 @@ jobs:
         python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
         echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
         echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_ENV
+        echo "LOCAL_GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_ENV
     - name: Build and publish pr package
       run: | 
         export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
