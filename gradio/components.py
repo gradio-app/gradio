@@ -1779,7 +1779,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
-    Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
+    combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
+    that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
+    If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
@@ -1919,7 +1923,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y: str) -> str:
+    def postprocess(self, y: str) -> Optional[Dict[str, str]]:
         """
         Parameters:
             y: path to video
@@ -1929,6 +1933,14 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         if y is None:
             return None
         returned_format = y.split(".")[-1].lower()
+        if (
+            processing_utils.ffmpeg_installed()
+            and not processing_utils.video_is_playable(y)
+        ):
+            warnings.warn(
+                "Video does not have browser-compatible container or codec. Converting to mp4"
+            )
+            y = processing_utils.convert_video_to_playable_mp4(y)
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
@@ -2079,20 +2091,20 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
             file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
-        if crop_min != 0 or crop_max != 100:
-            sample_rate, data = processing_utils.audio_from_file(
-                file_obj.name, crop_min=crop_min, crop_max=crop_max
-            )
+        sample_rate, data = processing_utils.audio_from_file(
+            file_obj.name, crop_min=crop_min, crop_max=crop_max
+        )
+        if self.type == "numpy":
+            return sample_rate, data
+        elif self.type in ["file", "filepath"]:
             processing_utils.audio_to_file(sample_rate, data, file_obj.name)
-        if self.type == "file":
-            warnings.warn(
-                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-            )
-            return file_obj
-        elif self.type == "filepath":
-            return file_obj.name
-        elif self.type == "numpy":
-            return processing_utils.audio_from_file(file_obj.name)
+            if self.type == "file":
+                warnings.warn(
+                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
+                )
+                return file_obj
+            else:
+                return file_obj.name
         else:
             raise ValueError(
                 "Unknown type: "
