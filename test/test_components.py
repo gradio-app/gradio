@@ -1926,7 +1926,7 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
             ".mp4"
         )
-        assert processing_utils.video_is_playable(full_path_to_output)
+        assert processing_utils.video_is_playable(str(full_path_to_output))
 
     # This file has a playable codec but not a playable container
     with tempfile.NamedTemporaryFile(
@@ -1939,7 +1939,7 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
             ".mp4"
         )
-        assert processing_utils.video_is_playable(full_path_to_output)
+        assert processing_utils.video_is_playable(str(full_path_to_output))
 
 
 if __name__ == "__main__":
