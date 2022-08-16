@@ -149,7 +149,7 @@
 			class:xl:min-h-[450px]={style.height !== "auto"}
 		>
 			{#if value.length === 0}
-				<div class="h-full flex justify-center items-center">
+				<div class="h-full min-h-[15rem] flex justify-center items-center">
 					<div class="h-5 dark:text-white opacity-50"><Image /></div>
 				</div>
 			{:else}
