@@ -5,9 +5,6 @@ import sys
 import copy
 import pathlib
 
-# At least one demo fails when caching examples
-# Temporary fix just to get the build to pass
-os.environ["SYSTEM"] = "pretend-not-spaces"
 
 demo_dir = pathlib.Path(__file__).parent / "demos"
 

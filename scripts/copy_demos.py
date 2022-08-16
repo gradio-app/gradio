@@ -6,26 +6,28 @@ import argparse
 
 
 def copy_all_demos(source_dir: str, dest_dir: str):
-    all_demos = []
-    for p in os.listdir(source_dir):
-        full_dir = os.path.join(source_dir, p)
-        is_dir = os.path.isdir(full_dir)
-        no_requirements = not os.path.exists(os.path.join(full_dir, "requirements.txt"))
-        has_app = os.path.exists(os.path.join(full_dir, "run.py"))
-        if is_dir and no_requirements and has_app:
-            all_demos.append(p)
-
-    to_exclude = [
-        "blocks_demos",
-        "rows_and_columns",
-        "image_classifier_interface_load",
-        "generate_english_german",
-        "all_demos",
-        "kitchen_sink_random",
+    demos_to_copy = [
+        "blocks_essay",
+        "blocks_js_methods",
+        "blocks_layout",
+        "blocks_mask",
+        "blocks_multiple_event_triggers",
+        "calculator",
+        "fake_gan",
+        "gender_sentence_default_interpretation",
+        "image_mod_default_image",
+        "interface_parallel_load",
+        "interface_random_slider",
+        "interface_series_load",
+        "kitchen_sink",
+        "model3D",
+        "reverse_audio",
+        "sst_or_tts",
+        "stream_audio",
+        "stream_frames",
+        "zip_two_files",
     ]
-    all_demos = [d for d in all_demos if d not in to_exclude]
-
-    for demo in all_demos:
+    for demo in demos_to_copy:
         shutil.copytree(
             os.path.join(source_dir, demo),
             os.path.join(dest_dir, demo),
@@ -50,10 +52,10 @@ if __name__ == "__main__":
     )
     requirements = f"""
     {args.gradio_version}
-    pypistats
-    plotly
-    opencv-python
-    transformers
-    torch
+    pypistats==1.1.0
+    plotly==5.10.0
+    opencv-python==4.6.0.66
+    transformers==4.21.1
+    torch==1.12.1
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

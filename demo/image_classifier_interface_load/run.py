@@ -7,7 +7,7 @@ images = [current_dir / "cheetah1.jpeg", current_dir / "cheetah1.jpg", current_d
 
 
 img_classifier = gr.Interface.load(
-    "models/google/vit-base-patch16-224", examples=images, cache_examples=False
+    "models/google/vit-base-patch16-224", examples=images, cache_examples=True
 )
 
 
