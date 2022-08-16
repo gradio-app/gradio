@@ -20,6 +20,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "interface_random_slider",
         "interface_series_load",
         "kitchen_sink",
+        "matrix_transpose",
         "model3D",
         "reverse_audio",
         "sst_or_tts",
