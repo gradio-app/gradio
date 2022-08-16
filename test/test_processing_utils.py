@@ -6,6 +6,7 @@ import unittest
 from copy import deepcopy
 from unittest.mock import patch
 
+import ffmpy
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -160,7 +161,11 @@ def test_convert_video_to_playable_mp4(test_file_dir):
         assert gr.processing_utils.video_is_playable(playable_vid)
 
 
-@patch("ffmpy.FFmpeg.run", side_effect=Exception)
+def raise_ffmpy_runtime_exception():
+    raise ffmpy.FFRuntimeError("", "", "", "")
+
+
+@patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
 def test_video_conversion_returns_original_video_if_fails(mock_run, test_file_dir):
     with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
         shutil.copy(

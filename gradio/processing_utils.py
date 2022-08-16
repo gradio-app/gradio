@@ -11,7 +11,7 @@ from io import BytesIO
 
 import numpy as np
 import requests
-from ffmpy import FFmpeg
+from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps
 
 from gradio import encryptor
@@ -538,21 +538,12 @@ def video_is_playable(video_filepath: str) -> bool:
     """
     try:
         container = pathlib.Path(video_filepath).suffix.lower()
-        output = subprocess.run(
-            [
-                "ffprobe",
-                "-show_format",
-                "-show_streams",
-                "-select_streams",
-                "v",
-                "-print_format",
-                "json",
-                video_filepath,
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+        probe = FFprobe(
+            global_options="-show_format -show_streams -select_streams v -print_format json",
+            inputs={video_filepath: None},
         )
-        output = json.loads(output.stdout)
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        output = json.loads(output[0])
         video_codec = output["streams"][0]["codec_name"]
         return (container, video_codec) in [
             (".mp4", "h264"),
@@ -560,7 +551,7 @@ def video_is_playable(video_filepath: str) -> bool:
             (".webm", "vp9"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
-    except Exception:
+    except FFRuntimeError:
         return True
 
 
@@ -577,6 +568,7 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
                 global_options="-y -loglevel quiet",
             )
             ff.run()
-    except:
+    except FFRuntimeError as e:
+        print(f"Error converting video to browser-playable format {str(e)}")
         output_path = video_path
     return str(output_path)

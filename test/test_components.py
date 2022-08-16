@@ -1921,8 +1921,12 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         bad_vid = str(test_file_dir / "bad_video_sample.mp4")
         assert not processing_utils.video_is_playable(bad_vid)
         shutil.copy(bad_vid, tmp_not_playable_vid.name)
-        playable_vid = gr.Video().postprocess(tmp_not_playable_vid.name)
-        assert processing_utils.video_is_playable(playable_vid["name"])
+        _ = gr.Video().postprocess(tmp_not_playable_vid.name)
+        # The original video gets converted to .mp4 format
+        full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
+            ".mp4"
+        )
+        assert processing_utils.video_is_playable(full_path_to_output)
 
     # This file has a playable codec but not a playable container
     with tempfile.NamedTemporaryFile(
@@ -1931,8 +1935,11 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
         assert not processing_utils.video_is_playable(bad_vid)
         shutil.copy(bad_vid, tmp_not_playable_vid.name)
-        playable_vid = gr.Video().postprocess(tmp_not_playable_vid.name)
-        assert processing_utils.video_is_playable(playable_vid["name"])
+        _ = gr.Video().postprocess(tmp_not_playable_vid.name)
+        full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
+            ".mp4"
+        )
+        assert processing_utils.video_is_playable(full_path_to_output)
 
 
 if __name__ == "__main__":
