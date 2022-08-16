@@ -277,13 +277,11 @@ class App(FastAPI):
         # TODO: remove prints
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
-            print("Connection Accepted")
             await websocket.accept()
             event = Event(websocket)
             e_hash = await event.get_message()
             if e_hash is None:
                 return
-            print(f"Event Body Received: {e_hash}")
             event.hash = e_hash["hash"]
             rank = Queue.push(event)
             estimation = Queue.get_estimation()

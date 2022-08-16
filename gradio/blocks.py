@@ -7,6 +7,7 @@ import os
 import random
 import sys
 import time
+import warnings
 import webbrowser
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
@@ -330,7 +331,7 @@ class Blocks(BlockContext):
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
-        self.enable_queue = False
+        self.enable_queue = None
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -768,28 +769,32 @@ class Blocks(BlockContext):
         self.children = []
         return self
 
-    def configure_queue(
+    @document()
+    def queue(
         self,
-        live_queue_updates: bool = True,
         concurrency_count: int = 1,
-        data_gathering_start: int = 30,
-        update_intervals: int = 5,
-        duration_history_size: int = 100,
+        status_update_rate: float | str = "auto",
+        client_position_to_load_data: int = 30,
+        default_enabled: bool = True,
     ):
         """
+        You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
         Parameters:
-            live_queue_updates: If true, Queue will send estimations to clients whenever a job is finished. Otherwise will send estimations periodically, might be preferred when events have very short process-times.
-            concurrency_count: Number of max number concurrent jobs inside the Queue.
-            data_gathering_start: If Rank<Parameter, Queue asks for data from the client. You may make it smaller if users can send very big sized data (video or such) to not overflow the memory.
-            update_intervals: Queue will send estimations to the clients in intervals=update_intervals when live_queue_updates==false
-            duration_history_size: Queue duration estimation calculation window size.
+            concurrency_count: Number of worker threads that will be processing requests concurrently.
+            status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
+            client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
+            default_enabled: If True, all event listeners will use queueing by default.
+        Example:
+            demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
+            demo.queue(concurrency_count=3)
+            demo.launch()
         """
+        self.enable_queue = default_enabled
         event_queue.Queue.configure_queue(
-            live_queue_updates,
-            concurrency_count,
-            data_gathering_start,
-            update_intervals,
-            duration_history_size,
+            live_updates=status_update_rate == "auto",
+            concurrency_count=concurrency_count,
+            data_gathering_start=client_position_to_load_data,
+            update_intervals=status_update_rate if status_update_rate != "auto" else 1,
         )
         return self
 
@@ -834,7 +839,7 @@ class Blocks(BlockContext):
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
-            enable_queue: if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
@@ -870,10 +875,16 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        if self.is_space and enable_queue is None:
+        if enable_queue is not None:
+            self.enable_queue = enable_queue
+            warnings.warn(
+                "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
+                DeprecationWarning,
+            )
+        if self.is_space and self.enable_queue is None:
             self.enable_queue = True
-        else:
-            self.enable_queue = enable_queue or False
+        if self.enable_queue is None:
+            self.enable_queue = False
         utils.run_coro_in_background(self.create_limiter, max_threads)
         self.config = self.get_config_file()
         self.share = share

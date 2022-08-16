@@ -31,31 +31,29 @@ class Queue:
     ACTIVE_JOBS: List[None | Event] = [None]
     DELETE_LOCK = asyncio.Lock()
     SERVER_PATH = None
-    DURATION_HISTORY_SIZE = 100
-    DURATION_HISTORY = []
+    DURATION_HISTORY_TOTAL = 0
+    DURATION_HISTORY_COUNT = 0
     AVG_PROCESS_TIME = None
     AVG_CONCURRENT_PROCESS_TIME = None
     QUEUE_DURATION = 1
-    LIVE_QUEUE_UPDATES = True
+    LIVE_UPDATES = True
     SLEEP_WHEN_FREE = 0.001
 
     @classmethod
     def configure_queue(
         cls,
-        live_queue_updates: bool,
-        queue_concurrency_count: int,
+        live_updates: bool,
+        concurrency_count: int,
         data_gathering_start: int,
         update_intervals: int,
-        duration_history_size: int,
     ):
         """
         See Blocks.configure_queue() docstring for the explanation of parameters.
         """
-        cls.LIVE_QUEUE_UPDATES = live_queue_updates
-        cls.MAX_THREAD_COUNT = queue_concurrency_count
+        cls.LIVE_UPDATES = live_updates
+        cls.MAX_THREAD_COUNT = concurrency_count
         cls.DATA_GATHERING_STARTS_AT = data_gathering_start
         cls.UPDATE_INTERVALS = update_intervals
-        cls.DURATION_HISTORY_SIZE = duration_history_size
         cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
 
     @classmethod
@@ -67,7 +65,7 @@ class Queue:
         cls,
     ) -> None:
         run_coro_in_background(Queue.start_processing)
-        if not cls.LIVE_QUEUE_UPDATES:
+        if not cls.LIVE_UPDATES:
             run_coro_in_background(Queue.notify_clients)
 
     @classmethod
@@ -86,7 +84,6 @@ class Queue:
                 count += 1
         return count
 
-    # TODO: Remove prints
     @classmethod
     async def start_processing(cls) -> None:
         while not cls.STOP:
@@ -94,17 +91,13 @@ class Queue:
                 await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
 
-            print("Searching for inactive job slots")
             if not (None in cls.ACTIVE_JOBS):
-                print("All threads busy")
                 await asyncio.sleep(1)
                 continue
 
             # Using mutex to avoid editing a list in use
             async with cls.DELETE_LOCK:
-                print("Start Processing, found inactive job slot, now popping event")
                 event = cls.EVENT_QUEUE.pop(0)
-                print(f"Start Processing, found event, popped event: {event}")
 
             cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
             run_coro_in_background(cls.process_event, event)
@@ -142,7 +135,7 @@ class Queue:
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
         await cls.gather_data_for_first_ranks()
-        if cls.LIVE_QUEUE_UPDATES:
+        if cls.LIVE_UPDATES:
             await cls.broadcast_estimations()
 
     @classmethod
@@ -182,7 +175,6 @@ class Queue:
         """
         while not cls.STOP:
             await asyncio.sleep(cls.UPDATE_INTERVALS)
-            print(f"Event Queue: {cls.EVENT_QUEUE}")
             if cls.EVENT_QUEUE:
                 await cls.broadcast_estimations()
 
@@ -230,15 +222,11 @@ class Queue:
         Parameters:
             duration:
         """
-        cls.DURATION_HISTORY.append(duration)
-        if len(cls.DURATION_HISTORY) > cls.DURATION_HISTORY_SIZE:
-            cls.DURATION_HISTORY.pop(0)
-        duration_history_size = len(cls.DURATION_HISTORY)
-        cls.AVG_PROCESS_TIME = round(
-            sum(cls.DURATION_HISTORY) / duration_history_size, 2
-        )
-        cls.AVG_CONCURRENT_PROCESS_TIME = round(
-            cls.AVG_PROCESS_TIME / min(cls.MAX_THREAD_COUNT, duration_history_size), 2
+        cls.DURATION_HISTORY_TOTAL += duration
+        cls.DURATION_HISTORY_COUNT += 1
+        cls.AVG_PROCESS_TIME = cls.DURATION_HISTORY_TOTAL / cls.DURATION_HISTORY_COUNT
+        cls.AVG_CONCURRENT_PROCESS_TIME = cls.AVG_PROCESS_TIME / min(
+            cls.MAX_THREAD_COUNT, cls.DURATION_HISTORY_COUNT
         )
         cls.QUEUE_DURATION = cls.AVG_CONCURRENT_PROCESS_TIME * len(cls.EVENT_QUEUE)
 
@@ -258,7 +246,6 @@ class Queue:
         if not client_awake:
             cls.clean_job(event)
             return
-        print(f"Process starts for event: {event.hash}")
         begin_time = time.time()
         response = await Request(
             method=Request.Method.POST,

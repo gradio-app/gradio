@@ -42,7 +42,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-@document("launch", "load", "from_pipeline", "integrate")
+@document("launch", "load", "from_pipeline", "integrate", "queue")
 class Interface(Blocks):
     """
     Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo
