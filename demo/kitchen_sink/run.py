@@ -153,7 +153,7 @@ demo = gr.Interface(
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
-    cache_examples=False
+    cache_examples=True
 )
 
 if __name__ == "__main__":

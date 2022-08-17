@@ -34,8 +34,9 @@ class SimpleSerializable(Serializable):
         """
         Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
         Parameters:
-            x: Input to interface
-            called_directly: if True, the component is part of an Interface/Blocks was called as a function, otherwise, it is being used via the GUI
+            x: Input data to serialize
+            load_dir: Ignored
+            encryption_key: Ignored
         """
         return x
 
@@ -44,6 +45,10 @@ class SimpleSerializable(Serializable):
     ):
         """
         Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
+        Parameters:
+            x: Input data to deserialize
+            save_dir: Ignored
+            encryption_key: Ignored
         """
         return x
 
@@ -55,6 +60,10 @@ class ImgSerializable(Serializable):
         """
         Convert from human-friendly version of a file (string filepath) to a seralized
         representation (base64).
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+            encryption_key: Used to encrypt the file
         """
         if x is None or x == "":
             return None
@@ -68,6 +77,10 @@ class ImgSerializable(Serializable):
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by save_dir
+        Parameters:
+            x: Base64 representation of image to deserialize into a string filepath
+            save_dir: Path to directory to save the deserialized image to
+            encryption_key: Used to decrypt the file
         """
         if x is None or x == "":
             return None
@@ -84,6 +97,10 @@ class FileSerializable(Serializable):
         """
         Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+            encryption_key: Used to encrypt the file
         """
         if x is None or x == "":
             return None
@@ -102,6 +119,10 @@ class FileSerializable(Serializable):
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
+        Parameters:
+            x: Base64 representation of file to deserialize into a string filepath
+            save_dir: Path to directory to save the deserialized file to
+            encryption_key: Used to decrypt the file
         """
         if x is None:
             return None
@@ -121,8 +142,11 @@ class JSONSerializable(Serializable):
         """
         Convert from a a human-friendly version (string path to json file) to a
         serialized representation (json string)
+        Parameters:
+            x: String path to json file to read to get json string
+            load_dir: Path to directory containing x
+            encryption_key: Ignored
         """
-        # Write a temporary json file from a dict
         if x is None or x == "":
             return None
         return processing_utils.file_to_json(os.path.join(load_dir, x))
@@ -136,6 +160,10 @@ class JSONSerializable(Serializable):
         """
         Convert from serialized representation (json string) to a human-friendly
         version (string path to json file).  Optionally, save the file to the directory specified by `save_dir`
+        Parameters:
+            x: Json string
+            save_dir: Path to save the deserialized json file to
+            encryption_key: Ignored
         """
         if x is None:
             return None
