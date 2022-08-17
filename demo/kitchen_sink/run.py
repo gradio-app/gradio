@@ -151,10 +151,9 @@ demo = gr.Interface(
     * 3,
     theme="default",
     title="Kitchen Sink",
-    cache_examples=False,
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
-    cache_examples=True
+    cache_examples=False
 )
 
 if __name__ == "__main__":
