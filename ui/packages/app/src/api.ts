@@ -1,4 +1,10 @@
-import type { LoadingStatusCollection } from "./stores";
+type LoadingStatus = {
+	update: Function;
+	register: Function;
+	subscribe: Function;
+	get_status_for_fn: Function;
+	get_inputs_to_update: Function;
+};
 
 type StatusResponse =
 	| {
@@ -77,7 +83,7 @@ export const fn =
 		backend_fn: boolean;
 		frontend_fn: Function | undefined;
 		output_data?: Output["data"];
-		loading_status: LoadingStatusCollection;
+		loading_status: LoadingStatus;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
