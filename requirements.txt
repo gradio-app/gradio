@@ -19,3 +19,4 @@ Jinja2
 fsspec
 httpx
 pydantic
+websockets
