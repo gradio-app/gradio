@@ -1,4 +1,4 @@
-import { LoadingStatusCollection } from "./stores";
+import type { LoadingStatusCollection } from "./stores";
 
 type StatusResponse =
 	| {
