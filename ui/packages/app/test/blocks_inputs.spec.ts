@@ -27,18 +27,20 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_inputs");
-	await mock_api(page, [["hello world"]]);
+	await mock_api(page, [["hi dawood"]]);
 	await page.goto("http://localhost:3000");
 
-	const textbox = await page.locator("label:has-text('Input')");
-	const button = await page.locator("button");
+	const textboxOne = await page.locator("label:has-text('Input')").first();
+	const textboxTwo = await page.locator("label:has-text('Input')").last();
+	const submit = await page.locator("Submit");
 
-	await textbox.fill("hello world");
-	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
+	await textboxOne.fill("hi");
+	await textboxTwo.fill("dawood");
+	await Promise.all([submit.click(), page.waitForResponse("**/api/predict/")]);
 	await expect(
 		await page.inputValue("label:has-text('Output-Interactive')")
-	).toEqual("hello world");
+	).toEqual("hi dawood");
 	await expect(await page.inputValue("label:has-text('Input')")).toEqual(
-		"hello world"
+		"hi dawood"
 	);
 });
