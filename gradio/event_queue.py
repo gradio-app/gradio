@@ -48,7 +48,7 @@ class Queue:
         update_intervals: int,
     ):
         """
-        See Blocks.configure_queue() docstring for the explanation of parameters.
+        See Blocks.queue() docstring for the explanation of parameters.
         """
         cls.LIVE_UPDATES = live_updates
         cls.MAX_THREAD_COUNT = concurrency_count
@@ -296,7 +296,7 @@ class Event:
         except:
             return False
 
-    async def get_message(self) -> (json, bool):
+    async def get_message(self) -> Optional[json]:
         try:
             data = await self.websocket.receive_json()
             return data
