@@ -103,8 +103,8 @@ class SimpleCSVLogger(FlaggingCallback):
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
-            writer.writerow(csv_data)
+            writer = csv.writer(csvfile)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         with open(log_filepath, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
@@ -188,8 +188,8 @@ class CSVLogger(FlaggingCallback):
             flag_col_index = header.index("flag")
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
-            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
-            writer.writerows(content)
+            writer = csv.writer(output)
+            writer.writerows(utils.sanitize_list_for_csv(content))
             return output.getvalue()
 
         if self.encryption_key:
@@ -204,11 +204,11 @@ class CSVLogger(FlaggingCallback):
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
                     output.write(file_content)
-            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
+            writer = csv.writer(output)
             if flag_index is None:
                 if is_new:
-                    writer.writerow(headers)
-                writer.writerow(csv_data)
+                    writer.writerow(utils.sanitize_list_for_csv(headers))
+                writer.writerow(utils.sanitize_list_for_csv(csv_data))
             with open(log_filepath, "wb", encoding="utf-8") as csvfile:
                 csvfile.write(
                     encryptor.encrypt(self.encryption_key, output.getvalue().encode())
@@ -216,12 +216,10 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
-                    writer = csv.writer(
-                        csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
-                    )
+                    writer = csv.writer(csvfile)
                     if is_new:
-                        writer.writerow(headers)
-                    writer.writerow(csv_data)
+                        writer.writerow(utils.sanitize_list_for_csv(headers))
+                    writer.writerow(utils.sanitize_list_for_csv(csv_data))
             else:
                 with open(log_filepath, encoding="utf-8") as csvfile:
                     file_content = csvfile.read()
@@ -229,7 +227,7 @@ class CSVLogger(FlaggingCallback):
                 with open(
                     log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(file_content)
+                    csvfile.write(utils.sanitize_list_for_csv(file_content))
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
@@ -353,7 +351,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     "_type": "Value",
                 }
 
-                writer.writerow(headers)
+                writer.writerow(utils.sanitize_list_for_csv(headers))
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
@@ -369,7 +367,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
             csv_data.append(flag_option if flag_option is not None else "")
-            writer.writerow(csv_data)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
