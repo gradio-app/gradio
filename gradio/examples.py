@@ -168,10 +168,14 @@ class Examples:
             self.processed_examples = [
                 [
                     component.postprocess(sample)
-                    for component, sample in zip(inputs_with_examples, example)
+                    for component, sample in zip(inputs, example)
                 ]
-                for example in non_none_examples
+                for example in examples
             ]
+        self.non_none_processed_examples = [
+            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
+            for example in self.processed_examples
+        ]
 
         self.dataset = Dataset(
             components=inputs_with_examples,
@@ -191,7 +195,7 @@ class Examples:
 
         async def load_example(example_id):
             if self.cache_examples:
-                processed_example = self.processed_examples[
+                processed_example = self.non_none_processed_examples[
                     example_id
                 ] + await self.load_from_cache(example_id)
             else:
@@ -226,7 +230,7 @@ class Examples:
                     shutil.rmtree(self.cached_folder)
                     raise e
 
-    async def predict_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
+    async def predict_example(self, example_id: int) -> List[Any]:
         """Loads an example from the interface and returns its prediction.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
@@ -235,7 +239,7 @@ class Examples:
         if not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])
-                for i, input_component in enumerate(self.inputs)
+                for i, input_component in enumerate(self.inputs_with_examples)
             ]
         if inspect.iscoroutinefunction(self.fn):
             predictions = await self.fn(*processed_input)
