@@ -2,13 +2,16 @@ import base64
 import json
 import mimetypes
 import os
+import pathlib
 import shutil
+import subprocess
 import tempfile
 import warnings
 from io import BytesIO
 
 import numpy as np
 import requests
+from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps
 
 from gradio import encryptor
@@ -573,3 +576,53 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     image = _scale(image, 8 * itemsize_in, 8 * itemsize_out, copy=False)
     image += imin_out
     return image.astype(dtype_out)
+
+
+def ffmpeg_installed() -> bool:
+    return shutil.which("ffmpeg") is not None
+
+
+def video_is_playable(video_filepath: str) -> bool:
+    """Determines if a video is playable in the browser.
+
+    A video is playable if it has a playable container and codec.
+        .mp4 -> h264
+        .webm -> vp9
+        .ogg -> theora
+    """
+    try:
+        container = pathlib.Path(video_filepath).suffix.lower()
+        probe = FFprobe(
+            global_options="-show_format -show_streams -select_streams v -print_format json",
+            inputs={video_filepath: None},
+        )
+        output = probe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        output = json.loads(output[0])
+        video_codec = output["streams"][0]["codec_name"]
+        return (container, video_codec) in [
+            (".mp4", "h264"),
+            (".ogg", "theora"),
+            (".webm", "vp9"),
+        ]
+    # If anything goes wrong, assume the video can be played to not convert downstream
+    except FFRuntimeError:
+        return True
+
+
+def convert_video_to_playable_mp4(video_path: str) -> str:
+    """Convert the video to mp4. If something goes wrong return the original video."""
+    try:
+        output_path = pathlib.Path(video_path).with_suffix(".mp4")
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            shutil.copy2(video_path, tmp_file.name)
+            # ffmpeg will automatically use h264 codec (playable in browser) when converting to mp4
+            ff = FFmpeg(
+                inputs={str(tmp_file.name): None},
+                outputs={str(output_path): None},
+                global_options="-y -loglevel quiet",
+            )
+            ff.run()
+    except FFRuntimeError as e:
+        print(f"Error converting video to browser-playable format {str(e)}")
+        output_path = video_path
+    return str(output_path)

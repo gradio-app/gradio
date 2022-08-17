@@ -1498,7 +1498,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     """
-    Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
+    combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
+    that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
+    If the conversion fails, the original video is returned.
     Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
@@ -1619,7 +1623,11 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """Generates a random video for testing the API."""
         return deepcopy(media_data.BASE64_VIDEO)
 
+<<<<<<< HEAD
     def postprocess(self, y: str | None) -> Dict[str, str] | None:
+=======
+    def postprocess(self, y: str) -> Optional[Dict[str, str]]:
+>>>>>>> main
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
@@ -1633,6 +1641,14 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             return None
 
         returned_format = y.split(".")[-1].lower()
+        if (
+            processing_utils.ffmpeg_installed()
+            and not processing_utils.video_is_playable(y)
+        ):
+            warnings.warn(
+                "Video does not have browser-compatible container or codec. Converting to mp4"
+            )
+            y = processing_utils.convert_video_to_playable_mp4(y)
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
