@@ -1,0 +1,57 @@
+name: Deploy to Spaces
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy-current-pr:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+    - name: Install pip
+      run: python -m pip install pip wheel requests
+    - name: Get PR Number
+      run: |
+        python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+        echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_ENV
+    - name: Build and publish pr package
+      run: | 
+        export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+        export AWS_DEFAULT_REGION=us-east-1
+        echo ${{ env.GRADIO_VERSION }} > gradio/version.txt
+        cd ui
+        pnpm i
+        pnpm build
+        cd ..
+        python3 setup.py bdist_wheel
+        aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ github.sha  }}/
+    - name: Install Hub Client Library
+      run: pip install huggingface-hub==0.8.1
+    - name: Set up Demos
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+    - name: Upload kitchen sink to spaces
+      run: |
+        python scripts/upload_demo_to_space.py all_demos \
+        gradio-pr-deploys/pr-${{ env.PR_NUMBER }}-all-demos \
+        ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+        --gradio-version ${{ env.GRADIO_VERSION }} > url.txt
+        echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
+    - name: Comment On Release PR
+      uses: thollander/actions-comment-pull-request@v1
+      with:
+        message: |
+          All the demos for this PR have been deployed at ${{ env.SPACE_URL }}
+        comment_includes: All the demos for this PR have been deployed at
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
