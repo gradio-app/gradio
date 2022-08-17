@@ -1623,11 +1623,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """Generates a random video for testing the API."""
         return deepcopy(media_data.BASE64_VIDEO)
 
-<<<<<<< HEAD
     def postprocess(self, y: str | None) -> Dict[str, str] | None:
-=======
-    def postprocess(self, y: str) -> Optional[Dict[str, str]]:
->>>>>>> main
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
