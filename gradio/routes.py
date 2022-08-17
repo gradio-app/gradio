@@ -274,7 +274,6 @@ class App(FastAPI):
                     )
             return await run_predict(body=body, username=username)
 
-        # TODO: remove prints
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
             await websocket.accept()
