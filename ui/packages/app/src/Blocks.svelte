@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 
 	import { component_map } from "./components/directory";
-	import { loading_status, app_state, LoadingStatusCollection } from "./stores";
+	import { create_loading_status_store, app_state, LoadingStatusCollection } from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -32,6 +32,7 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	let app_mode = window.__gradio_mode__ === "app";
+	let loading_status = create_loading_status_store();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -237,7 +238,8 @@
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].props.value)
 						},
-						queue: queue === null ? enable_queue : queue
+						queue: queue === null ? enable_queue : queue,
+						loading_status: loading_status
 					})
 						.then((output) => {
 							(output as { data: unknown[] }).data.forEach((value, i) => {
@@ -274,6 +276,7 @@
 					([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
+
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
 							}
@@ -288,7 +291,8 @@
 									data: inputs.map((id) => instance_map[id].props.value)
 								},
 								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue
+								queue: queue === null ? enable_queue : queue,
+								loading_status: loading_status
 							})
 								.then((output) => {
 									(output as { data: unknown[] }).data.forEach((value, i) => {
@@ -341,9 +345,6 @@
 	});
 
 	function set_status(statuses: LoadingStatusCollection) {
-		if (window.__gradio_mode__ === "website") {
-			return;
-		}
 		for (const id in statuses) {
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];

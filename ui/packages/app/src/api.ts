@@ -1,4 +1,4 @@
-import { loading_status } from "./stores";
+import { LoadingStatusCollection } from "./stores";
 
 type StatusResponse =
 	| {
@@ -68,7 +68,8 @@ export const fn =
 		queue,
 		backend_fn,
 		frontend_fn,
-		output_data
+		output_data,
+		loading_status
 	}: {
 		action: string;
 		payload: Payload;
@@ -76,6 +77,7 @@ export const fn =
 		backend_fn: boolean;
 		frontend_fn: Function | undefined;
 		output_data?: Output["data"];
+		loading_status: LoadingStatusCollection;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
