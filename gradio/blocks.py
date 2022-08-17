@@ -10,16 +10,7 @@ import time
 import warnings
 import webbrowser
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AnyStr,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
 import requests
