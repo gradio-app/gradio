@@ -28,8 +28,9 @@ from gradio.utils import (
     ipython_check,
     launch_analytics,
     readme_to_html,
+    sanitize_list_for_csv,
+    sanitize_value_for_csv,
     version_check,
-    sanitize_for_csv    
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -411,12 +412,25 @@ async def test_validate_and_fail_with_function(respx_mock):
     assert client_response.exception is not None
 
 
-class TestSanitizeForCSV():
-    def test_unsafe():
-        assert sanitize_for_csv('=1+2";=1+2') == '"\'=1+2"";=1+2"'
+class TestSanitizeForCSV:
+    def test_unsafe_value(self):
+        assert sanitize_value_for_csv("=OPEN()") == "'=OPEN()"
+        assert sanitize_value_for_csv("=1+2") == "'=1+2"
+        assert sanitize_value_for_csv('=1+2";=1+2') == "'=1+2\";=1+2"
 
-    def test_safe():
-        assert sanitize_for_csv("1aaa2") == '"\'1aaa2"'
+    def test_safe_value(self):
+        assert sanitize_value_for_csv(4) == 4
+        assert sanitize_value_for_csv(-44.44) == -44.44
+        assert sanitize_value_for_csv("1+1=2") == "1+1=2"
+        assert sanitize_value_for_csv("1aaa2") == "1aaa2"
+
+    def test_list(self):
+        assert sanitize_list_for_csv([4, "def=", "=gh+ij"]) == [4, "def=", "'=gh+ij"]
+        assert sanitize_list_for_csv(
+            [["=abc", "def", "gh,+ij"], ["abc", "=def", "+ghij"]]
+        ) == [["'=abc", "def", "'gh,+ij"], ["abc", "'=def", "'+ghij"]]
+        assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
+
 
 if __name__ == "__main__":
     unittest.main()
