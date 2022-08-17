@@ -36,6 +36,7 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/zebra.jpg")],
     ],
 )
+demo.queue()
 
 if __name__ == "__main__":
-    demo.launch(enable_queue=True)
+    demo.launch()
