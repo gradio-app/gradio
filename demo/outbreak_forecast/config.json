@@ -1,5 +1,5 @@
 {
-  "version": "3.1.1\n",
+  "version": "3.1.4",
   "mode": "interface",
   "dev_mode": true,
   "components": [
@@ -358,14 +358,32 @@
       "show_progress": true,
       "documentation": [
         [
-          null,
-          null,
-          null,
-          null,
-          null
+          [
+            "selected choice",
+            "str"
+          ],
+          [
+            "numeric input",
+            "float"
+          ],
+          [
+            "selected choice",
+            "str"
+          ],
+          [
+            "list of selected choices",
+            "List[str]"
+          ],
+          [
+            "boolean input",
+            "bool"
+          ]
         ],
         [
-          null
+          [
+            "plot type mapped to plot base64 data",
+            "Dict[str, str] | None"
+          ]
         ]
       ]
     },

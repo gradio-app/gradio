@@ -9,8 +9,8 @@
       "props": {
         "lines": 1,
         "max_lines": 20,
-        "value": "Frank",
-        "label": "Name",
+        "value": "",
+        "label": "Input-Output",
         "show_label": true,
         "name": "textbox",
         "visible": true,
@@ -19,14 +19,11 @@
     },
     {
       "id": 2,
-      "type": "textbox",
+      "type": "button",
       "props": {
-        "lines": 1,
-        "max_lines": 20,
-        "value": "",
-        "label": "Output",
-        "show_label": true,
-        "name": "textbox",
+        "value": "Run",
+        "variant": "secondary",
+        "name": "button",
         "visible": true,
         "style": {}
       }
@@ -49,16 +46,18 @@
   },
   "dependencies": [
     {
-      "targets": [],
-      "trigger": "load",
+      "targets": [
+        2
+      ],
+      "trigger": "click",
       "inputs": [
         1
       ],
       "outputs": [
-        2
+        1
       ],
       "backend_fn": true,
-      "js": false,
+      "js": null,
       "status_tracker": null,
       "queue": null,
       "api_name": null,

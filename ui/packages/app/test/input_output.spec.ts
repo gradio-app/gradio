@@ -26,7 +26,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 }
 
 test("a component acts as both input and output", async ({ page }) => {
-	await mock_demo(page, "input-output");
+	await mock_demo(page, "input_output");
 	await mock_api(page, [["tset"]]);
 	await page.goto("http://localhost:3000");
 

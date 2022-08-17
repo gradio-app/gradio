@@ -1,5 +1,5 @@
 {
-  "version": "3.0.6",
+  "version": "3.1.4",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -76,6 +76,7 @@
   ],
   "theme": "default",
   "css": null,
+  "title": "Gradio",
   "enable_queue": false,
   "layout": {
     "id": 0,
@@ -118,7 +119,10 @@
       "backend_fn": true,
       "js": null,
       "status_tracker": null,
-      "queue": null
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     }
   ]
 }
