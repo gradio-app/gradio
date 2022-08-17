@@ -3,7 +3,11 @@
 	import { _ } from "svelte-i18n";
 
 	import { component_map } from "./components/directory";
-	import { create_loading_status_store, app_state, LoadingStatusCollection } from "./stores";
+	import {
+		create_loading_status_store,
+		app_state,
+		LoadingStatusCollection
+	} from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -276,7 +280,6 @@
 					([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
-
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
 							}
