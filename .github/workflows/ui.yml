@@ -53,7 +53,7 @@ jobs:
           node-version: 16
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
-      - run: pnpm exec pip install -r ../requirements.txt
+      - run: pip install -r ../requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm build
