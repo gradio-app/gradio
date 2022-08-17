@@ -132,7 +132,7 @@ With `Blocks`:
 with gr.Blocks() as demo:
     #...
 demo.queue()
-demo.launch(enable_queue=True)
+demo.launch()
 ```
 
 You can control the number of requests processsed at a single time as such:

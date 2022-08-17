@@ -10,7 +10,7 @@ import time
 import warnings
 import webbrowser
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple, Literal
 
 import anyio
 import requests
@@ -773,7 +773,7 @@ class Blocks(BlockContext):
     def queue(
         self,
         concurrency_count: int = 1,
-        status_update_rate: float | str = "auto",
+        status_update_rate: float | Literal["auto"] = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
     ):
