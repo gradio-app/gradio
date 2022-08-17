@@ -73,7 +73,7 @@ def fn(
             (".", 0),
         ]
         + [(f"test", x / 10) for x in range(-10, 10)],  # HighlightedText
-        json.loads(JSONOBJ),  # JSONåå
+        json.loads(JSONOBJ),  # JSON
         "<button style='background-color: red'>Click Me: "
         + radio
         + "</button>",  # HTML
