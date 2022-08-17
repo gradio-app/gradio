@@ -37,7 +37,7 @@ test("renders the correct elements", async ({ page }) => {
 	await textboxOne.fill("hi");
 	await textboxTwo.fill("dawood");
 	await Promise.all([submit.click(), page.waitForResponse("**/api/predict/")]);
-	await expect(
-		await page.inputValue("label:has-text('Output')")
-	).toEqual("hi dawood");
+	await expect(await page.inputValue("label:has-text('Output')")).toEqual(
+		"hi dawood"
+	);
 });
