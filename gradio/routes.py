@@ -285,6 +285,8 @@ class App(FastAPI):
             rank = Queue.push(event)
             if rank is None:
                 await event.send_message({"msg": "queue_full"})
+                await event.disconnect()
+                return
             estimation = Queue.get_estimation()
             await Queue.send_estimation(event, estimation, rank)
             while True:

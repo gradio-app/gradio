@@ -107,9 +107,9 @@ class Queue:
             run_coro_in_background(cls.gather_data_and_broadcast_estimations)
 
     @classmethod
-    def push(cls, event: Event) -> int:
+    def push(cls, event: Event) -> int | None:
         """
-        Add event to queue
+        Add event to queue, or return None if Queue is full
         Parameters:
             event: Event to add to Queue
         Returns:
