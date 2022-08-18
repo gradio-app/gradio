@@ -17,7 +17,6 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
-from lib2to3.pgen2.token import OP
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
