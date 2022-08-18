@@ -106,8 +106,9 @@ export const fn =
 
 			var ws_protocol = location.protocol === "https:" ? "wss:" : "ws:";
 			if (is_space) {
-				var ws_path = location.pathname.slice(6, -2); // remove 'embed' from start, '+' from end
-				var ws_host = "spaces.huggingface.tech";
+				const SPACE_REGEX = /embed\/(.*)\/\+/g;
+				var ws_path = (Array.from(api_endpoint.matchAll(SPACE_REGEX)))[0][1];
+				var ws_host = "spaces.huggingface.tech/";
 			} else {
 				var ws_path = location.pathname === "/" ? "" : location.pathname;
 				var ws_host =
