@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from gradio import processing_utils
 
 
 class Serializable(ABC):
-    @abstractclassmethod
+    @abstractmethod
     def serialize(
         self, x: Any, load_dir: str = "", encryption_key: bytes | None = None
     ):
@@ -17,7 +17,7 @@ class Serializable(ABC):
         """
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def deserialize(
         x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
     ):
