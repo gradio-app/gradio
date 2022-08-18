@@ -2758,7 +2758,7 @@ class Dataframe(Changeable, IOComponent):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = MarkdownIt()
+            cls.markdown_parser = MarkdownIt().enable("table")
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -4231,7 +4231,7 @@ class Markdown(IOComponent, Changeable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt()
+        self.md = MarkdownIt().enable("table")
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
         IOComponent.__init__(

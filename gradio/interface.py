@@ -295,7 +295,7 @@ class Interface(Blocks):
                 "typographer": True,
                 "html": True,
             },
-        ).use(footnote_plugin)
+        ).use(footnote_plugin).enable("table")
 
         simple_description = None
         if description is not None:
