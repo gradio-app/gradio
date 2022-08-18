@@ -61,13 +61,14 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
+                "value": None,
                 "style": {},
             },
         },
         {
             "id": 7,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}, "value": None},
         },
         {
             "id": 8,
@@ -105,6 +106,7 @@ XRAY_CONFIG = {
                 "mirror_webcam": True,
                 "show_label": True,
                 "name": "image",
+                "value": None,
                 "visible": True,
                 "style": {},
             },
@@ -112,7 +114,7 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}, "value": None},
         },
         {
             "id": 13,
