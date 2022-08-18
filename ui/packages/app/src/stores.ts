@@ -13,7 +13,7 @@ export interface LoadingStatus {
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
 
-function create_loading_status_store() {
+export function create_loading_status_store() {
 	const store = writable<LoadingStatusCollection>({});
 
 	const fn_inputs: Array<Array<number>> = [];
@@ -128,5 +128,5 @@ function create_loading_status_store() {
 	};
 }
 
-export const loading_status = create_loading_status_store();
+export type LoadingStatusType = ReturnType<typeof create_loading_status_store>;
 export const app_state = writable({ autoscroll: false });

@@ -3,7 +3,11 @@
 	import { _ } from "svelte-i18n";
 
 	import { component_map } from "./components/directory";
-	import { loading_status, app_state, LoadingStatusCollection } from "./stores";
+	import {
+		create_loading_status_store,
+		app_state,
+		LoadingStatusCollection
+	} from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -32,6 +36,7 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	let app_mode = window.__gradio_mode__ === "app";
+	let loading_status = create_loading_status_store();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -247,7 +252,8 @@
 							data: inputs.map((id) => instance_map[id].props.value)
 						},
 						queue: queue === null ? enable_queue : queue,
-						queue_callback: handle_update
+						queue_callback: handle_update,
+						loading_status: loading_status
 					});
 
 					function handle_update(output: any) {
@@ -302,7 +308,8 @@
 								},
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update
+								queue_callback: handle_update,
+								loading_status: loading_status
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {
@@ -357,9 +364,6 @@
 	});
 
 	function set_status(statuses: LoadingStatusCollection) {
-		if (window.__gradio_mode__ === "website") {
-			return;
-		}
 		for (const id in statuses) {
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];
