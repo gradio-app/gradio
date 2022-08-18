@@ -104,7 +104,7 @@ export const fn =
 				ws_map.get(fn).connection.send(JSON.stringify(data));
 			}
 
-			var ws_protocol = location.protocol === "https:" ? "wss:" : "ws:";
+			var ws_protocol = api_endpoint.startsWith("https") ? "wss:" : "ws:";
 			if (is_space) {
 				const SPACE_REGEX = /embed\/(.*)\/\+/g;
 				var ws_path = (Array.from(api_endpoint.matchAll(SPACE_REGEX)))[0][1];
