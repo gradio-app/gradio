@@ -180,7 +180,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
             output = io("I am happy, I love you")
-            self.assertGreater(json.load(open(output))["confidences"]["POSITIVE"], 0.5)
+            assert json.load(open(output))["label"] == "POSITIVE"
         except TooManyRequestsError:
             pass
 
@@ -188,7 +188,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
         try:
             output = io("gradio/test_data/lion.jpg")
-            self.assertGreater(json.load(open(output))["confidences"]["lion"], 0.5)
+            assert json.load(open(output))["label"] == "lion"
         except TooManyRequestsError:
             pass
 
