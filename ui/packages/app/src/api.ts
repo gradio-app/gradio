@@ -103,11 +103,11 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn).connection.send(JSON.stringify(data));
 			}
-
-			var ws_protocol = api_endpoint.startsWith("https") ? "wss:" : "ws:";
+			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
+			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 			if (is_space) {
 				const SPACE_REGEX = /embed\/(.*)\/\+/g;
-				var ws_path = Array.from(api_endpoint.matchAll(SPACE_REGEX))[0][1];
+				var ws_path = Array.from(ws_endpoint.matchAll(SPACE_REGEX))[0][1];
 				var ws_host = "spaces.huggingface.tech/";
 			} else {
 				var ws_path = location.pathname === "/" ? "" : location.pathname;
