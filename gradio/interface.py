@@ -714,6 +714,7 @@ class TabbedInterface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="tabbed_interface",
             css=css,
+            _api_mode=interface_list[0].api_mode,  # TODO: set api_mode per-interface
         )
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]

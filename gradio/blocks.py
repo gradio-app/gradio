@@ -313,6 +313,7 @@ class Blocks(BlockContext):
         mode: str = "blocks",
         title: str = "Gradio",
         css: Optional[str] = None,
+        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -326,7 +327,7 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        self.api_mode = False
+        self.api_mode = _api_mode
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
@@ -631,6 +632,7 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
 
         if not self.api_mode:
             inputs = self.preprocess_data(fn_index, inputs, state)
@@ -641,6 +643,8 @@ class Blocks(BlockContext):
 
         if not self.api_mode:
             predictions = self.postprocess_data(fn_index, predictions, state)
+        elif len(dependency["outputs"]) == 1:
+            predictions = (predictions,)
 
         return {
             "data": predictions,

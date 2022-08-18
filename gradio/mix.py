@@ -116,4 +116,4 @@ class Series(gradio.Interface):
         }
         kwargs.update(options)
         super().__init__(**kwargs)
-        self.api_mode = interfaces[0].api_mode  # TODO: set api_mode per-function
+        self.api_mode = interfaces[0].api_mode  # TODO: set api_mode per-interface
