@@ -17,6 +17,7 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
+from lib2to3.pgen2.token import OP
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
@@ -4289,6 +4290,7 @@ class Dataset(Clickable, Component):
     def __init__(
         self,
         *,
+        label: Optional[str] = None,
         components: List[Component] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
@@ -4309,6 +4311,7 @@ class Dataset(Clickable, Component):
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
+        self.label = label
         if headers is not None:
             self.headers = headers
         elif all([c.label is None for c in self.components]):
@@ -4323,17 +4326,20 @@ class Dataset(Clickable, Component):
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
+            "label": self.label,
             **Component.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        samples: Optional[Any] = None,
         visible: Optional[bool] = None,
+        label: Optional[str] = None,
     ):
         return {
+            "samples": samples,
             "visible": visible,
-            "value": value,
+            "label": label,
             "__type__": "update",
         }
 
