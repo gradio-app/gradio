@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { loading_status } from "./stores";
+import type { LoadingStatusType } from "./stores";
 
 type StatusResponse =
 	| {
@@ -69,7 +69,8 @@ export const fn =
 		backend_fn,
 		frontend_fn,
 		output_data,
-		queue_callback
+		queue_callback,
+		loading_status
 	}: {
 		action: string;
 		payload: Payload;
@@ -78,6 +79,7 @@ export const fn =
 		frontend_fn: Function | undefined;
 		output_data?: Output["data"];
 		queue_callback: Function;
+		loading_status: LoadingStatusType;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
