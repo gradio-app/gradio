@@ -668,9 +668,8 @@ class Blocks(BlockContext):
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,
-            "enable_queue": getattr(
-                self, "enable_queue", False
-            ),  # attribute set at launch
+            "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
+            "show_error": getattr(self, "show_error", False),
         }
         for _id, block in self.blocks.items():
             config["components"].append(

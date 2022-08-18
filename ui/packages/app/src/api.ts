@@ -31,21 +31,24 @@ interface Payload {
 declare let BUILD_MODE: string;
 declare let BACKEND_URL: string;
 
-async function post_data<
-	Return extends Record<string, unknown> = Record<string, unknown>
->(url: string, body: unknown): Promise<Return> {
+interface PostResponse {
+	error?: string;
+	[x: string]: unknown;
+}
+const QUEUE_FULL_MSG = "This application is too busy! Try again soon.";
+
+async function post_data(
+	url: string,
+	body: unknown
+): Promise<[PostResponse, number]> {
 	const response = await fetch(url, {
 		method: "POST",
 		body: JSON.stringify(body),
 		headers: { "Content-Type": "application/json" }
 	});
 
-	if (response.status !== 200) {
-		throw new Error(response.statusText);
-	}
-
-	const output: Return = await response.json();
-	return output;
+	const output: PostResponse = await response.json();
+	return [output, response.status];
 }
 interface UpdateOutput {
 	__type__: string;
@@ -61,7 +64,12 @@ type Output = {
 const ws_map = new Map();
 
 export const fn =
-	(session_hash: string, api_endpoint: string, is_space: boolean) =>
+	(
+		session_hash: string,
+		api_endpoint: string,
+		is_space: boolean,
+		show_error: boolean
+	) =>
 	async ({
 		action,
 		payload,
@@ -95,6 +103,7 @@ export const fn =
 				fn_index as number,
 				"pending",
 				queue,
+				null,
 				null,
 				null,
 				null
@@ -143,8 +152,15 @@ export const fn =
 						send_message(fn_index, payload);
 						break;
 					case "queue_full":
-						alert("Queue full. Try again later.");
-						loading_status.update(fn_index, "error", queue, null, null, null);
+						loading_status.update(
+							fn_index,
+							"error",
+							queue,
+							null,
+							null,
+							null,
+							QUEUE_FULL_MSG
+						);
 						websocket_data.connection.close();
 						break;
 					case "estimation":
@@ -154,7 +170,8 @@ export const fn =
 							queue,
 							data.queue_size,
 							data.rank,
-							data.rank_eta
+							data.rank_eta,
+							null
 						);
 						break;
 					case "process_completed":
@@ -164,7 +181,8 @@ export const fn =
 							queue,
 							null,
 							null,
-							data.output.average_duration
+							data.output.average_duration,
+							null
 						);
 						queue_callback(data.output);
 						websocket_data.connection.close();
@@ -176,6 +194,7 @@ export const fn =
 							queue,
 							data.rank,
 							0,
+							null,
 							null
 						);
 						break;
@@ -188,23 +207,35 @@ export const fn =
 				queue,
 				null,
 				null,
+				null,
 				null
 			);
 
-			const output = await post_data(api_endpoint + action + "/", {
+			var [output, status_code] = await post_data(api_endpoint + action + "/", {
 				...payload,
 				session_hash
 			});
-
-			loading_status.update(
-				fn_index,
-				"complete",
-				queue,
-				null,
-				null,
-				output.average_duration as number
-			);
-
+			if (status_code == 200) {
+				loading_status.update(
+					fn_index,
+					"complete",
+					queue,
+					null,
+					null,
+					output.average_duration as number,
+					null
+				);
+			} else {
+				loading_status.update(
+					fn_index,
+					"error",
+					queue,
+					null,
+					null,
+					null,
+					show_error ? output.error : null
+				);
+			}
 			return output;
 		}
 	};
