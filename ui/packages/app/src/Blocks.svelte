@@ -35,6 +35,7 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
+	export let show_error: boolean = false;
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
@@ -280,10 +281,7 @@
 					}
 
 					if (!(queue === null ? enable_queue : queue)) {
-						req.then(handle_update).catch((error) => {
-							console.error(error);
-							loading_status.update(i, "error", queue || false, 0, 0, 0);
-						});
+						req.then(handle_update);
 					}
 
 					handled_dependencies[i] = [-1];
@@ -313,10 +311,7 @@
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update).catch((error) => {
-									console.error(error);
-									loading_status.update(i, "error", queue || false, 0, 0, 0);
-								});
+								req.then(handle_update);
 							}
 						});
 

@@ -56,6 +56,7 @@
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
+	export let message: string | null = null;
 
 	let el: HTMLDivElement;
 
@@ -150,6 +151,9 @@
 		{/if}
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
+		{#if message}
+			<span class="status-message dark:text-gray-100">{message}</span>
+		{/if}
 	{/if}
 </div>
 
@@ -176,5 +180,9 @@
 
 	.error {
 		@apply text-red-400 font-mono font-semibold text-lg;
+	}
+
+	.status-message {
+		@apply font-mono p-2 whitespace-pre;
 	}
 </style>

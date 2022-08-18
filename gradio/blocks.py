@@ -668,9 +668,8 @@ class Blocks(BlockContext):
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,
-            "enable_queue": getattr(
-                self, "enable_queue", False
-            ),  # attribute set at launch
+            "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
+            "show_error": getattr(self, "show_error", False),
         }
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -776,6 +775,7 @@ class Blocks(BlockContext):
         status_update_rate: float | str = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
+        max_size: Optional[int] = None,
     ):
         """
         You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
@@ -795,6 +795,7 @@ class Blocks(BlockContext):
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
+            max_size=max_size,
         )
         return self
 
