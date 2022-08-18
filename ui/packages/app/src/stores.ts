@@ -7,6 +7,7 @@ export interface LoadingStatus {
 	queue_position: number | null;
 	queue_size: number | null;
 	fn_index: number;
+	message?: string | null;
 	scroll_to_output?: boolean;
 	visible?: boolean;
 }
@@ -30,7 +31,8 @@ export function create_loading_status_store() {
 		queue: LoadingStatus["queue"],
 		size: LoadingStatus["queue_size"],
 		position: LoadingStatus["queue_position"],
-		eta: LoadingStatus["eta"]
+		eta: LoadingStatus["eta"],
+		message: LoadingStatus["message"]
 	) {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
@@ -66,7 +68,8 @@ export function create_loading_status_store() {
 				queue_position: position,
 				queue_size: size,
 				eta: eta,
-				status: new_status
+				status: new_status,
+				message: message
 			};
 		});
 
@@ -88,12 +91,13 @@ export function create_loading_status_store() {
 
 		store.update((outputs) => {
 			outputs_to_update.forEach(
-				({ id, queue_position, queue_size, eta, status }) => {
+				({ id, queue_position, queue_size, eta, status, message }) => {
 					outputs[id] = {
 						queue: queue,
 						queue_size: queue_size,
 						queue_position: queue_position,
 						eta: eta,
+						message,
 						status,
 						fn_index
 					};
