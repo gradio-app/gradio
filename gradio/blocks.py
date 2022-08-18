@@ -332,6 +332,7 @@ class Blocks(BlockContext):
         self.encrypt = False
         self.share = False
         self.enable_queue = None
+        self.max_threads = 40
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -650,9 +651,11 @@ class Blocks(BlockContext):
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    async def create_limiter(self, max_threads: Optional[int]):
+    async def create_limiter(self):
         self.limiter = (
-            None if max_threads is None else CapacityLimiter(total_tokens=max_threads)
+            None
+            if self.max_threads == 40
+            else CapacityLimiter(total_tokens=self.max_threads)
         )
 
     def get_config(self):
@@ -805,7 +808,7 @@ class Blocks(BlockContext):
         share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
-        max_threads: Optional[int] = None,
+        max_threads: int = 40,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         prevent_thread_lock: bool = False,
@@ -881,14 +884,15 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
-        if self.is_space and self.enable_queue is None:
-            self.enable_queue = True
-        if self.enable_queue is None:
-            self.enable_queue = False
-        utils.run_coro_in_background(self.create_limiter, max_threads)
+        if self.is_space:
+            self.enable_queue = enable_queue is not False
+        else:
+            self.enable_queue = enable_queue is True
+
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
+        self.max_threads = max(event_queue.Queue.MAX_THREAD_COUNT, max_threads)
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
@@ -915,15 +919,16 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
 
+            event_queue.Queue.set_url(self.local_url)
+            # Cannot run async functions in background other than app's scope.
+            # Workaround by triggering the app endpoint
+            requests.get(f"{self.local_url}startup-events")
+
             if app.blocks.enable_queue:
                 if app.blocks.auth is not None or app.blocks.encrypt:
                     raise ValueError(
                         "Cannot queue with encryption or authentication enabled."
                     )
-                event_queue.Queue.set_url(self.local_url)
-                # Cannot run async functions in background other than app's scope.
-                # Workaround by triggering the app endpoint
-                requests.get(f"{self.local_url}queue/start")
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
