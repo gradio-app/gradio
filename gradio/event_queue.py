@@ -38,6 +38,7 @@ class Queue:
     QUEUE_DURATION = 1
     LIVE_UPDATES = True
     SLEEP_WHEN_FREE = 0.001
+    MAX_SIZE = None
 
     @classmethod
     def configure_queue(
@@ -46,6 +47,7 @@ class Queue:
         concurrency_count: int,
         data_gathering_start: int,
         update_intervals: int,
+        max_size: Optional[int],
     ):
         """
         See Blocks.queue() docstring for the explanation of parameters.
@@ -55,6 +57,7 @@ class Queue:
         cls.DATA_GATHERING_STARTS_AT = data_gathering_start
         cls.UPDATE_INTERVALS = update_intervals
         cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
+        cls.MAX_SIZE = max_size
 
     @classmethod
     def set_url(cls, url: str):
@@ -112,6 +115,8 @@ class Queue:
         Returns:
             rank of submitted Event
         """
+        if cls.MAX_SIZE is not None and len(cls.EVENT_QUEUE) >= cls.MAX_SIZE:
+            return None
         cls.EVENT_QUEUE.append(event)
         return len(cls.EVENT_QUEUE) - 1
 

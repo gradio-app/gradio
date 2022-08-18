@@ -142,6 +142,11 @@ export const fn =
 					case "send_data":
 						send_message(fn_index, payload);
 						break;
+					case "queue_full":
+						alert("Queue full. Try again later.");
+						loading_status.update(fn_index, "error", queue, null, null, null);
+						websocket_data.connection.close();
+						break;
 					case "estimation":
 						loading_status.update(
 							fn_index,
