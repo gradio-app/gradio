@@ -199,7 +199,7 @@ class Examples:
                     example_id
                 ] + await self.load_from_cache(example_id)
             else:
-                processed_example = self.processed_examples[example_id]
+                processed_example = self.non_none_processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
 
         if Context.root_block:
