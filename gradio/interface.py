@@ -558,6 +558,7 @@ class Interface(Blocks):
                     + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
+                queue=False,
             )
 
             class FlagMethod:
