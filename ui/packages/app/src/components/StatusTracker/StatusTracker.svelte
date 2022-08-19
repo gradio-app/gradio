@@ -183,6 +183,10 @@
 	}
 
 	.status-message {
+<<<<<<< HEAD
 		@apply font-mono p-2 whitespace-pre-wrap;
+=======
+		@apply font-mono p-2 whitespace-pre;
+>>>>>>> origin/main
 	}
 </style>
