@@ -303,13 +303,16 @@ class App(FastAPI):
             return Queue.get_estimation()
 
         @app.get(
-            "/queue/start",
+            "/startup-events",
             dependencies=[Depends(login_check)],
         )
-        async def start_queue():
+        async def startup_events():
             from gradio.utils import run_coro_in_background
 
-            gradio.utils.run_coro_in_background(Queue.init)
+            if app.blocks.enable_queue:
+                gradio.utils.run_coro_in_background(Queue.init)
+            gradio.utils.run_coro_in_background(app.blocks.create_limiter)
+
             return True
 
         return app
