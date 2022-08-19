@@ -288,14 +288,18 @@ class Interface(Blocks):
             cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
 
-        md = MarkdownIt(
-            "js-default",
-            {
-                "linkify": True,
-                "typographer": True,
-                "html": True,
-            },
-        ).use(footnote_plugin)
+        md = (
+            MarkdownIt(
+                "js-default",
+                {
+                    "linkify": True,
+                    "typographer": True,
+                    "html": True,
+                },
+            )
+            .use(footnote_plugin)
+            .enable("table")
+        )
 
         simple_description = None
         if description is not None:
