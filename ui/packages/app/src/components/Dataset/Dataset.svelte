@@ -4,6 +4,7 @@
 	import { component_map } from "./directory";
 
 	export let components: Array<keyof typeof component_map>;
+	export let label: string = "Examples";
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
 	export let elem_id: string = "";
@@ -79,7 +80,7 @@
 				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
 			/></svg
 		>
-		Examples
+		{label}
 	</div>
 	{#if gallery}
 		<div class="gr-samples-gallery">
