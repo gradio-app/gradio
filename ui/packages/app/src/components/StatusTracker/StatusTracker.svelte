@@ -183,6 +183,6 @@
 	}
 
 	.status-message {
-		@apply font-mono p-2 whitespace-pre;
+		@apply font-mono p-2 whitespace-pre-wrap;
 	}
 </style>

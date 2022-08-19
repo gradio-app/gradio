@@ -177,14 +177,16 @@ export const fn =
 					case "process_completed":
 						loading_status.update(
 							fn_index,
-							"complete",
+							data.success ? "complete" : "error",
 							queue,
 							null,
 							null,
 							data.output.average_duration,
-							null
+							!data.success && show_error ? data.output.error : null
 						);
-						queue_callback(data.output);
+						if (data.success) {
+							queue_callback(data.output);
+						}
 						websocket_data.connection.close();
 						break;
 					case "process_starts":
