@@ -1,8 +1,9 @@
+import inspect
 import pathlib
 
 import pytest
+
 import gradio as gr
-import inspect
 
 
 def pytest_configure(config):

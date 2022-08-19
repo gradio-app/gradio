@@ -602,10 +602,8 @@ class Blocks(BlockContext):
                             )
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
-                            prediction_value["value"] = (
-                                block.postprocess(prediction_value["value"])
-                                if prediction_value["value"] is not None
-                                else None
+                            prediction_value["value"] = block.postprocess(
+                                prediction_value["value"]
                             )
                         output_value = prediction_value
                     else:

@@ -68,7 +68,13 @@ XRAY_CONFIG = {
         {
             "id": 7,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}, "value": None},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+                "style": {},
+                "value": None,
+            },
         },
         {
             "id": 8,
@@ -114,7 +120,13 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {"show_label": True, "name": "json", "visible": True, "style": {}, "value": None},
+            "props": {
+                "show_label": True,
+                "name": "json",
+                "visible": True,
+                "style": {},
+                "value": None,
+            },
         },
         {
             "id": 13,
@@ -275,6 +287,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
+                "value": None,
                 "style": {},
             },
         },
@@ -286,6 +299,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "json",
                 "visible": True,
                 "style": {},
+                "value": None,
             },
         },
         {
@@ -326,6 +340,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "value": None,
             },
         },
         {
@@ -335,6 +350,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "json",
                 "visible": True,
+                "value": None,
                 "style": {},
             },
         },

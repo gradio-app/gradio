@@ -239,15 +239,23 @@ def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
 def test_blocks_do_not_filter_none_values_from_updates(io_components):
 
-    io_components = [c() for c in io_components if c is not gr.Variable]
+    io_components = [c() for c in io_components if c not in [gr.Variable, gr.Button]]
     with gr.Blocks() as demo:
         for component in io_components:
             component.render()
         btn = gr.Button(value="Reset")
-        btn.click(lambda: [None] * len(io_components), inputs=[], outputs=io_components)
+        btn.click(
+            lambda: [gr.update(value=None) for _ in io_components],
+            inputs=[],
+            outputs=io_components,
+        )
 
-    output = demo.postprocess_data(0, [gr.update(value=None) for _ in io_components], state=None)
-    assert all([o['value'] is None for o in output])
+    output = demo.postprocess_data(
+        0, [gr.update(value=None) for _ in io_components], state=None
+    )
+    assert all(
+        [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+    )
 
 
 if __name__ == "__main__":
