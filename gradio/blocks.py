@@ -151,7 +151,7 @@ class Block:
             "status_tracker": status_tracker._id
             if status_tracker is not None
             else None,
-            "queue": queue,
+            "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
