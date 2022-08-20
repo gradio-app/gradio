@@ -8,19 +8,21 @@ import random
 import sys
 import tempfile
 import time
+import warnings
 import webbrowser
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
+import requests
 from anyio import CapacityLimiter
 
 from gradio import (
     components,
     encryptor,
+    event_queue,
     external,
     networking,
-    queueing,
     routes,
     strings,
     utils,
@@ -151,7 +153,7 @@ class Block:
             "status_tracker": status_tracker._id
             if status_tracker is not None
             else None,
-            "queue": queue,
+            "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
@@ -332,6 +334,8 @@ class Blocks(BlockContext):
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
+        self.enable_queue = None
+        self.max_threads = 40
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -652,9 +656,11 @@ class Blocks(BlockContext):
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    async def create_limiter(self, max_threads: Optional[int]):
+    async def create_limiter(self):
         self.limiter = (
-            None if max_threads is None else CapacityLimiter(total_tokens=max_threads)
+            None
+            if self.max_threads == 40
+            else CapacityLimiter(total_tokens=self.max_threads)
         )
 
     def get_config(self):
@@ -669,9 +675,9 @@ class Blocks(BlockContext):
             "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
-            "enable_queue": getattr(
-                self, "enable_queue", False
-            ),  # attribute set at launch
+            "is_space": self.is_space,
+            "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
+            "show_error": getattr(self, "show_error", False),
         }
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -770,6 +776,37 @@ class Blocks(BlockContext):
         self.children = []
         return self
 
+    @document()
+    def queue(
+        self,
+        concurrency_count: int = 1,
+        status_update_rate: float | str = "auto",
+        client_position_to_load_data: int = 30,
+        default_enabled: bool = True,
+        max_size: Optional[int] = None,
+    ):
+        """
+        You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
+        Parameters:
+            concurrency_count: Number of worker threads that will be processing requests concurrently.
+            status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
+            client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
+            default_enabled: If True, all event listeners will use queueing by default.
+        Example:
+            demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
+            demo.queue(concurrency_count=3)
+            demo.launch()
+        """
+        self.enable_queue = default_enabled
+        event_queue.Queue.configure_queue(
+            live_updates=status_update_rate == "auto",
+            concurrency_count=concurrency_count,
+            data_gathering_start=client_position_to_load_data,
+            update_intervals=status_update_rate if status_update_rate != "auto" else 1,
+            max_size=max_size,
+        )
+        return self
+
     def launch(
         self,
         inline: bool = None,
@@ -777,7 +814,7 @@ class Blocks(BlockContext):
         share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
-        max_threads: Optional[int] = None,
+        max_threads: int = 40,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         prevent_thread_lock: bool = False,
@@ -811,7 +848,7 @@ class Blocks(BlockContext):
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
-            enable_queue: if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
@@ -847,14 +884,21 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        if self.is_space and enable_queue is None:
-            self.enable_queue = True
+        if enable_queue is not None:
+            self.enable_queue = enable_queue
+            warnings.warn(
+                "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
+                DeprecationWarning,
+            )
+        if self.is_space:
+            self.enable_queue = enable_queue is not False
         else:
-            self.enable_queue = enable_queue or False
-        utils.run_coro_in_background(self.create_limiter, max_threads)
+            self.enable_queue = enable_queue is True
+
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
+        self.max_threads = max(event_queue.Queue.MAX_THREAD_COUNT, max_threads)
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
@@ -881,6 +925,16 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
 
+            event_queue.Queue.set_url(self.local_url)
+            # Cannot run async functions in background other than app's scope.
+            # Workaround by triggering the app endpoint
+            requests.get(f"{self.local_url}startup-events")
+
+            if app.blocks.enable_queue:
+                if app.blocks.auth is not None or app.blocks.encrypt:
+                    raise ValueError(
+                        "Cannot queue with encryption or authentication enabled."
+                    )
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
@@ -978,6 +1032,7 @@ class Blocks(BlockContext):
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
+
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
@@ -1042,6 +1097,8 @@ class Blocks(BlockContext):
         Closes the Interface that was launched and frees the port.
         """
         try:
+            if self.enable_queue:
+                event_queue.Queue.close()
             self.server.close()
             self.is_running = False
             if verbose:
@@ -1059,8 +1116,6 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            if self.enable_queue:
-                queueing.close()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""

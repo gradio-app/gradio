@@ -1,4 +1,5 @@
-import { loading_status } from "./stores";
+import { get } from "svelte/store";
+import type { LoadingStatusType } from "./stores";
 
 type StatusResponse =
 	| {
@@ -27,27 +28,27 @@ interface Payload {
 	fn_index: number;
 }
 
-function delay(n: number) {
-	return new Promise(function (resolve) {
-		setTimeout(resolve, n * 1000);
-	});
-}
+declare let BUILD_MODE: string;
+declare let BACKEND_URL: string;
 
-async function post_data<
-	Return extends Record<string, unknown> = Record<string, unknown>
->(url: string, body: unknown): Promise<Return> {
+interface PostResponse {
+	error?: string;
+	[x: string]: unknown;
+}
+const QUEUE_FULL_MSG = "This application is too busy! Try again soon.";
+
+async function post_data(
+	url: string,
+	body: unknown
+): Promise<[PostResponse, number]> {
 	const response = await fetch(url, {
 		method: "POST",
 		body: JSON.stringify(body),
 		headers: { "Content-Type": "application/json" }
 	});
 
-	if (response.status !== 200) {
-		throw new Error(response.statusText);
-	}
-
-	const output: Return = await response.json();
-	return output;
+	const output: PostResponse = await response.json();
+	return [output, response.status];
 }
 interface UpdateOutput {
 	__type__: string;
@@ -60,15 +61,24 @@ type Output = {
 	average_duration?: number;
 };
 
+const ws_map = new Map();
+
 export const fn =
-	(session_hash: string, api_endpoint: string) =>
+	(
+		session_hash: string,
+		api_endpoint: string,
+		is_space: boolean,
+		show_error: boolean
+	) =>
 	async ({
 		action,
 		payload,
 		queue,
 		backend_fn,
 		frontend_fn,
-		output_data
+		output_data,
+		queue_callback,
+		loading_status
 	}: {
 		action: string;
 		payload: Payload;
@@ -76,6 +86,8 @@ export const fn =
 		backend_fn: boolean;
 		frontend_fn: Function | undefined;
 		output_data?: Output["data"];
+		queue_callback: Function;
+		loading_status: LoadingStatusType;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
@@ -87,59 +99,143 @@ export const fn =
 		}
 
 		if (queue && ["predict", "interpret"].includes(action)) {
-			loading_status.update(fn_index as number, "pending", null, null);
+			loading_status.update(
+				fn_index as number,
+				"pending",
+				queue,
+				null,
+				null,
+				null,
+				null
+			);
 
-			const { hash, queue_position } = await post_data<{
-				hash: string;
-				queue_position: number;
-			}>(api_endpoint + "queue/push/", { ...payload, action, session_hash });
-
-			loading_status.update(fn_index, "pending", queue_position, null);
-
-			for (;;) {
-				await delay(1);
-
-				const { status, data } = await post_data<StatusResponse>(
-					api_endpoint + "queue/status/",
-					{
-						hash: hash
-					}
-				);
-
-				if (status === "QUEUED") {
-					loading_status.update(fn_index, "pending", data, null);
-				} else if (status === "PENDING") {
-					loading_status.update(fn_index, "pending", 0, null);
-				} else if (status === "FAILED") {
-					loading_status.update(fn_index, "error", null, null);
-
-					throw new Error(status);
-				} else {
-					loading_status.update(
-						fn_index,
-						"complete",
-						null,
-						data.average_duration
-					);
-
-					return data;
-				}
+			function send_message(fn: number, data: any) {
+				ws_map.get(fn).connection.send(JSON.stringify(data));
 			}
-		} else {
-			loading_status.update(fn_index as number, "pending", null, null);
+			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
+			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
+			if (is_space) {
+				const SPACE_REGEX = /embed\/(.*)\/\+/g;
+				var ws_path = Array.from(ws_endpoint.matchAll(SPACE_REGEX))[0][1];
+				var ws_host = "spaces.huggingface.tech/";
+			} else {
+				var ws_path = location.pathname === "/" ? "" : location.pathname;
+				var ws_host =
+					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
+						? BACKEND_URL.replace("http://", "").slice(0, -1)
+						: location.host;
+			}
+			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}/queue/join`;
 
-			const output = await post_data(api_endpoint + action + "/", {
+			const websocket_data = {
+				connection: new WebSocket(WS_ENDPOINT),
+				hash: Math.random().toString(36).substring(2)
+			};
+
+			ws_map.set(fn_index, websocket_data);
+
+			websocket_data.connection.onopen = () => {
+				console.log("open");
+				send_message(fn_index, { hash: session_hash });
+			};
+
+			websocket_data.connection.onclose = () => {
+				console.log("close");
+			};
+
+			websocket_data.connection.onmessage = function (event) {
+				const data = JSON.parse(event.data);
+				console.log("go", data);
+
+				switch (data.msg) {
+					case "send_data":
+						send_message(fn_index, payload);
+						break;
+					case "queue_full":
+						loading_status.update(
+							fn_index,
+							"error",
+							queue,
+							null,
+							null,
+							null,
+							QUEUE_FULL_MSG
+						);
+						websocket_data.connection.close();
+						break;
+					case "estimation":
+						loading_status.update(
+							fn_index,
+							get(loading_status)[data.fn_index]?.status || "pending",
+							queue,
+							data.queue_size,
+							data.rank,
+							data.rank_eta,
+							null
+						);
+						break;
+					case "process_completed":
+						loading_status.update(
+							fn_index,
+							"complete",
+							queue,
+							null,
+							null,
+							data.output.average_duration,
+							null
+						);
+						queue_callback(data.output);
+						websocket_data.connection.close();
+						break;
+					case "process_starts":
+						loading_status.update(
+							fn_index,
+							"pending",
+							queue,
+							data.rank,
+							0,
+							null,
+							null
+						);
+						break;
+				}
+			};
+		} else {
+			loading_status.update(
+				fn_index as number,
+				"pending",
+				queue,
+				null,
+				null,
+				null,
+				null
+			);
+
+			var [output, status_code] = await post_data(api_endpoint + action + "/", {
 				...payload,
 				session_hash
 			});
-
-			loading_status.update(
-				fn_index,
-				"complete",
-				null,
-				output.average_duration as number
-			);
-
+			if (status_code == 200) {
+				loading_status.update(
+					fn_index,
+					"complete",
+					queue,
+					null,
+					null,
+					output.average_duration as number,
+					null
+				);
+			} else {
+				loading_status.update(
+					fn_index,
+					"error",
+					queue,
+					null,
+					null,
+					null,
+					show_error ? output.error : null
+				);
+			}
 			return output;
 		}
 	};

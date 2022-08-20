@@ -8,7 +8,7 @@ import gradio as gr
 
 
 def fake_gan(*args):
-    time.sleep(1)
+    time.sleep(15)
     image = random.choice(
         [
             "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
@@ -36,6 +36,7 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/zebra.jpg")],
     ],
 )
+demo.queue(max_size=3)
 
 if __name__ == "__main__":
     demo.launch()

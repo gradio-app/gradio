@@ -33,6 +33,8 @@ interface Config {
 	theme: string;
 	title: string;
 	version: string;
+	is_space: boolean;
+	show_error: boolean;
 	// allow_flagging: string;
 	// allow_interpretation: boolean;
 	// article: string;
@@ -182,7 +184,12 @@ function mount_app(
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn(session_hash, config.root + "api/");
+		config.fn = fn(
+			session_hash,
+			config.root + "api/",
+			config.is_space,
+			config.show_error
+		);
 
 		new Blocks({
 			target: wrapper,
@@ -228,7 +235,8 @@ function create_custom_element() {
 				props: {
 					status: "pending",
 					timer: false,
-					queue_position: null
+					queue_position: null,
+					queue_size: null
 				}
 			});
 
@@ -280,7 +288,8 @@ async function unscoped_mount() {
 		props: {
 			status: "pending",
 			timer: false,
-			queue_position: null
+			queue_position: null,
+			queue_size: null
 		}
 	});
 
