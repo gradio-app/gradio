@@ -182,11 +182,7 @@ export const fn =
 							null,
 							null,
 							data.output.average_duration,
-<<<<<<< HEAD
 							!data.success && show_error ? data.output.error : null
-=======
-							null
->>>>>>> origin/main
 						);
 						if (data.success) {
 							queue_callback(data.output);
