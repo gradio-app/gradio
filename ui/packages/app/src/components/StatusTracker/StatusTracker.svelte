@@ -49,31 +49,26 @@
 	import Loader from "./Loader.svelte";
 
 	export let eta: number | null = null;
+	export let queue: boolean = false;
 	export let queue_position: number | null;
+	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
+	export let message: string | null = null;
 
 	let el: HTMLDivElement;
 
 	let _timer: boolean = false;
 	let timer_start = 0;
 	let timer_diff = 0;
-
-	let initial_queue_pos = queue_position;
-
-	$: if (
-		queue_position &&
-		(!initial_queue_pos || queue_position > initial_queue_pos)
-	) {
-		initial_queue_pos = queue_position;
-	}
+	let old_eta: number | null = null;
 
 	$: progress =
-		eta === null || !timer_diff
+		eta === null || eta <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / (eta * ((initial_queue_pos || 0) + 1)), 1);
+			: Math.min(timer_diff / eta, 1);
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -114,7 +109,18 @@
 		(status === "pending" || status === "complete") &&
 		scroll_into_view(el, $app_state.autoscroll);
 
-	$: formatted_eta = eta && (eta * ((initial_queue_pos || 0) + 1)).toFixed(1);
+	let formatted_eta: string | null = null;
+	$: {
+		if (eta === null) {
+			eta = old_eta;
+		} else if (queue) {
+			eta = (performance.now() - timer_start) / 1000 + eta;
+		}
+		if (eta != null) {
+			formatted_eta = eta.toFixed(1);
+			old_eta = eta;
+		}
+	}
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
@@ -126,9 +132,9 @@
 >
 	{#if status === "pending"}
 		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text">
-			{#if queue_position !== null && queue_position > 0}
-				queue: {queue_position}/{initial_queue_pos} |
+		<div class="meta-text dark:text-gray-400">
+			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
@@ -145,6 +151,9 @@
 		{/if}
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
+		{#if message}
+			<span class="status-message dark:text-gray-100">{message}</span>
+		{/if}
 	{/if}
 </div>
 
@@ -171,5 +180,9 @@
 
 	.error {
 		@apply text-red-400 font-mono font-semibold text-lg;
+	}
+
+	.status-message {
+		@apply font-mono p-2 whitespace-pre;
 	}
 </style>

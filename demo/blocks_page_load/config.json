@@ -1,5 +1,7 @@
 {
+  "version": "3.1.4",
   "mode": "blocks",
+  "dev_mode": true,
   "components": [
     {
       "id": 1,
@@ -7,11 +9,12 @@
       "props": {
         "lines": 1,
         "max_lines": 20,
-        "default_value": "Frank",
+        "value": "Frank",
         "label": "Name",
         "show_label": true,
         "name": "textbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     },
     {
@@ -20,15 +23,18 @@
       "props": {
         "lines": 1,
         "max_lines": 20,
-        "default_value": "",
+        "value": "",
         "label": "Output",
         "show_label": true,
         "name": "textbox",
-        "css": {}
+        "visible": true,
+        "style": {}
       }
     }
   ],
   "theme": "default",
+  "css": null,
+  "title": "Gradio",
   "enable_queue": false,
   "layout": {
     "id": 0,
@@ -51,8 +57,13 @@
       "outputs": [
         2
       ],
+      "backend_fn": true,
+      "js": false,
       "status_tracker": null,
-      "queue": null
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
     }
   ]
 }

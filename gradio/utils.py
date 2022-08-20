@@ -339,6 +339,8 @@ def synchronize_async(func: Callable, *args, **kwargs):
     """
     Runs async functions in sync scopes.
 
+    Can be used in any scope. See run_coro_in_background for more details.
+
     Example:
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
@@ -355,6 +357,15 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.
 
+    Warning, be careful to not use this function in other than FastAPI scope, because the event_loop has not started yet.
+    You can use it in any scope reached by FastAPI app.
+
+    correct scope examples: endpoints in routes, Blocks.process_api
+    incorrect scope examples: Blocks.launch
+
+    Use startup_events in routes.py if you need to run a coro in background in Blocks.launch().
+
+
     Example:
         utils.run_coro_in_background(fn, *args, **kwargs)
 
@@ -367,10 +378,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-    _ = event_loop.create_task(func(*args, **kwargs))
-
-
-client = httpx.AsyncClient()
+    return event_loop.create_task(func(*args, **kwargs))
 
 
 class Request:
@@ -393,6 +401,7 @@ class Request:
     """
 
     ResponseJson = NewType("ResponseJson", Json)
+    client = httpx.AsyncClient()
 
     class Method(str, Enum):
         """
@@ -463,7 +472,7 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await client.send(self._request)
+            self._response: httpx.Response = await Request.client.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:

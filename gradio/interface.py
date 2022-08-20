@@ -18,7 +18,7 @@ import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils
+from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -32,7 +32,6 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
@@ -43,7 +42,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-@document("launch", "load", "from_pipeline", "integrate")
+@document("launch", "load", "from_pipeline", "integrate", "queue")
 class Interface(Blocks):
     """
     Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo
@@ -289,14 +288,18 @@ class Interface(Blocks):
             cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
 
-        md = MarkdownIt(
-            "js-default",
-            {
-                "linkify": True,
-                "typographer": True,
-                "html": True,
-            },
-        ).use(footnote_plugin)
+        md = (
+            MarkdownIt(
+                "js-default",
+                {
+                    "linkify": True,
+                    "typographer": True,
+                    "html": True,
+                },
+            )
+            .use(footnote_plugin)
+            .enable("table")
+        )
 
         simple_description = None
         if description is not None:
