@@ -34,6 +34,7 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
+from gradio.exceptions import Error
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -601,10 +602,8 @@ class Blocks(BlockContext):
                             )
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
-                            prediction_value["value"] = (
-                                block.postprocess(prediction_value["value"])
-                                if prediction_value["value"] is not None
-                                else None
+                            prediction_value["value"] = block.postprocess(
+                                prediction_value["value"]
                             )
                         output_value = prediction_value
                     else:
@@ -818,7 +817,7 @@ class Blocks(BlockContext):
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         prevent_thread_lock: bool = False,
-        show_error: bool = True,
+        show_error: bool = False,
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
@@ -844,7 +843,7 @@ class Blocks(BlockContext):
             auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
             prevent_thread_lock: If True, the interface will block the main thread while the server is running.
-            show_error: If True, any errors in the interface will be printed in the browser console log
+            show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
@@ -891,9 +890,9 @@ class Blocks(BlockContext):
                 DeprecationWarning,
             )
         if self.is_space:
-            self.enable_queue = enable_queue is not False
+            self.enable_queue = self.enable_queue is not False
         else:
-            self.enable_queue = enable_queue is True
+            self.enable_queue = self.enable_queue is True
 
         self.config = self.get_config_file()
         self.share = share

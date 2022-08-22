@@ -3417,7 +3417,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         Returns:
             List of tuples representing the message and response
         """
-        return y
+        return [] if y is None else y
 
     def style(
         self,

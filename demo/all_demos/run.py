@@ -11,7 +11,7 @@ demo_dir = pathlib.Path(__file__).parent / "demos"
 
 all_demos = []
 demo_module = None
-for p in os.listdir("./demos"):
+for p in sorted(os.listdir("./demos")):
     old_path = copy.deepcopy(sys.path)
     sys.path = [os.path.join(demo_dir, p)] + sys.path
     if demo_module is None:

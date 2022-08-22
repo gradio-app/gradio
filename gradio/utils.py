@@ -290,6 +290,8 @@ def delete_none(_dict):
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
+            if key == "value":
+                continue
             if isinstance(value, (list, dict, tuple, set)):
                 _dict[key] = delete_none(value)
             elif value is None or key is None:
