@@ -30,4 +30,4 @@ demo = gr.Interface(
     description="Here's a sample toy calculator. Enjoy!",
 )
 if __name__ == "__main__":
-    demo.launch(show_error=True)
+    demo.launch()
