@@ -647,7 +647,7 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
-        prediction, _ = await self.call_function(0, *processed_input)
+        prediction, _ = await self.call_function(0, processed_input)
         return prediction
 
     async def interpret_func(self, *args):
