@@ -81,7 +81,7 @@
 
 		let url: string;
 		if (value.is_file) {
-			url = value.name;
+			url = value.data;
 		} else {
 			let base64_model_content = value.data;
 			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);

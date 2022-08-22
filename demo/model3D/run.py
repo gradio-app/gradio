@@ -4,7 +4,6 @@ import os
 
 
 def load_mesh(mesh_file_name):
-    time.sleep(2)
     return mesh_file_name, mesh_file_name
 
 
@@ -22,7 +21,6 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/Fox.gltf")],
         [os.path.join(os.path.dirname(__file__), "files/face.obj")],
     ],
-    cache_examples=False,
 )
 
 if __name__ == "__main__":
