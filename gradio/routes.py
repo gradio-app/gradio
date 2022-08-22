@@ -253,7 +253,10 @@ class App(FastAPI):
             except BaseException as error:
                 show_error = app.blocks.show_error or isinstance(error, Error)
                 traceback.print_exc()
-                return JSONResponse(content={"error": str(error) if show_error else None}, status_code=500)
+                return JSONResponse(
+                    content={"error": str(error) if show_error else None},
+                    status_code=500,
+                )
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])

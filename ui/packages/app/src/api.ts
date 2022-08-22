@@ -63,11 +63,7 @@ type Output = {
 const ws_map = new Map();
 
 export const fn =
-	(
-		session_hash: string,
-		api_endpoint: string,
-		is_space: boolean,
-	) =>
+	(session_hash: string, api_endpoint: string, is_space: boolean) =>
 	async ({
 		action,
 		payload,
