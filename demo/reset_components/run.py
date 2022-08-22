@@ -78,9 +78,6 @@ components = [
     gr.Gallery(
         value=lambda: [os.path.join(img_dir, img) for img in os.listdir(img_dir)]
     ),
-    gr.Chatbot(
-        value=lambda: random.choice([[("hello", "hi!")], [("bye", "goodbye!")]])
-    ),
     gr.Model3D(value=random_model3d),
     gr.Plot(value=random_plot),
     gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
