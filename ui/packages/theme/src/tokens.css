@@ -118,5 +118,5 @@
 
 img.gr-sample-image,
 video.gr-sample-video {
-	@apply flex-none rounded-lg max-w-none ring-2 ring-gray-200 hover:ring-orange-400 group-hover:ring-orange-400 dark:ring-gray-700 dark:hover:ring-orange-700 dark:group-hover:ring-orange-700;
+	@apply flex-none rounded-lg max-w-none border-2 border-gray-200 hover:border-orange-400 group-hover:border-orange-400 dark:border-gray-700 dark:hover:border-orange-700 dark:group-hover:border-orange-700;
 }
