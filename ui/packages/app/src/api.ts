@@ -46,7 +46,6 @@ async function post_data(
 		body: JSON.stringify(body),
 		headers: { "Content-Type": "application/json" }
 	});
-
 	const output: PostResponse = await response.json();
 	return [output, response.status];
 }
@@ -68,7 +67,6 @@ export const fn =
 		session_hash: string,
 		api_endpoint: string,
 		is_space: boolean,
-		show_error: boolean
 	) =>
 	async ({
 		action,
@@ -182,7 +180,7 @@ export const fn =
 							null,
 							null,
 							data.output.average_duration,
-							!data.success && show_error ? data.output.error : null
+							!data.success ? data.output.error : null
 						);
 						if (data.success) {
 							queue_callback(data.output);
@@ -235,8 +233,9 @@ export const fn =
 					null,
 					null,
 					null,
-					show_error ? output.error : null
+					output.error
 				);
+				throw output.error || "API Error";
 			}
 			return output;
 		}

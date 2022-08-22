@@ -34,7 +34,6 @@ interface Config {
 	title: string;
 	version: string;
 	is_space: boolean;
-	show_error: boolean;
 	// allow_flagging: string;
 	// allow_interpretation: boolean;
 	// article: string;
@@ -188,7 +187,6 @@ function mount_app(
 			session_hash,
 			config.root + "api/",
 			config.is_space,
-			config.show_error
 		);
 
 		new Blocks({
