@@ -3339,28 +3339,6 @@ class Carousel(IOComponent, Changeable):
         else:
             raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(
-            [
-                [
-                    component.save_flagged(
-                        dir, f"{label}_{j}", data[i][j], encryption_key
-                    )
-                    for j, component in enumerate(self.components)
-                ]
-                for i, _ in enumerate(data)
-            ]
-        )
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return [
-            [
-                component.restore_flagged(dir, sample, encryption_key)
-                for component, sample in zip(self.components, sample_set)
-            ]
-            for sample_set in json.loads(data)
-        ]
-
 
 @document("change", "style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):

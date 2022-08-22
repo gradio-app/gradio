@@ -22,7 +22,7 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/Fox.gltf")],
         [os.path.join(os.path.dirname(__file__), "files/face.obj")],
     ],
-    cache_examples=True,
+    cache_examples=False,
 )
 
 if __name__ == "__main__":
