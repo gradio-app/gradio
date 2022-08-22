@@ -138,7 +138,9 @@ class FileSerializable(Serializable):
                     x["data"], dir=save_dir, encryption_key=encryption_key
                 )
         else:
-            raise ValueError(f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}")
+            raise ValueError(
+                f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}"
+            )
         return file.name
 
 
