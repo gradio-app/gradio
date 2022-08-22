@@ -223,29 +223,39 @@ def test_slider_random_value_config():
     assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
 
-def test_io_components_attach_load_events_when_value_is_fn():
-    classes_to_check = gr.components.IOComponent.__subclasses__()
-    subclasses = []
-
-    while classes_to_check:
-        subclass = classes_to_check.pop()
-        children = subclass.__subclasses__()
-
-        if children:
-            classes_to_check.extend(children)
-        if "value" in inspect.signature(subclass).parameters:
-            subclasses.append(subclass)
+def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
     interface = gr.Interface(
         lambda *args: None,
-        inputs=[comp(value=lambda: None) for comp in subclasses],
+        inputs=[comp(value=lambda: None) for comp in io_components],
         outputs=None,
     )
 
     dependencies_on_load = [
         dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
     ]
-    assert len(dependencies_on_load) == len(subclasses)
+    assert len(dependencies_on_load) == len(io_components)
+
+
+def test_blocks_do_not_filter_none_values_from_updates(io_components):
+
+    io_components = [c() for c in io_components if c not in [gr.Variable, gr.Button]]
+    with gr.Blocks() as demo:
+        for component in io_components:
+            component.render()
+        btn = gr.Button(value="Reset")
+        btn.click(
+            lambda: [gr.update(value=None) for _ in io_components],
+            inputs=[],
+            outputs=io_components,
+        )
+
+    output = demo.postprocess_data(
+        0, [gr.update(value=None) for _ in io_components], state=None
+    )
+    assert all(
+        [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+    )
 
 
 if __name__ == "__main__":

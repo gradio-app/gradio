@@ -21,7 +21,7 @@ def random_plot():
     return fig
 
 
-img_dir = os.path.join(os.path.dirname(__file__), "..", "image_classifier", "images")
+img_dir = os.path.join(os.path.dirname(__file__), "files")
 file_dir = os.path.join(os.path.dirname(__file__), "..", "kitchen_sink", "files")
 model3d_dir = os.path.join(os.path.dirname(__file__), "..", "model3D", "files")
 highlighted_text_output_1 = [
