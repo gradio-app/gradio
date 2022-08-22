@@ -258,9 +258,15 @@ class Queue:
             json=event.data,
         )
         end_time = time.time()
-        cls.update_estimation(end_time - begin_time)
+        success = response.status == 200
+        if success:
+            cls.update_estimation(end_time - begin_time)
         client_awake = await event.send_message(
-            {"msg": "process_completed", "output": response.json}
+            {
+                "msg": "process_completed",
+                "output": response.json,
+                "success": success,
+            }
         )
         if client_awake:
             run_coro_in_background(cls.wait_in_inactive, event)

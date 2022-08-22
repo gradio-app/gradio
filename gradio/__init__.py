@@ -44,6 +44,7 @@ from gradio.components import (
     component,
 )
 from gradio.examples import create_examples as Examples
+from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

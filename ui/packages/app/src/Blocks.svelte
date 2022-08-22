@@ -35,7 +35,6 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
-	export let show_error: boolean = false;
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 

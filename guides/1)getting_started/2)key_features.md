@@ -11,6 +11,10 @@ $demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
+## Errors
+
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the the calculator demo above, a popup modal will display the custom error message.
+
 ## Decriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.

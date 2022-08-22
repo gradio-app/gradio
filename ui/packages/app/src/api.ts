@@ -46,7 +46,6 @@ async function post_data(
 		body: JSON.stringify(body),
 		headers: { "Content-Type": "application/json" }
 	});
-
 	const output: PostResponse = await response.json();
 	return [output, response.status];
 }
@@ -64,12 +63,7 @@ type Output = {
 const ws_map = new Map();
 
 export const fn =
-	(
-		session_hash: string,
-		api_endpoint: string,
-		is_space: boolean,
-		show_error: boolean
-	) =>
+	(session_hash: string, api_endpoint: string, is_space: boolean) =>
 	async ({
 		action,
 		payload,
@@ -177,14 +171,16 @@ export const fn =
 					case "process_completed":
 						loading_status.update(
 							fn_index,
-							"complete",
+							data.success ? "complete" : "error",
 							queue,
 							null,
 							null,
 							data.output.average_duration,
-							null
+							!data.success ? data.output.error : null
 						);
-						queue_callback(data.output);
+						if (data.success) {
+							queue_callback(data.output);
+						}
 						websocket_data.connection.close();
 						break;
 					case "process_starts":
@@ -233,8 +229,9 @@ export const fn =
 					null,
 					null,
 					null,
-					show_error ? output.error : null
+					output.error
 				);
+				throw output.error || "API Error";
 			}
 			return output;
 		}
