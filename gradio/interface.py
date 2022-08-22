@@ -647,12 +647,7 @@ class Interface(Blocks):
         Returns:
             predictions (list): A list of predictions (not post-processed).
         """
-        if inspect.iscoroutinefunction(self.fn):
-            prediction = await self.fn(*processed_input)
-        else:
-            prediction = await anyio.to_thread.run_sync(
-                self.fn, *processed_input, limiter=self.limiter
-            )
+        prediction, _ = self.call_function(0, *processed_input)
         return prediction
 
     async def interpret_func(self, *args):
