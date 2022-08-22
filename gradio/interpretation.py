@@ -21,7 +21,7 @@ async def run_interpret(interface, raw_input):
         ]
         original_output = await interface.call_function(0, processed_input)
         original_output = original_output[0]
-                
+
         if len(interface.output_components) == 1:
             original_output = [original_output]
 
