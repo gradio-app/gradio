@@ -126,12 +126,19 @@ class FileSerializable(Serializable):
         """
         if x is None:
             return None
-        if x.get("is_file", False):
-            file = processing_utils.create_tmp_copy_of_file(x["name"], dir=save_dir)
-        else:
+        if isinstance(x, str):
             file = processing_utils.decode_base64_to_file(
-                x["data"], dir=save_dir, encryption_key=encryption_key
+                x, dir=save_dir, encryption_key=encryption_key
             )
+        elif isinstance(x, dict):
+            if x.get("is_file", False):
+                file = processing_utils.create_tmp_copy_of_file(x["name"], dir=save_dir)
+            else:
+                file = processing_utils.decode_base64_to_file(
+                    x["data"], dir=save_dir, encryption_key=encryption_key
+                )
+        else:
+            raise ValueError(f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}")
         return file.name
 
 

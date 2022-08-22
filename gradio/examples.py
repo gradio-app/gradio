@@ -228,12 +228,8 @@ class Examples:
             cache_logger = CSVLogger()
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                try:
-                    prediction = await self.predict_example(example_id)
-                    cache_logger.flag(prediction)
-                except Exception as e:
-                    shutil.rmtree(self.cached_folder)
-                    raise e
+                prediction = await self.predict_example(example_id)
+                cache_logger.flag(prediction)
 
     async def predict_example(self, example_id: int) -> List[Any]:
         """Loads an example from the interface and returns its prediction.
