@@ -487,9 +487,9 @@ class Interface(Blocks):
                                 interpretation_btn = Button("Interpret")
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                    super().load(self.run_prediction, None, self.output_components)
+                    super().load(self.fn, None, self.output_components)
                     submit_btn.click(
-                        self.run_prediction,
+                        self.fn,
                         None,
                         self.output_components,
                         api_name="predict",
@@ -500,7 +500,7 @@ class Interface(Blocks):
                         if isinstance(component, Streamable):
                             if component.streaming:
                                 component.stream(
-                                    self.run_prediction,
+                                    self.fn,
                                     self.input_components,
                                     self.output_components,
                                 )
@@ -513,13 +513,13 @@ class Interface(Blocks):
                                 )
                         if isinstance(component, Changeable):
                             component.change(
-                                self.run_prediction,
+                                self.fn,
                                 self.input_components,
                                 self.output_components,
                             )
             else:
                 submit_btn.click(
-                    self.run_prediction,
+                    self.fn,
                     self.input_components,
                     self.output_components,
                     api_name="predict",
@@ -600,7 +600,7 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=self.run_prediction,
+                    fn=self.fn,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                     _api_mode=_api_mode,
@@ -634,21 +634,6 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
-
-    async def run_prediction(
-        self,
-        *processed_input,
-    ) -> List[Any] | Tuple[List[Any], List[float]]:
-        """
-        Runs the prediction function with the given (already processed) inputs.
-        Parameters:
-            processed_input (Any): Any number of processed inputs, each of which corresponds to an input component.
-            called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
-        Returns:
-            predictions (list): A list of predictions (not post-processed).
-        """
-        prediction, _ = await self.call_function(0, processed_input)
-        return prediction
 
     async def interpret_func(self, *args):
         return await self.interpret(args) + [
