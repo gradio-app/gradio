@@ -2758,7 +2758,7 @@ class Dataframe(Changeable, IOComponent):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = MarkdownIt()
+            cls.markdown_parser = MarkdownIt().enable("table")
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -4231,7 +4231,7 @@ class Markdown(IOComponent, Changeable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt()
+        self.md = MarkdownIt().enable("table")
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
         IOComponent.__init__(
@@ -4289,6 +4289,7 @@ class Dataset(Clickable, Component):
     def __init__(
         self,
         *,
+        label: Optional[str] = None,
         components: List[Component] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
@@ -4309,6 +4310,7 @@ class Dataset(Clickable, Component):
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
         self.type = type
+        self.label = label
         if headers is not None:
             self.headers = headers
         elif all([c.label is None for c in self.components]):
@@ -4323,17 +4325,20 @@ class Dataset(Clickable, Component):
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
+            "label": self.label,
             **Component.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        samples: Optional[Any] = None,
         visible: Optional[bool] = None,
+        label: Optional[str] = None,
     ):
         return {
+            "samples": samples,
             "visible": visible,
-            "value": value,
+            "label": label,
             "__type__": "update",
         }
 

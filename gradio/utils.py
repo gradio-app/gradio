@@ -339,6 +339,8 @@ def synchronize_async(func: Callable, *args, **kwargs):
     """
     Runs async functions in sync scopes.
 
+    Can be used in any scope. See run_coro_in_background for more details.
+
     Example:
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
@@ -354,6 +356,15 @@ def synchronize_async(func: Callable, *args, **kwargs):
 def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.
+
+    Warning, be careful to not use this function in other than FastAPI scope, because the event_loop has not started yet.
+    You can use it in any scope reached by FastAPI app.
+
+    correct scope examples: endpoints in routes, Blocks.process_api
+    incorrect scope examples: Blocks.launch
+
+    Use startup_events in routes.py if you need to run a coro in background in Blocks.launch().
+
 
     Example:
         utils.run_coro_in_background(fn, *args, **kwargs)
