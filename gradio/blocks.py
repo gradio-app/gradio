@@ -27,6 +27,7 @@ from gradio import (
     utils,
 )
 from gradio.context import Context
+from gradio.exceptions import Error
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import (
     document,

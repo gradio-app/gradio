@@ -9,7 +9,7 @@ import gradio as gr
 
 def fake_gan(desc):
     if desc == "NSFW":
-        raise ValueError("NSFW - banned content.")
+        raise gr.Error("NSFW - banned content.")
     time.sleep(5)
     image = random.choice(
         [
