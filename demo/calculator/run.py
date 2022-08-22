@@ -8,6 +8,8 @@ def calculator(num1, operation, num2):
     elif operation == "multiply":
         return num1 * num2
     elif operation == "divide":
+        if num2 == 0:
+            raise gr.Error("Cannot divide by zero!")
         return num1 / num2
 
 demo = gr.Interface(

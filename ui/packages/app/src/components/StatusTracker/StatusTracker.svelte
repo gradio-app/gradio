@@ -122,12 +122,17 @@
 			old_eta = eta;
 		}
 	}
+	let show_message_timeout: NodeJS.Timeout | null = null;
+	const close_message = () => {
+		message_visible = false;
+		if (show_message_timeout !== null) {
+			clearTimeout(show_message_timeout);
+		}
+	};
 	$: {
 		if (status === "error" && message) {
 			message_visible = true;
-			setTimeout(() => {
-				message_visible = false;
-			}, 8000);
+			show_message_timeout = setTimeout(close_message, 8000);
 		}
 	}
 	$: formatted_timer = timer_diff.toFixed(1);
@@ -161,12 +166,20 @@
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
 		{#if message_visible}
-			<div class="flex flex-col items-center fixed z-[100] w-full left-0 top-12 mx-auto font-mono whitespace-pre-wrap pointer-events-auto">
-				<div class="p-3 w-4/5 text-xl rounded-t bg-red-300 text-red-700 status-title flex justify-between items-center">
+			<div
+				class="flex flex-col items-center fixed z-[100] w-full left-0 top-12 mx-auto font-mono whitespace-pre-wrap pointer-events-auto"
+			>
+				<div
+					class="p-3 w-4/5 text-xl rounded-t bg-red-300 text-red-700 status-title flex justify-between items-center"
+				>
 					<span>Error</span>
-					<button on:click={() => {message_visible = false}}>✖</button>
+					<button on:click={close_message}>✖</button>
 				</div>
-				<div class="px-3 w-4/5 py-4 rounded-b bg-gray-200 border-gray-100 dark:bg-gray-700 dark:border-gray-800 dark:text-gray-100">{message}</div>				
+				<div
+					class="px-3 w-4/5 py-4 rounded-b bg-gray-200 border-gray-100 dark:bg-gray-700 dark:border-gray-800 dark:text-gray-100"
+				>
+					{message}
+				</div>
 			</div>
 		{/if}
 	{/if}
@@ -196,5 +209,4 @@
 	.error {
 		@apply text-red-400 font-mono font-semibold text-lg;
 	}
-
 </style>

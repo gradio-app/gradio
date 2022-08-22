@@ -44,6 +44,7 @@ from gradio.components import (
     component,
 )
 from gradio.examples import create_examples as Examples
+from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
@@ -69,7 +70,6 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
-from gradio.exceptions import Error
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version
