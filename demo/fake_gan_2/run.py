@@ -7,8 +7,10 @@ import time
 import gradio as gr
 
 
-def fake_gan(*args):
-    time.sleep(1)
+def fake_gan(desc):
+    if desc == "NSFW":
+        raise gr.Error("NSFW - banned content.")
+    time.sleep(5)
     image = random.choice(
         [
             "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
@@ -23,19 +25,12 @@ def fake_gan(*args):
 
 demo = gr.Interface(
     fn=fake_gan,
-    inputs=[
-        gr.Image(label="Initial Image (optional)"),
-    ],
+    inputs=gr.Textbox(),
     outputs=gr.Image(label="Generated Image"),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")],
-        [os.path.join(os.path.dirname(__file__), "files/elephant.jpg")],
-        [os.path.join(os.path.dirname(__file__), "files/tiger.jpg")],
-        [os.path.join(os.path.dirname(__file__), "files/zebra.jpg")],
-    ],
 )
+demo.queue(max_size=3)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(show_error=True)

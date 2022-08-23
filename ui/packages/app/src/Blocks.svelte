@@ -3,7 +3,11 @@
 	import { _ } from "svelte-i18n";
 
 	import { component_map } from "./components/directory";
-	import { loading_status, app_state, LoadingStatusCollection } from "./stores";
+	import {
+		create_loading_status_store,
+		app_state,
+		LoadingStatusCollection
+	} from "./stores";
 
 	import type {
 		ComponentMeta,
@@ -32,6 +36,7 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	let app_mode = window.__gradio_mode__ === "app";
+	let loading_status = create_loading_status_store();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
@@ -212,7 +217,16 @@
 
 		dependencies.forEach(
 			(
-				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
+				{
+					targets,
+					trigger,
+					inputs,
+					outputs,
+					queue,
+					backend_fn,
+					frontend_fn,
+					...rest
+				},
 				i
 			) => {
 				const target_instances: [number, ComponentMeta][] = targets.map((t) => [
@@ -229,7 +243,7 @@
 					outputs.every((v) => instance_map[v].instance) &&
 					inputs.every((v) => instance_map[v].instance)
 				) {
-					fn({
+					const req = fn({
 						action: "predict",
 						backend_fn,
 						frontend_fn,
@@ -237,15 +251,75 @@
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].props.value)
 						},
-						queue: queue === null ? enable_queue : queue
-					})
-						.then((output) => {
-							(output as { data: unknown[] }).data.forEach((value, i) => {
+						queue: queue === null ? enable_queue : queue,
+						queue_callback: handle_update,
+						loading_status: loading_status
+					});
+
+					function handle_update(output: any) {
+						output.data.forEach((value: any, i: number) => {
+							if (
+								typeof value === "object" &&
+								value !== null &&
+								value.__type__ === "update"
+							) {
+								for (const [update_key, update_value] of Object.entries(
+									value
+								)) {
+									if (update_key === "__type__") {
+										continue;
+									} else {
+										instance_map[outputs[i]].props[update_key] = update_value;
+									}
+								}
+								rootNode = rootNode;
+							} else {
+								instance_map[outputs[i]].props.value = value;
+							}
+						});
+					}
+
+					if (!(queue === null ? enable_queue : queue)) {
+						req.then(handle_update);
+					}
+
+					handled_dependencies[i] = [-1];
+				}
+
+				target_instances.forEach(
+					([id, { instance }]: [number, ComponentMeta]) => {
+						if (handled_dependencies[i]?.includes(id) || !instance) return;
+						instance?.$on(trigger, () => {
+							if (loading_status.get_status_for_fn(i) === "pending") {
+								return;
+							}
+
+							// page events
+							const req = fn({
+								action: "predict",
+								backend_fn,
+								frontend_fn,
+								payload: {
+									fn_index: i,
+									data: inputs.map((id) => instance_map[id].props.value)
+								},
+								output_data: outputs.map((id) => instance_map[id].props.value),
+								queue: queue === null ? enable_queue : queue,
+								queue_callback: handle_update,
+								loading_status: loading_status
+							});
+
+							if (!(queue === null ? enable_queue : queue)) {
+								req.then(handle_update);
+							}
+						});
+
+						function handle_update(output: any) {
+							output.data.forEach((value: any, i: number) => {
 								if (
 									typeof value === "object" &&
 									value !== null &&
-									(value as { __type__: string; [key: string]: any })
-										.__type__ === "update"
+									value.__type__ === "update"
 								) {
 									for (const [update_key, update_value] of Object.entries(
 										value
@@ -261,64 +335,7 @@
 									instance_map[outputs[i]].props.value = value;
 								}
 							});
-						})
-						.catch((error) => {
-							console.error(error);
-							loading_status.update(i, "error", 0, 0);
-						});
-
-					handled_dependencies[i] = [-1];
-				}
-
-				target_instances.forEach(
-					([id, { instance }]: [number, ComponentMeta]) => {
-						if (handled_dependencies[i]?.includes(id) || !instance) return;
-						instance?.$on(trigger, () => {
-							if (loading_status.get_status_for_fn(i) === "pending") {
-								return;
-							}
-
-							// page events
-							fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue
-							})
-								.then((output) => {
-									(output as { data: unknown[] }).data.forEach((value, i) => {
-										if (
-											typeof value === "object" &&
-											value !== null &&
-											(value as { __type__: string; [key: string]: any })
-												.__type__ === "update"
-										) {
-											for (const [update_key, update_value] of Object.entries(
-												value
-											)) {
-												if (update_key === "__type__") {
-													continue;
-												} else {
-													instance_map[outputs[i]].props[update_key] =
-														update_value;
-												}
-											}
-											rootNode = rootNode;
-										} else {
-											instance_map[outputs[i]].props.value = value;
-										}
-									});
-								})
-								.catch((error) => {
-									console.error(error);
-									loading_status.update(i, "error", 0, 0);
-								});
-						});
+						}
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
@@ -341,9 +358,6 @@
 	});
 
 	function set_status(statuses: LoadingStatusCollection) {
-		if (window.__gradio_mode__ === "website") {
-			return;
-		}
 		for (const id in statuses) {
 			let loading_status = statuses[id];
 			let dependency = dependencies[loading_status.fn_index];

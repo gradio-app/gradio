@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import io
 import os
@@ -22,11 +23,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from pydantic import BaseModel
-from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
+from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
-from gradio import encryptor, queueing
+from gradio import encryptor
+from gradio.event_queue import Estimation, Event, Queue
+from gradio.exceptions import Error
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -222,19 +225,16 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
+            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
+                Path(temp_dir).resolve() in Path(path).resolve().parents
+                for temp_dir in app.blocks.temp_dirs
+            ):
+                return FileResponse(Path(path).resolve())
             else:
-                if Path(app.cwd).resolve() in Path(path).resolve().parents:
-                    return FileResponse(Path(path).resolve())
-
-        @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-        async def queue_push(body: QueuePushBody):
-            job_hash, queue_position = queueing.push(body)
-            return {"hash": job_hash, "queue_position": queue_position}
-
-        @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-        async def queue_status(body: QueueStatusBody):
-            status, data = queueing.get_status(body.hash)
-            return {"status": status, "data": data}
+                raise ValueError(
+                    f"File cannot be fetched: {path}, perhaps because "
+                    f"it is not in any of {app.blocks.temp_dirs}"
+                )
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
@@ -249,18 +249,21 @@ class App(FastAPI):
                 session_state = app.state_holder[body.session_hash]
             else:
                 session_state = {}
+            raw_input = body.data
+            fn_index = body.fn_index
             try:
-                raw_input = body.data
-                fn_index = body.fn_index
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state
                 )
+                if isinstance(output, Error):
+                    raise output
             except BaseException as error:
-                if app.blocks.show_error:
-                    traceback.print_exc()
-                    return JSONResponse(content={"error": str(error)}, status_code=500)
-                else:
-                    raise error
+                show_error = app.blocks.show_error or isinstance(error, Error)
+                traceback.print_exc()
+                return JSONResponse(
+                    content={"error": str(error) if show_error else None},
+                    status_code=500,
+                )
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
@@ -281,6 +284,47 @@ class App(FastAPI):
                         status_code=500,
                     )
             return await run_predict(body=body, username=username)
+
+        @app.websocket("/queue/join")
+        async def join_queue(websocket: WebSocket):
+            await websocket.accept()
+            event = Event(websocket)
+            e_hash = await event.get_message()
+            if e_hash is None:
+                return
+            event.hash = e_hash["hash"]
+            rank = Queue.push(event)
+            if rank is None:
+                await event.send_message({"msg": "queue_full"})
+                await event.disconnect()
+                return
+            estimation = Queue.get_estimation()
+            await Queue.send_estimation(event, estimation, rank)
+            while True:
+                await asyncio.sleep(60)
+                if websocket.application_state == WebSocketState.DISCONNECTED:
+                    return
+
+        @app.get(
+            "/queue/status",
+            dependencies=[Depends(login_check)],
+            response_model=Estimation,
+        )
+        async def get_queue_status():
+            return Queue.get_estimation()
+
+        @app.get(
+            "/startup-events",
+            dependencies=[Depends(login_check)],
+        )
+        async def startup_events():
+            from gradio.utils import run_coro_in_background
+
+            if app.blocks.enable_queue:
+                gradio.utils.run_coro_in_background(Queue.init)
+            gradio.utils.run_coro_in_background(app.blocks.create_limiter)
+
+            return True
 
         return app
 

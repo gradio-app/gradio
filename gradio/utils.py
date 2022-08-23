@@ -15,8 +15,19 @@ from contextlib import contextmanager
 from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
+from numbers import Number
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, NewType, Tuple, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    NewType,
+    Tuple,
+    Type,
+)
 
 import aiohttp
 import analytics
@@ -279,6 +290,8 @@ def delete_none(_dict):
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
+            if key == "value":
+                continue
             if isinstance(value, (list, dict, tuple, set)):
                 _dict[key] = delete_none(value)
             elif value is None or key is None:
@@ -290,7 +303,7 @@ def delete_none(_dict):
     return _dict
 
 
-def resolve_singleton(_list):
+def resolve_singleton(_list: List[Any] | Any) -> Any:
     if len(_list) == 1:
         return _list[0]
     else:
@@ -339,6 +352,8 @@ def synchronize_async(func: Callable, *args, **kwargs):
     """
     Runs async functions in sync scopes.
 
+    Can be used in any scope. See run_coro_in_background for more details.
+
     Example:
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
@@ -355,6 +370,15 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     Runs coroutines in background.
 
+    Warning, be careful to not use this function in other than FastAPI scope, because the event_loop has not started yet.
+    You can use it in any scope reached by FastAPI app.
+
+    correct scope examples: endpoints in routes, Blocks.process_api
+    incorrect scope examples: Blocks.launch
+
+    Use startup_events in routes.py if you need to run a coro in background in Blocks.launch().
+
+
     Example:
         utils.run_coro_in_background(fn, *args, **kwargs)
 
@@ -367,10 +391,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-    _ = event_loop.create_task(func(*args, **kwargs))
-
-
-client = httpx.AsyncClient()
+    return event_loop.create_task(func(*args, **kwargs))
 
 
 class Request:
@@ -393,6 +414,7 @@ class Request:
     """
 
     ResponseJson = NewType("ResponseJson", Json)
+    client = httpx.AsyncClient()
 
     class Method(str, Enum):
         """
@@ -463,7 +485,7 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await client.send(self._request)
+            self._response: httpx.Response = await Request.client.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -598,3 +620,41 @@ def set_directory(path: Path):
         yield
     finally:
         os.chdir(origin)
+
+
+def strip_invalid_filename_characters(filename: str) -> str:
+    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+
+
+def sanitize_value_for_csv(value: str | Number) -> str | Number:
+    """
+    Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
+    Reference: https://owasp.org/www-community/attacks/CSV_Injection
+    """
+    if isinstance(value, Number):
+        return value
+    unsafe_prefixes = ["=", "+", "-", "@", "\t", "\n"]
+    unsafe_sequences = [",=", ",+", ",-", ",@", ",\t", ",\n"]
+    if any(value.startswith(prefix) for prefix in unsafe_prefixes) or any(
+        sequence in value for sequence in unsafe_sequences
+    ):
+        value = "'" + value
+    return value
+
+
+def sanitize_list_for_csv(
+    values: List[str | Number] | List[List[str | Number]],
+) -> List[str | Number] | List[List[str | Number]]:
+    """
+    Sanitizes a list of values (or a list of list of values) that is being written to a
+    CSV file to prevent CSV injection attacks.
+    """
+    sanitized_values = []
+    for value in values:
+        if isinstance(value, list):
+            sanitized_value = [sanitize_value_for_csv(v) for v in value]
+            sanitized_values.append(sanitized_value)
+        else:
+            sanitized_value = sanitize_value_for_csv(value)
+            sanitized_values.append(sanitized_value)
+    return sanitized_values

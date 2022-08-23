@@ -11,6 +11,10 @@ $demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
+## Errors
+
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the the calculator demo above, a popup modal will display the custom error message.
+
 ## Decriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
@@ -119,22 +123,31 @@ with gr.Interface(css="body {background-color: red}") as demo:
 
 ## Queuing
 
-If your app expects heavy traffic, set `enable_queue` parameter in the `launch` method to `True` to prevent timeouts. This will queue up calls so only a single call is processed at a time, using long polling. Long polling also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min). 
+If your app expects heavy traffic, use the `queue()` method to control processing rate. This will queue up calls so only a certain number of requests are processed at a single time. Queueing uses websockets, which also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min). 
 
 With `Interface`:
 ```python
-demo = gr.Interface(...)
-demo.launch(enable_queue=True)
+demo = gr.Interface(...).queue()
+demo.launch()
 ```
 
 With `Blocks`:
 ```python
 with gr.Blocks() as demo:
     #...
-demo.launch(enable_queue=True)
+demo.queue()
+demo.launch()
 ```
 
-Or to specify only certain functions for queueing in Blocks:
+You can control the number of requests processsed at a single time as such:
+
+```python
+demo.queue(concurrency_count=3)
+```
+
+See the [Docs on queueing](/docs/#queue) on configuring other queuing parameters.
+
+To specify only certain functions for queueing in Blocks:
 ```python
 with gr.Blocks() as demo2:
     num1 = gr.Number()

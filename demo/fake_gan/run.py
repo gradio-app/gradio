@@ -8,7 +8,6 @@ import gradio as gr
 
 
 def fake_gan(count, *args):
-    time.sleep(1)
     images = [
         random.choice(
             [
@@ -40,12 +39,12 @@ demo = gr.Interface(
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
     examples=[
-        [2, cheetah, 12, None, None, None],
-        [1, cheetah, 2, None, None, None],
-        [4, cheetah, 42, None, None, None],
-        [5, cheetah, 23, None, None, None],
-        [4, cheetah, 11, None, None, None],
-        [3, cheetah, 1, None, None, None],
+        [2, cheetah, None, 12, None, None],
+        [1, cheetah, None, 2, None, None],
+        [4, cheetah, None, 42, None, None],
+        [5, cheetah, None, 23, None, None],
+        [4, cheetah, None, 11, None, None],
+        [3, cheetah, None, 1, None, None],
     ],
 )
 

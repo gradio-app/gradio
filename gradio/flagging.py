@@ -14,7 +14,7 @@ from gradio import encryptor, utils
 from gradio.documentation import document, set_documentation_group
 
 if TYPE_CHECKING:
-    from gradio.components import Component
+    from gradio.components import IOComponent
 
 set_documentation_group("flagging")
 
@@ -72,7 +72,7 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -122,7 +122,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -139,18 +139,20 @@ class SimpleCSVLogger(FlaggingCallback):
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
+            save_dir = os.path.join(
+                flagging_dir, utils.strip_invalid_filename_characters(component.label)
+            )
             csv_data.append(
-                component.save_flagged(
-                    flagging_dir,
-                    component.label,
+                component.deserialize(
                     sample,
+                    save_dir,
                     None,
                 )
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
-            writer.writerow(csv_data)
+            writer = csv.writer(csvfile)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         with open(log_filepath, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
@@ -176,7 +178,7 @@ class CSVLogger(FlaggingCallback):
 
     def setup(
         self,
-        components: List[Component],
+        components: List[IOComponent],
         flagging_dir: str,
         encryption_key: Optional[str] = None,
     ):
@@ -199,12 +201,17 @@ class CSVLogger(FlaggingCallback):
         if flag_index is None:
             csv_data = []
             for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
+                save_dir = os.path.join(
+                    flagging_dir,
+                    utils.strip_invalid_filename_characters(
+                        component.label or f"component {idx}"
+                    ),
+                )
                 csv_data.append(
-                    component.save_flagged(
-                        flagging_dir,
-                        component.label or f"component {idx}",
+                    component.deserialize(
                         sample,
-                        self.encryption_key,
+                        save_dir=save_dir,
+                        encryption_key=self.encryption_key,
                     )
                     if sample is not None
                     else ""
@@ -229,8 +236,8 @@ class CSVLogger(FlaggingCallback):
             flag_col_index = header.index("flag")
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
-            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
-            writer.writerows(content)
+            writer = csv.writer(output)
+            writer.writerows(utils.sanitize_list_for_csv(content))
             return output.getvalue()
 
         if self.encryption_key:
@@ -245,11 +252,11 @@ class CSVLogger(FlaggingCallback):
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
                     output.write(file_content)
-            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
+            writer = csv.writer(output)
             if flag_index is None:
                 if is_new:
-                    writer.writerow(headers)
-                writer.writerow(csv_data)
+                    writer.writerow(utils.sanitize_list_for_csv(headers))
+                writer.writerow(utils.sanitize_list_for_csv(csv_data))
             with open(log_filepath, "wb", encoding="utf-8") as csvfile:
                 csvfile.write(
                     encryptor.encrypt(self.encryption_key, output.getvalue().encode())
@@ -257,12 +264,10 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_filepath, "a", newline="", encoding="utf-8") as csvfile:
-                    writer = csv.writer(
-                        csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
-                    )
+                    writer = csv.writer(csvfile)
                     if is_new:
-                        writer.writerow(headers)
-                    writer.writerow(csv_data)
+                        writer.writerow(utils.sanitize_list_for_csv(headers))
+                    writer.writerow(utils.sanitize_list_for_csv(csv_data))
             else:
                 with open(log_filepath, encoding="utf-8") as csvfile:
                     file_content = csvfile.read()
@@ -270,7 +275,7 @@ class CSVLogger(FlaggingCallback):
                 with open(
                     log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(file_content)
+                    csvfile.write(utils.sanitize_list_for_csv(file_content))
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
@@ -310,7 +315,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.organization_name = organization
         self.dataset_private = private
 
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
@@ -366,21 +371,23 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
             # Generate the headers and dataset_infos
             if is_new:
-                writer.writerow(headers)
+                writer.writerow(utils.sanitize_list_for_csv(headers))
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                filepath = component.save_flagged(
-                    self.dataset_dir, component.label, sample, None
+                save_dir = os.path.join(
+                    self.dataset_dir,
+                    utils.strip_invalid_filename_characters(component.label),
                 )
+                filepath = component.deserialize(sample, save_dir, None)
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
                     csv_data.append(
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
             csv_data.append(flag_option if flag_option is not None else "")
-            writer.writerow(csv_data)
+            writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
@@ -430,7 +437,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self.dataset_private = private
         self.verbose = verbose
 
-    def setup(self, components: List[Component], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str):
         """
         Params:
         components List[Component]: list of components for flagging
