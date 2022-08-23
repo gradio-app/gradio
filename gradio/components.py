@@ -2519,8 +2519,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, str):
-            y = pd.read_csv(y)
-            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+            return {"data": processing_utils.encode_url_or_file_to_base64(y)}
         if isinstance(y, pd.DataFrame):
             return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
         raise ValueError("Cannot process value as Timeseries data")
