@@ -144,7 +144,7 @@
 			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
 			{colors}
 		/>
-	{:else if value === undefined}
+	{:else if value === undefined || value === null}
 		<div class="h-full min-h-[8rem]">
 			<Upload
 				filetype="text/csv"
