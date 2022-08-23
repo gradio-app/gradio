@@ -3,6 +3,7 @@ use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 import base64
 import json
+import operator
 import re
 from copy import deepcopy
 from typing import Callable, Dict
@@ -56,6 +57,15 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get("pipeline_tag")
 
+    def postprocess_label(scores):
+        sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
+        return {
+            "label": sorted_pred[0][0],
+            "confidences": [
+                {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
+            ],
+        }
+
     def encode_to_base64(r: requests.Response) -> str:
         # Handles the different ways HF API returns the prediction
         base64_repr = base64.b64encode(r.content).decode("utf-8")
@@ -82,18 +92,18 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
 
     pipelines = {
         "audio-classification": {
-            # example model: https://hf.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+            # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Label(label="Class"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
-            "postprocess": lambda r: {
-                i["label"].split(", ")[0]: i["score"] for i in r.json()
-            },
+            "postprocess": lambda r: postprocess_label(
+                {i["label"].split(", ")[0]: i["score"] for i in r.json()}
+            ),
         },
         "audio-to-audio": {
-            # example model: https://hf.co/speechbrain/mtl-mimic-voicebank
+            # example model: speechbrain/mtl-mimic-voicebank
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
             "preprocess": lambda i: base64.b64decode(
@@ -102,7 +112,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
-            # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
+            # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: base64.b64decode(
@@ -111,7 +121,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             "postprocess": lambda r: r.json()["text"],
         },
         "feature-extraction": {
-            # example model: hf.co/julien-c/distilbert-feature-extraction
+            # example model: julien-c/distilbert-feature-extraction
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Dataframe(label="Output"),
             "preprocess": lambda x: {"inputs": x},
@@ -121,29 +131,23 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: {i["token_str"]: i["score"] for i in r.json()},
+            "postprocess": lambda r: postprocess_label(
+                {i["token_str"]: i["score"] for i in r.json()}
+            ),
         },
         "image-classification": {
-            # Example: https://huggingface.co/google/vit-base-patch16-224
+            # Example: google/vit-base-patch16-224
             "inputs": components.Image(type="filepath", label="Input Image"),
             "outputs": components.Label(label="Classification"),
             "preprocess": lambda i: base64.b64decode(
                 i.split(",")[1]
             ),  # convert the base64 representation to binary
-            "postprocess": lambda r: {
-                i["label"].split(", ")[0]: i["score"] for i in r.json()
-            },
+            "postprocess": lambda r: postprocess_label(
+                {i["label"].split(", ")[0]: i["score"] for i in r.json()}
+            ),
         },
-        # TODO: support image segmentation pipeline -- should we add a new output component type?
-        # 'image-segmentation': {
-        #     # Example: https://hf.co/facebook/detr-resnet-50-panoptic
-        #     'inputs': inputs.Image(label="Input Image", type="filepath"),
-        #     'outputs': outputs.Image(label="Segmentation"),
-        #     'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
-        #     'postprocess': lambda x: base64.b64encode(x.json()[0]["mask"]).decode('utf-8'),
-        # },
-        # TODO: also: support NER pipeline, object detection, table question answering
         "question-answering": {
+            # Example: deepset/xlm-roberta-base-squad2
             "inputs": [
                 components.Textbox(lines=7, label="Context"),
                 components.Textbox(label="Question"),
@@ -153,29 +157,33 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
                 components.Label(label="Score"),
             ],
             "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
-            "postprocess": lambda r: (r.json()["answer"], r.json()["score"]),
+            "postprocess": lambda r: (r.json()["answer"], {"label": r.json()["score"]}),
         },
         "summarization": {
+            # Example: facebook/bart-large-cnn
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Textbox(label="Summary"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["summary_text"],
         },
         "text-classification": {
+            # Example: distilbert-base-uncased-finetuned-sst-2-english
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: {
-                i["label"].split(", ")[0]: i["score"] for i in r.json()[0]
-            },
+            "postprocess": lambda r: postprocess_label(
+                {i["label"].split(", ")[0]: i["score"] for i in r.json()[0]}
+            ),
         },
         "text-generation": {
+            # Example: gpt2
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Textbox(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "text2text-generation": {
+            # Example: valhalla/t5-small-qa-qg-hl
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Textbox(label="Generated Text"),
             "preprocess": lambda x: {"inputs": x},
@@ -188,6 +196,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             "postprocess": lambda r: r.json()[0]["translation_text"],
         },
         "zero-shot-classification": {
+            # Example: facebook/bart-large-mnli
             "inputs": [
                 components.Textbox(label="Input"),
                 components.Textbox(label="Possible class names (" "comma-separated)"),
@@ -198,13 +207,15 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
                 "inputs": i,
                 "parameters": {"candidate_labels": c, "multi_class": m},
             },
-            "postprocess": lambda r: {
-                r.json()["labels"][i]: r.json()["scores"][i]
-                for i in range(len(r.json()["labels"]))
-            },
+            "postprocess": lambda r: postprocess_label(
+                {
+                    r.json()["labels"][i]: r.json()["scores"][i]
+                    for i in range(len(r.json()["labels"]))
+                }
+            ),
         },
         "sentence-similarity": {
-            # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
+            # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
                 components.Textbox(
                     value="That is a happy person", label="Source Sentence"
@@ -222,26 +233,26 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
                     "sentences": [s for s in sentences.splitlines() if s != ""],
                 }
             },
-            "postprocess": lambda r: {
-                f"sentence {i}": v for i, v in enumerate(r.json())
-            },
+            "postprocess": lambda r: postprocess_label(
+                {f"sentence {i}": v for i, v in enumerate(r.json())}
+            ),
         },
         "text-to-speech": {
-            # example model: hf.co/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
+            # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Audio(label="Audio"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
         "text-to-image": {
-            # example model: hf.co/osanseviero/BigGAN-deep-128
+            # example model: osanseviero/BigGAN-deep-128
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Image(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
         "token-classification": {
-            # example model: hf.co/huggingface-course/bert-finetuned-ner
+            # example model: huggingface-course/bert-finetuned-ner
             "inputs": components.Textbox(label="Input"),
             "outputs": components.HighlightedText(label="Output"),
             "preprocess": lambda x: {"inputs": x},
@@ -591,7 +602,6 @@ def load_from_pipeline(pipeline):
             data = pipeline(*data)
         else:
             data = pipeline(**data)
-        # print("Before postprocessing", data)
         output = pipeline_info["postprocess"](data)
         return output
 
