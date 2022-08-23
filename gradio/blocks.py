@@ -6,6 +6,7 @@ import inspect
 import os
 import random
 import sys
+import tempfile
 import time
 import warnings
 import webbrowser
@@ -66,6 +67,8 @@ class Block:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
+            if hasattr(self, "temp_dir"):
+                Context.root_block.temp_dirs.add(self.temp_dir)
 
     def unrender(self):
         """
@@ -213,6 +216,18 @@ class BlockFunction:
         self.total_runtime = 0
         self.total_runs = 0
 
+    def __str__(self):
+        return str(
+            {
+                "fn": self.fn.__name__ if self.fn is not None else None,
+                "preprocess": self.preprocess,
+                "postprocess": self.postprocess,
+            }
+        )
+
+    def __repr__(self):
+        return str(self)
+
 
 class class_or_instancemethod(classmethod):
     def __get__(self, instance, type_):
@@ -327,7 +342,6 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        self.api_mode = False
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
@@ -366,6 +380,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
+        self.temp_dirs = set()
         self.title = title
 
     @property
@@ -446,7 +461,6 @@ class Blocks(BlockContext):
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
 
-        blocks.api_mode = True
         return blocks
 
     def __call__(self, *params, fn_index=0):
@@ -459,49 +473,41 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         block_fn = self.fns[fn_index]
 
-        if self.api_mode:
-            serialized_params = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    raise ValueError(
-                        "Cannot call Blocks object as a function if any of"
-                        " the inputs are stateful."
-                    )
-                else:
-                    serialized_input = block.serialize(params[i], True)
-                    serialized_params.append(serialized_input)
-        else:
-            serialized_params = params
+        processed_input = []
+        for i, input_id in enumerate(dependency["inputs"]):
+            block = self.blocks[input_id]
+            if getattr(block, "stateful", False):
+                raise ValueError(
+                    "Cannot call Blocks object as a function if any of"
+                    " the inputs are stateful."
+                )
+            else:
+                serialized_input = block.serialize(params[i])
+                processed_input.append(serialized_input)
 
-        processed_input = self.preprocess_data(fn_index, serialized_params, None)
+        processed_input = self.preprocess_data(fn_index, processed_input, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
 
-        output = self.postprocess_data(fn_index, predictions, None)
+        predictions = self.postprocess_data(fn_index, predictions, None)
 
-        if self.api_mode:
-            output_copy = copy.deepcopy(output)
-            deserialized_output = []
-            for o, output_id in enumerate(dependency["outputs"]):
-                block = self.blocks[output_id]
-                if getattr(block, "stateful", False):
-                    raise ValueError(
-                        "Cannot call Blocks object as a function if any of"
-                        " the outputs are stateful."
-                    )
-                else:
-                    deserialized = block.deserialize(output_copy[o])
-                    deserialized_output.append(deserialized)
-        else:
-            deserialized_output = output
+        output_copy = copy.deepcopy(predictions)
+        predictions = []
+        for o, output_id in enumerate(dependency["outputs"]):
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                raise ValueError(
+                    "Cannot call Blocks object as a function if any of"
+                    " the outputs are stateful."
+                )
+            else:
+                deserialized = block.deserialize(output_copy[o])
+                predictions.append(deserialized)
 
-        if len(deserialized_output) == 1:
-            return deserialized_output[0]
-        return deserialized_output
+        return utils.resolve_singleton(predictions)
 
     def __str__(self):
         return self.__repr__()
@@ -528,6 +534,7 @@ class Blocks(BlockContext):
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
             Context.root_block.dependencies.extend(self.dependencies)
+            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
@@ -621,7 +628,7 @@ class Blocks(BlockContext):
     async def process_api(
         self,
         fn_index: int,
-        raw_input: List[Any],
+        inputs: List[Any],
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -636,16 +643,16 @@ class Blocks(BlockContext):
         """
         block_fn = self.fns[fn_index]
 
-        processed_input = self.preprocess_data(fn_index, raw_input, state)
+        inputs = self.preprocess_data(fn_index, inputs, state)
 
-        predictions, duration = await self.call_function(fn_index, processed_input)
+        predictions, duration = await self.call_function(fn_index, inputs)
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
 
-        output = self.postprocess_data(fn_index, predictions, state)
+        predictions = self.postprocess_data(fn_index, predictions, state)
 
         return {
-            "data": output,
+            "data": predictions,
             "duration": duration,
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }

@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import unittest
@@ -179,7 +180,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
             output = io("I am happy, I love you")
-            self.assertGreater(output["POSITIVE"], 0.5)
+            assert json.load(open(output))["label"] == "POSITIVE"
         except TooManyRequestsError:
             pass
 
@@ -187,7 +188,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
         try:
             output = io("gradio/test_data/lion.jpg")
-            self.assertGreater(output["lion"], 0.5)
+            assert json.load(open(output))["label"] == "lion"
         except TooManyRequestsError:
             pass
 
@@ -203,7 +204,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("spaces/abidlabs/titanic-survival")
         try:
             output = io("male", 77, 10)
-            self.assertLess(output["Survives"], 0.5)
+            assert json.load(open(output))["label"] == "Perishes"
         except TooManyRequestsError:
             pass
 

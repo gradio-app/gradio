@@ -20,8 +20,7 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio import Interface
-    from gradio.components import Component
+    from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -31,11 +30,12 @@ set_documentation_group("component-helpers")
 
 def create_examples(
     examples: List[Any] | List[List[Any]] | str,
-    inputs: Component | List[Component],
-    outputs: Optional[Component | List[Component]] = None,
+    inputs: IOComponent | List[IOComponent],
+    outputs: Optional[IOComponent | List[IOComponent]] = None,
     fn: Optional[Callable] = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
+    _api_mode: bool = False,
     label: Optional[str] = None,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -46,6 +46,7 @@ def create_examples(
         fn=fn,
         cache_examples=cache_examples,
         examples_per_page=examples_per_page,
+        _api_mode=_api_mode,
         label=label,
         _initiated_directly=False,
     )
@@ -68,13 +69,14 @@ class Examples:
     def __init__(
         self,
         examples: List[Any] | List[List[Any]] | str,
-        inputs: Component | List[Component],
-        outputs: Optional[Component | List[Component]] = None,
+        inputs: IOComponent | List[IOComponent],
+        outputs: Optional[IOComponent | List[IOComponent]] = None,
         fn: Optional[Callable] = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
+        _api_mode: bool = False,
+        _initiated_directly: bool = True,
         label: str = "Examples",
-        _initiated_directly=True,
     ):
         """
         Parameters:
@@ -87,7 +89,7 @@ class Examples:
             label: the label to use for the examples component (by default, "Examples")
         """
         if _initiated_directly:
-            raise warnings.warn(
+            warnings.warn(
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
@@ -164,15 +166,20 @@ class Examples:
         self.fn = fn
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
+        self._api_mode = _api_mode
 
         with utils.set_directory(working_directory):
             self.processed_examples = [
                 [
-                    component.preprocess_example(sample)
-                    for component, sample in zip(inputs_with_examples, example)
+                    component.postprocess(sample)
+                    for component, sample in zip(inputs, example)
                 ]
-                for example in non_none_examples
+                for example in examples
             ]
+        self.non_none_processed_examples = [
+            [ex for (ex, keep) in zip(example, input_has_examples) if keep]
+            for example in self.processed_examples
+        ]
 
         self.dataset = Dataset(
             components=inputs_with_examples,
@@ -193,11 +200,11 @@ class Examples:
 
         async def load_example(example_id):
             if self.cache_examples:
-                processed_example = self.processed_examples[
+                processed_example = self.non_none_processed_examples[
                     example_id
                 ] + await self.load_from_cache(example_id)
             else:
-                processed_example = self.processed_examples[example_id]
+                processed_example = self.non_none_processed_examples[example_id]
             return utils.resolve_singleton(processed_example)
 
         if Context.root_block:
@@ -221,41 +228,32 @@ class Examples:
             cache_logger = CSVLogger()
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                try:
-                    prediction = await self.process_example(example_id)
-                    cache_logger.flag(prediction)
-                except Exception as e:
-                    shutil.rmtree(self.cached_folder)
-                    raise e
+                prediction = await self.predict_example(example_id)
+                cache_logger.flag(prediction)
 
-    async def process_example(self, example_id: int) -> Tuple[List[Any], List[float]]:
+    async def predict_example(self, example_id: int) -> List[Any]:
         """Loads an example from the interface and returns its prediction.
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        example_set = self.examples[example_id]
-        raw_input = [
-            self.inputs[i].preprocess_example(example)
-            for i, example in enumerate(example_set)
-        ]
-        processed_input = [
-            input_component.preprocess(raw_input[i])
-            for i, input_component in enumerate(self.inputs)
-        ]
+        processed_input = self.processed_examples[example_id]
+        if not self._api_mode:
+            processed_input = [
+                input_component.preprocess(processed_input[i])
+                for i, input_component in enumerate(self.inputs_with_examples)
+            ]
         if inspect.iscoroutinefunction(self.fn):
             predictions = await self.fn(*processed_input)
         else:
             predictions = await anyio.to_thread.run_sync(self.fn, *processed_input)
         if len(self.outputs) == 1:
             predictions = [predictions]
-        processed_output = [
-            output_component.postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_component in enumerate(self.outputs)
-        ]
-
-        return processed_output
+        if not self._api_mode:
+            predictions = [
+                output_component.postprocess(predictions[i])
+                for i, output_component in enumerate(self.outputs)
+            ]
+        return predictions
 
     async def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface.
@@ -263,15 +261,9 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         with open(self.cached_file) as cache:
-            examples = list(csv.reader(cache, quotechar="'"))
+            examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
-        for component, cell in zip(self.outputs, example):
-            output.append(
-                component.restore_flagged(
-                    self.cached_folder,
-                    cell,
-                    None,
-                )
-            )
+        for component, value in zip(self.outputs, example):
+            output.append(component.serialize(value, self.cached_folder))
         return output

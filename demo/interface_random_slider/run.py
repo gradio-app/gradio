@@ -1,7 +1,7 @@
 import gradio as gr
 
 
-def func(slider_1, slider_2):
+def func(slider_1, slider_2, *args):
     return slider_1 + slider_2 * 5
 
 

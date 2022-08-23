@@ -225,9 +225,16 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
+            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
+                Path(temp_dir).resolve() in Path(path).resolve().parents
+                for temp_dir in app.blocks.temp_dirs
+            ):
+                return FileResponse(Path(path).resolve())
             else:
-                if Path(app.cwd).resolve() in Path(path).resolve().parents:
-                    return FileResponse(Path(path).resolve())
+                raise ValueError(
+                    f"File cannot be fetched: {path}, perhaps because "
+                    f"it is not in any of {app.blocks.temp_dirs}"
+                )
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)

@@ -62,9 +62,9 @@ class TestExamplesDataset:
 
 class TestProcessExamples:
     @pytest.mark.asyncio
-    async def test_process_example(self):
+    async def test_predict_example(self):
         io = gr.Interface(lambda x: "Hello " + x, "text", "text", examples=[["World"]])
-        prediction = await io.examples_handler.process_example(0)
+        prediction = await io.examples_handler.predict_example(0)
         assert prediction[0] == "Hello World"
 
     @pytest.mark.asyncio
@@ -73,7 +73,7 @@ class TestProcessExamples:
             return "Hello " + x
 
         io = gr.Interface(coroutine, "text", "text", examples=[["World"]])
-        prediction = await io.examples_handler.process_example(0)
+        prediction = await io.examples_handler.predict_example(0)
         assert prediction[0] == "Hello World"
 
     @pytest.mark.asyncio
