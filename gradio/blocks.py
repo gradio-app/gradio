@@ -215,6 +215,18 @@ class BlockFunction:
         self.total_runtime = 0
         self.total_runs = 0
 
+    def __str__(self):
+        return str(
+            {
+                "fn": self.fn.__name__ if self.fn is not None else None,
+                "preprocess": self.preprocess,
+                "postprocess": self.postprocess,
+            }
+        )
+
+    def __repr__(self):
+        return str(self)
+
 
 class class_or_instancemethod(classmethod):
     def __get__(self, instance, type_):
@@ -316,7 +328,6 @@ class Blocks(BlockContext):
         mode: str = "blocks",
         title: str = "Gradio",
         css: Optional[str] = None,
-        _api_mode: bool = False,
         **kwargs,
     ):
         """
@@ -330,7 +341,6 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        self.api_mode = _api_mode
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
@@ -450,7 +460,6 @@ class Blocks(BlockContext):
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
 
-        blocks.api_mode = True
         return blocks
 
     def __call__(self, *params, fn_index=0):
@@ -475,18 +484,14 @@ class Blocks(BlockContext):
                 serialized_input = block.serialize(params[i])
                 processed_input.append(serialized_input)
 
-        if not self.api_mode:
-            processed_input = self.preprocess_data(fn_index, processed_input, None)
+        processed_input = self.preprocess_data(fn_index, processed_input, None)
 
         if inspect.iscoroutinefunction(block_fn.fn):
             predictions = utils.synchronize_async(block_fn.fn, *processed_input)
         else:
             predictions = block_fn.fn(*processed_input)
 
-        if not self.api_mode:
-            predictions = self.postprocess_data(fn_index, predictions, None)
-        elif len(dependency["outputs"]) == 1:
-            predictions = (predictions,)
+        predictions = self.postprocess_data(fn_index, predictions, None)
 
         output_copy = copy.deepcopy(predictions)
         predictions = []
@@ -637,17 +642,13 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        if not self.api_mode:
-            inputs = self.preprocess_data(fn_index, inputs, state)
+        inputs = self.preprocess_data(fn_index, inputs, state)
 
         predictions, duration = await self.call_function(fn_index, inputs)
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
 
-        if not self.api_mode:
-            predictions = self.postprocess_data(fn_index, predictions, state)
-        elif len(dependency["outputs"]) == 1:
-            predictions = (predictions,)
+        predictions = self.postprocess_data(fn_index, predictions, state)
 
         return {
             "data": predictions,
