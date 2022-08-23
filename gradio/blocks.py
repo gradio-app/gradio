@@ -640,7 +640,6 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
 
