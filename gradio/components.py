@@ -1480,6 +1480,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         inputs: List[Component],
         outputs: List[Component],
         _js: Optional[str] = None,
+        api_name: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1492,7 +1495,16 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         # js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if self.source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-        Streamable.stream(self, fn, inputs, outputs, _js)
+        Streamable.stream(
+            self,
+            fn,
+            inputs,
+            outputs,
+            _js=_js,
+            api_name=api_name,
+            _preprocess=_preprocess,
+            _postprocess=_postprocess,
+        )
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -1926,6 +1938,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         inputs: List[Component],
         outputs: List[Component],
         _js: Optional[str] = None,
+        api_name: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1940,7 +1955,16 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        Streamable.stream(self, fn, inputs, outputs, _js)
+        Streamable.stream(
+            self,
+            fn,
+            inputs,
+            outputs,
+            _js=_js,
+            api_name=api_name,
+            _preprocess=_preprocess,
+            _postprocess=_postprocess,
+        )
 
     def style(
         self,

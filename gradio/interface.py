@@ -505,6 +505,7 @@ class Interface(Blocks):
                                     self.fn,
                                     self.input_components,
                                     self.output_components,
+                                    api_name="predict",
                                     _preprocess=not (self.api_mode),
                                     _postprocess=not (self.api_mode),
                                 )
@@ -520,6 +521,7 @@ class Interface(Blocks):
                                 self.fn,
                                 self.input_components,
                                 self.output_components,
+                                api_name="predict",
                                 _preprocess=not (self.api_mode),
                                 _postprocess=not (self.api_mode),
                             )
