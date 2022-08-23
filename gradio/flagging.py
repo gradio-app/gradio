@@ -43,7 +43,6 @@ def _get_dataset_features_info(is_new, components):
 
         for component in components:
             headers.append(component.label)
-            headers.append(component.label)
             infos["flagged"]["features"][component.label] = {
                 "dtype": "string",
                 "_type": "Value",
@@ -467,7 +466,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             clone_from=path_to_dataset_repo,
             use_auth_token=self.hf_foken,
         )
-        self.repo.git_pull()
+        self.repo.git_pull(lfs=True)
 
         self.infos_file = os.path.join(self.dataset_dir, "dataset_infos.json")
 
@@ -478,7 +477,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
-        self.repo.git_pull()
+        self.repo.git_pull(lfs=True)
 
         # Generate unique folder for the flagged sample
         unique_name = self.get_unique_name()  # unique name for folder
