@@ -67,7 +67,8 @@ class Block:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            self.temp_dir = Context.root_block.temp_dir
+            if hasattr(self, "temp_dir"):
+                Context.root_block.temp_dirs.add(self.temp_dir)
 
     def unrender(self):
         """
@@ -379,7 +380,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.temp_dir = tempfile.TemporaryDirectory().name
+        self.temp_dirs = set()
         self.title = title
 
     @property
@@ -533,6 +534,7 @@ class Blocks(BlockContext):
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
             Context.root_block.dependencies.extend(self.dependencies)
+            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
