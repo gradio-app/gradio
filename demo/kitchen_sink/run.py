@@ -83,7 +83,6 @@ def fn(
         df2,  # Timeseries
     )
 
-
 demo = gr.Interface(
     fn,
     inputs=[
@@ -115,8 +114,8 @@ demo = gr.Interface(
         gr.Audio(label="Audio"),
         gr.Image(label="Image"),
         gr.Video(label="Video"),
-        gr.HighlightedText(
-            label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}
+        gr.HighlightedText(label="HighlightedText").style(
+            color_map={"punc": "pink", "test 0": "blue"}
         ),
         gr.HighlightedText(label="HighlightedText", show_legend=True),
         gr.JSON(label="JSON"),
@@ -152,9 +151,9 @@ demo = gr.Interface(
     * 3,
     theme="default",
     title="Kitchen Sink",
-    cache_examples=False,
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
+    cache_examples=True
 )
 
 if __name__ == "__main__":

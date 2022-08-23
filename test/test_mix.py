@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 
@@ -16,42 +17,38 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestSeries:
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         io1 = gr.Interface(lambda x: x + " World", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + "!", "textbox", gr.Textbox())
         series = mix.Series(io1, io2)
-        assert await series.process(["Hello"]) == ["Hello World!"]
+        assert series("Hello") == "Hello World!"
 
-    # @pytest.mark.asyncio
-    # @pytest.mark.flaky
-    # async def test_with_external(self):
-    #     io1 = gr.Interface.load("spaces/abidlabs/image-identity")
-    #     io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
-    #     series = mix.Series(io1, io2)
-    #     try:
-    #         output = series("gradio/test_data/lion.jpg")
-    #         assert output["lion"] > 0.5
-    #     except TooManyRequestsError:
-    #         pass
+    @pytest.mark.flaky
+    def test_with_external(self):
+        io1 = gr.Interface.load("spaces/abidlabs/image-identity")
+        io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
+        series = mix.Series(io1, io2)
+        try:
+            output = series("gradio/test_data/lion.jpg")
+            assert json.load(open(output))["label"] == "lion"
+        except TooManyRequestsError:
+            pass
 
 
 class TestParallel:
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         io1 = gr.Interface(lambda x: x + " World 1!", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        assert await parallel.process(["Hello"]) == ["Hello World 1!", "Hello World 2!"]
+        assert parallel("Hello") == ["Hello World 1!", "Hello World 2!"]
 
-    @pytest.mark.asyncio
-    async def test_multiple_return_in_interface(self):
+    def test_multiple_return_in_interface(self):
         io1 = gr.Interface(
             lambda x: (x, x + x), "textbox", [gr.Textbox(), gr.Textbox()]
         )
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        assert await parallel.process(["Hello"]) == [
+        assert parallel("Hello") == [
             "Hello",
             "HelloHello",
             "Hello World 2!",

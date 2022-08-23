@@ -1,3 +1,4 @@
+import filecmp
 import json
 import os
 import pathlib
@@ -46,23 +47,16 @@ def test_raise_warnings():
 class TestTextbox(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
         """
         text_input = gr.Textbox()
         self.assertEqual(text_input.preprocess("Hello World!"), "Hello World!")
-        self.assertEqual(text_input.preprocess_example("Hello World!"), "Hello World!")
+        self.assertEqual(text_input.postprocess("Hello World!"), "Hello World!")
         self.assertEqual(text_input.postprocess(None), None)
         self.assertEqual(text_input.postprocess("Ali"), "Ali")
         self.assertEqual(text_input.postprocess(2), "2")
         self.assertEqual(text_input.postprocess(2.14), "2.14")
         self.assertEqual(text_input.serialize("Hello World!", True), "Hello World!")
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = text_input.save_flagged(
-                tmpdirname, "text_input", "Hello World!", None
-            )
-            self.assertEqual(to_save, "Hello World!")
-            restored = text_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "Hello World!")
 
         with self.assertWarns(Warning):
             _ = gr.Textbox(type="number")
@@ -117,7 +111,7 @@ class TestTextbox(unittest.TestCase):
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
-        self.assertEqual(await iface.process(["Hello"]), ["olleH"])
+        self.assertEqual(await iface(["Hello"]), ["olleH"])
         iface = gr.Interface(
             lambda sentence: max([len(word) for word in sentence.split()]),
             gr.Textbox(),
@@ -159,9 +153,9 @@ class TestTextbox(unittest.TestCase):
 
         """
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.Textbox())
-        self.assertEqual(await iface.process(["Hello"]), ["o"])
+        self.assertEqual(await iface(["Hello"]), ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
-        self.assertEqual(iface.process([10]), ["5.0"])
+        self.assertEqual(iface([10]), ["5.0"])
 
     def test_static(self):
         """
@@ -174,22 +168,17 @@ class TestTextbox(unittest.TestCase):
 class TestNumber(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
+        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
         numeric_input = gr.Number()
         self.assertEqual(numeric_input.preprocess(3), 3.0)
         self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.postprocess(3), 3)
         self.assertEqual(numeric_input.postprocess(3), 3.0)
         self.assertEqual(numeric_input.postprocess(2.14), 2.14)
         self.assertEqual(numeric_input.postprocess(None), None)
         self.assertEqual(numeric_input.serialize(3, True), 3)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
-            self.assertEqual(to_save, 3)
-            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, 3)
         self.assertIsInstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         self.assertEqual(
@@ -217,22 +206,17 @@ class TestNumber(unittest.TestCase):
 
     def test_component_functions_integer(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=0, value=42)
         self.assertEqual(numeric_input.preprocess(3), 3)
         self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.postprocess(3), 3)
         self.assertEqual(numeric_input.postprocess(3), 3)
         self.assertEqual(numeric_input.postprocess(2.85), 3)
         self.assertEqual(numeric_input.postprocess(None), None)
         self.assertEqual(numeric_input.serialize(3, True), 3)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
-            self.assertEqual(to_save, 3)
-            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, 3)
         self.assertIsInstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
         self.assertEqual(
@@ -269,13 +253,13 @@ class TestNumber(unittest.TestCase):
 
     def test_component_functions_precision(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
         self.assertEqual(numeric_input.preprocess(3.231241), 3.23)
         self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.preprocess_example(-42.1241), -42.12)
+        self.assertEqual(numeric_input.postprocess(-42.1241), -42.12)
         self.assertEqual(numeric_input.postprocess(5.6784), 5.68)
         self.assertEqual(numeric_input.postprocess(2.1421), 2.14)
         self.assertEqual(numeric_input.postprocess(None), None)
@@ -285,7 +269,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        self.assertEqual(iface.process([2]), ["4.0"])
+        self.assertEqual(iface([2]), ["4.0"])
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -308,7 +292,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
-        self.assertEqual(iface.process([2]), ["4"])
+        self.assertEqual(iface([2]), ["4"])
         iface = gr.Interface(
             lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
         )
@@ -332,7 +316,7 @@ class TestNumber(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
-        self.assertEqual(iface.process([2]), [4.0])
+        self.assertEqual(iface([2]), [4.0])
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -363,19 +347,14 @@ class TestNumber(unittest.TestCase):
 class TestSlider(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
+        Preprocess, postprocess, serialize, generate_sample, get_config
         """
         slider_input = gr.Slider()
         self.assertEqual(slider_input.preprocess(3.0), 3.0)
-        self.assertEqual(slider_input.preprocess_example(3), 3)
+        self.assertEqual(slider_input.postprocess(3), 3)
         self.assertEqual(slider_input.postprocess(3), 3)
         self.assertEqual(slider_input.postprocess(None), 0)
         self.assertEqual(slider_input.serialize(3, True), 3)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = slider_input.save_flagged(tmpdirname, "slider_input", 3, None)
-            self.assertEqual(to_save, 3)
-            restored = slider_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, 3)
 
         self.assertIsInstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
@@ -401,7 +380,7 @@ class TestSlider(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
-        self.assertEqual(iface.process([2]), ["4"])
+        self.assertEqual(iface([2]), ["4"])
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
@@ -437,14 +416,9 @@ class TestCheckbox(unittest.TestCase):
         """
         bool_input = gr.Checkbox()
         self.assertEqual(bool_input.preprocess(True), True)
-        self.assertEqual(bool_input.preprocess_example(True), True)
+        self.assertEqual(bool_input.postprocess(True), True)
         self.assertEqual(bool_input.postprocess(True), True)
         self.assertEqual(bool_input.serialize(True, True), True)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = bool_input.save_flagged(tmpdirname, "bool_input", True, None)
-            self.assertEqual(to_save, True)
-            restored = bool_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, True)
         self.assertIsInstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         self.assertEqual(
@@ -466,7 +440,7 @@ class TestCheckbox(unittest.TestCase):
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
-        self.assertEqual(iface.process([True]), [1])
+        self.assertEqual(iface([True]), [1])
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
@@ -479,19 +453,12 @@ class TestCheckbox(unittest.TestCase):
 class TestCheckboxGroup(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, preprocess_example, serialize, save_flagged, restore_flagged, generate_sample, get_config
+        Preprocess, postprocess, serialize, generate_sample, get_config
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         self.assertEqual(checkboxes_input.preprocess(["a", "c"]), ["a", "c"])
-        self.assertEqual(checkboxes_input.preprocess_example(["a", "c"]), ["a", "c"])
+        self.assertEqual(checkboxes_input.postprocess(["a", "c"]), ["a", "c"])
         self.assertEqual(checkboxes_input.serialize(["a", "c"], True), ["a", "c"])
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = checkboxes_input.save_flagged(
-                tmpdirname, "checkboxes_input", ["a", "c"], None
-            )
-            self.assertEqual(to_save, '["a", "c"]')
-            restored = checkboxes_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, ["a", "c"])
         self.assertIsInstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
@@ -522,26 +489,21 @@ class TestCheckboxGroup(unittest.TestCase):
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
-        self.assertEqual(await iface.process([["a", "c"]]), ["a|c"])
-        self.assertEqual(await iface.process([[]]), [""])
+        self.assertEqual(await iface([["a", "c"]]), ["a|c"])
+        self.assertEqual(await iface([[]]), [""])
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
 
 class TestRadio(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, preprocess_example, serialize, save_flagged, generate_sample, get_config
+        Preprocess, postprocess, serialize, generate_sample, get_config
 
         """
         radio_input = gr.Radio(["a", "b", "c"])
         self.assertEqual(radio_input.preprocess("c"), "c")
-        self.assertEqual(radio_input.preprocess_example("a"), "a")
+        self.assertEqual(radio_input.postprocess("a"), "a")
         self.assertEqual(radio_input.serialize("a", True), "a")
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = radio_input.save_flagged(tmpdirname, "radio_input", "a", None)
-            self.assertEqual(to_save, "a")
-            restored = radio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "a")
         self.assertIsInstance(radio_input.generate_sample(), str)
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
@@ -570,12 +532,12 @@ class TestRadio(unittest.TestCase):
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
-        self.assertEqual(iface.process(["c"]), ["cc"])
+        self.assertEqual(iface(["c"]), ["cc"])
         radio_input = gr.Radio(["a", "b", "c"], type="index")
         iface = gr.Interface(
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
-        self.assertEqual(iface.process(["c"]), [4])
+        self.assertEqual(iface(["c"]), [4])
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         self.assertEqual(scores, [-2.0, None, 2.0])
 
@@ -583,7 +545,7 @@ class TestRadio(unittest.TestCase):
 class TestImage(unittest.TestCase):
     async def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, _segment_by_slic
+        Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
         """
         img = deepcopy(media_data.BASE64_IMAGE)
@@ -593,15 +555,8 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image_input.preprocess(img).shape, (25, 25))
         image_input = gr.Image(shape=(30, 10), type="pil")
         self.assertEqual(image_input.preprocess(img).size, (30, 10))
-        self.assertEqual(image_input.preprocess_example("test/test_files/bus.png"), img)
+        self.assertEqual(image_input.postprocess("test/test_files/bus.png"), img)
         self.assertEqual(image_input.serialize("test/test_files/bus.png", True), img)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
-            self.assertEqual("image_input/0.png", to_save)
-            to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
-            self.assertEqual("image_input/1.png", to_save)
-            restored = image_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, media_data.BASE64_IMAGE)
 
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.Image(
@@ -673,15 +628,6 @@ class TestImage(unittest.TestCase):
         self.assertTrue(
             image_output.postprocess(y_img).startswith("data:image/png;base64,")
         )
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = image_output.save_flagged(
-                tmpdirname, "image_output", deepcopy(media_data.BASE64_IMAGE), None
-            )
-            self.assertEqual("image_output/0.png", to_save)
-            to_save = image_output.save_flagged(
-                tmpdirname, "image_output", deepcopy(media_data.BASE64_IMAGE), None
-            )
-            self.assertEqual("image_output/1.png", to_save)
 
     async def test_in_interface_as_input(self):
         """
@@ -696,7 +642,7 @@ class TestImage(unittest.TestCase):
             gr.Image(shape=(30, 10), type="file"),
             "image",
         )
-        output = (await iface.process([img]))[0]
+        output = (await iface([img]))[0]
         self.assertEqual(
             gr.processing_utils.decode_base64_to_image(output).size, (10, 30)
         )
@@ -730,9 +676,7 @@ class TestImage(unittest.TestCase):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue(
-            (await iface.process([10, 20]))[0].startswith("data:image/png;base64")
-        )
+        self.assertTrue((await iface([10, 20]))[0].startswith("data:image/png;base64"))
 
     def test_static(self):
         """
@@ -756,7 +700,7 @@ class TestPlot(unittest.TestCase):
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = (await iface.process([10]))[0]
+        output = (await iface([10]))[0]
         self.assertEqual(output["type"], "matplotlib")
         self.assertTrue(output["plot"].startswith("data:image/png;base64"))
 
@@ -776,7 +720,7 @@ class TestPlot(unittest.TestCase):
 class TestAudio(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess serialize, save_flagged, restore_flagged, generate_sample, get_config, deserialize
+        Preprocess, postprocess serialize, generate_sample, get_config, deserialize
         type: filepath, numpy, file
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
@@ -784,18 +728,10 @@ class TestAudio(unittest.TestCase):
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
         self.assertEqual(output[1].shape, (8046,))
-        self.assertEqual(
-            audio_input.serialize("test/test_files/audio_sample.wav", True)["data"],
-            x_wav["data"],
+        assert filecmp.cmp(
+            "test/test_files/audio_sample.wav",
+            audio_input.serialize("test/test_files/audio_sample.wav")["name"],
         )
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
-            self.assertEqual("audio_input/0.wav", to_save)
-            to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
-            self.assertEqual("audio_input/1.wav", to_save)
-            restored = audio_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["file_name"], "audio_input/1.wav")
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
@@ -818,20 +754,14 @@ class TestAudio(unittest.TestCase):
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
         self.assertIsNotNone(audio_input.preprocess(x_wav))
-        with self.assertWarns(UserWarning):
-            audio_input = gr.Audio(type="file")
-            audio_input.preprocess(x_wav)
-            with open("test/test_files/audio_sample.wav") as f:
-                audio_input.serialize(f, False)
+
         audio_input = gr.Audio(type="filepath")
         self.assertIsInstance(audio_input.preprocess(x_wav), str)
         with self.assertRaises(ValueError):
             audio_input = gr.Audio(type="unknown")
             audio_input.preprocess(x_wav)
-            audio_input.serialize(x_wav, False)
+            audio_input.serialize(x_wav)
         audio_input = gr.Audio(type="numpy")
-        x_wav = gr.processing_utils.audio_from_file("test/test_files/audio_sample.wav")
-        self.assertIsInstance(audio_input.serialize(x_wav, False), dict)
 
         # Output functionalities
         y_audio = gr.processing_utils.decode_base64_to_file(
@@ -839,9 +769,7 @@ class TestAudio(unittest.TestCase):
         )
         audio_output = gr.Audio(type="file")
         self.assertTrue(
-            audio_output.postprocess(y_audio.name).startswith(
-                "data:audio/wav;base64,UklGRuI/AABXQVZFZm10IBAAA"
-            )
+            filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         )
         self.assertEqual(
             audio_output.get_config(),
@@ -860,18 +788,13 @@ class TestAudio(unittest.TestCase):
         )
         self.assertTrue(
             audio_output.deserialize(
-                deepcopy(media_data.BASE64_AUDIO)["data"]
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_AUDIO)["data"],
+                    "is_file": False,
+                }
             ).endswith(".wav")
         )
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", deepcopy(media_data.BASE64_AUDIO), None
-            )
-            self.assertEqual("audio_output/0.wav", to_save)
-            to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", deepcopy(media_data.BASE64_AUDIO), None
-            )
-            self.assertEqual("audio_output/1.wav", to_save)
 
     def test_tokenize(self):
         """
@@ -891,16 +814,16 @@ class TestAudio(unittest.TestCase):
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_data = (await iface.process([deepcopy(media_data.BASE64_AUDIO)]))[0]
+        reversed_data = (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0]
         reversed_input = {"name": "fake_name", "data": reversed_data}
         self.assertTrue(reversed_data.startswith("data:audio/wav;base64,UklGRgA/"))
         self.assertTrue(
-            (await iface.process([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
+            (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
                 "data:audio/wav;base64,UklGRgA/"
             )
         )
         self.maxDiff = None
-        reversed_reversed_data = (await iface.process([reversed_input]))[0]
+        reversed_reversed_data = (await iface([reversed_input]))[0]
         similarity = SequenceMatcher(
             a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
         ).ratio()
@@ -915,32 +838,22 @@ class TestAudio(unittest.TestCase):
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        self.assertTrue(
-            (await iface.process([100]))[0].startswith("data:audio/wav;base64")
-        )
+        self.assertTrue((await iface([100]))[0].startswith("data:audio/wav;base64"))
 
 
 class TestFile(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, value
+        Preprocess, serialize, generate_sample, get_config, value
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
-        self.assertEqual(
-            file_input.serialize("test/test_files/sample_file.pdf", True),
+        assert filecmp.cmp(
+            file_input.serialize("test/test_files/sample_file.pdf")["name"],
             "test/test_files/sample_file.pdf",
         )
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
-            self.assertEqual("file_input/0", to_save)
-            to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
-            self.assertEqual("file_input/1", to_save)
-            restored = file_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["file_name"], "file_input/1")
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
@@ -962,12 +875,6 @@ class TestFile(unittest.TestCase):
         x_file["is_example"] = True
         self.assertIsNotNone(file_input.preprocess(x_file))
 
-        file_input = gr.File("test/test_files/sample_file.pdf")
-        self.assertEqual(
-            file_input.get_config(),
-            deepcopy(media_data.FILE_TEMPLATE_CONTEXT),
-        )
-
     async def test_in_interface_as_input(self):
         """
         Interface, process
@@ -978,11 +885,11 @@ class TestFile(unittest.TestCase):
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        self.assertEqual(await iface.process([[x_file]]), [10558])
+        self.assertEqual(await iface([[x_file]]), [10558])
 
     async def test_as_component_as_output(self):
         """
-        Interface, process, save_flagged,
+        Interface, process
         """
 
         def write_file(content):
@@ -992,29 +899,19 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(write_file, "text", "file")
         self.assertDictEqual(
-            (await iface.process(["hello world"]))[0],
+            (await iface(["hello world"]))[0],
             {
                 "name": "test.txt",
                 "size": 11,
                 "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
             },
         )
-        file_output = gr.File()
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [deepcopy(media_data.BASE64_FILE)], None
-            )
-            self.assertEqual("file_output/0", to_save)
-            to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [deepcopy(media_data.BASE64_FILE)], None
-            )
-            self.assertEqual("file_output/1", to_save)
 
 
 class TestDataframe(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
+        Preprocess, serialize, generate_sample, get_config
         """
         x_data = {
             "data": [["Tim", 12, False], ["Jan", 24, True]],
@@ -1024,16 +921,7 @@ class TestDataframe(unittest.TestCase):
         output = dataframe_input.preprocess(x_data)
         self.assertEqual(output["Age"][1], 24)
         self.assertEqual(output["Member"][0], False)
-        self.assertEqual(dataframe_input.preprocess_example(x_data), x_data)
-        self.assertEqual(dataframe_input.serialize(x_data, True), x_data)
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = dataframe_input.save_flagged(
-                tmpdirname, "dataframe_input", x_data, None
-            )
-            self.assertEqual(json.dumps(x_data), to_save)
-            restored = dataframe_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(x_data, restored)
+        self.assertEqual(dataframe_input.postprocess(x_data), x_data)
 
         self.assertIsInstance(dataframe_input.generate_sample(), list)
         dataframe_input = gr.Dataframe(
@@ -1122,26 +1010,6 @@ class TestDataframe(unittest.TestCase):
         with self.assertRaises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.postprocess(0)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = dataframe_output.save_flagged(
-                tmpdirname, "dataframe_output", output, None
-            )
-            self.assertEqual(
-                to_save,
-                json.dumps(
-                    {
-                        "headers": ["num", "prime"],
-                        "data": [[2, True], [3, True], [4, False]],
-                    }
-                ),
-            )
-            self.assertEqual(
-                dataframe_output.restore_flagged(tmpdirname, to_save, None),
-                {
-                    "headers": ["num", "prime"],
-                    "data": [[2, True], [3, True], [4, False]],
-                },
-            )
 
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
@@ -1169,14 +1037,14 @@ class TestDataframe(unittest.TestCase):
         """
         x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
-        self.assertEqual(await iface.process([x_data]), [6])
+        self.assertEqual(await iface([x_data]), [6])
         x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
 
         def get_last(my_list):
             return my_list[-1][-1]
 
         iface = gr.Interface(get_last, "list", "text")
-        self.assertEqual(await iface.process([x_data]), ["Sal"])
+        self.assertEqual(await iface([x_data]), ["Sal"])
 
     async def test_in_interface_as_output(self):
         """
@@ -1188,7 +1056,7 @@ class TestDataframe(unittest.TestCase):
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
         self.assertEqual(
-            (await iface.process([{"data": [[2, 3, 4]]}]))[0],
+            (await iface([{"data": [[2, 3, 4]]}]))[0],
             {"data": [[True, False, True]], "headers": [1, 2, 3]},
         )
 
@@ -1196,20 +1064,12 @@ class TestDataframe(unittest.TestCase):
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, deserialize, save_flagged, restore_flagged, generate_sample, get_config
+        Preprocess, serialize, deserialize, generate_sample, get_config
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
         output = video_input.preprocess(x_video)
         self.assertIsInstance(output, str)
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
-            self.assertEqual("video_input/0.mp4", to_save)
-            to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
-            self.assertEqual("video_input/1.mp4", to_save)
-            restored = video_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["file_name"], "video_input/1.mp4")
 
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
@@ -1234,30 +1094,23 @@ class TestVideo(unittest.TestCase):
         video_input = gr.Video(format="avi")
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
 
-        self.assertEqual(
-            video_input.serialize(x_video["name"], True)["data"], x_video["data"]
+        assert filecmp.cmp(
+            video_input.serialize(x_video["name"])["name"], x_video["name"]
         )
 
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
+        self.assertTrue(video_output.postprocess(y_vid_path)["name"].endswith("mp4"))
         self.assertTrue(
-            video_output.postprocess(y_vid_path)["data"].startswith(
-                "data:video/mp4;base64,"
-            )
+            video_output.deserialize(
+                {
+                    "name": None,
+                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                    "is_file": False,
+                }
+            ).endswith(".mp4")
         )
-        self.assertTrue(
-            video_output.deserialize(deepcopy(media_data.BASE64_VIDEO)).endswith(".mp4")
-        )
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = video_output.save_flagged(
-                tmpdirname, "video_output", deepcopy(media_data.BASE64_VIDEO), None
-            )
-            self.assertEqual("video_output/0.mp4", to_save)
-            to_save = video_output.save_flagged(
-                tmpdirname, "video_output", deepcopy(media_data.BASE64_VIDEO), None
-            )
-            self.assertEqual("video_output/1.mp4", to_save)
 
     async def test_in_interface(self):
         """
@@ -1265,13 +1118,13 @@ class TestVideo(unittest.TestCase):
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        self.assertEqual((await iface.process([x_video]))[0]["data"], x_video["data"])
+        self.assertEqual((await iface([x_video]))[0]["data"], x_video["data"])
 
 
 class TestTimeseries(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, save_flagged, restore_flagged, generate_sample, get_config,
+        Preprocess, postprocess,  generate_sample, get_config,
         """
         timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
         x_timeseries = {
@@ -1280,14 +1133,6 @@ class TestTimeseries(unittest.TestCase):
         }
         output = timeseries_input.preprocess(x_timeseries)
         self.assertIsInstance(output, pd.core.frame.DataFrame)
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = timeseries_input.save_flagged(
-                tmpdirname, "video_input", x_timeseries, None
-            )
-            self.assertEqual(json.dumps(x_timeseries), to_save)
-            restored = timeseries_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(x_timeseries, restored)
 
         self.assertIsInstance(timeseries_input.generate_sample(), dict)
         timeseries_input = gr.Timeseries(
@@ -1353,28 +1198,6 @@ class TestTimeseries(unittest.TestCase):
             },
         )
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = timeseries_output.save_flagged(
-                tmpdirname, "timeseries_output", output, None
-            )
-            self.assertEqual(
-                to_save,
-                '{"headers": ["Name", "Age"], "data": [["Tom", 20], ["nick", 21], ["krish", 19], '
-                '["jack", 18]]}',
-            )
-            self.assertEqual(
-                timeseries_output.restore_flagged(tmpdirname, to_save, None),
-                {
-                    "headers": ["Name", "Age"],
-                    "data": [
-                        ["Tom", 20],
-                        ["nick", 21],
-                        ["krish", 19],
-                        ["jack", 18],
-                    ],
-                },
-            )
-
     async def test_in_interface_as_input(self):
         """
         Interface, process
@@ -1386,7 +1209,7 @@ class TestTimeseries(unittest.TestCase):
         }
         iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
         self.assertEqual(
-            await iface.process([x_timeseries]),
+            await iface([x_timeseries]),
             [
                 {
                     "headers": ["time", "retail", "food", "other"],
@@ -1417,7 +1240,7 @@ class TestTimeseries(unittest.TestCase):
             )
         }
         self.assertEqual(
-            await iface.process([df]),
+            await iface([df]),
             [
                 {
                     "headers": ["time", "retail", "food", "other"],
@@ -1443,19 +1266,15 @@ class TestNames(unittest.TestCase):
 class TestLabel(unittest.TestCase):
     def test_component_functions(self):
         """
-        Process, postprocess, deserialize, save_flagged, restore_flagged
+        Process, postprocess, deserialize
         """
         y = "happy"
         label_output = gr.Label()
         label = label_output.postprocess(y)
         self.assertDictEqual(label, {"label": "happy"})
-        self.assertEqual(label_output.deserialize(y), y)
-        self.assertEqual(label_output.deserialize(label), y)
-        with tempfile.TemporaryDirectory() as tmpdir:
-            to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
-            self.assertEqual(to_save, y)
-            y = {3: 0.7, 1: 0.2, 0: 0.1}
-        label_output = gr.Label()
+        self.assertEqual(json.load(open(label_output.deserialize(label))), label)
+
+        y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
         self.assertDictEqual(
             label,
@@ -1482,20 +1301,6 @@ class TestLabel(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             label_output.postprocess([1, 2, 3])
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
-            self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
-            self.assertEqual(
-                label_output.restore_flagged(tmpdir, to_save, None),
-                {
-                    "label": "3",
-                    "confidences": [
-                        {"label": "3", "confidence": 0.7},
-                        {"label": "1", "confidence": 0.2},
-                    ],
-                },
-            )
 
         self.assertEqual(
             label_output.get_config(),
@@ -1529,7 +1334,7 @@ class TestLabel(unittest.TestCase):
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = (await iface.process([x_img]))[0]
+        output = (await iface([x_img]))[0]
         self.assertDictEqual(
             output,
             {
@@ -1581,7 +1386,7 @@ class TestHighlightedText(unittest.TestCase):
 
     def test_component_functions(self):
         """
-        get_config, save_flagged, restore_flagged
+        get_config
         """
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
         self.assertEqual(
@@ -1599,14 +1404,6 @@ class TestHighlightedText(unittest.TestCase):
                 "interactive": None,
             },
         )
-        ht = {"pos": "Hello ", "neg": "World"}
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = ht_output.save_flagged(tmpdirname, "ht_output", ht, None)
-            self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-            self.assertEqual(
-                ht_output.restore_flagged(tmpdirname, to_save, None),
-                {"pos": "Hello ", "neg": "World"},
-            )
 
     async def test_in_interface(self):
         """
@@ -1630,7 +1427,7 @@ class TestHighlightedText(unittest.TestCase):
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
         self.assertListEqual(
-            (await iface.process(["Helloooo"]))[0],
+            (await iface(["Helloooo"]))[0],
             [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")],
         )
 
@@ -1638,20 +1435,12 @@ class TestHighlightedText(unittest.TestCase):
 class TestJSON(unittest.TestCase):
     def test_component_functions(self):
         """
-        Postprocess, save_flagged, restore_flagged
+        Postprocess
         """
         js_output = gr.JSON()
         self.assertTrue(
             js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
         )
-        js = {"pos": "Hello ", "neg": "World"}
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = js_output.save_flagged(tmpdirname, "js_output", js, None)
-            self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-            self.assertEqual(
-                js_output.restore_flagged(tmpdirname, to_save, None),
-                {"pos": "Hello ", "neg": "World"},
-            )
         self.assertEqual(
             js_output.get_config(),
             {
@@ -1692,7 +1481,7 @@ class TestJSON(unittest.TestCase):
             ["F", 30],
         ]
         self.assertDictEqual(
-            (await iface.process([{"data": y_data, "headers": ["gender", "age"]}]))[0],
+            (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0],
             {"M": 35, "F": 25, "O": 20},
         )
 
@@ -1726,7 +1515,7 @@ class TestHTML(unittest.TestCase):
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        self.assertEqual((await iface.process(["test"]))[0], "<strong>test</strong>")
+        self.assertEqual((await iface(["test"]))[0], "<strong>test</strong>")
 
 
 class TestModel3D(unittest.TestCase):
@@ -1734,11 +1523,11 @@ class TestModel3D(unittest.TestCase):
         """
         get_config
         """
-        component = gr.components.Model3D("test/test_files/Box.gltf", label="Model")
+        component = gr.components.Model3D(None, label="Model")
         self.assertEqual(
             {
                 "clearColor": [0.2, 0.2, 0.2, 1.0],
-                "value": media_data.BASE64_MODEL3D,
+                "value": None,
                 "label": "Model",
                 "show_label": True,
                 "interactive": None,
@@ -1756,20 +1545,20 @@ class TestModel3D(unittest.TestCase):
         """
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
         input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = (await iface.process([{"name": "Box.gltf", "data": input_data}]))[
-            0
-        ]["data"]
+        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[0][
+            "data"
+        ]
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 
 class TestColorPicker(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
+        Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
         """
         color_picker_input = gr.ColorPicker()
         self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
-        self.assertEqual(color_picker_input.preprocess_example("#000000"), "#000000")
+        self.assertEqual(color_picker_input.postprocess("#000000"), "#000000")
         self.assertEqual(color_picker_input.postprocess(None), None)
         self.assertEqual(color_picker_input.postprocess("#FFFFFF"), "#FFFFFF")
         self.assertEqual(color_picker_input.serialize("#000000", True), "#000000")
@@ -1796,7 +1585,7 @@ class TestColorPicker(unittest.TestCase):
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
-        self.assertEqual(await iface.process(["#000000"]), ["#000000"])
+        self.assertEqual(await iface(["#000000"]), ["#000000"])
 
     async def test_in_interface_as_output(self):
         """
@@ -1804,7 +1593,7 @@ class TestColorPicker(unittest.TestCase):
 
         """
         iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
-        self.assertEqual(await iface.process(["#000000"]), ["#000000"])
+        self.assertEqual(await iface(["#000000"]), ["#000000"])
 
     def test_static(self):
         """
@@ -1815,7 +1604,7 @@ class TestColorPicker(unittest.TestCase):
 
 
 @patch("uuid.uuid4", return_value="my-uuid")
-def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
+def test_gallery(mock_uuid):
     gallery = gr.Gallery()
     test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
     data = [
@@ -1826,13 +1615,12 @@ def test_gallery_save_and_restore_flagged(my_uuid, tmp_path):
             pathlib.Path(test_file_dir, "cheetah1.jpg")
         ),
     ]
-    label = "Gallery, 1"
-    path = gallery.save_flagged(str(tmp_path), label, data, encryption_key=None)
-    assert path == os.path.join("Gallery 1", "my-uuid")
-    assert sorted(os.listdir(os.path.join(tmp_path, path))) == ["0.png", "1.jpg"]
 
-    data_restored = gallery.restore_flagged(tmp_path, path, encryption_key=None)
-    assert data == data_restored
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = gallery.deserialize(data, tmpdir)
+        assert path.endswith("my-uuid")
+        data_restored = gallery.serialize(path)
+        assert sorted(data) == sorted(data_restored)
 
 
 @patch("gradio.Slider.get_random_value", return_value=7)

@@ -37,12 +37,16 @@ class Parallel(gradio.Interface):
             outputs.extend(interface.output_components)
 
         async def parallel_fn(*args):
-            return_values = await asyncio.gather(
-                *[interface.run_prediction(args) for interface in interfaces]
+            return_values_with_durations = await asyncio.gather(
+                *[interface.call_function(0, args) for interface in interfaces]
             )
+            return_values = [rv[0] for rv in return_values_with_durations]
             combined_list = []
-            for value in return_values:
-                combined_list.extend(value)
+            for interface, return_value in zip(interfaces, return_values):
+                if len(interface.output_components) == 1:
+                    combined_list.append(return_value)
+                else:
+                    combined_list.extend(return_value)
             if len(outputs) == 1:
                 return combined_list[0]
             return combined_list
@@ -110,7 +114,7 @@ class Series(gradio.Interface):
             "fn": connected_fn,
             "inputs": interfaces[0].input_components,
             "outputs": interfaces[-1].output_components,
+            "_api_mode": interfaces[0].api_mode,  # TODO: set api_mode per-interface
         }
         kwargs.update(options)
         super().__init__(**kwargs)
-        self.api_mode = interfaces[0].api_mode  # TODO: set api_mode per-function

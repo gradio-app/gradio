@@ -29,6 +29,7 @@ from starlette.websockets import WebSocket, WebSocketState
 import gradio
 from gradio import encryptor
 from gradio.event_queue import Estimation, Event, Queue
+from gradio.exceptions import Error
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -224,9 +225,16 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
+            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
+                Path(temp_dir).resolve() in Path(path).resolve().parents
+                for temp_dir in app.blocks.temp_dirs
+            ):
+                return FileResponse(Path(path).resolve())
             else:
-                if Path(app.cwd).resolve() in Path(path).resolve().parents:
-                    return FileResponse(Path(path).resolve())
+                raise ValueError(
+                    f"File cannot be fetched: {path}, perhaps because "
+                    f"it is not in any of {app.blocks.temp_dirs}"
+                )
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
@@ -241,18 +249,21 @@ class App(FastAPI):
                 session_state = app.state_holder[body.session_hash]
             else:
                 session_state = {}
+            raw_input = body.data
+            fn_index = body.fn_index
             try:
-                raw_input = body.data
-                fn_index = body.fn_index
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state
                 )
+                if isinstance(output, Error):
+                    raise output
             except BaseException as error:
-                if app.blocks.show_error:
-                    traceback.print_exc()
-                    return JSONResponse(content={"error": str(error)}, status_code=500)
-                else:
-                    raise error
+                show_error = app.blocks.show_error or isinstance(error, Error)
+                traceback.print_exc()
+                return JSONResponse(
+                    content={"error": str(error) if show_error else None},
+                    status_code=500,
+                )
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
