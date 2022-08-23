@@ -3,7 +3,6 @@
 Related spaces: https://huggingface.co/spaces/akhaliq/JoJoGAN
 Tags: WANDB, SPACES
 Contributed by Gradio team
-Docs: image, dropdown
 
 ## Introduction
 
@@ -28,7 +27,7 @@ Weights and Biases (W&B) allows data scientists and machine learning scientists 
 
 ### Gradio
 
-Gradio lets users demo their machine learning models as a web app all in python code. Gradio wraps a python function into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
+Gradio lets users demo their machine learning models as a web app, all in a few lines of Python. Gradio wraps any Python function (such as a machine learning model's inference function) into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
 Get started [here](https://gradio.app/getting_started)
 
@@ -62,7 +61,7 @@ Let's get started!
 
 3. Finetune StyleGAN and W&B experiment tracking
 
-    This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces.
+    This next step will open a W&B dashboard to track your experiments and a gradio panel showing pretrained models to choose from a drop down menu from a Gradio Demo hosted on Huggingface Spaces. Here's the code you need for that:
 
     ```python
     
@@ -140,27 +139,14 @@ Let's get started!
     wandb.log({"Current Samples": out_table})
     ```
 
-    Lastly, here's how to save, download, and load your model (and Gradio demo)
+4. Save, Download, and Load Model
 
-4. Save and Download Model
-
-    ```python
-
-    torch.save({"g": generator.state_dict()}, "your-model-name.pt")
-
-
-    from google.colab import files
-    files.download('your-model-name.pt') 
-    ```
-
-5. Load Model and Gradio Demo
+    Here's how to save and download your model.
 
     ```python
 
-    import gradio as gr
     from PIL import Image
     import torch
-    import gradio as gr
     torch.backends.cudnn.benchmark = True
     from torchvision import transforms, utils
     from util import *
@@ -174,9 +160,6 @@ Let's get started!
     from model import *
     from e4e_projection import projection as e4e_projection
 
-
-    #from e4e_projection import projection as e4e_projection
-
     from copy import deepcopy
     import imageio
 
@@ -187,7 +170,11 @@ Let's get started!
     from e4e.models.psp import pSp
     from util import *
     from huggingface_hub import hf_hub_download
+    from google.colab import files
 
+    torch.save({"g": generator.state_dict()}, "your-model-name.pt")
+
+    files.download('your-model-name.pt') 
 
     latent_dim = 512
     device="cuda"
@@ -228,36 +215,29 @@ Let's get started!
         npimage = my_sample[0].cpu().permute(1, 2, 0).detach().numpy()
         imageio.imwrite('filename.jpeg', npimage)
         return 'filename.jpeg'
-    #Full spaces demo code here: https://huggingface.co/spaces/akhaliq/JoJoGAN/edit/main/app.py
+    ```
 
+5. Build a Gradio Demo
+
+    ```python
+
+    import gradio as gr
 
     title = "JoJoGAN"
     description = "Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below."
 
-
-    article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2112.11641' target='_blank'>JoJoGAN: One Shot Face Stylization</a>| <a href='https://github.com/mchong6/JoJoGAN' target='_blank'>Github Repo Pytorch</a></p> <center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_jojogan' alt='visitor badge'></center>"
-
-
-
-    demo = gr.Interface(inference, [gr.inputs.Image(type="pil")], gr.outputs.Image(type="file"),title=title,description=description,article=article)
+    demo = gr.Interface(
+        inference, 
+        gr.Image(type="pil"), 
+        gr.Image(type="file"),
+        title=title,
+        description=description
+    )
+    
     demo.launch(share=True)
-
-    ## you can also use the new Gradio Blocks API like this
-
-    with gr.Blocks() as demo:
-        gr.Markdown("# Gradio Demo for JoJoGAN: One Shot Face Stylization. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below.")
-        with gr.Row():
-            inp = gr.Image(type="pil")
-            out = gr.Image(type="file")
-
-
-        btn = gr.Button("Run")
-        btn.click(fn=inference, inputs=inp, outputs=out)
-
-    demo.launch()
     ```
 
-6. Integrate Gradio
+6. Integrate Gradio into your W&B Dashboard
 
     The last step—integrating your Gradio demo with your W&B dashboard—is just one extra line:
 
