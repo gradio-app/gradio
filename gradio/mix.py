@@ -114,7 +114,7 @@ class Series(gradio.Interface):
             "fn": connected_fn,
             "inputs": interfaces[0].input_components,
             "outputs": interfaces[-1].output_components,
+            "_api_mode": interfaces[0].api_mode,  # TODO: set api_mode per-interface
         }
         kwargs.update(options)
         super().__init__(**kwargs)
-        self.api_mode = interfaces[0].api_mode  # TODO: set api_mode per-interface
