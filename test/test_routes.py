@@ -66,7 +66,6 @@ class TestRoutes(unittest.TestCase):
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        print("output", output)
         self.assertEqual(output["data"], ["test", None])
         response = client.post(
             "/api/predict/",

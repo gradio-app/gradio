@@ -30,12 +30,12 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_url_or_file_to_base64(path):
+def encode_url_or_file_to_base64(path, encryption_key=None):
     try:
         requests.get(path)
-        return encode_url_to_base64(path)
+        return encode_url_to_base64(path, encryption_key=encryption_key)
     except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return encode_file_to_base64(path)
+        return encode_file_to_base64(path, encryption_key=encryption_key)
 
 
 def get_mimetype(filename):
@@ -71,8 +71,10 @@ def encode_file_to_base64(f, encryption_key=None):
         )
 
 
-def encode_url_to_base64(url):
+def encode_url_to_base64(url, encryption_key=None):
     encoded_string = base64.b64encode(requests.get(url).content)
+    if encryption_key:
+        encoded_string = encryptor.decrypt(encryption_key, encoded_string)
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (
@@ -88,10 +90,23 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
+def save_array_to_file(image_array, dir=None):
+    pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
+    pil_image.save(file_obj)
+    return file_obj
+
+
+def save_pil_to_file(pil_image, dir=None):
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
+    pil_image.save(file_obj)
+    return file_obj
+
+
 def encode_array_to_base64(image_array):
     with BytesIO() as output_bytes:
-        PIL_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        PIL_image.save(output_bytes, "PNG")
+        pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
+        pil_image.save(output_bytes, "PNG")
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
@@ -201,7 +216,9 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
+def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     prefix = None
     if file_path is not None:
@@ -211,10 +228,13 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
             prefix = filename[0 : filename.index(".")]
             extension = filename[filename.index(".") + 1 :]
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension
+            delete=False,
+            prefix=prefix,
+            suffix="." + extension,
+            dir=dir,
         )
     if encryption_key is not None:
         data = encryptor.encrypt(encryption_key, data)
@@ -223,17 +243,55 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
     return file_obj
 
 
-def create_tmp_copy_of_file(file_path):
+def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
+    try:
+        response = requests.get(file_path_or_url, stream=True)
+        if file_path_or_url.find("/"):
+            new_file_path = file_path_or_url.rsplit("/", 1)[1]
+        else:
+            new_file_path = "file.txt"
+        with open(new_file_path, "wb") as out_file:
+            shutil.copyfileobj(response.raw, out_file)
+        del response
+    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
+        return create_tmp_copy_of_file(file_path_or_url, dir)
+
+
+def dict_or_str_to_json_file(jsn, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False, suffix=".json", dir=dir, mode="w+"
+    )
+    if isinstance(jsn, str):
+        jsn = json.loads(jsn)
+    json.dump(jsn, file_obj)
+    file_obj.flush()
+    return file_obj
+
+
+def file_to_json(file_path):
+    return json.load(open(file_path))
+
+
+def create_tmp_copy_of_file(file_path, dir=None):
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
         file_obj = tempfile.NamedTemporaryFile(
-            delete=False, prefix=prefix, suffix="." + extension
+            delete=False,
+            prefix=prefix,
+            suffix="." + extension,
+            dir=dir,
         )
     shutil.copy2(file_path, file_obj.name)
     return file_obj
@@ -518,10 +576,6 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     image = _scale(image, 8 * itemsize_in, 8 * itemsize_out, copy=False)
     image += imin_out
     return image.astype(dtype_out)
-
-
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
 
 
 def ffmpeg_installed() -> bool:
