@@ -70,10 +70,22 @@
 		reader.readAsText(blob);
 	}
 
+	function dict_to_string(dict: object) {
+		_value = dict["headers"]?.join(",");
+
+		dict["data"].forEach((x) => {
+			_value = _value + "\n";
+			_value = _value + x.join(",");
+		});
+	}
+
 	$: {
 		if (value && value.data && typeof value.data === "string") {
 			if (!value) _value = null;
 			else blob_to_string(data_uri_to_blob(value.data));
+		} else if (value && value.data && typeof value.data != "string") {
+			if (!value) _value = null;
+			dict_to_string(value);
 		}
 	}
 
