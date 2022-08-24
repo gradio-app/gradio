@@ -35,7 +35,7 @@ interface PostResponse {
 	error?: string;
 	[x: string]: unknown;
 }
-const QUEUE_FULL_MSG = "This application is too busy! Try again soon.";
+const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 
 async function post_data(
 	url: string,
