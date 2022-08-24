@@ -11,8 +11,35 @@
     {% include "templates/navbar.html" %}
     <main class="container mx-auto px-4 gap-4">
       <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500 group">Recipes</h2>
-      <p class="mt-8 mb-2 text-lg">Here are some examples of what you can build with Gradio in just a few lines of Python. Once you’re ready to learn, head over to the <a class="link" href="/getting_started">Quickstart</a>.</p>
-      <div class="demo-window overflow-y-auto h-full w-full my-4">
+      <p class="mt-8 text-lg">Here are some examples of what you can build with Gradio in just a few lines of Python. Once you’re ready to learn, head over to the <a class="link" href="/getting_started">Quickstart</a>.</p>
+      {% for category_demos in demos_by_category %}
+      {% set category_loop = loop %}
+      <div class="category mb-8">
+        <h2 class="mb-4 text-2xl font-thin block">{{ category_demos["category"] }}</h2>
+        <div>
+          <div class="demo-window overflow-y-auto h-full w-full my-4">
+            <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
+              <div class="flex overflow-auto py-4">
+                {% for demo in category_demos["demos"] %}
+                <button
+                  class="demo-btn px-4 py-2 text-lg {% if (category_loop.index==1) and (loop.index==1) %}selected-demo{% endif %} min-w-max text-gray-600 hover:text-orange-500"
+                  name="{{ demo['dir'] }}" onclick="show_demo('{{ demo['dir'] }}')">{{ demo['name'] }}</button>
+                {% endfor %}
+              </div>
+              {% for demo in category_demos["demos"] %}
+              <div class="demo-content {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %}" name="{{ demo['dir'] }}">
+                <div class="codeblock">
+                  <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
+                </div>
+                <gradio-app src="/demo/{{ demo['dir'] }}" />
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      <!-- <div class="demo-window overflow-y-auto h-full w-full my-4">
         <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
           <div class="flex overflow-auto py-4">
             {% for demo in demos %}
@@ -31,7 +58,7 @@
           </div>
           {% endfor %}
         </div>
-      </div>
+      </div> -->
 
     </main>
     <script src="/assets/prism.js"></script>
