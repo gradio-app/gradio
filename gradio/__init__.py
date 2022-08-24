@@ -48,6 +48,7 @@ from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
+    HuggingFaceDatasetJSONSaver,
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
