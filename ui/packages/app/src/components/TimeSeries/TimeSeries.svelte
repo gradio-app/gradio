@@ -70,10 +70,10 @@
 		reader.readAsText(blob);
 	}
 
-	function dict_to_string(dict: object) {
-		_value = dict["headers"]?.join(",");
+	function dict_to_string(dict: any) {
+		_value = dict["headers"].join(",");
 
-		dict["data"].forEach((x) => {
+		dict["data"].forEach((x: Array<any>) => {
 			_value = _value + "\n";
 			_value = _value + x.join(",");
 		});
