@@ -1,5 +1,6 @@
 export interface FileData {
-	name: string;
+	file_name: string;
+	tmp_file?: string;
 	size?: number;
 	data: string;
 	is_file?: boolean;
