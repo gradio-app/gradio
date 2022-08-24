@@ -20,7 +20,7 @@
 	});
 
 	afterUpdate(() => {
-		if (value != null && value.is_example) {
+		if (value != null && value.is_file) {
 			addNewModel();
 		}
 	});
@@ -80,7 +80,7 @@
 		if (!value) return;
 
 		let url: string;
-		if (value.is_example) {
+		if (value.is_file) {
 			url = value.data;
 		} else {
 			let base64_model_content = value.data;

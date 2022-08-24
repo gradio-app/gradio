@@ -49,31 +49,27 @@
 	import Loader from "./Loader.svelte";
 
 	export let eta: number | null = null;
+	export let queue: boolean = false;
 	export let queue_position: number | null;
+	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
+	export let message: string | null = null;
 
 	let el: HTMLDivElement;
 
 	let _timer: boolean = false;
 	let timer_start = 0;
 	let timer_diff = 0;
-
-	let initial_queue_pos = queue_position;
-
-	$: if (
-		queue_position &&
-		(!initial_queue_pos || queue_position > initial_queue_pos)
-	) {
-		initial_queue_pos = queue_position;
-	}
+	let old_eta: number | null = null;
+	let message_visible: boolean = false;
 
 	$: progress =
-		eta === null || !timer_diff
+		eta === null || eta <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / (eta * ((initial_queue_pos || 0) + 1)), 1);
+			: Math.min(timer_diff / eta, 1);
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -114,7 +110,31 @@
 		(status === "pending" || status === "complete") &&
 		scroll_into_view(el, $app_state.autoscroll);
 
-	$: formatted_eta = eta && (eta * ((initial_queue_pos || 0) + 1)).toFixed(1);
+	let formatted_eta: string | null = null;
+	$: {
+		if (eta === null) {
+			eta = old_eta;
+		} else if (queue) {
+			eta = (performance.now() - timer_start) / 1000 + eta;
+		}
+		if (eta != null) {
+			formatted_eta = eta.toFixed(1);
+			old_eta = eta;
+		}
+	}
+	let show_message_timeout: NodeJS.Timeout | null = null;
+	const close_message = () => {
+		message_visible = false;
+		if (show_message_timeout !== null) {
+			clearTimeout(show_message_timeout);
+		}
+	};
+	$: {
+		if (status === "error" && message) {
+			message_visible = true;
+			show_message_timeout = setTimeout(close_message, 8000);
+		}
+	}
 	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
@@ -126,9 +146,9 @@
 >
 	{#if status === "pending"}
 		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text">
-			{#if queue_position !== null && queue_position > 0}
-				queue: {queue_position}/{initial_queue_pos} |
+		<div class="meta-text dark:text-gray-400">
+			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
@@ -145,6 +165,23 @@
 		{/if}
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
+		{#if message_visible}
+			<div
+				class="flex flex-col items-center fixed z-[100] w-full left-0 top-12 mx-auto font-mono whitespace-pre-wrap pointer-events-auto"
+			>
+				<div
+					class="p-3 w-4/5 text-xl rounded-t bg-red-300 text-red-700 status-title flex justify-between items-center"
+				>
+					<span>Error</span>
+					<button on:click={close_message}>✖</button>
+				</div>
+				<div
+					class="px-3 w-4/5 py-4 rounded-b bg-gray-200 border-gray-100 dark:bg-gray-700 dark:border-gray-800 dark:text-gray-100"
+				>
+					{message}
+				</div>
+			</div>
+		{/if}
 	{/if}
 </div>
 

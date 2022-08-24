@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 
@@ -8,19 +9,19 @@ from gradio import mix
 from gradio.external import TooManyRequestsError
 
 """
-WARNING: Some of these tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
+WARNING: Some of these tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up.
+So if, e.g. Spaces is down, then these test will not pass.
 """
-
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestSeries(unittest.TestCase):
+class TestSeries:
     def test_in_interface(self):
         io1 = gr.Interface(lambda x: x + " World", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + "!", "textbox", gr.Textbox())
         series = mix.Series(io1, io2)
-        self.assertEqual(series.process(["Hello"]), ["Hello World!"])
+        assert series("Hello") == "Hello World!"
 
     @pytest.mark.flaky
     def test_with_external(self):
@@ -29,19 +30,17 @@ class TestSeries(unittest.TestCase):
         series = mix.Series(io1, io2)
         try:
             output = series("gradio/test_data/lion.jpg")
-            self.assertGreater(output["lion"], 0.5)
+            assert json.load(open(output))["label"] == "lion"
         except TooManyRequestsError:
             pass
 
 
-class TestParallel(unittest.TestCase):
+class TestParallel:
     def test_in_interface(self):
         io1 = gr.Interface(lambda x: x + " World 1!", "textbox", gr.Textbox())
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        self.assertEqual(
-            parallel.process(["Hello"]), ["Hello World 1!", "Hello World 2!"]
-        )
+        assert parallel("Hello") == ["Hello World 1!", "Hello World 2!"]
 
     def test_multiple_return_in_interface(self):
         io1 = gr.Interface(
@@ -49,9 +48,11 @@ class TestParallel(unittest.TestCase):
         )
         io2 = gr.Interface(lambda x: x + " World 2!", "textbox", gr.Textbox())
         parallel = mix.Parallel(io1, io2)
-        self.assertEqual(
-            parallel.process(["Hello"]), ["Hello", "HelloHello", "Hello World 2!"]
-        )
+        assert parallel("Hello") == [
+            "Hello",
+            "HelloHello",
+            "Hello World 2!",
+        ]
 
     @pytest.mark.flaky
     def test_with_external(self):
@@ -60,8 +61,8 @@ class TestParallel(unittest.TestCase):
         parallel = mix.Parallel(io1, io2)
         try:
             hello_es, hello_de = parallel("Hello")
-            self.assertIn("hola", hello_es.lower())
-            self.assertIn("hallo", hello_de.lower())
+            assert "hola" in hello_es.lower()
+            assert "hallo" in hello_de.lower()
         except TooManyRequestsError:
             pass
 

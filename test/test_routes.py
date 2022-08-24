@@ -4,9 +4,10 @@ import os
 import unittest
 import unittest.mock as mock
 
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from gradio import Interface, close_all, queueing
+from gradio import Interface, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -65,7 +66,6 @@ class TestRoutes(unittest.TestCase):
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        print("output", output)
         self.assertEqual(output["data"], ["test", None])
         response = client.post(
             "/api/predict/",
@@ -74,22 +74,15 @@ class TestRoutes(unittest.TestCase):
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest", None])
 
-    def test_queue_push_route(self):
-        queueing.push = mock.MagicMock(return_value=(None, None))
-        response = self.client.post(
-            "/api/queue/push/",
-            json={"data": "test", "action": "test", "fn_index": 0, "session_hash": "-"},
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_queue_push_route_2(self):
-        queueing.get_status = mock.MagicMock(return_value=(None, None))
-        response = self.client.post("/api/queue/status/", json={"hash": "test"})
-        self.assertEqual(response.status_code, 200)
-
     def tearDown(self) -> None:
         self.io.close()
         close_all()
+
+
+class TestApp:
+    def test_create_app(self):
+        app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
+        assert isinstance(app, FastAPI)
 
 
 class TestAuthenticatedRoutes(unittest.TestCase):

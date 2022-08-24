@@ -1,4 +1,5 @@
 import copy
+import json
 import os
 import unittest
 import unittest.mock as mock
@@ -25,9 +26,10 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
-    json,
     launch_analytics,
     readme_to_html,
+    sanitize_list_for_csv,
+    sanitize_value_for_csv,
     version_check,
 )
 
@@ -254,8 +256,65 @@ async def client():
     A fixture to mock the async client object.
     """
     async with AsyncClient() as mock_client:
-        with mock.patch("gradio.utils.client", mock_client):
+        with mock.patch("gradio.utils.Request.client", mock_client):
             yield
+
+
+class TestRequest:
+    @pytest.mark.asyncio
+    async def test_get(self):
+        client_response: Request = await Request(
+            method=Request.Method.GET,
+            url="http://headers.jsontest.com/",
+        )
+        validated_data = client_response.get_validated_data()
+        assert client_response.is_valid() is True
+        assert validated_data["Host"] == "headers.jsontest.com"
+
+    @pytest.mark.asyncio
+    async def test_post(self):
+        client_response: Request = await Request(
+            method=Request.Method.POST,
+            url="https://reqres.in/api/users",
+            json={"name": "morpheus", "job": "leader"},
+        )
+        validated_data = client_response.get_validated_data()
+        assert client_response.status == 201
+        assert validated_data["job"] == "leader"
+        assert validated_data["name"] == "morpheus"
+
+    @pytest.mark.asyncio
+    async def test_validate_with_model(self):
+        class TestModel(BaseModel):
+            name: str
+            job: str
+            id: str
+            createdAt: str
+
+        client_response: Request = await Request(
+            method=Request.Method.POST,
+            url="https://reqres.in/api/users",
+            json={"name": "morpheus", "job": "leader"},
+            validation_model=TestModel,
+        )
+        assert isinstance(client_response.get_validated_data(), TestModel)
+
+    @pytest.mark.asyncio
+    async def test_validate_and_fail_with_model(self):
+        class TestModel(BaseModel):
+            name: Literal["John"] = "John"
+            job: str
+
+        client_response: Request = await Request(
+            method=Request.Method.POST,
+            url="https://reqres.in/api/users",
+            json={"name": "morpheus", "job": "leader"},
+            validation_model=TestModel,
+        )
+        with pytest.raises(Exception):
+            client_response.is_valid(raise_exceptions=True)
+        assert client_response.has_exception is True
+        assert isinstance(client_response.exception, Exception)
 
 
 def make_mock_response(return_value):
@@ -408,6 +467,26 @@ async def test_validate_and_fail_with_function(respx_mock):
     with pytest.raises(Exception):
         client_response.is_valid(raise_exceptions=True)
     assert client_response.exception is not None
+
+
+class TestSanitizeForCSV:
+    def test_unsafe_value(self):
+        assert sanitize_value_for_csv("=OPEN()") == "'=OPEN()"
+        assert sanitize_value_for_csv("=1+2") == "'=1+2"
+        assert sanitize_value_for_csv('=1+2";=1+2') == "'=1+2\";=1+2"
+
+    def test_safe_value(self):
+        assert sanitize_value_for_csv(4) == 4
+        assert sanitize_value_for_csv(-44.44) == -44.44
+        assert sanitize_value_for_csv("1+1=2") == "1+1=2"
+        assert sanitize_value_for_csv("1aaa2") == "1aaa2"
+
+    def test_list(self):
+        assert sanitize_list_for_csv([4, "def=", "=gh+ij"]) == [4, "def=", "'=gh+ij"]
+        assert sanitize_list_for_csv(
+            [["=abc", "def", "gh,+ij"], ["abc", "=def", "+ghij"]]
+        ) == [["'=abc", "def", "'gh,+ij"], ["abc", "'=def", "'+ghij"]]
+        assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
 
 
 if __name__ == "__main__":

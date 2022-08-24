@@ -3,15 +3,18 @@ import { writable } from "svelte/store";
 export interface LoadingStatus {
 	eta: number | null;
 	status: "pending" | "error" | "complete";
+	queue: boolean;
 	queue_position: number | null;
+	queue_size: number | null;
 	fn_index: number;
+	message?: string | null;
 	scroll_to_output?: boolean;
 	visible?: boolean;
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
 
-function create_loading_status_store() {
+export function create_loading_status_store() {
 	const store = writable<LoadingStatusCollection>({});
 
 	const fn_inputs: Array<Array<number>> = [];
@@ -25,8 +28,11 @@ function create_loading_status_store() {
 	function update(
 		fn_index: LoadingStatus["fn_index"],
 		status: LoadingStatus["status"],
+		queue: LoadingStatus["queue"],
+		size: LoadingStatus["queue_size"],
 		position: LoadingStatus["queue_position"],
-		eta: LoadingStatus["eta"]
+		eta: LoadingStatus["eta"],
+		message: LoadingStatus["message"]
 	) {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
@@ -60,8 +66,10 @@ function create_loading_status_store() {
 			return {
 				id,
 				queue_position: position,
+				queue_size: size,
 				eta: eta,
-				status: new_status
+				status: new_status,
+				message: message
 			};
 		});
 
@@ -82,14 +90,19 @@ function create_loading_status_store() {
 		});
 
 		store.update((outputs) => {
-			outputs_to_update.forEach(({ id, queue_position, eta, status }) => {
-				outputs[id] = {
-					queue_position,
-					eta: eta || outputs[id]?.eta,
-					status,
-					fn_index
-				};
-			});
+			outputs_to_update.forEach(
+				({ id, queue_position, queue_size, eta, status, message }) => {
+					outputs[id] = {
+						queue: queue,
+						queue_size: queue_size,
+						queue_position: queue_position,
+						eta: eta,
+						message,
+						status,
+						fn_index
+					};
+				}
+			);
 
 			return outputs;
 		});
@@ -119,5 +132,5 @@ function create_loading_status_store() {
 	};
 }
 
-export const loading_status = create_loading_status_store();
+export type LoadingStatusType = ReturnType<typeof create_loading_status_store>;
 export const app_state = writable({ autoscroll: false });

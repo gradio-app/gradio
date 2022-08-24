@@ -1,5 +1,5 @@
 {
-  "version": "3.1.1\n",
+  "version": "3.1.4",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -280,11 +280,20 @@
       "show_progress": true,
       "documentation": [
         [
-          null,
-          null
+          [
+            "list of selected choices",
+            "List[str]"
+          ],
+          [
+            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "str | Dict"
+          ]
         ],
         [
-          null
+          [
+            "JSON output",
+            "Dict | List | None"
+          ]
         ]
       ]
     },
@@ -309,11 +318,20 @@
       "show_progress": true,
       "documentation": [
         [
-          null,
-          null
+          [
+            "list of selected choices",
+            "List[str]"
+          ],
+          [
+            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "str | Dict"
+          ]
         ],
         [
-          null
+          [
+            "JSON output",
+            "Dict | List | None"
+          ]
         ]
       ]
     },

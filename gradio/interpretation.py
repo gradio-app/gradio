@@ -3,10 +3,11 @@ import math
 
 import numpy as np
 
+from gradio import utils
 from gradio.components import Label, Number, Textbox
 
 
-def run_interpret(interface, raw_input):
+async def run_interpret(interface, raw_input):
     """
     Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
     interpretation for a certain set of UI component types, as well as the custom interpretation case.
@@ -18,8 +19,14 @@ def run_interpret(interface, raw_input):
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(interface.input_components)
         ]
-        original_output = interface.run_prediction(processed_input)
+        original_output = await interface.call_function(0, processed_input)
+        original_output = original_output[0]
+
+        if len(interface.output_components) == 1:
+            original_output = [original_output]
+
         scores, alternative_outputs = [], []
+
         for i, (x, interp) in enumerate(zip(raw_input, interface.interpretation)):
             if interp == "default":
                 input_component = interface.input_components[i]
@@ -36,9 +43,13 @@ def run_interpret(interface, raw_input):
                                 interface.input_components
                             )
                         ]
-                        neighbor_output = interface.run_prediction(
-                            processed_neighbor_input
+
+                        neighbor_output = await interface.call_function(
+                            0, processed_neighbor_input
                         )
+                        neighbor_output = neighbor_output[0]
+                        if len(interface.output_components) == 1:
+                            neighbor_output = [neighbor_output]
                         processed_neighbor_output = [
                             output_component.postprocess(neighbor_output[i])
                             for i, output_component in enumerate(
@@ -77,9 +88,12 @@ def run_interpret(interface, raw_input):
                                 interface.input_components
                             )
                         ]
-                        neighbor_output = interface.run_prediction(
-                            processed_neighbor_input
+                        neighbor_output = await interface.call_function(
+                            0, processed_neighbor_input
                         )
+                        neighbor_output = neighbor_output[0]
+                        if len(interface.output_components) == 1:
+                            neighbor_output = [neighbor_output]
                         processed_neighbor_output = [
                             output_component.postprocess(neighbor_output[i])
                             for i, output_component in enumerate(
@@ -127,7 +141,12 @@ def run_interpret(interface, raw_input):
                     for masked_x in masked_xs:
                         processed_masked_input = copy.deepcopy(processed_input)
                         processed_masked_input[i] = input_component.preprocess(masked_x)
-                        new_output = interface.run_prediction(processed_masked_input)
+                        new_output = utils.synchronize_async(
+                            interface.call_function, 0, processed_masked_input
+                        )
+                        new_output = new_output[0]
+                        if len(interface.output_components) == 1:
+                            new_output = [new_output]
                         pred = get_regression_or_classification_value(
                             interface, original_output, new_output
                         )

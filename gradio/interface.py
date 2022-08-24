@@ -14,10 +14,11 @@ import weakref
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
+import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils
+from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
@@ -31,7 +32,6 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.examples import Examples
 from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
@@ -42,7 +42,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-@document("launch", "load", "from_pipeline", "integrate")
+@document("launch", "load", "from_pipeline", "integrate", "queue")
 class Interface(Blocks):
     """
     Interface is Gradio's main high-level class, and allows you to create a web-based GUI / demo
@@ -185,10 +185,6 @@ class Interface(Blocks):
             **kwargs,
         )
 
-        if inspect.iscoroutinefunction(fn):
-            raise NotImplementedError(
-                "Async functions are not currently supported within interfaces. Please use Blocks API."
-            )
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -290,14 +286,18 @@ class Interface(Blocks):
             cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
 
-        md = MarkdownIt(
-            "js-default",
-            {
-                "linkify": True,
-                "typographer": True,
-                "html": True,
-            },
-        ).use(footnote_plugin)
+        md = (
+            MarkdownIt(
+                "js-default",
+                {
+                    "linkify": True,
+                    "typographer": True,
+                    "html": True,
+                },
+            )
+            .use(footnote_plugin)
+            .enable("table")
+        )
 
         simple_description = None
         if description is not None:
@@ -485,29 +485,29 @@ class Interface(Blocks):
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
-            submit_fn = (
-                lambda *args: self.run_prediction(args)[0]
-                if len(self.output_components) == 1
-                else self.run_prediction(args)
-            )
             if self.live:
                 if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                    super().load(submit_fn, None, self.output_components)
+                    super().load(self.fn, None, self.output_components)
                     submit_btn.click(
-                        submit_fn,
+                        self.fn,
                         None,
                         self.output_components,
                         api_name="predict",
                         status_tracker=status_tracker,
+                        _preprocess=not (self.api_mode),
+                        _postprocess=not (self.api_mode),
                     )
                 else:
                     for component in self.input_components:
                         if isinstance(component, Streamable):
                             if component.streaming:
                                 component.stream(
-                                    submit_fn,
+                                    self.fn,
                                     self.input_components,
                                     self.output_components,
+                                    api_name="predict",
+                                    _preprocess=not (self.api_mode),
+                                    _postprocess=not (self.api_mode),
                                 )
                                 continue
                             else:
@@ -518,16 +518,23 @@ class Interface(Blocks):
                                 )
                         if isinstance(component, Changeable):
                             component.change(
-                                submit_fn, self.input_components, self.output_components
+                                self.fn,
+                                self.input_components,
+                                self.output_components,
+                                api_name="predict",
+                                _preprocess=not (self.api_mode),
+                                _postprocess=not (self.api_mode),
                             )
             else:
                 submit_btn.click(
-                    submit_fn,
+                    self.fn,
                     self.input_components,
                     self.output_components,
                     api_name="predict",
                     scroll_to_output=True,
                     status_tracker=status_tracker,
+                    _preprocess=not (self.api_mode),
+                    _postprocess=not (self.api_mode),
                 )
             clear_btn.click(
                 None,
@@ -549,16 +556,16 @@ class Interface(Blocks):
                 ),
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
-                    for component in self.input_components + self.output_components] + (
-                            [Column.update(visible=True)]
-                            if self.interface_type
-                            in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                                self.InterfaceTypes.UNIFIED,
-                            ]
-                            else []
-                        )
+                     for component in self.input_components + self.output_components] + (
+                        [Column.update(visible=True)]
+                        if self.interface_type
+                           in [
+                               self.InterfaceTypes.STANDARD,
+                               self.InterfaceTypes.INPUT_ONLY,
+                               self.InterfaceTypes.UNIFIED,
+                           ]
+                        else []
+                    )
                     + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
@@ -568,6 +575,7 @@ class Interface(Blocks):
                 def __init__(self, flagging_callback, flag_option=None):
                     self.flagging_callback = flagging_callback
                     self.flag_option = flag_option
+                    self.__name__ = "Flag"
 
                 def __call__(self, *flag_data):
                     self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
@@ -603,15 +611,15 @@ class Interface(Blocks):
                     examples=examples,
                     inputs=non_state_inputs,
                     outputs=non_state_outputs,
-                    fn=submit_fn,
+                    fn=self.fn,
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
+                    _api_mode=_api_mode,
                 )
 
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data)
-                    + [Column.update(visible=False), Column.update(visible=True)],
+                    self.interpret_func,
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
@@ -623,15 +631,6 @@ class Interface(Blocks):
                 Markdown(self.article)
 
         self.config = self.get_config_file()
-
-    def __call__(self, *params):
-        if (
-            self.api_mode
-        ):  # skip the preprocessing/postprocessing if sending to a remote API
-            output = self.run_prediction(params, called_directly=True)
-        else:
-            output = self.process(params)
-        return output[0] if len(output) == 1 else output
 
     def __str__(self):
         return self.__repr__()
@@ -647,66 +646,17 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    def run_prediction(
-        self,
-        processed_input: List[Any],
-        called_directly: bool = False,
-    ) -> List[Any] | Tuple[List[Any], List[float]]:
-        """
-        Runs the prediction function with the given (already processed) inputs.
-        Parameters:
-            processed_input (list): A list of processed inputs.
-            called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
-        Returns:
-            predictions (list): A list of predictions (not post-processed).
-        """
-        if self.api_mode:  # Serialize the input
-            processed_input = [
-                input_component.serialize(processed_input[i], called_directly)
-                for i, input_component in enumerate(self.input_components)
-            ]
-
-        prediction = self.fn(*processed_input)
-
-        if prediction is None or len(self.output_components) == 1:
-            prediction = [prediction]
-
-        if self.api_mode:  # Deserialize the input
-            prediction = [
-                output_component.deserialize(prediction[i])
-                for i, output_component in enumerate(self.output_components)
-            ]
-
-        return prediction
-
-    def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
-        """
-        First preprocesses the input, then runs prediction using
-        self.run_prediction(), then postprocesses the output.
-        Parameters:
-            raw_input: a list of raw inputs to process and apply the prediction(s) on.
-        Returns:
-            processed output: a list of processed  outputs to return as the prediction(s).
-            duration: a list of time deltas measuring inference time for each prediction fn.
-        """
-        processed_input = [
-            input_component.preprocess(raw_input[i])
-            for i, input_component in enumerate(self.input_components)
+    async def interpret_func(self, *args):
+        return await self.interpret(args) + [
+            Column.update(visible=False),
+            Column.update(visible=True),
         ]
-        predictions = self.run_prediction(processed_input)
-        processed_output = [
-            output_component.postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_component in enumerate(self.output_components)
-        ]
-        return processed_output
 
-    def interpret(self, raw_input: List[Any]) -> List[Any]:
+    async def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
             {"original": raw_value, "interpretation": interpretation}
             for interpretation, raw_value in zip(
-                interpretation.run_interpret(self, raw_input)[0], raw_input
+                (await interpretation.run_interpret(self, raw_input))[0], raw_input
             )
         ]
 
@@ -724,7 +674,7 @@ class Interface(Blocks):
             else:
                 raw_input.append(input_component.test_input)
         else:
-            self.process(raw_input)
+            self(raw_input)
             print("PASSED")
 
 
