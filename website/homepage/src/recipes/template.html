@@ -39,27 +39,6 @@
         </div>
       </div>
       {% endfor %}
-      <!-- <div class="demo-window overflow-y-auto h-full w-full my-4">
-        <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
-          <div class="flex overflow-auto py-4">
-            {% for demo in demos %}
-            <button
-              class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg min-w-max text-gray-600 hover:text-orange-500"
-              name="{{ demo['dir'] }}"
-              onclick="show_demo('{{ demo['dir'] }}')"
-
-            >{{ demo['name'] }}</button>
-            {% endfor %}
-          </div>
-          {% for demo in demos %}
-          <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo['dir'] }}">
-            <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre></div>
-            <gradio-app src="/demo/{{ demo['dir'] }}" />
-          </div>
-          {% endfor %}
-        </div>
-      </div> -->
-
     </main>
     <script src="/assets/prism.js"></script>
     <script>
