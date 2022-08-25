@@ -197,6 +197,12 @@ class TestBlocks(unittest.TestCase):
         demo.share_url = None
         demo.close()
 
+    @mock.patch("requests.post")
+    def test_initiated_analytics(self, mock_post):
+        with gr.Blocks(analytics_enabled=True) as demo:
+            pass
+        mock_post.assert_called_once()
+
 
 def test_slider_random_value_config():
     with gr.Blocks() as demo:

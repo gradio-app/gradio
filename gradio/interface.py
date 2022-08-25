@@ -8,6 +8,7 @@ from __future__ import annotations
 import inspect
 import json
 import os
+import pkgutil
 import re
 import warnings
 import weakref
@@ -372,6 +373,7 @@ class Interface(Blocks):
         self.favicon_path = None
 
         data = {
+            "mode": self.mode,
             "fn": fn,
             "inputs": inputs,
             "outputs": outputs,
@@ -381,6 +383,7 @@ class Interface(Blocks):
             "allow_flagging": allow_flagging,
             "custom_css": self.css is not None,
             "theme": self.theme,
+            "version": pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
         }
 
         if self.analytics_enabled:

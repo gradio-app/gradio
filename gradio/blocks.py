@@ -4,6 +4,7 @@ import copy
 import getpass
 import inspect
 import os
+import pkgutil
 import random
 import sys
 import tempfile
@@ -382,6 +383,16 @@ class Blocks(BlockContext):
         self.app_id = random.getrandbits(64)
         self.temp_dirs = set()
         self.title = title
+
+        data = {
+            "mode": self.mode,
+            "ip_address": self.ip_address,
+            "custom_css": self.css is not None,
+            "theme": self.theme,
+            "version": pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
+        }
+        if self.analytics_enabled:
+            utils.initiated_analytics(data)
 
     @property
     def share(self):
