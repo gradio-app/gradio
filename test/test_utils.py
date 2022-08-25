@@ -1,4 +1,5 @@
 import copy
+import ipaddress
 import json
 import os
 import unittest
@@ -101,12 +102,13 @@ class TestUtils(unittest.TestCase):
 
 
 class TestIPAddress(unittest.TestCase):
-    # def test_get_ip(self): # Removed test because internet is flaky on circleci
-    #     ip = get_local_ip_address()
-    #     try:  # check whether ip is valid
-    #         ipaddress.ip_address(ip)
-    #     except ValueError:
-    #         self.fail("Invalid IP address")
+    @pytest.mark.flaky
+    def test_get_ip(self):
+        ip = get_local_ip_address()
+        try:  # check whether ip is valid
+            ipaddress.ip_address(ip)
+        except ValueError:
+            self.fail("Invalid IP address")
 
     @mock.patch("requests.get")
     def test_get_ip_without_internet(self, mock_get):

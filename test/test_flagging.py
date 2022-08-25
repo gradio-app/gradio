@@ -8,6 +8,8 @@ import huggingface_hub
 import gradio as gr
 from gradio import flagging
 
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
 
 class TestDefaultFlagging(unittest.TestCase):
     def test_default_flagging_callback(self):
