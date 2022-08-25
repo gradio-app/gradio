@@ -1289,7 +1289,7 @@ class TestLabel(unittest.TestCase):
         )
         label_output = gr.Label(num_top_classes=2)
         label = label_output.postprocess(y)
-        
+
         self.assertDictEqual(
             label,
             {
@@ -1302,12 +1302,12 @@ class TestLabel(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             label_output.postprocess([1, 2, 3])
-            
+
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
         label = label_output.postprocess(path)
         self.assertEqual(label["label"], "web site")
-        
+
         self.assertEqual(
             label_output.get_config(),
             {
