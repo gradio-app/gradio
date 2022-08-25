@@ -1,5 +1,5 @@
 import asyncio
-import inspect
+import os
 import io
 import random
 import sys
@@ -19,6 +19,8 @@ from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 @contextmanager
