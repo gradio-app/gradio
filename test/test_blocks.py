@@ -199,7 +199,7 @@ class TestBlocks(unittest.TestCase):
 
     @mock.patch("requests.post")
     def test_initiated_analytics(self, mock_post):
-        with gr.Blocks(analytics_enabled=True) as demo:
+        with gr.Blocks(analytics_enabled=True):
             pass
         mock_post.assert_called_once()
 
