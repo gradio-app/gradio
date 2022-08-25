@@ -5,6 +5,7 @@ import sys
 import copy
 import pathlib
 
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 demo_dir = pathlib.Path(__file__).parent / "demos"
 

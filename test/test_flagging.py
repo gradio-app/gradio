@@ -8,6 +8,8 @@ import huggingface_hub
 import gradio as gr
 from gradio import flagging
 
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
 
 class TestDefaultFlagging(unittest.TestCase):
     def test_default_flagging_callback(self):
@@ -65,6 +67,41 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             self.assertEqual(row_count, 1)  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
+
+
+class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
+    def test_saver_setup(self):
+        huggingface_hub.create_repo = MagicMock()
+        huggingface_hub.Repository = MagicMock()
+        flagger = flagging.HuggingFaceDatasetJSONSaver("test", "test")
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
+        huggingface_hub.create_repo.assert_called_once()
+
+    def test_saver_flag(self):
+        huggingface_hub.create_repo = MagicMock()
+        huggingface_hub.Repository = MagicMock()
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            io = gr.Interface(
+                lambda x: x,
+                "text",
+                "text",
+                flagging_dir=tmpdirname,
+                flagging_callback=flagging.HuggingFaceDatasetJSONSaver("test", "test"),
+            )
+            test_dir = os.path.join(tmpdirname, "test")
+            os.mkdir(test_dir)
+            io.launch(prevent_thread_lock=True)
+            row_unique_name = io.flagging_callback.flag(["test", "test"])
+            # Test existence of metadata.jsonl file for that example
+            self.assertEqual(
+                os.path.isfile(
+                    os.path.join(
+                        os.path.join(test_dir, row_unique_name), "metadata.jsonl"
+                    )
+                ),
+                True,
+            )
 
 
 class TestDisableFlagging(unittest.TestCase):
