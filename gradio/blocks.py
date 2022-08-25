@@ -389,7 +389,9 @@ class Blocks(BlockContext):
             "ip_address": self.ip_address,
             "custom_css": self.css is not None,
             "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
+            "version": pkgutil.get_data(__name__, "version.txt")
+            .decode("ascii")
+            .strip(),
         }
         if self.analytics_enabled:
             utils.initiated_analytics(data)
