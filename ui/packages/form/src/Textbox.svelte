@@ -32,7 +32,12 @@
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			dispatch("submit");
-		} else if (e.key === "Enter" && !e.shiftKey && lines === 1 && max_lines >= 1) {
+		} else if (
+			e.key === "Enter" &&
+			!e.shiftKey &&
+			lines === 1 &&
+			max_lines >= 1
+		) {
 			e.preventDefault();
 			dispatch("submit");
 		}
