@@ -1,6 +1,6 @@
 import asyncio
-import os
 import io
+import os
 import random
 import sys
 import time

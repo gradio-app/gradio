@@ -8,6 +8,7 @@ import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
+
 class TestDocumentation(unittest.TestCase):
     @pytest.mark.skipif(
         sys.version_info < (3, 8),
