@@ -10,8 +10,6 @@ from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
 
-WEBSOCKET_KILL_CODE = 4000
-
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
