@@ -2753,7 +2753,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
+    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
     Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
@@ -2808,6 +2808,8 @@ class Label(Changeable, IOComponent, JSONSerializable):
         """
         if y is None or y == {}:
             return None
+        if isinstance(y, str) and y.endswith(".json") and os.path.exists(y):
+            return self.serialize(y)
         if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
         if isinstance(y, dict):
