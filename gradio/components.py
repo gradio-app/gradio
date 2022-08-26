@@ -11,7 +11,6 @@ import numbers
 import operator
 import os
 import random
-import tempfile
 import uuid
 import warnings
 from copy import deepcopy
@@ -53,7 +52,7 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
-from gradio.utils import component_or_layout_class
+from gradio.utils import component_or_layout_class, get_accessible_temp_dir
 
 set_documentation_group("component")
 
@@ -1547,7 +1546,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcma will be mirrored. Default is True.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir = get_accessible_temp_dir()
         self.format = format
         self.source = source
         self.mirror_webcam = mirror_webcam
@@ -1726,7 +1725,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir = get_accessible_temp_dir()
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -2013,7 +2012,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir = get_accessible_temp_dir()
         self.file_count = file_count
         self.type = type
         self.test_input = None
@@ -3495,7 +3494,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir = get_accessible_temp_dir()
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
         IOComponent.__init__(
             self,
