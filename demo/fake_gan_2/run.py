@@ -10,6 +10,8 @@ import gradio as gr
 def fake_gan(desc):
     if desc == "NSFW":
         raise gr.Error("NSFW - banned content.")
+    if desc == "":
+        raise ValueError("Too short")
     time.sleep(12)
     image = random.choice(
         [
@@ -32,4 +34,4 @@ demo = gr.Interface(
 demo.queue(max_size=3)
 
 if __name__ == "__main__":
-    demo.launch(show_error=True)
+    demo.launch()

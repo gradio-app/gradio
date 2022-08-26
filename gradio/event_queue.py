@@ -9,7 +9,9 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
+
 WEBSOCKET_KILL_CODE = 4000
+
 
 class Estimation(BaseModel):
     msg: Optional[str] = "estimation"
@@ -121,7 +123,6 @@ class Queue:
             return None
         cls.EVENT_QUEUE.append(event)
         return len(cls.EVENT_QUEUE) - 1
-        
 
     @classmethod
     async def clean_event(cls, event: Event) -> None:
@@ -263,7 +264,7 @@ class Queue:
                 "msg": "process_completed",
                 "output": response.json,
                 "success": success,
-            }
+            },
         )
         await event.disconnect()
         await cls.clean_event(event)
@@ -290,6 +291,7 @@ class Queue:
 class Event:
     def __init__(self, websocket: fastapi.WebSocket):
         from gradio.routes import PredictBody
+
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None

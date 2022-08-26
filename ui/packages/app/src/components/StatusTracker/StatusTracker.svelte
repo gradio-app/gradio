@@ -130,6 +130,7 @@
 		}
 	};
 	$: {
+		close_message();
 		if (status === "error" && message) {
 			message_visible = true;
 			show_message_timeout = setTimeout(close_message, 8000);
