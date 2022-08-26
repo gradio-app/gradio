@@ -214,7 +214,6 @@ class App(FastAPI):
 
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
         def file(path: str):
-            print(">>>>>>>>", path)
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
@@ -230,7 +229,6 @@ class App(FastAPI):
                 Path(temp_dir).resolve() in Path(path).resolve().parents
                 for temp_dir in app.blocks.temp_dirs
             ):
-                print("<<<<<<<<<<", Path(path).resolve())
                 return FileResponse(Path(path).resolve())
             else:
                 raise ValueError(
