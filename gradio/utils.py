@@ -665,7 +665,7 @@ def get_accessible_temp_dir() -> str:
     """
     Returns a temporary directory that is accessible to users.
     """
-    if os.getenv("SYSTEM") == "spaces":
-        return tempfile.mkdtemp(dir=".")
-    else:
-        return tempfile.mkdtemp()
+    # if os.getenv("SYSTEM") == "spaces":
+    #     return tempfile.mkdtemp(dir=".")
+    # else:
+    return tempfile.mkdtemp()
