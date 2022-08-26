@@ -53,7 +53,7 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
-from gradio.utils import component_or_layout_class, get_accessible_temp_dir
+from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
 
