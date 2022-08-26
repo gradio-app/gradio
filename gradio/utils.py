@@ -10,7 +10,6 @@ import json.decoder
 import os
 import pkgutil
 import random
-import tempfile
 import warnings
 from contextlib import contextmanager
 from copy import deepcopy
@@ -659,13 +658,3 @@ def sanitize_list_for_csv(
             sanitized_value = sanitize_value_for_csv(value)
             sanitized_values.append(sanitized_value)
     return sanitized_values
-
-
-def get_accessible_temp_dir() -> str:
-    """
-    Returns a temporary directory that is accessible to users.
-    """
-    # if os.getenv("SYSTEM") == "spaces":
-    #     return tempfile.mkdtemp(dir=".")
-    # else:
-    return tempfile.mkdtemp()
