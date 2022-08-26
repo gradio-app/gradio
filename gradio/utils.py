@@ -10,6 +10,7 @@ import json.decoder
 import os
 import pkgutil
 import random
+import tempfile
 import warnings
 from contextlib import contextmanager
 from copy import deepcopy
@@ -17,7 +18,6 @@ from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
 from pathlib import Path
-import tempfile
 from typing import (
     TYPE_CHECKING,
     Any,

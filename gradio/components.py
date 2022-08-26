@@ -11,6 +11,7 @@ import numbers
 import operator
 import os
 import random
+import tempfile
 import uuid
 import warnings
 from copy import deepcopy
