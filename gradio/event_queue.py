@@ -274,7 +274,7 @@ class Queue:
         try:
             await event.websocket.send_json(data=data)
             return True
-        except Exception as e:
+        except:
             await cls.clean_event(event)
             return False
 
@@ -283,7 +283,7 @@ class Queue:
         try:
             data = await event.websocket.receive_json()
             return data
-        except Exception:
+        except:
             await cls.clean_event(event)
             return None
 
