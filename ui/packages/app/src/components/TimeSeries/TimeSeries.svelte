@@ -70,10 +70,22 @@
 		reader.readAsText(blob);
 	}
 
+	function dict_to_string(dict: Data) {
+		if (dict.headers) _value = dict.headers.join(",");
+		const data = dict.data as Array<Array<number>>;
+		data.forEach((x: Array<unknown>) => {
+			_value = _value + "\n";
+			_value = _value + x.join(",");
+		});
+	}
+
 	$: {
 		if (value && value.data && typeof value.data === "string") {
 			if (!value) _value = null;
 			else blob_to_string(data_uri_to_blob(value.data));
+		} else if (value && value.data && typeof value.data != "string") {
+			if (!value) _value = null;
+			dict_to_string(value);
 		}
 	}
 
@@ -144,7 +156,7 @@
 			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
 			{colors}
 		/>
-	{:else if value === undefined}
+	{:else if value === undefined || value === null}
 		<div class="h-full min-h-[8rem]">
 			<Upload
 				filetype="text/csv"
