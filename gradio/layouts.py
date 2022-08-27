@@ -10,22 +10,6 @@ set_documentation_group("layout")
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
 
-valid_colors = [
-    "red",
-    "green",
-    "blue",
-    "yellow",
-    "purple",
-    "teal",
-    "orange",
-    "cyan",
-    "lime",
-    "pink",
-    "black",
-    "grey",
-    "gray",
-]
-
 
 @document()
 class Row(BlockContext):
@@ -39,6 +23,17 @@ class Row(BlockContext):
         demo.launch()
     Guides: controlling_layout
     """
+
+    def __init__(
+        self,
+        *,
+        elem_id: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(elem_id=elem_id)
 
     def get_config(self):
         return {"type": "row", **super().get_config()}
@@ -57,11 +52,16 @@ class Row(BlockContext):
         equal_height: Optional[bool] = None,
         mobile_collapse: Optional[bool] = True,
     ):
+        """
+        Styles the Row.
+        Parameters:
+            equal_height: If True, makes every child element have equal height
+            mobile_collapse: if True, makes elements collapse into column layout on mobile
+        """
         if equal_height is not None:
             self._style["equal_height"] = equal_height
         if mobile_collapse is not None:
             self._style["mobile_collapse"] = mobile_collapse
-
         return self
 
 
@@ -85,14 +85,15 @@ class Column(BlockContext):
         self,
         visible: bool = True,
         variant: str = "default",
+        elem_id: Optional[str] = None,
     ):
         """
         Parameters:
-            visible: If False, column will be hidden but included in the Blocks config file (its visibility can later be updated).
+            visible: If False, column will be hidden.
             variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible=visible)
+        super().__init__(visible=visible, elem_id=elem_id)
 
     def get_config(self):
         return {
@@ -111,6 +112,18 @@ class Column(BlockContext):
             "visible": visible,
             "__type__": "update",
         }
+
+    def style(
+        self,
+        width: Optional[float] = None,
+    ):
+        """
+        Styles the Column.
+        Parameters:
+            width: Sets the width of the column. If between 0 and 1, assumes proportion of total parent width. If greater than 1, assumes pixel value.
+        """
+        self._style["width"] = width
+        return self
 
 
 @document()
@@ -131,7 +144,12 @@ class Tabs(BlockContext):
     Guides: controlling_layout
     """
 
-    def __init__(self, selected: Optional[int | str] = None, **kwargs):
+    def __init__(
+        self,
+        selected: Optional[int | str] = None,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
@@ -167,7 +185,13 @@ class TabItem(BlockContext):
     components defined within the TabItem will be rendered within a tab.
     """
 
-    def __init__(self, label: str, id: Optional[int | str] = None, **kwargs):
+    def __init__(
+        self,
+        label: str,
+        id: Optional[int | str] = None,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
             label: The visual label for the tab

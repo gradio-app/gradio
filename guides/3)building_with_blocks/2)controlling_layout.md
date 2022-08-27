@@ -29,7 +29,7 @@ Components within a Column will be placed vertically atop each other. Since the 
 $code_rows_and_columns
 $demo_rows_and_columns
 
-See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically.
+See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice also how we can set the width of a column using the `style()` method.
 
 ## Tabs
 

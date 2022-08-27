@@ -2,7 +2,7 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     with gr.Row():
-        with gr.Column():
+        with gr.Column().style(width=360):
             text1 = gr.Textbox(label="prompt 1")
             text2 = gr.Textbox(label="prompt 2")
         with gr.Column():
