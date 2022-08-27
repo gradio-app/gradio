@@ -212,8 +212,8 @@ class App(FastAPI):
             else:
                 return FileResponse(app.blocks.favicon_path)
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file(path):
+        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
+        def file(path: str):
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
