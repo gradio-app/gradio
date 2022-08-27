@@ -56,7 +56,7 @@
 			{:else}
 				<button
 					class="px-4 pb-2 pt-1.5 border-transparent text-gray-400 hover:text-gray-700 -mb-[2px] border-2 border-b-0"
-					on:click={() => (selected = t.id)}
+					on:click={() => change_tab(t.id)}
 				>
 					{t.name}
 				</button>
