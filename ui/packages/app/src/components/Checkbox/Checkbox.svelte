@@ -10,14 +10,12 @@
 	export let value: boolean = false;
 	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
 </script>
 
 <Block
 	{visible}
-	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
