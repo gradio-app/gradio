@@ -24,12 +24,7 @@ class Row(BlockContext):
     Guides: controlling_layout
     """
 
-    def __init__(
-        self,
-        *,
-        elem_id: Optional[str] = None,
-        **kwargs
-    ):
+    def __init__(self, *, elem_id: Optional[str] = None, **kwargs):
         """
         Parameters:
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -90,7 +85,7 @@ class Column(BlockContext):
         visible: bool = True,
         variant: str = "default",
         elem_id: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters:
