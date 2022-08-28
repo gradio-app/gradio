@@ -445,7 +445,7 @@ class State(components.Variable):
         optional (bool): this parameter is ignored.
         """
         warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable() from gradio.components",
         )
         super().__init__(value=default, label=label)
 

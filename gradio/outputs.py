@@ -170,7 +170,7 @@ class State(components.Variable):
         label (str): component name in interface (not used).
         """
         warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import this component as gr.Variable() from gradio.components",
         )
         super().__init__(label=label)
 
