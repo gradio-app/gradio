@@ -228,34 +228,32 @@ def assert_configs_are_equivalent_besides_ids(
         config2["components"]
     ), "# of components are different"
 
-    mapping = {}
-
-    for c1, c2 in zip(config1["components"], config2["components"]):
-        c1, c2 = deepcopy(c1), deepcopy(c2)
-        mapping[c1["id"]] = c2["id"]
+    def assert_same_components(config1_id, config2_id):
+        c1 = list(filter(lambda c: c["id"] == config1_id, config1["components"]))[0]
+        c2 = list(filter(lambda c: c["id"] == config2_id, config2["components"]))[0]
+        c1 = copy.deepcopy(c1)
         c1.pop("id")
+        c2 = copy.deepcopy(c2)
         c2.pop("id")
         assert c1 == c2, f"{c1} does not match {c2}"
 
-    def same_children_recursive(children1, chidren2, mapping):
+    def same_children_recursive(children1, chidren2):
         for child1, child2 in zip(children1, chidren2):
-            assert (
-                mapping[child1["id"]] == child2["id"]
-            ), f"{child1} does not match {child2}"
+            assert_same_components(child1["id"], child2["id"])
             if "children" in child1 or "children" in child2:
-                same_children_recursive(child1["children"], child2["children"], mapping)
+                same_children_recursive(child1["children"], child2["children"])
 
     children1 = config1["layout"]["children"]
     children2 = config2["layout"]["children"]
-    same_children_recursive(children1, children2, mapping)
+    same_children_recursive(children1, children2)
 
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1.pop("targets"), d2.pop("targets")):
-            assert mapping[t1] == t2, f"{d1} does not match {d2}"
+            assert_same_components(t1, t2)
         for i1, i2 in zip(d1.pop("inputs"), d2.pop("inputs")):
-            assert mapping[i1] == i2, f"{d1} does not match {d2}"
+            assert_same_components(i1, i2)
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
-            assert mapping[o1] == o2, f"{d1} does not match {d2}"
+            assert_same_components(o1, o2)
 
         # status tracker is popped since we allow it to have different ids
         d1.pop("status_tracker", None)
