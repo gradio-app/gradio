@@ -2541,7 +2541,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class Variable(IOComponent, SimpleSerializable):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the Variable is cleared when the user refreshes the page.
@@ -3951,3 +3951,4 @@ Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
 Json = JSON
+Variable = State
