@@ -2064,7 +2064,6 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             return None
 
         def process_single_file(f):
-            print(f)
             file_name, data, is_file = (
                 f["name"],
                 f["data"],
