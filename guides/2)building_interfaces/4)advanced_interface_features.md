@@ -25,7 +25,17 @@ $code_gender_sentence_custom_interpretation
 
 ## Custom Styling
 
-If you'd like to have more fine-grained control over any aspect of your demo, you can also write your own css or pass in a css file, with the `css` parameter of the `Interface` class.
+If you'd like to have more fine-grained control over any aspect of your demo, you can also write your own css or pass in a filepath to a css file, with the `css` parameter of the `Interface` class.
+
+```python
+gr.Interface(..., css="body {background-color: red}")
+```
+
+If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with "file=", for example:
+
+```python
+gr.Interface(..., css="body {background-image: url('file=clouds.jpg')}")
+```
 
 ## Loading Hugging Face Models and Spaces
 
