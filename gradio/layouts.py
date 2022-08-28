@@ -28,6 +28,7 @@ class Row(BlockContext):
         self,
         *,
         elem_id: Optional[str] = None,
+        **kwargs
     ):
         """
         Parameters:
@@ -89,6 +90,7 @@ class Column(BlockContext):
         visible: bool = True,
         variant: str = "default",
         elem_id: Optional[str] = None,
+        **kwargs
     ):
         """
         Parameters:
@@ -184,7 +186,6 @@ class Tab(BlockContext):
         self,
         label: str,
         id: Optional[int | str] = None,
-        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
