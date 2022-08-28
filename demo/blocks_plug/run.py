@@ -22,13 +22,12 @@ with output_demo:
 
 with gr.Blocks() as demo:
     gr.Markdown("Three demos in one!")
-    with gr.Tabs(selected=1) as tabs:
-        with gr.TabItem("Text Identity", id=0):
-            identity_demo.render()
-        with gr.TabItem("Text Input", id=1):
-            input_demo.render()
-        with gr.TabItem("Text Static", id=2):
-            output_demo.render()
+    with gr.Tab("Text Identity", id=0):
+        identity_demo.render()
+    with gr.Tab("Text Input", id=1):
+        input_demo.render()
+    with gr.Tab("Text Static", id=2):
+        output_demo.render()
     btn = gr.Button("Change tab")
     btn.click(inputs=None, outputs=tabs, fn=change_tab)
 

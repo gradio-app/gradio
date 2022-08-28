@@ -29,11 +29,11 @@ Components within a Column will be placed vertically atop each other. Since the 
 $code_rows_and_columns
 $demo_rows_and_columns
 
-See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice also how we can set the width of a column using the `style()` method.
+See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
 
 ## Tabs
 
-You can also create Tabs using the `with gradio.Tabs():` clause, and create multiple  `with gradio.TabItem('tab_name'):` children. Any component created inside of a `with gradio.TabItem('tab_name'):` context appears in that tab.
+You can also create Tabs using the `with gradio.Tab('tab_name'):` clause. Any component created inside of a `with gradio.Tab('tab_name'):` context appears in that tab. Consecutive Tabs clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
 
 For example:
 

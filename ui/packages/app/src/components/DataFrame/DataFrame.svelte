@@ -19,7 +19,6 @@
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
-	export let parent: string | null = null;
 	export let style: Styles = {};
 	export let label: string | null = null;
 	export let wrap: boolean;
@@ -39,12 +38,7 @@
 	}
 </script>
 
-<div
-	id={elem_id}
-	class="relative overflow-hidden"
-	class:flex-1={parent === "row" || !parent}
-	class:!hidden={!visible}
->
+<div id={elem_id} class="relative overflow-hidden" class:!hidden={!visible}>
 	<StatusTracker {...loading_status} />
 	<Table
 		{label}

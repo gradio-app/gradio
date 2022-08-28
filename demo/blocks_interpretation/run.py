@@ -45,11 +45,10 @@ with gr.Blocks() as demo:
         with gr.Column():
             label = gr.Label(label="Predicted Sentiment")
         with gr.Column():
-            with gr.Tabs():
-                with gr.TabItem("Display interpretation with built-in component"):
-                    interpretation = gr.components.Interpretation(input_text)
-                with gr.TabItem("Display interpretation with plot"):
-                    interpretation_plot = gr.Plot()
+            with gr.Tab("Display interpretation with built-in component"):
+                interpretation = gr.components.Interpretation(input_text)
+            with gr.Tab("Display interpretation with plot"):
+                interpretation_plot = gr.Plot()
 
     classify.click(classifier, input_text, label)
     interpret.click(interpretation_function, input_text, [interpretation, interpretation_plot])
