@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
+import warnings
 
 set_documentation_group("layout")
 
@@ -57,7 +58,7 @@ class Row(BlockContext):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
         if mobile_collapse is not None:
-            raise DeprecationWarning("mobile_collapse is no longer supported.")
+            warnings.warn("mobile_collapse is no longer supported.", DeprecationWarning)
         return self
 
 
