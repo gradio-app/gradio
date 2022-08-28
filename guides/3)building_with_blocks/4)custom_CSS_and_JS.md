@@ -9,7 +9,7 @@ with gr.Blocks(css="body {background-color: red}") as demo:
     ...
 ```
 
-If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with "file=", for example:
+If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
 
 ```python
 with gr.Blocks(css="body {background-image: url('file=clouds.jpg')}") as demo:
