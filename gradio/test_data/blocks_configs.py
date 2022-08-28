@@ -262,7 +262,7 @@ XRAY_CONFIG_DIFF_IDS = {
         },
         {
             "id": 444,
-            "type": "tabitem",
+            "type": "tab",
             "props": {
                 "label": "X-ray",
                 "visible": True,
@@ -314,7 +314,7 @@ XRAY_CONFIG_DIFF_IDS = {
         },
         {
             "id": 9,
-            "type": "tabitem",
+            "type": "tab",
             "props": {
                 "label": "CT Scan",
                 "visible": True,
@@ -377,6 +377,16 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
         },
+        {
+            "id": 37,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
+        {
+            "id": 38,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
     ],
     "theme": "default",
     "css": None,
@@ -385,7 +395,7 @@ XRAY_CONFIG_DIFF_IDS = {
         "id": 0,
         "children": [
             {"id": 1},
-            {"id": 22},
+            {"id": 37, "children": [{"id": 22}]},
             {
                 "id": 3,
                 "children": [
@@ -405,7 +415,7 @@ XRAY_CONFIG_DIFF_IDS = {
                     },
                 ],
             },
-            {"id": 141},
+            {"id": 38, "children": [{"id": 141}]},
         ],
     },
     "dependencies": [
@@ -486,7 +496,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         },
         {
             "id": 4,
-            "type": "tabitem",
+            "type": "tab",
             "props": {
                 "label": "X-ray",
                 "style": {},
@@ -532,7 +542,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         },
         {
             "id": 9,
-            "type": "tabitem",
+            "type": "tab",
             "props": {
                 "show_label": True,
                 "label": "CT Scan",
