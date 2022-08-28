@@ -2064,21 +2064,22 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             return None
 
         def process_single_file(f):
-            tmp_file, data, is_file = (
-                f["tmp_file"],
+            print(f)
+            file_name, data, is_file = (
+                f["name"],
                 f["data"],
                 f.get("is_file", False),
             )
             if self.type == "file":
                 if is_file:
-                    return processing_utils.create_tmp_copy_of_file(tmp_file)
+                    return processing_utils.create_tmp_copy_of_file(file_name)
                 else:
                     return processing_utils.decode_base64_to_file(
-                        data, file_path=tmp_file
+                        data, file_path=file_name
                     )
             elif self.type == "bytes":
                 if is_file:
-                    with open(tmp_file, "rb") as file_data:
+                    with open(file_name, "rb") as file_data:
                         return file_data.read()
                 return processing_utils.decode_base64_to_binary(data)[0]
             else:
@@ -2114,8 +2115,8 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
-                    "file_name": os.path.basename(file),
-                    "tmp_file": processing_utils.create_tmp_copy_of_file(
+                    "orig_name": os.path.basename(file),
+                    "name": processing_utils.create_tmp_copy_of_file(
                         file, self.temp_dir
                     ).name,
                     "size": os.path.getsize(file),
@@ -2126,8 +2127,8 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             ]
         else:
             return {
-                "file_name": os.path.basename(y),
-                "tmp_file": processing_utils.create_tmp_copy_of_file(
+                "orig_name": os.path.basename(y),
+                "name": processing_utils.create_tmp_copy_of_file(
                     y, dir=self.temp_dir
                 ).name,
                 "size": os.path.getsize(y),
