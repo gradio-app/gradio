@@ -214,12 +214,12 @@ class Interface(Blocks):
             self.cache_examples = cache_examples or False
 
         state_input_indexes = [
-            idx for i, idx in enumerate(inputs) if i == "state" or isinstance(i, State)
+            idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
         ]
         state_output_indexes = [
-            idx for o, idx in enumerate(outputs) if o == "state" or isinstance(o, State)
+            idx for idx, o in enumerate(outputs) if o == "state" or isinstance(o, State)
         ]
-
+        
         if len(state_input_indexes) == 0 and len(state_output_indexes) == 0:
             pass
         elif len(state_input_indexes) != 1 or len(state_output_indexes) != 1:

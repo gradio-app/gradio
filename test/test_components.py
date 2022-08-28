@@ -1736,5 +1736,15 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         assert processing_utils.video_is_playable(str(full_path_to_output))
 
 
+class TestState():
+    def test_as_component():
+        state = gr.State(value=5)
+        assert state.preprocess(10) == 10
+        assert state.preprocess("abc") == "abc"
+        assert state.stateful
+
+    # def test_in_interface():
+        # gr.Interface(fn=)
+
 if __name__ == "__main__":
     unittest.main()
