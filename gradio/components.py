@@ -2572,9 +2572,10 @@ class State(IOComponent, SimpleSerializable):
 
 class Variable(State):
     """Variable was renamed to State. This class is kept for backwards compatibility."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
 
 @document("click", "style")
 class Button(Clickable, IOComponent, SimpleSerializable):

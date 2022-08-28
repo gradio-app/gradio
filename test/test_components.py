@@ -1742,18 +1742,18 @@ class TestState:
         assert state.preprocess(10) == 10
         assert state.preprocess("abc") == "abc"
         assert state.stateful
-    
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         def test(x, y=" def"):
-            return (x+y, x+y)
+            return (x + y, x + y)
 
         io = gr.Interface(test, ["text", "state"], ["text", "state"])
         result = await io.call_function(0, ["abc"])
         assert result[0][0] == "abc def"
         result = await io.call_function(0, ["abc", result[0][0]])
         assert result[0][0] == "abcabc def"
-        
-        
+
+
 if __name__ == "__main__":
     unittest.main()

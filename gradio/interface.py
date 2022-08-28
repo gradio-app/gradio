@@ -219,7 +219,7 @@ class Interface(Blocks):
         state_output_indexes = [
             idx for idx, o in enumerate(outputs) if o == "state" or isinstance(o, State)
         ]
-        
+
         if len(state_input_indexes) == 0 and len(state_output_indexes) == 0:
             pass
         elif len(state_input_indexes) != 1 or len(state_output_indexes) != 1:
