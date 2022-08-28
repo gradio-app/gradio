@@ -236,6 +236,10 @@ class App(FastAPI):
                     f"it is not in any of {app.blocks.temp_dirs}"
                 )
 
+        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        def file_deprecated(path: str):
+            return file(path)
+
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
