@@ -854,6 +854,7 @@ class TestFile(unittest.TestCase):
             file_input.serialize("test/test_files/sample_file.pdf")["name"],
             "test/test_files/sample_file.pdf",
         )
+        assert output.orig_name == "test/test_files/sample_file.pdf"
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
