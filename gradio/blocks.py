@@ -714,6 +714,7 @@ class Blocks(BlockContext):
                         children.append(pseudo_parent)
                         pseudo_parent.children = [child]
                         self.blocks[pseudo_parent._id] = pseudo_parent
+            block.children = children
             children_layout = []
             for child in children:
                 children_layout.append(getLayout(child))

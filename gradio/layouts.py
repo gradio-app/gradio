@@ -56,7 +56,7 @@ class Row(BlockContext):
         Styles the Row.
         Parameters:
             equal_height: If True, makes every child element have equal height
-            mobile_collapse: DEPRECATED. i
+            mobile_collapse: DEPRECATED.
         """
         if equal_height is not None:
             self._style["equal_height"] = equal_height
@@ -125,7 +125,7 @@ class Column(BlockContext):
 
 class Tabs(BlockContext):
     """
-    Tabs is a layout element within Blocks that can contain multiple TabItem's.     Example:
+    Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
 
     def __init__(
