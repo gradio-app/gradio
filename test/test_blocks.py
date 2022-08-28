@@ -235,7 +235,7 @@ def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
     interface = gr.Interface(
         lambda *args: None,
-        inputs=[comp(value=lambda: None) for comp in io_components],
+        inputs=[comp(value=lambda: None) for comp in io_components if not(comp==gr.State)],
         outputs=None,
     )
 
