@@ -27,8 +27,8 @@ from gradio.components import (
     Interpretation,
     IOComponent,
     Markdown,
+    State,
     StatusTracker,
-    Variable,
     get_component_instance,
 )
 from gradio.documentation import document, set_documentation_group
@@ -213,17 +213,30 @@ class Interface(Blocks):
         else:
             self.cache_examples = cache_examples or False
 
-        if "state" in inputs or "state" in outputs:
-            state_input_count = len([i for i in inputs if i == "state"])
-            state_output_count = len([o for o in outputs if o == "state"])
-            if state_input_count != 1 or state_output_count != 1:
-                raise ValueError(
-                    "If using 'state', there must be exactly one state input and one state output."
-                )
-            default = utils.get_default_args(fn)[inputs.index("state")]
-            state_variable = Variable(value=default)
-            inputs[inputs.index("state")] = state_variable
-            outputs[outputs.index("state")] = state_variable
+        state_input_indexes = [
+            idx for i, idx in enumerate(inputs) if i == "state" or isinstance(i, State)
+        ]
+        state_output_indexes = [
+            idx for o, idx in enumerate(outputs) if o == "state" or isinstance(o, State)
+        ]
+
+        if len(state_input_indexes) == 0 and len(state_output_indexes) == 0:
+            pass
+        elif len(state_input_indexes) != 1 or len(state_output_indexes) != 1:
+            raise ValueError(
+                "If using 'state', there must be exactly one state input and one state output."
+            )
+        else:
+            state_input_index = state_input_indexes[0]
+            state_output_index = state_output_indexes[0]
+            if inputs[state_input_index] == "state":
+                default = utils.get_default_args(fn)[state_input_index]
+                state_variable = State(value=default)
+            else:
+                state_variable = inputs[state_input_index]
+
+            inputs[state_input_index] = state_variable
+            outputs[state_output_index] = state_variable
 
             if cache_examples:
                 warnings.warn(
@@ -240,9 +253,7 @@ class Interface(Blocks):
         ]
 
         for component in self.input_components + self.output_components:
-            if not (
-                isinstance(component, IOComponent) or isinstance(component, Variable)
-            ):
+            if not (isinstance(component, IOComponent)):
                 raise ValueError(
                     f"{component} is not a valid input/output component for Interface."
                 )
@@ -607,10 +618,10 @@ class Interface(Blocks):
 
             if self.examples:
                 non_state_inputs = [
-                    c for c in self.input_components if not isinstance(c, Variable)
+                    c for c in self.input_components if not isinstance(c, State)
                 ]
                 non_state_outputs = [
-                    c for c in self.output_components if not isinstance(c, Variable)
+                    c for c in self.output_components if not isinstance(c, State)
                 ]
                 self.examples_handler = Examples(
                     examples=examples,

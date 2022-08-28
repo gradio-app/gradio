@@ -2544,7 +2544,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the Variable is cleared when the user refreshes the page.
+    same user. The value of the State variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
