@@ -232,12 +232,10 @@ def test_slider_random_value_config():
 
 
 def test_io_components_attach_load_events_when_value_is_fn(io_components):
-
+    io_components = [comp for comp in io_components if not (comp == gr.State)]
     interface = gr.Interface(
         lambda *args: None,
-        inputs=[
-            comp(value=lambda: None) for comp in io_components if not (comp == gr.State)
-        ],
+        inputs=[comp(value=lambda: None) for comp in io_components],
         outputs=None,
     )
 
