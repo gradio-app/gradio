@@ -9,31 +9,29 @@ with demo:
         "Load the flashcards in the table below, then use the Practice tab to practice."
     )
 
-    with gr.Tabs():
-        with gr.TabItem("Word Bank"):
-            flashcards_table = gr.Dataframe(headers=["front", "back"], type="array")
-        with gr.TabItem("Practice"):
-            with gr.Row():
-                with gr.Column():
-                    front = gr.Textbox(label="Prompt")
-                    with gr.Row():
-                        new_btn = gr.Button("New Card").style(full_width=True)
-                        flip_btn = gr.Button("Flip Card").style(full_width=True)
-                with gr.Column(visible=False) as answer_col:
-                    back = gr.Textbox(label="Answer")
-                    selected_card = gr.Variable()
-                    with gr.Row():
-                        correct_btn = gr.Button(
-                            "Correct",
-                        ).style(full_width=True)
-                        incorrect_btn = gr.Button("Incorrect").style(full_width=True)
-
-        with gr.TabItem("Results"):
-            results = gr.Variable(value={})
-            correct_field = gr.Markdown("# Correct: 0")
-            incorrect_field = gr.Markdown("# Incorrect: 0")
-            gr.Markdown("Card Statistics: ")
-            results_table = gr.Dataframe(headers=["Card", "Correct", "Incorrect"])
+    with gr.Tab("Word Bank"):
+        flashcards_table = gr.Dataframe(headers=["front", "back"], type="array")
+    with gr.Tab("Practice"):
+        with gr.Row():
+            with gr.Column():
+                front = gr.Textbox(label="Prompt")
+                with gr.Row():
+                    new_btn = gr.Button("New Card").style(full_width=True)
+                    flip_btn = gr.Button("Flip Card").style(full_width=True)
+            with gr.Column(visible=False) as answer_col:
+                back = gr.Textbox(label="Answer")
+                selected_card = gr.Variable()
+                with gr.Row():
+                    correct_btn = gr.Button(
+                        "Correct",
+                    ).style(full_width=True)
+                    incorrect_btn = gr.Button("Incorrect").style(full_width=True)
+    with gr.Tab("Results"):
+        results = gr.Variable(value={})
+        correct_field = gr.Markdown("# Correct: 0")
+        incorrect_field = gr.Markdown("# Incorrect: 0")
+        gr.Markdown("Card Statistics: ")
+        results_table = gr.Dataframe(headers=["Card", "Correct", "Incorrect"])
 
         def load_new_card(flashcards):
             card = random.choice(flashcards)

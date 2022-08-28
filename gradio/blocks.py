@@ -693,6 +693,34 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
         }
+
+        def getLayout(block):
+            if not isinstance(block, BlockContext):
+                return {"id": block._id}
+            children = []
+            pseudo_parent = None
+            for child in block.children:
+                expected_parent = getattr(child.__class__, "expected_parent", False)
+                if not expected_parent or isinstance(block, expected_parent):
+                    pseudo_parent = None
+                    children.append(child)
+                else:
+                    if pseudo_parent is not None and isinstance(
+                        pseudo_parent, expected_parent
+                    ):
+                        pseudo_parent.children.append(child)
+                    else:
+                        pseudo_parent = expected_parent(render=False)
+                        children.append(pseudo_parent)
+                        pseudo_parent.children = [child]
+                        self.blocks[pseudo_parent._id] = pseudo_parent
+            children_layout = []
+            for child in children:
+                children_layout.append(getLayout(child))
+            return {"id": block._id, "children": children_layout}
+
+        config["layout"] = getLayout(self)
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -703,16 +731,6 @@ class Blocks(BlockContext):
                     else {},
                 }
             )
-
-        def getLayout(block):
-            if not isinstance(block, BlockContext):
-                return {"id": block._id}
-            children = []
-            for child in block.children:
-                children.append(getLayout(child))
-            return {"id": block._id, "children": children}
-
-        config["layout"] = getLayout(self)
         config["dependencies"] = self.dependencies
         return config
 
