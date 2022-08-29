@@ -9,6 +9,7 @@ from unittest.mock import patch
 import ffmpy
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from PIL import Image
 
 import gradio as gr
@@ -150,6 +151,24 @@ def test_video_has_playable_codecs(test_file_dir):
     )
 
 
+def raise_ffmpy_runtime_exception(*args, **kwargs):
+    raise ffmpy.FFRuntimeError("", "", "", "")
+
+
+@pytest.mark.parametrize(
+    "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]
+)
+def test_video_has_playable_codecs_catches_exceptions(
+    exception_to_raise, test_file_dir
+):
+    with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
+        with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+            shutil.copy(
+                str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
+            )
+            assert gr.processing_utils.video_is_playable(tmp_not_playable_vid.name)
+
+
 def test_convert_video_to_playable_mp4(test_file_dir):
     with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
         shutil.copy(
@@ -159,10 +178,6 @@ def test_convert_video_to_playable_mp4(test_file_dir):
             tmp_not_playable_vid.name
         )
         assert gr.processing_utils.video_is_playable(playable_vid)
-
-
-def raise_ffmpy_runtime_exception():
-    raise ffmpy.FFRuntimeError("", "", "", "")
 
 
 @patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
