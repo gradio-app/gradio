@@ -152,7 +152,7 @@ class App(FastAPI):
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                response = RedirectResponse(url=app.url_path_for('main'), status_code=status.HTTP_302_FOUND)
                 response.set_cookie(key="access-token", value=token, httponly=True)
                 return response
             else:
