@@ -114,7 +114,7 @@ class Block:
         scroll_to_output: bool = False,
         show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
-        js: Optional[str] = False,
+        js: Optional[str] = None,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
@@ -745,6 +745,7 @@ class Blocks(BlockContext):
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
+        _js: Optional[str] = None,
         **kwargs,
     ) -> Blocks | None:
         """
@@ -765,6 +766,7 @@ class Blocks(BlockContext):
             inputs: Instance Method - input list
             outputs: Instance Method - output list
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
@@ -779,7 +781,12 @@ class Blocks(BlockContext):
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
             self_or_cls.set_event_trigger(
-                event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+                event_name="load",
+                fn=fn,
+                inputs=inputs,
+                outputs=outputs,
+                no_target=True,
+                js=_js,
             )
 
     def clear(self):
