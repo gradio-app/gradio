@@ -215,7 +215,7 @@ class Tab(TabItem):
     pass
 
 
-Tab = TabItem # fmt: off
+Tab = TabItem # fmt: skip
 
 
 @document()
