@@ -1754,6 +1754,30 @@ class TestState:
         result = await io.call_function(0, ["abc", result[0][0]])
         assert result[0][0] == "abcabc def"
 
+    @pytest.mark.asyncio
+    async def test_in_blocks(self):
+        with gr.Blocks() as demo:            
+            score = gr.State()
+            btn = gr.Button()
+            btn.click(lambda x:x+1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result[0] == 1
+        result = await demo.call_function(0, [result[0]])
+        assert result[0] == 2
+
+    @pytest.mark.asyncio
+    async def test_variable_for_backwards_compatibility(self):
+        with gr.Blocks() as demo:            
+            score = gr.Variable()
+            btn = gr.Button()
+            btn.click(lambda x:x+1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result[0] == 1
+        result = await demo.call_function(0, [result[0]])
+        assert result[0] == 2
+
 
 if __name__ == "__main__":
     unittest.main()

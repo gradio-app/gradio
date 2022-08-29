@@ -17,7 +17,7 @@ from constants import (
 
 
 demo = gr.Interface(
-    lambda x: x,
+    lambda *args: args[0],
     inputs=[
         gr.Textbox(value=lambda: datetime.now(), label="Current Time"),
         gr.Number(value=lambda: random.random(), label="Ranom Percentage"),
@@ -91,7 +91,9 @@ demo = gr.Interface(
         gr.Plot(value=random_plot),
         gr.Markdown(value=lambda: f"### {random.choice(['Hello', 'Hi', 'Goodbye!'])}"),
     ],
-    outputs=None,
+    outputs=[
+        gr.State(value=lambda: random.choice(string.ascii_lowercase))
+    ],
 )
 
 if __name__ == "__main__":
