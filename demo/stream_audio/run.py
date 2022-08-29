@@ -4,7 +4,7 @@ import numpy as np
 with gr.Blocks() as demo:
     inp = gr.Audio(source="microphone")
     out = gr.Audio()
-    stream = gr.Variable()
+    stream = gr.State()
 
     def add_to_stream(audio, instream):
         if audio is None:

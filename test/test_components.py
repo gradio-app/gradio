@@ -1736,5 +1736,48 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
         assert processing_utils.video_is_playable(str(full_path_to_output))
 
 
+class TestState:
+    def test_as_component(self):
+        state = gr.State(value=5)
+        assert state.preprocess(10) == 10
+        assert state.preprocess("abc") == "abc"
+        assert state.stateful
+
+    @pytest.mark.asyncio
+    async def test_in_interface(self):
+        def test(x, y=" def"):
+            return (x + y, x + y)
+
+        io = gr.Interface(test, ["text", "state"], ["text", "state"])
+        result = await io.call_function(0, ["abc"])
+        assert result[0][0] == "abc def"
+        result = await io.call_function(0, ["abc", result[0][0]])
+        assert result[0][0] == "abcabc def"
+
+    @pytest.mark.asyncio
+    async def test_in_blocks(self):
+        with gr.Blocks() as demo:
+            score = gr.State()
+            btn = gr.Button()
+            btn.click(lambda x: x + 1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result[0] == 1
+        result = await demo.call_function(0, [result[0]])
+        assert result[0] == 2
+
+    @pytest.mark.asyncio
+    async def test_variable_for_backwards_compatibility(self):
+        with gr.Blocks() as demo:
+            score = gr.Variable()
+            btn = gr.Button()
+            btn.click(lambda x: x + 1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result[0] == 1
+        result = await demo.call_function(0, [result[0]])
+        assert result[0] == 2
+
+
 if __name__ == "__main__":
     unittest.main()
