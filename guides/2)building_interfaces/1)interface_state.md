@@ -23,4 +23,4 @@ $demo_chatbot_demo
 
 Notice how the state persists across submits within each page, but if you load this demo in another tab (or refresh the page), the demos will not share chat history. 
 
-The default value of `state` is None. If you pass a default value to the state parameter of the function, it is used as the default value of the state instead.
+The default value of `state` is None. If you pass a default value to the state parameter of the function, it is used as the default value of the state instead. The `Interface` class only supports a single input and outputs state variable, though it can be a list with multiple elements. For more complex requirements, you can use Blocks, [which supports multiple `State` variables](/state_in_blocks/).
