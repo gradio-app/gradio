@@ -1,0 +1,357 @@
+{
+  "version": "3.1.4",
+  "mode": "blocks",
+  "dev_mode": true,
+  "components": [
+    {
+      "id": 1,
+      "type": "markdown",
+      "props": {
+        "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+        "name": "markdown",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "checkboxgroup",
+      "props": {
+        "choices": [
+          "Covid",
+          "Malaria",
+          "Lung Cancer"
+        ],
+        "value": [],
+        "label": "Disease to Scan For",
+        "show_label": true,
+        "name": "checkboxgroup",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "tabs",
+      "props": {
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "tabitem",
+      "props": {
+        "label": "X-ray",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 7,
+      "type": "json",
+      "props": {
+        "show_label": true,
+        "name": "json",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 8,
+      "type": "button",
+      "props": {
+        "value": "Run",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 9,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "tabitem",
+      "props": {
+        "label": "CT Scan",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "json",
+      "props": {
+        "show_label": true,
+        "name": "json",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 14,
+      "type": "button",
+      "props": {
+        "value": "Run",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "statustracker",
+      "props": {
+        "cover_container": true,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "button",
+      "props": {
+        "value": "Upload Results",
+        "variant": "secondary",
+        "name": "button",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "statustracker",
+      "props": {
+        "cover_container": false,
+        "name": "statustracker",
+        "visible": true,
+        "style": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "css": null,
+  "title": "Gradio",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3,
+        "children": [
+          {
+            "id": 4,
+            "children": [
+              {
+                "id": 5,
+                "children": [
+                  {
+                    "id": 6
+                  },
+                  {
+                    "id": 7
+                  }
+                ]
+              },
+              {
+                "id": 8
+              },
+              {
+                "id": 9
+              }
+            ]
+          },
+          {
+            "id": 10,
+            "children": [
+              {
+                "id": 11,
+                "children": [
+                  {
+                    "id": 12
+                  },
+                  {
+                    "id": 13
+                  }
+                ]
+              },
+              {
+                "id": 14
+              },
+              {
+                "id": 15
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 16
+      },
+      {
+        "id": 17
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        8
+      ],
+      "trigger": "click",
+      "inputs": [
+        2,
+        6
+      ],
+      "outputs": [
+        7
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 9,
+      "queue": null,
+      "api_name": "xray_model",
+      "scroll_to_output": false,
+      "show_progress": true,
+      "documentation": [
+        [
+          [
+            "list of selected choices",
+            "List[str]"
+          ],
+          [
+            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "str | Dict"
+          ]
+        ],
+        [
+          [
+            "JSON output",
+            "Dict | List | None"
+          ]
+        ]
+      ]
+    },
+    {
+      "targets": [
+        14
+      ],
+      "trigger": "click",
+      "inputs": [
+        2,
+        12
+      ],
+      "outputs": [
+        13
+      ],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 15,
+      "queue": null,
+      "api_name": "ct_model",
+      "scroll_to_output": false,
+      "show_progress": true,
+      "documentation": [
+        [
+          [
+            "list of selected choices",
+            "List[str]"
+          ],
+          [
+            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "str | Dict"
+          ]
+        ],
+        [
+          [
+            "JSON output",
+            "Dict | List | None"
+          ]
+        ]
+      ]
+    },
+    {
+      "targets": [
+        16
+      ],
+      "trigger": "click",
+      "inputs": [
+        13,
+        7
+      ],
+      "outputs": [],
+      "backend_fn": true,
+      "js": null,
+      "status_tracker": 17,
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
+    }
+  ]
+}
