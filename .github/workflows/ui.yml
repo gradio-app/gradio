@@ -19,9 +19,6 @@ concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
   cancel-in-progress: true
 
-# container:
-#   options: --user root
-
 jobs:
   quick-checks:
     name: static checks
@@ -46,6 +43,8 @@ jobs:
         run: pnpm test:run
   functional-test:
     runs-on: ubuntu-latest
+    container:
+      options: --user root
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
