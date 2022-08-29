@@ -33,7 +33,7 @@ See how the first column has two Textboxes arranged vertically. The second colum
 
 ## Tabs
 
-You can also create Tabs using the `with gradio.Tab('tab_name'):` clause. Any component created inside of a `with gradio.Tab('tab_name'):` context appears in that tab. Consecutive Tabs clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
+You can also create Tabs using the `with gradio.Tab('tab_name'):` clause. Any component created inside of a `with gradio.Tab('tab_name'):` context appears in that tab. Consecutive Tab clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
 
 For example:
 

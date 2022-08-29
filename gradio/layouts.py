@@ -181,7 +181,6 @@ class TabItem(BlockContext):
 
     def get_config(self):
         return {
-            "type": "tabitem",
             "label": self.label,
             "id": self.id,
             **super().get_config(),
@@ -214,6 +213,9 @@ class Tab(TabItem):
     """
 
     pass
+
+
+Tab = TabItem
 
 
 @document()
