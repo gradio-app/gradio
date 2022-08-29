@@ -2579,6 +2579,7 @@ class Variable(State):
     def get_block_name(self):
         return "state"
 
+
 @document("click", "style")
 class Button(Clickable, IOComponent, SimpleSerializable):
     """
