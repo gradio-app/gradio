@@ -6,15 +6,17 @@ from __future__ import annotations
 import csv
 import inspect
 import os
+import pathlib
 import shutil
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 import anyio
+import pandas as pd
 
 from gradio import utils
-from gradio.components import Dataset
+from gradio.components import Dataframe, Dataset, File
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
@@ -165,6 +167,12 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in examples
         ]
+        for example in non_none_examples:
+            for i, (component, ex) in enumerate(zip(inputs, example)):
+                if isinstance(component, Dataframe) and isinstance(ex, pd.DataFrame):
+                    example[i] = ex.to_dict(orient="split")["data"]
+                elif isinstance(component, File):
+                    example[i] = pathlib.Path(ex).name
 
         self.examples = examples
         self.non_none_examples = non_none_examples
