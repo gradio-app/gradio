@@ -442,7 +442,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [],
             "outputs": [141],
             "backend_fn": True,
-            "js": False,
+            "js": None,
             "status_tracker": None,
             "queue": None,
             "api_name": None,
