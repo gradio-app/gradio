@@ -216,7 +216,7 @@ XRAY_CONFIG = {
             "inputs": [],
             "outputs": [14],
             "backend_fn": True,
-            "js": False,
+            "js": None,
             "status_tracker": None,
             "queue": None,
             "api_name": None,
