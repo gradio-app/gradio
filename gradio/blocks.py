@@ -114,7 +114,7 @@ class Block:
         scroll_to_output: bool = False,
         show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
-        js: Optional[str] = False,
+        js: Optional[str] = None,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
