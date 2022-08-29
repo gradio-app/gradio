@@ -21,7 +21,7 @@ with demo:
                         flip_btn = gr.Button("Flip Card").style(full_width=True)
                 with gr.Column(visible=False) as answer_col:
                     back = gr.Textbox(label="Answer")
-                    selected_card = gr.Variable()
+                    selected_card = gr.State()
                     with gr.Row():
                         correct_btn = gr.Button(
                             "Correct",
@@ -29,7 +29,7 @@ with demo:
                         incorrect_btn = gr.Button("Incorrect").style(full_width=True)
 
         with gr.TabItem("Results"):
-            results = gr.Variable(value={})
+            results = gr.State(value={})
             correct_field = gr.Markdown("# Correct: 0")
             incorrect_field = gr.Markdown("# Incorrect: 0")
             gr.Markdown("Card Statistics: ")

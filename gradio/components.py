@@ -2541,10 +2541,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class Variable(IOComponent, SimpleSerializable):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the Variable is cleared when the user refreshes the page.
+    same user. The value of the State variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
@@ -2568,6 +2568,16 @@ class Variable(IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+
+class Variable(State):
+    """Variable was renamed to State. This class is kept for backwards compatibility."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_block_name(self):
+        return "state"
 
 
 @document("click", "style")
