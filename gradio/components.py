@@ -2576,6 +2576,8 @@ class Variable(State):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def get_block_name(self):
+        return "state"
 
 @document("click", "style")
 class Button(Clickable, IOComponent, SimpleSerializable):
