@@ -215,7 +215,7 @@ class Tab(TabItem):
     pass
 
 
-Tab = TabItem
+Tab = TabItem # fmt: off
 
 
 @document()
