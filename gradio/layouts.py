@@ -161,21 +161,7 @@ class Tabs(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-@document()
-class Tab(BlockContext):
-    """
-    Tab is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
-    Example:
-        with gradio.Blocks() as demo:
-            with gradio.Tab("Lion"):
-                gr.Image("lion.jpg")
-                gr.Button("New Lion")
-            with gradio.Tab("Tiger"):
-                gr.Image("tiger.jpg")
-                gr.Button("New Tiger")
-    Guides: controlling_layout
-    """
-
+class TabItem(BlockContext):
     expected_parent = Tabs
 
     def __init__(
@@ -194,7 +180,12 @@ class Tab(BlockContext):
         self.id = id
 
     def get_config(self):
-        return {"label": self.label, "id": self.id, **super().get_config()}
+        return {
+            "type": "tabitem",
+            "label": self.label,
+            "id": self.id,
+            **super().get_config(),
+        }
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -207,7 +198,22 @@ class Tab(BlockContext):
         self.set_event_trigger("select", fn, inputs, outputs)
 
 
-TabItem = Tab
+@document()
+class Tab(TabItem):
+    """
+    Tab is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Tab("Lion"):
+                gr.Image("lion.jpg")
+                gr.Button("New Lion")
+            with gradio.Tab("Tiger"):
+                gr.Image("tiger.jpg")
+                gr.Button("New Tiger")
+    Guides: controlling_layout
+    """
+
+    pass
 
 
 @document()
