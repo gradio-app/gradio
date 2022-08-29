@@ -43,8 +43,6 @@ jobs:
         run: pnpm test:run
   functional-test:
     runs-on: ubuntu-latest
-    container:
-      options: --user root
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
@@ -55,7 +53,7 @@ jobs:
           node-version: 16
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
-      - run: cd .. && python setup.py instan
+      - run: pip install -r ../requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm build

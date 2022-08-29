@@ -1,0 +1,69 @@
+{
+  "version": "3.1.4",
+  "mode": "blocks",
+  "dev_mode": true,
+  "components": [
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "Frank",
+        "label": "Name",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "",
+        "label": "Output",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "css": null,
+  "title": "Gradio",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [],
+      "trigger": "load",
+      "inputs": [
+        1
+      ],
+      "outputs": [
+        2
+      ],
+      "backend_fn": true,
+      "js": false,
+      "status_tracker": null,
+      "queue": null,
+      "api_name": null,
+      "scroll_to_output": false,
+      "show_progress": true
+    }
+  ]
+}
