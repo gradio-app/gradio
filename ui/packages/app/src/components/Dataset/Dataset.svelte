@@ -23,6 +23,7 @@
 	let selected_samples: Array<Array<any>>;
 	let page_count: number;
 	let visible_pages: Array<number> = [];
+
 	$: {
 		if (paginate) {
 			visible_pages = [];
