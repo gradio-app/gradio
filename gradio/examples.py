@@ -37,6 +37,7 @@ def create_examples(
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: Optional[str] = None,
+    elem_id: Optional[str] = None,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -48,6 +49,7 @@ def create_examples(
         examples_per_page=examples_per_page,
         _api_mode=_api_mode,
         label=label,
+        elem_id=elem_id,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -75,8 +77,9 @@ class Examples:
         cache_examples: bool = False,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        _initiated_directly: bool = True,
         label: str = "Examples",
+        elem_id: Optional[str] = None,
+        _initiated_directly: bool = True,
     ):
         """
         Parameters:
@@ -186,6 +189,7 @@ class Examples:
             samples=non_none_examples,
             type="index",
             label=label,
+            elem_id=elem_id,
         )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
