@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import BlockContext
@@ -9,22 +10,6 @@ set_documentation_group("layout")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
-
-valid_colors = [
-    "red",
-    "green",
-    "blue",
-    "yellow",
-    "purple",
-    "teal",
-    "orange",
-    "cyan",
-    "lime",
-    "pink",
-    "black",
-    "grey",
-    "gray",
-]
 
 
 @document()
@@ -39,6 +24,13 @@ class Row(BlockContext):
         demo.launch()
     Guides: controlling_layout
     """
+
+    def __init__(self, *, elem_id: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(elem_id=elem_id)
 
     def get_config(self):
         return {"type": "row", **super().get_config()}
@@ -55,27 +47,32 @@ class Row(BlockContext):
     def style(
         self,
         equal_height: Optional[bool] = None,
-        mobile_collapse: Optional[bool] = True,
+        mobile_collapse: Optional[bool] = None,
     ):
+        """
+        Styles the Row.
+        Parameters:
+            equal_height: If True, makes every child element have equal height
+            mobile_collapse: DEPRECATED.
+        """
         if equal_height is not None:
             self._style["equal_height"] = equal_height
         if mobile_collapse is not None:
-            self._style["mobile_collapse"] = mobile_collapse
-
+            warnings.warn("mobile_collapse is no longer supported.", DeprecationWarning)
         return self
 
 
 @document()
 class Column(BlockContext):
     """
-    Column is a layout element within Blocks that renders all children vertically.
+    Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
     Example:
         with gradio.Blocks() as demo:
             with gradio.Row():
-                with gradio.Column():
+                with gradio.Column(scale=1):
                     text1 = gr.Textbox()
                     text2 = gr.Textbox()
-                with gradio.Column():
+                with gradio.Column(scale=4):
                     btn1 = gr.Button("Button 1")
                     btn2 = gr.Button("Button 2")
     Guides: controlling_layout
@@ -83,21 +80,32 @@ class Column(BlockContext):
 
     def __init__(
         self,
+        *,
+        scale: int = 1,
+        min_width: int = 320,
         visible: bool = True,
         variant: str = "default",
+        elem_id: Optional[str] = None,
+        **kwargs,
     ):
         """
         Parameters:
-            visible: If False, column will be hidden but included in the Blocks config file (its visibility can later be updated).
+            scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
+            min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value.
+            visible: If False, column will be hidden.
             variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
+        self.scale = scale
+        self.min_width = min_width
         self.variant = variant
-        super().__init__(visible=visible)
+        super().__init__(visible=visible, elem_id=elem_id)
 
     def get_config(self):
         return {
             "type": "column",
             "variant": self.variant,
+            "scale": self.scale,
+            "min_width": self.min_width,
             **super().get_config(),
         }
 
@@ -113,25 +121,17 @@ class Column(BlockContext):
         }
 
 
-@document()
 class Tabs(BlockContext):
     """
-    Tabs is a layout element within Blocks that can contain multiple TabItem's. Each
-    TabItem gets rendered as a individual tab. The TabItem's must be nested within the
-    Tabs context.
-    Example:
-        with gradio.Blocks() as demo:
-            with gradio.Tabs():
-                with gradio.TabItem("Lion"):
-                    gr.Image("lion.jpg")
-                    gr.Button("New Lion")
-                with gradio.TabItem("Tiger"):
-                    gr.Image("tiger.jpg")
-                    gr.Button("New Tiger")
-    Guides: controlling_layout
+    Tabs is a layout element within Blocks that can contain multiple "Tab" Components.
     """
 
-    def __init__(self, selected: Optional[int | str] = None, **kwargs):
+    def __init__(
+        self,
+        selected: Optional[int | str] = None,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
@@ -162,12 +162,14 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    """
-    TabItem is a layout element that must be defined within a Tabs context. The
-    components defined within the TabItem will be rendered within a tab.
-    """
+    expected_parent = Tabs
 
-    def __init__(self, label: str, id: Optional[int | str] = None, **kwargs):
+    def __init__(
+        self,
+        label: str,
+        id: Optional[int | str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
             label: The visual label for the tab
@@ -178,7 +180,11 @@ class TabItem(BlockContext):
         self.id = id
 
     def get_config(self):
-        return {"label": self.label, "id": self.id, **super().get_config()}
+        return {
+            "label": self.label,
+            "id": self.id,
+            **super().get_config(),
+        }
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -189,6 +195,27 @@ class TabItem(BlockContext):
         Returns: None
         """
         self.set_event_trigger("select", fn, inputs, outputs)
+
+
+@document()
+class Tab(TabItem):
+    """
+    Tab is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Tab("Lion"):
+                gr.Image("lion.jpg")
+                gr.Button("New Lion")
+            with gradio.Tab("Tiger"):
+                gr.Image("tiger.jpg")
+                gr.Button("New Tiger")
+    Guides: controlling_layout
+    """
+
+    pass
+
+
+Tab = TabItem  # noqa: F811
 
 
 @document()
@@ -264,3 +291,8 @@ class Box(BlockContext):
         if border is not None:
             self._style["border"] = border
         return self
+
+
+class Form(BlockContext):
+    def get_config(self):
+        return {"type": "form", **super().get_config()}

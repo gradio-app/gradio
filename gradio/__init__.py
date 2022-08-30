@@ -55,7 +55,7 @@ from gradio.flagging import (
 )
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
-from gradio.layouts import Box, Column, Group, Row, TabItem, Tabs
+from gradio.layouts import Box, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.mix import Parallel, Series
 from gradio.templates import (
     Files,

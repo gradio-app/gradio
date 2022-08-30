@@ -13,6 +13,7 @@ export const component_map = {
 	dataset: () => import("./Dataset"),
 	dropdown: () => import("./Dropdown"),
 	file: () => import("./File"),
+	form: () => import("./Form"),
 	gallery: () => import("./Gallery"),
 	group: () => import("./Group"),
 	highlightedtext: () => import("./HighlightedText"),

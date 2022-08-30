@@ -13,7 +13,6 @@
 	export let value: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 	export let max_lines: number | false;
 
@@ -26,7 +25,6 @@
 
 <Block
 	{visible}
-	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
