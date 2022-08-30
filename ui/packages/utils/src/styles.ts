@@ -11,7 +11,6 @@ export interface Styles {
 	width?: "auto" | string | number;
 	full_width?: boolean;
 	equal_height?: boolean;
-	mobile_collapse?: boolean;
 	visible?: boolean;
 	item_container?: boolean;
 	color_map?: Record<string, string>;
@@ -116,9 +115,6 @@ const style_handlers: StyleHandlers = {
 	},
 	equal_height(equal_height) {
 		return equal_height ? "" : "unequal-height";
-	},
-	mobile_collapse(mobile_collapse) {
-		return mobile_collapse ? "flex-col" : "mobile-row";
 	},
 	visible(visible) {
 		return visible ? "" : "!hidden";

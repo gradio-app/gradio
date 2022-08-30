@@ -46,6 +46,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.layouts import Form
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -211,8 +212,12 @@ class IOComponent(Component, Serializable):
         return load_fn, initial_value
 
 
+class FormComponent:
+    expected_parent = Form
+
+
 @document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -378,7 +383,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -545,7 +550,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable):
+class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -703,7 +708,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable):
+class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -794,7 +799,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -956,7 +961,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable):
+class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.

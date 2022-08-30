@@ -28,9 +28,8 @@ for p in sorted(os.listdir("./demos")):
         all_demos.append((p, demo))
 
 with gr.Blocks() as mega_demo:
-    with gr.Tabs():
-        for demo_name, demo in all_demos:
-            with gr.TabItem(demo_name):
-                demo.render()
+    for demo_name, demo in all_demos:
+        with gr.Tab(demo_name):
+            demo.render()
 
 mega_demo.launch()

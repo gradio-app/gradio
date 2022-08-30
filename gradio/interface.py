@@ -470,7 +470,7 @@ class Interface(Blocks):
                             with interpret_component_column:
                                 for component in self.input_components:
                                     interpretation_set.append(Interpretation(component))
-                        with Row().style(mobile_collapse=False):
+                        with Row():
                             if self.interface_type in [
                                 self.InterfaceTypes.STANDARD,
                                 self.InterfaceTypes.INPUT_ONLY,
@@ -493,7 +493,7 @@ class Interface(Blocks):
                         status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
                             component.render()
-                        with Row().style(mobile_collapse=False):
+                        with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")

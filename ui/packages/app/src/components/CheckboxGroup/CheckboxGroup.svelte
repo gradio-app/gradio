@@ -12,7 +12,6 @@
 	export let style: Styles = {};
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
@@ -20,7 +19,6 @@
 
 <Block
 	{visible}
-	{form_position}
 	{elem_id}
 	type="fieldset"
 	disable={typeof style.container === "boolean" && !style.container}
