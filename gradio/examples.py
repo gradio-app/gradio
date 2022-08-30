@@ -167,12 +167,6 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in examples
         ]
-        for example in non_none_examples:
-            for i, (component, ex) in enumerate(zip(inputs, example)):
-                if isinstance(component, Dataframe) and isinstance(ex, pd.DataFrame):
-                    example[i] = ex.to_dict(orient="split")["data"]
-                elif isinstance(component, File):
-                    example[i] = pathlib.Path(ex).name
 
         self.examples = examples
         self.non_none_examples = non_none_examples

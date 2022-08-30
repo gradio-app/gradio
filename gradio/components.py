@@ -14,6 +14,7 @@ import random
 import tempfile
 import uuid
 import warnings
+from abc import abstractmethod
 from copy import deepcopy
 from pathlib import Path
 from types import ModuleType
@@ -211,6 +212,10 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
+    @abstractmethod
+    def as_example(self, input_data):
+        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
+
 
 class FormComponent:
     expected_parent = Form
@@ -381,6 +386,9 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComp
             result.append((self.interpretation_separator, 0))
         return result
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "submit", "style")
 class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
@@ -548,6 +556,9 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormCompo
     def generate_sample(self) -> float:
         return self._round_to_precision(1, self.precision)
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "style")
 class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
@@ -706,6 +717,9 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
             container=container,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "style")
 class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
@@ -796,6 +810,9 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
             return scores[0], None
         else:
             return None, scores[0]
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "style")
@@ -959,6 +976,9 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
             container=container,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "style")
 class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
@@ -1100,6 +1120,9 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             container=container,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "style")
 class Dropdown(Radio):
@@ -1164,6 +1187,9 @@ class Dropdown(Radio):
         return IOComponent.style(
             self, rounded=rounded, border=border, container=container
         )
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("edit", "clear", "change", "stream", "change")
@@ -1511,6 +1537,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             _postprocess=_postprocess,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
@@ -1692,6 +1721,9 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             self,
             rounded=rounded,
         )
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
@@ -1983,6 +2015,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "clear", "style")
 class File(Changeable, Clearable, IOComponent, FileSerializable):
@@ -2162,6 +2197,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "style")
 class Dataframe(Changeable, IOComponent, JSONSerializable):
@@ -2169,7 +2207,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2416,6 +2454,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        if isinstance(input_data, pd.DataFrame):
+            return input_data.head(n=5).to_dict(orient="split")["data"]
+        return input_data
+
 
 @document("change", "style")
 class Timeseries(Changeable, IOComponent, JSONSerializable):
@@ -2549,6 +2592,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document()
 class State(IOComponent, SimpleSerializable):
@@ -2578,6 +2624,9 @@ class State(IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+    def as_example(self, input_data):
+        return input_data
 
 
 class Variable(State):
@@ -2665,6 +2714,9 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             rounded=rounded,
             border=border,
         )
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "submit", "style")
@@ -2761,6 +2813,9 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
             return None
         else:
             return str(y)
+
+    def as_example(self, input_data):
+        return input_data
 
 
 ############################
@@ -2877,6 +2932,9 @@ class Label(Changeable, IOComponent, JSONSerializable):
             container: If True, will add a container to the label - providing some extra padding around the border.
         """
         return IOComponent.style(self, container=container)
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "style")
@@ -3025,6 +3083,9 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
         return IOComponent.style(self, rounded=rounded, container=container)
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "style")
 class JSON(Changeable, IOComponent, JSONSerializable):
@@ -3109,6 +3170,9 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         """
         return IOComponent.style(self, container=container)
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change")
 class HTML(Changeable, IOComponent, SimpleSerializable):
@@ -3173,6 +3237,9 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("style")
@@ -3298,6 +3365,9 @@ class Gallery(IOComponent):
             files.append(img)
         return files
 
+    def as_example(self, input_data):
+        return input_data
+
 
 class Carousel(IOComponent, Changeable):
     """
@@ -3383,6 +3453,9 @@ class Carousel(IOComponent, Changeable):
             return output
         else:
             raise ValueError("Unknown type. Please provide a list for the Carousel.")
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "style")
@@ -3484,6 +3557,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
             self,
             rounded=rounded,
         )
+
+    def as_example(self, input_data):
+        return input_data
 
 
 @document("change", "edit", "clear", "style")
@@ -3608,6 +3684,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
@@ -3689,6 +3768,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data):
+        return input_data
+
 
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
@@ -3753,6 +3835,9 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data):
+        return input_data
+
 
 ############################
 # Static Components
@@ -3772,7 +3857,7 @@ class Dataset(Clickable, Component):
         self,
         *,
         label: Optional[str] = None,
-        components: List[Component] | List[str],
+        components: List[IOComponent] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
         type: str = "values",
@@ -3791,6 +3876,9 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        for example in samples:
+            for i, (component, ex) in enumerate(zip(self.components, example)):
+                example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
