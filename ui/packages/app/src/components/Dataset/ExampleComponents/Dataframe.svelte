@@ -69,8 +69,9 @@
 			{/each}
 			{#if value.length > 3}
 				<div
-					class="absolute w-full h-[50%] bottom-0 bg-gradient-to-b from-transparent to-white dark:to-slate-900"
-					class:dark:to-slate-800={hovered}
+					class="absolute w-full h-[50%] bottom-0 bg-gradient-to-b from-transparent to-white"
+					class:dark:to-gray-950={!hovered}
+					class:dark:to-gray-800={hovered}
 					class:to-gray-50={hovered}
 				/>
 			{/if}
