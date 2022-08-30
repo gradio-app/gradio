@@ -4,7 +4,7 @@ import random
 secret_word = "gradio"
 
 with gr.Blocks() as demo:    
-    used_letters_var = gr.Variable([])
+    used_letters_var = gr.State([])
     with gr.Row() as row:
         with gr.Column():
             input_letter = gr.Textbox(label="Enter letter")

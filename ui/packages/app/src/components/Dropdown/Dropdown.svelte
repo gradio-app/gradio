@@ -10,7 +10,6 @@
 	export let visible: boolean = true;
 	export let value: string = "";
 	export let choices: Array<string>;
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 	export let style: Styles = {};
 	export let loading_status: LoadingStatus;
@@ -20,7 +19,6 @@
 
 <Block
 	{visible}
-	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
