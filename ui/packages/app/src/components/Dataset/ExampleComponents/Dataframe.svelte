@@ -1,6 +1,6 @@
 <script lang="ts">
 	//@ts-ignore
-	import { csvParseRows } from "d3-dsv";
+	import { csvParseRows, tsvParseRows } from "d3-dsv";
 	export let value: Array<Array<string | number>> | string;
 	export let samples_dir: string;
 	let hovered = false;
@@ -11,7 +11,16 @@
 			.then((v) => v.text())
 			.then((v) => {
 				try {
-					value = csvParseRows(v);
+					if ((value as string).endsWith("csv")) {
+						value = csvParseRows(v);
+					} else if ((value as string).endsWith("tsv")) {
+						tsvParseRows(value);
+					} else {
+						throw new Error(
+							"Incorrect format, only CSV and TSV files are supported"
+						);
+					}
+
 					loaded = true;
 				} catch (e) {
 					console.error(e);
