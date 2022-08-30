@@ -427,7 +427,7 @@ class Timeseries(components.Timeseries):
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
-class State(components.Variable):
+class State(components.State):
     """
     Special hidden component that stores state across runs of the interface.
     Input type: Any
@@ -445,7 +445,7 @@ class State(components.Variable):
         optional (bool): this parameter is ignored.
         """
         warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.State() from gradio.components",
         )
         super().__init__(value=default, label=label)
 

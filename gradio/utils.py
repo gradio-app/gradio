@@ -198,7 +198,7 @@ def launch_counter() -> None:
         pass
 
 
-def get_default_args(func: Callable) -> Dict[str, Any]:
+def get_default_args(func: Callable) -> List[Any]:
     signature = inspect.signature(func)
     return [
         v.default if v.default is not inspect.Parameter.empty else None

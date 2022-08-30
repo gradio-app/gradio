@@ -29,11 +29,11 @@ export const component_map = {
 	radio: () => import("./Radio"),
 	row: () => import("./Row"),
 	slider: () => import("./Slider"),
+	state: () => import("./State"),
 	statustracker: () => import("./StatusTracker"),
 	tabs: () => import("./Tabs"),
 	tabitem: () => import("./TabItem"),
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
-	variable: () => import("./Variable"),
 	video: () => import("./Video")
 };
