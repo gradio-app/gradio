@@ -6,17 +6,14 @@ from __future__ import annotations
 import csv
 import inspect
 import os
-import pathlib
-import shutil
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import anyio
-import pandas as pd
 
 from gradio import utils
-from gradio.components import Dataframe, Dataset, File
+from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
