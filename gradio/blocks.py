@@ -202,7 +202,28 @@ class BlockContext(Block):
         Context.block = self
         return self
 
+    def fill_expected_parents(self):
+        children = []
+        pseudo_parent = None
+        for child in self.children:
+            expected_parent = getattr(child.__class__, "expected_parent", False)
+            if not expected_parent or isinstance(self, expected_parent):
+                pseudo_parent = None
+                children.append(child)
+            else:
+                if pseudo_parent is not None and isinstance(
+                    pseudo_parent, expected_parent
+                ):
+                    pseudo_parent.children.append(child)
+                else:
+                    pseudo_parent = expected_parent(render=False)
+                    children.append(pseudo_parent)
+                    pseudo_parent.children = [child]
+                    Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+        self.children = children
+
     def __exit__(self, *args):
+        self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):
@@ -425,7 +446,6 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
-            print("!!!", block_config)
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
@@ -698,26 +718,8 @@ class Blocks(BlockContext):
         def getLayout(block):
             if not isinstance(block, BlockContext):
                 return {"id": block._id}
-            children = []
-            pseudo_parent = None
-            for child in block.children:
-                expected_parent = getattr(child.__class__, "expected_parent", False)
-                if not expected_parent or isinstance(block, expected_parent):
-                    pseudo_parent = None
-                    children.append(child)
-                else:
-                    if pseudo_parent is not None and isinstance(
-                        pseudo_parent, expected_parent
-                    ):
-                        pseudo_parent.children.append(child)
-                    else:
-                        pseudo_parent = expected_parent(render=False)
-                        children.append(pseudo_parent)
-                        pseudo_parent.children = [child]
-                        self.blocks[pseudo_parent._id] = pseudo_parent
-            block.children = children
             children_layout = []
-            for child in children:
+            for child in block.children:
                 children_layout.append(getLayout(child))
             return {"id": block._id, "children": children_layout}
 
@@ -744,6 +746,7 @@ class Blocks(BlockContext):
         return self
 
     def __exit__(self, *args):
+        super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
         self.attach_load_events()

@@ -82,7 +82,7 @@ class Column(BlockContext):
         self,
         *,
         scale: int = 1,
-        min_width: int = 240,
+        min_width: int = 320,
         visible: bool = True,
         variant: str = "default",
         elem_id: Optional[str] = None,

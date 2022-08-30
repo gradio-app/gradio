@@ -53,7 +53,7 @@
 	}
 	.row > *,
 	.row > .gr-form > * {
-		min-width: min(240px, 100%);
+		min-width: min(160px, 100%);
 		@apply flex-1;
 	}
 	.col > *,
