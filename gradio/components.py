@@ -10,7 +10,6 @@ import math
 import numbers
 import operator
 import os
-import pathlib
 import random
 import tempfile
 import uuid
@@ -1539,7 +1538,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         )
 
     def as_example(self, input_data):
-        is_valid = isinstance(input_data, str) or isinstance(input_data, pathlib.Path)
+        is_valid = isinstance(input_data, str) or isinstance(input_data, Path)
         exists = Path(input_data).is_file()
         if not all([is_valid, exists]):
             raise ValueError(
@@ -3692,7 +3691,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data):
-        return input_data
+        return Path(input_data).name
 
 
 @document("change", "clear")
