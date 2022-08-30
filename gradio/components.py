@@ -46,6 +46,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.layouts import Form
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -211,8 +212,12 @@ class IOComponent(Component, Serializable):
         return load_fn, initial_value
 
 
+class FormComponent:
+    expected_parent = Form
+
+
 @document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -378,7 +383,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -545,7 +550,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable):
+class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -703,7 +708,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable):
+class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -794,7 +799,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -956,7 +961,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable):
+class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -2006,7 +2011,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -2071,11 +2076,14 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    return processing_utils.create_tmp_copy_of_file(file_name)
+                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file.orig_name = file_name
                 else:
-                    return processing_utils.decode_base64_to_file(
+                    file = processing_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
+                    file.orig_name = file_name
+                return file
             elif self.type == "bytes":
                 if is_file:
                     with open(file_name, "rb") as file_data:
@@ -2114,6 +2122,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
+                    "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
                         file, self.temp_dir
                     ).name,
@@ -2125,6 +2134,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             ]
         else:
             return {
+                "orig_name": os.path.basename(y),
                 "name": processing_utils.create_tmp_copy_of_file(
                     y, dir=self.temp_dir
                 ).name,
@@ -2541,10 +2551,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class Variable(IOComponent, SimpleSerializable):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the Variable is cleared when the user refreshes the page.
+    same user. The value of the State variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
@@ -2568,6 +2578,16 @@ class Variable(IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+
+class Variable(State):
+    """Variable was renamed to State. This class is kept for backwards compatibility."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_block_name(self):
+        return "state"
 
 
 @document("click", "style")

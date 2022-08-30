@@ -13,7 +13,7 @@ export const prettyBytes = (bytes: number): string => {
 
 export const display_file_name = (value: FileData): string => {
 	var str: string;
-	str = value.name;
+	str = value.orig_name || value.name;
 	if (str.length > 30) {
 		return `${str.substr(0, 30)}...`;
 	} else return str;

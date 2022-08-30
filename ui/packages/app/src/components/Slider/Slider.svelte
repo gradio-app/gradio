@@ -14,7 +14,6 @@
 	export let maximum: number;
 	export let step: number;
 	export let mode: "static" | "dynamic";
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
@@ -22,7 +21,6 @@
 
 <Block
 	{visible}
-	{form_position}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >

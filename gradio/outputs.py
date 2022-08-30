@@ -158,7 +158,7 @@ class Timeseries(components.Timeseries):
         super().__init__(x=x, y=y, label=label)
 
 
-class State(components.Variable):
+class State(components.State):
     """
     Special hidden component that stores state across runs of the interface.
     Output type: Any
@@ -170,7 +170,7 @@ class State(components.Variable):
         label (str): component name in interface (not used).
         """
         warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import this component as gr.State() from gradio.components",
         )
         super().__init__(label=label)
 

@@ -42,8 +42,8 @@ with gr.Blocks() as Dataframe_demo:
 with gr.Blocks() as Timeseries_demo:
     gr.Timeseries()
 
-with gr.Blocks() as Variable_demo:
-    gr.Variable()
+with gr.Blocks() as State_demo:
+    gr.State()
 
 with gr.Blocks() as Button_demo:
     gr.Button()

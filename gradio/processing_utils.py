@@ -605,7 +605,7 @@ def video_is_playable(video_filepath: str) -> bool:
             (".webm", "vp9"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
-    except FFRuntimeError:
+    except (FFRuntimeError, IndexError, KeyError):
         return True
 
 

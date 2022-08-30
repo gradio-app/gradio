@@ -84,7 +84,7 @@ def override_signature(name, signature):
 override_signature("Blocks", "with gradio.Blocks():")
 override_signature("Row", "with gradio.Row():")
 override_signature("Column", "with gradio.Column():")
-override_signature("Tabs", "with gradio.Tabs():")
+override_signature("Tab", "with gradio.Tab():")
 override_signature("Group", "with gradio.Group():")
 override_signature("Box", "with gradio.Box():")
 override_signature("Dataset", "gr.Dataset(components, samples)")

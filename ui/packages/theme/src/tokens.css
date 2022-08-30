@@ -65,7 +65,7 @@
 }
 
 .gr-button {
-	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white dark:bg-gray-700 dark:border-gray-600 active:shadow-inner flex-1 text-center px-2 py-0.5 rounded text-sm;
+	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white dark:bg-gray-700 dark:border-gray-600 active:shadow-inner text-center px-2 py-0.5 rounded text-sm;
 }
 
 .gr-button-primary {

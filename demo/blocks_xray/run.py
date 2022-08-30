@@ -12,7 +12,6 @@ def ct_model(diseases, img):
     time.sleep(3)
     return [{disease: 0.1 for disease in diseases}]
 
-
 with gr.Blocks() as demo:
     gr.Markdown(
         """
@@ -26,34 +25,33 @@ With this model you can lorem ipsum
         choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
 
-    with gr.Tabs():
-        with gr.TabItem("X-ray") as x_tab:
-            with gr.Row():
-                xray_scan = gr.Image()
-                xray_results = gr.JSON()
-            xray_run = gr.Button("Run")
-            xray_progress = gr.StatusTracker(cover_container=True)
-            xray_run.click(
-                xray_model,
-                inputs=[disease, xray_scan],
-                outputs=xray_results,
-                status_tracker=xray_progress,
-                api_name="xray_model"
-            )
+    with gr.Tab("X-ray") as x_tab:
+        with gr.Row():
+            xray_scan = gr.Image()
+            xray_results = gr.JSON()
+        xray_run = gr.Button("Run")
+        xray_progress = gr.StatusTracker(cover_container=True)
+        xray_run.click(
+            xray_model,
+            inputs=[disease, xray_scan],
+            outputs=xray_results,
+            status_tracker=xray_progress,
+            api_name="xray_model"
+        )
 
-        with gr.TabItem("CT Scan"):
-            with gr.Row():
-                ct_scan = gr.Image()
-                ct_results = gr.JSON()
-            ct_run = gr.Button("Run")
-            ct_progress = gr.StatusTracker(cover_container=True)
-            ct_run.click(
-                ct_model,
-                inputs=[disease, ct_scan],
-                outputs=ct_results,
-                status_tracker=ct_progress,
-                api_name="ct_model"
-            )
+    with gr.Tab("CT Scan"):
+        with gr.Row():
+            ct_scan = gr.Image()
+            ct_results = gr.JSON()
+        ct_run = gr.Button("Run")
+        ct_progress = gr.StatusTracker(cover_container=True)
+        ct_run.click(
+            ct_model,
+            inputs=[disease, ct_scan],
+            outputs=ct_results,
+            status_tracker=ct_progress,
+            api_name="ct_model"
+        )
 
     upload_btn = gr.Button("Upload Results")
     upload_btn.click(

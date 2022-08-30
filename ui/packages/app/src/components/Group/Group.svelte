@@ -2,10 +2,6 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let style: Styles = {};
-
-	if (typeof style.mobile_collapse !== "boolean") {
-		style.mobile_collapse = true;
-	}
 </script>
 
 <div>
