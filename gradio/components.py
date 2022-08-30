@@ -1538,6 +1538,12 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         )
 
     def as_example(self, input_data):
+        is_str = isinstance(input_data, str)
+        is_file = Path(input_data).is_file()
+        if not all([is_str, is_file]):
+            raise ValueError(
+                f"Example data for an image component must be a valid file, received {input_data}"
+            )
         return input_data
 
 
