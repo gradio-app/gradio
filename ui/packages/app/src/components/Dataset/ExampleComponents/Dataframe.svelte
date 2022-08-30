@@ -12,9 +12,21 @@
 			.then((v) => {
 				try {
 					if ((value as string).endsWith("csv")) {
-						value = csvParseRows(v);
+						const small_df = v
+							.split("\n")
+							.slice(0, 4)
+							.map((v) => v.split(",").slice(0, 4).join(","))
+							.join("\n");
+
+						value = csvParseRows(small_df);
 					} else if ((value as string).endsWith("tsv")) {
-						tsvParseRows(value);
+						const small_df = v
+							.split("\n")
+							.slice(0, 4)
+							.map((v) => v.split("\t").slice(0, 4).join("\t"))
+							.join("\n");
+
+						value = tsvParseRows(small_df);
 					} else {
 						throw new Error(
 							"Incorrect format, only CSV and TSV files are supported"
@@ -40,13 +52,16 @@
 				<tr>
 					{#each row.slice(0, 3) as cell, j}
 						<td
-							class="p-2 {i < 3 ? 'border-b border-b-slate-700' : ''} 
-							{j < 3 ? 'border-r border-r-slate-700 ' : ''}">{cell}</td
+							class="p-2 {i < 3
+								? 'border-b border-b-slate-300 dark:border-b-slate-700'
+								: ''} 
+							{j < 3 ? 'border-r border-r-slate-300 dark:border-r-slate-700 ' : ''}"
+							>{cell}</td
 						>
 					{/each}
 					{#if row.length > 3}
 						<td
-							class="p-2  border-r border-b border-r-slate-700 border-b-slate-700"
+							class="p-2  border-r border-b  border-r-slate-300 dark:border-r-slate-700 border-b-slate-300 dark:border-b-slate-700"
 							>…</td
 						>
 					{/if}
@@ -54,16 +69,11 @@
 			{/each}
 			{#if value.length > 3}
 				<div
-					class="absolute w-full h-[50%] bottom-0 bg-gradient-to-b from-transparent to-slate-900"
-					class:to-slate-800={hovered}
+					class="absolute w-full h-[50%] bottom-0 bg-gradient-to-b from-transparent to-white dark:to-slate-900"
+					class:dark:to-slate-800={hovered}
+					class:to-gray-50={hovered}
 				/>
 			{/if}
-			<!--	{#if value[0].length > 3}
-			<div
-				class="absolute h-full w-[50%] right-0 top-0 bg-gradient-to-r from-transparent to-slate-900"
-				class:to-slate-800={hovered}
-			/>
-		{/if} -->
 		</table>
 	</div>
 {/if}
