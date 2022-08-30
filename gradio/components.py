@@ -1188,9 +1188,6 @@ class Dropdown(Radio):
             self, rounded=rounded, border=border, container=container
         )
 
-    def as_example(self, input_data):
-        return input_data
-
 
 @document("edit", "clear", "change", "stream", "change")
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
@@ -1538,12 +1535,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         )
 
     def as_example(self, input_data):
-        is_valid = isinstance(input_data, str) or isinstance(input_data, Path)
-        exists = Path(input_data).is_file()
-        if not all([is_valid, exists]):
-            raise ValueError(
-                f"Example data for an image component must be a valid file, received {input_data}"
-            )
         return input_data
 
 
