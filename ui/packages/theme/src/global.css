@@ -49,7 +49,7 @@
 
 @layer components {
 	.gr-form > .gr-block {
-		@apply !border-none;
+		@apply border-0 rounded-none !shadow-none;
 	}
 	.row > *,
 	.row > .gr-form > * {
