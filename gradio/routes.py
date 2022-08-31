@@ -293,13 +293,9 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             await websocket.accept()
             event = Event(websocket)
-            e_hash = await event.get_message()
-            if e_hash is None:
-                return
-            event.hash = e_hash["hash"]
             rank = Queue.push(event)
             if rank is None:
-                await event.send_message({"msg": "queue_full"})
+                await Queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()
                 return
             estimation = Queue.get_estimation()
