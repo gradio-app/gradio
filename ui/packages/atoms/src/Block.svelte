@@ -54,11 +54,10 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:!hidden={visible === false}
-	class="gr-block relative w-full overflow-hidden {styles[variant]} {rounded
-		? styles[color]
-		: ''} {classes} {rounded_style}"
+	class="gr-block gr-box relative w-full overflow-hidden {styles[
+		variant
+	]} {rounded ? styles[color] : ''} {classes} {rounded_style}"
 	class:gr-panel={padding}
-	class:gr-box-unrounded={!rounded}
 	style={size_style || null}
 >
 	<slot />
