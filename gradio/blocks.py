@@ -495,6 +495,11 @@ class Blocks(BlockContext):
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
 
+        if config.get("mode", "blocks") == "interface":
+            blocks.__name__ = "Interface"
+            blocks.mode = "interface"
+            blocks.api_mode = True
+
         return blocks
 
     def __call__(self, *params, fn_index=0):
