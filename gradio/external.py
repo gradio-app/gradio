@@ -59,7 +59,13 @@ def get_tabular_examples(model_name) -> Dict[str, List[float]]:
             "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme.text
         )
         example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
-        example_data = example_yaml["widget"]["structuredData"]
+        example_data = example_yaml.get("widget", {}).get("structuredData", {})
+    if not example_data:
+        raise ValueError(
+            f"No example data found in README.md of {model_name} - Cannot build gradio demo. "
+            "See the README.md here: https://huggingface.co/scikit-learn/tabular-playground/blob/main/README.md "
+            "for a reference on how to provide example data to your model."
+        )
     return example_data
 
 
@@ -67,11 +73,16 @@ def cols_to_rows(
     example_data: Dict[str, List[float]]
 ) -> Tuple[List[str], List[List[float]]]:
     headers = list(example_data.keys())
+    n_rows = max(len(example_data[header] or []) for header in headers)
     data = []
-    for row_index in range(len(example_data[headers[0]])):
+    for row_index in range(n_rows):
         row_data = []
         for header in headers:
-            row_data.append(example_data[header][row_index])
+            col = example_data[header] or []
+            if row_index >= len(col):
+                row_data.append(None)
+            else:
+                row_data.append(col[row_index])
         data.append(row_data)
     return headers, data
 
@@ -306,6 +317,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
     if p in ["tabular-classification", "tabular-regression"]:
         example_data = get_tabular_examples(model_name)
         col_names, example_data = cols_to_rows(example_data)
+        example_data = [[example_data]] if example_data else None
 
         pipelines[p] = {
             "inputs": components.Dataframe(
@@ -322,7 +334,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
                 "headers": ["prediction"],
                 "data": [[pred] for pred in json.loads(r.text)],
             },
-            "examples": [[example_data]],
+            "examples": example_data,
         }
 
     if p is None or not (p in pipelines):
