@@ -260,6 +260,7 @@ def test_cols_to_rows():
         ["a", "b"],
         [[None, 1], [None, "NaN"], [None, 3], [None, 5]],
     )
+    assert cols_to_rows({"a": None, "b": None}) == (["a", "b"], [])
 
 
 def check_dataframe(config):
@@ -272,19 +273,24 @@ def check_dataframe(config):
 
 
 def check_dataset(config, readme_examples):
-    dataset = next(c for c in config["components"] if c["type"] == "dataset")
-    assert dataset["props"]["samples"] == [
-        [utils.delete_none(cols_to_rows(readme_examples)[1])]
-    ]
+    # No Examples
+    if not any(readme_examples.values()):
+        assert not any([c for c in config["components"] if c["type"] == "dataset"])
+    else:
+        dataset = next(c for c in config["components"] if c["type"] == "dataset")
+        assert dataset["props"]["samples"] == [
+            [utils.delete_none(cols_to_rows(readme_examples)[1])]
+        ]
 
 
 @pytest.mark.parametrize(
     "hypothetical_readme",
     [
-        {"a": [1, 2, "NaN", 4], "b": [1, "NaN", 3]},
+        {"a": [1, 2, "NaN"], "b": [1, "NaN", 3]},
         {"a": [1, 2, "NaN", 4], "b": [1, "NaN", 3]},
         {"a": [1, 2, "NaN"], "b": [1, "NaN", 3, 5]},
         {"a": None, "b": [1, "NaN", 3, 5]},
+        {"a": None, "b": None},
     ],
 )
 def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
