@@ -91,7 +91,7 @@
 
 	img.gr-sample-image,
 	video.gr-sample-video {
-		@apply object-contain h-20 w-20;
+		@apply object-cover h-20 w-20;
 	}
 }
 
@@ -100,7 +100,7 @@
 
 	img.gr-sample-image,
 	video.gr-sample-video {
-		@apply max-h-20;
+		@apply object-cover max-h-20;
 	}
 
 	.gr-sample-textbox,
