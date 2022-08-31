@@ -45,7 +45,7 @@
 			: "";
 	$: size_style =
 		"" +
-		(typeof style.width === "number" ? `height: ${style.width}px; ` : "") +
+		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
 		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
