@@ -142,7 +142,7 @@ async function handle_config(
 	try {
 		let [_config] = await Promise.all([
 			get_config(source),
-			mount_css(ENTRY_CSS, target)
+			BUILD_MODE === "dev" ? Promise.resolve : mount_css(ENTRY_CSS, target)
 		]);
 		config = _config;
 	} catch (e) {
