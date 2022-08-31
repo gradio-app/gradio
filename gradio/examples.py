@@ -37,6 +37,8 @@ def create_examples(
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: Optional[str] = None,
+    elem_id: Optional[str] = None,
+    run_on_click: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -48,6 +50,8 @@ def create_examples(
         examples_per_page=examples_per_page,
         _api_mode=_api_mode,
         label=label,
+        elem_id=elem_id,
+        run_on_click=run_on_click,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -75,8 +79,10 @@ class Examples:
         cache_examples: bool = False,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        _initiated_directly: bool = True,
         label: str = "Examples",
+        elem_id: Optional[str] = None,
+        run_on_click: bool = False,
+        _initiated_directly: bool = True,
     ):
         """
         Parameters:
@@ -87,6 +93,8 @@ class Examples:
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
             examples_per_page: how many examples to show per page (this parameter currently has no effect)
             label: the label to use for the examples component (by default, "Examples")
+            elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
+            run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
         """
         if _initiated_directly:
             warnings.warn(
@@ -186,11 +194,13 @@ class Examples:
             samples=non_none_examples,
             type="index",
             label=label,
+            elem_id=elem_id,
         )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
         self.cache_examples = cache_examples
+        self.run_on_click = run_on_click
 
     async def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
@@ -216,6 +226,12 @@ class Examples:
                 _postprocess=False,
                 queue=False,
             )
+            if self.run_on_click and not self.cache_examples:
+                self.dataset.click(
+                    self.fn,
+                    inputs=self.inputs,
+                    outputs=self.outputs,
+                )
 
     async def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""

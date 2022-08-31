@@ -46,3 +46,20 @@ Both Components and Layout elements have a `visible` argument that can set initi
 
 $code_blocks_form
 $demo_blocks_form
+
+## Defining and Rendering Components Separately
+
+In some cases, you might want to define components before you actually render them in your UI. For instance, you might want to show an examples section using `gr.Examples` above the corresponding `gr.Textbox` input. Since `gr.Examples` requires as a parameter the input component object, you will need to first define the input component, but then render it later, after you have definted the `gr.Examples` object.
+
+The solution to this is to define the `gr.Textbox` outside of the `gr.Blocks()` scope and use the component's `.render()` method wherever you'd like it placed in the UI.
+
+Here's a full code example:
+
+```python
+input_textbox = gr.Textbox()
+
+with gr.Blocks() as demo:
+    gr.Examples(["hello", "bonjour", "merhaba"], input_textbox)
+    input_textbox.render()
+```
+
