@@ -497,6 +497,7 @@ class Blocks(BlockContext):
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"
+            blocks.mode = "interface"
             blocks.api_mode = True
 
         return blocks
