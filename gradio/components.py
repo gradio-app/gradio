@@ -211,6 +211,10 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
+    def as_example(self, input_data):
+        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
+        return input_data
+
 
 class FormComponent:
     expected_parent = Form
@@ -2162,6 +2166,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "style")
 class Dataframe(Changeable, IOComponent, JSONSerializable):
@@ -2169,7 +2176,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2415,6 +2422,13 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             self,
             rounded=rounded,
         )
+
+    def as_example(self, input_data):
+        if isinstance(input_data, pd.DataFrame):
+            return input_data.head(n=5).to_dict(orient="split")["data"]
+        elif isinstance(input_data, np.ndarray):
+            return input_data.tolist()
+        return input_data
 
 
 @document("change", "style")
@@ -3608,6 +3622,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
@@ -3772,7 +3789,7 @@ class Dataset(Clickable, Component):
         self,
         *,
         label: Optional[str] = None,
-        components: List[Component] | List[str],
+        components: List[IOComponent] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
         type: str = "values",
@@ -3791,6 +3808,9 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        for example in samples:
+            for i, (component, ex) in enumerate(zip(self.components, example)):
+                example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:

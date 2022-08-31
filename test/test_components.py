@@ -1780,5 +1780,41 @@ class TestState:
         assert result[0] == 2
 
 
+def test_dataframe_as_example_converts_dataframes():
+    df_comp = gr.Dataframe()
+    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+        [1, 5],
+        [2, 6],
+        [3, 7],
+        [4, 8],
+    ]
+    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+
+
+@pytest.mark.parametrize("component", [gr.Model3D, gr.File])
+def test_as_example_returns_file_basename(component):
+    component = component()
+    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
+
+
+@patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.File.as_example")
+@patch("gradio.components.Dataframe.as_example")
+@patch("gradio.components.Model3D.as_example")
+def test_dataset_calls_as_example(*mocks):
+    gr.Dataset(
+        components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D()],
+        samples=[
+            [
+                pd.DataFrame({"a": np.array([1, 2, 3])}),
+                "foo.png",
+                "bar.jpeg",
+                "duck.obj",
+            ]
+        ],
+    )
+    assert all([m.called for m in mocks])
+
+
 if __name__ == "__main__":
     unittest.main()
