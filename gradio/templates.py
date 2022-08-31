@@ -51,6 +51,39 @@ class Sketchpad(components.Image):
         )
 
 
+class Paint(components.Image):
+    """
+    Sets source="canvas", tool="color-sketch"
+    """
+
+    is_template = True
+
+    def __init__(self, **kwargs):
+        super().__init__(source="canvas", tool="color-sketch", **kwargs)
+
+
+class ImageMask(components.Image):
+    """
+    Sets source="canvas", tool="sketch"
+    """
+
+    is_template = True
+
+    def __init__(self, **kwargs):
+        super().__init__(source="canvas", tool="sketch", **kwargs)
+
+
+class ImagePaint(components.Image):
+    """
+    Sets source="canvas", tool="color-sketch"
+    """
+
+    is_template = True
+
+    def __init__(self, **kwargs):
+        super().__init__(source="canvas", tool="color-sketch", **kwargs)
+
+
 class Pil(components.Image):
     """
     Sets: type="pil"
