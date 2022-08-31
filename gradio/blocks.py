@@ -114,7 +114,7 @@ class Block:
         scroll_to_output: bool = False,
         show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
-        js: Optional[str] = False,
+        js: Optional[str] = None,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
@@ -202,7 +202,28 @@ class BlockContext(Block):
         Context.block = self
         return self
 
+    def fill_expected_parents(self):
+        children = []
+        pseudo_parent = None
+        for child in self.children:
+            expected_parent = getattr(child.__class__, "expected_parent", False)
+            if not expected_parent or isinstance(self, expected_parent):
+                pseudo_parent = None
+                children.append(child)
+            else:
+                if pseudo_parent is not None and isinstance(
+                    pseudo_parent, expected_parent
+                ):
+                    pseudo_parent.children.append(child)
+                else:
+                    pseudo_parent = expected_parent(render=False)
+                    children.append(pseudo_parent)
+                    pseudo_parent.children = [child]
+                    Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+        self.children = children
+
     def __exit__(self, *args):
+        self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):
@@ -693,6 +714,17 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
         }
+
+        def getLayout(block):
+            if not isinstance(block, BlockContext):
+                return {"id": block._id}
+            children_layout = []
+            for child in block.children:
+                children_layout.append(getLayout(child))
+            return {"id": block._id, "children": children_layout}
+
+        config["layout"] = getLayout(self)
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -703,16 +735,6 @@ class Blocks(BlockContext):
                     else {},
                 }
             )
-
-        def getLayout(block):
-            if not isinstance(block, BlockContext):
-                return {"id": block._id}
-            children = []
-            for child in block.children:
-                children.append(getLayout(child))
-            return {"id": block._id, "children": children}
-
-        config["layout"] = getLayout(self)
         config["dependencies"] = self.dependencies
         return config
 
@@ -724,6 +746,7 @@ class Blocks(BlockContext):
         return self
 
     def __exit__(self, *args):
+        super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
         self.attach_load_events()
@@ -745,6 +768,7 @@ class Blocks(BlockContext):
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
+        _js: Optional[str] = None,
         **kwargs,
     ) -> Blocks | None:
         """
@@ -765,6 +789,7 @@ class Blocks(BlockContext):
             inputs: Instance Method - input list
             outputs: Instance Method - output list
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
@@ -779,7 +804,12 @@ class Blocks(BlockContext):
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
             self_or_cls.set_event_trigger(
-                event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+                event_name="load",
+                fn=fn,
+                inputs=inputs,
+                outputs=outputs,
+                no_target=True,
+                js=_js,
             )
 
     def clear(self):

@@ -34,53 +34,6 @@
 		return () => dispatch("destroy", id);
 	});
 
-	const forms = [
-		"textbox",
-		"number",
-		"slider",
-		"checkbox",
-		"checkboxgroup",
-		"radio",
-		"dropdown"
-	];
-
-	function get_types(i: number) {
-		if (!children) return;
-
-		const current =
-			children[i]?.id != undefined && instance_map[children[i].id];
-		const next =
-			children[i + 1]?.id != undefined && instance_map[children[i + 1].id];
-		const prev =
-			children[i - 1]?.id != undefined && instance_map[children[i - 1].id];
-
-		return {
-			current: current && current?.type && forms.includes(current.type),
-			next: next && next?.type && forms.includes(next.type),
-			prev: prev && prev?.type && forms.includes(prev.type)
-		};
-	}
-
-	if (children) {
-		children.forEach((c, i) => {
-			get_form_context(c, i);
-		});
-	}
-
-	function get_form_context(node: ComponentMeta, i: number) {
-		const { current, next, prev } = get_types(i) || {};
-
-		if (current && next && prev) {
-			node.props.form_position = "mid";
-		} else if (current && next && !prev) {
-			node.props.form_position = "first";
-		} else if (current && prev && !next) {
-			node.props.form_position = "last";
-		} else if (current && !prev && !next) {
-			node.props.form_position = "single";
-		}
-	}
-
 	$: children =
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
@@ -98,7 +51,7 @@
 	this={component}
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
-	elem_id={("elem_id" in props && props.elem_id) || `${id}`}
+	elem_id={("elem_id" in props && props.elem_id) || `component-${id}`}
 	on:prop_change={handle_prop_change}
 	{...props}
 	{root}
@@ -106,7 +59,6 @@
 	{#if children && children.length}
 		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}
 			<svelte:self
-				parent={instance_map[id].type}
 				{component}
 				id={each_id}
 				{props}

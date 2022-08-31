@@ -11,7 +11,7 @@ export function normalise_file(
 			data: file
 		};
 	} else if (file.is_file) {
-		file.data = root + "file/" + file.name;
+		file.data = root + "file=" + file.name;
 	}
 	return file;
 }

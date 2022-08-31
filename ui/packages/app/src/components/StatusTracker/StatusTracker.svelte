@@ -133,7 +133,6 @@
 		close_message();
 		if (status === "error" && message) {
 			message_visible = true;
-			show_message_timeout = setTimeout(close_message, 8000);
 		}
 	}
 	$: formatted_timer = timer_diff.toFixed(1);

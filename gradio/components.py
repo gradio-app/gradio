@@ -46,6 +46,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.layouts import Form
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -210,9 +211,17 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
+    def as_example(self, input_data):
+        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
+        return input_data
+
+
+class FormComponent:
+    expected_parent = Form
+
 
 @document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -378,7 +387,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -545,7 +554,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable):
+class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -703,7 +712,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable):
+class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -794,7 +803,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -956,7 +965,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable):
+class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -2006,7 +2015,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -2071,11 +2080,14 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    return processing_utils.create_tmp_copy_of_file(file_name)
+                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file.orig_name = file_name
                 else:
-                    return processing_utils.decode_base64_to_file(
+                    file = processing_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
+                    file.orig_name = file_name
+                return file
             elif self.type == "bytes":
                 if is_file:
                     with open(file_name, "rb") as file_data:
@@ -2114,6 +2126,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
+                    "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
                         file, self.temp_dir
                     ).name,
@@ -2125,6 +2138,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             ]
         else:
             return {
+                "orig_name": os.path.basename(y),
                 "name": processing_utils.create_tmp_copy_of_file(
                     y, dir=self.temp_dir
                 ).name,
@@ -2152,6 +2166,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "style")
 class Dataframe(Changeable, IOComponent, JSONSerializable):
@@ -2159,7 +2176,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2406,6 +2423,13 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        if isinstance(input_data, pd.DataFrame):
+            return input_data.head(n=5).to_dict(orient="split")["data"]
+        elif isinstance(input_data, np.ndarray):
+            return input_data.tolist()
+        return input_data
+
 
 @document("change", "style")
 class Timeseries(Changeable, IOComponent, JSONSerializable):
@@ -2541,10 +2565,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class Variable(IOComponent, SimpleSerializable):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the Variable is cleared when the user refreshes the page.
+    same user. The value of the State variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
@@ -2568,6 +2592,16 @@ class Variable(IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+
+class Variable(State):
+    """Variable was renamed to State. This class is kept for backwards compatibility."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_block_name(self):
+        return "state"
 
 
 @document("click", "style")
@@ -3588,6 +3622,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
@@ -3752,7 +3789,7 @@ class Dataset(Clickable, Component):
         self,
         *,
         label: Optional[str] = None,
-        components: List[Component] | List[str],
+        components: List[IOComponent] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
         type: str = "values",
@@ -3771,6 +3808,9 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        for example in samples:
+            for i, (component, ex) in enumerate(zip(self.components, example)):
+                example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:

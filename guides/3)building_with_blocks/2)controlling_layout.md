@@ -29,11 +29,11 @@ Components within a Column will be placed vertically atop each other. Since the 
 $code_rows_and_columns
 $demo_rows_and_columns
 
-See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically.
+See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
 
 ## Tabs
 
-You can also create Tabs using the `with gradio.Tabs():` clause, and create multiple  `with gradio.TabItem('tab_name'):` children. Any component created inside of a `with gradio.TabItem('tab_name'):` context appears in that tab.
+You can also create Tabs using the `with gradio.Tab('tab_name'):` clause. Any component created inside of a `with gradio.Tab('tab_name'):` context appears in that tab. Consecutive Tab clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
 
 For example:
 
@@ -46,3 +46,20 @@ Both Components and Layout elements have a `visible` argument that can set initi
 
 $code_blocks_form
 $demo_blocks_form
+
+## Defining and Rendering Components Separately
+
+In some cases, you might want to define components before you actually render them in your UI. For instance, you might want to show an examples section using `gr.Examples` above the corresponding `gr.Textbox` input. Since `gr.Examples` requires as a parameter the input component object, you will need to first define the input component, but then render it later, after you have definted the `gr.Examples` object.
+
+The solution to this is to define the `gr.Textbox` outside of the `gr.Blocks()` scope and use the component's `.render()` method wherever you'd like it placed in the UI.
+
+Here's a full code example:
+
+```python
+input_textbox = gr.Textbox()
+
+with gr.Blocks() as demo:
+    gr.Examples(["hello", "bonjour", "merhaba"], input_textbox)
+    input_textbox.render()
+```
+

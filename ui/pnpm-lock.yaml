@@ -102,6 +102,7 @@ importers:
       '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
+      d3-dsv: ^3.0.1
       mime-types: ^2.1.34
       playwright: ^1.22.2
       svelte-i18n: ^3.3.13
@@ -129,6 +130,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
       '@gradio/video': link:../video
+      d3-dsv: 3.0.1
       mime-types: 2.1.34
       playwright: 1.22.2
       svelte-i18n: 3.3.13_svelte@3.49.0
@@ -385,7 +387,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
     devDependencies:
-      '@sveltejs/adapter-auto': 1.0.0-next.66
+      '@sveltejs/adapter-auto': 1.0.0-next.70
       '@sveltejs/kit': 1.0.0-next.318_svelte@3.49.0
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
@@ -565,12 +567,12 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
 
-  /@sveltejs/adapter-auto/1.0.0-next.66:
-    resolution: {integrity: sha512-p78AQaSDHkLS5EFGqCF2xrLHMjKxx6wTLUvnP26cu2llh/VV4NihQ0rheVNgPWL+tGZpVznhrUG8fWmJxPciug==}
+  /@sveltejs/adapter-auto/1.0.0-next.70:
+    resolution: {integrity: sha512-FJlDO6oUqbuFJjQoguGb4gdBj3iCSM3evFXkBpQ7hvwu3y2gKbcdzsxdn9tZ5LzkHh79CeJcwiszXFQ8usKk/A==}
     dependencies:
       '@sveltejs/adapter-cloudflare': 1.0.0-next.32
-      '@sveltejs/adapter-netlify': 1.0.0-next.72
-      '@sveltejs/adapter-vercel': 1.0.0-next.68
+      '@sveltejs/adapter-netlify': 1.0.0-next.75
+      '@sveltejs/adapter-vercel': 1.0.0-next.72
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -584,8 +586,8 @@ packages:
       worktop: 0.8.0-next.14
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.72:
-    resolution: {integrity: sha512-g570hYAMkgrJfo/TRg3DZFmlR7bNFHECFPOMgc8R+f28ROap/nXA8ICbiSBF7+zJ5JXvJbqHGjERSsyhEq+59g==}
+  /@sveltejs/adapter-netlify/1.0.0-next.75:
+    resolution: {integrity: sha512-1zTR/U/ceEAyqIGJ74v54G+JbIR+fSmTN9qfqGOM0gBwVoBVRUujGm4tDFJQNYzvuGzVnC7br/rhYMLZd2JluQ==}
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.14.53
@@ -593,10 +595,10 @@ packages:
       tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.68:
-    resolution: {integrity: sha512-ImM+fDwGkVaf920Wzh284nfAfu/WoPXCpMwog0kveIODVgCozbpJY55fO860LccqdS0YDyeFqOUrZJCqcYNx4w==}
+  /@sveltejs/adapter-vercel/1.0.0-next.72:
+    resolution: {integrity: sha512-oNs8FQaYC2NnwDcvX/jc9MDNqXc9HxwGPQNkd+1vBpFVWZl9mShQgCcOMzfTOIH0ka984jYNa0ZawYYHex79xg==}
     dependencies:
-      '@vercel/nft': 0.21.0
+      '@vercel/nft': 0.22.0
       esbuild: 0.14.53
     transitivePeerDependencies:
       - encoding
@@ -830,8 +832,8 @@ packages:
       '@types/yargs-parser': 21.0.0
     dev: false
 
-  /@vercel/nft/0.21.0:
-    resolution: {integrity: sha512-hFCAETfI5cG8l5iAiLhMC2bReC5K7SIybzrxGorv+eGspIbIFsVw7Vg85GovXm/LxA08pIDrAlrhR6GN36XB/Q==}
+  /@vercel/nft/0.22.0:
+    resolution: {integrity: sha512-hB80/093PPiCefN2gVbqv6J93MH+63Zr7uDCwkiS/U4W07DXkLoftbnkBmZoS0Q84LiTSl9DRVSHU4XYCX+sJA==}
     hasBin: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.9
@@ -3066,7 +3068,7 @@ packages:
       queue-microtask: 1.2.3
 
   /rw/1.3.3:
-    resolution: {integrity: sha1-P4Yt+pGrdmsUiF700BEkv9oHT7Q=}
+    resolution: {integrity: sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==}
     dev: false
 
   /sade/1.8.1:

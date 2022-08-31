@@ -48,7 +48,7 @@ function npm_required() {
 #   None
 #######################################
 function pnpm_required() {
-  program_required "pnpm" "https://pnpm.io/6.x/installation"
+  program_required "pnpm" "https://pnpm.io/7.x/installation"
 }
 
 #######################################

@@ -212,8 +212,8 @@ class App(FastAPI):
             else:
                 return FileResponse(app.blocks.favicon_path)
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file(path):
+        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
+        def file(path: str):
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
@@ -235,6 +235,10 @@ class App(FastAPI):
                     f"File cannot be fetched: {path}, perhaps because "
                     f"it is not in any of {app.blocks.temp_dirs}"
                 )
+
+        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        def file_deprecated(path: str):
+            return file(path)
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
