@@ -226,12 +226,12 @@ class Examples:
                 _postprocess=False,
                 queue=False,
             )
-        if self.run_on_click and not (self.cache_examples):
-            self.dataset.click(
-                self.fn,
-                inputs=self.inputs,
-                outputs=self.outputs,
-            )
+            if self.run_on_click and not self.cache_examples:
+                self.dataset.click(
+                    self.fn,
+                    inputs=self.inputs,
+                    outputs=self.outputs,
+                )
 
     async def cache_interface_examples(self) -> None:
         """Caches all of the examples from an interface."""

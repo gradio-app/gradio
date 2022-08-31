@@ -56,7 +56,6 @@ The solution to this is to define the `gr.Textbox` outside of the `gr.Blocks()` 
 Here's a full code example:
 
 ```python
-
 input_textbox = gr.Textbox()
 
 with gr.Blocks() as demo:
