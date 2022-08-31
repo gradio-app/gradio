@@ -281,4 +281,5 @@ class Examples:
         output = []
         for component, value in zip(self.outputs, example):
             output.append(component.serialize(value, self.cached_folder))
+        breakpoint()
         return output
