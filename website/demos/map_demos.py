@@ -25,34 +25,6 @@ for root, _, files in os.walk(pathlib.Path(GRADIO_DIR) / "gradio"):
         for demostr in re.findall(r"Demos:(.*)", comp_text):
             demos_to_run += re.findall(r"([a-zA-Z0-9_]+)", demostr)
 
-recipe_demos = [
-    {"name": "Hello World", "dir": "hello_world", "code": None},
-    {"name": "Sepia Filter", "dir": "sepia_filter", "code": None},
-    {"name": "Sales Projections", "dir": "sales_projections", "code": None},
-    {"name": "Calculator", "dir": "calculator", "code": None},
-    {"name": "Calculator Live", "dir": "calculator_live", "code": None},
-    {"name": "Hello World (Blocks)", "dir": "blocks_hello", "code": None},
-    {"name": "Image and Text Flipper", "dir": "blocks_flipper", "code": None},
-    {"name": "GPT", "dir": "blocks_gpt", "code": None},
-    {"name": "Sentiment Analysis", "dir": "blocks_speech_text_sentiment", "code": None},
-    {"name": "Image Classification with Keras", "dir": "image_classifier", "code": None},
-    {"name": "Image Classification with Pytorch", "dir": "image_classifier_2", "code": None},
-    {"name": "Titanic Survival", "dir": "titanic_survival", "code": None},
-    {"name": "Outbreak Forecast", "dir": "outbreak_forecast", "code": None},
-    {"name": "GPT-J", "dir": "gpt_j", "code": None},
-]
-
-for demo in recipe_demos:
-    demo_file = os.path.join(GRADIO_DEMO_DIR, demo["dir"], "run.py")
-    with open(demo_file) as run_py:
-        demo_code = run_py.read()
-    demo["code"] = demo_code
-    if demo["dir"] not in demos_to_run:
-        demos_to_run.append(demo["dir"])
-
-with open("../homepage/src/recipes/demos.json", "w") as recipe_demos_file:
-    json.dump(recipe_demos, recipe_demos_file)
-
 DEMO_PATTERN = r"\$demo_([A-Za-z0-9_]+)"
 for guide_folder in os.listdir(GRADIO_GUIDES_DIR):
     guide_folder = os.path.join(GRADIO_GUIDES_DIR, guide_folder)
@@ -65,10 +37,6 @@ for guide_folder in os.listdir(GRADIO_GUIDES_DIR):
         with open(guide_filename) as guide_file:
             guide_content = guide_file.read()
         demos_to_run += re.findall(DEMO_PATTERN, guide_content)
-
-for recipe_demo in recipe_demos:
-    if recipe_demo["dir"] not in demos_to_run:
-        demos_to_run.append(recipe_demo["dir"])
 
 # adding components to be embedded
 docs = generate_documentation()
