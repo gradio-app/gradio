@@ -1,15 +1,16 @@
 import json
 import os
 import pathlib
+import textwrap
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import transformers
 
 import gradio as gr
 from gradio import utils
-from gradio.external import TooManyRequestsError, cols_to_rows
+from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -243,6 +244,34 @@ def test_interface_load_cache_examples(tmp_path):
         )
 
 
+def test_get_tabular_examples_replaces_nan_with_str_nan():
+    readme = """
+        ---
+        tags:
+        - sklearn
+        - skops
+        - tabular-classification
+        widget:
+          structuredData:
+            attribute_0:
+            - material_7
+            - material_7
+            - material_7
+            measurement_2:
+            - 14.206
+            - 15.094
+            - .nan
+        ---
+    """
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = textwrap.dedent(readme)
+
+    with patch("gradio.external.requests.get", return_value=mock_response):
+        examples = get_tabular_examples("foo-model")
+        assert examples["measurement_2"] == [14.206, 15.094, "NaN"]
+
+
 def test_cols_to_rows():
     assert cols_to_rows({"a": [1, 2, "NaN"], "b": [1, "NaN", 3]}) == (
         ["a", "b"],
@@ -250,15 +279,15 @@ def test_cols_to_rows():
     )
     assert cols_to_rows({"a": [1, 2, "NaN", 4], "b": [1, "NaN", 3]}) == (
         ["a", "b"],
-        [[1, 1], [2, "NaN"], ["NaN", 3], [4, None]],
+        [[1, 1], [2, "NaN"], ["NaN", 3], [4, "NaN"]],
     )
     assert cols_to_rows({"a": [1, 2, "NaN"], "b": [1, "NaN", 3, 5]}) == (
         ["a", "b"],
-        [[1, 1], [2, "NaN"], ["NaN", 3], [None, 5]],
+        [[1, 1], [2, "NaN"], ["NaN", 3], ["NaN", 5]],
     )
     assert cols_to_rows({"a": None, "b": [1, "NaN", 3, 5]}) == (
         ["a", "b"],
-        [[None, 1], [None, "NaN"], [None, 3], [None, 5]],
+        [["Na", 1], ["NaN", "NaN"], ["NaN", 3], ["NaN", 5]],
     )
     assert cols_to_rows({"a": None, "b": None}) == (["a", "b"], [])
 

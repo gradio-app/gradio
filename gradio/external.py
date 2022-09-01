@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import base64
 import json
+import math
+import numbers
 import operator
 import re
 import warnings
@@ -50,6 +52,7 @@ def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
 
 
 def get_tabular_examples(model_name) -> Dict[str, List[float]]:
+    breakpoint()
     readme = requests.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
         warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
@@ -58,6 +61,7 @@ def get_tabular_examples(model_name) -> Dict[str, List[float]]:
         yaml_regex = re.search(
             "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme.text
         )
+        breakpoint()
         example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
         example_data = example_yaml.get("widget", {}).get("structuredData", {})
     if not example_data:
@@ -66,6 +70,11 @@ def get_tabular_examples(model_name) -> Dict[str, List[float]]:
             "See the README.md here: https://huggingface.co/scikit-learn/tabular-playground/blob/main/README.md "
             "for a reference on how to provide example data to your model."
         )
+    # replace nan with string NaN for inference API
+    for data in example_data.values():
+        for i, val in enumerate(data):
+            if isinstance(val, numbers.Number) and math.isnan(val):
+                data[i] = "NaN"
     return example_data
 
 
@@ -80,7 +89,7 @@ def cols_to_rows(
         for header in headers:
             col = example_data[header] or []
             if row_index >= len(col):
-                row_data.append(None)
+                row_data.append("NaN")
             else:
                 row_data.append(col[row_index])
         data.append(row_data)
