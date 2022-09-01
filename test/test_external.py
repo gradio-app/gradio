@@ -287,7 +287,7 @@ def test_cols_to_rows():
     )
     assert cols_to_rows({"a": None, "b": [1, "NaN", 3, 5]}) == (
         ["a", "b"],
-        [["Na", 1], ["NaN", "NaN"], ["NaN", 3], ["NaN", 5]],
+        [["NaN", 1], ["NaN", "NaN"], ["NaN", 3], ["NaN", 5]],
     )
     assert cols_to_rows({"a": None, "b": None}) == (["a", "b"], [])
 
