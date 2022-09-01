@@ -9,7 +9,6 @@ from gradio.blocks import Blocks, skip, update
 from gradio.components import (
     HTML,
     JSON,
-    VOID,
     Audio,
     Button,
     Carousel,
@@ -29,6 +28,7 @@ from gradio.components import (
     Image,
     Interpretation,
     Json,
+    Keywords,
     Label,
     Markdown,
     Model3D,

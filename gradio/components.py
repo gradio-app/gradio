@@ -15,6 +15,7 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -58,8 +59,10 @@ from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
 
-# Special Keyword for setting component value to null in front-end during gr.update
-VOID = "VOID"
+
+class Keywords(Enum):
+    # Set value in front-end to null
+    VOID = "VOID"
 
 
 class Component(Block):

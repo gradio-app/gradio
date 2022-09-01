@@ -671,7 +671,7 @@ class Blocks(BlockContext):
                         # This way the value is only set to None if user uses gr.VOID
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
-                            if prediction_value["value"] == components.VOID:
+                            if prediction_value["value"] == components.Keywords.VOID:
                                 prediction_value["value"] = None
                             prediction_value["value"] = block.postprocess(
                                 prediction_value["value"]
