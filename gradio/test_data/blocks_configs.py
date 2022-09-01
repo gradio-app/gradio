@@ -46,7 +46,6 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
-                "value": None,
                 "streaming": False,
                 "mirror_webcam": True,
                 "show_label": True,
@@ -59,7 +58,6 @@ XRAY_CONFIG = {
             "id": 29,
             "type": "json",
             "props": {
-                "value": None,
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -94,7 +92,6 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
-                "value": None,
                 "streaming": False,
                 "mirror_webcam": True,
                 "show_label": True,
@@ -107,7 +104,6 @@ XRAY_CONFIG = {
             "id": 34,
             "type": "json",
             "props": {
-                "value": None,
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -286,7 +282,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "value": None,
                 "style": {},
             },
         },
@@ -298,7 +293,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "json",
                 "visible": True,
                 "style": {},
-                "value": None,
             },
         },
         {
@@ -339,7 +333,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "visible": True,
                 "style": {},
-                "value": None,
             },
         },
         {
@@ -349,7 +342,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "json",
                 "visible": True,
-                "value": None,
                 "style": {},
             },
         },
@@ -525,7 +517,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": None,
                 "name": "json",
                 "style": {},
             },
@@ -572,7 +563,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": None,
                 "name": "json",
                 "style": {},
             },

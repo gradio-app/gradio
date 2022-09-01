@@ -18,7 +18,7 @@ from demos.kitchen_sink_random.constants import (
 
 components = [
     gr.Textbox(value=lambda: datetime.now(), label="Current Time"),
-    gr.Number(value=lambda: random.random(), label="Ranom Percentage"),
+    gr.Number(value=lambda: random.random(), label="Random Percentage"),
     gr.Slider(minimum=-1, maximum=1, randomize=True, label="Slider with randomize"),
     gr.Slider(
         minimum=0,
@@ -88,10 +88,16 @@ with gr.Blocks() as demo:
     for component in components:
         component.render()
     reset = gr.Button(value="Reset")
+    hide = gr.Button(value="Hide")
     reset.click(
-        lambda: [c.update(value=None) for c in components],
+        lambda: [c.update(value=gr.VOID) for c in components],
         inputs=[],
         outputs=components,
+    )
+    hide.click(
+        lambda: [c.update(visible=False) for c in components],
+        inputs=[],
+        outputs=components
     )
 
 

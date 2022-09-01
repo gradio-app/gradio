@@ -7,7 +7,6 @@ import os
 import pkgutil
 import random
 import sys
-import tempfile
 import time
 import warnings
 import webbrowser
@@ -35,7 +34,6 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import Error
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -669,8 +667,11 @@ class Blocks(BlockContext):
                             prediction_value = block.__class__.update(
                                 **prediction_value
                             )
+                        # Important to replace VOID values to None after delete
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
+                            if prediction_value["value"] == components.VOID:
+                                prediction_value["value"] = None
                             prediction_value["value"] = block.postprocess(
                                 prediction_value["value"]
                             )

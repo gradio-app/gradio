@@ -58,6 +58,9 @@ from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
 
+# Special Keyword For Resetting a component to an unset state
+VOID = "VOID"
+
 
 class Component(Block):
     """
