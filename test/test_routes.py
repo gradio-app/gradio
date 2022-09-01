@@ -54,12 +54,12 @@ class TestRoutes(unittest.TestCase):
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/p/", json={"data": ["test"], "fn_index": 0})
+        response = client.post("/api/p/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
 
-        response = client.post("/api/q/", json={"data": ["test"], "fn_index": 0})
+        response = client.post("/api/q/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test2"]
@@ -68,20 +68,20 @@ class TestRoutes(unittest.TestCase):
         with Blocks() as demo:
             i = Textbox()
             o = Textbox()
+            i.change(lambda x: x + "0", i, o, api_name="p")
             i.change(lambda x: x + "1", i, o, api_name="p")
-            i.change(lambda x: x + "2", i, o, api_name="p")
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/p/", json={"data": ["test"], "fn_index": 0})
+        response = client.post("/api/p/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test0"]
+
+        response = client.post("/api/p_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
-
-        response = client.post("/api/p_2/", json={"data": ["test"], "fn_index": 0})
-        assert response.status_code == 200
-        output = dict(response.json())
-        assert output["data"] == ["test2"]
 
     def test_predict_route_without_fn_index(self):
         response = self.client.post("/api/predict/", json={"data": ["test"]})
