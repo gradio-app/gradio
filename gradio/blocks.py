@@ -146,6 +146,10 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if api_name is not None:
+            api_name = utils.append_unique_suffix(
+                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
+            )
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -572,7 +576,13 @@ class Blocks(BlockContext):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
-            Context.root_block.dependencies.extend(self.dependencies)
+            for dependency in self.dependencies:
+                if dependency["api_name"] is not None:
+                    dependency["api_name"] = utils.append_unique_suffix(
+                        dependency["api_name"],
+                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                    )
+                Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
