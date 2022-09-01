@@ -1751,9 +1751,9 @@ class TestState:
 
         io = gr.Interface(test, ["text", "state"], ["text", "state"])
         result = await io.call_function(0, ["abc"])
-        assert result[0][0] == "abc def"
+        assert result["prediction"][0] == "abc def"
         result = await io.call_function(0, ["abc", result[0][0]])
-        assert result[0][0] == "abcabc def"
+        assert result["prediction"][0] == "abcabc def"
 
     @pytest.mark.asyncio
     async def test_in_blocks(self):
@@ -1763,9 +1763,9 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
+        assert result["prediction"] == 1
         result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 2
 
     @pytest.mark.asyncio
     async def test_variable_for_backwards_compatibility(self):
@@ -1775,9 +1775,9 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
+        assert result["prediction"] == 1
         result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 2
 
 
 def test_dataframe_as_example_converts_dataframes():
