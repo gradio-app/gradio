@@ -5,7 +5,7 @@ def count(n):
         yield i
 
 
-demo = gr.Interface(count, gr.Number(10), gr.Number())
+demo = gr.Interface(count, gr.Number(value=10), gr.Number())
 
 
 if __name__ == "__main__":

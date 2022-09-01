@@ -596,16 +596,26 @@ class Blocks(BlockContext):
     async def call_function(self, fn_index, processed_input):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-
+        is_generator = False
         start = time.time()
+
         if inspect.iscoroutinefunction(block_fn.fn):
             prediction = await block_fn.fn(*processed_input)
         else:
             prediction = await anyio.to_thread.run_sync(
                 block_fn.fn, *processed_input, limiter=self.limiter
             )
+
+        if inspect.isgeneratorfunction(block_fn.fn):
+            is_generator = True
+            prediction = next(prediction)
+
         duration = time.time() - start
-        return prediction, duration
+        return {
+            "prediction": prediction,
+            "duration": duration,
+            "is_generator": is_generator,
+        }
 
     def postprocess_data(self, fn_index, predictions, state):
         block_fn = self.fns[fn_index]
@@ -684,15 +694,15 @@ class Blocks(BlockContext):
 
         inputs = self.preprocess_data(fn_index, inputs, state)
 
-        predictions, duration = await self.call_function(fn_index, inputs)
-        block_fn.total_runtime += duration
+        result = await self.call_function(fn_index, inputs)
+        block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, predictions, state)
+        predictions = self.postprocess_data(fn_index, result["prediction"], state)
 
         return {
             "data": predictions,
-            "duration": duration,
+            "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
