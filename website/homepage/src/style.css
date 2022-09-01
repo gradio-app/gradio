@@ -131,6 +131,6 @@ code.language-python {
 }
 
 .view-code {
-  @apply w-full p-2 hover:bg-gray-100;
+  @apply w-16 p-2 mx-auto hover:bg-gray-100;
   background: rgb(249,250,251);
 }
