@@ -52,7 +52,6 @@ def load_blocks_from_repo(name, src=None, api_key=None, alias=None, **kwargs):
 
 
 def get_tabular_examples(model_name) -> Dict[str, List[float]]:
-    breakpoint()
     readme = requests.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
         warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
@@ -61,7 +60,6 @@ def get_tabular_examples(model_name) -> Dict[str, List[float]]:
         yaml_regex = re.search(
             "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme.text
         )
-        breakpoint()
         example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
         example_data = example_yaml.get("widget", {}).get("structuredData", {})
     if not example_data:
