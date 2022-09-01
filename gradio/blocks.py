@@ -667,7 +667,8 @@ class Blocks(BlockContext):
                             prediction_value = block.__class__.update(
                                 **prediction_value
                             )
-                        # Important to replace VOID values to None after delete
+                        # Important to replace VOID values to None after delete_none
+                        # This way the value is only set to None if user uses gr.VOID
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
                             if prediction_value["value"] == components.VOID:
