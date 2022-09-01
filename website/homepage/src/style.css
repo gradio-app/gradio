@@ -129,3 +129,8 @@ code.language-python {
   background-image: url("assets/img/esc.svg");
   background-size: 20px 20px;
 }
+
+.view-code {
+  @apply w-full p-2 hover:bg-gray-100;
+  background: rgb(249,250,251);
+}
