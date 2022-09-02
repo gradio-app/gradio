@@ -82,7 +82,7 @@ class TestRoutes(unittest.TestCase):
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test1"]
-        
+
     def test_multiple_renamed(self):
         with Blocks() as demo:
             i = Textbox()
@@ -101,12 +101,12 @@ class TestRoutes(unittest.TestCase):
         response = client.post("/api/p_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
-        assert output["data"] == ["test1"]        
+        assert output["data"] == ["test1"]
 
         response = client.post("/api/p_1_1/", json={"data": ["test"]})
         assert response.status_code == 200
         output = dict(response.json())
-        assert output["data"] == ["test2"]        
+        assert output["data"] == ["test2"]
 
     def test_predict_route_without_fn_index(self):
         response = self.client.post("/api/predict/", json={"data": ["test"]})

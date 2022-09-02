@@ -150,8 +150,10 @@ class Block:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
             )
-            if not(api_name == api_name_):
-                warnings.warn("api_name {} already exists, using {}".format(api_name, api_name_))
+            if not (api_name == api_name_):
+                warnings.warn(
+                    "api_name {} already exists, using {}".format(api_name, api_name_)
+                )
                 api_name = api_name_
         dependency = {
             "targets": [self._id] if not no_target else [],
@@ -586,8 +588,12 @@ class Blocks(BlockContext):
                         api_name,
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
-                    if not(api_name == api_name_):
-                        warnings.warn("api_name {} already exists, using {}".format(api_name, api_name_))
+                    if not (api_name == api_name_):
+                        warnings.warn(
+                            "api_name {} already exists, using {}".format(
+                                api_name, api_name_
+                            )
+                        )
                         dependency["api_name"] = api_name_
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
