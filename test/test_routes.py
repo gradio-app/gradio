@@ -7,7 +7,7 @@ import unittest.mock as mock
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from gradio import Interface, close_all, routes
+from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -44,6 +44,69 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])
+
+    def test_named_predict_route(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x + "1", i, o, api_name="p")
+            i.change(lambda x: x + "2", i, o, api_name="q")
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/p/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test1"]
+
+        response = client.post("/api/q/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test2"]
+
+    def test_same_named_predict_route(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x + "0", i, o, api_name="p")
+            i.change(lambda x: x + "1", i, o, api_name="p")
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/p/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test0"]
+
+        response = client.post("/api/p_1/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test1"]
+
+    def test_multiple_renamed(self):
+        with Blocks() as demo:
+            i = Textbox()
+            o = Textbox()
+            i.change(lambda x: x + "0", i, o, api_name="p")
+            i.change(lambda x: x + "1", i, o, api_name="p")
+            i.change(lambda x: x + "2", i, o, api_name="p_1")
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/p/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test0"]
+
+        response = client.post("/api/p_1/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test1"]
+
+        response = client.post("/api/p_1_1/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test2"]
 
     def test_predict_route_without_fn_index(self):
         response = self.client.post("/api/predict/", json={"data": ["test"]})
