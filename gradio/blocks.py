@@ -613,7 +613,8 @@ class Blocks(BlockContext):
                 prediction = next(generator)
                 is_generating = True
             except StopIteration:
-                prediction = None  # TODO: handle this
+                prediction = None
+                generator = None
 
         duration = time.time() - start
 

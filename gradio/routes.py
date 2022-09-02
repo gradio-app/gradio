@@ -264,7 +264,7 @@ class App(FastAPI):
                     fn_index, raw_input, username, session_state, generators
                 )
                 generator = output.pop("generator", None)
-                if hasattr(body, "session_hash") and generator:
+                if hasattr(body, "session_hash"):
                     app.generators[body.session_hash][fn_index] = generator
                 if isinstance(output, Error):
                     raise output
