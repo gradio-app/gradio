@@ -1,7 +1,7 @@
 <script>
 	// @ts-nocheck
 
-	import { onMount, onDestroy, createEventDispatcher } from "svelte";
+	import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
 	import { fade } from "svelte/transition";
 	import { LazyBrush } from "lazy-brush/src";
 	import ResizeObserver from "resize-observer-polyfill";
@@ -15,6 +15,7 @@
 
 	export let width = undefined;
 	export let height = undefined;
+	export let container_height = undefined;
 
 	let mounted;
 
@@ -70,13 +71,6 @@
 	let save_data = "";
 	let line_count = 0;
 
-	let display_natural_ratio = 1;
-
-	function calculate_ratio() {
-		const x = canvas.interface.getBoundingClientRect();
-		display_natural_ratio = width / x.width;
-	}
-
 	onMount(() => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
@@ -93,29 +87,28 @@
 
 		canvas_observer = new ResizeObserver((entries, observer) => {
 			handle_canvas_resize(entries, observer);
-
-			calculate_ratio();
 		});
 		canvas_observer.observe(canvas_container);
 
 		loop();
 		mounted = true;
 		window.setTimeout(() => {
-			const initX = window.innerWidth / 2;
-			const initY = window.innerHeight / 2;
-			lazy.update({ x: initX - chain_length / 4, y: initY }, { both: true });
-			lazy.update({ x: initX + chain_length / 4, y: initY }, { both: false });
-			mouse_has_moved = true;
-			values_changed = true;
-			clear();
-
+			init();
 			if (save_data) {
 				load_save_data(save_data);
 			}
 		}, 100);
-
-		calculate_ratio();
 	});
+
+	function init() {
+		const initX = window.innerWidth / 2;
+		const initY = window.innerHeight / 2;
+		lazy.update({ x: initX - chain_length / 4, y: initY }, { both: true });
+		lazy.update({ x: initX + chain_length / 4, y: initY }, { both: false });
+		mouse_has_moved = true;
+		values_changed = true;
+		clear();
+	}
 
 	onDestroy(() => {
 		mounted = false;
@@ -179,7 +172,7 @@
 
 			if (mode === "mask") {
 				draw_fake_points({
-					points: points,
+					points: _points,
 					brush_color,
 					brush_radius
 				});
@@ -223,29 +216,54 @@
 		}
 	};
 
-	let handle_canvas_resize = (entries) => {
-		const save_data = get_save_data();
-		for (const entry of entries) {
-			const { width, height } = entry.contentRect;
-			set_canvas_size(canvas.interface, width, height);
-			set_canvas_size(canvas.drawing, width, height);
-			set_canvas_size(canvas.temp, width, height);
-			set_canvas_size(canvas.temp_fake, width, height);
-			set_canvas_size(canvas.mask, width, height);
+	let handle_canvas_resize = async () => {
+		const dimensions = { width: width, height: height };
 
-			loop({ once: true });
-		}
-		load_save_data(save_data, true);
+		const container_dimensions = {
+			height: container_height,
+			width: container_height * (dimensions.width / dimensions.height)
+		};
+
+		await Promise.all([
+			set_canvas_size(canvas.interface, dimensions, container_dimensions),
+			set_canvas_size(canvas.drawing, dimensions, container_dimensions),
+			set_canvas_size(canvas.temp, dimensions, container_dimensions),
+			set_canvas_size(canvas.temp_fake, dimensions, container_dimensions),
+			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
+		]);
+
+		brush_radius = 20 * (dimensions.width / container_dimensions.width);
+
+		loop({ once: true });
 	};
 
-	let set_canvas_size = (canvas, _width, _height) => {
-		canvas.width = width || _width * 3;
-		canvas.height = height || _height * 3;
-		if (mode === "sketch") {
+	$: {
+		if (lazy) {
+			chain_length = brush_radius * 2;
+			init();
+			lazy.setRadius(brush_radius / 1.5);
 		}
+	}
 
-		canvas.style.width = mode === "mask" ? "auto" : _width;
-		canvas.style.height = mode === "mask" ? "100%" : _height;
+	$: {
+		if (width || height) {
+			handle_canvas_resize();
+		}
+	}
+
+	let set_canvas_size = async (canvas, dimensions, container, scale = true) => {
+		if (!mounted) return;
+		await tick();
+
+		const dpr = window.devicePixelRatio || 1;
+		canvas.width = dimensions.width * (scale ? dpr : 1);
+		canvas.height = dimensions.height * (scale ? dpr : 1);
+
+		const ctx = canvas.getContext("2d");
+		scale && ctx.scale(dpr, dpr);
+
+		canvas.style.width = `${container.width}px`;
+		canvas.style.height = `${container.height}px`;
 	};
 
 	let get_pointer_pos = (e) => {
@@ -257,18 +275,15 @@
 			clientX = e.changedTouches[0].clientX;
 			clientY = e.changedTouches[0].clientY;
 		}
+
 		return {
-			x: clientX - rect.left,
-			y: clientY - rect.top
+			x: ((clientX - rect.left) / rect.width) * width,
+			y: ((clientY - rect.top) / rect.height) * height
 		};
 	};
 
 	let handle_pointer_move = (x, y) => {
-		lazy.update(
-			mode === "sketch"
-				? { x: x * 3, y: y * 3 }
-				: { x: x * display_natural_ratio, y: y * display_natural_ratio }
-		);
+		lazy.update({ x: x, y: y });
 		const is_disabled = !lazy.isEnabled();
 		if ((is_pressing && !is_drawing) || (is_disabled && is_pressing)) {
 			is_drawing = true;
@@ -276,7 +291,6 @@
 		}
 		if (is_drawing) {
 			points.push(lazy.brush.toObject());
-
 			draw_points({
 				points: points,
 				brush_color,
@@ -298,7 +312,7 @@
 		ctx.temp.lineJoin = "round";
 		ctx.temp.lineCap = "round";
 		ctx.temp.strokeStyle = brush_color;
-		ctx.temp.clearRect(0, 0, ctx.temp.canvas.width, ctx.temp.canvas.height);
+		ctx.temp.clearRect(0, 0, width, height);
 		ctx.temp.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -316,15 +330,12 @@
 	};
 
 	let draw_fake_points = ({ points, brush_color, brush_radius }) => {
+		// if (points.length < 1) return;
+
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		ctx.temp_fake.clearRect(
-			0,
-			0,
-			ctx.temp.canvas.width,
-			ctx.temp.canvas.height
-		);
+		ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -342,17 +353,14 @@
 	};
 
 	let save_mask_line = () => {
-		// if (points.length < 2) return;
-
 		lines.push({
 			points: [...points],
 			brush_color: "#fff",
 			brush_radius
 		});
 
-		points.length = 0;
-		const width = canvas.temp_fake.width;
-		const height = canvas.temp_fake.height;
+		points = [];
+
 		ctx.mask.drawImage(canvas.temp_fake, 0, 0, width, height);
 
 		ctx.temp_fake.clearRect(0, 0, width, height);
@@ -367,9 +375,11 @@
 			brush_color: brush_color,
 			brush_radius
 		});
-		points.length = 0;
-		const width = canvas.temp.width;
-		const height = canvas.temp.height;
+
+		if (mode !== "mask") {
+			points = [];
+		}
+
 		ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
 		ctx.temp.clearRect(0, 0, width, height);
@@ -383,11 +393,11 @@
 	export function clear() {
 		lines = [];
 		values_changed = true;
-		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
-		ctx.temp.clearRect(0, 0, canvas.temp.width, canvas.temp.height);
+		ctx.drawing.clearRect(0, 0, width, height);
+		ctx.temp.clearRect(0, 0, width, height);
 
 		ctx.drawing.fillStyle = mode === "sketch" ? "#FFFFFF" : "transparent";
-		ctx.drawing.fillRect(0, 0, canvas.drawing.width, canvas.drawing.height);
+		ctx.drawing.fillRect(0, 0, width, height);
 		if (mode === "mask") {
 			ctx.temp_fake.clearRect(
 				0,
@@ -395,9 +405,9 @@
 				canvas.temp_fake.width,
 				canvas.temp_fake.height
 			);
-			ctx.mask.clearRect(0, 0, canvas.temp_fake.width, canvas.temp_fake.height);
+			ctx.mask.clearRect(0, 0, width, height);
 			ctx.mask.fillStyle = "#000";
-			ctx.mask.fillRect(0, 0, canvas.mask.width, canvas.mask.height);
+			ctx.mask.fillRect(0, 0, width, height);
 		}
 
 		line_count = 0;
@@ -418,8 +428,11 @@
 		}
 	};
 
+	$: catenary_size = brush_radius * 0.15;
+	$: brush_dot = brush_radius * 0.075;
+
 	let draw_interface = (ctx, pointer, brush) => {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.clearRect(0, 0, width, height);
 
 		// brush preview
 		ctx.beginPath();
@@ -430,7 +443,7 @@
 		// mouse point dangler
 		ctx.beginPath();
 		ctx.fillStyle = catenary_color;
-		ctx.arc(pointer.x, pointer.y, 4, 0, Math.PI * 2, true);
+		ctx.arc(pointer.x, pointer.y, catenary_size, 0, Math.PI * 2, true);
 		ctx.fill();
 
 		//  catenary
@@ -438,7 +451,7 @@
 			ctx.beginPath();
 			ctx.lineWidth = 2;
 			ctx.lineCap = "round";
-			ctx.setLineDash([2, 4]);
+			ctx.setLineDash([catenary_size, catenary_size * 2]);
 			ctx.strokeStyle = catenary_color;
 			ctx.stroke();
 		}
@@ -446,7 +459,7 @@
 		// tiny brush point dot
 		ctx.beginPath();
 		ctx.fillStyle = catenary_color;
-		ctx.arc(brush.x, brush.y, 2, 0, Math.PI * 2, true);
+		ctx.arc(brush.x, brush.y, brush_dot, 0, Math.PI * 2, true);
 		ctx.fill();
 	};
 
@@ -475,10 +488,7 @@
 		<canvas
 			key={name}
 			class="inset-0 m-auto"
-			style=" display:block;position:absolute; z-index:{zIndex}; width: {mode ===
-			'sketch'
-				? canvas_width
-				: width}px; height: {mode === 'sketch' ? canvas_height : height}px"
+			style=" display:block;position:absolute; z-index:{zIndex};"
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}

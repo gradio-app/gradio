@@ -79,6 +79,7 @@
 		const element = event.composedPath()[0] as HTMLImageElement;
 		img_width = element.naturalWidth;
 		img_height = element.naturalHeight;
+		container_height = element.getBoundingClientRect().height;
 	}
 
 	function handle_mask_save({ detail }: { detail: string }) {
@@ -96,6 +97,9 @@
 
 	let img_height = 0;
 	let img_width = 0;
+	let container_height = 0;
+
+	$: console.log(img_height, img_width, container_height);
 </script>
 
 <BlockLabel
@@ -155,13 +159,15 @@
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
 	{:else if tool === "sketch" && value !== null}
-		<img
-			class="absolute w-full h-full object-contain"
-			src={value.image}
-			alt=""
-			on:load={handle_image_load}
-			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
-		/>
+		{#key value.image}
+			<img
+				class="absolute w-full h-full object-contain"
+				src={value.image}
+				alt=""
+				on:load={handle_image_load}
+				class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+			/>
+		{/key}
 		{#if img_width > 0}
 			<Sketch
 				{value}
@@ -172,6 +178,7 @@
 				mode="mask"
 				width={img_width}
 				height={img_height}
+				{container_height}
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
