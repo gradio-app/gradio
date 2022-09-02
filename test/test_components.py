@@ -1752,7 +1752,7 @@ class TestState:
         io = gr.Interface(test, ["text", "state"], ["text", "state"])
         result = await io.call_function(0, ["abc"])
         assert result["prediction"][0] == "abc def"
-        result = await io.call_function(0, ["abc", result[0][0]])
+        result = await io.call_function(0, ["abc", result["prediction"][0]])
         assert result["prediction"][0] == "abcabc def"
 
     @pytest.mark.asyncio
@@ -1764,7 +1764,7 @@ class TestState:
 
         result = await demo.call_function(0, [0])
         assert result["prediction"] == 1
-        result = await demo.call_function(0, [result[0]])
+        result = await demo.call_function(0, [["prediction"]])
         assert result["prediction"] == 2
 
     @pytest.mark.asyncio
@@ -1776,7 +1776,7 @@ class TestState:
 
         result = await demo.call_function(0, [0])
         assert result["prediction"] == 1
-        result = await demo.call_function(0, [result[0]])
+        result = await demo.call_function(0, [["prediction"]])
         assert result["prediction"] == 2
 
 

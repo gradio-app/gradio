@@ -144,7 +144,7 @@ async def run_interpret(interface, raw_input):
                         new_output = utils.synchronize_async(
                             interface.call_function, 0, processed_masked_input
                         )
-                        new_output = new_output[0]
+                        new_output = new_output["prediction"]
                         if len(interface.output_components) == 1:
                             new_output = [new_output]
                         pred = get_regression_or_classification_value(
