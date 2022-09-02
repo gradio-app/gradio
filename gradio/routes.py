@@ -245,7 +245,6 @@ class App(FastAPI):
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
-            print(body)
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {

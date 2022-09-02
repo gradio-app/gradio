@@ -26,6 +26,7 @@ type StatusResponse =
 interface Payload {
 	data: Array<unknown>;
 	fn_index: number;
+	session_hash: string;
 }
 
 declare let BUILD_MODE: string;
@@ -89,6 +90,7 @@ export const fn =
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
+		payload.session_hash = session_hash;
 		if (frontend_fn !== undefined) {
 			payload.data = await frontend_fn(payload.data.concat(output_data));
 		}
@@ -144,7 +146,7 @@ export const fn =
 
 			websocket.onmessage = async function (event) {
 				const data = JSON.parse(event.data);
-
+				
 				switch (data.msg) {
 					case "send_data":
 						send_message(fn_index, payload);
