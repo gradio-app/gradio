@@ -5,7 +5,7 @@
 	export let original: string;
 	export let interpretation: Array<number>;
 	export let choices: Array<string>;
-	export let label: string;
+	export let label: string = "";
 </script>
 
 <div class="input-radio flex flex-wrap gap-2">

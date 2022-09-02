@@ -4,7 +4,7 @@
 
 	export let interpretation: Array<number>;
 	export let choices: Array<string>;
-	export let label: string;
+	export let label: string = "";
 </script>
 
 <div class="input-dropdown">

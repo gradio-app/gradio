@@ -5,7 +5,7 @@
 	export let original: Array<string>;
 	export let interpretation: Array<[number, number]>;
 	export let choices: Array<string>;
-	export let label: string;
+	export let label: string = "";
 </script>
 
 <div class="input-checkbox-group flex flex-wrap gap-2">

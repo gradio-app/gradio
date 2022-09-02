@@ -6,7 +6,7 @@
 	export let original: string;
 	export let interpretation: Array<Array<number>>;
 	export let shape: undefined | [number, number];
-	export let label: string;
+	export let label: string = "";
 
 	let saliency_layer: HTMLCanvasElement;
 	let image: HTMLImageElement;

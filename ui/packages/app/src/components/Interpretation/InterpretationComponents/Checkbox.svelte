@@ -2,7 +2,7 @@
 	import { getSaliencyColor } from "../utils";
 	import { BlockTitle } from "@gradio/atoms";
 
-	export let label: string;
+	export let label: string = "";
 	export let original: boolean;
 	export let interpretation: [number, number];
 </script>

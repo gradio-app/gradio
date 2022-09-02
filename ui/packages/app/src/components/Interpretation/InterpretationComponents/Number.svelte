@@ -3,7 +3,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let interpretation: Array<[number, number]>;
-	export let label: string;
+	export let label: string = "";
 </script>
 
 <div class="input-number">
