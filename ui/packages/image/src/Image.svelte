@@ -98,8 +98,6 @@
 	let img_height = 0;
 	let img_width = 0;
 	let container_height = 0;
-
-	$: console.log(img_height, img_width, container_height);
 </script>
 
 <BlockLabel
