@@ -3,7 +3,7 @@ import time
 
 def count(n):
     for i in range(int(n)):
-        time.sleep(0.25)
+        time.sleep(0.5)
         yield i
 
 

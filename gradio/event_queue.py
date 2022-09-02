@@ -237,6 +237,16 @@ class Queue:
             avg_event_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
             queue_eta=cls.QUEUE_DURATION,
         )
+        
+    @classmethod
+    async def call_prediction(cls, event: Event):
+        response = await Request(
+            method=Request.Method.POST,
+            url=f"{cls.SERVER_PATH}api/predict",
+            json=event.data,
+        )
+        return response
+        
 
     @classmethod
     async def process_event(cls, event: Event) -> None:
@@ -247,34 +257,40 @@ class Queue:
         if not client_awake:
             return
         begin_time = time.time()
-        response = await Request(
-            method=Request.Method.POST,
-            url=f"{cls.SERVER_PATH}api/predict",
-            json=event.data,
-        )
-        end_time = time.time()
-        success = response.status == 200
-        if success:
-            cls.update_estimation(end_time - begin_time)
+        response = await cls.call_prediction(event)
         if response.json["is_generating"]:
+            while response.json["is_generating"]:
+                old_response = response
+                await cls.send_message(
+                    event,
+                    {
+                        "msg": "process_generating",
+                        "output": old_response.json,
+                        "success": old_response.status == 200,
+                    },
+                )
+                response = await cls.call_prediction(event)
             await cls.send_message(
                 event,
                 {
-                    "msg": "process_generating",
-                    "output": response.json,
-                    "success": success,
+                    "msg": "process_completed",
+                    "output": old_response.json,
+                    "success": old_response.status == 200,
                 },
-            )
-            cls.process_event(event)
+            )                
         else:
             await cls.send_message(
                 event,
                 {
                     "msg": "process_completed",
                     "output": response.json,
-                    "success": success,
+                    "success": response.status == 200,
                 },
             )
+        end_time = time.time()
+        if response.status == 200:
+            cls.update_estimation(end_time - begin_time)
+        
         await event.disconnect()
         await cls.clean_event(event)
 
