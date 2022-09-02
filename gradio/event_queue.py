@@ -257,7 +257,7 @@ class Queue:
             return
         begin_time = time.time()
         response = await cls.call_prediction(event)
-        if response.json["is_generating"]:
+        if response.json.get("is_generating", False):
             while response.json["is_generating"]:
                 old_response = response
                 await cls.send_message(
