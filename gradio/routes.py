@@ -103,7 +103,7 @@ class App(FastAPI):
         self.tokens = {}
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> FastAPI:
+    def create_app(blocks: gradio.Blocks, url_path: Optional[str]) -> FastAPI:
         app = App(default_response_class=ORJSONResponse)
         app.configure_app(blocks)
 
@@ -162,8 +162,8 @@ class App(FastAPI):
         # Main Routes
         ###############
 
-        @app.head("/", response_class=HTMLResponse)
-        @app.get("/", response_class=HTMLResponse)
+        @app.head(url_path, response_class=HTMLResponse)
+        @app.get(url_path + "/", response_class=HTMLResponse)
         def main(request: Request, user: str = Depends(get_current_user)):
             if app.auth is None or not (user is None):
                 config = app.blocks.config

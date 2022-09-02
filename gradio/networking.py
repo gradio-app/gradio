@@ -27,6 +27,9 @@ INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
+GRADIO_RESERVED_URL_PATHS = ['/openapi.json', '/docs', '/redoc', '/user', '/login_check', '/token', '/app_id',
+                             '/login', '/config', '/static', '/assets', '/favicon.ico', '/file', '/api',
+                             '/queue/join', '/queue/status', '/startup-events']
 
 
 class Server(uvicorn.Server):
@@ -87,18 +90,20 @@ def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
 
 
 def start_server(
-    blocks: Blocks,
-    server_name: Optional[str] = None,
-    server_port: Optional[int] = None,
-    ssl_keyfile: Optional[str] = None,
-    ssl_certfile: Optional[str] = None,
-    ssl_keyfile_password: Optional[str] = None,
+        blocks: Blocks,
+        server_name: Optional[str] = None,
+        server_port: Optional[int] = None,
+        server_url_path: str = "/",
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
 ) -> Tuple[int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
+    server_url_path: must not be a reserved gradio url path. Default is "/"
     auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -129,17 +134,18 @@ def start_server(
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
+    url_path = "/" + server_url_path.strip("/")
 
     if ssl_keyfile is not None:
         if ssl_certfile is None:
             raise ValueError(
                 "ssl_certfile must be provided if ssl_keyfile is provided."
             )
-        path_to_local_server = "https://{}:{}/".format(url_host_name, port)
+        path_to_local_server = "https://{}:{}{}".format(url_host_name, port, url_path)
     else:
-        path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+        path_to_local_server = "http://{}:{}{}".format(url_host_name, port, url_path)
 
-    app = App.create_app(blocks)
+    app = App.create_app(blocks, url_path)
 
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
@@ -182,3 +188,12 @@ def url_ok(url: str) -> bool:
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
+
+
+def url_path_ok(url_path: str) -> None:
+    if not url_path.startswith("/"):
+        raise ValueError("Provided url path must start with \"\\\"")
+    if any([url_path.startswith(reserved_path) for reserved_path in GRADIO_RESERVED_URL_PATHS]):
+        raise ValueError("Provided url path is reserved." 
+                         f"Please, try not using paths starting with {GRADIO_RESERVED_URL_PATHS}")
+

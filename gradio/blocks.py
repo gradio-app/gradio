@@ -893,6 +893,7 @@ class Blocks(BlockContext):
         show_error: bool = False,
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
+        server_url_path: str = "/",
         show_tips: bool = False,
         height: int = 500,
         width: int = 900,
@@ -919,6 +920,7 @@ class Blocks(BlockContext):
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
+            server_url_path: must not be a reserved gradio url path. Default is "/"
             show_tips: if True, will occasionally show tips about new Gradio features
             enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
@@ -987,6 +989,7 @@ class Blocks(BlockContext):
                 self,
                 server_name,
                 server_port,
+                server_url_path,
                 ssl_keyfile,
                 ssl_certfile,
                 ssl_keyfile_password,
