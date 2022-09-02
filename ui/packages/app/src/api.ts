@@ -146,7 +146,7 @@ export const fn =
 
 			websocket.onmessage = async function (event) {
 				const data = JSON.parse(event.data);
-				
+
 				switch (data.msg) {
 					case "send_data":
 						send_message(fn_index, payload);
