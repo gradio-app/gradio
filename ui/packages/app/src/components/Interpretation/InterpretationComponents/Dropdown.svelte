@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let interpretation: Array<number>;
 	export let choices: Array<string>;
+	export let label: string;
 </script>
 
 <div class="input-dropdown">
+	<BlockTitle>{label}</BlockTitle>
 	<ul class="dropdown-menu">
 		{#each choices as choice, i}
 			<li

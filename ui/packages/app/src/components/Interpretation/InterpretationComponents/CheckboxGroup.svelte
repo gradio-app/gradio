@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: Array<string>;
 	export let interpretation: Array<[number, number]>;
 	export let choices: Array<string>;
+	export let label: string;
 </script>
 
 <div class="input-checkbox-group flex flex-wrap gap-2">
+	<BlockTitle>{label}</BlockTitle>
 	{#each choices as choice, i}
 		<button
 			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-1"
