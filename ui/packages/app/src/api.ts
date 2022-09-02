@@ -172,6 +172,20 @@ export const fn =
 							null
 						);
 						break;
+					case "process_generating":
+						loading_status.update(
+							fn_index,
+							data.success ? "complete" : "error",
+							queue,
+							null,
+							null,
+							data.output.average_duration,
+							!data.success ? data.output.error : null
+						);
+						if (data.success) {
+							queue_callback(data.output);
+						}
+						break;
 					case "process_completed":
 						loading_status.update(
 							fn_index,

@@ -256,14 +256,25 @@ class Queue:
         success = response.status == 200
         if success:
             cls.update_estimation(end_time - begin_time)
-        await cls.send_message(
-            event,
-            {
-                "msg": "process_completed",
-                "output": response.json,
-                "success": success,
-            },
-        )
+        if response.json["is_generating"]:
+            await cls.send_message(
+                event,
+                {
+                    "msg": "process_generating",
+                    "output": response.json,
+                    "success": success,
+                },
+            )
+            cls.process_event(event)
+        else:
+            await cls.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": response.json,
+                    "success": success,
+                },
+            )
         await event.disconnect()
         await cls.clean_event(event)
 
