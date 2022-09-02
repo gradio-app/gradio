@@ -1764,7 +1764,7 @@ class TestState:
 
         result = await demo.call_function(0, [0])
         assert result["prediction"] == 1
-        result = await demo.call_function(0, [["prediction"]])
+        result = await demo.call_function(0, [result["prediction"]])
         assert result["prediction"] == 2
 
     @pytest.mark.asyncio
@@ -1776,7 +1776,7 @@ class TestState:
 
         result = await demo.call_function(0, [0])
         assert result["prediction"] == 1
-        result = await demo.call_function(0, [["prediction"]])
+        result = await demo.call_function(0, [result["prediction"]])
         assert result["prediction"] == 2
 
 
