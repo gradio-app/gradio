@@ -1359,8 +1359,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             raise ValueError("Cannot process this value as an Image")
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
-                y = np.array(y)
-            out_y = processing_utils.encode_array_to_base64(y)
+                out_y = processing_utils.encode_pil_to_base64(y)
+            else:
+                out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
             out_y = processing_utils.encode_url_or_file_to_base64(y)
         return out_y
@@ -3262,8 +3263,7 @@ class Gallery(IOComponent):
             if isinstance(img, np.ndarray):
                 img = processing_utils.encode_array_to_base64(img)
             elif isinstance(img, PIL.Image.Image):
-                img = np.array(img)
-                img = processing_utils.encode_array_to_base64(img)
+                img = processing_utils.encode_pil_to_base64(img)
             elif isinstance(img, str):
                 img = processing_utils.encode_url_or_file_to_base64(img)
             else:

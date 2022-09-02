@@ -10,7 +10,7 @@ import ffmpy
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, PngImagePlugin
 
 import gradio as gr
 from gradio import media_data
@@ -56,6 +56,23 @@ class ImagePreprocessing(unittest.TestCase):
         numpy_data = np.asarray(img, dtype=np.uint8)
         output_base64 = gr.processing_utils.encode_array_to_base64(numpy_data)
         self.assertEqual(output_base64, deepcopy(media_data.ARRAY_TO_BASE64_IMAGE))
+
+    def test_encode_pil_to_base64(self):
+        img = Image.open("gradio/test_data/test_image.png")
+        img = img.convert("RGB")
+        img.info = {}  # Strip metadata
+        output_base64 = gr.processing_utils.encode_pil_to_base64(img)
+        self.assertEqual(output_base64, deepcopy(media_data.ARRAY_TO_BASE64_IMAGE))
+
+    def test_encode_pil_to_base64_keeps_pnginfo(self):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        input_img = input_img.convert("RGB")
+        input_img.info = {"key1": "value1", "key2": "value2"}
+
+        encoded_image = gr.processing_utils.encode_pil_to_base64(input_img)
+        decoded_image = gr.processing_utils.decode_base64_to_image(encoded_image)
+
+        self.assertEqual(decoded_image.info, input_img.info)
 
     def test_resize_and_crop(self):
         img = Image.open("gradio/test_data/test_image.png")
