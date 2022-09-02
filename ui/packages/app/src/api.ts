@@ -26,7 +26,7 @@ type StatusResponse =
 interface Payload {
 	data: Array<unknown>;
 	fn_index: number;
-	session_hash: string;
+	session_hash?: string;
 }
 
 declare let BUILD_MODE: string;
