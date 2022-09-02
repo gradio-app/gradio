@@ -7,7 +7,7 @@
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
-	export let label: string;
+	export let label: string = "";
 </script>
 
 <div class="input-slider text-center">
