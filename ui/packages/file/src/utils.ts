@@ -20,7 +20,7 @@ export const display_file_name = (value: FileData): string => {
 };
 
 export const download_files = (value: FileData): string => {
-	return value.data;
+	return value.name ? value.name : value.data;
 };
 
 export const display_file_size = (
