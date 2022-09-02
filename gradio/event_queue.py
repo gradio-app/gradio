@@ -237,7 +237,7 @@ class Queue:
             avg_event_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
             queue_eta=cls.QUEUE_DURATION,
         )
-        
+
     @classmethod
     async def call_prediction(cls, event: Event):
         response = await Request(
@@ -246,7 +246,6 @@ class Queue:
             json=event.data,
         )
         return response
-        
 
     @classmethod
     async def process_event(cls, event: Event) -> None:
@@ -277,7 +276,7 @@ class Queue:
                     "output": old_response.json,
                     "success": old_response.status == 200,
                 },
-            )                
+            )
         else:
             await cls.send_message(
                 event,
@@ -290,7 +289,7 @@ class Queue:
         end_time = time.time()
         if response.status == 200:
             cls.update_estimation(end_time - begin_time)
-        
+
         await event.disconnect()
         await cls.clean_event(event)
 
