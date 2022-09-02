@@ -239,6 +239,15 @@ class Queue:
         )
 
     @classmethod
+    async def call_prediction(cls, event: Event):
+        response = await Request(
+            method=Request.Method.POST,
+            url=f"{cls.SERVER_PATH}api/predict",
+            json=event.data,
+        )
+        return response
+
+    @classmethod
     async def process_event(cls, event: Event) -> None:
         client_awake = await cls.gather_event_data(event)
         if not client_awake:
@@ -247,23 +256,40 @@ class Queue:
         if not client_awake:
             return
         begin_time = time.time()
-        response = await Request(
-            method=Request.Method.POST,
-            url=f"{cls.SERVER_PATH}api/predict",
-            json=event.data,
-        )
+        response = await cls.call_prediction(event)
+        if response.json.get("is_generating", False):
+            while response.json["is_generating"]:
+                old_response = response
+                await cls.send_message(
+                    event,
+                    {
+                        "msg": "process_generating",
+                        "output": old_response.json,
+                        "success": old_response.status == 200,
+                    },
+                )
+                response = await cls.call_prediction(event)
+            await cls.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": old_response.json,
+                    "success": old_response.status == 200,
+                },
+            )
+        else:
+            await cls.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": response.json,
+                    "success": response.status == 200,
+                },
+            )
         end_time = time.time()
-        success = response.status == 200
-        if success:
+        if response.status == 200:
             cls.update_estimation(end_time - begin_time)
-        await cls.send_message(
-            event,
-            {
-                "msg": "process_completed",
-                "output": response.json,
-                "success": success,
-            },
-        )
+
         await event.disconnect()
         await cls.clean_event(event)
 
