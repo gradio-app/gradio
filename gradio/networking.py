@@ -27,9 +27,25 @@ INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
-GRADIO_RESERVED_URL_PATHS = ['/openapi.json', '/docs', '/redoc', '/user', '/login_check', '/token', '/app_id',
-                             '/login', '/config', '/static', '/assets', '/favicon.ico', '/file', '/api',
-                             '/queue/join', '/queue/status', '/startup-events']
+GRADIO_RESERVED_URL_PATHS = [
+    "/openapi.json",
+    "/docs",
+    "/redoc",
+    "/user",
+    "/login_check",
+    "/token",
+    "/app_id",
+    "/login",
+    "/config",
+    "/static",
+    "/assets",
+    "/favicon.ico",
+    "/file",
+    "/api",
+    "/queue/join",
+    "/queue/status",
+    "/startup-events",
+]
 
 
 class Server(uvicorn.Server):
@@ -90,13 +106,13 @@ def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
 
 
 def start_server(
-        blocks: Blocks,
-        server_name: Optional[str] = None,
-        server_port: Optional[int] = None,
-        server_url_path: str = "/",
-        ssl_keyfile: Optional[str] = None,
-        ssl_certfile: Optional[str] = None,
-        ssl_keyfile_password: Optional[str] = None,
+    blocks: Blocks,
+    server_name: Optional[str] = None,
+    server_port: Optional[int] = None,
+    server_url_path: str = "/",
+    ssl_keyfile: Optional[str] = None,
+    ssl_certfile: Optional[str] = None,
+    ssl_keyfile_password: Optional[str] = None,
 ) -> Tuple[int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -192,8 +208,14 @@ def url_ok(url: str) -> bool:
 
 def url_path_ok(url_path: str) -> None:
     if not url_path.startswith("/"):
-        raise ValueError("Provided url path must start with \"\\\"")
-    if any([url_path.startswith(reserved_path) for reserved_path in GRADIO_RESERVED_URL_PATHS]):
-        raise ValueError("Provided url path is reserved." 
-                         f"Please, try not using paths starting with {GRADIO_RESERVED_URL_PATHS}")
-
+        raise ValueError('Provided url path must sta" with "\\"')
+    if any(
+        [
+            url_path.startswith(reserved_path)
+            for reserved_path in GRADIO_RESERVED_URL_PATHS
+        ]
+    ):
+        raise ValueError(
+            "Provided url path is reserved."
+            f"Please, try not using paths starting with {GRADIO_RESERVED_URL_PATHS}"
+        )
