@@ -1357,11 +1357,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             dtype = "file"
         else:
             raise ValueError("Cannot process this value as an Image")
-        if dtype in ["numpy", "pil"]:
-            if dtype == "pil":
-                out_y = processing_utils.encode_pil_to_base64(y)
-            else:
-                out_y = processing_utils.encode_array_to_base64(y)
+        if dtype == "pil":
+            out_y = processing_utils.encode_pil_to_base64(y)
+        elif dtype == "numpy":
+            out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
             out_y = processing_utils.encode_url_or_file_to_base64(y)
         return out_y

@@ -10,7 +10,7 @@ import ffmpy
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from PIL import Image, PngImagePlugin
+from PIL import Image
 
 import gradio as gr
 from gradio import media_data
