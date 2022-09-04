@@ -128,16 +128,14 @@ def start_server(
             )
         port = server_port
 
-    url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
-
     if ssl_keyfile is not None:
         if ssl_certfile is None:
             raise ValueError(
                 "ssl_certfile must be provided if ssl_keyfile is provided."
             )
-        path_to_local_server = "https://{}:{}/".format(url_host_name, port)
+        path_to_local_server = "https://{}:{}/".format(server_name, port)
     else:
-        path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+        path_to_local_server = "http://{}:{}/".format(server_name, port)
 
     app = App.create_app(blocks)
 
