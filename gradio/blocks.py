@@ -1025,7 +1025,11 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY_SEPARATED"].format(self.protocol, self.server_name, self.server_port))
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
+            )
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 

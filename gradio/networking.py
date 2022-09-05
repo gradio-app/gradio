@@ -129,7 +129,7 @@ def start_server(
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
-    
+
     if ssl_keyfile is not None:
         if ssl_certfile is None:
             raise ValueError(
