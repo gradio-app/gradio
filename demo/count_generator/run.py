@@ -8,6 +8,7 @@ def count(n):
 
 
 demo = gr.Interface(count, gr.Number(value=10), gr.Number())
+demo.queue()
 
 
 if __name__ == "__main__":

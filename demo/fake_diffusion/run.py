@@ -17,5 +17,7 @@ with gr.Blocks() as demo:
     image = gr.Image()
     button.click(fake_diffusion, slider, image)
 
+demo.queue()
+
 if __name__ == "__main__":
     demo.launch()
