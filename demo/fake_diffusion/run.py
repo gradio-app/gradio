@@ -5,17 +5,18 @@ import os
 
 
 def fake_diffusion(steps):
-    for i in range(steps):
+    for _ in range(steps):
         time.sleep(1)
-        yield np.random.random((200, 200, 3))
-    time.sleep(1)
-    yield os.path.join(os.path.dirname(__file__), "cheetah.jpg")
+        image = np.random.random((200, 200, 3))
+        yield image
+    
+    image = os.path.join(os.path.dirname(__file__), "cheetah.jpg")    
+    yield image
 
-with gr.Blocks() as demo:
-    slider = gr.Slider(1, 10, 3)
-    button = gr.Button()
-    image = gr.Image()
-    button.click(fake_diffusion, slider, image)
+
+demo = gr.Interface(fake_diffusion, 
+                    inputs=gr.Slider(1, 10, 3), 
+                    outputs="image")
 
 if __name__ == "__main__":
     demo.launch()

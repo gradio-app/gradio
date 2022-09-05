@@ -630,13 +630,16 @@ class Blocks(BlockContext):
             )
 
         if inspect.isgeneratorfunction(block_fn.fn):
+            if not self.enable_queue:
+                raise ValueError("Need to enable queue to use generator functions.")
             try:
                 if generator is None:
                     generator = prediction
                 prediction = next(generator)
                 is_generating = True
             except StopIteration:
-                prediction = None
+                n_outputs = len(self.dependencies[fn_index].get("outputs"))
+                prediction = None if n_outputs == 1 else [None] * n_outputs
                 generator = None
 
         duration = time.time() - start
