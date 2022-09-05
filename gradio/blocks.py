@@ -983,7 +983,7 @@ class Blocks(BlockContext):
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_port, path_to_local_server, app, server = networking.start_server(
+            server_name, server_port, local_url, app, server = networking.start_server(
                 self,
                 server_name,
                 server_port,
@@ -991,11 +991,13 @@ class Blocks(BlockContext):
                 ssl_certfile,
                 ssl_keyfile_password,
             )
-            self.local_url = path_to_local_server
+            self.server_name = server_name
+            self.local_url = local_url
             self.server_port = server_port
             self.server_app = app
             self.server = server
             self.is_running = True
+            self.protocol = "https" if self.local_url.startswith("https") else "http"
 
             event_queue.Queue.set_url(self.local_url)
             # Cannot run async functions in background other than app's scope.
@@ -1023,7 +1025,11 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
+            )
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
