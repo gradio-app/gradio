@@ -961,7 +961,10 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
-        self.enable_queue = self.enable_queue is not False
+        if self.is_space:
+            self.enable_queue = self.enable_queue is not False
+        else:
+            self.enable_queue = self.enable_queue is True
 
         self.config = self.get_config_file()
         self.share = share
