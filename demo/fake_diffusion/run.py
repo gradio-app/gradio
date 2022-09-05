@@ -7,10 +7,10 @@ import os
 def fake_diffusion(steps):
     for _ in range(steps):
         time.sleep(1)
-        image = np.random.random((200, 200, 3))
+        image = np.random.random((600, 600, 3))
         yield image
     
-    image = os.path.join(os.path.dirname(__file__), "cheetah.jpg")    
+    image = "https://i.picsum.photos/id/867/600/600.jpg?hmac=qE7QFJwLmlE_WKI7zMH6SgH5iY5fx8ec6ZJQBwKRT44" 
     yield image
 
 

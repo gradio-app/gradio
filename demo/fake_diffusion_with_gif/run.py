@@ -2,15 +2,17 @@ import gradio as gr
 import numpy as np
 import time
 import os
-import PIL
 from PIL import Image
+import requests
+from io import BytesIO
 
 
 def create_gif(images):
     pil_images = []
     for image in images:
         if isinstance(image, str):
-            image = Image.open(image)
+            response = requests.get(image)
+            image = Image.open(BytesIO(response.content))
         else:
             image = Image.fromarray((image * 255).astype(np.uint8))
         pil_images.append(image)
@@ -25,12 +27,12 @@ def fake_diffusion(steps):
     images = []
     for _ in range(steps):
         time.sleep(1)
-        image = np.random.random((200, 200, 3))
+        image = np.random.random((600, 600, 3))
         images.append(image)
         yield image, gr.Image.update(visible=False)
     
     time.sleep(1)
-    image = os.path.join(os.path.dirname(__file__), "cheetah.jpg")
+    image = "https://i.picsum.photos/id/867/600/600.jpg?hmac=qE7QFJwLmlE_WKI7zMH6SgH5iY5fx8ec6ZJQBwKRT44" 
     images.append(image)
     gif_path = create_gif(images)
     
