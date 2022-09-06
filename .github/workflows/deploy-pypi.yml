@@ -28,7 +28,7 @@ jobs:
       with:
         python-version: '3.x'
     - name: Check new pypi version
-        python scripts/check_pypi.py      
+      run: python scripts/check_pypi.py      
     - name: Install pnpm
       uses: pnpm/action-setup@v2.2.2
       with:
