@@ -9,17 +9,17 @@
 name: Upload Python Package
 
 on:
+  workflow_dispatch:
   pull_request:
     types: closed
     branches:
       - main
-      - release**
     paths:
       - 'gradio/version.txt'
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event.action == ""
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
