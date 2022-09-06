@@ -1,8 +1,10 @@
 import gradio as gr
 import os
 
+
 def fn(mask):
-    return [mask["image"], mask["mask"]]
+    print(mask)
+    return [mask, mask]
 
 
 demo = gr.Blocks()
@@ -11,7 +13,10 @@ with demo:
     with gr.Row():
         with gr.Column():
             img = gr.Image(
-                tool="sketch", source="upload", label="Mask", value=os.path.join(os.path.dirname(__file__), "lion.jpg")
+                tool="color-sketch",
+                source="upload",
+                label="Mask",
+                value=os.path.join(os.path.dirname(__file__), "lion.jpg"),
             )
             with gr.Row():
                 btn = gr.Button("Run")
