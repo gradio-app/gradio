@@ -46,36 +46,142 @@ demos_by_category = [
                 "dir": "sentiment_analysis", 
                 "code": get_code("sentiment_analysis"),
                 "text": "This sentiment analaysis demo takes in input text and returns its classification for either positive, negative or neutral using Gradio's Label output. It also uses the default interpretation method so users can click the Interpret button after a submission and see which words had the biggest effect on the output."
-            }
+            },
+            {
+                "name": "Named Entity Recognition", 
+                "dir": "text_analysis", 
+                "code": get_code("text_analysis"),
+                "text": "This simple demo takes advantage of Gradio's HighlightedText, JSON and HTML outputs to create a clear NER segmentation."
+            },
+
         ]
     },
      {
         "category": "🖼️ Images & Computer Vision",
         "demos": [
-            # {"name": "Sepia Filter", "dir": "sepia_filter", "code": None},
-            # {"name": "Image and Text Flipper", "dir": "blocks_flipper", "code": None},
-            # {"name": "Image Classification with Keras", "dir": "image_classifier", "code": None},
-            # {"name": "Image Classification with Pytorch", "dir": "image_classifier_2", "code": None},
+            {
+                "name": "Image Classification", 
+                "dir": "image_classifier", 
+                "code": get_code("image_classifier"),
+                "text": ""
+            },
+            {
+                "name": "Image Segmentation", 
+                "dir": "image_segmentation", 
+                "code": get_code("image_segmentation"),
+                "text": ""
+            },
+            {
+                "name": "Image to Image Transformation", 
+                "dir": "animeganv2", 
+                "code": get_code("animeganv2"),
+                "text": ""
+            },
+            {
+                "name": "Text to Image Generation", 
+                "dir": "stable_diffusion", 
+                "code": get_code("stable_diffusion"),
+                "text": ""
+            },
+            {
+                "name": "3D Models", 
+                "dir": "depth_estimation", 
+                "code": get_code("depth_estimation"),
+                "text": ""
+            },
         ]
     },
     {
         "category": "📈 Tabular Data & Plots",
         "demos": [
-            # {"name": "Sales Projections", "dir": "sales_projections", "code": None},
-            # {"name": "Calculator", "dir": "calculator", "code": None},
-            # {"name": "Calculator Live", "dir": "calculator_live", "code": None},
-            # {"name": "Titanic Survival", "dir": "titanic_survival", "code": None},
-            # {"name": "Outbreak Forecast", "dir": "outbreak_forecast", "code": None},
+            {
+                "name": "Clustering with Scikit-Learn", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Time Series Forecasting", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Income Classification with XGBoost", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Leaderboard", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Tax Calculator", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
         ]
     },
     {
         "category": "🎤 Audio & Speech",
         "demos": [
+            {
+                "name": "Text to Speech", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Speech to Text (ASR)", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Musical Instrument Identification", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Speaker Verification", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
         ]
     },
     {
         "category": "✨ Fun",
         "demos": [
+            {
+                "name": "Musika!", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "First Order Motion Model", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Titanic Survival", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
+            {
+                "name": "Draw to Search", 
+                "dir": "hello_world", 
+                "code": get_code("hello_world"),
+                "text": ""
+            },
         ]
     }
 ]
