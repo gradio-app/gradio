@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Dict
 
 from gradio import processing_utils
@@ -110,6 +111,7 @@ class FileSerializable(Serializable):
             "data": processing_utils.encode_url_or_file_to_base64(
                 filename, encryption_key=encryption_key
             ),
+            "orig_name": Path(filename).name,
             "is_file": False,
         }
 
