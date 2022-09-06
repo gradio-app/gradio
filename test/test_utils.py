@@ -20,6 +20,7 @@ from gradio.test_data.blocks_configs import (
 )
 from gradio.utils import (
     Request,
+    append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
     delete_none,
@@ -490,6 +491,23 @@ class TestSanitizeForCSV:
             [["=abc", "def", "gh,+ij"], ["abc", "=def", "+ghij"]]
         ) == [["'=abc", "def", "'gh,+ij"], ["abc", "'=def", "'+ghij"]]
         assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
+
+
+class TestAppendUniqueSuffix:
+    def test_no_suffix(self):
+        name = "test"
+        list_of_names = ["test_1", "test_2"]
+        assert append_unique_suffix(name, list_of_names) == name
+
+    def test_first_suffix(self):
+        name = "test"
+        list_of_names = ["test", "test_-1"]
+        assert append_unique_suffix(name, list_of_names) == "test_1"
+
+    def test_later_suffix(self):
+        name = "test"
+        list_of_names = ["test", "test_1", "test_2", "test_3"]
+        assert append_unique_suffix(name, list_of_names) == "test_4"
 
 
 if __name__ == "__main__":

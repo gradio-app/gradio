@@ -6,6 +6,7 @@ MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
 en = {
     "RUNNING_LOCALLY": "Running on local URL:  {}",
+    "RUNNING_LOCALLY_SEPARATED": "Running on local URL:  {}://{}:{}",
     "SHARE_LINK_DISPLAY": "Running on public URL: {}",
     "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link, please check your internet connection.",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
