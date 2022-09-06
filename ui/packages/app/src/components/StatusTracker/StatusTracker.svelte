@@ -52,7 +52,7 @@
 	export let queue: boolean = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error";
+	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
@@ -70,6 +70,7 @@
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
+	$: console.log("?", progress, timer_diff, eta);
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -141,6 +142,7 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
+	class:opacity-30={status === "generating"}
 	class:!hidden={!visible}
 	bind:this={el}
 >
@@ -163,6 +165,8 @@
 		{#if !timer}
 			<p class="timer">Loading...</p>
 		{/if}
+	{:else if status === "generating"}
+		<Loader />
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
 		{#if message_visible}

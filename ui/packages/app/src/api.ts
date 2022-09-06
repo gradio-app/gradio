@@ -177,7 +177,7 @@ export const fn =
 					case "process_generating":
 						loading_status.update(
 							fn_index,
-							data.success ? "complete" : "error",
+							data.success ? "generating" : "error",
 							queue,
 							null,
 							null,
