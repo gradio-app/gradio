@@ -629,9 +629,11 @@ class Blocks(BlockContext):
                 block_fn.fn, *processed_input, limiter=self.limiter
             )
 
+        if inspect.isasyncgenfunction(block_fn.fn):
+            raise ValueError("Gradio does not support async generators.")
         if inspect.isgeneratorfunction(block_fn.fn):
             if not self.enable_queue:
-                raise ValueError("Need to enable queue to use generator functions.")
+                raise ValueError("Need to enable queue to use generators.")
             try:
                 if generator is None:
                     generator = prediction

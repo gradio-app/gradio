@@ -1,7 +1,6 @@
 import gradio as gr
 import numpy as np
 import time
-import os
 
 
 def fake_diffusion(steps):
@@ -17,6 +16,8 @@ def fake_diffusion(steps):
 demo = gr.Interface(fake_diffusion, 
                     inputs=gr.Slider(1, 10, 3), 
                     outputs="image")
+
+demo.queue()
 
 if __name__ == "__main__":
     demo.launch()
