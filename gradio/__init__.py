@@ -28,7 +28,6 @@ from gradio.components import (
     Image,
     Interpretation,
     Json,
-    Keywords,
     Label,
     Markdown,
     Model3D,

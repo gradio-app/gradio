@@ -89,13 +89,19 @@ with gr.Blocks() as demo:
         component.render()
     reset = gr.Button(value="Reset")
     hide = gr.Button(value="Hide")
+    reveal = gr.Button(value="Reveal")
     reset.click(
-        lambda: [c.update(value=gr.Keywords.VOID) for c in components],
+        lambda: [c.update(value=None) for c in components],
         inputs=[],
         outputs=components,
     )
     hide.click(
         lambda: [c.update(visible=False) for c in components],
+        inputs=[],
+        outputs=components
+    )
+    reveal.click(
+        lambda: [c.update(visible=True) for c in components],
         inputs=[],
         outputs=components
     )

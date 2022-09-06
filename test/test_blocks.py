@@ -253,13 +253,13 @@ def test_blocks_do_not_filter_none_values_from_updates(io_components):
             component.render()
         btn = gr.Button(value="Reset")
         btn.click(
-            lambda: [gr.update(value=gr.Keywords.VOID) for _ in io_components],
+            lambda: [gr.update(value=None) for _ in io_components],
             inputs=[],
             outputs=io_components,
         )
 
     output = demo.postprocess_data(
-        0, [gr.update(value=gr.Keywords.VOID) for _ in io_components], state=None
+        0, [gr.update(value=None) for _ in io_components], state=None
     )
     assert all(
         [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]

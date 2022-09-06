@@ -51,6 +51,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
+                "value": None,
                 "style": {},
             },
         },
@@ -61,6 +62,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "json",
                 "visible": True,
+                "value": None,
                 "style": {},
             },
         },
@@ -98,6 +100,7 @@ XRAY_CONFIG = {
                 "name": "image",
                 "visible": True,
                 "style": {},
+                "value": None,
             },
         },
         {
@@ -108,6 +111,7 @@ XRAY_CONFIG = {
                 "name": "json",
                 "visible": True,
                 "style": {},
+                "value": None,
             },
         },
         {
