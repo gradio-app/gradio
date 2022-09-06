@@ -616,19 +616,42 @@ class Blocks(BlockContext):
             processed_input = raw_input
         return processed_input
 
-    async def call_function(self, fn_index, processed_input):
+    async def call_function(self, fn_index, processed_input, generator=None):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-
+        is_generating = False
         start = time.time()
+
         if inspect.iscoroutinefunction(block_fn.fn):
             prediction = await block_fn.fn(*processed_input)
         else:
             prediction = await anyio.to_thread.run_sync(
                 block_fn.fn, *processed_input, limiter=self.limiter
             )
+
+        if inspect.isasyncgenfunction(block_fn.fn):
+            raise ValueError("Gradio does not support async generators.")
+        if inspect.isgeneratorfunction(block_fn.fn):
+            if not self.enable_queue:
+                raise ValueError("Need to enable queue to use generators.")
+            try:
+                if generator is None:
+                    generator = prediction
+                prediction = next(generator)
+                is_generating = True
+            except StopIteration:
+                n_outputs = len(self.dependencies[fn_index].get("outputs"))
+                prediction = None if n_outputs == 1 else [None] * n_outputs
+                generator = None
+
         duration = time.time() - start
-        return prediction, duration
+
+        return {
+            "prediction": prediction,
+            "duration": duration,
+            "is_generating": is_generating,
+            "generator": generator,
+        }
 
     def postprocess_data(self, fn_index, predictions, state):
         block_fn = self.fns[fn_index]
@@ -692,7 +715,8 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Optional[Dict[int, any]] = None,
+        state: Optional[Dict[int, Any]] = None,
+        generators: Dict[int, Any] = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -706,16 +730,19 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
+        generator = generators.get(fn_index, None)
 
-        predictions, duration = await self.call_function(fn_index, inputs)
-        block_fn.total_runtime += duration
+        result = await self.call_function(fn_index, inputs, generator)
+        block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, predictions, state)
+        predictions = self.postprocess_data(fn_index, result["prediction"], state)
 
         return {
             "data": predictions,
-            "duration": duration,
+            "is_generating": result["is_generating"],
+            "generator": result["generator"],
+            "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
@@ -962,10 +989,7 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
-        if self.is_space:
-            self.enable_queue = self.enable_queue is not False
-        else:
-            self.enable_queue = self.enable_queue is True
+        self.enable_queue = self.enable_queue is not False
 
         self.config = self.get_config_file()
         self.share = share

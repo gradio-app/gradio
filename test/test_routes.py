@@ -152,7 +152,9 @@ class TestAuthenticatedRoutes(unittest.TestCase):
     def setUp(self) -> None:
         self.io = Interface(lambda x: x, "text", "text")
         self.app, _, _ = self.io.launch(
-            auth=("test", "correct_password"), prevent_thread_lock=True
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+            enable_queue=False,
         )
         self.client = TestClient(self.app)
 
