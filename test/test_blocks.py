@@ -272,7 +272,7 @@ def test_blocks_does_not_replace_keyword_literal():
         text = gr.Textbox()
         btn = gr.Button(value="Reset")
         btn.click(
-            lambda: gr.update(value="VOID"),
+            lambda: gr.update(value="NO_VALUE"),
             inputs=[],
             outputs=text,
         )
