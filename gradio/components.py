@@ -15,6 +15,7 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -57,6 +58,10 @@ from gradio.serializing import (
 from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
+
+
+class _Keywords(Enum):
+    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
 
 
 class Component(Block):
@@ -286,7 +291,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComp
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         lines: Optional[int] = None,
         max_lines: Optional[int] = None,
         placeholder: Optional[str] = None,
@@ -465,7 +470,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormCompo
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -637,7 +642,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         step: Optional[float] = None,
@@ -763,7 +768,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[bool] = None,
+        value: Optional[bool] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -861,7 +866,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = None,
+        value: Optional[List[str]] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1024,7 +1029,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1257,7 +1262,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -1581,7 +1586,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1768,7 +1773,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2046,7 +2051,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -2282,7 +2287,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         max_rows: Optional[int] = None,
         max_cols: Optional[str] = None,
         label: Optional[str] = None,
@@ -2494,7 +2499,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         colors: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2644,7 +2649,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         variant: Optional[str] = None,
         visible: Optional[bool] = None,
     ):
@@ -2732,7 +2737,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2867,7 +2872,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Dict[str, float] | str | float] = None,
+        value: Optional[Dict[str, float] | str | float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2957,7 +2962,9 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
+        value: Optional[
+            List[Tuple[str, str | float | None]] | Dict
+        ] = _Keywords.NO_VALUE,
         color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
@@ -3086,7 +3093,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3171,7 +3178,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3228,7 +3235,7 @@ class Gallery(IOComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3361,7 +3368,7 @@ class Carousel(IOComponent, Changeable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3452,7 +3459,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -3551,7 +3558,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3668,7 +3675,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3756,7 +3763,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -3832,7 +3839,7 @@ class Dataset(Clickable, Component):
 
     @staticmethod
     def update(
-        samples: Optional[Any] = None,
+        samples: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
         label: Optional[str] = None,
     ):
@@ -3905,7 +3912,7 @@ class Interpretation(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {
@@ -3949,7 +3956,7 @@ class StatusTracker(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {

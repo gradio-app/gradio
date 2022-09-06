@@ -13,6 +13,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_layout",
         "blocks_mask",
         "blocks_multiple_event_triggers",
+        "blocks_update",
         "calculator",
         "fake_gan",
         "gender_sentence_default_interpretation",
