@@ -10,11 +10,6 @@ aws_required
 new_version="$(cat gradio/version.txt)"
 GRADIO_VERSION=$new_version
 
-if [[ $(aws s3 ls s3://gradio/${new_version}/) ]]; then
-    echo "Gradio version ${new_version} already exists on S3."
-    exit 1
-fi
-
 rm -rf gradio/templates/frontend
 rm -rf gradio/templates/cdn
 cd ui
