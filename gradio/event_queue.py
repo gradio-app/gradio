@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import fastapi
 from pydantic import BaseModel

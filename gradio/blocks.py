@@ -639,7 +639,11 @@ class Blocks(BlockContext):
                 is_generating = True
             except StopIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
-                prediction = components._Keywords.SKIP if n_outputs == 1 else [components._Keywords.SKIP] * n_outputs
+                prediction = (
+                    components._Keywords.SKIP
+                    if n_outputs == 1
+                    else [components._Keywords.SKIP] * n_outputs
+                )
                 generator = None
 
         duration = time.time() - start
