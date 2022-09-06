@@ -277,8 +277,8 @@ def test_blocks_does_not_replace_keyword_literal():
             outputs=text,
         )
 
-    output = demo.postprocess_data(0, gr.update(value="VOID"), state=None)
-    assert output[0]["value"] == "VOID"
+    output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+    assert output[0]["value"] == "NO_VALUE"
 
 
 if __name__ == "__main__":
