@@ -1170,7 +1170,7 @@ class Dropdown(Radio):
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` or `color-sketch` AND source is `upload` or `webcam`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
@@ -1185,7 +1185,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
-        tool: str = "editor",
+        tool: str = None,
         type: str = "numpy",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1203,7 +1203,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
+            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), zand "color-sketch" allows you to created a sketch in different colors. "sketch" and "color-sketch" can be used with source="upload" to allow sketching on an image, and in that case both the image and mask are passed into the function as a dictionary.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1219,7 +1219,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self.image_mode = image_mode
         self.source = source
         requires_permissions = source == "webcam"
-        self.tool = tool
+        if self.tool is None:
+            self.tool = "editor" if source in ["upload", "webcam"] else "sketch"
+        else:
+            self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
@@ -1311,7 +1314,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         """
         if x is None:
             return x
-        if self.tool == "sketch":
+        if self.tool in ["sketch", "color-sketch"] and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
 
         im = processing_utils.decode_base64_to_image(x)
