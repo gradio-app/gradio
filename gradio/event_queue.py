@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import fastapi
 from pydantic import BaseModel
@@ -213,7 +213,7 @@ class Queue:
     async def call_prediction(self, event: Event):
         response = await Request(
             method=Request.Method.POST,
-            url=f"{self.SERVER_PATH}api/predict",
+            url=f"{self.server_path}api/predict",
             json=event.data,
         )
         return response
@@ -263,7 +263,7 @@ class Queue:
         await event.disconnect()
         await self.clean_event(event)
 
-    async def send_message(self, event, data: json) -> bool:
+    async def send_message(self, event, data: Dict) -> bool:
         try:
             await event.websocket.send_json(data=data)
             return True
@@ -271,7 +271,7 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[json]:
+    async def get_message(self, event) -> Optional[Dict]:
         try:
             data = await event.websocket.receive_json()
             return data
