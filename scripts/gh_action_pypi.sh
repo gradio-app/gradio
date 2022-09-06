@@ -6,8 +6,7 @@ source scripts/helpers.sh
 pnpm_required
 aws_required
 
-# You should first run `upload_to_pypi.sh` to update the version number and
-# pull the latest version of the code.
+# You should update the version in version.txt before running this script
 new_version="$(cat gradio/version.txt)"
 GRADIO_VERSION=$new_version
 
