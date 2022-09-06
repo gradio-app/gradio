@@ -639,7 +639,7 @@ class Blocks(BlockContext):
                 is_generating = True
             except StopIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
-                prediction = None if n_outputs == 1 else [None] * n_outputs
+                prediction = components._Keywords.SKIP if n_outputs == 1 else [components._Keywords.SKIP] * n_outputs
                 generator = None
 
         duration = time.time() - start
@@ -677,6 +677,9 @@ class Blocks(BlockContext):
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
+                if predictions[i] == components._Keywords.SKIP:
+                    output.append(None)
+                    break
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
                     if not is_update(predictions[i]):
