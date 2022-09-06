@@ -9,6 +9,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let value;
+	export let value_img;
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
@@ -75,6 +76,15 @@
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
 		});
+
+		value_img.addEventListener("load", (_) => {
+			ctx.drawing.drawImage(value_img, 0, 0);
+		});
+
+		setTimeout(() => {
+			ctx.drawing.drawImage(value_img, 0, 0);
+		}, 100);
+
 		lazy = new LazyBrush({
 			radius: brush_radius / 1.5,
 			enabled: true,
@@ -107,7 +117,6 @@
 		lazy.update({ x: initX + chain_length / 4, y: initY }, { both: false });
 		mouse_has_moved = true;
 		values_changed = true;
-		clear();
 	}
 
 	onDestroy(() => {
@@ -396,7 +405,7 @@
 		ctx.drawing.clearRect(0, 0, width, height);
 		ctx.temp.clearRect(0, 0, width, height);
 
-		ctx.drawing.fillStyle = mode === "sketch" ? "#FFFFFF" : "transparent";
+		ctx.drawing.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
 		ctx.drawing.fillRect(0, 0, width, height);
 		if (mode === "mask") {
 			ctx.temp_fake.clearRect(

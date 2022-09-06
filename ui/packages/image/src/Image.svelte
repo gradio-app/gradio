@@ -8,6 +8,7 @@
 	import Sketch from "./Sketch.svelte";
 	import Webcam from "./Webcam.svelte";
 	import ModifySketch from "./ModifySketch.svelte";
+	import SketchSettings from "./SketchSettings.svelte";
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
@@ -98,6 +99,18 @@
 	let img_height = 0;
 	let img_width = 0;
 	let container_height = 0;
+
+	let brush_radius = 20;
+	let brush_color = "rgba(255, 255, 255, 0.65)";
+
+	$: mode =
+		source === "canvas" && tool === "sketch"
+			? "bw-sketch"
+			: tool === "color-sketch"
+			? "color-sketch"
+			: "mask";
+
+	let value_img;
 </script>
 
 <BlockLabel
@@ -108,7 +121,9 @@
 
 <div
 	class:bg-gray-200={value}
-	class:h-60={source !== "webcam" || tool === "sketch"}
+	class:h-60={source !== "webcam" ||
+		tool === "sketch" ||
+		tool === "color-sketch"}
 	data-testid="image"
 >
 	{#if source === "canvas"}
@@ -116,7 +131,7 @@
 			on:undo={() => sketch.undo()}
 			on:clear={() => sketch.clear()}
 		/>
-		<Sketch {value} bind:this={sketch} on:change={handle_save} />
+		<Sketch {value} bind:this={sketch} on:change={handle_save} {mode} />
 	{:else if value === null || streaming}
 		{#if source === "upload"}
 			<Upload
@@ -156,11 +171,12 @@
 			alt=""
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
-	{:else if tool === "sketch" && value !== null}
+	{:else if (tool === "sketch" || tool === "color-sketch") && value !== null}
 		{#key value.image}
 			<img
+				bind:this={value_img}
 				class="absolute w-full h-full object-contain"
-				src={value.image}
+				src={value.image || value}
 				alt=""
 				on:load={handle_image_load}
 				class:scale-x-[-1]={source === "webcam" && mirror_webcam}
@@ -170,18 +186,28 @@
 			<Sketch
 				{value}
 				bind:this={sketch}
-				brush_radius={25}
-				brush_color="rgba(255, 255, 255, 0.65)"
+				bind:brush_radius
+				bind:brush_color
 				on:change={handle_mask_save}
-				mode="mask"
+				{mode}
 				width={img_width}
 				height={img_height}
 				{container_height}
+				{value_img}
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
 				on:clear={handle_mask_clear}
 			/>
+			{#if tool === "color-sketch"}
+				<SketchSettings
+					bind:brush_radius
+					bind:brush_color
+					{container_height}
+					{img_width}
+					{img_height}
+				/>
+			{/if}
 		{/if}
 	{:else}
 		<img
