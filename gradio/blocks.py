@@ -671,7 +671,7 @@ class Blocks(BlockContext):
                         # not specify a value for the 'value' key and we can get rid of it
                         if (
                             prediction_value.get("value")
-                            == components.Keywords.NO_VALUE
+                            == components._Keywords.NO_VALUE
                         ):
                             prediction_value.pop("value")
                         prediction_value = delete_none(prediction_value)
