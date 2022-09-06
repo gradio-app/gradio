@@ -146,6 +146,15 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if api_name is not None:
+            api_name_ = utils.append_unique_suffix(
+                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
+            )
+            if not (api_name == api_name_):
+                warnings.warn(
+                    "api_name {} already exists, using {}".format(api_name, api_name_)
+                )
+                api_name = api_name_
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -572,7 +581,21 @@ class Blocks(BlockContext):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
-            Context.root_block.dependencies.extend(self.dependencies)
+            for dependency in self.dependencies:
+                api_name = dependency["api_name"]
+                if api_name is not None:
+                    api_name_ = utils.append_unique_suffix(
+                        api_name,
+                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                    )
+                    if not (api_name == api_name_):
+                        warnings.warn(
+                            "api_name {} already exists, using {}".format(
+                                api_name, api_name_
+                            )
+                        )
+                        dependency["api_name"] = api_name_
+                Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -960,7 +983,7 @@ class Blocks(BlockContext):
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_port, path_to_local_server, app, server = networking.start_server(
+            server_name, server_port, local_url, app, server = networking.start_server(
                 self,
                 server_name,
                 server_port,
@@ -968,11 +991,13 @@ class Blocks(BlockContext):
                 ssl_certfile,
                 ssl_keyfile_password,
             )
-            self.local_url = path_to_local_server
+            self.server_name = server_name
+            self.local_url = local_url
             self.server_port = server_port
             self.server_app = app
             self.server = server
             self.is_running = True
+            self.protocol = "https" if self.local_url.startswith("https") else "http"
 
             event_queue.Queue.set_url(self.local_url)
             # Cannot run async functions in background other than app's scope.
@@ -1000,7 +1025,11 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
+            )
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
