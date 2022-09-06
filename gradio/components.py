@@ -61,8 +61,7 @@ set_documentation_group("component")
 
 
 class _Keywords(Enum):
-    # Set value in front-end to null
-    NO_VALUE = "NO_VALUE"
+    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
 
 
 class Component(Block):
