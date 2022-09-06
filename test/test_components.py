@@ -850,10 +850,12 @@ class TestFile(unittest.TestCase):
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
+        serialized = file_input.serialize("test/test_files/sample_file.pdf")
         assert filecmp.cmp(
-            file_input.serialize("test/test_files/sample_file.pdf")["name"],
+            serialized["name"],
             "test/test_files/sample_file.pdf",
         )
+        assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
         self.assertIsInstance(file_input.generate_sample(), dict)
