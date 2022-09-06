@@ -300,13 +300,13 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             await websocket.accept()
             event = Event(websocket)
-            rank = Queue.push(event)
+            rank = app.blocks._queue.push(event)
             if rank is None:
-                await Queue.send_message(event, {"msg": "queue_full"})
+                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()
                 return
-            estimation = Queue.get_estimation()
-            await Queue.send_estimation(event, estimation, rank)
+            estimation = app.blocks._queue.get_estimation()
+            await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
@@ -318,7 +318,7 @@ class App(FastAPI):
             response_model=Estimation,
         )
         async def get_queue_status():
-            return Queue.get_estimation()
+            return app.blocks._queue.get_estimation()
 
         @app.get(
             "/startup-events",
@@ -328,7 +328,7 @@ class App(FastAPI):
             from gradio.utils import run_coro_in_background
 
             if app.blocks.enable_queue:
-                gradio.utils.run_coro_in_background(Queue.init)
+                gradio.utils.run_coro_in_background(app.blocks._queue.start)
             gradio.utils.run_coro_in_background(app.blocks.create_limiter)
 
             return True
