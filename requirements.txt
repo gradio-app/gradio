@@ -13,6 +13,7 @@ pillow
 pycryptodome
 python-multipart
 pydub
+pyyaml
 requests
 uvicorn
 Jinja2
