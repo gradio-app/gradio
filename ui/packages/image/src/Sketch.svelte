@@ -496,7 +496,7 @@
 	{#each canvas_types as { name, zIndex }}
 		<canvas
 			key={name}
-			class="inset-0 m-auto"
+			class="inset-0 m-auto hover:cursor-none"
 			style=" display:block;position:absolute; z-index:{zIndex};"
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
