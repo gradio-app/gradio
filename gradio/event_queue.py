@@ -23,6 +23,7 @@ class Estimation(BaseModel):
 
 class Queue:
     EVENT_QUEUE = []
+    EVENTS_PENDING_RECONNECTION = []
     STOP = False
     CURRENT = None
     MAX_THREAD_COUNT = 1
@@ -37,8 +38,9 @@ class Queue:
     AVG_CONCURRENT_PROCESS_TIME = None
     QUEUE_DURATION = 1
     LIVE_UPDATES = True
-    SLEEP_WHEN_FREE = 0.001
+    SLEEP_WHEN_FREE = 0.05
     MAX_SIZE = None
+    MAX_WAIT_PENDING_RECONNECTION = 120
 
     @classmethod
     def configure_queue(
@@ -95,7 +97,7 @@ class Queue:
                 continue
 
             if not (None in cls.ACTIVE_JOBS):
-                await asyncio.sleep(1)
+                await asyncio.sleep(cls.SLEEP_WHEN_FREE)
                 continue
 
             # Using mutex to avoid editing a list in use
@@ -121,18 +123,12 @@ class Queue:
         return len(cls.EVENT_QUEUE) - 1
 
     @classmethod
-    def clean_job(cls, event: Event):
-        cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(event)] = None
-
-    @classmethod
     async def clean_event(cls, event: Event) -> None:
-        # Using mutex to avoid editing a list in use
-        async with cls.DELETE_LOCK:
-            # TODO: Might log number of cleaned events in the future
-            try:  # TODO: Might search with event hash to speed up
+        if event in cls.EVENT_QUEUE:
+            async with cls.DELETE_LOCK:
                 cls.EVENT_QUEUE.remove(event)
-            except ValueError as er:
-                print(f"{er}, {event}")
+        elif event in cls.ACTIVE_JOBS:
+            cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(event)] = None
 
     @classmethod
     async def gather_data_and_broadcast_estimations(cls) -> None:
@@ -165,13 +161,11 @@ class Queue:
             event:
         """
         if not event.data:
-
-            client_awake = await event.send_message({"msg": "send_data"})
+            client_awake = await cls.send_message(event, {"msg": "send_data"})
             if not client_awake:
-                await cls.clean_event(event)
-                return
-
-            event.data = await event.get_message()
+                return False
+            event.data = await cls.get_message(event)
+        return True
 
     @classmethod
     async def notify_clients(cls) -> None:
@@ -215,7 +209,7 @@ class Queue:
             if None not in cls.ACTIVE_JOBS:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME
-        client_awake = await event.send_message(estimation.dict())
+        client_awake = await cls.send_message(event, estimation.dict())
         if not client_awake:
             await cls.clean_event(event)
 
@@ -246,10 +240,11 @@ class Queue:
 
     @classmethod
     async def process_event(cls, event: Event) -> None:
-        await cls.gather_event_data(event)  # Make sure we have the data
-        client_awake = await event.send_message({"msg": "process_starts"})
+        client_awake = await cls.gather_event_data(event)
         if not client_awake:
-            cls.clean_job(event)
+            return
+        client_awake = await cls.send_message(event, {"msg": "process_starts"})
+        if not client_awake:
             return
         begin_time = time.time()
         response = await Request(
@@ -261,29 +256,34 @@ class Queue:
         success = response.status == 200
         if success:
             cls.update_estimation(end_time - begin_time)
-        client_awake = await event.send_message(
+        await cls.send_message(
+            event,
             {
                 "msg": "process_completed",
                 "output": response.json,
                 "success": success,
-            }
+            },
         )
-        if client_awake:
-            run_coro_in_background(cls.wait_in_inactive, event)
-        cls.clean_job(event)
+        await event.disconnect()
+        await cls.clean_event(event)
 
     @classmethod
-    async def wait_in_inactive(cls, event: Event) -> None:
-        """
-        Waits the event until it receives the join_back message or loses ws connection.
-        """
-        event.data = None
-        client_awake = await event.get_message()
-        if client_awake:
-            if client_awake.get("msg") == "join_back":
-                cls.push(event)
-            else:
-                await event.disconnect()
+    async def send_message(cls, event, data: json) -> bool:
+        try:
+            await event.websocket.send_json(data=data)
+            return True
+        except:
+            await cls.clean_event(event)
+            return False
+
+    @classmethod
+    async def get_message(cls, event) -> Optional[json]:
+        try:
+            data = await event.websocket.receive_json()
+            return data
+        except:
+            await cls.clean_event(event)
+            return None
 
 
 class Event:
@@ -291,25 +291,8 @@ class Event:
         from gradio.routes import PredictBody
 
         self.websocket = websocket
-        self.hash = None
-        self.data: None | PredictBody = None
-
-    def __repr__(self):
-        return f"hash:{self.hash}, data: {self.data}, ws:{self.websocket}"
+        self.data: PredictBody | None = None
+        self.lost_connection_time: float | None = None
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
-
-    async def send_message(self, data: json) -> bool:
-        try:
-            await self.websocket.send_json(data=data)
-            return True
-        except:
-            return False
-
-    async def get_message(self) -> Optional[json]:
-        try:
-            data = await self.websocket.receive_json()
-            return data
-        except:
-            return None

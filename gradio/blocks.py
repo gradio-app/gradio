@@ -4,6 +4,7 @@ import copy
 import getpass
 import inspect
 import os
+import pkgutil
 import random
 import sys
 import tempfile
@@ -113,7 +114,7 @@ class Block:
         scroll_to_output: bool = False,
         show_progress: bool = True,
         api_name: Optional[AnyStr] = None,
-        js: Optional[str] = False,
+        js: Optional[str] = None,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
@@ -145,6 +146,15 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if api_name is not None:
+            api_name_ = utils.append_unique_suffix(
+                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
+            )
+            if not (api_name == api_name_):
+                warnings.warn(
+                    "api_name {} already exists, using {}".format(api_name, api_name_)
+                )
+                api_name = api_name_
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -201,7 +211,28 @@ class BlockContext(Block):
         Context.block = self
         return self
 
+    def fill_expected_parents(self):
+        children = []
+        pseudo_parent = None
+        for child in self.children:
+            expected_parent = getattr(child.__class__, "expected_parent", False)
+            if not expected_parent or isinstance(self, expected_parent):
+                pseudo_parent = None
+                children.append(child)
+            else:
+                if pseudo_parent is not None and isinstance(
+                    pseudo_parent, expected_parent
+                ):
+                    pseudo_parent.children.append(child)
+                else:
+                    pseudo_parent = expected_parent(render=False)
+                    children.append(pseudo_parent)
+                    pseudo_parent.children = [child]
+                    Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+        self.children = children
+
     def __exit__(self, *args):
+        self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):
@@ -383,6 +414,18 @@ class Blocks(BlockContext):
         self.temp_dirs = set()
         self.title = title
 
+        data = {
+            "mode": self.mode,
+            "ip_address": self.ip_address,
+            "custom_css": self.css is not None,
+            "theme": self.theme,
+            "version": pkgutil.get_data(__name__, "version.txt")
+            .decode("ascii")
+            .strip(),
+        }
+        if self.analytics_enabled:
+            utils.initiated_analytics(data)
+
     @property
     def share(self):
         return self._share
@@ -461,6 +504,11 @@ class Blocks(BlockContext):
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
 
+        if config.get("mode", "blocks") == "interface":
+            blocks.__name__ = "Interface"
+            blocks.mode = "interface"
+            blocks.api_mode = True
+
         return blocks
 
     def __call__(self, *params, fn_index=0):
@@ -533,7 +581,21 @@ class Blocks(BlockContext):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
-            Context.root_block.dependencies.extend(self.dependencies)
+            for dependency in self.dependencies:
+                api_name = dependency["api_name"]
+                if api_name is not None:
+                    api_name_ = utils.append_unique_suffix(
+                        api_name,
+                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                    )
+                    if not (api_name == api_name_):
+                        warnings.warn(
+                            "api_name {} already exists, using {}".format(
+                                api_name, api_name_
+                            )
+                        )
+                        dependency["api_name"] = api_name_
+                Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -680,6 +742,17 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
         }
+
+        def getLayout(block):
+            if not isinstance(block, BlockContext):
+                return {"id": block._id}
+            children_layout = []
+            for child in block.children:
+                children_layout.append(getLayout(child))
+            return {"id": block._id, "children": children_layout}
+
+        config["layout"] = getLayout(self)
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -690,16 +763,6 @@ class Blocks(BlockContext):
                     else {},
                 }
             )
-
-        def getLayout(block):
-            if not isinstance(block, BlockContext):
-                return {"id": block._id}
-            children = []
-            for child in block.children:
-                children.append(getLayout(child))
-            return {"id": block._id, "children": children}
-
-        config["layout"] = getLayout(self)
         config["dependencies"] = self.dependencies
         return config
 
@@ -711,6 +774,7 @@ class Blocks(BlockContext):
         return self
 
     def __exit__(self, *args):
+        super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
         self.attach_load_events()
@@ -732,6 +796,7 @@ class Blocks(BlockContext):
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
+        _js: Optional[str] = None,
         **kwargs,
     ) -> Blocks | None:
         """
@@ -752,6 +817,7 @@ class Blocks(BlockContext):
             inputs: Instance Method - input list
             outputs: Instance Method - output list
         """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
@@ -766,7 +832,12 @@ class Blocks(BlockContext):
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
             self_or_cls.set_event_trigger(
-                event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+                event_name="load",
+                fn=fn,
+                inputs=inputs,
+                outputs=outputs,
+                no_target=True,
+                js=_js,
             )
 
     def clear(self):
@@ -912,7 +983,7 @@ class Blocks(BlockContext):
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_port, path_to_local_server, app, server = networking.start_server(
+            server_name, server_port, local_url, app, server = networking.start_server(
                 self,
                 server_name,
                 server_port,
@@ -920,11 +991,13 @@ class Blocks(BlockContext):
                 ssl_certfile,
                 ssl_keyfile_password,
             )
-            self.local_url = path_to_local_server
+            self.server_name = server_name
+            self.local_url = local_url
             self.server_port = server_port
             self.server_app = app
             self.server = server
             self.is_running = True
+            self.protocol = "https" if self.local_url.startswith("https") else "http"
 
             event_queue.Queue.set_url(self.local_url)
             # Cannot run async functions in background other than app's scope.
@@ -952,7 +1025,11 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
+            )
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 

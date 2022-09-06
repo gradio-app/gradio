@@ -154,7 +154,7 @@ def start_server(
     )
     server = Server(config=config)
     server.run_in_thread()
-    return port, path_to_local_server, app, server
+    return server_name, port, path_to_local_server, app, server
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:

@@ -68,7 +68,7 @@ class QueuePushBody(BaseModel):
 class PredictBody(BaseModel):
     session_hash: Optional[str]
     data: Any
-    fn_index: int = 0
+    fn_index: Optional[int]
 
 
 ###########
@@ -212,8 +212,8 @@ class App(FastAPI):
             else:
                 return FileResponse(app.blocks.favicon_path)
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file(path):
+        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
+        def file(path: str):
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
@@ -235,6 +235,10 @@ class App(FastAPI):
                     f"File cannot be fetched: {path}, perhaps because "
                     f"it is not in any of {app.blocks.temp_dirs}"
                 )
+
+        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        def file_deprecated(path: str):
+            return file(path)
 
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
@@ -289,13 +293,9 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             await websocket.accept()
             event = Event(websocket)
-            e_hash = await event.get_message()
-            if e_hash is None:
-                return
-            event.hash = e_hash["hash"]
             rank = Queue.push(event)
             if rank is None:
-                await event.send_message({"msg": "queue_full"})
+                await Queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()
                 return
             estimation = Queue.get_estimation()

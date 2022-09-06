@@ -1,6 +1,6 @@
 import asyncio
-import inspect
 import io
+import os
 import random
 import sys
 import time
@@ -19,6 +19,8 @@ from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 @contextmanager
@@ -197,6 +199,12 @@ class TestBlocks(unittest.TestCase):
         demo.share_url = None
         demo.close()
 
+    @mock.patch("requests.post")
+    def test_initiated_analytics(self, mock_post):
+        with gr.Blocks(analytics_enabled=True):
+            pass
+        mock_post.assert_called_once()
+
 
 def test_slider_random_value_config():
     with gr.Blocks() as demo:
@@ -224,7 +232,7 @@ def test_slider_random_value_config():
 
 
 def test_io_components_attach_load_events_when_value_is_fn(io_components):
-
+    io_components = [comp for comp in io_components if not (comp == gr.State)]
     interface = gr.Interface(
         lambda *args: None,
         inputs=[comp(value=lambda: None) for comp in io_components],
@@ -239,7 +247,7 @@ def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
 def test_blocks_do_not_filter_none_values_from_updates(io_components):
 
-    io_components = [c() for c in io_components if c not in [gr.Variable, gr.Button]]
+    io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
     with gr.Blocks() as demo:
         for component in io_components:
             component.render()
