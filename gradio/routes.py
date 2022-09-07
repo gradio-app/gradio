@@ -31,6 +31,9 @@ from gradio import encryptor
 from gradio.event_queue import Estimation, Event, Queue
 from gradio.exceptions import Error
 
+import mimetypes
+mimetypes.init()
+
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
@@ -165,6 +168,8 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: Request, user: str = Depends(get_current_user)):
+            mimetypes.add_type('application/javascript', '.js')
+            
             if app.auth is None or not (user is None):
                 config = app.blocks.config
             else:
