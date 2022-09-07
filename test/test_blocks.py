@@ -293,6 +293,8 @@ class TestCallFunction():
 
         output = await demo.call_function(0, ["World"])
         assert output["prediction"] == "Hello, World"
+        output = await demo.call_function(0, ["Abubakar"])
+        assert output["prediction"] == "Hello, Abubakar"
 
     @pytest.mark.asyncio
     async def test_call_generator(self):
@@ -309,11 +311,20 @@ class TestCallFunction():
                 inputs=inp,
                 outputs=out,
             )
+            
+        demo.queue()
 
-        output = await demo.call_function(0, ["World"])
-        assert output["prediction"] == "Hello, World"
-
-
+        output = await demo.call_function(0, [3])
+        assert output["prediction"] == 0
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 1
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 2
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == gr.components._Keywords.FINISHED_ITERATING
+        assert output["iterator"] is None        
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 0
 
 
 if __name__ == "__main__":

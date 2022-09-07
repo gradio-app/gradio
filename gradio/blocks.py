@@ -620,12 +620,13 @@ class Blocks(BlockContext):
         is_generating = False
         start = time.time()
 
-        if inspect.iscoroutinefunction(block_fn.fn):
-            prediction = await block_fn.fn(*processed_input)
-        else:
-            prediction = await anyio.to_thread.run_sync(
-                block_fn.fn, *processed_input, limiter=self.limiter
-            )
+        if iterator is None:  # If not a generator function that has already run
+            if inspect.iscoroutinefunction(block_fn.fn):
+                prediction = await block_fn.fn(*processed_input)
+            else:
+                prediction = await anyio.to_thread.run_sync(
+                    block_fn.fn, *processed_input, limiter=self.limiter
+                )
 
         if inspect.isasyncgenfunction(block_fn.fn):
             raise ValueError("Gradio does not support async generators.")
@@ -633,18 +634,18 @@ class Blocks(BlockContext):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
-                if generator is None:
-                    generator = prediction
-                prediction = next(generator)
+                if iterator is None:
+                    iterator = prediction
+                prediction = next(iterator)
                 is_generating = True
             except StopIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
-                    components._Keywords.SKIP
+                    components._Keywords.FINISHED_ITERATING
                     if n_outputs == 1
-                    else [components._Keywords.SKIP] * n_outputs
+                    else [components._Keywords.FINISHED_ITERATING] * n_outputs
                 )
-                generator = None
+                iterator = None
 
         duration = time.time() - start
 
@@ -652,7 +653,7 @@ class Blocks(BlockContext):
             "prediction": prediction,
             "duration": duration,
             "is_generating": is_generating,
-            "generator": generator,
+            "iterator": iterator,
         }
 
     def postprocess_data(self, fn_index, predictions, state):
@@ -681,7 +682,7 @@ class Blocks(BlockContext):
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
-                if predictions[i] is components._Keywords.SKIP:
+                if predictions[i] is components._Keywords.FINISHED_ITERATING:
                     output.append(None)
                     break
                 block = self.blocks[output_id]
@@ -728,7 +729,7 @@ class Blocks(BlockContext):
         inputs: List[Any],
         username: str = None,
         state: Optional[Dict[int, Any]] = None,
-        generators: Dict[int, Any] = None,
+        iterators: Dict[int, Any] = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -742,9 +743,9 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
-        generator = generators.get(fn_index, None)
+        iterator = iterators.get(fn_index, None)
 
-        result = await self.call_function(fn_index, inputs, generator)
+        result = await self.call_function(fn_index, inputs, iterator)
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
@@ -753,7 +754,7 @@ class Blocks(BlockContext):
         return {
             "data": predictions,
             "is_generating": result["is_generating"],
-            "generator": result["generator"],
+            "iterator": result["iterator"],
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
