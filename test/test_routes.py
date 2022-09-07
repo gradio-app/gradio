@@ -142,6 +142,52 @@ class TestRoutes(unittest.TestCase):
         close_all()
 
 
+class TestGeneratorRoutes:
+    def test_generator(self):
+        def generator(string):
+            for char in string:
+                yield char
+
+        io = Interface(generator, "text", "text")
+        app, _, _ = io.queue().launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+        )
+        output = dict(response.json())
+        assert output["data"] == ["a"]
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+        )
+        output = dict(response.json())
+        assert output["data"] == ["b"]
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+        )
+        output = dict(response.json())
+        assert output["data"] == ["c"]
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+        )
+        output = dict(response.json())
+        assert output["data"] == [None]
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+        )
+        output = dict(response.json())
+        assert output["data"] == ["a"]
+
+
 class TestApp:
     def test_create_app(self):
         app = routes.App.create_app(Interface(lambda x: x, "text", "text"))
