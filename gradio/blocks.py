@@ -643,7 +643,7 @@ class Blocks(BlockContext):
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
                     if n_outputs == 1
-                    else [components._Keywords.FINISHED_ITERATING] * n_outputs
+                    else (components._Keywords.FINISHED_ITERATING,) * n_outputs
                 )
                 iterator = None
 

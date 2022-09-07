@@ -326,6 +326,43 @@ class TestCallFunction:
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 0
 
+    @pytest.mark.asyncio
+    async def test_call_both_generator_and_function(self):
+        def generator(x):
+            for i in range(x):
+                yield i, x
+
+        with gr.Blocks() as demo:
+            inp = gr.Number()
+            out1 = gr.Number()
+            out2 = gr.Number()
+            btn = gr.Button()
+            inp.change(lambda x: x + x, inp, out1)
+            btn.click(
+                generator,
+                inputs=inp,
+                outputs=[out1, out2],
+            )
+
+        demo.queue()
+
+        output = await demo.call_function(0, [2])
+        assert output["prediction"] == 4
+        output = await demo.call_function(0, [-1])
+        assert output["prediction"] == -2
+
+        output = await demo.call_function(1, [3])
+        assert output["prediction"] == (0, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (1, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (2, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (gr.components._Keywords.FINISHED_ITERATING,) * 2
+        assert output["iterator"] is None
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (0, 3)
+
 
 if __name__ == "__main__":
     unittest.main()
