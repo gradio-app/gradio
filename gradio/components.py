@@ -1219,7 +1219,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self.image_mode = image_mode
         self.source = source
         requires_permissions = source == "webcam"
-        if self.tool is None:
+        if tool is None:
             self.tool = "editor" if source in ["upload", "webcam"] else "sketch"
         else:
             self.tool = tool
