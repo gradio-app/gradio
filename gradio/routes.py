@@ -86,7 +86,7 @@ class App(FastAPI):
         self.auth = None
         self.blocks: Optional[gradio.Blocks] = None
         self.state_holder = {}
-        self.generators = defaultdict(dict)
+        self.iterators = defaultdict(dict)
 
         super().__init__(**kwargs)
 
@@ -253,19 +253,19 @@ class App(FastAPI):
                         if getattr(block, "stateful", False)
                     }
                 session_state = app.state_holder[body.session_hash]
-                generators = app.generators[body.session_hash]
+                iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
-                generators = {}
+                iterator = {}
             raw_input = body.data
             fn_index = body.fn_index
             try:
                 output = await app.blocks.process_api(
-                    fn_index, raw_input, username, session_state, generators
+                    fn_index, raw_input, username, session_state, iterators
                 )
-                generator = output.pop("generator", None)
+                iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    app.generators[body.session_hash][fn_index] = generator
+                    app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:

@@ -614,7 +614,7 @@ class Blocks(BlockContext):
             processed_input = raw_input
         return processed_input
 
-    async def call_function(self, fn_index, processed_input, generator=None):
+    async def call_function(self, fn_index, processed_input, iterator=None):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False

@@ -246,7 +246,6 @@ def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
 
 def test_blocks_do_not_filter_none_values_from_updates(io_components):
-
     io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
     with gr.Blocks() as demo:
         for component in io_components:
@@ -267,7 +266,6 @@ def test_blocks_do_not_filter_none_values_from_updates(io_components):
 
 
 def test_blocks_does_not_replace_keyword_literal():
-
     with gr.Blocks() as demo:
         text = gr.Textbox()
         btn = gr.Button(value="Reset")
@@ -279,6 +277,43 @@ def test_blocks_does_not_replace_keyword_literal():
 
     output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
     assert output[0]["value"] == "NO_VALUE"
+
+
+class TestCallFunction():
+    @pytest.mark.asyncio
+    async def test_call_regular_function(self):
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(
+                lambda x:"Hello, " + x,
+                inputs=text,
+                outputs=text,
+            )
+
+        output = await demo.call_function(0, ["World"])
+        assert output["prediction"] == "Hello, World"
+
+    @pytest.mark.asyncio
+    async def test_call_generator(self):
+        def generator(x):
+            for i in range(x):
+                yield i
+            
+        with gr.Blocks() as demo:
+            inp = gr.Number()
+            out = gr.Number()
+            btn = gr.Button()
+            btn.click(
+                generator,
+                inputs=inp,
+                outputs=out,
+            )
+
+        output = await demo.call_function(0, ["World"])
+        assert output["prediction"] == "Hello, World"
+
+
 
 
 if __name__ == "__main__":
