@@ -279,14 +279,14 @@ def test_blocks_does_not_replace_keyword_literal():
     assert output[0]["value"] == "NO_VALUE"
 
 
-class TestCallFunction():
+class TestCallFunction:
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()
             btn = gr.Button()
             btn.click(
-                lambda x:"Hello, " + x,
+                lambda x: "Hello, " + x,
                 inputs=text,
                 outputs=text,
             )
@@ -301,7 +301,7 @@ class TestCallFunction():
         def generator(x):
             for i in range(x):
                 yield i
-            
+
         with gr.Blocks() as demo:
             inp = gr.Number()
             out = gr.Number()
@@ -311,7 +311,7 @@ class TestCallFunction():
                 inputs=inp,
                 outputs=out,
             )
-            
+
         demo.queue()
 
         output = await demo.call_function(0, [3])
@@ -322,7 +322,7 @@ class TestCallFunction():
         assert output["prediction"] == 2
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == gr.components._Keywords.FINISHED_ITERATING
-        assert output["iterator"] is None        
+        assert output["iterator"] is None
         output = await demo.call_function(0, [3], iterator=output["iterator"])
         assert output["prediction"] == 0
 
