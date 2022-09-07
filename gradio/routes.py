@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import io
+import mimetypes
 import os
 import posixpath
 import secrets
@@ -30,6 +31,8 @@ import gradio
 from gradio import encryptor
 from gradio.event_queue import Estimation, Event, Queue
 from gradio.exceptions import Error
+
+mimetypes.init()
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -167,6 +170,8 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: Request, user: str = Depends(get_current_user)):
+            mimetypes.add_type("application/javascript", ".js")
+
             if app.auth is None or not (user is None):
                 config = app.blocks.config
             else:
