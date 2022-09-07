@@ -681,7 +681,7 @@ class Blocks(BlockContext):
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
-                if predictions[i] == components._Keywords.SKIP:
+                if predictions[i] is components._Keywords.SKIP:
                     output.append(None)
                     break
                 block = self.blocks[output_id]
