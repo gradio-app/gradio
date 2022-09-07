@@ -70,7 +70,6 @@
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
-	$: console.log("?", progress, timer_diff, eta);
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -142,7 +141,8 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
-	class:opacity-30={status === "generating"}
+	class:cover-bg={status === "pending" || status === "error"}
+	class:generating={status === "generating"}
 	class:!hidden={!visible}
 	bind:this={el}
 >
@@ -165,8 +165,6 @@
 		{#if !timer}
 			<p class="timer">Loading...</p>
 		{/if}
-	{:else if status === "generating"}
-		<Loader />
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
 		{#if message_visible}
@@ -191,11 +189,19 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute inset-0 z-50 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		@apply absolute inset-0 z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
 	}
 
-	:global(.dark) .wrap {
+	:global(.dark) .cover-bg {
 		@apply bg-gray-800;
+	}
+
+	.cover-bg {
+		@apply bg-white;
+	}
+
+	.generating {
+		@apply border-2 border-orange-500 animate-pulse;
 	}
 
 	.progress-bar {
