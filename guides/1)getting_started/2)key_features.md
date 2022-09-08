@@ -123,7 +123,9 @@ with gr.Interface(css="body {background-color: red}") as demo:
 
 ## Queuing
 
-If your app expects heavy traffic, use the `queue()` method to control processing rate. This will queue up calls so only a certain number of requests are processed at a single time. Queueing uses websockets, which also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min). 
+Gradio ships with built-in queuing system that allows your demo to handle many requests from users. Users will see their position in the queue and see an estimated time until their prediction is completed in UI. To configure various parameters of the queue, such as how many concurrent workers to process requests, use the `.queue()` method of your `Interface` or `Blocks` before launching your demo. Read more about. 
+
+Queueing uses websockets. If for some reason you'd like to use regular HTTP requests, you can disable queuing by setting `.queue(default_enabled=False)`. Note that this is generally not recommended; among other things, HTTP requests will time out if the inference time of your function is long (> 1 min). 
 
 With `Interface`:
 ```python
