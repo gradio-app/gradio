@@ -28,7 +28,7 @@ from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor
-from gradio.event_queue import Estimation, Event, Queue
+from gradio.queue import Estimation, Event, Queue
 from gradio.exceptions import Error
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
