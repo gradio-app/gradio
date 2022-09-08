@@ -31,7 +31,7 @@ $demo_rows_and_columns
 
 See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
 
-## Tabs
+## Tabs amd Accordions
 
 You can also create Tabs using the `with gradio.Tab('tab_name'):` clause. Any component created inside of a `with gradio.Tab('tab_name'):` context appears in that tab. Consecutive Tab clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.
 
@@ -39,6 +39,8 @@ For example:
 
 $code_blocks_flipper
 $demo_blocks_flipper
+
+Also note the Accordion that can be opened and closed - another layout element to selectively show content.
 
 ## Visibility
 

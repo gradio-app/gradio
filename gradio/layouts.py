@@ -307,15 +307,18 @@ class Accordion(BlockContext):
             gr.Markdown("lorem ipsum")
     """
 
-    def __init__(self, label, *, open: bool = True, **kwargs):
+    def __init__(
+        self, label, *, open: bool = True, elem_id: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
             label: name of accordion section.
-            open: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            open: if True, accordion is open by default.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.label = label
         self.open = open
-        super().__init__(**kwargs)
+        super().__init__(elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {

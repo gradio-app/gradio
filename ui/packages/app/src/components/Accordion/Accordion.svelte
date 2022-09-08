@@ -15,10 +15,7 @@
 	class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col gap-3 hover:border-gray-300 dark:hover:border-gray-600 transition"
 	class:hidden={!visible}
 >
-	<div
-		on:click={toggle}
-		class="w-full text-lg font-semibold flex justify-between cursor-pointer"
-	>
+	<div on:click={toggle} class="w-full flex justify-between cursor-pointer">
 		<span>{label}</span>
 		<span class:rotate-90={!open} class="transition">▼</span>
 	</div>
