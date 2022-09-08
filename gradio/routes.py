@@ -10,6 +10,7 @@ import os
 import posixpath
 import secrets
 import traceback
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
@@ -87,6 +88,9 @@ class App(FastAPI):
         self.tokens = None
         self.auth = None
         self.blocks: Optional[gradio.Blocks] = None
+        self.state_holder = {}
+        self.iterators = defaultdict(dict)
+
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -115,7 +119,6 @@ class App(FastAPI):
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        app.state_holder = {}
 
         @app.get("/user")
         @app.get("/user/")
@@ -255,14 +258,19 @@ class App(FastAPI):
                         if getattr(block, "stateful", False)
                     }
                 session_state = app.state_holder[body.session_hash]
+                iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
+                iterator = {}
             raw_input = body.data
             fn_index = body.fn_index
             try:
                 output = await app.blocks.process_api(
-                    fn_index, raw_input, username, session_state
+                    fn_index, raw_input, username, session_state, iterators
                 )
+                iterator = output.pop("iterator", None)
+                if hasattr(body, "session_hash"):
+                    app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
