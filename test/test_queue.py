@@ -28,7 +28,7 @@ def mock_event() -> Event:
     yield event
 
 
-class TestQueue:
+class TestQueueMethods:
     @pytest.mark.asyncio
     async def test_start(self, queue: Queue):
         await queue.start()
@@ -71,3 +71,14 @@ class TestQueue:
         queue.push(mock_event)
         await queue.clean_event(mock_event)
         assert len(queue.event_queue) == 0
+
+    # gather_data_for_first_ranks, gather_event_data
+    
+class TestQueueEstimation:
+    # get_estimation, update_estimation, send_estimation, broadcast_estimations
+    
+class TestQueueProcessEvents:
+    # call_prediction, process_event
+    
+class TestQueueWebsocketCommunication:
+    # 
