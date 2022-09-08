@@ -29,8 +29,8 @@ from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor
-from gradio.queue import Estimation, Event, Queue
 from gradio.exceptions import Error
+from gradio.queue import Estimation, Event, Queue
 
 mimetypes.init()
 
