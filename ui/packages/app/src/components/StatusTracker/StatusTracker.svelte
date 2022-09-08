@@ -169,18 +169,25 @@
 		<span class="error">ERROR</span>
 		{#if message_visible}
 			<div
-				class="flex flex-col items-center fixed z-[100] w-full left-0 top-12 mx-auto font-mono whitespace-pre-wrap pointer-events-auto"
+				class="fixed bg-black/80 dark:bg-black/90 inset-0 z-[100] pointer-events-auto"
+				on:click={close_message}
 			>
 				<div
-					class="p-3 w-4/5 text-xl rounded-t bg-red-300 text-red-700 status-title flex justify-between items-center"
+					class="absolute inset-x-6 md:inset-x-12 bg-white top-24 rounded-xl border dark:border-gray-900 overflow-hidden shadow-2xl shadow-red-500/20 max-w-2xl mx-auto"
+					on:click|stopPropagation
 				>
-					<span>Error</span>
-					<button on:click={close_message}>✖</button>
-				</div>
-				<div
-					class="px-3 w-4/5 py-4 rounded-b bg-gray-200 border-gray-100 dark:bg-gray-700 dark:border-gray-800 dark:text-gray-100"
-				>
-					{message}
+					<div
+						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-2 text-lg font-bold text-red-500"
+					>
+						Error
+						<button
+							on:click={close_message}
+							class="ml-auto text-gray-900 text-2xl pr-1">×</button
+						>
+					</div>
+					<div class="px-3 py-3 text-base font-mono">
+						{message}
+					</div>
 				</div>
 			</div>
 		{/if}
