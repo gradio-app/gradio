@@ -1,4 +1,5 @@
 export const component_map = {
+	accordion: () => import("./Accordion"),
 	audio: () => import("./Audio"),
 	box: () => import("./Box"),
 	button: () => import("./Button"),

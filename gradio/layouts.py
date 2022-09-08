@@ -296,3 +296,42 @@ class Box(BlockContext):
 class Form(BlockContext):
     def get_config(self):
         return {"type": "form", **super().get_config()}
+
+
+@document()
+class Accordion(BlockContext):
+    """
+    Accordion is a layout element which can be toggled to show/hide the contained content.
+    Example:
+        with gradio.Accordion("See Details"):
+            gr.Markdown("lorem ipsum")
+    """
+
+    def __init__(self, label, *, open: bool = True, **kwargs):
+        """
+        Parameters:
+            label: name of accordion section.
+            open: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.label = label
+        self.open = open
+        super().__init__(**kwargs)
+
+    def get_config(self):
+        return {
+            "type": "accordion",
+            "open": self.open,
+            "label": self.label,
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        open: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "open": open,
+            "__type__": "update",
+        }
