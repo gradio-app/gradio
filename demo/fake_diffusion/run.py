@@ -16,7 +16,6 @@ def fake_diffusion(steps):
 demo = gr.Interface(fake_diffusion, 
                     inputs=gr.Slider(1, 10, 3), 
                     outputs="image")
-
 demo.queue()
 
 if __name__ == "__main__":
