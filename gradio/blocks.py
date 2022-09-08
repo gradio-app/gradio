@@ -1003,10 +1003,7 @@ class Blocks(BlockContext):
                 DeprecationWarning,
             )
 
-        if self.is_space:
-            self.enable_queue = self.enable_queue is not False
-        else:
-            self.enable_queue = self.enable_queue is True
+        self.enable_queue = self.enable_queue is not False
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
 
