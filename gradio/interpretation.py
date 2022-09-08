@@ -20,7 +20,7 @@ async def run_interpret(interface, raw_input):
             for i, input_component in enumerate(interface.input_components)
         ]
         original_output = await interface.call_function(0, processed_input)
-        original_output = original_output[0]
+        original_output = original_output["prediction"]
 
         if len(interface.output_components) == 1:
             original_output = [original_output]
@@ -47,7 +47,7 @@ async def run_interpret(interface, raw_input):
                         neighbor_output = await interface.call_function(
                             0, processed_neighbor_input
                         )
-                        neighbor_output = neighbor_output[0]
+                        neighbor_output = neighbor_output["prediction"]
                         if len(interface.output_components) == 1:
                             neighbor_output = [neighbor_output]
                         processed_neighbor_output = [
@@ -91,7 +91,7 @@ async def run_interpret(interface, raw_input):
                         neighbor_output = await interface.call_function(
                             0, processed_neighbor_input
                         )
-                        neighbor_output = neighbor_output[0]
+                        neighbor_output = neighbor_output["prediction"]
                         if len(interface.output_components) == 1:
                             neighbor_output = [neighbor_output]
                         processed_neighbor_output = [
@@ -144,7 +144,7 @@ async def run_interpret(interface, raw_input):
                         new_output = utils.synchronize_async(
                             interface.call_function, 0, processed_masked_input
                         )
-                        new_output = new_output[0]
+                        new_output = new_output["prediction"]
                         if len(interface.output_components) == 1:
                             new_output = [new_output]
                         pred = get_regression_or_classification_value(
