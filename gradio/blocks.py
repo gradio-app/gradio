@@ -7,7 +7,6 @@ import os
 import pkgutil
 import random
 import sys
-import tempfile
 import time
 import warnings
 import webbrowser
@@ -35,7 +34,6 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import Error
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -669,6 +667,13 @@ class Blocks(BlockContext):
                             prediction_value = block.__class__.update(
                                 **prediction_value
                             )
+                        # If the prediction is the default (NO_VALUE) enum then the user did
+                        # not specify a value for the 'value' key and we can get rid of it
+                        if (
+                            prediction_value.get("value")
+                            == components._Keywords.NO_VALUE
+                        ):
+                            prediction_value.pop("value")
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
                             prediction_value["value"] = block.postprocess(
@@ -870,7 +875,7 @@ class Blocks(BlockContext):
             demo.launch()
         """
         self.enable_queue = default_enabled
-        event_queue.Queue.configure_queue(
+        self._queue = event_queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,
@@ -966,11 +971,15 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is not False
         else:
             self.enable_queue = self.enable_queue is True
+        if self.enable_queue and not hasattr(self, "_queue"):
+            self.queue()
 
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
-        self.max_threads = max(event_queue.Queue.MAX_THREAD_COUNT, max_threads)
+        self.max_threads = max(
+            self._queue.max_thread_count if self.enable_queue else 0, max_threads
+        )
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
@@ -999,13 +1008,15 @@ class Blocks(BlockContext):
             self.is_running = True
             self.protocol = "https" if self.local_url.startswith("https") else "http"
 
-            event_queue.Queue.set_url(self.local_url)
+            if self.enable_queue:
+                self._queue.set_url(self.local_url)
+
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
             requests.get(f"{self.local_url}startup-events")
 
-            if app.blocks.enable_queue:
-                if app.blocks.auth is not None or app.blocks.encrypt:
+            if self.enable_queue:
+                if self.auth is not None or self.encrypt:
                     raise ValueError(
                         "Cannot queue with encryption or authentication enabled."
                     )
@@ -1176,7 +1187,7 @@ class Blocks(BlockContext):
         """
         try:
             if self.enable_queue:
-                event_queue.Queue.close()
+                self._queue.close()
             self.server.close()
             self.is_running = False
             if verbose:

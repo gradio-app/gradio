@@ -12,6 +12,10 @@ export function normalise_file(
 		};
 	} else if (file.is_file) {
 		file.data = root + "file=" + file.name;
+	} else if (Array.isArray(file)) {
+		for (const x of file) {
+			normalise_file(x, root);
+		}
 	}
 	return file;
 }

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { getSaliencyColor, getObjectFitSize } from "../utils";
 	import { afterUpdate } from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: string;
 	export let interpretation: Array<Array<number>>;
 	export let shape: undefined | [number, number];
+	export let label: string = "";
 
 	let saliency_layer: HTMLCanvasElement;
 	let image: HTMLImageElement;
@@ -60,6 +62,7 @@
 </script>
 
 <div class="input-image">
+	<BlockTitle>{label}</BlockTitle>
 	<div
 		class="image-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 	>
