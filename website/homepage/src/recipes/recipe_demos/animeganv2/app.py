@@ -9,13 +9,12 @@ model2 = torch.hub.load(
     "AK391/animegan2-pytorch:main",
     "generator",
     pretrained=True,
-    device="cuda",
     progress=False
 )
-model1 = torch.hub.load("AK391/animegan2-pytorch:main", "generator", pretrained="face_paint_512_v1",  device="cuda")
+model1 = torch.hub.load("AK391/animegan2-pytorch:main", "generator", pretrained="face_paint_512_v1")
 face2paint = torch.hub.load(
     'AK391/animegan2-pytorch:main', 'face2paint', 
-    size=512, device="cuda",side_by_side=False
+    size=512, side_by_side=False
 )
 
 # define the core function

@@ -81,7 +81,7 @@ demos_by_category = [
                 "name": "Text to Image Generation", 
                 "dir": "stable_diffusion", 
                 "code": get_code("stable_diffusion"),
-                "text": ""
+                "text": "Note: This demo is running on CPU, so generations are quite slow. Try the accelerated version here: https://hf.co/spaces/stabilityai/stable-diffusion"
             },
             {
                 "name": "3D Models", 
@@ -96,32 +96,32 @@ demos_by_category = [
         "demos": [
             {
                 "name": "Clustering with Scikit-Learn", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "clustering", 
+                "code": get_code("clustering"),
                 "text": ""
             },
             {
                 "name": "Time Series Forecasting", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "timeseries-forecasting-with-prophet", 
+                "code": get_code("timeseries-forecasting-with-prophet"),
                 "text": ""
             },
             {
                 "name": "Income Classification with XGBoost", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "xgboost-income-prediction-with-explainability", 
+                "code": get_code("xgboost-income-prediction-with-explainability"),
                 "text": ""
             },
             {
                 "name": "Leaderboard", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "leaderboard", 
+                "code": get_code("leaderboard"),
                 "text": ""
             },
             {
                 "name": "Tax Calculator", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "tax_calculator", 
+                "code": get_code("tax_calculator"),
                 "text": ""
             },
         ]

@@ -1,4 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/autocomplete
 import gradio as gr
 
 # load a model from https://hf.co/models as an interface, then use it as an api 
@@ -17,7 +16,7 @@ with gr.Blocks() as demo:
     
     # define what will run when the button is clicked
     # the textbox is used as both an input and an output
-    btn.click(fn=complete_with_gpt, inputs=textbox, outputs=textbox)
+    btn.click(fn=complete_with_gpt, inputs=textbox, outputs=textbox, queue=False)
 
 # launch    
 demo.launch()
