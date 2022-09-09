@@ -1,4 +1,5 @@
 import os
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,6 +7,11 @@ import pytest
 from gradio.queue import Event, Queue
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
+
+class AsyncMock(MagicMock):
+    async def __call__(self, *args, **kwargs):
+        return super(AsyncMock, self).__call__(*args, **kwargs)
 
 
 @pytest.fixture()
@@ -72,13 +78,41 @@ class TestQueueMethods:
         await queue.clean_event(mock_event)
         assert len(queue.event_queue) == 0
 
-    # gather_data_for_first_ranks, gather_event_data
+    @pytest.mark.asyncio
+    async def test_gather_event_data(self, queue: Queue, mock_event: Event):
+        queue.send_message = AsyncMock()
+        queue.get_message = AsyncMock()
+        queue.send_message.return_value = True
+        queue.get_message.return_value = {"data": ["test"], "fn": 0}
+        
+        assert await queue.gather_event_data(mock_event)
+        assert queue.send_message.called
+        assert mock_event.data == {"data": ["test"], "fn": 0}
+        
+        queue.send_message.called = False
+        assert await queue.gather_event_data(mock_event)
+        assert not(queue.send_message.called)
+        
+    @pytest.mark.asyncio
+    async def test_gather_data_for_first_ranks(self, queue: Queue, mock_event: Event):
+        websocket = MagicMock()
+        mock_event2 = Event(websocket=websocket)
+        queue.send_message = AsyncMock()
+        queue.get_message = AsyncMock()
+        queue.send_message.return_value = True
+        queue.get_message.return_value = {"data": ["test"], "fn": 0}
+        
+        queue.push(mock_event)
+        queue.push(mock_event2)
+        await queue.gather_data_for_first_ranks()
+        assert mock_event.data is not None
+        assert mock_event2.data is None
     
-class TestQueueEstimation:
-    # get_estimation, update_estimation, send_estimation, broadcast_estimations
+# class TestQueueEstimation:
+#     # get_estimation, update_estimation, send_estimation, broadcast_estimations
     
-class TestQueueProcessEvents:
-    # call_prediction, process_event
+# class TestQueueProcessEvents:
+#     # call_prediction, process_event
     
-class TestQueueWebsocketCommunication:
-    # 
+# class TestQueueWebsocketCommunication:
+#     # 
