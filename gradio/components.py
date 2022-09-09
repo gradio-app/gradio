@@ -2995,13 +2995,19 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, dict):
-            text = y["text"]
-            entities = y["entities"]
+            try:
+                text = y["text"]
+                entities = y["entities"]
+            except KeyError:
+                raise ValueError(
+                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
+                )
             if len(entities) == 0:
                 y = [(text, None)]
             else:
                 list_format = []
                 index = 0
+                entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
                     list_format.append((text[index : entity["start"]], None))
                     list_format.append(
@@ -3010,6 +3016,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                     index = entity["end"]
                 list_format.append((text[index:], None))
                 y = list_format
+                print(y)
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
