@@ -2904,7 +2904,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named_entity_recognition
@@ -3016,7 +3016,6 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                     index = entity["end"]
                 list_format.append((text[index:], None))
                 y = list_format
-                print(y)
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
