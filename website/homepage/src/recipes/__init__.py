@@ -131,26 +131,26 @@ demos_by_category = [
         "demos": [
             {
                 "name": "Text to Speech", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "neon-tts-plugin-coqui", 
+                "code": get_code("neon-tts-plugin-coqui"),
                 "text": ""
             },
             {
                 "name": "Speech to Text (ASR)", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "automatic-speech-recognition", 
+                "code": get_code("automatic-speech-recognition"),
                 "text": ""
             },
             {
                 "name": "Musical Instrument Identification", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "musical_instrument_identification", 
+                "code": get_code("musical_instrument_identification"),
                 "text": ""
             },
             {
                 "name": "Speaker Verification", 
-                "dir": "hello_world", 
-                "code": get_code("hello_world"),
+                "dir": "same-person-or-different", 
+                "code": get_code("same-person-or-different"),
                 "text": ""
             },
         ]
