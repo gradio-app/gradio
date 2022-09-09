@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
+	import { fade } from "svelte/transition";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -166,21 +167,29 @@
 			<p class="timer">Loading...</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">ERROR</span>
+		<span class="error">Error</span>
 		{#if message_visible}
-			<div
-				class="flex flex-col items-center fixed z-[100] w-full left-0 top-12 mx-auto font-mono whitespace-pre-wrap pointer-events-auto"
-			>
+			<div class="fixed inset-0 z-[100]">
 				<div
-					class="p-3 w-4/5 text-xl rounded-t bg-red-300 text-red-700 status-title flex justify-between items-center"
-				>
-					<span>Error</span>
-					<button on:click={close_message}>✖</button>
-				</div>
+					class="absolute left-0 md:left-auto border-black right-0 top-0 h-96 md:w-1/2 bg-gradient-to-b md:bg-gradient-to-bl from-red-500/5 via-transparent to-transparent"
+				/>
 				<div
-					class="px-3 w-4/5 py-4 rounded-b bg-gray-200 border-gray-100 dark:bg-gray-700 dark:border-gray-800 dark:text-gray-100"
+					class="absolute bg-white top-7 left-4 right-4 md:right-8 md:left-auto rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-2xl shadow-red-500/10 md:w-96 pointer-events-auto"
+					on:click|stopPropagation
+					in:fade={{ duration: 100 }}
 				>
-					{message}
+					<div
+						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-1 text-lg font-bold text-red-500"
+					>
+						Error
+						<button
+							on:click={close_message}
+							class="ml-auto text-gray-900 text-2xl pr-1">×</button
+						>
+					</div>
+					<div class="px-3 py-3 text-base font-mono">
+						{message}
+					</div>
 				</div>
 			</div>
 		{/if}
@@ -216,7 +225,11 @@
 		@apply -translate-y-16;
 	}
 
+	:global(.dark) .error {
+		@apply bg-red-500/10 text-red-600;
+	}
+
 	.error {
-		@apply text-red-400 font-mono font-semibold text-lg;
+		@apply text-red-400 font-sans font-semibold text-lg bg-red-500/5 rounded-full px-4;
 	}
 </style>
