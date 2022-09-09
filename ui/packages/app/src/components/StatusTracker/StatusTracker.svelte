@@ -167,7 +167,7 @@
 			<p class="timer">Loading...</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">ERROR</span>
+		<span class="error">Error</span>
 		{#if message_visible}
 			<div class="fixed inset-0 z-[100]">
 				<div
@@ -225,7 +225,11 @@
 		@apply -translate-y-16;
 	}
 
+	:global(.dark) .error {
+		@apply bg-red-500/10 text-red-600;
+	}
+
 	.error {
-		@apply text-red-400 font-mono font-semibold text-lg;
+		@apply text-red-400 font-sans font-semibold text-lg bg-red-500/5 rounded-full px-4;
 	}
 </style>
