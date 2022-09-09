@@ -1,19 +1,4 @@
---find-links https://download.openmmlab.com/mmcv/dist/cpu/torch1.10.0/index.html
-mmcv-full==1.3.17
-torch==1.10.0
-torchvision 
-einops 
-timm
-Pillow
-cityscapesscripts
-matplotlib
+transformers
+torch
+scipy
 numpy
-prettytable
-codecov
-flake8
-interrogate
-isort==4.3.21
-pytest
-xdoctest>=0.10.0
-yapf
-

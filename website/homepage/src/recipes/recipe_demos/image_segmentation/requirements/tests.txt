@@ -1,7 +1,0 @@
-codecov
-flake8
-interrogate
-isort==4.3.21
-pytest
-xdoctest>=0.10.0
-yapf

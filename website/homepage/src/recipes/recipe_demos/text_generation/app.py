@@ -1,11 +1,10 @@
 # URL: https://huggingface.co/spaces/gradio/text_generation
 # imports
 import gradio as gr
-from transformers import pipeline, set_seed
+from transformers import pipeline
 
 # loading the model
 generator = pipeline('text-generation', model='gpt2')
-set_seed(42)
 
 
 # defining the core function

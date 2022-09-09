@@ -25,13 +25,6 @@ demos_by_category = [
                 "text": "The simplest possible Gradio demo. It wraps a 'Hello {name}!' function in an Interface that accepts and returns text."
             },
             {
-                "name": "Translation", 
-                "dir": "translation", 
-                "code": get_code("translation"),
-                "external_space": None,
-                "text": "This translation demo takes in the text, source and target languages, and returns the translation. It uses the Transformers library to set up the model and has a title, description, and example."
-            },
-            {
                 "name": "Text Generation", 
                 "dir": "text_generation", 
                 "code": get_code("text_generation"),
@@ -59,6 +52,13 @@ demos_by_category = [
                 "external_space": None,
                 "text": "This simple demo takes advantage of Gradio's HighlightedText, JSON and HTML outputs to create a clear NER segmentation."
             },
+            {
+                "name": "Multilingual Translation", 
+                "dir": "translation", 
+                "code": get_code("translation"),
+                "external_space": None,
+                "text": "This translation demo takes in the text, source and target languages, and returns the translation. It uses the Transformers library to set up the model and has a title, description, and example."
+            }
 
         ]
     },
@@ -77,17 +77,17 @@ demos_by_category = [
                 "dir": "image_segmentation", 
                 "code": get_code("image_segmentation"),
                 "external_space": None,
-                "text": "Uniformer Image segmentation using Blocks. "
+                "text": "Image segmentation using DETR. Takes in both an inputu image and the desired confidence, and returns a segmented image."
             },
             {
-                "name": "Image to Image Transformation", 
+                "name": "Image Transformation with AnimeGAN", 
                 "dir": "animeganv2", 
                 "code": get_code("animeganv2"),
                 "external_space": None,
                 "text": "Recreate the viral AnimeGAN image transformation demo."
             },
             {
-                "name": "Text to Image Generation", 
+                "name": "Image Generation with Stable Diffusion", 
                 "dir": "stable-diffusion", 
                 "code": get_code("stable-diffusion"),
                 "external_space": "stabilityai/stable-diffusion",
