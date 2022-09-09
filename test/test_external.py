@@ -1,14 +1,16 @@
 import json
 import os
 import pathlib
+import textwrap
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import transformers
 
 import gradio as gr
-from gradio.external import TooManyRequestsError
+from gradio import utils
+from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -240,6 +242,93 @@ def test_interface_load_cache_examples(tmp_path):
             examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
             cache_examples=True,
         )
+
+
+def test_get_tabular_examples_replaces_nan_with_str_nan():
+    readme = """
+        ---
+        tags:
+        - sklearn
+        - skops
+        - tabular-classification
+        widget:
+          structuredData:
+            attribute_0:
+            - material_7
+            - material_7
+            - material_7
+            measurement_2:
+            - 14.206
+            - 15.094
+            - .nan
+        ---
+    """
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = textwrap.dedent(readme)
+
+    with patch("gradio.external.requests.get", return_value=mock_response):
+        examples = get_tabular_examples("foo-model")
+        assert examples["measurement_2"] == [14.206, 15.094, "NaN"]
+
+
+def test_cols_to_rows():
+    assert cols_to_rows({"a": [1, 2, "NaN"], "b": [1, "NaN", 3]}) == (
+        ["a", "b"],
+        [[1, 1], [2, "NaN"], ["NaN", 3]],
+    )
+    assert cols_to_rows({"a": [1, 2, "NaN", 4], "b": [1, "NaN", 3]}) == (
+        ["a", "b"],
+        [[1, 1], [2, "NaN"], ["NaN", 3], [4, "NaN"]],
+    )
+    assert cols_to_rows({"a": [1, 2, "NaN"], "b": [1, "NaN", 3, 5]}) == (
+        ["a", "b"],
+        [[1, 1], [2, "NaN"], ["NaN", 3], ["NaN", 5]],
+    )
+    assert cols_to_rows({"a": None, "b": [1, "NaN", 3, 5]}) == (
+        ["a", "b"],
+        [["NaN", 1], ["NaN", "NaN"], ["NaN", 3], ["NaN", 5]],
+    )
+    assert cols_to_rows({"a": None, "b": None}) == (["a", "b"], [])
+
+
+def check_dataframe(config):
+    input_df = next(
+        c for c in config["components"] if c["props"].get("label", "") == "Input Rows"
+    )
+    assert input_df["props"]["headers"] == ["a", "b"]
+    assert input_df["props"]["row_count"] == (1, "dynamic")
+    assert input_df["props"]["col_count"] == (2, "fixed")
+
+
+def check_dataset(config, readme_examples):
+    # No Examples
+    if not any(readme_examples.values()):
+        assert not any([c for c in config["components"] if c["type"] == "dataset"])
+    else:
+        dataset = next(c for c in config["components"] if c["type"] == "dataset")
+        assert dataset["props"]["samples"] == [
+            [utils.delete_none(cols_to_rows(readme_examples)[1])]
+        ]
+
+
+@pytest.mark.parametrize(
+    "hypothetical_readme",
+    [
+        {"a": [1, 2, "NaN"], "b": [1, "NaN", 3]},
+        {"a": [1, 2, "NaN", 4], "b": [1, "NaN", 3]},
+        {"a": [1, 2, "NaN"], "b": [1, "NaN", 3, 5]},
+        {"a": None, "b": [1, "NaN", 3, 5]},
+        {"a": None, "b": None},
+    ],
+)
+def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
+    with patch(
+        "gradio.external.get_tabular_examples", return_value=hypothetical_readme
+    ):
+        io = gr.Interface.load("models/scikit-learn/tabular-playground")
+        check_dataframe(io.config)
+        check_dataset(io.config, hypothetical_readme)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,14 @@ with gr.Blocks(css="body {background-color: red}") as demo:
     ...
 ```
 
-You can also pass the filepath to a CSS file to this argument.
+If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
+
+```python
+with gr.Blocks(css="body {background-image: url('file=clouds.jpg')}") as demo:
+    ...
+```
+
+You can also pass the filepath to a CSS file to the `css` argument.
 
 ## The `elem_id` Argument
 

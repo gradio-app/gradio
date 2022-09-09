@@ -52,7 +52,7 @@
 	export let queue: boolean = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error";
+	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
@@ -130,9 +130,9 @@
 		}
 	};
 	$: {
+		close_message();
 		if (status === "error" && message) {
 			message_visible = true;
-			show_message_timeout = setTimeout(close_message, 8000);
 		}
 	}
 	$: formatted_timer = timer_diff.toFixed(1);
@@ -141,6 +141,8 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
+	class:cover-bg={status === "pending" || status === "error"}
+	class:generating={status === "generating"}
 	class:!hidden={!visible}
 	bind:this={el}
 >
@@ -187,11 +189,19 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute inset-0 z-50 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		@apply absolute inset-0 z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
 	}
 
-	:global(.dark) .wrap {
+	:global(.dark) .cover-bg {
 		@apply bg-gray-800;
+	}
+
+	.cover-bg {
+		@apply bg-white;
+	}
+
+	.generating {
+		@apply border-2 border-orange-500 animate-pulse;
 	}
 
 	.progress-bar {

@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import inspect
 import io
+import mimetypes
 import os
 import posixpath
 import secrets
 import traceback
-import urllib
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
@@ -30,6 +31,8 @@ import gradio
 from gradio import encryptor
 from gradio.event_queue import Estimation, Event, Queue
 from gradio.exceptions import Error
+
+mimetypes.init()
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -68,7 +71,7 @@ class QueuePushBody(BaseModel):
 class PredictBody(BaseModel):
     session_hash: Optional[str]
     data: Any
-    fn_index: int = 0
+    fn_index: Optional[int]
 
 
 ###########
@@ -85,6 +88,9 @@ class App(FastAPI):
         self.tokens = None
         self.auth = None
         self.blocks: Optional[gradio.Blocks] = None
+        self.state_holder = {}
+        self.iterators = defaultdict(dict)
+
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -113,7 +119,6 @@ class App(FastAPI):
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        app.state_holder = {}
 
         @app.get("/user")
         @app.get("/user/")
@@ -165,6 +170,8 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: Request, user: str = Depends(get_current_user)):
+            mimetypes.add_type("application/javascript", ".js")
+
             if app.auth is None or not (user is None):
                 config = app.blocks.config
             else:
@@ -212,8 +219,8 @@ class App(FastAPI):
             else:
                 return FileResponse(app.blocks.favicon_path)
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file(path):
+        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
+        def file(path: str):
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
@@ -236,6 +243,10 @@ class App(FastAPI):
                     f"it is not in any of {app.blocks.temp_dirs}"
                 )
 
+        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        def file_deprecated(path: str):
+            return file(path)
+
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
@@ -247,14 +258,19 @@ class App(FastAPI):
                         if getattr(block, "stateful", False)
                     }
                 session_state = app.state_holder[body.session_hash]
+                iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
+                iterator = {}
             raw_input = body.data
             fn_index = body.fn_index
             try:
                 output = await app.blocks.process_api(
-                    fn_index, raw_input, username, session_state
+                    fn_index, raw_input, username, session_state, iterators
                 )
+                iterator = output.pop("iterator", None)
+                if hasattr(body, "session_hash"):
+                    app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
@@ -289,17 +305,13 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             await websocket.accept()
             event = Event(websocket)
-            e_hash = await event.get_message()
-            if e_hash is None:
-                return
-            event.hash = e_hash["hash"]
-            rank = Queue.push(event)
+            rank = app.blocks._queue.push(event)
             if rank is None:
-                await event.send_message({"msg": "queue_full"})
+                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()
                 return
-            estimation = Queue.get_estimation()
-            await Queue.send_estimation(event, estimation, rank)
+            estimation = app.blocks._queue.get_estimation()
+            await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
@@ -311,7 +323,7 @@ class App(FastAPI):
             response_model=Estimation,
         )
         async def get_queue_status():
-            return Queue.get_estimation()
+            return app.blocks._queue.get_estimation()
 
         @app.get(
             "/startup-events",
@@ -321,7 +333,7 @@ class App(FastAPI):
             from gradio.utils import run_coro_in_background
 
             if app.blocks.enable_queue:
-                gradio.utils.run_coro_in_background(Queue.init)
+                gradio.utils.run_coro_in_background(app.blocks._queue.start)
             gradio.utils.run_coro_in_background(app.blocks.create_limiter)
 
             return True

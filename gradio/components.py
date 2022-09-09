@@ -15,6 +15,7 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
@@ -46,6 +47,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
+from gradio.layouts import Form
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -56,6 +58,11 @@ from gradio.serializing import (
 from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
+
+
+class _Keywords(Enum):
+    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
+    FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
 class Component(Block):
@@ -210,9 +217,17 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
+    def as_example(self, input_data):
+        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
+        return input_data
+
+
+class FormComponent:
+    expected_parent = Form
+
 
 @document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -277,7 +292,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         lines: Optional[int] = None,
         max_lines: Optional[int] = None,
         placeholder: Optional[str] = None,
@@ -378,7 +393,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
+class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -456,7 +471,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -545,7 +560,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable):
+class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -628,7 +643,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         step: Optional[float] = None,
@@ -703,7 +718,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable):
+class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -754,7 +769,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[bool] = None,
+        value: Optional[bool] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -794,7 +809,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -852,7 +867,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = None,
+        value: Optional[List[str]] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -956,7 +971,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable):
+class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1015,7 +1030,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1248,7 +1263,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -1348,9 +1363,9 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             dtype = "file"
         else:
             raise ValueError("Cannot process this value as an Image")
-        if dtype in ["numpy", "pil"]:
-            if dtype == "pil":
-                y = np.array(y)
+        if dtype == "pil":
+            out_y = processing_utils.encode_pil_to_base64(y)
+        elif dtype == "numpy":
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
             out_y = processing_utils.encode_url_or_file_to_base64(y)
@@ -1572,7 +1587,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1759,7 +1774,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2006,7 +2021,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -2037,7 +2052,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -2071,11 +2086,14 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    return processing_utils.create_tmp_copy_of_file(file_name)
+                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file.orig_name = file_name
                 else:
-                    return processing_utils.decode_base64_to_file(
+                    file = processing_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
+                    file.orig_name = file_name
+                return file
             elif self.type == "bytes":
                 if is_file:
                     with open(file_name, "rb") as file_data:
@@ -2114,6 +2132,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         if isinstance(y, list):
             return [
                 {
+                    "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
                         file, self.temp_dir
                     ).name,
@@ -2125,6 +2144,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             ]
         else:
             return {
+                "orig_name": os.path.basename(y),
                 "name": processing_utils.create_tmp_copy_of_file(
                     y, dir=self.temp_dir
                 ).name,
@@ -2152,6 +2172,9 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "style")
 class Dataframe(Changeable, IOComponent, JSONSerializable):
@@ -2159,7 +2182,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2265,7 +2288,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         max_rows: Optional[int] = None,
         max_cols: Optional[str] = None,
         label: Optional[str] = None,
@@ -2406,6 +2429,13 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        if isinstance(input_data, pd.DataFrame):
+            return input_data.head(n=5).to_dict(orient="split")["data"]
+        elif isinstance(input_data, np.ndarray):
+            return input_data.tolist()
+        return input_data
+
 
 @document("change", "style")
 class Timeseries(Changeable, IOComponent, JSONSerializable):
@@ -2470,7 +2500,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         colors: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2541,10 +2571,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
 
 @document()
-class Variable(IOComponent, SimpleSerializable):
+class State(IOComponent, SimpleSerializable):
     """
     Special hidden component that stores session state across runs of the demo by the
-    same user. The value of the Variable is cleared when the user refreshes the page.
+    same user. The value of the State variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
@@ -2568,6 +2598,16 @@ class Variable(IOComponent, SimpleSerializable):
 
     def style(self):
         return self
+
+
+class Variable(State):
+    """Variable was renamed to State. This class is kept for backwards compatibility."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_block_name(self):
+        return "state"
 
 
 @document("click", "style")
@@ -2610,7 +2650,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         variant: Optional[str] = None,
         visible: Optional[bool] = None,
     ):
@@ -2698,7 +2738,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2753,7 +2793,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
     """
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
+    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
 
     Demos: main_note, titanic_survival
     Guides: Gradio_and_ONNX_on_Hugging_Face, image_classification_in_pytorch, image_classification_in_tensorflow, image_classification_with_vision_transformers, building_a_pictionary_app
@@ -2808,6 +2848,8 @@ class Label(Changeable, IOComponent, JSONSerializable):
         """
         if y is None or y == {}:
             return None
+        if isinstance(y, str) and y.endswith(".json") and os.path.exists(y):
+            return self.serialize(y)
         if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
         if isinstance(y, dict):
@@ -2831,7 +2873,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Dict[str, float] | str | float] = None,
+        value: Optional[Dict[str, float] | str | float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2921,7 +2963,9 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
+        value: Optional[
+            List[Tuple[str, str | float | None]] | Dict
+        ] = _Keywords.NO_VALUE,
         color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
@@ -3050,7 +3094,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3135,7 +3179,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3192,7 +3236,7 @@ class Gallery(IOComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3226,8 +3270,7 @@ class Gallery(IOComponent):
             if isinstance(img, np.ndarray):
                 img = processing_utils.encode_array_to_base64(img)
             elif isinstance(img, PIL.Image.Image):
-                img = np.array(img)
-                img = processing_utils.encode_array_to_base64(img)
+                img = processing_utils.encode_pil_to_base64(img)
             elif isinstance(img, str):
                 img = processing_utils.encode_url_or_file_to_base64(img)
             else:
@@ -3326,7 +3369,7 @@ class Carousel(IOComponent, Changeable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3417,7 +3460,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -3516,7 +3559,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3586,6 +3629,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
+    def as_example(self, input_data):
+        return Path(input_data).name
+
 
 @document("change", "clear")
 class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
@@ -3630,7 +3676,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3718,7 +3764,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -3750,7 +3796,7 @@ class Dataset(Clickable, Component):
         self,
         *,
         label: Optional[str] = None,
-        components: List[Component] | List[str],
+        components: List[IOComponent] | List[str],
         samples: List[List[Any]],
         headers: Optional[List[str]] = None,
         type: str = "values",
@@ -3769,6 +3815,9 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        for example in samples:
+            for i, (component, ex) in enumerate(zip(self.components, example)):
+                example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
@@ -3791,7 +3840,7 @@ class Dataset(Clickable, Component):
 
     @staticmethod
     def update(
-        samples: Optional[Any] = None,
+        samples: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
         label: Optional[str] = None,
     ):
@@ -3864,7 +3913,7 @@ class Interpretation(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {
@@ -3908,7 +3957,7 @@ class StatusTracker(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {

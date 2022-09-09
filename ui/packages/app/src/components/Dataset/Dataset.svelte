@@ -15,7 +15,7 @@
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
-	let samples_dir: string = root + "file/";
+	let samples_dir: string = root + "file=";
 	let page = 0;
 	let gallery = headers.length === 1;
 	let paginate = samples.length > samples_per_page;
@@ -23,6 +23,7 @@
 	let selected_samples: Array<Array<any>>;
 	let page_count: number;
 	let visible_pages: Array<number> = [];
+
 	$: {
 		if (paginate) {
 			visible_pages = [];

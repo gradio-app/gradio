@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import fastapi
 from pydantic import BaseModel
@@ -22,92 +22,72 @@ class Estimation(BaseModel):
 
 
 class Queue:
-    EVENT_QUEUE = []
-    STOP = False
-    CURRENT = None
-    MAX_THREAD_COUNT = 1
-    DATA_GATHERING_STARTS_AT = 30
-    UPDATE_INTERVALS = 10
-    ACTIVE_JOBS: List[None | Event] = [None]
-    DELETE_LOCK = asyncio.Lock()
-    SERVER_PATH = None
-    DURATION_HISTORY_TOTAL = 0
-    DURATION_HISTORY_COUNT = 0
-    AVG_PROCESS_TIME = None
-    AVG_CONCURRENT_PROCESS_TIME = None
-    QUEUE_DURATION = 1
-    LIVE_UPDATES = True
-    SLEEP_WHEN_FREE = 0.001
-    MAX_SIZE = None
-
-    @classmethod
-    def configure_queue(
-        cls,
+    def __init__(
+        self,
         live_updates: bool,
         concurrency_count: int,
         data_gathering_start: int,
         update_intervals: int,
         max_size: Optional[int],
     ):
-        """
-        See Blocks.queue() docstring for the explanation of parameters.
-        """
-        cls.LIVE_UPDATES = live_updates
-        cls.MAX_THREAD_COUNT = concurrency_count
-        cls.DATA_GATHERING_STARTS_AT = data_gathering_start
-        cls.UPDATE_INTERVALS = update_intervals
-        cls.ACTIVE_JOBS = [None] * cls.MAX_THREAD_COUNT
-        cls.MAX_SIZE = max_size
+        self.event_queue = []
+        self.events_pending_reconnection = []
+        self.stopped = False
+        self.max_thread_count = concurrency_count
+        self.data_gathering_start = data_gathering_start
+        self.update_intervals = update_intervals
+        self.active_jobs: List[None | Event] = [None]
+        self.delete_lock = asyncio.Lock()
+        self.server_path = None
+        self.duration_history_total = 0
+        self.duration_history_count = 0
+        self.avg_process_time = None
+        self.avg_concurrent_process_time = None
+        self.queue_duration = 1
+        self.live_updates = live_updates
+        self.sleep_when_free = 0.05
+        self.max_size = max_size
 
-    @classmethod
-    def set_url(cls, url: str):
-        cls.SERVER_PATH = url
+    async def start(self):
+        run_coro_in_background(self.start_processing)
+        if not self.live_updates:
+            run_coro_in_background(self.notify_clients)
 
-    @classmethod
-    async def init(
-        cls,
-    ) -> None:
-        run_coro_in_background(Queue.start_processing)
-        if not cls.LIVE_UPDATES:
-            run_coro_in_background(Queue.notify_clients)
+    def close(self):
+        self.stopped = True
 
-    @classmethod
-    def close(cls):
-        cls.STOP = True
+    def resume(self):
+        self.stopped = False
 
-    @classmethod
-    def resume(cls):
-        cls.STOP = False
+    def set_url(self, url: str):
+        self.server_path = url
 
-    @classmethod
-    def get_active_worker_count(cls) -> int:
+    def get_active_worker_count(self) -> int:
         count = 0
-        for worker in cls.ACTIVE_JOBS:
+        for worker in self.active_jobs:
             if worker is not None:
                 count += 1
         return count
 
-    @classmethod
-    async def start_processing(cls) -> None:
-        while not cls.STOP:
-            if not cls.EVENT_QUEUE:
-                await asyncio.sleep(cls.SLEEP_WHEN_FREE)
+    async def start_processing(self) -> None:
+        while not self.stopped:
+            if not self.event_queue:
+                await asyncio.sleep(self.sleep_when_free)
                 continue
 
-            if not (None in cls.ACTIVE_JOBS):
-                await asyncio.sleep(1)
+            if not (None in self.active_jobs):
+                await asyncio.sleep(self.sleep_when_free)
                 continue
 
             # Using mutex to avoid editing a list in use
-            async with cls.DELETE_LOCK:
-                event = cls.EVENT_QUEUE.pop(0)
+            async with self.delete_lock:
+                event = self.event_queue.pop(0)
 
-            cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(None)] = event
-            run_coro_in_background(cls.process_event, event)
-            run_coro_in_background(cls.gather_data_and_broadcast_estimations)
+            self.active_jobs[self.active_jobs.index(None)] = event
+            run_coro_in_background(self.process_event, event)
+            run_coro_in_background(self.gather_data_and_broadcast_estimations)
 
-    @classmethod
-    def push(cls, event: Event) -> int | None:
+    def push(self, event: Event) -> int | None:
         """
         Add event to queue, or return None if Queue is full
         Parameters:
@@ -115,49 +95,39 @@ class Queue:
         Returns:
             rank of submitted Event
         """
-        if cls.MAX_SIZE is not None and len(cls.EVENT_QUEUE) >= cls.MAX_SIZE:
+        if self.max_size is not None and len(self.event_queue) >= self.max_size:
             return None
-        cls.EVENT_QUEUE.append(event)
-        return len(cls.EVENT_QUEUE) - 1
+        self.event_queue.append(event)
+        return len(self.event_queue) - 1
 
-    @classmethod
-    def clean_job(cls, event: Event):
-        cls.ACTIVE_JOBS[cls.ACTIVE_JOBS.index(event)] = None
+    async def clean_event(self, event: Event) -> None:
+        if event in self.event_queue:
+            async with self.delete_lock:
+                self.event_queue.remove(event)
+        elif event in self.active_jobs:
+            self.active_jobs[self.active_jobs.index(event)] = None
 
-    @classmethod
-    async def clean_event(cls, event: Event) -> None:
-        # Using mutex to avoid editing a list in use
-        async with cls.DELETE_LOCK:
-            # TODO: Might log number of cleaned events in the future
-            try:  # TODO: Might search with event hash to speed up
-                cls.EVENT_QUEUE.remove(event)
-            except ValueError as er:
-                print(f"{er}, {event}")
-
-    @classmethod
-    async def gather_data_and_broadcast_estimations(cls) -> None:
+    async def gather_data_and_broadcast_estimations(self) -> None:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
-        await cls.gather_data_for_first_ranks()
-        if cls.LIVE_UPDATES:
-            await cls.broadcast_estimations()
+        await self.gather_data_for_first_ranks()
+        if self.live_updates:
+            await self.broadcast_estimations()
 
-    @classmethod
-    async def gather_data_for_first_ranks(cls) -> None:
+    async def gather_data_for_first_ranks(self) -> None:
         """
         Gather data for the first x events.
         """
         # Send all messages concurrently
         await asyncio.gather(
             *[
-                cls.gather_event_data(event)
-                for event in cls.EVENT_QUEUE[: cls.DATA_GATHERING_STARTS_AT]
+                self.gather_event_data(event)
+                for event in self.event_queue[: self.data_gathering_start]
             ]
         )
 
-    @classmethod
-    async def gather_event_data(cls, event: Event) -> None:
+    async def gather_event_data(self, event: Event) -> None:
         """
         Gather data for the event
 
@@ -165,38 +135,33 @@ class Queue:
             event:
         """
         if not event.data:
-
-            client_awake = await event.send_message({"msg": "send_data"})
+            client_awake = await self.send_message(event, {"msg": "send_data"})
             if not client_awake:
-                await cls.clean_event(event)
-                return
+                return False
+            event.data = await self.get_message(event)
+        return True
 
-            event.data = await event.get_message()
-
-    @classmethod
-    async def notify_clients(cls) -> None:
+    async def notify_clients(self) -> None:
         """
         Notify clients about events statuses in the queue periodically.
         """
-        while not cls.STOP:
-            await asyncio.sleep(cls.UPDATE_INTERVALS)
-            if cls.EVENT_QUEUE:
-                await cls.broadcast_estimations()
+        while not self.stopped:
+            await asyncio.sleep(self.update_intervals)
+            if self.event_queue:
+                await self.broadcast_estimations()
 
-    @classmethod
-    async def broadcast_estimations(cls) -> None:
-        estimation = cls.get_estimation()
+    async def broadcast_estimations(self) -> None:
+        estimation = self.get_estimation()
         # Send all messages concurrently
         await asyncio.gather(
             *[
-                cls.send_estimation(event, estimation, rank)
-                for rank, event in enumerate(cls.EVENT_QUEUE)
+                self.send_estimation(event, estimation, rank)
+                for rank, event in enumerate(self.event_queue)
             ]
         )
 
-    @classmethod
     async def send_estimation(
-        cls, event: Event, estimation: Estimation, rank: int
+        self, event: Event, estimation: Estimation, rank: int
     ) -> None:
         """
         Send estimation about ETA to the client.
@@ -208,82 +173,111 @@ class Queue:
         """
         estimation.rank = rank
 
-        if cls.AVG_CONCURRENT_PROCESS_TIME is not None:
+        if self.avg_concurrent_process_time is not None:
             estimation.rank_eta = (
-                estimation.rank * cls.AVG_CONCURRENT_PROCESS_TIME + cls.AVG_PROCESS_TIME
+                estimation.rank * self.avg_concurrent_process_time
+                + self.avg_process_time
             )
-            if None not in cls.ACTIVE_JOBS:
+            if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
-                estimation.rank_eta += cls.AVG_CONCURRENT_PROCESS_TIME
-        client_awake = await event.send_message(estimation.dict())
+                estimation.rank_eta += self.avg_concurrent_process_time
+        client_awake = await self.send_message(event, estimation.dict())
         if not client_awake:
-            await cls.clean_event(event)
+            await self.clean_event(event)
 
-    @classmethod
-    def update_estimation(cls, duration: float) -> None:
+    def update_estimation(self, duration: float) -> None:
         """
         Update estimation by last x element's average duration.
 
         Parameters:
             duration:
         """
-        cls.DURATION_HISTORY_TOTAL += duration
-        cls.DURATION_HISTORY_COUNT += 1
-        cls.AVG_PROCESS_TIME = cls.DURATION_HISTORY_TOTAL / cls.DURATION_HISTORY_COUNT
-        cls.AVG_CONCURRENT_PROCESS_TIME = cls.AVG_PROCESS_TIME / min(
-            cls.MAX_THREAD_COUNT, cls.DURATION_HISTORY_COUNT
+        self.duration_history_total += duration
+        self.duration_history_count += 1
+        self.avg_process_time = (
+            self.duration_history_total / self.duration_history_count
         )
-        cls.QUEUE_DURATION = cls.AVG_CONCURRENT_PROCESS_TIME * len(cls.EVENT_QUEUE)
+        self.avg_concurrent_process_time = self.avg_process_time / min(
+            self.max_thread_count, self.duration_history_count
+        )
+        self.queue_duration = self.avg_concurrent_process_time * len(self.event_queue)
 
-    @classmethod
-    def get_estimation(cls) -> Estimation:
+    def get_estimation(self) -> Estimation:
         return Estimation(
-            queue_size=len(cls.EVENT_QUEUE),
-            avg_event_process_time=cls.AVG_PROCESS_TIME,
-            avg_event_concurrent_process_time=cls.AVG_CONCURRENT_PROCESS_TIME,
-            queue_eta=cls.QUEUE_DURATION,
+            queue_size=len(self.event_queue),
+            avg_event_process_time=self.avg_process_time,
+            avg_event_concurrent_process_time=self.avg_concurrent_process_time,
+            queue_eta=self.queue_duration,
         )
 
-    @classmethod
-    async def process_event(cls, event: Event) -> None:
-        await cls.gather_event_data(event)  # Make sure we have the data
-        client_awake = await event.send_message({"msg": "process_starts"})
-        if not client_awake:
-            cls.clean_job(event)
-            return
-        begin_time = time.time()
+    async def call_prediction(self, event: Event):
         response = await Request(
             method=Request.Method.POST,
-            url=f"{cls.SERVER_PATH}api/predict",
+            url=f"{self.server_path}api/predict",
             json=event.data,
         )
-        end_time = time.time()
-        success = response.status == 200
-        if success:
-            cls.update_estimation(end_time - begin_time)
-        client_awake = await event.send_message(
-            {
-                "msg": "process_completed",
-                "output": response.json,
-                "success": success,
-            }
-        )
-        if client_awake:
-            run_coro_in_background(cls.wait_in_inactive, event)
-        cls.clean_job(event)
+        return response
 
-    @classmethod
-    async def wait_in_inactive(cls, event: Event) -> None:
-        """
-        Waits the event until it receives the join_back message or loses ws connection.
-        """
-        event.data = None
-        client_awake = await event.get_message()
-        if client_awake:
-            if client_awake.get("msg") == "join_back":
-                cls.push(event)
-            else:
-                await event.disconnect()
+    async def process_event(self, event: Event) -> None:
+        client_awake = await self.gather_event_data(event)
+        if not client_awake:
+            return
+        client_awake = await self.send_message(event, {"msg": "process_starts"})
+        if not client_awake:
+            return
+        begin_time = time.time()
+        response = await self.call_prediction(event)
+        if response.json.get("is_generating", False):
+            while response.json.get("is_generating", False):
+                old_response = response
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_generating",
+                        "output": old_response.json,
+                        "success": old_response.status == 200,
+                    },
+                )
+                response = await self.call_prediction(event)
+            await self.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": old_response.json,
+                    "success": old_response.status == 200,
+                },
+            )
+        else:
+            await self.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": response.json,
+                    "success": response.status == 200,
+                },
+            )
+        end_time = time.time()
+        if response.status == 200:
+            self.update_estimation(end_time - begin_time)
+
+        await event.disconnect()
+        await self.clean_event(event)
+
+    async def send_message(self, event, data: Dict) -> bool:
+        try:
+            await event.websocket.send_json(data=data)
+            return True
+        except:
+            await self.clean_event(event)
+            return False
+
+    async def get_message(self, event) -> Optional[Dict]:
+        try:
+            data = await event.websocket.receive_json()
+            return data
+        except:
+            await self.clean_event(event)
+            return None
 
 
 class Event:
@@ -291,25 +285,8 @@ class Event:
         from gradio.routes import PredictBody
 
         self.websocket = websocket
-        self.hash = None
-        self.data: None | PredictBody = None
-
-    def __repr__(self):
-        return f"hash:{self.hash}, data: {self.data}, ws:{self.websocket}"
+        self.data: PredictBody | None = None
+        self.lost_connection_time: float | None = None
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
-
-    async def send_message(self, data: json) -> bool:
-        try:
-            await self.websocket.send_json(data=data)
-            return True
-        except:
-            return False
-
-    async def get_message(self) -> Optional[json]:
-        try:
-            data = await self.websocket.receive_json()
-            return data
-        except:
-            return None

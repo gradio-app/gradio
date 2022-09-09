@@ -850,10 +850,13 @@ class TestFile(unittest.TestCase):
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
+        serialized = file_input.serialize("test/test_files/sample_file.pdf")
         assert filecmp.cmp(
-            file_input.serialize("test/test_files/sample_file.pdf")["name"],
+            serialized["name"],
             "test/test_files/sample_file.pdf",
         )
+        assert serialized["orig_name"] == "sample_file.pdf"
+        assert output.orig_name == "test/test_files/sample_file.pdf"
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
@@ -1289,6 +1292,7 @@ class TestLabel(unittest.TestCase):
         )
         label_output = gr.Label(num_top_classes=2)
         label = label_output.postprocess(y)
+
         self.assertDictEqual(
             label,
             {
@@ -1301,6 +1305,11 @@ class TestLabel(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             label_output.postprocess([1, 2, 3])
+
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
+        label = label_output.postprocess(path)
+        self.assertEqual(label["label"], "web site")
 
         self.assertEqual(
             label_output.get_config(),
@@ -1728,6 +1737,85 @@ def test_video_postprocess_converts_to_playable_format(test_file_dir):
             ".mp4"
         )
         assert processing_utils.video_is_playable(str(full_path_to_output))
+
+
+class TestState:
+    def test_as_component(self):
+        state = gr.State(value=5)
+        assert state.preprocess(10) == 10
+        assert state.preprocess("abc") == "abc"
+        assert state.stateful
+
+    @pytest.mark.asyncio
+    async def test_in_interface(self):
+        def test(x, y=" def"):
+            return (x + y, x + y)
+
+        io = gr.Interface(test, ["text", "state"], ["text", "state"])
+        result = await io.call_function(0, ["abc"])
+        assert result["prediction"][0] == "abc def"
+        result = await io.call_function(0, ["abc", result["prediction"][0]])
+        assert result["prediction"][0] == "abcabc def"
+
+    @pytest.mark.asyncio
+    async def test_in_blocks(self):
+        with gr.Blocks() as demo:
+            score = gr.State()
+            btn = gr.Button()
+            btn.click(lambda x: x + 1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
+
+    @pytest.mark.asyncio
+    async def test_variable_for_backwards_compatibility(self):
+        with gr.Blocks() as demo:
+            score = gr.Variable()
+            btn = gr.Button()
+            btn.click(lambda x: x + 1, score, score)
+
+        result = await demo.call_function(0, [0])
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
+
+
+def test_dataframe_as_example_converts_dataframes():
+    df_comp = gr.Dataframe()
+    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+        [1, 5],
+        [2, 6],
+        [3, 7],
+        [4, 8],
+    ]
+    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+
+
+@pytest.mark.parametrize("component", [gr.Model3D, gr.File])
+def test_as_example_returns_file_basename(component):
+    component = component()
+    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
+
+
+@patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.File.as_example")
+@patch("gradio.components.Dataframe.as_example")
+@patch("gradio.components.Model3D.as_example")
+def test_dataset_calls_as_example(*mocks):
+    gr.Dataset(
+        components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D()],
+        samples=[
+            [
+                pd.DataFrame({"a": np.array([1, 2, 3])}),
+                "foo.png",
+                "bar.jpeg",
+                "duck.obj",
+            ]
+        ],
+    )
+    assert all([m.called for m in mocks])
 
 
 if __name__ == "__main__":

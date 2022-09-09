@@ -1,11 +1,12 @@
 import gradio
 
 XRAY_CONFIG = {
+    "version": "3.1.8b\n",
     "mode": "blocks",
     "dev_mode": True,
     "components": [
         {
-            "id": 1,
+            "id": 23,
             "type": "markdown",
             "props": {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
@@ -15,7 +16,7 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 2,
+            "id": 24,
             "type": "checkboxgroup",
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
@@ -27,30 +28,19 @@ XRAY_CONFIG = {
                 "style": {},
             },
         },
+        {"id": 25, "type": "tabs", "props": {"visible": True, "style": {}}},
         {
-            "id": 3,
-            "type": "tabs",
-            "props": {
-                "visible": True,
-                "style": {},
-            },
-        },
-        {
-            "id": 4,
+            "id": 26,
             "type": "tabitem",
-            "props": {
-                "label": "X-ray",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"label": "X-ray", "visible": True, "style": {}},
         },
         {
-            "id": 5,
+            "id": 27,
             "type": "row",
             "props": {"type": "row", "visible": True, "style": {}},
         },
         {
-            "id": 6,
+            "id": 28,
             "type": "image",
             "props": {
                 "image_mode": "RGB",
@@ -66,18 +56,18 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 7,
+            "id": 29,
             "type": "json",
             "props": {
                 "show_label": True,
                 "name": "json",
                 "visible": True,
-                "style": {},
                 "value": None,
+                "style": {},
             },
         },
         {
-            "id": 8,
+            "id": 30,
             "type": "button",
             "props": {
                 "value": "Run",
@@ -88,21 +78,17 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 9,
+            "id": 31,
             "type": "tabitem",
-            "props": {
-                "label": "CT Scan",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"label": "CT Scan", "visible": True, "style": {}},
         },
         {
-            "id": 10,
+            "id": 32,
             "type": "row",
             "props": {"type": "row", "visible": True, "style": {}},
         },
         {
-            "id": 11,
+            "id": 33,
             "type": "image",
             "props": {
                 "image_mode": "RGB",
@@ -112,13 +98,13 @@ XRAY_CONFIG = {
                 "mirror_webcam": True,
                 "show_label": True,
                 "name": "image",
-                "value": None,
                 "visible": True,
                 "style": {},
+                "value": None,
             },
         },
         {
-            "id": 12,
+            "id": 34,
             "type": "json",
             "props": {
                 "show_label": True,
@@ -129,7 +115,7 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 13,
+            "id": 35,
             "type": "button",
             "props": {
                 "value": "Run",
@@ -140,7 +126,7 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 14,
+            "id": 36,
             "type": "textbox",
             "props": {
                 "lines": 1,
@@ -152,43 +138,56 @@ XRAY_CONFIG = {
                 "style": {},
             },
         },
+        {
+            "id": 37,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
+        {
+            "id": 38,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
     ],
     "theme": "default",
     "css": None,
-    "enable_queue": False,
+    "title": "Gradio",
+    "is_space": False,
+    "enable_queue": None,
+    "show_error": False,
     "layout": {
-        "id": 0,
+        "id": 22,
         "children": [
-            {"id": 1},
-            {"id": 2},
+            {"id": 23},
+            {"id": 37, "children": [{"id": 24}]},
             {
-                "id": 3,
+                "id": 25,
                 "children": [
                     {
-                        "id": 4,
+                        "id": 26,
                         "children": [
-                            {"id": 5, "children": [{"id": 6}, {"id": 7}]},
-                            {"id": 8},
+                            {"id": 27, "children": [{"id": 28}, {"id": 29}]},
+                            {"id": 30},
                         ],
                     },
                     {
-                        "id": 9,
+                        "id": 31,
                         "children": [
-                            {"id": 10, "children": [{"id": 11}, {"id": 12}]},
-                            {"id": 13},
+                            {"id": 32, "children": [{"id": 33}, {"id": 34}]},
+                            {"id": 35},
                         ],
                     },
                 ],
             },
-            {"id": 14},
+            {"id": 38, "children": [{"id": 36}]},
         ],
     },
     "dependencies": [
         {
-            "targets": [8],
+            "targets": [30],
             "trigger": "click",
-            "inputs": [2, 6],
-            "outputs": [7],
+            "inputs": [24, 28],
+            "outputs": [29],
             "backend_fn": True,
             "js": None,
             "status_tracker": None,
@@ -198,10 +197,10 @@ XRAY_CONFIG = {
             "show_progress": True,
         },
         {
-            "targets": [13],
+            "targets": [35],
             "trigger": "click",
-            "inputs": [2, 11],
-            "outputs": [12],
+            "inputs": [24, 33],
+            "outputs": [34],
             "backend_fn": True,
             "js": None,
             "status_tracker": None,
@@ -214,9 +213,9 @@ XRAY_CONFIG = {
             "targets": [],
             "trigger": "load",
             "inputs": [],
-            "outputs": [14],
+            "outputs": [36],
             "backend_fn": True,
-            "js": False,
+            "js": None,
             "status_tracker": None,
             "queue": None,
             "api_name": None,
@@ -280,6 +279,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
+                "value": None,
                 "source": "upload",
                 "tool": "editor",
                 "streaming": False,
@@ -287,7 +287,6 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "image",
                 "visible": True,
-                "value": None,
                 "style": {},
             },
         },
@@ -296,10 +295,10 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "json",
             "props": {
                 "show_label": True,
+                "value": None,
                 "name": "json",
                 "visible": True,
                 "style": {},
-                "value": None,
             },
         },
         {
@@ -350,8 +349,8 @@ XRAY_CONFIG_DIFF_IDS = {
                 "show_label": True,
                 "name": "json",
                 "visible": True,
-                "value": None,
                 "style": {},
+                "value": None,
             },
         },
         {
@@ -378,6 +377,16 @@ XRAY_CONFIG_DIFF_IDS = {
                 "style": {},
             },
         },
+        {
+            "id": 37,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
+        {
+            "id": 38,
+            "type": "form",
+            "props": {"type": "form", "visible": True, "style": {}},
+        },
     ],
     "theme": "default",
     "css": None,
@@ -386,7 +395,7 @@ XRAY_CONFIG_DIFF_IDS = {
         "id": 0,
         "children": [
             {"id": 1},
-            {"id": 22},
+            {"id": 37, "children": [{"id": 22}]},
             {
                 "id": 3,
                 "children": [
@@ -406,7 +415,7 @@ XRAY_CONFIG_DIFF_IDS = {
                     },
                 ],
             },
-            {"id": 141},
+            {"id": 38, "children": [{"id": 141}]},
         ],
     },
     "dependencies": [
@@ -442,7 +451,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [],
             "outputs": [141],
             "backend_fn": True,
-            "js": False,
+            "js": None,
             "status_tracker": None,
             "queue": None,
             "api_name": None,
@@ -516,7 +525,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": None,
                 "name": "json",
                 "style": {},
             },
@@ -563,7 +571,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": None,
                 "name": "json",
                 "style": {},
             },

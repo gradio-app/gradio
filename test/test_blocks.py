@@ -1,6 +1,6 @@
 import asyncio
-import inspect
 import io
+import os
 import random
 import sys
 import time
@@ -19,6 +19,8 @@ from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 @contextmanager
@@ -197,6 +199,12 @@ class TestBlocks(unittest.TestCase):
         demo.share_url = None
         demo.close()
 
+    @mock.patch("requests.post")
+    def test_initiated_analytics(self, mock_post):
+        with gr.Blocks(analytics_enabled=True):
+            pass
+        mock_post.assert_called_once()
+
 
 def test_slider_random_value_config():
     with gr.Blocks() as demo:
@@ -224,7 +232,7 @@ def test_slider_random_value_config():
 
 
 def test_io_components_attach_load_events_when_value_is_fn(io_components):
-
+    io_components = [comp for comp in io_components if not (comp == gr.State)]
     interface = gr.Interface(
         lambda *args: None,
         inputs=[comp(value=lambda: None) for comp in io_components],
@@ -238,8 +246,7 @@ def test_io_components_attach_load_events_when_value_is_fn(io_components):
 
 
 def test_blocks_do_not_filter_none_values_from_updates(io_components):
-
-    io_components = [c() for c in io_components if c not in [gr.Variable, gr.Button]]
+    io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
     with gr.Blocks() as demo:
         for component in io_components:
             component.render()
@@ -256,6 +263,105 @@ def test_blocks_do_not_filter_none_values_from_updates(io_components):
     assert all(
         [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
     )
+
+
+def test_blocks_does_not_replace_keyword_literal():
+    with gr.Blocks() as demo:
+        text = gr.Textbox()
+        btn = gr.Button(value="Reset")
+        btn.click(
+            lambda: gr.update(value="NO_VALUE"),
+            inputs=[],
+            outputs=text,
+        )
+
+    output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+    assert output[0]["value"] == "NO_VALUE"
+
+
+class TestCallFunction:
+    @pytest.mark.asyncio
+    async def test_call_regular_function(self):
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(
+                lambda x: "Hello, " + x,
+                inputs=text,
+                outputs=text,
+            )
+
+        output = await demo.call_function(0, ["World"])
+        assert output["prediction"] == "Hello, World"
+        output = await demo.call_function(0, ["Abubakar"])
+        assert output["prediction"] == "Hello, Abubakar"
+
+    @pytest.mark.asyncio
+    async def test_call_generator(self):
+        def generator(x):
+            for i in range(x):
+                yield i
+
+        with gr.Blocks() as demo:
+            inp = gr.Number()
+            out = gr.Number()
+            btn = gr.Button()
+            btn.click(
+                generator,
+                inputs=inp,
+                outputs=out,
+            )
+
+        demo.queue()
+
+        output = await demo.call_function(0, [3])
+        assert output["prediction"] == 0
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 1
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 2
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == gr.components._Keywords.FINISHED_ITERATING
+        assert output["iterator"] is None
+        output = await demo.call_function(0, [3], iterator=output["iterator"])
+        assert output["prediction"] == 0
+
+    @pytest.mark.asyncio
+    async def test_call_both_generator_and_function(self):
+        def generator(x):
+            for i in range(x):
+                yield i, x
+
+        with gr.Blocks() as demo:
+            inp = gr.Number()
+            out1 = gr.Number()
+            out2 = gr.Number()
+            btn = gr.Button()
+            inp.change(lambda x: x + x, inp, out1)
+            btn.click(
+                generator,
+                inputs=inp,
+                outputs=[out1, out2],
+            )
+
+        demo.queue()
+
+        output = await demo.call_function(0, [2])
+        assert output["prediction"] == 4
+        output = await demo.call_function(0, [-1])
+        assert output["prediction"] == -2
+
+        output = await demo.call_function(1, [3])
+        assert output["prediction"] == (0, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (1, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (2, 3)
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (gr.components._Keywords.FINISHED_ITERATING,) * 2
+        assert output["iterator"] is None
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
+        assert output["prediction"] == (0, 3)
 
 
 if __name__ == "__main__":

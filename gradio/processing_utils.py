@@ -12,7 +12,7 @@ from io import BytesIO
 import numpy as np
 import requests
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import encryptor
 
@@ -101,6 +101,25 @@ def save_pil_to_file(pil_image, dir=None):
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj)
     return file_obj
+
+
+def encode_pil_to_base64(pil_image):
+    with BytesIO() as output_bytes:
+
+        # Copy any text-only metadata
+        use_metadata = False
+        metadata = PngImagePlugin.PngInfo()
+        for key, value in pil_image.info.items():
+            if isinstance(key, str) and isinstance(value, str):
+                metadata.add_text(key, value)
+                use_metadata = True
+
+        pil_image.save(
+            output_bytes, "PNG", pnginfo=(metadata if use_metadata else None)
+        )
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return "data:image/png;base64," + base64_str
 
 
 def encode_array_to_base64(image_array):
@@ -605,7 +624,7 @@ def video_is_playable(video_filepath: str) -> bool:
             (".webm", "vp9"),
         ]
     # If anything goes wrong, assume the video can be played to not convert downstream
-    except FFRuntimeError:
+    except (FFRuntimeError, IndexError, KeyError):
         return True
 
 
