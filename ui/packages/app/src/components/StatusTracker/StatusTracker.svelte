@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
+	import { fade } from "svelte/transition";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -168,16 +169,17 @@
 	{:else if status === "error"}
 		<span class="error">ERROR</span>
 		{#if message_visible}
-			<div
-				class="fixed bg-black/80 dark:bg-black/90 inset-0 z-[100] pointer-events-auto"
-				on:click={close_message}
-			>
+			<div class="fixed inset-0 z-[100]">
 				<div
-					class="absolute inset-x-6 md:inset-x-12 bg-white top-24 rounded-xl border dark:border-gray-900 overflow-hidden shadow-2xl shadow-red-500/20 max-w-2xl mx-auto"
+					class="absolute left-0 md:left-auto border-black right-0 top-0 h-96 md:w-1/2 bg-gradient-to-b md:bg-gradient-to-bl from-red-500/5 via-transparent to-transparent"
+				/>
+				<div
+					class="absolute bg-white top-7 left-4 right-4 md:right-8 md:left-auto rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-2xl shadow-red-500/10 md:w-96 pointer-events-auto"
 					on:click|stopPropagation
+					in:fade={{ duration: 100 }}
 				>
 					<div
-						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-2 text-lg font-bold text-red-500"
+						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-1 text-lg font-bold text-red-500"
 					>
 						Error
 						<button
