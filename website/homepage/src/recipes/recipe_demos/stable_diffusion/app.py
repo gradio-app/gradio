@@ -38,44 +38,6 @@ def infer(prompt, samples, steps, scale, seed):
 # define a block
 block = gr.Blocks()
 
-# define the examples
-examples = [
-    [
-        'A high tech solarpunk utopia in the Amazon rainforest',
-        4,
-        45,
-        7.5,
-        1024,
-    ],
-    [
-        'A pikachu fine dining with a view to the Eiffel Tower',
-        4,
-        45,
-        7,
-        1024,
-    ],
-    [
-        'A mecha robot in a favela in expressionist style',
-        4,
-        45,
-        7,
-        1024,
-    ],
-    [
-        'an insect robot preparing a delicious meal',
-        4,
-        45,
-        7,
-        1024,
-    ],
-    [
-        "A small cabin on top of a snowy mountain in the style of Disney, artstation",
-        4,
-        45,
-        7,
-        1024,
-    ],
-]
 
 # start the block
 with block:
@@ -121,9 +83,6 @@ with block:
                 step=1,
                 randomize=True,
             )
-
-        ex = gr.Examples(examples=examples, fn=infer, inputs=[text, samples, steps, scale, seed], outputs=gallery, cache_examples=True)
-        ex.dataset.headers = [""]
 
         # define what will happen when the buttons are selected
         text.submit(infer, inputs=[text, samples, steps, scale, seed], outputs=gallery)
