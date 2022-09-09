@@ -176,6 +176,7 @@ class Interface(Blocks):
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            batch_fn: a function that takes in a batch (list) of inputs and returns a batch of outputs. If provided, this function will be used if the batch_size is not None in the self.queue() method. 
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
