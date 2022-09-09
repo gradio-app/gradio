@@ -33,7 +33,11 @@
                 <div class="codeblock" id="{{ demo['dir']}}_code">
                   <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
                 </div>
+                {% if demo['dir'] == 'stable-diffusion' %}
+                <gradio-app space="stabilityai/{{ demo['dir'] }}" />
+                {% else %}
                 <gradio-app space="gradio/{{ demo['dir'] }}" />
+                {% endif %}
               </div>
               {% endfor %}
             </div>

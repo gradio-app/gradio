@@ -79,9 +79,9 @@ demos_by_category = [
             },
             {
                 "name": "Text to Image Generation", 
-                "dir": "stable_diffusion", 
-                "code": get_code("stable_diffusion"),
-                "text": "Note: This demo is running on CPU, so generations are quite slow. Try the accelerated version here: https://hf.co/spaces/stabilityai/stable-diffusion"
+                "dir": "stable-diffusion", 
+                "code": get_code("stable-diffusion"),
+                "text": "Note: This is a simplified version of the code. See full code here: https://hf.co/spaces/stabilityai/stable-diffusion/tree/main"
             },
             {
                 "name": "3D Models", 
