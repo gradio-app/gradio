@@ -18,7 +18,10 @@ with gr.Blocks() as demo:
             image_input = gr.Image()
             image_output = gr.Image()
         image_button = gr.Button("Flip")
-    
+
+    with gr.Accordion("Open for More!"):
+        gr.Markdown("Look at me...")
+
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
     

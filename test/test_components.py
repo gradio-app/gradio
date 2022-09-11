@@ -1381,6 +1381,14 @@ class TestHighlightedText(unittest.TestCase):
         result_ = component.postprocess({"text": text, "entities": entities})
         self.assertEqual(result, result_)
 
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "LOC", "start": 18, "end": 24},
+            {"entity": "PER", "start": 0, "end": 8},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual(result, result_)
+
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
@@ -1753,9 +1761,9 @@ class TestState:
 
         io = gr.Interface(test, ["text", "state"], ["text", "state"])
         result = await io.call_function(0, ["abc"])
-        assert result[0][0] == "abc def"
-        result = await io.call_function(0, ["abc", result[0][0]])
-        assert result[0][0] == "abcabc def"
+        assert result["prediction"][0] == "abc def"
+        result = await io.call_function(0, ["abc", result["prediction"][0]])
+        assert result["prediction"][0] == "abcabc def"
 
     @pytest.mark.asyncio
     async def test_in_blocks(self):
@@ -1765,9 +1773,9 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
-        result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
 
     @pytest.mark.asyncio
     async def test_variable_for_backwards_compatibility(self):
@@ -1777,9 +1785,9 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
-        result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
 
 
 def test_dataframe_as_example_converts_dataframes():

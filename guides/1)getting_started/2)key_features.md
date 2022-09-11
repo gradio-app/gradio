@@ -160,4 +160,24 @@ with gr.Blocks() as demo2:
 demo2.launch()
 ```
 
-Docs: Examples
+## Iterative Outputs
+
+In some cases, you may want to show a sequence of outputs rather than a single output. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image.
+
+In such cases, you can supply a **generator** function into Gradio instead of a regular function. Creating generators in Python is very simple: instead of a single `return` value, a function should `yield` a series of values instead. Usually the `yield` statement is put in some kind of loop. Here's an example of an generator that simply counts up to a given number:
+
+```python
+def my_generator(x):
+    for i in range(x):
+        yield i
+```
+
+You supply a generator into Gradio the same way as you would a regular function. For example, here's a a (fake) image generation model that generates noise for several steps before outputting an image:
+
+$code_fake_diffusion
+$demo_fake_diffusion
+
+Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
+
+Supplying a generator into Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
+
