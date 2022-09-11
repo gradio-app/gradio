@@ -1,6 +1,6 @@
 ## Using Gradio for Tabular Data Science Workflows
 
-Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integration
+Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integration, https://huggingface.co/spaces/scikit-learn/tabular-playground, https://huggingface.co/spaces/merve/gradio-analysis-dashboard
 
 
 ## Introduction
@@ -39,3 +39,52 @@ Let's break down above code.
 * `inputs`: the component we take our input with. We define our input as dataframe with 2 rows and 4 columns, which initially will look like an empty dataframe with the aforementioned shape. When the `row_count` is set to `dynamic`, you don't have to rely on the dataset you're inputting to pre-defined component.
 * `outputs`: The dataframe component that stores outputs. This UI can take single or multiple samples to infer, and returns 0 or 1 for each sample in one column, so we give `row_count` as 2 and `col_count` as 1 above. `headers` is a list made of header names for dataframe.
 * `examples`: You can either pass the input by dragging and dropping a CSV file, or a pandas DataFrame through examples, which headers will be automatically taken by the interface.
+
+
+We will now create an example for a minimal data visualization dashboard. You can find a more comprehensive version in the related Spaces.
+
+```python
+import gradio as gr
+import pandas as pd
+import datasets
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = datasets.load_dataset("merve/supersoaker-failures")
+df = df["train"].to_pandas()
+df.dropna(axis=0, inplace=True)
+
+def plot(df):
+  plt.scatter(df.measurement_13, df.measurement_15, c = df.loading,alpha=0.5)
+  plt.savefig("scatter.png")
+  df['failure'].value_counts().plot(kind='bar')
+  plt.savefig("bar.png")
+  sns.heatmap(df.select_dtypes(include="number").corr())
+  plt.savefig("corr.png")
+  plots = ["corr.png","scatter.png", "bar.png"]
+  return plots
+  
+inputs = [gr.Dataframe(label="Supersoaker Production Data")]
+outputs = [gr.Gallery(label="Profiling Dashboard").style(grid=(1,3))]
+
+gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df], title="Supersoaker Failures Analysis Dashboard").launch()
+```
+
+We will use the same dataset we used to train our model, but we will make a dashboard to visualize it this time. 
+
+* `fn`: The function that will create plots based on data.
+* `inputs`: We use the same `Dataframe` component we used above.
+* `outputs`: The `Gallery` component is used to keep our visualizations.
+* `examples`: We will have the dataset itself as the example.
+
+## Easily load tabular data interfaces with one line of code using skops
+
+`skops` is a library built on top of `huggingface_hub` and `sklearn`. With the recent `gradio` integration of `skops`, you can build tabular data interfaces with one line of code!
+
+```python
+import gradio as gr
+
+gr.Interface.load("huggingface/scikit-learn/tabular-playground").launch()
+```
+
+`sklearn` models pushed to Hugging Face Hub using `skops` include a `config.json` file that contains an example input  with column names, the task being solved (that can either be `tabular-classification` or `tabular-regression`). From the task type, `gradio` constructs the `Interface` and consumes column names and the example input to build it. You can [refer to skops documentation on hosting models on Hub](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py) to learn how to push your models to Hub using `skops`.
