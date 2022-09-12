@@ -671,6 +671,11 @@ class Blocks(BlockContext):
                         )
                     output_index = dependency["outputs"].index(component._id)
                     reordered_predictions[output_index] = value
+                # Unwrap list if only one output component to prevent
+                # wrapping the list into a tuple in the if len(reordered_predictions) == 1
+                # check
+                if len(reordered_predictions) == 1:
+                    reordered_predictions = reordered_predictions[0]
                 predictions = reordered_predictions
             elif any(keys_are_blocks):
                 raise ValueError(
