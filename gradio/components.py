@@ -2904,7 +2904,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named_entity_recognition
@@ -2995,13 +2995,19 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, dict):
-            text = y["text"]
-            entities = y["entities"]
+            try:
+                text = y["text"]
+                entities = y["entities"]
+            except KeyError:
+                raise ValueError(
+                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
+                )
             if len(entities) == 0:
                 y = [(text, None)]
             else:
                 list_format = []
                 index = 0
+                entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
                     list_format.append((text[index : entity["start"]], None))
                     list_format.append(
