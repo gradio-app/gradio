@@ -145,20 +145,6 @@ class TestRoutes(unittest.TestCase):
         close_all()
 
 
-class TestQueueWebsocketSetup:
-    @pytest.mark.asyncio
-    async def test_websocket_connect(self):
-        io = Interface(lambda x: x, "textbox", "textbox")
-        io.queue()
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        asyncio.sleep = AsyncMock()
-        asyncio.sleep.side_effect = asyncio.TimeoutError
-        with pytest.raises(asyncio.TimeoutError):
-            with client.websocket_connect("/queue/join"):
-                pass
-
-
 class TestGeneratorRoutes:
     def test_generator(self):
         def generator(string):
