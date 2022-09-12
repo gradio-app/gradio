@@ -77,7 +77,7 @@
 		el.style.overflowY = "scroll";
 		el.addEventListener("input", resize);
 
-		if (!value.trim()) return;
+		if (!value || !value.trim()) return;
 		resize({ target: el });
 
 		return {
