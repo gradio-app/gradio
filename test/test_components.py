@@ -1381,6 +1381,14 @@ class TestHighlightedText(unittest.TestCase):
         result_ = component.postprocess({"text": text, "entities": entities})
         self.assertEqual(result, result_)
 
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "LOC", "start": 18, "end": 24},
+            {"entity": "PER", "start": 0, "end": 8},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual(result, result_)
+
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
