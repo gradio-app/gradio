@@ -15,5 +15,6 @@ with gr.Blocks() as demo:
         with gr.Column(scale=2, min_width=600):
             img1 = gr.Image("images/cheetah.jpg")
             btn = gr.Button("Go").style(full_width=True)
+
 if __name__ == "__main__":
     demo.launch()

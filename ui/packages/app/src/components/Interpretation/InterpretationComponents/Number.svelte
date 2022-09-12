@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let interpretation: Array<[number, number]>;
+	export let label: string = "";
 </script>
 
 <div class="input-number">
+	<BlockTitle>{label}</BlockTitle>
 	<div class="interpret_range flex">
 		{#each interpretation as interpret_value}
 			<div

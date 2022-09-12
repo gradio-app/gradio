@@ -26,6 +26,7 @@ type StatusResponse =
 interface Payload {
 	data: Array<unknown>;
 	fn_index: number;
+	session_hash?: string;
 }
 
 declare let BUILD_MODE: string;
@@ -89,6 +90,7 @@ export const fn =
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
+		payload.session_hash = session_hash;
 		if (frontend_fn !== undefined) {
 			payload.data = await frontend_fn(payload.data.concat(output_data));
 		}
@@ -171,6 +173,20 @@ export const fn =
 							data.rank_eta,
 							null
 						);
+						break;
+					case "process_generating":
+						loading_status.update(
+							fn_index,
+							data.success ? "generating" : "error",
+							queue,
+							null,
+							null,
+							data.output.average_duration,
+							!data.success ? data.output.error : null
+						);
+						if (data.success) {
+							queue_callback(data.output);
+						}
 						break;
 					case "process_completed":
 						loading_status.update(

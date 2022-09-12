@@ -29,8 +29,15 @@
 
 	async function handle_keypress(e: KeyboardEvent) {
 		await tick();
-
-		if (e.key === "Enter" && lines === 1) {
+		if (e.key === "Enter" && e.shiftKey && lines > 1) {
+			e.preventDefault();
+			dispatch("submit");
+		} else if (
+			e.key === "Enter" &&
+			!e.shiftKey &&
+			lines === 1 &&
+			max_lines >= 1
+		) {
 			e.preventDefault();
 			dispatch("submit");
 		}
@@ -106,6 +113,7 @@
 			{placeholder}
 			rows={lines}
 			{disabled}
+			on:keypress={handle_keypress}
 		/>
 	{/if}
 </label>

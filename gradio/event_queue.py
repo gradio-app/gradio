@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import fastapi
 from pydantic import BaseModel
@@ -210,6 +210,14 @@ class Queue:
             queue_eta=self.queue_duration,
         )
 
+    async def call_prediction(self, event: Event):
+        response = await Request(
+            method=Request.Method.POST,
+            url=f"{self.server_path}api/predict",
+            json=event.data,
+        )
+        return response
+
     async def process_event(self, event: Event) -> None:
         client_awake = await self.gather_event_data(event)
         if not client_awake:
@@ -218,27 +226,44 @@ class Queue:
         if not client_awake:
             return
         begin_time = time.time()
-        response = await Request(
-            method=Request.Method.POST,
-            url=f"{self.server_path}api/predict",
-            json=event.data,
-        )
+        response = await self.call_prediction(event)
+        if response.json.get("is_generating", False):
+            while response.json.get("is_generating", False):
+                old_response = response
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_generating",
+                        "output": old_response.json,
+                        "success": old_response.status == 200,
+                    },
+                )
+                response = await self.call_prediction(event)
+            await self.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": old_response.json,
+                    "success": old_response.status == 200,
+                },
+            )
+        else:
+            await self.send_message(
+                event,
+                {
+                    "msg": "process_completed",
+                    "output": response.json,
+                    "success": response.status == 200,
+                },
+            )
         end_time = time.time()
-        success = response.status == 200
-        if success:
+        if response.status == 200:
             self.update_estimation(end_time - begin_time)
-        await self.send_message(
-            event,
-            {
-                "msg": "process_completed",
-                "output": response.json,
-                "success": success,
-            },
-        )
+
         await event.disconnect()
         await self.clean_event(event)
 
-    async def send_message(self, event, data: json) -> bool:
+    async def send_message(self, event, data: Dict) -> bool:
         try:
             await event.websocket.send_json(data=data)
             return True
@@ -246,7 +271,7 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[json]:
+    async def get_message(self, event) -> Optional[Dict]:
         try:
             data = await event.websocket.receive_json()
             return data
