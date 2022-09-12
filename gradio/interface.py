@@ -151,6 +151,7 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        batch_fn: Optional[Callable] = None,
         _api_mode: bool = False,
         **kwargs,
     ):
