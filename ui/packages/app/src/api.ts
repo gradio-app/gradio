@@ -26,6 +26,7 @@ type StatusResponse =
 interface Payload {
 	data: Array<unknown>;
 	fn_index: number;
+	session_hash?: string;
 }
 
 declare let BUILD_MODE: string;
@@ -36,16 +37,21 @@ interface PostResponse {
 	[x: string]: unknown;
 }
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
+const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
 async function post_data(
 	url: string,
 	body: unknown
 ): Promise<[PostResponse, number]> {
-	const response = await fetch(url, {
-		method: "POST",
-		body: JSON.stringify(body),
-		headers: { "Content-Type": "application/json" }
-	});
+	try {
+		var response = await fetch(url, {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: { "Content-Type": "application/json" }
+		});
+	} catch (e) {
+		return [{ error: BROKEN_CONNECTION_MSG }, 500];
+	}
 	const output: PostResponse = await response.json();
 	return [output, response.status];
 }
@@ -60,8 +66,7 @@ type Output = {
 	average_duration?: number;
 };
 
-const ws_map = new Map();
-
+const ws_map = new Map<number, WebSocket>();
 export const fn =
 	(session_hash: string, api_endpoint: string, is_space: boolean) =>
 	async ({
@@ -85,6 +90,7 @@ export const fn =
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
+		payload.session_hash = session_hash;
 		if (frontend_fn !== undefined) {
 			payload.data = await frontend_fn(payload.data.concat(output_data));
 		}
@@ -104,7 +110,7 @@ export const fn =
 			);
 
 			function send_message(fn: number, data: any) {
-				ws_map.get(fn).connection.send(JSON.stringify(data));
+				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
 			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
@@ -121,25 +127,25 @@ export const fn =
 			}
 			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}/queue/join`;
 
-			const websocket_data = {
-				connection: new WebSocket(WS_ENDPOINT),
-				hash: Math.random().toString(36).substring(2)
+			var websocket = new WebSocket(WS_ENDPOINT);
+			ws_map.set(fn_index, websocket);
+
+			websocket.onclose = (evt) => {
+				if (!evt.wasClean) {
+					loading_status.update(
+						fn_index,
+						"error",
+						queue,
+						null,
+						null,
+						null,
+						BROKEN_CONNECTION_MSG
+					);
+				}
 			};
 
-			ws_map.set(fn_index, websocket_data);
-
-			websocket_data.connection.onopen = () => {
-				console.log("open");
-				send_message(fn_index, { hash: session_hash });
-			};
-
-			websocket_data.connection.onclose = () => {
-				console.log("close");
-			};
-
-			websocket_data.connection.onmessage = function (event) {
+			websocket.onmessage = async function (event) {
 				const data = JSON.parse(event.data);
-				console.log("go", data);
 
 				switch (data.msg) {
 					case "send_data":
@@ -155,8 +161,8 @@ export const fn =
 							null,
 							QUEUE_FULL_MSG
 						);
-						websocket_data.connection.close();
-						break;
+						websocket.close();
+						return;
 					case "estimation":
 						loading_status.update(
 							fn_index,
@@ -167,6 +173,20 @@ export const fn =
 							data.rank_eta,
 							null
 						);
+						break;
+					case "process_generating":
+						loading_status.update(
+							fn_index,
+							data.success ? "generating" : "error",
+							queue,
+							null,
+							null,
+							data.output.average_duration,
+							!data.success ? data.output.error : null
+						);
+						if (data.success) {
+							queue_callback(data.output);
+						}
 						break;
 					case "process_completed":
 						loading_status.update(
@@ -181,8 +201,8 @@ export const fn =
 						if (data.success) {
 							queue_callback(data.output);
 						}
-						websocket_data.connection.close();
-						break;
+						websocket.close();
+						return;
 					case "process_starts":
 						loading_status.update(
 							fn_index,

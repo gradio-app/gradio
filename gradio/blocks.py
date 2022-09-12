@@ -7,7 +7,6 @@ import os
 import pkgutil
 import random
 import sys
-import tempfile
 import time
 import warnings
 import webbrowser
@@ -35,7 +34,6 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import Error
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -146,6 +144,15 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if api_name is not None:
+            api_name_ = utils.append_unique_suffix(
+                api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
+            )
+            if not (api_name == api_name_):
+                warnings.warn(
+                    "api_name {} already exists, using {}".format(api_name, api_name_)
+                )
+                api_name = api_name_
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -495,6 +502,11 @@ class Blocks(BlockContext):
             blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
             blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
 
+        if config.get("mode", "blocks") == "interface":
+            blocks.__name__ = "Interface"
+            blocks.mode = "interface"
+            blocks.api_mode = True
+
         return blocks
 
     def __call__(self, *params, fn_index=0):
@@ -567,7 +579,21 @@ class Blocks(BlockContext):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
-            Context.root_block.dependencies.extend(self.dependencies)
+            for dependency in self.dependencies:
+                api_name = dependency["api_name"]
+                if api_name is not None:
+                    api_name_ = utils.append_unique_suffix(
+                        api_name,
+                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                    )
+                    if not (api_name == api_name_):
+                        warnings.warn(
+                            "api_name {} already exists, using {}".format(
+                                api_name, api_name_
+                            )
+                        )
+                        dependency["api_name"] = api_name_
+                Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -588,19 +614,47 @@ class Blocks(BlockContext):
             processed_input = raw_input
         return processed_input
 
-    async def call_function(self, fn_index, processed_input):
+    async def call_function(self, fn_index, processed_input, iterator=None):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-
+        is_generating = False
         start = time.time()
-        if inspect.iscoroutinefunction(block_fn.fn):
-            prediction = await block_fn.fn(*processed_input)
-        else:
-            prediction = await anyio.to_thread.run_sync(
-                block_fn.fn, *processed_input, limiter=self.limiter
-            )
+
+        if iterator is None:  # If not a generator function that has already run
+            if inspect.iscoroutinefunction(block_fn.fn):
+                prediction = await block_fn.fn(*processed_input)
+            else:
+                prediction = await anyio.to_thread.run_sync(
+                    block_fn.fn, *processed_input, limiter=self.limiter
+                )
+
+        if inspect.isasyncgenfunction(block_fn.fn):
+            raise ValueError("Gradio does not support async generators.")
+        if inspect.isgeneratorfunction(block_fn.fn):
+            if not self.enable_queue:
+                raise ValueError("Need to enable queue to use generators.")
+            try:
+                if iterator is None:
+                    iterator = prediction
+                prediction = next(iterator)
+                is_generating = True
+            except StopIteration:
+                n_outputs = len(self.dependencies[fn_index].get("outputs"))
+                prediction = (
+                    components._Keywords.FINISHED_ITERATING
+                    if n_outputs == 1
+                    else (components._Keywords.FINISHED_ITERATING,) * n_outputs
+                )
+                iterator = None
+
         duration = time.time() - start
-        return prediction, duration
+
+        return {
+            "prediction": prediction,
+            "duration": duration,
+            "is_generating": is_generating,
+            "iterator": iterator,
+        }
 
     def postprocess_data(self, fn_index, predictions, state):
         block_fn = self.fns[fn_index]
@@ -628,6 +682,9 @@ class Blocks(BlockContext):
         if block_fn.postprocess:
             output = []
             for i, output_id in enumerate(dependency["outputs"]):
+                if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                    output.append(None)
+                    break
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
                     if not is_update(predictions[i]):
@@ -641,6 +698,13 @@ class Blocks(BlockContext):
                             prediction_value = block.__class__.update(
                                 **prediction_value
                             )
+                        # If the prediction is the default (NO_VALUE) enum then the user did
+                        # not specify a value for the 'value' key and we can get rid of it
+                        if (
+                            prediction_value.get("value")
+                            == components._Keywords.NO_VALUE
+                        ):
+                            prediction_value.pop("value")
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
                             prediction_value["value"] = block.postprocess(
@@ -664,7 +728,8 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Optional[Dict[int, any]] = None,
+        state: Optional[Dict[int, Any]] = None,
+        iterators: Dict[int, Any] = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -678,16 +743,19 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
+        iterator = iterators.get(fn_index, None)
 
-        predictions, duration = await self.call_function(fn_index, inputs)
-        block_fn.total_runtime += duration
+        result = await self.call_function(fn_index, inputs, iterator)
+        block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, predictions, state)
+        predictions = self.postprocess_data(fn_index, result["prediction"], state)
 
         return {
             "data": predictions,
-            "duration": duration,
+            "is_generating": result["is_generating"],
+            "iterator": result["iterator"],
+            "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
@@ -842,7 +910,7 @@ class Blocks(BlockContext):
             demo.launch()
         """
         self.enable_queue = default_enabled
-        event_queue.Queue.configure_queue(
+        self._queue = event_queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,
@@ -934,15 +1002,20 @@ class Blocks(BlockContext):
                 "The `enable_queue` parameter has been deprecated. Please use the `.queue()` method instead.",
                 DeprecationWarning,
             )
+
         if self.is_space:
             self.enable_queue = self.enable_queue is not False
         else:
             self.enable_queue = self.enable_queue is True
+        if self.enable_queue and not hasattr(self, "_queue"):
+            self.queue()
 
         self.config = self.get_config_file()
         self.share = share
         self.encrypt = encrypt
-        self.max_threads = max(event_queue.Queue.MAX_THREAD_COUNT, max_threads)
+        self.max_threads = max(
+            self._queue.max_thread_count if self.enable_queue else 0, max_threads
+        )
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
@@ -955,7 +1028,7 @@ class Blocks(BlockContext):
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
         else:
-            server_port, path_to_local_server, app, server = networking.start_server(
+            server_name, server_port, local_url, app, server = networking.start_server(
                 self,
                 server_name,
                 server_port,
@@ -963,19 +1036,23 @@ class Blocks(BlockContext):
                 ssl_certfile,
                 ssl_keyfile_password,
             )
-            self.local_url = path_to_local_server
+            self.server_name = server_name
+            self.local_url = local_url
             self.server_port = server_port
             self.server_app = app
             self.server = server
             self.is_running = True
+            self.protocol = "https" if self.local_url.startswith("https") else "http"
 
-            event_queue.Queue.set_url(self.local_url)
+            if self.enable_queue:
+                self._queue.set_url(self.local_url)
+
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
             requests.get(f"{self.local_url}startup-events")
 
-            if app.blocks.enable_queue:
-                if app.blocks.auth is not None or app.blocks.encrypt:
+            if self.enable_queue:
+                if self.auth is not None or self.encrypt:
                     raise ValueError(
                         "Cannot queue with encryption or authentication enabled."
                     )
@@ -995,7 +1072,11 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
+            )
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
@@ -1142,7 +1223,7 @@ class Blocks(BlockContext):
         """
         try:
             if self.enable_queue:
-                event_queue.Queue.close()
+                self._queue.close()
             self.server.close()
             self.is_running = False
             if verbose:

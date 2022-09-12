@@ -850,10 +850,12 @@ class TestFile(unittest.TestCase):
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
+        serialized = file_input.serialize("test/test_files/sample_file.pdf")
         assert filecmp.cmp(
-            file_input.serialize("test/test_files/sample_file.pdf")["name"],
+            serialized["name"],
             "test/test_files/sample_file.pdf",
         )
+        assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
         self.assertIsInstance(file_input.generate_sample(), dict)
@@ -1379,6 +1381,14 @@ class TestHighlightedText(unittest.TestCase):
         result_ = component.postprocess({"text": text, "entities": entities})
         self.assertEqual(result, result_)
 
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "LOC", "start": 18, "end": 24},
+            {"entity": "PER", "start": 0, "end": 8},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        self.assertEqual(result, result_)
+
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
@@ -1751,9 +1761,9 @@ class TestState:
 
         io = gr.Interface(test, ["text", "state"], ["text", "state"])
         result = await io.call_function(0, ["abc"])
-        assert result[0][0] == "abc def"
-        result = await io.call_function(0, ["abc", result[0][0]])
-        assert result[0][0] == "abcabc def"
+        assert result["prediction"][0] == "abc def"
+        result = await io.call_function(0, ["abc", result["prediction"][0]])
+        assert result["prediction"][0] == "abcabc def"
 
     @pytest.mark.asyncio
     async def test_in_blocks(self):
@@ -1763,9 +1773,9 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
-        result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
 
     @pytest.mark.asyncio
     async def test_variable_for_backwards_compatibility(self):
@@ -1775,9 +1785,45 @@ class TestState:
             btn.click(lambda x: x + 1, score, score)
 
         result = await demo.call_function(0, [0])
-        assert result[0] == 1
-        result = await demo.call_function(0, [result[0]])
-        assert result[0] == 2
+        assert result["prediction"] == 1
+        result = await demo.call_function(0, [result["prediction"]])
+        assert result["prediction"] == 2
+
+
+def test_dataframe_as_example_converts_dataframes():
+    df_comp = gr.Dataframe()
+    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+        [1, 5],
+        [2, 6],
+        [3, 7],
+        [4, 8],
+    ]
+    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+
+
+@pytest.mark.parametrize("component", [gr.Model3D, gr.File])
+def test_as_example_returns_file_basename(component):
+    component = component()
+    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
+
+
+@patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.File.as_example")
+@patch("gradio.components.Dataframe.as_example")
+@patch("gradio.components.Model3D.as_example")
+def test_dataset_calls_as_example(*mocks):
+    gr.Dataset(
+        components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D()],
+        samples=[
+            [
+                pd.DataFrame({"a": np.array([1, 2, 3])}),
+                "foo.png",
+                "bar.jpeg",
+                "duck.obj",
+            ]
+        ],
+    )
+    assert all([m.called for m in mocks])
 
 
 if __name__ == "__main__":

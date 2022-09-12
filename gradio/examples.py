@@ -6,10 +6,9 @@ from __future__ import annotations
 import csv
 import inspect
 import os
-import shutil
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import anyio
 
