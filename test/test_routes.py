@@ -1,15 +1,22 @@
 """Contains tests for networking.py and app.py"""
 
+import asyncio
 import os
 import unittest
-import unittest.mock as mock
+from unittest.mock import MagicMock
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
+
+class AsyncMock(MagicMock):
+    async def __call__(self, *args, **kwargs):
+        return super(AsyncMock, self).__call__(*args, **kwargs)
 
 
 class TestRoutes(unittest.TestCase):
@@ -21,10 +28,6 @@ class TestRoutes(unittest.TestCase):
     def test_get_main_route(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-
-    # def test_get_api_route(self):
-    #     response = self.client.get("/api/")
-    #     self.assertEqual(response.status_code, 200)
 
     def test_static_files_served_safely(self):
         # Make sure things outside the static folder are not accessible
@@ -140,6 +143,20 @@ class TestRoutes(unittest.TestCase):
     def tearDown(self) -> None:
         self.io.close()
         close_all()
+
+
+class TestQueueWebsocketSetup:
+    @pytest.mark.asyncio
+    async def test_websocket_connect(self):
+        io = Interface(lambda x: x, "textbox", "textbox")
+        io.queue()
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        asyncio.sleep = AsyncMock()
+        asyncio.sleep.side_effect = asyncio.TimeoutError
+        with pytest.raises(asyncio.TimeoutError):
+            with client.websocket_connect("/queue/join"):
+                pass
 
 
 class TestGeneratorRoutes:

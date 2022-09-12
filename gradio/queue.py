@@ -184,6 +184,7 @@ class Queue:
         client_awake = await self.send_message(event, estimation.dict())
         if not client_awake:
             await self.clean_event(event)
+        return estimation
 
     def update_estimation(self, duration: float) -> None:
         """
