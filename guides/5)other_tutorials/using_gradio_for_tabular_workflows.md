@@ -5,7 +5,7 @@ Related spaces: https://huggingface.co/spaces/scikit-learn/gradio-skops-integrat
 
 ## Introduction
 
-Tabular data science is the most widely used domain of machine learning, with problems ranging from customer segmentation to churn prediction. Communicating your work to stakeholders of your project or clients in various stages of tabular data science workflow is very important and can sometimes be cumbersome, preventing data scientists from focusing on what matters, data analysis and model building. Data scientists can end up spending hours building a dashboard that takes in dataframe and returning plots, or returning a prediction or plot of clusters in a dataset. In this guide, we'll go through how to use `gradio` to improve your data science workflows. We will also talk about how to use `gradio` and `skops` to build interfaces with only one line of code!
+Tabular data science is the most widely used domain of machine learning, with problems ranging from customer segmentation to churn prediction. Throughout various stages of the tabular data science workflow, communicating your work to stakeholders or clients can be cumbersome; which prevents data scientists from focusing on what matters, such as data analysis and model building. Data scientists can end up spending hours building a dashboard that takes in dataframe and returning plots, or returning a prediction or plot of clusters in a dataset. In this guide, we'll go through how to use `gradio` to improve your data science workflows. We will also talk about how to use `gradio` and `skops` to build interfaces with only one line of code!
 
 ### Prerequisites
 
@@ -19,6 +19,8 @@ We will take a look at how we can create a simple UI that predicts failures base
 import gradio as gr
 import pandas as pd
 import joblib
+import datasets
+
 
 inputs = [gr.Dataframe(row_count = (2, "dynamic"), col_count=(4,"dynamic"), label="Input Data", interactive=1)]
 
@@ -26,10 +28,13 @@ outputs = [gr.Dataframe(row_count = (2, "dynamic"), col_count=(1, "fixed"), labe
 
 model = joblib.load("model.pkl")
 
+# we will give our dataframe as example
+df = datasets.load_dataset("merve/supersoaker-failures")
+df = df["train"].to_pandas()
+
 def infer(input_dataframe):
   return pd.DataFrame(model.predict(input_dataframe))
   
-
 gr.Interface(fn = infer, inputs = inputs, outputs = outputs, examples = [[df.head(2)]]).launch()
 ```
 
@@ -40,8 +45,9 @@ Let's break down above code.
 * `outputs`: The dataframe component that stores outputs. This UI can take single or multiple samples to infer, and returns 0 or 1 for each sample in one column, so we give `row_count` as 2 and `col_count` as 1 above. `headers` is a list made of header names for dataframe.
 * `examples`: You can either pass the input by dragging and dropping a CSV file, or a pandas DataFrame through examples, which headers will be automatically taken by the interface.
 
-
 We will now create an example for a minimal data visualization dashboard. You can find a more comprehensive version in the related Spaces.
+
+<gradio-app space="scikit-learn/tabular-playground"></gradio-app>
 
 ```python
 import gradio as gr
@@ -67,8 +73,10 @@ def plot(df):
 inputs = [gr.Dataframe(label="Supersoaker Production Data")]
 outputs = [gr.Gallery(label="Profiling Dashboard").style(grid=(1,3))]
 
-gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df], title="Supersoaker Failures Analysis Dashboard").launch()
+gr.Interface(plot, inputs=inputs, outputs=outputs, examples=[df.head(100)], title="Supersoaker Failures Analysis Dashboard").launch()
 ```
+
+<gradio-app space="merve/gradio-analysis-dashboard-minimal"></gradio-app>
 
 We will use the same dataset we used to train our model, but we will make a dashboard to visualize it this time. 
 
@@ -84,7 +92,13 @@ We will use the same dataset we used to train our model, but we will make a dash
 ```python
 import gradio as gr
 
-gr.Interface.load("huggingface/scikit-learn/tabular-playground").launch()
+# title and description are optional
+title = "Supersoaker Defective Product Prediction"
+description = "This model predicts Supersoaker production line failures. Drag and drop any slice from dataset or edit values as you wish in below dataframe component."
+
+gr.Interface.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
 ```
+
+<gradio-app space="scikit-learn/gradio-skops-integation"></gradio-app>
 
 `sklearn` models pushed to Hugging Face Hub using `skops` include a `config.json` file that contains an example input  with column names, the task being solved (that can either be `tabular-classification` or `tabular-regression`). From the task type, `gradio` constructs the `Interface` and consumes column names and the example input to build it. You can [refer to skops documentation on hosting models on Hub](https://skops.readthedocs.io/en/latest/auto_examples/plot_hf_hub.html#sphx-glr-auto-examples-plot-hf-hub-py) to learn how to push your models to Hub using `skops`.
