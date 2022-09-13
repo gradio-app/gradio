@@ -94,6 +94,13 @@ demos_by_category = [
                 "text": "Note: This is a simplified version of the code needed to create the Stable Diffusion demo. See full code here: https://hf.co/spaces/stabilityai/stable-diffusion/tree/main"
             },
             {
+                "name": "Iterative Output",
+                "dir": "fake_diffusion",
+                "code": get_code("fake_diffusion"),
+                "external_space": None,
+                "text": "This demo uses a fake model to showcase iterative output. The Image output will update every time a generator is returned until the final image."
+            },
+            {
                 "name": "3D Models", 
                 "dir": "depth_estimation", 
                 "external_space": None,

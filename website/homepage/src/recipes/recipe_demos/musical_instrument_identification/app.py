@@ -4,17 +4,24 @@ import gradio as gr
 import torch, torchaudio
 from timeit import default_timer as timer
 from data_setups import audio_preprocess, resample
+import gdown
 
-# laod the model and define constants
+# download the model and define constants
+url = 'https://drive.google.com/uc?id=1X5CR18u0I-ZOi_8P0cNptCe5JGk9Ro0C'
+output = 'piano.wav'
+gdown.download(url, output, quiet=False)
+url = 'https://drive.google.com/uc?id=1W-8HwmGR5SiyDbUcGAZYYDKdCIst07__'
+output= 'torch_efficientnet_fold2_CNN.pth'
+gdown.download(url, output, quiet=False)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 SAMPLE_RATE = 44100
 AUDIO_LEN = 2.90
-model = torch.load("models/torch_efficientnet_fold2_CNN.pth", map_location=torch.device('cpu'))
+model = torch.load("torch_efficientnet_fold2_CNN.pth", map_location=torch.device('cpu'))
 LABELS = [
     "Cello", "Clarinet", "Flute", "Acoustic Guitar", "Electric Guitar", "Organ", "Piano", "Saxophone", "Trumpet", "Violin", "Voice"
 ]
 example_list = [
-    "piano.wav",
+    ["piano.wav"]
 ]
 
 
@@ -42,7 +49,8 @@ demo = gr.Interface(fn=predict,
                     inputs=gr.Audio(type="filepath"),
                     outputs=[gr.Label(num_top_classes=11, label="Predictions"), 
                              gr.Number(label="Prediction time (s)")],
-                    examples=example_list, 
+                    examples=example_list,
+                    cache_examples=False
                     )
 
 # launch

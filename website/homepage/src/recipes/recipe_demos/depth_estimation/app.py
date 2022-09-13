@@ -105,7 +105,7 @@ def create_3d_obj(rgb_image, depth_image, image_path, depth=10):
 # define the title, description and examples
 title = "Demo: zero-shot depth estimation with DPT + 3D Point Cloud"
 description = "This demo is a variation from the original <a href='https://huggingface.co/spaces/nielsr/dpt-depth-estimation' target='_blank'>DPT Demo</a>. It uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object."
-examples = [["examples/" + img] for img in os.listdir("examples/")]
+examples = [["examples/1-jonathan-borba-CgWTqYxHEkg-unsplash.jpg"]]
 
 # define an interface with one Image input and 3 outputs: Image, Model3D and File
 iface = gr.Interface(fn=process_image,
