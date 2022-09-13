@@ -7,7 +7,7 @@ from huggingface_hub import HfApi
 
 def delete_space(space_id: str, hf_token: str, api_client: Optional[HfApi] = None):
     api_client = api_client or HfApi()
-    # api_client.delete_repo(repo_id=space_id, token=hf_token, repo_type="spaces")
+    api_client.delete_repo(repo_id=space_id, token=hf_token, repo_type="spaces")
 
 
 def get_spaces_to_delete(
