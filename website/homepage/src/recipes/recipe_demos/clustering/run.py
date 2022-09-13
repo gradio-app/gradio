@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/clustering
+# DESCRIPTION: This demo built with Blocks generates 9 plots based on the input.
 # imports
 import gradio as gr
 import math

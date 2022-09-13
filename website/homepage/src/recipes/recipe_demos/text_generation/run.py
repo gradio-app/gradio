@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/text_generation
+# DESCRIPTION: This text generation demo takes in input text and returns generated text. It uses the Transformers library to set up the model and has two examples.
 # imports
 import gradio as gr
 from transformers import pipeline

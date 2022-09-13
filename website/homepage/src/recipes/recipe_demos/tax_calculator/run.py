@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/tax_calculator
+# DESCRIPTION: Calculate taxes using Textbox, Radio, and Dataframe components
 # imports
 import gradio as gr
 

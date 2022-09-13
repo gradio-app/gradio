@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/abidlabs/pytorch-image-classifier
+# DESCRIPTION: Simple image classification in Pytorch with Gradio's Image input and Label output.
 # imports
 import gradio as gr
 import torch

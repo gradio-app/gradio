@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/image_segmentation/
+# DESCRIPTION: Image segmentation using DETR. Takes in both an inputu image and the desired confidence, and returns a segmented image.
 # imports
 import gradio as gr
 import torch
@@ -43,7 +44,7 @@ demo = gr.Interface(
     inputs=[gr.Image()], 
     outputs="image",
     title="MaskFormer Demo",
-    examples=["example_1.png", "example_2.png"]
+    examples=[["example_2.png"]]
 )
 
 # launch 

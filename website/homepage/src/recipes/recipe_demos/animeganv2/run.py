@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/animeganv2
+# DESCRIPTION: Recreate the viral AnimeGAN image transformation demo.
 # imports
 import gradio as gr
 from PIL import Image

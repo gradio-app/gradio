@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/outbreak_forecast
+# DESCRIPTION: Generate a plot based on 5 inputs.
 # imports
 import gradio as gr
 from math import sqrt

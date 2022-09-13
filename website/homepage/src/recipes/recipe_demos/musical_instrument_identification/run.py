@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/musical_instrument_identification
+# DESCRIPTION: This demo identifies musical instruments from an audio file. It uses Gradio's Audio and Label components.
 # imports 
 import gradio as gr
 import torch, torchaudio

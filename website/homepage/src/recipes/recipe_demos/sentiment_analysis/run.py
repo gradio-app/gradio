@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/sentiment-analysis
+# DESCRIPTION: This sentiment analaysis demo takes in input text and returns its classification for either positive, negative or neutral using Gradio's Label output. It also uses the default interpretation method so users can click the Interpret button after a submission and see which words had the biggest effect on the output.
 # imports
 import gradio as gr
 import nltk

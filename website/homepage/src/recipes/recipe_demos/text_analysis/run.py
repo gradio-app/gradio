@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/text_analysis
+# DESCRIPTION: This simple demo takes advantage of Gradio's HighlightedText, JSON and HTML outputs to create a clear NER segmentation.
 # imports
 import gradio as gr
 import os

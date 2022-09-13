@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/autocomplete
+# DESCRIPTION: This text generation demo works like autocomplete. There's only one textbox and it's used for both the input and the output. The demo loads the model as an interface, and uses that interface as an API. It then uses blocks to create the UI. All of this is done in less than 10 lines of code.
 # imports
 import gradio as gr
 

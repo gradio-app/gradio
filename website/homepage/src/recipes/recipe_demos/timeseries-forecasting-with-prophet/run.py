@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/timeseries-forecasting-with-prophet
+# DESCRIPTION: A simple dashboard showing pypi stats for python libraries. Updates on load, and has no buttons!
 # imports
 import gradio as gr
 import pypistats

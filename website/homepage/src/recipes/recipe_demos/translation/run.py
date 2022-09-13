@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/translation
+# DESCRIPTION: This translation demo takes in the text, source and target languages, and returns the translation. It uses the Transformers library to set up the model and has a title, description, and example.
 # imports 
 import gradio as gr
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline

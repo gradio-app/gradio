@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/hello_world
+# DESCRIPTION: The simplest possible Gradio demo. It wraps a 'Hello {name}!' function in an Interface that accepts and returns text.
 import gradio as gr
 
 # defining the core function

@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/gradio/leaderboard
+# DESCRIPTION: A simple dashboard ranking spaces by number of likes.
 # imports 
 import gradio as gr
 import requests

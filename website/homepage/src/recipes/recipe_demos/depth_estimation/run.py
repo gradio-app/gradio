@@ -1,4 +1,5 @@
 # URL: https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
+# DESCRIPTION: A demo for predicting the depth of an image and generating a 3D model of it.
 # imports
 import gradio as gr
 from transformers import DPTFeatureExtractor, DPTForDepthEstimation
