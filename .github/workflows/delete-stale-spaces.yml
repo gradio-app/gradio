@@ -10,7 +10,7 @@ on:
     inputs:
       daysStale:
         description: 'How stale a space needs to be to be deleted (days)'
-        required: true
+        required: false
         default: '7'
 
 
