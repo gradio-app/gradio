@@ -248,7 +248,9 @@ class BlockFunction:
     def __str__(self):
         return str(
             {
-                "fn": self.fn.__name__ if self.fn is not None else None,
+                "fn": getattr(self.fn, "__name__", "fn")
+                if self.fn is not None
+                else None,
                 "preprocess": self.preprocess,
                 "postprocess": self.postprocess,
             }
