@@ -2,7 +2,7 @@
 	import { Component as Column } from "../Column";
 	export let label: string;
 	export let elem_id: string;
-	export let visible: string;
+	export let visible: boolean = true;
 	export let open: boolean = true;
 
 	const toggle = () => {
