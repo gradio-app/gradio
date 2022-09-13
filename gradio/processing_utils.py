@@ -88,13 +88,15 @@ def encode_plot_to_base64(plt):
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
 
+
 def download_to_file(url, dir=None):
     file_suffix = os.path.splitext(url)[1]
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix, dir=dir)
     with requests.get(url, stream=True) as r:
-        with open(file_obj.name, 'wb') as f:
+        with open(file_obj.name, "wb") as f:
             shutil.copyfileobj(r.raw, f)
     return file_obj
+
 
 def save_array_to_file(image_array, dir=None):
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))

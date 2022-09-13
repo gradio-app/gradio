@@ -1655,13 +1655,13 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """
         if y is None:
             return None
-        
+
         is_temp_file = False
 
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
             is_temp_file = True
-            
+
         returned_format = y.split(".")[-1].lower()
         if (
             processing_utils.ffmpeg_installed()
@@ -1932,7 +1932,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         """
         if y is None:
             return None
-        
+
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
         elif isinstance(y, tuple):
