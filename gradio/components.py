@@ -1655,9 +1655,12 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """
         if y is None:
             return None
+        
+        is_temp_file = False
 
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
+            is_temp_file = True
             
         returned_format = y.split(".")[-1].lower()
         if (
@@ -1674,7 +1677,8 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             ff.run()
             y = output_file_name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+        if not is_temp_file:
+            y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
 
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -1704,7 +1708,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real_time_speech_recognition
@@ -1922,7 +1926,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
         """
         Parameters:
-            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string of the path to an audio file, or None.
+            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
         Returns:
             base64 url data
         """
@@ -1931,16 +1935,15 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
-        
-        if isinstance(y, tuple):
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
                 prefix="sample", suffix=".wav", delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
             y = file.name
-
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+        else:
+            y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
 
         return {"name": y.name, "data": None, "is_file": True}
 
