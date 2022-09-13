@@ -1,22 +1,14 @@
 """Contains tests for networking.py and app.py"""
 
-import asyncio
 import os
 import unittest
-from unittest.mock import MagicMock
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
-
-class AsyncMock(MagicMock):
-    async def __call__(self, *args, **kwargs):
-        return super(AsyncMock, self).__call__(*args, **kwargs)
 
 
 class TestRoutes(unittest.TestCase):

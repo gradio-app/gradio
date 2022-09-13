@@ -162,7 +162,7 @@ class Queue:
 
     async def send_estimation(
         self, event: Event, estimation: Estimation, rank: int
-    ) -> None:
+    ) -> Estimation:
         """
         Send estimation about ETA to the client.
 
