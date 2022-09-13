@@ -126,8 +126,8 @@
 			>
 				api_name
 			</span>
-			parameter of the event listener. For more information, see the event
-			listeners available for each component in the
+			parameter of the event listener. For more information, see the event listeners
+			available for each component in the
 			<a href="https://gradio.app/docs/#components" class="text-amber-500">
 				documentation</a
 			>.
