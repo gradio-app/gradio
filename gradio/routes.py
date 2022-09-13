@@ -236,7 +236,9 @@ class App(FastAPI):
                 Path(temp_dir).resolve() in Path(path).resolve().parents
                 for temp_dir in app.blocks.temp_dirs
             ):
-                return FileResponse(Path(path).resolve())
+                return FileResponse(
+                    Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
+                )
             else:
                 raise ValueError(
                     f"File cannot be fetched: {path}, perhaps because "
