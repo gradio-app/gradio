@@ -2,7 +2,7 @@
 import gradio as gr
 
 # automatically load the interface from a HF model 
-stt_demo = gr.Interface.load(
+demo = gr.Interface.load(
     "huggingface/facebook/wav2vec2-base-960h",
     title="Speech-to-text",
     inputs="mic",
