@@ -106,6 +106,13 @@ demos_by_category = [
         "category": "📈 Tabular Data & Plots",
         "demos": [
             {
+                "name": "Outbreak Forecast", 
+                "dir": "outbreak_forecast", 
+                "code": get_code("outbreak_forecast"),
+                "external_space": None,
+                "text": "Generate a plot based on 5 inputs."
+            },
+            {
                 "name": "Clustering with Scikit-Learn", 
                 "dir": "clustering", 
                 "code": get_code("clustering"),
