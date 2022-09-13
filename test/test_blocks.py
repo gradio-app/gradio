@@ -222,7 +222,7 @@ class TestBlocks(unittest.TestCase):
 
 
 class TestComponentsInBlocks:
-    def test_slider_random_value_config():
+    def test_slider_random_value_config(self):
         with gr.Blocks() as demo:
             gr.Slider(
                 value=11.2,
@@ -255,7 +255,7 @@ class TestComponentsInBlocks:
         assert len(dependencies_on_load) == 2
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
-    def test_io_components_attach_load_events_when_value_is_fn(io_components):
+    def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
         io_components = [comp for comp in io_components if not (comp == gr.State)]
         interface = gr.Interface(
             lambda *args: None,
@@ -268,7 +268,7 @@ class TestComponentsInBlocks:
         ]
         assert len(dependencies_on_load) == len(io_components)
 
-    def test_blocks_do_not_filter_none_values_from_updates(io_components):
+    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
         with gr.Blocks() as demo:
             for component in io_components:
@@ -287,7 +287,7 @@ class TestComponentsInBlocks:
             [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
         )
 
-    def test_blocks_does_not_replace_keyword_literal():
+    def test_blocks_does_not_replace_keyword_literal(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()
             btn = gr.Button(value="Reset")
