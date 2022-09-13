@@ -66,7 +66,7 @@
 			}
 		}
 	});
-	let show_api_docs = dependencies.some((d) => "documentation" in d);
+	let show_api_docs = true;
 	let api_docs_visible = false;
 
 	function is_dep(
