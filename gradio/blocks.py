@@ -20,9 +20,9 @@ from anyio import CapacityLimiter
 from gradio import (
     components,
     encryptor,
-    event_queue,
     external,
     networking,
+    queue,
     routes,
     strings,
     utils,
@@ -250,7 +250,9 @@ class BlockFunction:
     def __str__(self):
         return str(
             {
-                "fn": self.fn.__name__ if self.fn is not None else None,
+                "fn": getattr(self.fn, "__name__", "fn")
+                if self.fn is not None
+                else None,
                 "preprocess": self.preprocess,
                 "postprocess": self.postprocess,
             }
@@ -917,7 +919,7 @@ class Blocks(BlockContext):
             demo.launch()
         """
         self.enable_queue = default_enabled
-        self._queue = event_queue.Queue(
+        self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,

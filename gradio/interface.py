@@ -290,7 +290,7 @@ class Interface(Blocks):
         self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
-        self.__name__ = fn.__name__
+        self.__name__ = getattr(fn, "__name__", "fn")
         self.live = live
         self.title = title
 
