@@ -121,7 +121,7 @@
 			</span>
 		</h2>
 		<div>
-			To expose an api endpoint of your app in the documentation, set the <span
+			To expose an api endpoint of your app in the api docs, set the <span
 				class="italic text-amber-500"
 			>
 				api_name
