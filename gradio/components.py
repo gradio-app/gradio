@@ -1656,11 +1656,8 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         if y is None:
             return None
 
-        is_temp_file = False
-
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
-            is_temp_file = True
 
         returned_format = y.split(".")[-1].lower()
         if (
@@ -1677,9 +1674,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             ff.run()
             y = output_file_name
 
-        if not is_temp_file:
-            y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
+        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(
@@ -1934,7 +1929,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             return None
 
         if utils.validate_url(y):
-            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
+            y = processing_utils.download_to_file(y, dir=self.temp_dir)
         elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
