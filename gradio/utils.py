@@ -10,7 +10,6 @@ import json.decoder
 import os
 import pkgutil
 import random
-import urllib
 import warnings
 from contextlib import contextmanager
 from copy import deepcopy
