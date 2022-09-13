@@ -35,7 +35,7 @@ import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
-from gradio import media_data, processing_utils
+from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
@@ -55,7 +55,6 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
-from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
 
@@ -1349,27 +1348,20 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string filepath, or Path filepath
+            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
             base64 url data
         """
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            dtype = "numpy"
+            return processing_utils.encode_array_to_base64(y)
         elif isinstance(y, PIL.Image.Image):
-            dtype = "pil"
+            return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            dtype = "file"
+            return processing_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
-        if dtype == "pil":
-            out_y = processing_utils.encode_pil_to_base64(y)
-        elif dtype == "numpy":
-            out_y = processing_utils.encode_array_to_base64(y)
-        elif dtype == "file":
-            out_y = processing_utils.encode_url_or_file_to_base64(y)
-        return out_y
 
     def set_interpret_parameters(self, segments: int = 16):
         """
@@ -1530,7 +1522,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
-    Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
+    Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
     Demos: video_identity
@@ -1656,7 +1648,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: a path to video file
+            y: a path or URL to the video file
         Returns:
             a dictionary with the following keys: 'name' (containing the file path
             to a temporary copy of the video), 'data' (None), and 'is_file` (True).
@@ -1664,6 +1656,9 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         if y is None:
             return None
 
+        if utils.validate_url(y):
+            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
+            
         returned_format = y.split(".")[-1].lower()
         if (
             processing_utils.ffmpeg_installed()
@@ -1933,6 +1928,10 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         """
         if y is None:
             return None
+        
+        if utils.validate_url(y):
+            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
+        
         if isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
@@ -3974,7 +3973,7 @@ class StatusTracker(Component):
 
 
 def component(cls_name: str) -> Component:
-    obj = component_or_layout_class(cls_name)()
+    obj = utils.component_or_layout_class(cls_name)()
     return obj
 
 
@@ -3986,7 +3985,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component_or_layout_class(name)
+        component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if not (render):
             component_obj.unrender()

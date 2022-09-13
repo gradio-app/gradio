@@ -10,6 +10,7 @@ import json.decoder
 import os
 import pkgutil
 import random
+import urllib
 import warnings
 from contextlib import contextmanager
 from copy import deepcopy
@@ -670,3 +671,12 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
             suffix_counter += 1
             new_name = name + f"_{suffix_counter}"
         return new_name
+
+
+def validate_url(possible_url: str) -> bool:
+    try:
+        if requests.get(possible_url).status_code == 200:
+            return True
+    except Exception:
+        pass
+    return False
