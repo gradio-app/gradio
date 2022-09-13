@@ -2,7 +2,6 @@
 
 import os
 import unittest
-import unittest.mock as mock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -21,10 +20,6 @@ class TestRoutes(unittest.TestCase):
     def test_get_main_route(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-
-    # def test_get_api_route(self):
-    #     response = self.client.get("/api/")
-    #     self.assertEqual(response.status_code, 200)
 
     def test_static_files_served_safely(self):
         # Make sure things outside the static folder are not accessible
