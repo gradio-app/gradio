@@ -14,16 +14,18 @@
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
 
-	export let width = undefined;
-	export let height = undefined;
-	export let container_height = undefined;
+	export let width = 400;
+	export let height = 200;
+	export let container_height = 200;
+
+	$: console.log(mode, width, height, container_height);
 
 	let mounted;
 
 	let catenary_color = "#aaa";
 
-	let canvas_width = width || 400;
-	let canvas_height = height || 400;
+	let canvas_width = width;
+	let canvas_height = height;
 
 	$: mounted && !value && clear();
 
@@ -77,13 +79,15 @@
 			ctx[key] = canvas[key].getContext("2d");
 		});
 
-		value_img.addEventListener("load", (_) => {
-			ctx.drawing.drawImage(value_img, 0, 0);
-		});
+		if (value_img) {
+			value_img.addEventListener("load", (_) => {
+				ctx.drawing.drawImage(value_img, 0, 0);
+			});
 
-		setTimeout(() => {
-			ctx.drawing.drawImage(value_img, 0, 0);
-		}, 100);
+			setTimeout(() => {
+				ctx.drawing.drawImage(value_img, 0, 0);
+			}, 100);
+		}
 
 		lazy = new LazyBrush({
 			radius: brush_radius / 1.5,
@@ -102,12 +106,13 @@
 
 		loop();
 		mounted = true;
-		window.setTimeout(() => {
+
+		requestAnimationFrame(() => {
 			init();
 			if (save_data) {
 				load_save_data(save_data);
 			}
-		}, 100);
+		});
 	});
 
 	function init() {
@@ -407,7 +412,10 @@
 
 		ctx.drawing.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
 		ctx.drawing.fillRect(0, 0, width, height);
+		console.log(mode, 0, 0, width, height, ctx.drawing.fillStyle);
+
 		if (mode === "mask") {
+			console.log("boo");
 			ctx.temp_fake.clearRect(
 				0,
 				0,

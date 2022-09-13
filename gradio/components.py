@@ -1342,15 +1342,18 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         if self.source == "webcam" and self.mirror_webcam is True:
             im = PIL.ImageOps.mirror(im)
 
-        if not (self.tool == "sketch"):
-            return self._format_image(im, fmt)
+        if self.tool in ["sketch", "color-sketch"] and self.source in [
+            "upload",
+            "webcam",
+        ]:
+            mask_im = processing_utils.decode_base64_to_image(mask)
+            mask_fmt = mask_im.format
+            return {
+                "image": self._format_image(im, fmt),
+                "mask": self._format_image(mask_im, mask_fmt),
+            }
 
-        mask_im = processing_utils.decode_base64_to_image(mask)
-        mask_fmt = mask_im.format
-        return {
-            "image": self._format_image(im, fmt),
-            "mask": self._format_image(mask_im, mask_fmt),
-        }
+        return self._format_image(im, fmt)
 
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """

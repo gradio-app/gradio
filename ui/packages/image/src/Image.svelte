@@ -111,6 +111,8 @@
 			: "mask";
 
 	let value_img;
+	let max_height;
+	let max_width;
 </script>
 
 <BlockLabel
@@ -125,13 +127,23 @@
 		tool === "sketch" ||
 		tool === "color-sketch"}
 	data-testid="image"
+	bind:offsetHeight={max_height}
+	bind:offsetWidth={max_width}
 >
 	{#if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
 			on:clear={() => sketch.clear()}
 		/>
-		<Sketch {value} bind:this={sketch} on:change={handle_save} {mode} />
+		<Sketch
+			{value}
+			bind:this={sketch}
+			on:change={handle_save}
+			{mode}
+			width={img_width || max_width}
+			height={img_height || max_height}
+			container_height={container_height || max_height}
+		/>
 	{:else if value === null || streaming}
 		{#if source === "upload"}
 			<Upload
@@ -190,9 +202,9 @@
 				bind:brush_color
 				on:change={handle_mask_save}
 				{mode}
-				width={img_width}
-				height={img_height}
-				{container_height}
+				width={img_width || max_width}
+				height={img_height || max_height}
+				container_height={container_height || max_height}
 				{value_img}
 			/>
 			<ModifySketch
@@ -203,9 +215,9 @@
 				<SketchSettings
 					bind:brush_radius
 					bind:brush_color
-					{container_height}
-					{img_width}
-					{img_height}
+					container_height={container_height || max_height}
+					img_width={img_width || max_width}
+					img_height={img_height || max_height}
 				/>
 			{/if}
 		{/if}
