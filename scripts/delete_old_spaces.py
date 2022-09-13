@@ -42,6 +42,6 @@ if __name__ == "__main__":
     api = HfApi()
 
     to_delete = get_spaces_to_delete(args.n_days, args.org_name)
-    for space in to_delete:
+    for space in to_delete[:2]:
         print(f"Deleting {space}")
         delete_space(space, args.hf_token, api_client=api)
