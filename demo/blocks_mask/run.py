@@ -12,13 +12,13 @@ io2b = gr.Interface(lambda x: x, gr.Sketchpad(), gr.Image())
 with demo:
     md("# Different Ways to Use the Image Input Component")
     md("**1a. Standalone Image Upload**")
-    # io1a.render()
+    io1a.render()
     md("**1b. Standalone Image from Webcam**")
-    # io1b.render()
+    io1b.render()
     md("**2a. Black and White Sketchpad**")
     io2a.render()
     md("**2a. Black and White Sketchpad using gr.Sketchpad()**")
-#     io2b.render()
+    io2b.render()
 
 if __name__ == "__main__":
     demo.launch()

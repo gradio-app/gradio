@@ -18,8 +18,6 @@
 	export let height = 200;
 	export let container_height = 200;
 
-	$: console.log(mode, width, height, container_height);
-
 	let mounted;
 
 	let catenary_color = "#aaa";
@@ -149,7 +147,7 @@
 		if (typeof save_data !== "string") {
 			throw new Error("save_data needs to be of type string!");
 		}
-		const { lines, width, height } = JSON.parse(save_data);
+		const { lines, width, height } = JSON.parse(save_data || `{"lines": []}`);
 		if (!lines || typeof lines.push !== "function") {
 			throw new Error("save_data.lines needs to be an array!");
 		}
@@ -249,6 +247,7 @@
 		brush_radius = 20 * (dimensions.width / container_dimensions.width);
 
 		loop({ once: true });
+		load_save_data(save_data, true);
 	};
 
 	$: {
@@ -412,7 +411,6 @@
 
 		ctx.drawing.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
 		ctx.drawing.fillRect(0, 0, width, height);
-		console.log(mode, 0, 0, width, height, ctx.drawing.fillStyle);
 
 		if (mode === "mask") {
 			console.log("boo");
