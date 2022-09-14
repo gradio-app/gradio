@@ -34,6 +34,8 @@ COPY ./demo ./demo
 WORKDIR /gradio/website/homepage
 RUN npm install
 RUN npm run build
+ARG AUTH_TOKEN
+ENV AUTH_TOKEN $AUTH_TOKEN
 RUN python src/recipes/upload_recipes.py
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
