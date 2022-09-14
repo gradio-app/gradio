@@ -121,16 +121,21 @@
 			</span>
 		</h2>
 		<div>
-			To expose an api endpoint of your app in the api docs, set the <span
+			To expose an API endpoint of your app in these API docs, set the <span
 				class="italic text-amber-500"
 			>
 				api_name
 			</span>
-			parameter of the event listener. For more information, see the event listeners
-			available for each component in the
-			<a href="https://gradio.app/docs/#components" class="text-amber-500">
-				documentation</a
-			>.
+			parameter of the event listener. For more information, see the "API Page"
+			<a
+				href="https://gradio.app/sharing_your_app/#api-page"
+				class="text-amber-500"
+			>
+				section</a
+			>
+			in the guides. To hide this API page, set
+			<span class="italic text-amber-500"> show_api=False </span>
+			in the <span class="italic text-amber-500"> Blocks.launch()</span> method.
 		</div>
 	{/if}
 </div>
