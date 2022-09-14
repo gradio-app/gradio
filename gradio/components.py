@@ -3287,7 +3287,9 @@ class Gallery(IOComponent):
                 if utils.validate_url(img):
                     file = processing_utils.download_to_file(img, dir=self.temp_dir)
                 else:
-                    file = processing_utils.create_tmp_copy_of_file(img, dir=self.temp_dir)
+                    file = processing_utils.create_tmp_copy_of_file(
+                        img, dir=self.temp_dir
+                    )
             else:
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
