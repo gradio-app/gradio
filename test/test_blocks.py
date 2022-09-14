@@ -287,15 +287,18 @@ def test_blocks_returns_correct_output_dict_single_key():
         update = gr.Button(value="update")
 
         def update_values():
-            return {output: output.update(value=42)}
+            return {num2: gr.Number.update(value=42)}
 
         update.click(update_values, inputs=[num], outputs=[num2])
 
-    output = demo.postprocess_data(0, {num2: num2.update(value=42)}, state=None)
+    output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state=None)
     assert output[0]["value"] == 42
 
     output = demo.postprocess_data(0, {num2: 23}, state=None)
     assert output[0] == 23
+
+    output = demo.postprocess_data(0, {}, state=None)
+    assert output == []
 
 
 class TestCallFunction:

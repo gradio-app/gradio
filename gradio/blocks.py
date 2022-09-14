@@ -671,12 +671,7 @@ class Blocks(BlockContext):
                         )
                     output_index = dependency["outputs"].index(component._id)
                     reordered_predictions[output_index] = value
-                # Unwrap list if only one output component to prevent
-                # wrapping the list into a tuple in the if len(reordered_predictions) == 1
-                # check
-                if len(reordered_predictions) == 1:
-                    reordered_predictions = reordered_predictions[0]
-                predictions = reordered_predictions
+                predictions = utils.resolve_singleton(reordered_predictions)
             elif any(keys_are_blocks):
                 raise ValueError(
                     "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
