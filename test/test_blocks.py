@@ -297,9 +297,6 @@ def test_blocks_returns_correct_output_dict_single_key():
     output = demo.postprocess_data(0, {num2: 23}, state=None)
     assert output[0] == 23
 
-    output = demo.postprocess_data(0, {}, state=None)
-    assert output == []
-
 
 class TestCallFunction:
     @pytest.mark.asyncio
