@@ -1,9 +1,3 @@
-"""
-How to launch your Gradio app on a custom path, in this case localhost:8000/gradio
-
-Run this from the terminal as you would normally start a FastAPI app: `uvicorn run:app`
-and navigate to http://localhost:8000/gradio in your browser.
-"""
 from fastapi import FastAPI
 import gradio as gr
 
@@ -20,3 +14,4 @@ gradio_app = gr.routes.App.create_app(io)
 
 app.mount(CUSTOM_PATH, gradio_app)
 
+# Run this from the terminal as you would normally start a FastAPI app: `uvicorn run:app` and navigate to http://localhost:8000/gradio in your browser.
