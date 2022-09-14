@@ -35,7 +35,7 @@ import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
-from gradio import media_data, processing_utils
+from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
@@ -55,7 +55,6 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
-from gradio.utils import component_or_layout_class
 
 set_documentation_group("component")
 
@@ -1350,7 +1349,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string filepath, or Path filepath
+            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
             base64 url data
         """
@@ -1363,9 +1362,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         elif isinstance(y, (str, Path)):
             file = processing_utils.create_tmp_copy_of_file_or_url(y, dir=self.temp_dir)
         else:
-            raise ValueError(
-                "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
-            )
+            raise ValueError("Cannot process this value as an Image")
 
         return {"name": file.name, "data": None, "is_file": True}
 
@@ -1528,7 +1525,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
-    Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
+    Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
     Demos: video_identity
@@ -1654,13 +1651,16 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: a path to video file
+            y: a path or URL to the video file
         Returns:
             a dictionary with the following keys: 'name' (containing the file path
             to a temporary copy of the video), 'data' (None), and 'is_file` (True).
         """
         if y is None:
             return None
+
+        if utils.validate_url(y):
+            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
 
         returned_format = y.split(".")[-1].lower()
         if (
@@ -1678,7 +1678,6 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             y = output_file_name
 
         y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(
@@ -1707,7 +1706,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real_time_speech_recognition
@@ -1925,23 +1924,25 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
         """
         Parameters:
-            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string of the path to an audio file, or None.
+            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
         Returns:
             base64 url data
         """
         if y is None:
             return None
-        if isinstance(y, tuple):
+
+        if utils.validate_url(y):
+            file = processing_utils.download_to_file(y, dir=self.temp_dir)
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
-                prefix="sample", suffix=".wav", delete=False
+                suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
-            y = file.name
+        else:
+            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
-        return {"name": y.name, "data": None, "is_file": True}
+        return {"name": file.name, "data": None, "is_file": True}
 
     def stream(
         self,
@@ -1990,6 +1991,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             self,
             rounded=rounded,
         )
+
+    def as_example(self, input_data: str) -> str:
+        return Path(input_data).name
 
 
 @document("change", "clear", "style")
@@ -2170,7 +2174,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data):
+    def as_example(self, input_data: str) -> str:
         return Path(input_data).name
 
 
@@ -3635,7 +3639,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data):
+    def as_example(self, input_data: str) -> str:
         return Path(input_data).name
 
 
@@ -3974,7 +3978,7 @@ class StatusTracker(Component):
 
 
 def component(cls_name: str) -> Component:
-    obj = component_or_layout_class(cls_name)()
+    obj = utils.component_or_layout_class(cls_name)()
     return obj
 
 
@@ -3986,7 +3990,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component_or_layout_class(name)
+        component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if not (render):
             component_obj.unrender()
