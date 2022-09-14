@@ -8,7 +8,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
-    const dispatch = createEventDispatcher<{
+	const dispatch = createEventDispatcher<{
 		change: string;
 	}>();
 

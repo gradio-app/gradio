@@ -683,7 +683,9 @@ class TestImage(unittest.TestCase):
         postprocess
         """
         component = gr.Image("test/test_files/bus.png")
-        self.assertEqual(component.get_config().get("value").get("data"), "test/test_files/bus.png")
+        self.assertEqual(
+            component.get_config().get("value").get("data"), "test/test_files/bus.png"
+        )
         component = gr.Image(None)
         self.assertEqual(component.get_config().get("value"), None)
 

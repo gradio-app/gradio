@@ -7,14 +7,14 @@
 	import type { Styles } from "@gradio/utils";
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
-    import type { FileData } from "@gradio/upload";
-    import { normalise_files } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
+	import { normalise_files } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
-    export let root: string;
+	export let root: string;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
@@ -78,7 +78,7 @@
 	let height = 0;
 	let window_height = 0;
 
-    let _value: null | Array<FileData>;
+	let _value: null | Array<FileData>;
 	$: _value = normalise_files(value, root);
 </script>
 

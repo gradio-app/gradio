@@ -12,8 +12,8 @@ export function normalise_file(
 		};
 	} else if (file.is_file) {
 		file.data = root + "file=" + file.name;
-	} 
-    
+	}
+
 	return file;
 }
 
@@ -23,11 +23,11 @@ export function normalise_files(
 ): Array<FileData> | null {
 	if (files == null) return null;
 	else if (files.length == 0) return new Array<FileData>();
-    else {
-        let norm_files = new Array<FileData>(files.length);
-        for (const [idx, x] of files.entries()) {
-            norm_files[idx] = normalise_file(x, root) as FileData;
-        }
-        return norm_files;
-    }
+	else {
+		let norm_files = new Array<FileData>(files.length);
+		for (const [idx, x] of files.entries()) {
+			norm_files[idx] = normalise_file(x, root) as FileData;
+		}
+		return norm_files;
+	}
 }
