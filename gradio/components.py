@@ -1360,7 +1360,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         elif isinstance(y, PIL.Image.Image):
             file = processing_utils.save_pil_to_file(y, dir=self.temp_dir)
         elif isinstance(y, (str, Path)):
-            file = processing_utils.create_tmp_copy_of_file_or_url(y, dir=self.temp_dir)
+            return {"name": None, "data": y, "is_file": False}
         else:
             raise ValueError("Cannot process this value as an Image")
 
@@ -3281,7 +3281,8 @@ class Gallery(IOComponent):
             elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
             elif isinstance(img, str):
-                file = processing_utils.create_tmp_copy_of_file_or_url(img, dir=self.temp_dir)
+                output.append({"name": None, "data": img, "is_file": False})
+                continue
             else:
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
