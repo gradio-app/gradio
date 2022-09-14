@@ -18,8 +18,6 @@ with open(VERSION_TXT) as f:
 with open(RECIPE_DEMOS, "r") as j:
     demos_by_category = json.loads(j.read())
 
-print(gradio_version)
-
 def upload_demo_to_space(
     demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str]
 ):
@@ -36,7 +34,7 @@ def upload_demo_to_space(
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
         app_file = pathlib.Path(tmpdir, "run.py")
         # Rename the app file to be app.py
-        app_file.rename(app_file.with_stem("app"))
+        app_file.rename(app_file.with_name('app.py'))
         if gradio_version:
             readme = pathlib.Path(tmpdir, "README.md")
             readme_content = f"""
@@ -52,7 +50,6 @@ def upload_demo_to_space(
                                 ---
                                 """
             readme.open("w").write(textwrap.dedent(readme_content))
-
         api = huggingface_hub.HfApi()
         huggingface_hub.create_repo(
             space_id,
