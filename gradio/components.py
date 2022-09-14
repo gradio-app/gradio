@@ -1933,7 +1933,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
-                prefix="sample", suffix=".wav", delete=False
+                suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
         else:
@@ -1990,7 +1990,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         )
 
     def as_example(self, input_data: str) -> str:
-        return os.path.basename(input_data)
+        return Path(input_data).name
 
 
 @document("change", "clear", "style")
@@ -2172,7 +2172,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return os.path.basename(input_data)
+        return Path(input_data).name
 
 
 @document("change", "style")
@@ -3635,7 +3635,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return os.path.basename(input_data)
+        return Path(input_data).name
 
 
 @document("change", "clear")
