@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       args: 
-	AUTH_TOKEN: ${AUTH_TOKEN}
+        AUTH_TOKEN: ${AUTH_TOKEN}
       dockerfile: ./website/homepage/Dockerfile
     container_name: homepage
     ports:
