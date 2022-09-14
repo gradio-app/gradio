@@ -116,7 +116,9 @@ class Block:
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
-        batch_fn: Optional[Callable] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
     ) -> None:
         """
         Adds an event to the component's dependencies.
