@@ -4,6 +4,8 @@ services:
     build:
       context: ../
       dockerfile: ./website/homepage/Dockerfile
+      environment:
+        - AUTH_TOKEN=${AUTH_TOKEN}
     container_name: homepage
     ports:
       - "8080:80"
