@@ -707,7 +707,9 @@ class Blocks(BlockContext):
                             == components._Keywords.NO_VALUE
                         ):
                             prediction_value.pop("value")
-                        prediction_value = delete_none(prediction_value)
+                        prediction_value = delete_none(
+                            prediction_value, skip_value=True
+                        )
                         if "value" in prediction_value:
                             prediction_value["value"] = block.postprocess(
                                 prediction_value["value"]
