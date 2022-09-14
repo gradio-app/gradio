@@ -7,14 +7,17 @@
 	import type { Styles } from "@gradio/utils";
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
+    import type { FileData } from "@gradio/upload";
+    import { normalise_files } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
+    export let root: string;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<string> | null = null;
+	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = {};
 
 	let selected_image: number | null = null;
@@ -74,6 +77,9 @@
 
 	let height = 0;
 	let window_height = 0;
+
+    let _value: null | Array<FileData>;
+	$: _value = normalise_files(value, root);
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
@@ -95,7 +101,7 @@
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	{#if value === null}
+	{#if value === null || _value === null}
 		<div class="h-full min-h-[15rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><Image /></div>
 		</div>
@@ -113,7 +119,7 @@
 				<img
 					on:click={() => (selected_image = next)}
 					class="w-full object-contain h-[calc(100%-50px)]"
-					src={value[selected_image]}
+					src={_value[selected_image].data}
 					alt=""
 				/>
 
@@ -121,7 +127,7 @@
 					bind:this={container}
 					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
-					{#each value as image, i}
+					{#each _value as image, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
@@ -133,7 +139,7 @@
 							<img
 								alt=""
 								class="h-full w-full overflow-hidden object-contain"
-								src={image}
+								src={image.data}
 							/>
 						</button>
 					{/each}
@@ -162,7 +168,7 @@
 							<img
 								alt=""
 								class="h-full w-full overflow-hidden object-contain"
-								src={image}
+								src={typeof image === "string" ? image : image.data}
 							/>
 						</button>
 					{/each}

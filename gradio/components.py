@@ -1223,6 +1223,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
+        self.temp_dir = tempfile.mkdtemp()
         self.mirror_webcam = mirror_webcam
         self.type = type
         self.shape = shape
@@ -1356,20 +1357,17 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            dtype = "numpy"
+            file = processing_utils.save_array_to_file(y, dir=self.temp_dir)
         elif isinstance(y, PIL.Image.Image):
-            dtype = "pil"
+            file = processing_utils.save_pil_to_file(y, dir=self.temp_dir)
         elif isinstance(y, (str, Path)):
-            dtype = "file"
+            file = processing_utils.create_tmp_copy_of_file_or_url(y, dir=self.temp_dir)
         else:
-            raise ValueError("Cannot process this value as an Image")
-        if dtype == "pil":
-            out_y = processing_utils.encode_pil_to_base64(y)
-        elif dtype == "numpy":
-            out_y = processing_utils.encode_array_to_base64(y)
-        elif dtype == "file":
-            out_y = processing_utils.encode_url_or_file_to_base64(y)
-        return out_y
+            raise ValueError(
+                "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
+            )
+
+        return {"name": file.name, "data": None, "is_file": True}
 
     def set_interpret_parameters(self, segments: int = 16):
         """
@@ -3231,6 +3229,7 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.temp_dir = tempfile.mkdtemp()
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3274,16 +3273,17 @@ class Gallery(IOComponent):
         output = []
         for img in y:
             if isinstance(img, np.ndarray):
-                img = processing_utils.encode_array_to_base64(img)
+                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
             elif isinstance(img, PIL.Image.Image):
-                img = processing_utils.encode_pil_to_base64(img)
+                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
             elif isinstance(img, str):
-                img = processing_utils.encode_url_or_file_to_base64(img)
+                file = processing_utils.create_tmp_copy_of_file_or_url(img, dir=self.temp_dir)
             else:
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
                 )
-            output.append(img)
+            output.append({"name": file.name, "data": None, "is_file": True})
+
         return output
 
     def style(

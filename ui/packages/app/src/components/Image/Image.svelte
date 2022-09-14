@@ -2,6 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 	import { Image, StaticImage } from "@gradio/image";
 	import { Block } from "@gradio/atoms";
+    import type { FileData } from "@gradio/upload";
+    import { normalise_file } from "@gradio/upload";
+
 	import { _ } from "svelte-i18n";
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -13,6 +16,7 @@
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;
+    export let root: string;
 	export let show_label: boolean;
 	export let streaming: boolean;
 	export let pending: boolean;
@@ -28,7 +32,10 @@
 	$: value, dispatch("change");
 	let dragging: boolean;
 
-	$: value = !value ? null : value;
+    $: value = !value ? null : value;
+    let _value: null | FileData;
+	$: _value = normalise_file(value, root);
+	
 </script>
 
 <Block
@@ -43,7 +50,7 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label} {show_label} />
+		<StaticImage value={_value?.data} {label} {show_label} />
 	{:else}
 		<Image
 			bind:value
