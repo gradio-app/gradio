@@ -22,4 +22,4 @@ cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
 
 rm -r dist/*
 rm -r build/*
-python3 setup.py sdist bdist_wheel
+python3 -m build
