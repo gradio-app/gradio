@@ -675,7 +675,7 @@ class Blocks(BlockContext):
                         )
                     output_index = dependency["outputs"].index(component._id)
                     reordered_predictions[output_index] = value
-                predictions = reordered_predictions
+                predictions = utils.resolve_singleton(reordered_predictions)
             elif any(keys_are_blocks):
                 raise ValueError(
                     "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
