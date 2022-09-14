@@ -19,6 +19,9 @@ class Changeable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -36,6 +39,9 @@ class Changeable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -84,6 +90,9 @@ class Clickable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -115,6 +124,9 @@ class Submittable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -133,6 +145,9 @@ class Submittable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -161,6 +176,9 @@ class Editable(Block):
         outputs: List[Component],
         api_name: AnyStr = None,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -175,6 +193,9 @@ class Editable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -200,6 +221,9 @@ class Clearable(Block):
         outputs: List[Component],
         api_name: AnyStr = None,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -214,6 +238,9 @@ class Clearable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -239,6 +266,9 @@ class Playable(Block):
         outputs: List[Component],
         api_name: AnyStr = None,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -253,6 +283,9 @@ class Playable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -276,6 +309,9 @@ class Playable(Block):
         outputs: List[Component],
         api_name: Optional[AnyStr] = None,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -290,6 +326,9 @@ class Playable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -313,6 +352,9 @@ class Playable(Block):
         outputs: List[Component],
         api_name: AnyStr = None,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -327,6 +369,9 @@ class Playable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
@@ -353,6 +398,9 @@ class Streamable(Block):
         api_name: AnyStr = None,
         show_progress: bool = False,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        batch_timeout: float = 1,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -367,6 +415,9 @@ class Streamable(Block):
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
