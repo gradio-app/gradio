@@ -1929,18 +1929,17 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             return None
 
         if utils.validate_url(y):
-            y = processing_utils.download_to_file(y, dir=self.temp_dir)
+            file = processing_utils.download_to_file(y, dir=self.temp_dir)
         elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
                 prefix="sample", suffix=".wav", delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
-            y = file.name
         else:
-            y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
 
-        return {"name": y.name, "data": None, "is_file": True}
+        return {"name": file.name, "data": None, "is_file": True}
 
     def stream(
         self,
@@ -1989,6 +1988,9 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             self,
             rounded=rounded,
         )
+
+    def as_example(self, input_data: str) -> str:
+        return os.path.basename(input_data)
 
 
 @document("change", "clear", "style")
@@ -2169,8 +2171,8 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data):
-        return Path(input_data).name
+    def as_example(self, input_data: str) -> str:
+        return os.path.basename(input_data)
 
 
 @document("change", "style")
@@ -3632,8 +3634,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data):
-        return Path(input_data).name
+    def as_example(self, input_data: str) -> str:
+        return os.path.basename(input_data)
 
 
 @document("change", "clear")
