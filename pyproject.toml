@@ -46,6 +46,11 @@ replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/\g<1>/'
 pattern = 'demo/([\S]*.gif)'
 replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>'
 
+[tool.hatch.build]
+artifacts = [
+  "/gradio/templates",
+]
+
 [tool.hatch.build.targets.sdist]
 include = [
   "/gradio",
