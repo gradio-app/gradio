@@ -1,6 +1,9 @@
+# URL: https://huggingface.co/spaces/gradio/tax_calculator
+# DESCRIPTION: Calculate taxes using Textbox, Radio, and Dataframe components
+# imports
 import gradio as gr
 
-
+# define core fn
 def tax_calculator(income, marital_status, assets):
     tax_brackets = [(10, 0), (25, 8), (60, 12), (120, 20), (250, 30)]
     total_deductible = sum(assets["Cost"])
@@ -18,7 +21,7 @@ def tax_calculator(income, marital_status, assets):
 
     return round(total_tax)
 
-
+# define interface
 demo = gr.Interface(
     tax_calculator,
     [
@@ -37,5 +40,5 @@ demo = gr.Interface(
     ],
 )
 
-if __name__ == "__main__":
-    demo.launch()
+# launch
+demo.launch()

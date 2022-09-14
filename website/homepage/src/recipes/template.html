@@ -33,10 +33,10 @@
                 <div class="codeblock" id="{{ demo['dir']}}_code">
                   <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
                 </div>
-                {% if demo['external_space'] is none %}
-                <gradio-app space="gradio/{{ demo['dir'] }}" />
-                {% else %}
+                {% if 'external_space' in demo %}
                 <gradio-app space="{{ demo['external_space'] }}" />
+                {% else %}
+                <gradio-app space="gradio/{{ demo['dir'] }}" />
                 {% endif %}
               </div>
               {% endfor %}
