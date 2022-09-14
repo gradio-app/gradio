@@ -4,13 +4,19 @@ import tempfile
 import textwrap
 from typing import Optional
 import huggingface_hub
-from recipes import demos_by_category
 import os
+import json
+
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
+DIR = os.path.dirname(__file__)
+RECIPE_DEMOS = os.path.join(DIR, "recipe_demos.json")
+GRADIO_DEMO_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "demo"))
 with open(VERSION_TXT) as f:
     gradio_version=f.read()
+with open(RECIPE_DEMOS, "r") as j:
+    demos_by_category = json.loads(j.read())
 
 print(gradio_version)
 
@@ -26,7 +32,7 @@ def upload_demo_to_space(
     """
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        demo_path = pathlib.Path(pathlib.Path().absolute(), f"demo/{demo_name}")
+        demo_path = pathlib.Path(GRADIO_DEMO_DIR, demo_name)
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
         app_file = pathlib.Path(tmpdir, "run.py")
         # Rename the app file to be app.py
@@ -36,7 +42,7 @@ def upload_demo_to_space(
             readme_content = f"""
                                 ---
                                 title: {space_id.split("/")[-1]} 
-                                emoji: 💩
+                                emoji: 🔥
                                 colorFrom: indigo
                                 colorTo: indigo
                                 sdk: gradio

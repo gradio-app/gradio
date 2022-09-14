@@ -34,6 +34,7 @@ COPY ./demo ./demo
 WORKDIR /gradio/website/homepage
 RUN npm install
 RUN npm run build
+RUN python src/recipes/upload_recipes.py
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/

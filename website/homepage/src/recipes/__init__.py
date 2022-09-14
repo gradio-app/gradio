@@ -1,11 +1,11 @@
 import os
-
+import json
 
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "demo"))
 # GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 DIR = os.path.dirname(__file__)
 TEMPLATE_FILE = os.path.join(DIR, "template.html")
-
+RECIPE_DEMOS = os.path.join(DIR, "recipe_demos.json")
 
 def get_code_and_tags(demo_name):
     with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as f:
@@ -135,6 +135,10 @@ for category in demos_by_category:
         demo["code"] = code
         demo["space_url"] = space_url
         demo["text"] = text
+
+with open(RECIPE_DEMOS, "w+") as j:
+    j.write(json.dumps(demos_by_category)) 
+
 
 def build(output_dir, jinja_env):
     os.makedirs(output_dir, exist_ok=True)
