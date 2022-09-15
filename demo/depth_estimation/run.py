@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/radames/dpt-depth-estimation-3d-obj
-# DESCRIPTION: A demo for predicting the depth of an image and generating a 3D model of it.
-# imports
 import gradio as gr
 from transformers import DPTFeatureExtractor, DPTForDepthEstimation
 import torch
@@ -10,11 +7,9 @@ import open3d as o3d
 from pathlib import Path
 import os
 
-# load the model
 feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-large")
 model = DPTForDepthEstimation.from_pretrained("Intel/dpt-large")
 
-# define the core and helper functions
 def process_image(image_path):
     image_path = Path(image_path)
     image_raw = Image.open(image_path)
@@ -103,12 +98,10 @@ def create_3d_obj(rgb_image, depth_image, image_path, depth=10):
         gltf_path, mesh_crop, write_triangle_uvs=True)
     return gltf_path
 
-# define the title, description and examples
 title = "Demo: zero-shot depth estimation with DPT + 3D Point Cloud"
 description = "This demo is a variation from the original <a href='https://huggingface.co/spaces/nielsr/dpt-depth-estimation' target='_blank'>DPT Demo</a>. It uses the DPT model to predict the depth of an image and then uses 3D Point Cloud to create a 3D object."
 examples = [["examples/1-jonathan-borba-CgWTqYxHEkg-unsplash.jpg"]]
 
-# define an interface with one Image input and 3 outputs: Image, Model3D and File
 iface = gr.Interface(fn=process_image,
                      inputs=[gr.Image(
                          type="filepath", label="Input Image")],
@@ -122,5 +115,4 @@ iface = gr.Interface(fn=process_image,
                      allow_flagging="never",
                      cache_examples=False)
 
-# launch
 iface.launch(debug=True, enable_queue=False)

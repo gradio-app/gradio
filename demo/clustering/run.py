@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/clustering
-# DESCRIPTION: This demo built with Blocks generates 9 plots based on the input.
-# imports
 import gradio as gr
 import math
 from functools import partial
@@ -14,7 +11,6 @@ from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import kneighbors_graph
 from sklearn.preprocessing import StandardScaler
 
-# loading models and setting up 
 plt.style.use('seaborn')
 SEED = 0
 MAX_CLUSTERS = 10
@@ -27,11 +23,9 @@ COLORS = [
 assert len(COLORS) >= MAX_CLUSTERS, "Not enough different colors for all clusters"
 np.random.seed(SEED)
 
-# defining core fns
 
 def normalize(X):
     return StandardScaler().fit_transform(X)
-
 
 def get_regular(n_clusters):
     # spiral pattern
@@ -254,14 +248,10 @@ def iter_grid(n_rows, n_cols):
                 with gr.Column():
                     yield
 
-# starting a block
-
 with gr.Blocks(title=title) as demo:
-    # adding text as HTML and Markdown
     gr.HTML(f"<b>{title}</b>")
     gr.Markdown(description)
 
-    # setting up the inputs
     input_models = list(MODEL_MAPPING)
     input_data = gr.Radio(
         list(DATA_MAPPING),
@@ -282,12 +272,10 @@ with gr.Blocks(title=title) as demo:
             break
 
         input_model = input_models[counter]
-        # defining the output
         plot = gr.Plot(label=input_model)
         fn = partial(cluster, clustering_algorithm=input_model)
         input_data.change(fn=fn, inputs=[input_data, input_n_clusters], outputs=plot)
         input_n_clusters.change(fn=fn, inputs=[input_data, input_n_clusters], outputs=plot)
         counter += 1
 
-# launch
 demo.launch()

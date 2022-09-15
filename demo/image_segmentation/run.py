@@ -1,20 +1,14 @@
-# URL: https://huggingface.co/spaces/gradio/image_segmentation/
-# DESCRIPTION: Image segmentation using DETR. Takes in both an inputu image and the desired confidence, and returns a segmented image.
-# imports
 import gradio as gr
 import torch
 import random
 import numpy as np
 from transformers import MaskFormerFeatureExtractor, MaskFormerForInstanceSegmentation
 
-
-# load model
 device = torch.device("cpu")
 model = MaskFormerForInstanceSegmentation.from_pretrained("facebook/maskformer-swin-tiny-ade").to(device)
 model.eval()
 preprocessor = MaskFormerFeatureExtractor.from_pretrained("facebook/maskformer-swin-tiny-ade")
 
-# define core and helper fns
 def visualize_instance_seg_mask(mask):
     image = np.zeros((mask.shape[0], mask.shape[1], 3))
     labels = np.unique(mask)
@@ -37,8 +31,6 @@ def query_image(img):
     results = visualize_instance_seg_mask(results)
     return results
 
-# define interface 
-
 demo = gr.Interface(
     query_image, 
     inputs=[gr.Image()], 
@@ -47,5 +39,4 @@ demo = gr.Interface(
     examples=[["example_2.png"]]
 )
 
-# launch 
 demo.launch()

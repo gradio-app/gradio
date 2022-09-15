@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/outbreak_forecast
-# DESCRIPTION: Generate a plot based on 5 inputs.
-# imports
 import gradio as gr
 from math import sqrt
 import matplotlib
@@ -11,7 +8,6 @@ import plotly.express as px
 import pandas as pd
 
 
-# define core fn
 def outbreak(plot_type, r, month, countries, social_distancing):
     months = ["January", "February", "March", "April", "May"]
     m = months.index(month)
@@ -43,7 +39,6 @@ def outbreak(plot_type, r, month, countries, social_distancing):
     else:
         raise ValueError("A plot type must be selected")
 
-# define inputs
 inputs = [
         gr.Dropdown(["Matplotlib", "Plotly"], label="Plot Type"),
         gr.Slider(1, 4, 3.2, label="R"),
@@ -52,14 +47,11 @@ inputs = [
                          value=["USA", "Canada"]),
         gr.Checkbox(label="Social Distancing?"),
     ]
-# define output 
 outputs = gr.Plot()
 
-# define interface
 demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs, examples=[
         ["Matplotlib", 2, "March", ["Mexico", "UK"], True],
         ["Plotly", 3.6, "February", ["Canada", "Mexico", "UK"], False],
     ], cache_examples=True)
 
-# launch
 demo.launch()

@@ -7,13 +7,12 @@ DIR = os.path.dirname(__file__)
 TEMPLATE_FILE = os.path.join(DIR, "template.html")
 RECIPE_DEMOS = os.path.join(DIR, "recipe_demos.json")
 
-def get_code_and_tags(demo_name):
+def get_code_and_description(demo_name):
     with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as f:
         code = f.read()
-        space_url = code.split("URL: ")[1].split("\n")[0]
-        space_description = code.split("DESCRIPTION: ")[1].split("\n")[0]
-        code = "\n".join(code.split("\n")[2:])
-    return code, space_url, space_description
+    with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "DESCRIPTION.md")) as f:
+        description = f.read()
+    return code, description
 
 
 demos_by_category = [
@@ -131,10 +130,9 @@ demos_by_category = [
 
 for category in demos_by_category:
     for demo in category["demos"]:
-        code, space_url, text = get_code_and_tags(demo["dir"])
+        code, description = get_code_and_description(demo["dir"])
         demo["code"] = code
-        demo["space_url"] = space_url
-        demo["text"] = text
+        demo["text"] = description
 
 with open(RECIPE_DEMOS, "w+") as j:
     j.write(json.dumps(demos_by_category)) 

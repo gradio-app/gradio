@@ -1,13 +1,9 @@
-# URL: https://huggingface.co/spaces/gradio/same-person-or-different
-# DESCRIPTION: This demo identifies if two speakers are the same person using Gradio's Audio and HTML components.
-# imports
 import gradio as gr
 import torch
 from torchaudio.sox_effects import apply_effects_file
 from transformers import AutoFeatureExtractor, AutoModelForAudioXVector
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# define outputs for HTML component
 OUTPUT_OK = (
     """
     <div class="container">
@@ -31,8 +27,6 @@ OUTPUT_FAIL = (
 """
 )
 
-# load model and define constants
-
 EFFECTS = [
     ["remix", "-"],
     ["channels", "1"],
@@ -50,7 +44,6 @@ model = AutoModelForAudioXVector.from_pretrained(model_name).to(device)
 cosine_sim = torch.nn.CosineSimilarity(dim=-1)
 
 
-# define core fn
 def similarity_fn(path1, path2):
     if not (path1 and path2):
         return '<b style="color:red">ERROR: Please record audio for *both* speakers!</b>'
@@ -76,7 +69,6 @@ def similarity_fn(path1, path2):
 
     return output
 
-#define inputs, outputs, description, article and examples
 inputs = [
     gr.inputs.Audio(source="microphone", type="filepath", optional=True, label="Speaker #1"),
     gr.inputs.Audio(source="microphone", type="filepath", optional=True, label="Speaker #2"),
@@ -99,7 +91,7 @@ examples = [
     ["samples/cate_blanch.mp3", "samples/cate_blanch_2.mp3"],
     ["samples/cate_blanch.mp3", "samples/heath_ledger.mp3"],
 ]
-# define interface 
+
 interface = gr.Interface(
     fn=similarity_fn,
     inputs=inputs,

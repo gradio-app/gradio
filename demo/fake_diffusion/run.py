@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/fake_diffusion
-# DESCRIPTION: This demo uses a fake model to showcase iterative output. The Image output will update every time a generator is returned until the final image.
-# imports
 import gradio as gr
 import numpy as np
 import time
@@ -15,7 +12,6 @@ def fake_diffusion(steps):
     image = "https://i.picsum.photos/id/867/600/600.jpg?hmac=qE7QFJwLmlE_WKI7zMH6SgH5iY5fx8ec6ZJQBwKRT44" 
     yield image
 
-# define Interface
 demo = gr.Interface(fake_diffusion, 
                     inputs=gr.Slider(1, 10, 3), 
                     outputs="image")
@@ -23,5 +19,4 @@ demo = gr.Interface(fake_diffusion,
 # define queue - required for generators
 demo.queue()
 
-# launch
 demo.launch()

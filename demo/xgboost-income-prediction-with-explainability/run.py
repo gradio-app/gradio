@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/xgboost-income-prediction-with-explainability
-# DESCRIPTION: This demo takes in 12 inputs from the user in dropdowns and sliders and predicts income. It also has a separate button for explaining the prediction.
-# imports
 import gradio as gr
 import random
 import matplotlib
@@ -11,7 +8,6 @@ import xgboost as xgb
 from datasets import load_dataset
 
 
-# loading the model and setting up
 matplotlib.use("Agg")
 dataset = load_dataset("scikit-learn/adult-census-income")
 X_train = dataset["train"].to_pandas()
@@ -32,8 +28,6 @@ X_train = X_train.astype({col: "category" for col in categorical_columns})
 data = xgb.DMatrix(X_train, label=y_train, enable_categorical=True)
 model = xgb.train(params={"objective": "binary:logistic"}, dtrain=data)
 explainer = shap.TreeExplainer(model)
-
-# defining the two core fns
 
 def predict(*args):
     df = pd.DataFrame([args], columns=X_train.columns)
@@ -65,17 +59,12 @@ unique_occupation = sorted(X_train["occupation"].unique())
 unique_sex = sorted(X_train["sex"].unique())
 unique_country = sorted(X_train["native.country"].unique())
 
-# starting the block 
-
 with gr.Blocks() as demo:
-    # defining text on the page
     gr.Markdown("""
     **Income Classification with XGBoost 💰**:  This demo uses an XGBoost classifier predicts income based on demographic factors, along with Shapley value-based *explanations*. The [source code for this Gradio demo is here](https://huggingface.co/spaces/gradio/xgboost-income-prediction-with-explainability/blob/main/app.py).
     """)
-    # defining the layout
     with gr.Row():
         with gr.Column():
-            # defining the inputs
             age = gr.Slider(label="Age", minimum=17, maximum=90, step=1, randomize=True)
             work_class = gr.Dropdown(
                 label="Workclass",
@@ -131,14 +120,11 @@ with gr.Blocks() as demo:
                 value=lambda: random.choice(unique_country),
             )
         with gr.Column():
-            # defining the outputs
             label = gr.Label()
             plot = gr.Plot()
             with gr.Row():
-                # defining the buttons
                 predict_btn = gr.Button(value="Predict")
                 interpret_btn = gr.Button(value="Explain")
-            # defining the fn that will run when predict is clicked, what it will get as inputs, and which output it will update 
             predict_btn.click(
                 predict,
                 inputs=[
@@ -157,7 +143,6 @@ with gr.Blocks() as demo:
                 ],
                 outputs=[label],
             )
-            # defining the fn that will run when interpret is clicked, what it will get as inputs, and which output it will update 
             interpret_btn.click(
                 interpret,
                 inputs=[
@@ -177,5 +162,4 @@ with gr.Blocks() as demo:
                 outputs=[plot],
             )
 
-# launch
 demo.launch()

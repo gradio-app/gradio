@@ -1,6 +1,3 @@
-# URL: https://huggingface.co/spaces/gradio/automatic-speech-recognition
-# DESCRIPTION: Automatic speech recognition in Chinese and English. Uses a tabbed layout to give the user the choice between uploading audio or recording from a microphone.
-# imports
 import gradio as gr
 import os
 
@@ -17,5 +14,4 @@ demo = gr.Interface.load(
     api_key=auth_token
 )
 
-# launch
 demo.launch()

@@ -1,13 +1,9 @@
-# URL: https://huggingface.co/spaces/gradio/musical_instrument_identification
-# DESCRIPTION: This demo identifies musical instruments from an audio file. It uses Gradio's Audio and Label components.
-# imports 
 import gradio as gr
 import torch, torchaudio
 from timeit import default_timer as timer
 from data_setups import audio_preprocess, resample
 import gdown
 
-# download the model and define constants
 url = 'https://drive.google.com/uc?id=1X5CR18u0I-ZOi_8P0cNptCe5JGk9Ro0C'
 output = 'piano.wav'
 gdown.download(url, output, quiet=False)
@@ -26,7 +22,6 @@ example_list = [
 ]
 
 
-# define core fn
 def predict(audio_path):
     start_time = timer()
     wavform, sample_rate = torchaudio.load(audio_path)
@@ -36,7 +31,6 @@ def predict(audio_path):
     else:
         print(f"input length {len(wav)} too small!, need over {int(AUDIO_LEN * SAMPLE_RATE)}")
         return
-    # input Preprocessing
     img = audio_preprocess(wav, SAMPLE_RATE).unsqueeze(0)
     model.eval()
     with torch.inference_mode():
@@ -45,7 +39,6 @@ def predict(audio_path):
     pred_time = round(timer() - start_time, 5)
     return pred_labels_and_probs, pred_time
 
-# define interface
 demo = gr.Interface(fn=predict,
                     inputs=gr.Audio(type="filepath"),
                     outputs=[gr.Label(num_top_classes=11, label="Predictions"), 
@@ -54,5 +47,4 @@ demo = gr.Interface(fn=predict,
                     cache_examples=False
                     )
 
-# launch
 demo.launch(debug=False)
