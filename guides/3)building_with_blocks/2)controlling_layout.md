@@ -29,7 +29,9 @@ Components within a Column will be placed vertically atop each other. Since the 
 $code_rows_and_columns
 $demo_rows_and_columns
 
-See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
+See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width. 
+
+Columns have a `min_width` parameter as well (320 pixels by default). This prevents adjacent columns from becoming too narrow on mobile screens.
 
 ## Tabs and Accordions
 
