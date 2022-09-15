@@ -2,8 +2,9 @@
 
 ## Custom CSS
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
+For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
 
+The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 ```python
 with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
