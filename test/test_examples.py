@@ -3,6 +3,7 @@ import os
 import pytest
 
 import gradio as gr
+from gradio import processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -16,29 +17,69 @@ class TestExamples:
         assert examples.processed_examples == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
-        assert examples.processed_examples == [[gr.media_data.BASE64_IMAGE]]
+
+        tmp_filename = examples.processed_examples[0][0]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+        assert examples.processed_examples[0][0] == "hello"
+        tmp_filename = examples.processed_examples[0][1]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
-        assert examples.processed_examples == [
-            [gr.media_data.BASE64_IMAGE],
-            [gr.media_data.BASE64_IMAGE],
-        ]
+
+        tmp_filename = examples.processed_examples[0][0]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
+
+        tmp_filename = examples.processed_examples[1][0]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
 
     def test_handle_directory_with_log_file(self):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
-        assert examples.processed_examples == [
-            [gr.media_data.BASE64_IMAGE, "hello"],
-            [gr.media_data.BASE64_IMAGE, "hi"],
-        ]
+
+        tmp_filename = examples.processed_examples[0][0]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
+        assert examples.processed_examples[0][1] == "hello"
+
+        tmp_filename = examples.processed_examples[1][0]["name"]
+        assert tmp_filename is not None
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
+        )
+        assert encoded == gr.media_data.BASE64_IMAGE
+        assert examples.processed_examples[1][1] == "hi"
 
 
 class TestExamplesDataset:
