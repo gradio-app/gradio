@@ -1346,12 +1346,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             "mask": self._format_image(mask_im, mask_fmt),
         }
 
-    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
+    @staticmethod
+    def postprocess(y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
-            base64 url data
+            string filepath to image
         """
         if y is None:
             return None
@@ -1365,7 +1366,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             else:
                 file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         else:
-            raise ValueError("Cannot process this value as an Image")
+            raise ValueError(f"Cannot process value as an Image: {y}")
 
         return {"name": file.name, "data": None, "is_file": True}
 
@@ -3273,30 +3274,11 @@ class Gallery(IOComponent):
         Parameters:
             y: list of images
         Returns:
-            list of base64 url data for images
+            list of string filepaths for images
         """
         if y is None:
             return []
-        output = []
-        for img in y:
-            if isinstance(img, np.ndarray):
-                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
-            elif isinstance(img, PIL.Image.Image):
-                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
-            elif isinstance(img, str):
-                if utils.validate_url(img):
-                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
-                else:
-                    file = processing_utils.create_tmp_copy_of_file(
-                        img, dir=self.temp_dir
-                    )
-            else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
-                )
-            output.append({"name": file.name, "data": None, "is_file": True})
-
-        return output
+        return [Image.postprocess(img) for img in y]
 
     def style(
         self,
