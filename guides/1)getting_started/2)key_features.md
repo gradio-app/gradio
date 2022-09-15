@@ -114,10 +114,11 @@ img = gr.Image("lion.jpg").style(height='24', rounded=False)
 
 Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
+For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
+The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 
 ```python
-with gr.Interface(css="body {background-color: red}") as demo:
+with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
