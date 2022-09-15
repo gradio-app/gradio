@@ -66,6 +66,7 @@ class Row(BlockContext):
 class Column(BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
+    If a certain scale results in a column narrower than min_width, the min_width parameter will win.
     Example:
         with gradio.Blocks() as demo:
             with gradio.Row():
