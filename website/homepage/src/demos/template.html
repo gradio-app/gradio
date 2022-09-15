@@ -20,15 +20,15 @@
         <div>
           <div class="demo-window overflow-y-auto h-full w-full my-4">
             <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
-              <div class="flex overflow-auto py-4">
+              <div class="flex overflow-auto pt-4">
                 {% for demo in category_demos["demos"] %}
                 <button
-                  class="demo-btn px-4 py-2 text-lg {% if (category_loop.index==1) and (loop.index==1) %}selected-demo{% endif %} min-w-max text-gray-600 hover:text-orange-500"
+                  class="demo-btn px-4 py-2 text-lg {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-tab{% endif %} min-w-max text-gray-600 hover:text-orange-500"
                   name="{{ demo['dir'] }}" onclick="show_demo('{{ demo['dir'] }}')">{{ demo['name'] }}</button>
                 {% endfor %}
               </div>
               {% for demo in category_demos["demos"] %}
-              <div class="demo-content {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %}" name="{{ demo['dir'] }}">
+              <div class="demo-content px-4 {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %} {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-window{% endif %}" name="{{ demo['dir'] }}">
                 <p class="my-4 text-md">{{ demo['text'] }}</p>
                 <div class="codeblock" id="{{ demo['dir']}}_code">
                   <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
@@ -59,10 +59,16 @@
     
     <script>
     const show_demo = (demo) => {
-      document.querySelectorAll(`.demo-btn.selected-demo`).forEach(n => n.classList.remove('selected-demo'));
-      document.querySelectorAll(`.demo-content`).forEach(n => n.classList.add('hidden'));
-      document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo');
-      document.querySelectorAll(`.demo-content[name=${demo}]`).forEach(n => n.classList.remove('hidden'));
+      document.querySelectorAll(`.demo-btn.selected-demo-tab`).forEach(n => n.classList.remove('selected-demo-tab'));
+      document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo-tab');
+      document.querySelectorAll(`.demo-content`).forEach((n) => {
+        n.classList.add('hidden'); 
+        n.classList.remove('selected-demo-window');
+      });
+      document.querySelectorAll(`.demo-content[name=${demo}]`).forEach((n) => {
+        n.classList.remove('hidden');
+        n.classList.add('selected-demo-window');
+      });
     }
     window.onclick = function(event) {
       if (event.target.classList.contains('demo-window')) {
