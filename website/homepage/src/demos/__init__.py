@@ -142,9 +142,9 @@ with open(RECIPE_DEMOS, "w+") as j:
 
 def build(output_dir, jinja_env):
     os.makedirs(output_dir, exist_ok=True)
-    template = jinja_env.get_template("recipes/template.html")
+    template = jinja_env.get_template("demos/template.html")
     output = template.render(demos_by_category=demos_by_category)
-    output_folder = os.path.join(output_dir, "recipes")
+    output_folder = os.path.join(output_dir, "demos")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
     with open(output_file, "w") as index_html:
