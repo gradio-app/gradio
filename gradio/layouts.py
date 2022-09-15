@@ -177,7 +177,6 @@ class TabItem(BlockContext):
         label: str,
         *,
         id: Optional[int | str] = None,
-        visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
@@ -185,10 +184,9 @@ class TabItem(BlockContext):
         Parameters:
             label: The visual label for the tab
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
-            visible: If False, Tab will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+        super().__init__(elem_id=elem_id, **kwargs)
         self.label = label
         self.id = id
 
