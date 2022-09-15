@@ -108,6 +108,9 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert config["show_api"] is True
+        _ = demo.launch(prevent_thread_lock=True, show_api=False)
+        assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         def update(name):
