@@ -1,0 +1,3 @@
+git+https://github.com/huggingface/transformers
+gradio
+torch

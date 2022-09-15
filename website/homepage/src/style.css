@@ -129,3 +129,16 @@ code.language-python {
   background-image: url("assets/img/esc.svg");
   background-size: 20px 20px;
 }
+
+.view-code {
+  @apply w-16 p-2 mx-auto hover:bg-gray-100;
+  background: rgb(249,250,251);
+}
+
+/* demos */
+.selected-demo-tab {
+  @apply font-semibold text-orange-500 rounded-t-md border-2 border-gray-100 border-b-0 bg-white;
+}
+.selected-demo-window {
+  @apply rounded-b-md border-2  border-gray-100 -mt-0.5;
+}

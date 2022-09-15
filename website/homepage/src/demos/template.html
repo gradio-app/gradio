@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with title="Gradio Demos", url="https://gradio.app/demos", image="/assets/img/meta-image.png", description="Play Around with Gradio Demos" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <main class="container mx-auto px-4 gap-4">
+      <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500 group">Demos</h2>
+      <p class="mt-8 mb-4 text-lg text-gray-600" >Here are some examples of what you can build with Gradio in just a few lines of Python. Once you’re ready to learn, head over to the <a class="link text-black" target="_blank" href="/getting_started">⚡ Quickstart</a>.</p>
+      <p class="mt-4 mb-8 text-lg text-gray-600">Check out more demos on <a class="link text-black" target="_blank" href="https://huggingface.co/spaces"><img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src="/assets/img/spaces-logo.svg"> Spaces</a>.</p>
+      {% for category_demos in demos_by_category %}
+      {% set category_loop = loop %}
+      <div class="category mb-8">
+        <h2 class="mb-4 text-2xl font-thin block">{{ category_demos["category"] }}</h2>
+        <div>
+          <div class="demo-window overflow-y-auto h-full w-full my-4">
+            <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
+              <div class="flex overflow-auto pt-4">
+                {% for demo in category_demos["demos"] %}
+                <button
+                  class="demo-btn px-4 py-2 text-lg {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-tab{% endif %} min-w-max text-gray-600 hover:text-orange-500"
+                  name="{{ demo['dir'] }}" onclick="show_demo('{{ demo['dir'] }}')">{{ demo['name'] }}</button>
+                {% endfor %}
+              </div>
+              {% for demo in category_demos["demos"] %}
+              <div class="demo-content px-4 {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %} {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-window{% endif %}" name="{{ demo['dir'] }}">
+                <p class="my-4 text-lg text-gray-600">{{ demo['text'] }}</p>
+                <div class="codeblock" id="{{ demo['dir']}}_code">
+                  <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
+                </div>
+                {% if 'external_space' in demo %}
+                <gradio-app space="{{ demo['external_space'] }}" />
+                {% else %}
+                <gradio-app space="gradio/{{ demo['dir'] }}" />
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </main>
+    <script src="/assets/prism.js"></script>
+    <script>
+      window.__gradio_mode__ = "website";
+    </script>
+    <script type="module" src="/assets/index.js"></script>
+    <!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.3/gradio.js"></script> -->
+
+    <script>{% include 'templates/add_copy.js' %}</script>
+
+    {% include 'templates/footer.html' %}
+    
+    <script>
+    const show_demo = (demo) => {
+      document.querySelectorAll(`.demo-btn.selected-demo-tab`).forEach(n => n.classList.remove('selected-demo-tab'));
+      document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo-tab');
+      document.querySelectorAll(`.demo-content`).forEach((n) => {
+        n.classList.add('hidden'); 
+        n.classList.remove('selected-demo-window');
+      });
+      document.querySelectorAll(`.demo-content[name=${demo}]`).forEach((n) => {
+        n.classList.remove('hidden');
+        n.classList.add('selected-demo-window');
+      });
+    }
+    window.onclick = function(event) {
+      if (event.target.classList.contains('demo-window')) {
+        document.querySelectorAll('.demo-window').forEach(n => n.classList.add('hidden'));
+      }
+    }
+
+
+    // Remove built-with-gradio footers and extra space from embedded components
+    window.addEventListener('load', function () {
+      document.querySelectorAll('gradio-app').forEach(g => {
+          let shadowroot = g.shadowRoot;
+          let footer = shadowroot.querySelector('footer');
+          footer.classList.add('hidden');
+          let container = shadowroot.querySelector('.container');
+          container.classList.remove('px-4');
+          let gcontainer = shadowroot.querySelector('.gradio-container');
+          gcontainer.style.removeProperty('min-height');
+        }
+      );
+    })
+
+    </script>
+  </body>
+</html>
