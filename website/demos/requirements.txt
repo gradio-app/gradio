@@ -1,2 +1,3 @@
 jinja2
 requests
+huggingface_hub
