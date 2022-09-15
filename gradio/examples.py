@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import inspect
 import os
+import re
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
@@ -55,6 +56,15 @@ def create_examples(
     )
     utils.synchronize_async(examples_obj.create)
     return examples_obj
+
+
+partial_example_exception = ValueError(
+    "Cannot cache examples if you don't provide "
+    "values for all function parameters. Either "
+    "disable example caching with cache_examples=False "
+    "or provide a parameter value for all input components "
+    "in your examples."
+)
 
 
 @document()
@@ -165,6 +175,11 @@ class Examples:
             for example in examples
         ]
 
+        if cache_examples and any(
+            len(ex) != len(inputs_with_examples) for ex in non_none_examples
+        ):
+            raise partial_example_exception
+
         self.examples = examples
         self.non_none_examples = non_none_examples
         self.inputs = inputs
@@ -243,7 +258,15 @@ class Examples:
             cache_logger = CSVLogger()
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                prediction = await self.predict_example(example_id)
+                try:
+                    prediction = await self.predict_example(example_id)
+                except TypeError as e:
+                    if re.search(
+                        "missing [0-9]+ required positional argument[s]*", str(e)
+                    ):
+                        raise partial_example_exception
+                    else:
+                        raise e
                 cache_logger.flag(prediction)
 
     async def predict_example(self, example_id: int) -> List[Any]:
@@ -252,6 +275,7 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         processed_input = self.processed_examples[example_id]
+        self.inputs_with_examples
         if not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])
