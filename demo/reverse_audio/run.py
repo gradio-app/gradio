@@ -14,7 +14,7 @@ demo = gr.Interface(fn=reverse_audio,
                     inputs="microphone", 
                     outputs="audio", 
                     examples=[
-                    os.path.join(os.path.dirname(__file__), "audio/cantina.wav"),
+                    "https://samplelib.com/lib/preview/mp3/sample-3s.mp3",
                     os.path.join(os.path.dirname(__file__), "audio/recording1.wav")
         ], cache_examples=True)
 

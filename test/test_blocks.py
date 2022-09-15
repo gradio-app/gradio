@@ -108,6 +108,9 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert config["show_api"] is True
+        _ = demo.launch(prevent_thread_lock=True, show_api=False)
+        assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         def update(name):
@@ -299,6 +302,25 @@ class TestComponentsInBlocks:
 
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
         assert output[0]["value"] == "NO_VALUE"
+
+
+def test_blocks_returns_correct_output_dict_single_key():
+
+    with gr.Blocks() as demo:
+        num = gr.Number()
+        num2 = gr.Number()
+        update = gr.Button(value="update")
+
+        def update_values():
+            return {num2: gr.Number.update(value=42)}
+
+        update.click(update_values, inputs=[num], outputs=[num2])
+
+    output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state=None)
+    assert output[0]["value"] == 42
+
+    output = demo.postprocess_data(0, {num2: 23}, state=None)
+    assert output[0] == 23
 
 
 class TestCallFunction:

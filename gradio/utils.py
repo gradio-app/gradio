@@ -281,14 +281,14 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
     return output
 
 
-def delete_none(_dict):
+def delete_none(_dict, skip_value=False):
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
     Credit: https://stackoverflow.com/a/66127889/5209347
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
-            if key == "value":
+            if skip_value and key == "value":
                 continue
             if isinstance(value, (list, dict, tuple, set)):
                 _dict[key] = delete_none(value)
@@ -670,3 +670,12 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
             suffix_counter += 1
             new_name = name + f"_{suffix_counter}"
         return new_name
+
+
+def validate_url(possible_url: str) -> bool:
+    try:
+        if requests.get(possible_url).status_code == 200:
+            return True
+    except Exception:
+        pass
+    return False
