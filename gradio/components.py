@@ -1345,14 +1345,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             "image": self._format_image(im, fmt),
             "mask": self._format_image(mask_im, mask_fmt),
         }
-
-    @staticmethod
-    def postprocess(y: np.ndarray | PIL.Image | str | Path) -> str:
+    
+    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
-            string filepath to image
+            string file path to image in temp directory
         """
         if y is None:
             return None
@@ -1366,7 +1365,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             else:
                 file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         else:
-            raise ValueError(f"Cannot process value as an Image: {y}")
+            raise ValueError(f"Cannot process type as Image: {type(y)}")
 
         return {"name": file.name, "data": None, "is_file": True}
 
@@ -3274,11 +3273,28 @@ class Gallery(IOComponent):
         Parameters:
             y: list of images
         Returns:
-            list of string filepaths for images
+            list of string file paths to images in temp directory
         """
         if y is None:
             return []
-        return [Image.postprocess(img) for img in y]
+        output = []
+        for img in y:
+            if isinstance(img, np.ndarray):
+                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
+            elif isinstance(img, PIL.Image.Image):
+                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
+            elif isinstance(img, str):
+                if utils.validate_url(img):
+                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
+                else:
+                    file = processing_utils.create_tmp_copy_of_file(
+                        img, dir=self.temp_dir
+                    )
+            else:
+                raise ValueError(f"Cannot process type as image: {type(img)}")
+            output.append({"name": file.name, "data": None, "is_file": True})
+
+        return output
 
     def style(
         self,
