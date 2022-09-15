@@ -3,4 +3,8 @@
 	export let value: FileData;
 </script>
 
-<div class="truncate">{value}</div>
+{#if Array.isArray(value)}
+	<div class="truncate">{value.join(', ')}</div>
+{:else}
+	<div class="truncate">{value}</div>
+{/if}

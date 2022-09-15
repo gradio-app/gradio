@@ -2133,8 +2133,8 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 {
                     "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
-                        file, self.temp_dir
-                    ).name,
+                        file, dir=self.temp_dir
+                     ).name,
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
@@ -2171,8 +2171,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+    def as_example(self, input_data: str | List) -> str:
+        if isinstance(input_data, list):
+            return input_data
+        else:
+            return Path(input_data).name
 
 
 @document("change", "style")
