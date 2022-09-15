@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt", "hatch-fancy-pypi-readme>=22.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gradio"
+dynamic = ["version", "dependencies", "readme"]
+description = "Python library for easily interacting with trained machine learning models"
+license = "Apache-2.0"
+requires-python = ">=3.7"
+authors = [
+  { name = "Abubakar Abid", email = "team@gradio.app" },
+  { name = "Ali Abid", email = "team@gradio.app" },
+  { name = "Ali Abdalla", email = "team@gradio.app" },
+  { name = "Dawood Khan", email = "team@gradio.app" },
+  { name = "Ahsen Khaliq", email = "team@gradio.app" },
+  { name = "Pete Allen", email = "team@gradio.app" },
+  { name = "Ömer Faruk Özdemir", email = "team@gradio.app" },
+]
+keywords = ["machine learning", "reproducibility", "visualization"]
+
+[project.scripts]
+gradio = "gradio.reload:run_in_reload_mode"
+
+[project.urls]
+Homepage = "https://github.com/gradio-app/gradio"
+
+[tool.hatch.version]
+path = "gradio/version.txt"
+pattern = "(?P<version>.+)"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+filename = "requirements.txt"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+fragments = [
+  { path = "README.md" },
+]
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = "(website/homepage|readme_files)/"
+replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/\g<1>/'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = 'demo/([\S]*.gif)'
+replacement = 'https://raw.githubusercontent.com/gradio-app/gradio/main/demo/\g<1>'
+
+[tool.hatch.build]
+artifacts = [
+  "/gradio/templates",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/gradio",
+  "/test",
+  "/README.md",
+  "/requirements.txt",
+]

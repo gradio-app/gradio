@@ -19,8 +19,7 @@ RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
-COPY ./setup.py ./setup.py
-COPY ./MANIFEST.in ./MANIFEST.in
+COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
 RUN pip install .
@@ -42,4 +41,3 @@ RUN ASSETS_FILE=$(grep -oE index.[a-z0-9]+.js /gradio/gradio/templates/cdn/index
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
-
