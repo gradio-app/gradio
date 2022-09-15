@@ -2173,7 +2173,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     def as_example(self, input_data: str | List) -> str:
         if isinstance(input_data, list):
-            return input_data
+            return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
 
