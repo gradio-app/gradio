@@ -2,7 +2,6 @@
 # python demo/fake_gan/run.py
 import os
 import random
-import time
 
 import gradio as gr
 
@@ -25,7 +24,7 @@ def fake_gan(count, *args):
 
 cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
 
-no_cache_examples = gr.Interface(
+demo = gr.Interface(
     fn=fake_gan,
     inputs=[
         gr.Number(label="Generation Count"),
@@ -46,34 +45,7 @@ no_cache_examples = gr.Interface(
         [4, cheetah, None, 11, None, None],
         [3, cheetah, None, 1, None, None],
     ],
-    cache_examples=False
 )
-
-cache_examples = gr.Interface(
-    fn=fake_gan,
-    inputs=[
-        gr.Number(label="Generation Count"),
-        gr.Image(label="Initial Image (optional)"),
-        gr.Slider(0, 50, 25, label="TV_scale (for smoothness)"),
-        gr.Slider(0, 50, 25, label="Range_Scale (out of range RBG)"),
-        gr.Number(label="Seed"),
-        gr.Number(label="Respacing"),
-    ],
-    outputs=gr.Gallery(label="Generated Images"),
-    title="FD-GAN",
-    description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
-    examples=[
-        [2, cheetah, 1, 12, 1, 1],
-        [1, cheetah, 2, 2, 2, 2],
-        [4, cheetah, 3, 42, 3, 3],
-        [5, cheetah, 4, 23, 4, 4],
-        [4, cheetah, 5, 11, 5, 5],
-        [3, cheetah, 6, 1, 6, 6],
-    ],
-    cache_examples=True
-)
-
-demo = gr.TabbedInterface([no_cache_examples, cache_examples])
 
 if __name__ == "__main__":
     demo.launch()
