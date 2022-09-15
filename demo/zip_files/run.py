@@ -4,14 +4,14 @@ from zipfile import ZipFile
 import gradio as gr
 
 
-def zip_two_files(files):
+def zip_files(files):
     with ZipFile("tmp.zip", "w") as zipObj:
         for idx, file in enumerate(files):
             zipObj.write(file.name, "file" + str(idx))
     return "tmp.zip"
 
 demo = gr.Interface(
-    zip_two_files,
+    zip_files,
     gr.File(file_count="multiple"),
     "file",
     examples=[[[os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
