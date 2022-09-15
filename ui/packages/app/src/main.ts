@@ -34,6 +34,7 @@ interface Config {
 	title: string;
 	version: string;
 	is_space: boolean;
+	show_api: boolean;
 	// allow_flagging: string;
 	// allow_interpretation: boolean;
 	// article: string;

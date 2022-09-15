@@ -413,6 +413,7 @@ class Blocks(BlockContext):
         self.app_id = random.getrandbits(64)
         self.temp_dirs = set()
         self.title = title
+        self.show_api = True
 
         data = {
             "mode": self.mode,
@@ -785,6 +786,7 @@ class Blocks(BlockContext):
             "is_space": self.is_space,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
+            "show_api": self.show_api,
         }
 
         def getLayout(block):
@@ -946,6 +948,7 @@ class Blocks(BlockContext):
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
         quiet: bool = False,
+        show_api: bool = True,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -974,6 +977,7 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
+            show_api: If True, shows the api docs in the footer of the app. Default True.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1000,6 +1004,7 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.show_api = show_api
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
