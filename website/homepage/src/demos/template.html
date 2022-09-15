@@ -79,12 +79,14 @@
 
     // Remove built-with-gradio footers and extra space from embedded components
     window.addEventListener('load', function () {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+      document.querySelectorAll('gradio-app').forEach(g => {
           let shadowroot = g.shadowRoot;
-          let f = shadowroot.querySelector('footer');
-          f.classList.add('hidden');
-          let c = shadowroot.querySelector('.gradio-container');
-          c.style.removeProperty('min-height');
+          let footer = shadowroot.querySelector('footer');
+          footer.classList.add('hidden');
+          let container = shadowroot.querySelector('.container');
+          container.classList.remove('px-4');
+          let gcontainer = shadowroot.querySelector('.gradio-container');
+          gcontainer.style.removeProperty('min-height');
         }
       );
     })
