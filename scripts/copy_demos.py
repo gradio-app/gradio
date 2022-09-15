@@ -31,7 +31,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "sst_or_tts",
         "stream_audio",
         "stream_frames",
-        "zip_two_files",
+        "zip_files",
     ]
     for demo in demos_to_copy:
         shutil.copytree(

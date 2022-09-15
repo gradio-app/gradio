@@ -90,13 +90,15 @@ This will document the endpoint `/api/addition/` to the automatically generated 
 
 ## Authentication
 
-You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. Here's an example that provides password-based authentication for a single user named "admin":
+You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a  list of acceptable username/password tuples;  Here's an example that provides password-based authentication for a single user named "admin":
 
 ```python
 demo.launch(auth=("admin", "pass1234"))
 ```
 
-Here's one that accepts any login where the username and password are the same.
+For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. This can be used for, among other things, making requests to 3rd-party authentication services.
+
+Here's an example of a function that accepts any login where the username and password are the same:
 
 ```python
 def same_auth(username, password):
@@ -104,4 +106,12 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
+## Mounting Within Another FastAPI App
 
+In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo. You can do this by easily using the `gradio.routes.App.create_app()` function, which creates a FastAPI app (but does not launch it), and then adding it to your existing FastAPI app with `FastAPI.mount()`.
+
+Here's a complete example:
+
+$code_custom_path
+
+Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).

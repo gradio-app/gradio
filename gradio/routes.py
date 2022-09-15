@@ -17,6 +17,7 @@ from typing import Any, List, Optional, Type
 
 import orjson
 import pkg_resources
+import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -28,9 +29,9 @@ from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
-from gradio import encryptor
-from gradio.event_queue import Estimation, Event, Queue
+from gradio import encryptor, utils
 from gradio.exceptions import Error
+from gradio.queue import Estimation, Event
 
 mimetypes.init()
 
@@ -221,6 +222,8 @@ class App(FastAPI):
 
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
         def file(path: str):
+            if utils.validate_url(path):
+                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
             if (
                 app.blocks.encrypt
                 and isinstance(app.blocks.examples, str)
@@ -236,7 +239,9 @@ class App(FastAPI):
                 Path(temp_dir).resolve() in Path(path).resolve().parents
                 for temp_dir in app.blocks.temp_dirs
             ):
-                return FileResponse(Path(path).resolve())
+                return FileResponse(
+                    Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
+                )
             else:
                 raise ValueError(
                     f"File cannot be fetched: {path}, perhaps because "

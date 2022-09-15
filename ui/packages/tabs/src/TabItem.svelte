@@ -4,7 +4,6 @@
 	import { Component as Column } from "./../../app/src/components/Column";
 
 	export let elem_id: string = "";
-	export let visible: boolean = true;
 	export let name: string;
 	export let id: string | number | object = {};
 
@@ -25,7 +24,6 @@
 	<div
 		id={elem_id}
 		class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex"
-		class:!hidden={!visible}
 	>
 		<Column>
 			<slot />
