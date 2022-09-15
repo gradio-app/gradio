@@ -1,0 +1,2 @@
+libsndfile1
+espeak-ng
