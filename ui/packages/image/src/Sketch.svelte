@@ -79,11 +79,11 @@
 
 		if (value_img) {
 			value_img.addEventListener("load", (_) => {
-				ctx.drawing.drawImage(value_img, 0, 0);
+				ctx.temp.drawImage(value_img, 0, 0);
 			});
 
 			setTimeout(() => {
-				ctx.drawing.drawImage(value_img, 0, 0);
+				ctx.temp.drawImage(value_img, 0, 0);
 			}, 100);
 		}
 
@@ -107,17 +107,17 @@
 
 		requestAnimationFrame(() => {
 			init();
-			if (save_data) {
-				load_save_data(save_data);
-			}
+			requestAnimationFrame(() => {
+				clear();
+			});
 		});
 	});
 
 	function init() {
-		const initX = window.innerWidth / 2;
-		const initY = window.innerHeight / 2;
-		lazy.update({ x: initX - chain_length / 4, y: initY }, { both: true });
-		lazy.update({ x: initX + chain_length / 4, y: initY }, { both: false });
+		const initX = width / 2;
+		const initY = height / 2;
+		lazy.update({ x: initX - chain_length / 3, y: initY }, { both: true });
+		lazy.update({ x: initX + chain_length / 3, y: initY }, { both: false });
 		mouse_has_moved = true;
 		values_changed = true;
 	}
@@ -141,35 +141,6 @@
 			width: canvas_width,
 			height: canvas_height
 		});
-	};
-
-	let load_save_data = (save_data) => {
-		if (typeof save_data !== "string") {
-			throw new Error("save_data needs to be of type string!");
-		}
-		const { lines, width, height } = JSON.parse(save_data || `{"lines": []}`);
-		if (!lines || typeof lines.push !== "function") {
-			throw new Error("save_data.lines needs to be an array!");
-		}
-		clear();
-		if (width === canvas_width && height === canvas_height) {
-			draw_lines({
-				lines
-			});
-		} else {
-			const scaleX = canvas_width / width;
-			const scaleY = canvas_height / height;
-			draw_lines({
-				lines: lines.map((line) => ({
-					...line,
-					points: line.points.map((p) => ({
-						x: p.x * scaleX,
-						y: p.y * scaleY
-					})),
-					brush_radius: line.brush_radius
-				}))
-			});
-		}
 	};
 
 	let draw_lines = ({ lines }) => {
@@ -247,7 +218,6 @@
 		brush_radius = 20 * (dimensions.width / container_dimensions.width);
 
 		loop({ once: true });
-		load_save_data(save_data, true);
 	};
 
 	$: {
@@ -324,9 +294,11 @@
 	let draw_points = ({ points, brush_color, brush_radius }) => {
 		ctx.temp.lineJoin = "round";
 		ctx.temp.lineCap = "round";
+
 		ctx.temp.strokeStyle = brush_color;
-		ctx.temp.clearRect(0, 0, width, height);
 		ctx.temp.lineWidth = brush_radius;
+
+		if (!points) return;
 		let p1 = points[0];
 		let p2 = points[1];
 		ctx.temp.moveTo(p2.x, p2.y);
@@ -343,8 +315,6 @@
 	};
 
 	let draw_fake_points = ({ points, brush_color, brush_radius }) => {
-		// if (points.length < 1) return;
-
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
@@ -367,16 +337,15 @@
 
 	let save_mask_line = () => {
 		lines.push({
-			points: [...points],
+			points: points,
 			brush_color: "#fff",
 			brush_radius
 		});
 
-		points = [];
+		points.length = 0;
 
 		ctx.mask.drawImage(canvas.temp_fake, 0, 0, width, height);
 
-		ctx.temp_fake.clearRect(0, 0, width, height);
 		trigger_on_change();
 	};
 
@@ -384,36 +353,33 @@
 		if (points.length < 2) return;
 
 		lines.push({
-			points: [...points],
+			points: points,
 			brush_color: brush_color,
 			brush_radius
 		});
-
 		if (mode !== "mask") {
-			points = [];
+			points.length = 0;
 		}
 
 		ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
-		ctx.temp.clearRect(0, 0, width, height);
 		trigger_on_change();
 	};
 
 	let trigger_on_change = () => {
-		dispatch("change", get_image_data());
+		const x = get_image_data();
+		dispatch("change", x);
 	};
 
 	export function clear() {
 		lines = [];
 		values_changed = true;
-		ctx.drawing.clearRect(0, 0, width, height);
 		ctx.temp.clearRect(0, 0, width, height);
 
-		ctx.drawing.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
-		ctx.drawing.fillRect(0, 0, width, height);
+		ctx.temp.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
+		ctx.temp.fillRect(0, 0, width, height);
 
 		if (mode === "mask") {
-			console.log("boo");
 			ctx.temp_fake.clearRect(
 				0,
 				0,
@@ -426,6 +392,8 @@
 		}
 
 		line_count = 0;
+
+		return true;
 	}
 
 	let loop = ({ once = false } = {}) => {
@@ -480,8 +448,8 @@
 
 	export function get_image_data() {
 		return mode === "mask"
-			? canvas.mask.toDataURL("image/png")
-			: canvas.drawing.toDataURL("image/png");
+			? canvas.mask.toDataURL("image/jpg")
+			: canvas.drawing.toDataURL("image/jpg");
 	}
 </script>
 

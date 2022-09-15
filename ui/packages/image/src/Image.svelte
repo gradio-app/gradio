@@ -40,10 +40,14 @@
 	}
 
 	function handle_upload({ detail }: CustomEvent<string>) {
-		value =
-			(source === "upload" || source === "webcam") && tool === "sketch"
-				? { image: detail, mask: null }
-				: detail;
+		if (tool === "color-sketch") {
+			static_image = detail;
+		} else {
+			value =
+				(source === "upload" || source === "webcam") && tool === "sketch"
+					? { image: detail, mask: null }
+					: detail;
+		}
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -52,10 +56,21 @@
 	}
 
 	async function handle_save({ detail }: { detail: string }) {
-		value =
-			(source === "upload" || source === "webcam") && tool === "sketch"
-				? { image: detail, mask: null }
-				: detail;
+		if (tool === "color-sketch") {
+			value = { image: detail, mask: null };
+		} else if (mode === "mask") {
+			value = {
+				image: typeof value === "string" ? value : value?.image || null,
+				mask: detail
+			};
+		} else if (
+			(source === "upload" || source === "webcam") &&
+			tool === "sketch"
+		) {
+			value = { image: detail, mask: null };
+		} else {
+			value = detail;
+		}
 
 		await tick();
 
@@ -83,13 +98,6 @@
 		container_height = element.getBoundingClientRect().height;
 	}
 
-	function handle_mask_save({ detail }: { detail: string }) {
-		value = {
-			image: typeof value === "string" ? value : value?.image || null,
-			mask: detail
-		};
-	}
-
 	async function handle_mask_clear() {
 		sketch.clear();
 		await tick();
@@ -101,18 +109,28 @@
 	let container_height = 0;
 
 	let brush_radius = 20;
-	let brush_color = "rgba(255, 255, 255, 0.65)";
 
-	$: mode =
-		source === "canvas" && tool === "sketch"
-			? "bw-sketch"
-			: tool === "color-sketch"
-			? "color-sketch"
-			: "mask";
+	let mode;
+
+	$: {
+		if (source === "canvas" && tool === "sketch") {
+			mode = "bw-sketch";
+		} else if (tool === "color-sketch") {
+			mode = "color-sketch";
+		} else if (source === "upload" && tool === "sketch") {
+			mode = "mask";
+		} else {
+			mode = "editor";
+		}
+	}
+
+	$: brush_color = mode == "mask" ? "#000000A6" : "#000";
 
 	let value_img;
 	let max_height;
 	let max_width;
+
+	let static_image = undefined;
 </script>
 
 <BlockLabel
@@ -135,8 +153,19 @@
 			on:undo={() => sketch.undo()}
 			on:clear={() => sketch.clear()}
 		/>
+		{#if tool === "color-sketch"}
+			<SketchSettings
+				bind:brush_radius
+				bind:brush_color
+				container_height={container_height || max_height}
+				img_width={img_width || max_width}
+				img_height={img_height || max_height}
+			/>
+		{/if}
 		<Sketch
 			{value}
+			bind:brush_radius
+			bind:brush_color
 			bind:this={sketch}
 			on:change={handle_save}
 			{mode}
@@ -144,7 +173,7 @@
 			height={img_height || max_height}
 			container_height={container_height || max_height}
 		/>
-	{:else if value === null || streaming}
+	{:else if (value === null && !static_image) || streaming}
 		{#if source === "upload"}
 			<Upload
 				bind:dragging
@@ -183,12 +212,12 @@
 			alt=""
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
-	{:else if (tool === "sketch" || tool === "color-sketch") && value !== null}
-		{#key value.image}
+	{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
+		{#key static_image || value}
 			<img
 				bind:this={value_img}
 				class="absolute w-full h-full object-contain"
-				src={value.image || value}
+				src={static_image || value?.image || value}
 				alt=""
 				on:load={handle_image_load}
 				class:scale-x-[-1]={source === "webcam" && mirror_webcam}
@@ -200,7 +229,7 @@
 				bind:this={sketch}
 				bind:brush_radius
 				bind:brush_color
-				on:change={handle_mask_save}
+				on:change={handle_save}
 				{mode}
 				width={img_width || max_width}
 				height={img_height || max_height}
@@ -224,7 +253,7 @@
 	{:else}
 		<img
 			class="w-full h-full object-contain"
-			src={value}
+			src={value.image || value}
 			alt=""
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>

@@ -1324,10 +1324,14 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         """
         if x is None:
             return x
-        if self.tool in ["sketch", "color-sketch"] and self.source in [
-            "upload",
-            "webcam",
-        ]:
+        if (
+            self.tool in ["sketch"]
+            and self.source
+            in [
+                "upload",
+                "webcam",
+            ]
+        ) or self.tool == "color-sketch":
             x, mask = x["image"], x["mask"]
 
         im = processing_utils.decode_base64_to_image(x)
@@ -1342,12 +1346,20 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         if self.source == "webcam" and self.mirror_webcam is True:
             im = PIL.ImageOps.mirror(im)
 
-        if self.tool in ["sketch", "color-sketch"] and self.source in [
-            "upload",
-            "webcam",
-        ]:
-            mask_im = processing_utils.decode_base64_to_image(mask)
-            mask_fmt = mask_im.format
+        if (
+            self.tool in ["sketch"]
+            and self.source
+            in [
+                "upload",
+                "webcam",
+            ]
+        ) or self.tool == "color-sketch":
+            mask_im = (
+                processing_utils.decode_base64_to_image(mask)
+                if mask is not None
+                else None
+            )
+            mask_fmt = mask_im.format if mask_im is not None else None
             return {
                 "image": self._format_image(im, fmt),
                 "mask": self._format_image(mask_im, mask_fmt),

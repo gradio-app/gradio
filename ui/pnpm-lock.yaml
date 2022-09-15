@@ -1,4 +1,4 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 importers:
 
@@ -232,6 +232,7 @@ importers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       cropperjs: ^1.5.12
       lazy-brush: ^1.0.1
       resize-observer-polyfill: ^1.5.1
@@ -239,6 +240,7 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
+      '@gradio/utils': link:../utils
       cropperjs: 1.5.12
       lazy-brush: 1.0.1
       resize-observer-polyfill: 1.5.1
