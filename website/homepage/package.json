@@ -3,7 +3,7 @@
   "scripts": {
     "build:html": "python build.py",
     "build:css": "postcss src/style.css -o build/style.css && STYLE_FILE=$(jq -r '.\"style.css\"' build/manifest.json) && perl -i -pe\"s/style.css/${STYLE_FILE}/g\" build/*.html && perl -i -pe\"s/style.css/${STYLE_FILE}/g\" build/**/*.html && rm build/manifest.json",
-    "build": "npm run build:html && npm run build:css",
+    "build": "npm run build:html && npm run build:css"
     },
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^4.0.3",
