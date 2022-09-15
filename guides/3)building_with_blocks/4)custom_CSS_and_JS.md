@@ -5,14 +5,14 @@
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
 
 ```python
-with gr.Blocks(css="body {background-color: red}") as demo:
+with gr.Blocks(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
 If you'd like to reference external files in your css, preface the file path (which can be a relative or absolute path) with `"file="`, for example:
 
 ```python
-with gr.Blocks(css="body {background-image: url('file=clouds.jpg')}") as demo:
+with gr.Blocks(css=".gradio-container {background-image: url('file=clouds.jpg')}") as demo:
     ...
 ```
 
