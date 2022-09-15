@@ -25,12 +25,15 @@ class Row(BlockContext):
     Guides: controlling_layout
     """
 
-    def __init__(self, *, elem_id: Optional[str] = None, **kwargs):
+    def __init__(
+        self, *, visible: bool = True, elem_id: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
+            visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(elem_id=elem_id)
+        super().__init__(visible=visible, elem_id=elem_id)
 
     def get_config(self):
         return {"type": "row", **super().get_config()}
@@ -84,8 +87,8 @@ class Column(BlockContext):
         *,
         scale: int = 1,
         min_width: int = 320,
-        visible: bool = True,
         variant: str = "default",
+        visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
@@ -93,8 +96,9 @@ class Column(BlockContext):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            visible: If False, column will be hidden.
             variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+            visible: If False, column will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.scale = scale
         self.min_width = min_width
@@ -129,15 +133,19 @@ class Tabs(BlockContext):
 
     def __init__(
         self,
+        *,
         selected: Optional[int | str] = None,
+        visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+            visible: If False, Tabs will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(**kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
         self.selected = selected
 
     def get_config(self):
@@ -168,15 +176,18 @@ class TabItem(BlockContext):
     def __init__(
         self,
         label: str,
+        *,
         id: Optional[int | str] = None,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
             label: The visual label for the tab
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(**kwargs)
+        super().__init__(elem_id=elem_id, **kwargs)
         self.label = label
         self.id = id
 
@@ -230,6 +241,20 @@ class Group(BlockContext):
             gr.Textbox(label="Last")
     """
 
+    def __init__(
+        self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            visible: If False, group will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+
     def get_config(self):
         return {"type": "group", **super().get_config()}
 
@@ -266,6 +291,20 @@ class Box(BlockContext):
             gr.Textbox(label="First")
             gr.Textbox(label="Last")
     """
+
+    def __init__(
+        self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            visible: If False, box will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {"type": "box", **super().get_config()}
@@ -309,7 +348,13 @@ class Accordion(BlockContext):
     """
 
     def __init__(
-        self, label, *, open: bool = True, elem_id: Optional[str] = None, **kwargs
+        self,
+        label,
+        *,
+        open: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -319,7 +364,7 @@ class Accordion(BlockContext):
         """
         self.label = label
         self.open = open
-        super().__init__(elem_id=elem_id, **kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {

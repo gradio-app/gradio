@@ -11,6 +11,7 @@
 		id: object;
 	}
 
+	export let visible: boolean = true;
 	export let elem_id: string;
 	export let selected: number | string | object;
 
@@ -44,7 +45,7 @@
 	$: selected !== null && change_tab(selected);
 </script>
 
-<div class="tabs flex flex-col my-4" id={elem_id}>
+<div class="tabs flex flex-col my-4" class:hidden={!visible} id={elem_id}>
 	<div class="flex border-b-2 flex-wrap dark:border-gray-700">
 		{#each tabs as t (t.id)}
 			{#if t.id === $selected_tab}
