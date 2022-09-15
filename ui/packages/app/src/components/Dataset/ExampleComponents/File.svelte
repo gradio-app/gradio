@@ -4,7 +4,7 @@
 </script>
 
 {#if Array.isArray(value)}
-	<div class="truncate">{value.join(', ')}</div>
+	<div class="truncate">{value.join(", ")}</div>
 {:else}
 	<div class="truncate">{value}</div>
 {/if}
