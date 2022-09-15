@@ -1,6 +1,5 @@
 import gradio as gr
 
-
 def tax_calculator(income, marital_status, assets):
     tax_brackets = [(10, 0), (25, 8), (60, 12), (120, 20), (250, 30)]
     total_deductible = sum(assets["Cost"])
@@ -17,7 +16,6 @@ def tax_calculator(income, marital_status, assets):
         total_tax *= 0.8
 
     return round(total_tax)
-
 
 demo = gr.Interface(
     tax_calculator,
@@ -37,5 +35,4 @@ demo = gr.Interface(
     ],
 )
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()

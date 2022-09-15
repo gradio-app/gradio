@@ -1,0 +1,4 @@
+transformers
+torch
+scipy
+numpy
