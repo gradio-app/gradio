@@ -1345,7 +1345,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             "image": self._format_image(im, fmt),
             "mask": self._format_image(mask_im, mask_fmt),
         }
-    
+
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:

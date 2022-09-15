@@ -683,9 +683,17 @@ class TestImage(unittest.TestCase):
         postprocess
         """
         component = gr.Image("test/test_files/bus.png")
-        self.assertEqual(
-            component.get_config().get("value").get("data"), "test/test_files/bus.png"
+        tmp_filename = component.get_config().get("value").get("name")
+        self.assertNotEqual(tmp_filename, None)
+
+        encoded = processing_utils.encode_file_to_base64(
+            tmp_filename, encryption_key=None
         )
+
+        self.assertEqual(encoded, media_data.BASE64_IMAGE)
+        self.assertEqual(component.get_config().get("value").get("data"), None)
+        self.assertEqual(component.get_config().get("value").get("is_file"), True)
+
         component = gr.Image(None)
         self.assertEqual(component.get_config().get("value"), None)
 
