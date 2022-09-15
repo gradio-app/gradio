@@ -117,7 +117,7 @@ Take a look at the [Docs](https://gradio.app/docs) to see all the styling option
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
 
 ```python
-with gr.Interface(css="body {background-color: red}") as demo:
+with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 
