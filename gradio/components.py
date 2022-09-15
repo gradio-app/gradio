@@ -2134,7 +2134,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                     "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
                         file, dir=self.temp_dir
-                     ).name,
+                    ).name,
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
