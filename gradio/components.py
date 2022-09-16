@@ -3210,7 +3210,7 @@ class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, or list of (image, caption) tuples and displays them.
 
     Demos: fake_gan
     """
@@ -3264,17 +3264,25 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
+    def postprocess(
+        self,
+        y: List[np.ndarray | PIL.Image | str]
+        | List[Tuple[np.ndarray | PIL.Image | str], str]
+        | None,
+    ) -> List[str]:
         """
         Parameters:
-            y: list of images
+            y: list of images, or list of (image, caption) tuples
         Returns:
-            list of base64 url data for images
+            list of base64 url data for images, or list of [base64 data, caption] pairs
         """
         if y is None:
             return []
         output = []
         for img in y:
+            caption = None
+            if isinstance(img, tuple) or isinstance(img, list):
+                img, caption = img
             if isinstance(img, np.ndarray):
                 img = processing_utils.encode_array_to_base64(img)
             elif isinstance(img, PIL.Image.Image):
@@ -3285,7 +3293,7 @@ class Gallery(IOComponent):
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
                 )
-            output.append(img)
+            output.append([img, caption])
         return output
 
     def style(
