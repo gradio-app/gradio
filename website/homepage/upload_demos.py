@@ -65,5 +65,5 @@ def upload_demo_to_space(
 
 for demo in os.listdir(GRADIO_DEMO_DIR):
     if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)):
-        pass
+        continue
     upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)

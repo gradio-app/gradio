@@ -35,7 +35,7 @@ RUN npm install
 RUN npm run build
 ARG AUTH_TOKEN
 ENV AUTH_TOKEN $AUTH_TOKEN
-RUN python src/demos/upload_demos.py
+RUN python upload_demos.py
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
