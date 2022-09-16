@@ -56,9 +56,7 @@
 	}
 
 	async function handle_save({ detail }: { detail: string }) {
-		if (tool === "color-sketch") {
-			value = { image: detail, mask: null };
-		} else if (mode === "mask") {
+		if (mode === "mask") {
 			value = {
 				image: typeof value === "string" ? value : value?.image || null,
 				mask: detail

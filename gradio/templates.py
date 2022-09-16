@@ -31,7 +31,7 @@ class Webcam(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="webcam", **kwargs)
+        super().__init__(source="webcam", interactive=True, **kwargs)
 
 
 class Sketchpad(components.Image):
@@ -47,6 +47,7 @@ class Sketchpad(components.Image):
             source="canvas",
             shape=(28, 28),
             invert_colors=True,
+            interactive=True,
             **kwargs
         )
 
@@ -59,7 +60,9 @@ class Paint(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="canvas", tool="color-sketch", **kwargs)
+        super().__init__(
+            source="canvas", tool="color-sketch", interactive=True, **kwargs
+        )
 
 
 class ImageMask(components.Image):
@@ -70,18 +73,20 @@ class ImageMask(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="canvas", tool="sketch", **kwargs)
+        super().__init__(source="upload", tool="sketch", interactive=True, **kwargs)
 
 
 class ImagePaint(components.Image):
     """
-    Sets source="canvas", tool="color-sketch"
+    Sets source="upload", tool="color-sketch"
     """
 
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="canvas", tool="color-sketch", **kwargs)
+        super().__init__(
+            source="upload", tool="color-sketch", interactive=True, **kwargs
+        )
 
 
 class Pil(components.Image):
