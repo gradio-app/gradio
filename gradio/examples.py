@@ -195,9 +195,10 @@ class Examples:
                     != self.inputs_with_examples
                 ):
                     warnings.warn(
-                        "Examples are being cached but not all input components have"
+                        "Examples are being cached but not all input components have "
                         "example values. This may result in an exception being thrown by "
-                        "your function."
+                        "your function. If you do get an error while caching examples, make "
+                        "sure all of your inputs have example values for all of your examples."
                     )
                     break
 
