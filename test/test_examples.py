@@ -97,23 +97,31 @@ def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
         return a + b
 
     with patch("gradio.examples.CACHED_FOLDER", tmp_path):
-        with pytest.raises(ValueError, match="^Cannot cache examples if you"):
-            gr.Interface(
-                foo,
-                inputs=["text", "text"],
-                outputs=["text"],
-                examples=[["foo"], ["bar"]],
-                cache_examples=True,
-            )
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    foo,
+                    inputs=["text", "text"],
+                    outputs=["text"],
+                    examples=[["foo"], ["bar"]],
+                    cache_examples=True,
+                )
 
-        with pytest.raises(ValueError, match="^Cannot cache examples if you"):
-            gr.Interface(
-                foo,
-                inputs=["text", "text"],
-                outputs=["text"],
-                examples=[["foo", " 2"], ["bar"]],
-                cache_examples=True,
-            )
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    foo,
+                    inputs=["text", "text"],
+                    outputs=["text"],
+                    examples=[["foo", "bar"], ["bar", None]],
+                    cache_examples=True,
+                )
 
         def foo_no_exception(a, b=2):
             return a * b
@@ -129,26 +137,15 @@ def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
         def many_missing(a, b, c):
             a * b
 
-        with pytest.raises(ValueError, match="^Cannot cache examples if"):
-            gr.Interface(
-                many_missing,
-                inputs=["text", "number", "number"],
-                outputs=["text"],
-                examples=[["foo"], ["bar"]],
-                cache_examples=True,
-            )
-
-
-def test_raise_original_exception(tmp_path):
-    def raise_type_error(a, b):
-        raise TypeError("Type Error!")
-
-    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
-        with pytest.raises(TypeError, match="Type Error!"):
-            gr.Interface(
-                raise_type_error,
-                inputs=["text", "number"],
-                outputs=["text"],
-                examples=[["foo", 2], ["bar", 3]],
-                cache_examples=True,
-            )
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    many_missing,
+                    inputs=["text", "number", "number"],
+                    outputs=["text"],
+                    examples=[["foo", None, None], ["bar", 2, 3]],
+                    cache_examples=True,
+                )

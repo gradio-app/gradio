@@ -58,15 +58,6 @@ def create_examples(
     return examples_obj
 
 
-partial_example_exception = ValueError(
-    "Cannot cache examples if you don't provide "
-    "values for all function parameters. Either "
-    "disable example caching with cache_examples=False "
-    "or provide a parameter value for all input components "
-    "in your examples."
-)
-
-
 @document()
 class Examples:
     """
@@ -175,11 +166,6 @@ class Examples:
             for example in examples
         ]
 
-        if cache_examples and any(
-            len(ex) != len(inputs_with_examples) for ex in non_none_examples
-        ):
-            raise partial_example_exception
-
         self.examples = examples
         self.non_none_examples = non_none_examples
         self.inputs = inputs
@@ -202,6 +188,18 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
         ]
+        if cache_examples:
+            for ex in non_none_examples:
+                if (
+                    len([sample for sample in ex if sample is not None])
+                    != self.inputs_with_examples
+                ):
+                    warnings.warn(
+                        "Examples are being cached but not all input components have"
+                        "example values. This may result in an exception being thrown by "
+                        "your function."
+                    )
+                    break
 
         self.dataset = Dataset(
             components=inputs_with_examples,
@@ -258,15 +256,7 @@ class Examples:
             cache_logger = CSVLogger()
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                try:
-                    prediction = await self.predict_example(example_id)
-                except TypeError as e:
-                    if re.search(
-                        "missing [0-9]+ required positional argument[s]*", str(e)
-                    ):
-                        raise partial_example_exception
-                    else:
-                        raise e
+                prediction = await self.predict_example(example_id)
                 cache_logger.flag(prediction)
 
     async def predict_example(self, example_id: int) -> List[Any]:
