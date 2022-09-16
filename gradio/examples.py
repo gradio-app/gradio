@@ -6,7 +6,6 @@ from __future__ import annotations
 import csv
 import inspect
 import os
-import re
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
