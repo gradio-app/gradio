@@ -92,7 +92,7 @@ for guide_folder in guide_folders:
         )
         guide_content = re.sub(
             r"\$demo_([a-z _\-0-9]+)",
-            lambda x: f"<gradio-app src='/demo/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
+            lambda x: f"<gradio-app space='/gradio/{x.group(1).replace('_', UNDERSCORE_TOKEN)}' />",
             guide_content,
         )
         guide_data = {
