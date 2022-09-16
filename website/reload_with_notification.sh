@@ -10,6 +10,8 @@ if ! [ $? -eq 0 ]; then
     THREAD_TS="$( jq -r  '.ts' <<< "${RESPONSE}")"
     DATA=$( jo text="$(echo "\`\`\`'$ERROR'\`\`\`")" channel=$CHANNELID thread_ts="'$THREAD_TS'")
     _=$(curl https://slack.com/api/chat.postMessage -X POST -H 'Content-type: application/json; charset=utf-8' -H "Authorization: Bearer ${TOKEN}" --data "$DATA")
+elif [ "$ERROR" = "Already up to date. No reload." ]; then
+    :
 else 
     LATEST=$(git log -1 | fgrep commit)$(git log -1 | tail -1)
     curl -X POST -H 'Content-type: application/json' --data '{"text":"gradio.app relaoded successfully! :ship:\n\n Latest live commit:\n>`'"${LATEST}"'`"}' ${SLACK_WEBHOOK}
