@@ -1,0 +1,1 @@
+A simple dashboard ranking spaces by number of likes.

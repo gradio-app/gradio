@@ -2022,7 +2022,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_two_files
+    Demos: zip_to_json, zip_files
     """
 
     def __init__(
@@ -2155,7 +2155,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 {
                     "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
-                        file, self.temp_dir
+                        file, dir=self.temp_dir
                     ).name,
                     "size": os.path.getsize(file),
                     "data": None,
@@ -2193,8 +2193,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+    def as_example(self, input_data: str | List) -> str:
+        if isinstance(input_data, list):
+            return [Path(file).name for file in input_data]
+        else:
+            return Path(input_data).name
 
 
 @document("change", "style")

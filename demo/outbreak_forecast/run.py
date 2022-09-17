@@ -1,13 +1,11 @@
+import gradio as gr
 from math import sqrt
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 import pandas as pd
-
-import gradio as gr
 
 
 def outbreak(plot_type, r, month, countries, social_distancing):
@@ -56,6 +54,4 @@ demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs, examples=[
         ["Plotly", 3.6, "February", ["Canada", "Mexico", "UK"], False],
     ], cache_examples=True)
 
-
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()
