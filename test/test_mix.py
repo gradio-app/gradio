@@ -1,3 +1,4 @@
+import filecmp
 import json
 import os
 import unittest
@@ -22,6 +23,16 @@ class TestSeries:
         io2 = gr.Interface(lambda x: x + "!", "textbox", gr.Textbox())
         series = mix.Series(io1, io2)
         assert series("Hello") == "Hello World!"
+
+    def test_in_interface_img(self):
+        io1 = gr.Interface(lambda x: x, "image", gr.Image())
+        io2 = gr.Interface(
+            lambda x: "gradio/test_data/cheetah2.jpg", "image", gr.Image()
+        )
+        series = mix.Series(io1, io2)
+        out = series("gradio/test_data/cheetah1.jpg")
+
+        assert filecmp.cmp(out, "gradio/test_data/cheetah2.jpg")
 
     @pytest.mark.flaky
     def test_with_external(self):

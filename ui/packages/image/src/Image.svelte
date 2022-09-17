@@ -10,11 +10,13 @@
 	import ModifySketch from "./ModifySketch.svelte";
 
 	import { Upload, ModifyUpload } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
 
 	export let value:
 		| null
 		| string
-		| { image: string | null; mask: string | null };
+		| { image: string | null; mask: string | null }
+		| FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
@@ -30,12 +32,35 @@
 
 	let sketch: Sketch;
 
-	if (
-		value &&
-		(source === "upload" || source === "webcam") &&
-		tool === "sketch"
-	) {
-		value = { image: value as string, mask: null };
+	// If value is FileData, we have to fetch it and convert to base64 for sketches.
+	function handle_filedata_sketch() {
+		let request = new XMLHttpRequest();
+		request.open("GET", value.data, true);
+		request.responseType = "blob";
+		request.onload = function () {
+			let ReaderObj = new FileReader();
+			ReaderObj.readAsDataURL(request.response);
+			ReaderObj.onloadend = function () {
+				value = this.result as string;
+			};
+		};
+		request.send();
+	}
+
+	$: {
+		if (
+			value &&
+			(source === "upload" || source === "webcam") &&
+			tool === "sketch"
+		) {
+			if (typeof value === "object" && "data" in value) {
+				handle_filedata_sketch();
+			} else {
+				if (typeof value === "string") {
+					value = { image: value as string, mask: null };
+				}
+			}
+		}
 	}
 
 	function handle_upload({ detail }: CustomEvent<string>) {
@@ -139,7 +164,10 @@
 			/>
 		{/if}
 	{:else if tool === "select"}
-		<Cropper image={value} on:crop={handle_save} />
+		<Cropper
+			image={typeof value === "string" ? value : value?.data}
+			on:crop={handle_save}
+		/>
 		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
 		<ModifyUpload
@@ -150,7 +178,7 @@
 
 		<img
 			class="w-full h-full object-contain"
-			src={value}
+			src={typeof value === "string" ? value : value?.data}
 			alt=""
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
@@ -181,7 +209,7 @@
 	{:else}
 		<img
 			class="w-full h-full object-contain"
-			src={value}
+			src={typeof value === "string" ? value : value?.data}
 			alt=""
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>

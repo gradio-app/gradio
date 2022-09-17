@@ -17,6 +17,7 @@ from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
+from gradio.serializing import FileSerializable
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import IOComponent
@@ -252,6 +253,18 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         processed_input = self.processed_examples[example_id]
+
+        # Serializes any input components that derive from FileSerializable.
+        # Otherwise, _api_mode being True results in external pipelines breaking
+        # from receiving {name: (filename), data: None, is_file: True} in 'preprocess'.
+        # TODO: Seems like this should be handled another way, but I'm not sure how.
+        processed_input = [
+            input_component.serialize(processed_input[i]["name"])
+            if isinstance(input_component, FileSerializable)
+            else processed_input[i]
+            for i, input_component in enumerate(self.inputs_with_examples)
+        ]
+
         if not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])

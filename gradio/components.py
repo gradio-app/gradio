@@ -1176,7 +1176,7 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1324,7 +1324,23 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         if self.tool == "sketch":
             x, mask = x["image"], x["mask"]
 
-        im = processing_utils.decode_base64_to_image(x)
+        if isinstance(x, Dict):
+            file_name, file_data, is_file = (
+                x["name"],
+                x["data"],
+                x.get("is_file", False),
+            )
+
+            if is_file:
+                file_obj = processing_utils.create_tmp_copy_of_file(file_name)
+            else:
+                file_obj = processing_utils.decode_base64_to_file(
+                    file_data, file_path=file_name
+                )
+            im = PIL.Image.open(file_obj.name)
+        else:
+            im = processing_utils.decode_base64_to_image(x)
+
         fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

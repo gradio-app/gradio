@@ -1,3 +1,4 @@
+import filecmp
 import os
 
 import pytest
@@ -21,10 +22,7 @@ class TestExamples:
         tmp_filename = examples.processed_examples[0][0]["name"]
         assert tmp_filename is not None
 
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
@@ -33,30 +31,18 @@ class TestExamples:
         assert examples.processed_examples[0][0] == "hello"
         tmp_filename = examples.processed_examples[0][1]["name"]
         assert tmp_filename is not None
-
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
 
         tmp_filename = examples.processed_examples[0][0]["name"]
         assert tmp_filename is not None
-
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
 
         tmp_filename = examples.processed_examples[1][0]["name"]
         assert tmp_filename is not None
-
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/images/bus_copy.png")
 
     def test_handle_directory_with_log_file(self):
         examples = gr.Examples(
@@ -65,20 +51,12 @@ class TestExamples:
 
         tmp_filename = examples.processed_examples[0][0]["name"]
         assert tmp_filename is not None
-
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/images_log/im/bus.png")
         assert examples.processed_examples[0][1] == "hello"
 
         tmp_filename = examples.processed_examples[1][0]["name"]
         assert tmp_filename is not None
-
-        encoded = processing_utils.encode_file_to_base64(
-            tmp_filename, encryption_key=None
-        )
-        assert encoded == gr.media_data.BASE64_IMAGE
+        assert filecmp.cmp(tmp_filename, "test/test_files/images_log/im/bus_copy.png")
         assert examples.processed_examples[1][1] == "hi"
 
 
@@ -130,3 +108,31 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(1)
         io.close()
         assert prediction[0] == "Hello Dunya"
+
+    @pytest.mark.asyncio
+    async def test_caching_image(self):
+        io = gr.Interface(
+            lambda x: x,
+            "image",
+            "image",
+            examples=[["test/test_files/bus.png"]],
+        )
+        io.launch(prevent_thread_lock=True)
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        io.close()
+        assert prediction[0]["data"].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+
+    @pytest.mark.asyncio
+    async def test_caching_audio(self):
+        io = gr.Interface(
+            lambda x: x,
+            "audio",
+            "audio",
+            examples=[["test/test_files/audio_sample.wav"]],
+        )
+        io.launch(prevent_thread_lock=True)
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        io.close()
+        assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")

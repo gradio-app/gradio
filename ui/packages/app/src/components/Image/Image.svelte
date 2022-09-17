@@ -12,7 +12,7 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: null | string = null;
+	export let value: null | string | FileData = null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;

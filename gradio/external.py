@@ -94,6 +94,33 @@ def cols_to_rows(
     return headers, data
 
 
+def base64_to_binary(i: str | Dict) -> bytes:
+    """
+    Converts a base64 input into binary for use with the HF API.
+    Input can be a string or dictionary with "data" field depending on the
+    serialization.
+    Parameters:
+        i: base64 string or dict with a 'data' field containing a base64 string.
+    """
+    if isinstance(i, str):
+        data = i.split(",")[-1]
+    if isinstance(i, Dict):
+        if "data" not in i:
+            raise ValueError("Input dict should have a 'data' field, but it doesn't.")
+
+        data = i.get("data", "")
+
+        if data is None:
+            raise ValueError("'data' field is None, instead of a base64 string.")
+
+        data = data.split(",")[-1]
+    else:
+        raise ValueError(f"Input can be str or Dict, but was of type {type(i)}")
+
+    binary = base64.b64decode(data)
+    return binary
+
+
 def rows_to_cols(
     incoming_data: DataframeData,
 ) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
@@ -156,8 +183,8 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Label(label="Class"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
+            "preprocess": lambda i: base64_to_binary(
+                i
             ),  # convert the base64 representation to binary
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
@@ -167,8 +194,8 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: speechbrain/mtl-mimic-voicebank
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
+            "preprocess": lambda i: base64_to_binary(
+                i
             ),  # convert the base64 representation to binary
             "postprocess": encode_to_base64,
         },
@@ -176,8 +203,8 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
+            "preprocess": lambda i: base64_to_binary(
+                i
             ),  # convert the base64 representation to binary
             "postprocess": lambda r: r.json()["text"],
         },
@@ -200,8 +227,8 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # Example: google/vit-base-patch16-224
             "inputs": components.Image(type="filepath", label="Input Image"),
             "outputs": components.Label(label="Classification"),
-            "preprocess": lambda i: base64.b64decode(
-                i.split(",")[1]
+            "preprocess": lambda i: base64_to_binary(
+                i
             ),  # convert the base64 representation to binary
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
@@ -431,11 +458,24 @@ def get_spaces_blocks(model_name, config):
     headers = {"Content-Type": "application/json"}
 
     fns = []
+
+    def handle_file_serialized_data(data: list | tuple) -> tuple:
+        """File serialized data comes back as a dict, but embedded spaces might only want base64 data.
+        Happens for Image, Audio, Video."""
+        data_repaired = []
+        for d in data:
+            if isinstance(d, dict) and "data" in d and "name" in d and "is_file" in d:
+                data_repaired.append(d["data"])
+            else:
+                data_repaired.append(d)
+        return tuple(data_repaired)
+
     for d, dependency in enumerate(config["dependencies"]):
         if dependency["backend_fn"]:
 
             def get_fn(outputs, fn_index):
                 def fn(*data):
+                    data = handle_file_serialized_data(data)
                     data = json.dumps({"data": data, "fn_index": fn_index})
                     response = requests.post(api_url, headers=headers, data=data)
                     result = json.loads(response.content.decode("utf-8"))
