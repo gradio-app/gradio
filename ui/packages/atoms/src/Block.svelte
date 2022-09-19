@@ -34,7 +34,6 @@
 		: disable
 		? get_styles({ container: false }, ["container"])
 		: { classes: "" });
-;
 	$: size_style =
 		"" +
 		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +

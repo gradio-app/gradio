@@ -11,7 +11,6 @@
 	const dispatch = createEventDispatcher<{ change: string }>();
 
 	$: dispatch("change", value);
-
 </script>
 
 <label>

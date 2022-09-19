@@ -191,13 +191,19 @@ class IOComponent(Component, Serializable):
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if "rounded" in kwargs:
-            warnings.warn("'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='group').")
+            warnings.warn(
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='group')."
+            )
             kwargs.pop("rounded")
         if "margin" in kwargs:
-            warnings.warn("'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='group').")
+            warnings.warn(
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='group')."
+            )
             kwargs.pop("margin")
         if "border" in kwargs:
-            warnings.warn("'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='group').")
+            warnings.warn(
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='group')."
+            )
             kwargs.pop("border")
         if container is not None:
             self._style["container"] = container
@@ -958,7 +964,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the CheckboxGroup.
@@ -969,11 +975,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            container=container,
-            **kwargs
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1102,7 +1104,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the radio component.
@@ -1113,11 +1115,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            container=container,
-            **kwargs
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1167,20 +1165,13 @@ class Dropdown(Radio):
             **kwargs,
         )
 
-    def style(
-        self,
-        *,
-        container: Optional[bool] = None,
-        **kwargs
-    ):
+    def style(self, *, container: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the Dropdown.
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(
-            self, container=container, **kwargs
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("edit", "clear", "change", "stream", "change")
@@ -1470,11 +1461,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return output_scores.tolist()
 
     def style(
-        self,
-        *,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
-        **kwargs
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the Image component.
@@ -1688,7 +1675,6 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
     def style(
         self,
         *,
-
         height: Optional[int] = None,
         width: Optional[int] = None,
     ):
@@ -2667,12 +2653,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             "__type__": "update",
         }
 
-    def style(
-        self,
-        *,
-        full_width: Optional[bool] = None,
-        **kwargs
-    ):
+    def style(self, *, full_width: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
@@ -2681,10 +2662,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         if full_width is not None:
             self._style["full_width"] = full_width
 
-        return IOComponent.style(
-            self,
-            **kwargs
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document("change", "submit", "style")
@@ -3492,12 +3470,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         return [] if y is None else y
 
-    def style(
-        self,
-        *,
-        color_map: Optional[List[str, str]] = None,
-        **kwargs
-    ):
+    def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
         This method can be used to change the appearance of the Chatbot component.
         Parameters:
@@ -3623,10 +3596,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         }
         return data
 
-    def style(
-        self,
-        **kwargs
-    ):
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Model3D component.
         """
@@ -3866,16 +3836,11 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def style(
-        self,
-        **kwargs
-    ):
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Dataset component.
         """
-        return IOComponent.style(
-            self, **kwargs
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document()

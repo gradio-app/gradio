@@ -86,7 +86,6 @@ const style_handlers: StyleHandlers = {
 	}
 } as const;
 
-
 export const create_classes = (
 	styles: Record<string, any>,
 	prefix: string = ""
@@ -152,7 +151,7 @@ export const create_classes = (
 		case false:
 			classes.push("!grow-0");
 			break;
-		}
+	}
 
 	switch (target_styles.text_color) {
 		case "red":

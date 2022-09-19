@@ -16,9 +16,7 @@
 
 	$: dispatch("change", value);
 
-	$: ({ item_container } = get_styles(style, [
-		"item_container"
-	]));
+	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>

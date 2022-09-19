@@ -8,9 +8,7 @@
 	export let variant: "primary" | "secondary" = "secondary";
 	export let size: "sm" | "lg" = "lg";
 
-	$: ({ classes } = get_styles(style, [
-		"full_width",
-	]));
+	$: ({ classes } = get_styles(style, ["full_width"]));
 </script>
 
 <button
