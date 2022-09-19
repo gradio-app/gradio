@@ -217,9 +217,12 @@ export const create_classes = (
 
 	switch (target_styles.full_width) {
 		case true:
-			classes.push("!w-full");
+			classes.push("w-full");
 			break;
-	}
+		case false:
+			classes.push("!grow-0");
+			break;
+		}
 
 	switch (target_styles.text_color) {
 		case "red":
