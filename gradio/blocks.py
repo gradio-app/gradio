@@ -131,7 +131,7 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status_tracker: StatusTracker to visualize function progress
+            status_tracker: (Deprecated). StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter
@@ -160,9 +160,7 @@ class Block:
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
-            "status_tracker": status_tracker._id
-            if status_tracker is not None
-            else None,
+            "status_tracker": None,
             "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,

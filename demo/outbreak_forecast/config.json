@@ -351,7 +351,7 @@
       ],
       "backend_fn": true,
       "js": null,
-      "status_tracker": 14,
+      "status_tracker": null,
       "queue": null,
       "api_name": "predict",
       "scroll_to_output": true,

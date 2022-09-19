@@ -456,11 +456,6 @@ class Interface(Blocks):
                 ]:
                     with Column(variant="panel"):
                         input_component_column = Column()
-                        if self.interface_type in [
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
-                        ]:
-                            status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
                                 component.render()
@@ -490,7 +485,6 @@ class Interface(Blocks):
                 ]:
 
                     with Column(variant="panel"):
-                        status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
                             component.render()
                         with Row():
@@ -509,7 +503,6 @@ class Interface(Blocks):
                         None,
                         self.output_components,
                         api_name="predict",
-                        status_tracker=status_tracker,
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
                     )
@@ -548,7 +541,6 @@ class Interface(Blocks):
                     self.output_components,
                     api_name="predict",
                     scroll_to_output=True,
-                    status_tracker=status_tracker,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                 )
@@ -639,7 +631,6 @@ class Interface(Blocks):
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
-                    status_tracker=status_tracker,
                     preprocess=False,
                 )
 

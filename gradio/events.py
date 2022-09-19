@@ -15,7 +15,6 @@ class Changeable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -32,7 +31,6 @@ class Changeable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -46,7 +44,6 @@ class Changeable(Block):
             inputs,
             outputs,
             api_name=api_name,
-            status_tracker=status_tracker,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
             js=_js,
@@ -63,7 +60,6 @@ class Clickable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue=None,
@@ -80,7 +76,6 @@ class Clickable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -94,7 +89,6 @@ class Clickable(Block):
             inputs,
             outputs,
             api_name=api_name,
-            status_tracker=status_tracker,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
             queue=queue,
@@ -111,7 +105,6 @@ class Submittable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -129,7 +122,6 @@ class Submittable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -142,7 +134,6 @@ class Submittable(Block):
             fn,
             inputs,
             outputs,
-            status_tracker=status_tracker,
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
@@ -160,7 +151,6 @@ class Editable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -177,7 +167,6 @@ class Editable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -193,7 +182,6 @@ class Editable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -208,7 +196,6 @@ class Clearable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -225,7 +212,6 @@ class Clearable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -241,7 +227,6 @@ class Clearable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -256,7 +241,6 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -273,7 +257,6 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -289,7 +272,6 @@ class Playable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -302,7 +284,6 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: Optional[AnyStr] = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -319,7 +300,6 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -335,7 +315,6 @@ class Playable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -348,7 +327,6 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -365,7 +343,6 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -381,7 +358,6 @@ class Playable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -396,7 +372,6 @@ class Streamable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -413,7 +388,6 @@ class Streamable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
-            status_tracker: StatusTracker to visualize function progress
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
@@ -430,7 +404,6 @@ class Streamable(Block):
             api_name=api_name,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
-            status_tracker=status_tracker,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
