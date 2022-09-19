@@ -35,7 +35,7 @@ With this model you can lorem ipsum
             xray_model,
             inputs=[disease, xray_scan],
             outputs=xray_results,
-            status_tracker=xray_progress,
+            # status_tracker=xray_progress,
             api_name="xray_model"
         )
 

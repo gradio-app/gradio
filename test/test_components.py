@@ -693,7 +693,7 @@ class TestImage(unittest.TestCase):
         )
         self.assertEqual(encoded, media_data.BASE64_IMAGE)
 
-        component = gr.Image(None)        
+        component = gr.Image(None)
         self.assertEqual(component.get_config().get("value"), None)
 
 
