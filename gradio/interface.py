@@ -510,8 +510,8 @@ class Interface(Blocks):
                         self.output_components,
                         api_name="predict",
                         status_tracker=status_tracker,
-                        _preprocess=not (self.api_mode),
-                        _postprocess=not (self.api_mode),
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
                     )
                 else:
                     for component in self.input_components:
@@ -522,8 +522,8 @@ class Interface(Blocks):
                                     self.input_components,
                                     self.output_components,
                                     api_name="predict",
-                                    _preprocess=not (self.api_mode),
-                                    _postprocess=not (self.api_mode),
+                                    preprocess=not (self.api_mode),
+                                    postprocess=not (self.api_mode),
                                 )
                                 continue
                             else:
@@ -538,8 +538,8 @@ class Interface(Blocks):
                                 self.input_components,
                                 self.output_components,
                                 api_name="predict",
-                                _preprocess=not (self.api_mode),
-                                _postprocess=not (self.api_mode),
+                                preprocess=not (self.api_mode),
+                                postprocess=not (self.api_mode),
                             )
             else:
                 submit_btn.click(
@@ -549,8 +549,8 @@ class Interface(Blocks):
                     api_name="predict",
                     scroll_to_output=True,
                     status_tracker=status_tracker,
-                    _preprocess=not (self.api_mode),
-                    _postprocess=not (self.api_mode),
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
                 )
             clear_btn.click(
                 None,

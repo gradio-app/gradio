@@ -1488,8 +1488,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1509,8 +1509,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
@@ -1948,8 +1948,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1971,8 +1971,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
     def style(

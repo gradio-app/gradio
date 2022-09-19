@@ -492,8 +492,8 @@ class Blocks(BlockContext):
                         dependency["status_tracker"]
                     ]
                 dependency["_js"] = dependency.pop("js", None)
-                dependency["_preprocess"] = False
-                dependency["_postprocess"] = False
+                dependency["preprocess"] = False
+                dependency["postprocess"] = False
 
                 for target in targets:
                     event_method = getattr(original_mapping[target], trigger)
