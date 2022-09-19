@@ -424,8 +424,8 @@ async def get_pred_from_ws(
 ) -> Dict[str, Any]:
     completed = False
     while not completed:
-        foo = await websocket.recv()
-        resp = json.loads(foo)
+        msg = await websocket.recv()
+        resp = json.loads(msg)
         if resp["msg"] == "queue_full":
             raise exceptions.Error("Queue is full! Please try again.")
         elif resp["msg"] == "send_data":
@@ -436,7 +436,7 @@ async def get_pred_from_ws(
 
 def get_ws_fn(ws_url):
     async def ws_fn(data):
-        async with websockets.connect(ws_url) as websocket:
+        async with websockets.connect(ws_url, open_timeout=10) as websocket:
             return await get_pred_from_ws(websocket, data)
 
     return ws_fn
@@ -445,7 +445,7 @@ def get_ws_fn(ws_url):
 def use_websocket(config):
     return config["enable_queue"] and version.parse(
         config["version"]
-    ) >= version.Version("3.1.5")
+    ) >= version.Version("3.2")
 
 
 def get_spaces_blocks(model_name, config):

@@ -343,8 +343,8 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
 @pytest.mark.parametrize(
     "config, answer",
     [
-        ({"version": "3.1.5", "enable_queue": True}, True),
-        ({"version": "3.1.5", "enable_queue": False}, False),
+        ({"version": "3.3", "enable_queue": True}, True),
+        ({"version": "3.3", "enable_queue": False}, False),
         ({"version": "3.2", "enable_queue": False}, False),
         ({"version": "3.2", "enable_queue": True}, True),
         ({"version": "3.1.3", "enable_queue": True}, False),
