@@ -336,12 +336,12 @@ class App(FastAPI):
         )
         async def startup_events():
             from gradio.utils import run_coro_in_background
+            app.blocks._queue.set_url(app.blocks.local_url)
 
             if app.blocks.enable_queue:
-                gradio.utils.run_coro_in_background(app.blocks._queue.start)
+               gradio.utils.run_coro_in_background(app.blocks._queue.start)
             gradio.utils.run_coro_in_background(app.blocks.create_limiter)
 
-            return True
 
         return app
 
