@@ -19,9 +19,9 @@ class Changeable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
@@ -36,10 +36,10 @@ class Changeable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "change",
             fn,
@@ -50,8 +50,8 @@ class Changeable(Block):
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -67,9 +67,9 @@ class Clickable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue=None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
@@ -84,10 +84,10 @@ class Clickable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "click",
             fn,
@@ -99,8 +99,8 @@ class Clickable(Block):
             show_progress=show_progress,
             queue=queue,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
@@ -115,9 +115,9 @@ class Submittable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -133,10 +133,10 @@ class Submittable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
@@ -147,8 +147,8 @@ class Submittable(Block):
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -160,10 +160,13 @@ class Editable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
@@ -174,20 +177,26 @@ class Editable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "edit",
             fn,
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -199,10 +208,13 @@ class Clearable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
@@ -213,20 +225,26 @@ class Clearable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "submit",
             fn,
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -238,10 +256,13 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user plays the component (e.g. audio or video).
@@ -252,20 +273,26 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "play",
             fn,
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -275,10 +302,13 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: Optional[AnyStr] = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user pauses the component (e.g. audio or video).
@@ -289,20 +319,26 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "pause",
             fn,
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -312,10 +348,13 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user stops the component (e.g. audio or video).
@@ -326,20 +365,26 @@ class Playable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.set_event_trigger(
             "stop",
             fn,
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
         )
 
@@ -351,11 +396,13 @@ class Streamable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        show_progress: bool = False,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
         queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -366,11 +413,14 @@ class Streamable(Block):
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
+            status_tracker: StatusTracker to visualize function progress
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        # _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-        # _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
         self.streaming = True
         self.set_event_trigger(
             "stream",
@@ -378,9 +428,12 @@ class Streamable(Block):
             inputs,
             outputs,
             api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            status_tracker=status_tracker,
             js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
             queue=queue,
             show_progress=False,
         )
