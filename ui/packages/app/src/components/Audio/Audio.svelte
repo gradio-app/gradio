@@ -46,7 +46,6 @@
 	padding={false}
 	{elem_id}
 	{visible}
-	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 
