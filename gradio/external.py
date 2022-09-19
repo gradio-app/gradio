@@ -11,14 +11,15 @@ import operator
 import re
 import warnings
 from copy import deepcopy
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
-import websockets
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple
 
 import requests
+import websockets
 import yaml
+from packaging import version
 
 import gradio
-from gradio import components, utils
+from gradio import components, exceptions, utils
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
@@ -418,18 +419,33 @@ def get_spaces(model_name, api_key, alias, **kwargs):
         return get_spaces_blocks(model_name, config)
 
 
+async def get_pred_from_ws(
+    websocket: websockets.WebSocketClientProtocol, data: str
+) -> Dict[str, Any]:
+    completed = False
+    while not completed:
+        foo = await websocket.recv()
+        resp = json.loads(foo)
+        if resp["msg"] == "queue_full":
+            raise exceptions.Error("Queue is full! Please try again.")
+        elif resp["msg"] == "send_data":
+            await websocket.send(data)
+        completed = resp["msg"] == "process_completed"
+    return resp["output"]
+
+
 def get_ws_fn(ws_url):
-    async def get_pred_from_ws(data):
+    async def ws_fn(data):
         async with websockets.connect(ws_url) as websocket:
-            completed = False
-            while not completed:
-                resp = json.loads(await websocket.recv())
-                print(resp)
-                if resp['msg'] == "send_data":
-                    await websocket.send(data)
-                completed = resp['msg'] == 'process_completed'
-            return resp["output"]
-    return get_pred_from_ws
+            return await get_pred_from_ws(websocket, data)
+
+    return ws_fn
+
+
+def use_websocket(config):
+    return config["enable_queue"] and version.parse(
+        config["version"]
+    ) >= version.Version("3.1.5")
 
 
 def get_spaces_blocks(model_name, config):
@@ -446,6 +462,9 @@ def get_spaces_blocks(model_name, config):
     headers = {"Content-Type": "application/json"}
     ws_url = "wss://spaces.huggingface.tech/{}/queue/join".format(model_name)
 
+    ws_fn = get_ws_fn(ws_url)
+    connect_to_websocket = use_websocket(config)
+
     fns = []
     for d, dependency in enumerate(config["dependencies"]):
         if dependency["backend_fn"]:
@@ -453,8 +472,8 @@ def get_spaces_blocks(model_name, config):
             def get_fn(outputs, fn_index):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
-                    if config['enable_queue']:
-                        result = utils.synchronize_async(get_ws_fn(ws_url), data)
+                    if connect_to_websocket:
+                        result = utils.synchronize_async(ws_fn, data)
                         output = result["data"]
                     else:
                         response = requests.post(api_url, headers=headers, data=data)

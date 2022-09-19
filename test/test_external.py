@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import pathlib
@@ -8,9 +9,17 @@ from unittest.mock import MagicMock, patch
 import pytest
 import transformers
 
+import gradio
 import gradio as gr
 from gradio import utils
-from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
+from gradio.external import (
+    TooManyRequestsError,
+    cols_to_rows,
+    get_pred_from_ws,
+    get_tabular_examples,
+    get_ws_fn,
+    use_websocket,
+)
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -329,6 +338,61 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
         io = gr.Interface.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)
         check_dataset(io.config, hypothetical_readme)
+
+
+@pytest.mark.parametrize(
+    "config, answer",
+    [
+        ({"version": "3.1.5", "enable_queue": True}, True),
+        ({"version": "3.1.5", "enable_queue": False}, False),
+        ({"version": "3.2", "enable_queue": False}, False),
+        ({"version": "3.2", "enable_queue": True}, True),
+        ({"version": "3.1.3", "enable_queue": True}, False),
+        ({"version": "3.1.3", "enable_queue": False}, False),
+    ],
+)
+def test_use_websocket_after_315(config, answer):
+    assert use_websocket(config) == answer
+
+
+class AsyncMock(MagicMock):
+    async def __call__(self, *args, **kwargs):
+        return super(AsyncMock, self).__call__(*args, **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_get_pred_from_ws():
+    mock_ws = AsyncMock(name="ws")
+    messages = [
+        json.dumps({"msg": "estimation"}),
+        json.dumps({"msg": "send_data"}),
+        json.dumps({"msg": "process_generating"}),
+        json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
+    ]
+    mock_ws.recv.side_effect = messages
+    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    output = await get_pred_from_ws(mock_ws, data)
+    assert output == {"data": ["result!"]}
+    mock_ws.send.assert_called_once_with(data)
+
+
+@pytest.mark.asyncio
+async def test_get_pred_from_ws_raises_if_queue_full():
+    mock_ws = AsyncMock(name="ws")
+    messages = [json.dumps({"msg": "queue_full"})]
+    mock_ws.recv.side_effect = messages
+    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    with pytest.raises(gradio.Error, match="Queue is full!"):
+        await get_pred_from_ws(mock_ws, data)
+
+
+def test_respect_queue_when_load_from_config():
+    with unittest.mock.patch("websockets.connect"):
+        with unittest.mock.patch(
+            "gradio.external.get_pred_from_ws", return_value={"data": ["foo"]}
+        ):
+            interface = gr.Interface.load("spaces/multimodalart/saymyname")
+            assert interface("bob") == "foo"
 
 
 if __name__ == "__main__":
