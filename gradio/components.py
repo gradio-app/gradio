@@ -1673,10 +1673,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(
-        self,
-        *,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the video component.
@@ -1688,7 +1685,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         self._style["width"] = width
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -3474,7 +3471,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the Chatbot component.
         Parameters:
-            rounded: If True, whether the chat bubbles should be rounded.
             color_map: List containing colors to apply to chat bubbles.
         Returns:
 
