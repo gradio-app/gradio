@@ -3293,7 +3293,10 @@ class Gallery(IOComponent):
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
                 )
-            output.append([img, caption])
+            if caption is not None:
+                output.append([img, caption])
+            else:
+                output.append(img)
         return output
 
     def style(

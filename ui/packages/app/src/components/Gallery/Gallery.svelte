@@ -14,14 +14,19 @@
 	export let label: string;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<[string, string]> | null = null;
+	export let value: Array<string | [string, string]> | null = null;
 	export let style: Styles = {};
+
+	$: _value =
+		value === null
+			? null
+			: value.map((img) => (Array.isArray(img) ? img : [img, null]));
 
 	let selected_image: number | null = null;
 
 	$: previous =
-		((selected_image ?? 0) + (value?.length ?? 0) - 1) % (value?.length ?? 0);
-	$: next = ((selected_image ?? 0) + 1) % (value?.length ?? 0);
+		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
+	$: next = ((selected_image ?? 0) + 1) % (_value?.length ?? 0);
 
 	function on_keydown(e: KeyboardEvent) {
 		switch (e.code) {
@@ -95,7 +100,7 @@
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	{#if value === null}
+	{#if _value === null}
 		<div class="h-full min-h-[15rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><Image /></div>
 		</div>
@@ -103,7 +108,7 @@
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute group inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur h-full"
+				class="absolute group inset-0 z-20 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur h-full"
 				class:min-h-[350px]={style.height !== "auto"}
 				class:max-h-[55vh]={style.height !== "auto"}
 				class:xl:min-h-[450px]={style.height !== "auto"}
@@ -113,15 +118,15 @@
 				<img
 					on:click={() => (selected_image = next)}
 					class="w-full object-contain h-[calc(100%-50px)]"
-					src={value[selected_image][0]}
+					src={_value[selected_image][0]}
 					alt=""
 				/>
-				{#if value[selected_image][1]}
+				{#if _value[selected_image][1]}
 					<div class="bottom-[70px] absolute z-40 flex justify-center w-full">
 						<div
 							class="bg-gray-100 dark:bg-gray-600 font-semibold p-2 rounded group-hover:opacity-70 transition-opacity"
 						>
-							{value[selected_image][1]}
+							{_value[selected_image][1]}
 						</div>
 					</div>
 				{/if}
@@ -129,7 +134,7 @@
 					bind:this={container}
 					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
-					{#each value as image, i}
+					{#each _value as image, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
@@ -156,13 +161,13 @@
 			class:max-h-[55vh]={style.height !== "auto"}
 			class:xl:min-h-[450px]={style.height !== "auto"}
 		>
-			{#if value.length === 0}
+			{#if _value.length === 0}
 				<div class="h-full min-h-[15rem] flex justify-center items-center">
 					<div class="h-5 dark:text-white opacity-50"><Image /></div>
 				</div>
 			{:else}
 				<div class="grid gap-2 {classes}" class:pt-6={show_label}>
-					{#each value as [image, caption], i}
+					{#each _value as [image, caption], i}
 						<button
 							class="gallery-item"
 							on:click={() => (selected_image = can_zoom ? i : selected_image)}
@@ -173,7 +178,7 @@
 								src={image}
 							/>
 							{#if caption}
-								<div class="bottom-6 absolute z-40 flex justify-center w-full">
+								<div class="bottom-6 absolute z-10 flex justify-center w-full">
 									<div
 										class="bg-gray-100 dark:bg-gray-600 font-semibold p-2 rounded group-hover:opacity-70 transition-opacity"
 									>
