@@ -612,7 +612,7 @@ class Interface(Blocks):
                             flag_method,
                             inputs=flag_components,
                             outputs=[],
-                            _preprocess=False,
+                            preprocess=False,
                             queue=False,
                         )
 
@@ -640,7 +640,7 @@ class Interface(Blocks):
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
                     status_tracker=status_tracker,
-                    _preprocess=False,
+                    preprocess=False,
                 )
 
             if self.article:
