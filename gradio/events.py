@@ -435,5 +435,4 @@ class Streamable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
-            show_progress=False,
         )
