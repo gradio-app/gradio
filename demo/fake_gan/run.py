@@ -46,6 +46,7 @@ demo = gr.Interface(
         [4, cheetah, None, 11, None, None],
         [3, cheetah, None, 1, None, None],
     ],
+    cache_examples=True
 )
 
 if __name__ == "__main__":
