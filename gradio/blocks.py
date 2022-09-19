@@ -230,7 +230,8 @@ class BlockContext(Block):
         self.children = children
 
     def __exit__(self, *args):
-        self.fill_expected_parents()
+        if getattr(self, "allow_expected_parents", True):
+            self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):

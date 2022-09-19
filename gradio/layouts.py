@@ -26,17 +26,26 @@ class Row(BlockContext):
     """
 
     def __init__(
-        self, *, visible: bool = True, elem_id: Optional[str] = None, **kwargs
+        self,
+        *,
+        variant: str = "default",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
     ):
         """
         Parameters:
+            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'group' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id)
+        self.variant = variant
+        if variant == "group":
+            self.allow_expected_parents = False
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
-        return {"type": "row", **super().get_config()}
+        return {"type": "row", "variant": self.variant, **super().get_config()}
 
     @staticmethod
     def update(
@@ -49,8 +58,10 @@ class Row(BlockContext):
 
     def style(
         self,
+        *,
         equal_height: Optional[bool] = None,
         mobile_collapse: Optional[bool] = None,
+        **kwargs,
     ):
         """
         Styles the Row.
@@ -61,7 +72,7 @@ class Row(BlockContext):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
         if mobile_collapse is not None:
-            warnings.warn("mobile_collapse is no longer supported.", DeprecationWarning)
+            warnings.warn("mobile_collapse is no longer supported.")
         return self
 
 
@@ -96,14 +107,16 @@ class Column(BlockContext):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'group' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.scale = scale
         self.min_width = min_width
         self.variant = variant
-        super().__init__(visible=visible, elem_id=elem_id)
+        if variant == "group":
+            self.allow_expected_parents = False
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {
@@ -230,10 +243,9 @@ class Tab(TabItem):
 Tab = TabItem  # noqa: F811
 
 
-@document()
-class Group(BlockContext):
+class Group(Column):
     """
-    Group is a layout element within Blocks which groups together children so that
+    DEPRECATED. Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
     Example:
         with gradio.Group():
@@ -243,9 +255,6 @@ class Group(BlockContext):
 
     def __init__(
         self,
-        *,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -253,38 +262,13 @@ class Group(BlockContext):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "group", **super().get_config()}
-
-    @staticmethod
-    def update(
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if margin is not None:
-            self._style["margin"] = margin
-
-        return self
+        warnings.warn("'Group' has been deprecated. Use Row(variant='group') instead.")
+        super().__init__(variant="group", **kwargs)
 
 
-@document()
 class Box(BlockContext):
     """
-    Box is a a layout element which places children in a box with rounded corners and
+    DEPRECATED. Box is a a layout element which places children in a box with rounded corners and
     some padding around them.
     Example:
         with gradio.Box():
@@ -294,9 +278,6 @@ class Box(BlockContext):
 
     def __init__(
         self,
-        *,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -304,33 +285,8 @@ class Box(BlockContext):
             visible: If False, box will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
-
-    def get_config(self):
-        return {"type": "box", **super().get_config()}
-
-    @staticmethod
-    def update(
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
-
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if margin is not None:
-            self._style["margin"] = margin
-        if border is not None:
-            self._style["border"] = border
-        return self
+        warnings.warn("'Box' has been deprecated. Use Row(variant='group') instead.")
+        super().__init__(variant="group", **kwargs)
 
 
 class Form(BlockContext):

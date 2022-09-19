@@ -23,9 +23,7 @@
 		value = value;
 	};
 
-	$: ({ rounded, border, item_container } = get_styles(style, [
-		"rounded",
-		"border",
+	$: ({ item_container } = get_styles(style, [
 		"item_container"
 	]));
 </script>
@@ -44,7 +42,7 @@
 				checked={value.includes(choice)}
 				type="checkbox"
 				name="test"
-				class="gr-check-radio gr-checkbox {rounded} {border}"
+				class="gr-check-radio gr-checkbox"
 			/> <span class="ml-2">{choice}</span></label
 		>
 	{/each}

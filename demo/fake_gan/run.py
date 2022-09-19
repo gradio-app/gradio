@@ -24,31 +24,22 @@ def fake_gan():
 
 
 with gr.Blocks() as demo:
-    gr.Image()
-    # with gr.Group():
-    #     with gr.Box():
-    #         with gr.Row().style(mobile_collapse=False, equal_height=True):
-    #             text = gr.Textbox(
-    #                 label="Enter your prompt",
-    #                 show_label=False,
-    #                 max_lines=1,
-    #                 placeholder="Enter your prompt",
-    #             ).style(
-    #                 border=(True, False, True, True),
-    #                 rounded=(True, False, False, True),
-    #                 container=False,
-    #             )
-    #             btn = gr.Button("Generate image").style(
-    #                 margin=False,
-    #                 rounded=(False, True, True, False),
-    #                 full_width=False
-    #             )
+    with gr.Row(variant="group"):
+        text = gr.Textbox(
+            label="Enter your prompt",
+            show_label=False,
+            max_lines=1,
+            placeholder="Enter your prompt",
+        ).style(
+            container=False,
+        )
+        btn = gr.Button("Generate image").style(full_width=False)
 
-    #     gallery = gr.Gallery(
-    #         label="Generated images", show_label=False, elem_id="gallery"
-    #     ).style(grid=[2], height="auto")
+    gallery = gr.Gallery(
+        label="Generated images", show_label=False, elem_id="gallery"
+    ).style(grid=[2], height="auto")
 
-    # btn.click(fake_gan, None, gallery)
+    btn.click(fake_gan, None, gallery)
 
 if __name__ == "__main__":
     demo.launch()

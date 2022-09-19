@@ -37,11 +37,15 @@
 }
 
 .gr-panel {
-	@apply py-2.5 px-3;
+	@apply py-2.5 px-3 bg-gray-50 p-2 rounded-lg;
 }
 
 .gr-box-sm {
 	@apply space-x-2 border py-1.5 px-3;
+}
+
+.gr-group {
+	@apply gap-0 !rounded-lg overflow-clip border items-stretch;
 }
 
 .gr-text-input {

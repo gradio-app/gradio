@@ -191,11 +191,19 @@ class IOComponent(Component, Serializable):
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if "rounded" in kwargs:
-            warnings.warn("'rounded' styling is no longer supported.", DeprecationWarning)
+            warnings.warn("'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='group').")
+            kwargs.pop("rounded")
+        if "margin" in kwargs:
+            warnings.warn("'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='group').")
+            kwargs.pop("margin")
         if "border" in kwargs:
-            warnings.warn("'border' styling is no longer supported.", DeprecationWarning)
+            warnings.warn("'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='group').")
+            kwargs.pop("border")
         if container is not None:
             self._style["container"] = container
+        if len(kwargs):
+            for key in kwargs:
+                warnings.warn(f"Unknown style parameter: {key}")
         return self
 
     @staticmethod
@@ -1977,8 +1985,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
     def style(
         self,
-        *,
-
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the audio component.
@@ -1986,7 +1993,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str) -> str:
@@ -2167,7 +2174,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str | List) -> str:
@@ -2426,7 +2433,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data):
@@ -2565,7 +2572,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -2663,7 +2670,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
     def style(
         self,
         *,
-        full_width: Optional[str] = None,
+        full_width: Optional[bool] = None,
         **kwargs
     ):
         """
@@ -3032,7 +3039,6 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
     def style(
         self,
         *,
-
         color_map: Optional[Dict[str, str]] = None,
         container: Optional[bool] = None,
         **kwargs,
@@ -3046,7 +3052,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return IOComponent.style(self, **kwargs)
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -3490,6 +3496,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         self,
         *,
         color_map: Optional[List[str, str]] = None,
+        **kwargs
     ):
         """
         This method can be used to change the appearance of the Chatbot component.
@@ -3504,7 +3511,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -3618,16 +3625,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
 
     def style(
         self,
-
+        **kwargs
     ):
         """
         This method can be used to change the appearance of the Model3D component.
-        Args:
-            rounded: If True, will round the corners of the Model3D component.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str) -> str:

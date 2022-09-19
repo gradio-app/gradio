@@ -22,7 +22,6 @@
 		dispatch("change", val);
 	}
 
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -30,7 +29,7 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="color"
-		class="gr-box-unrounded {classes}"
+		class="gr-box-unrounded"
 		bind:value
 		{disabled}
 	/>
