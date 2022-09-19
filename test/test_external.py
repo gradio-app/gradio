@@ -1,7 +1,7 @@
-import asyncio
 import json
 import os
 import pathlib
+import sys
 import textwrap
 import unittest
 from unittest.mock import MagicMock, patch
@@ -17,7 +17,6 @@ from gradio.external import (
     cols_to_rows,
     get_pred_from_ws,
     get_tabular_examples,
-    get_ws_fn,
     use_websocket,
 )
 
@@ -386,6 +385,7 @@ async def test_get_pred_from_ws_raises_if_queue_full():
         await get_pred_from_ws(mock_ws, data)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="Async mocks don't work for 3.7")
 def test_respect_queue_when_load_from_config():
     with unittest.mock.patch("websockets.connect"):
         with unittest.mock.patch(
