@@ -8,6 +8,8 @@ jobs:
   check-changelog-updated:
     name: Check CHANGELOG Updated
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-changelog-update') }}
     steps:
       - name: Checkout
@@ -21,8 +23,6 @@ jobs:
       - name: Comment of PR if change log check failed
         uses: thollander/actions-comment-pull-request@v1
         if: ${{ failure() }}
-        permissions:
-          pull-requests: write
         with:
           message: |
             Hello 👋 and thank you for contributing to Gradio! All pull requests must update the change log located in `website/CHANGELOG.md` unless they are labeled with the `no-changelog-update` label.
