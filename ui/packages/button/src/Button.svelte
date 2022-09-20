@@ -19,6 +19,7 @@
 <button
 	on:click
 	class:!hidden={!visible}
+	class:!grow-0={style.full_width === false}
 	class="gr-button gr-button-{size} gr-button-{variant} self-start
 		{classes}"
 	id={elem_id}
