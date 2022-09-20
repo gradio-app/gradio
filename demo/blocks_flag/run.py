@@ -27,7 +27,7 @@ with gr.Blocks() as demo:
     strength.change(sepia, [img_input, strength], img_output)
     
     # We can choose which components to flag -- in this case, we'll flag all of them
-    btn.click(lambda *args: callback.flag(args), [img_input, strength, img_output], None, _preprocess=False)
+    btn.click(lambda *args: callback.flag(args), [img_input, strength, img_output], None, preprocess=False)
 
 if __name__ == "__main__":
     demo.launch()
