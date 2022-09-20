@@ -4,7 +4,7 @@ name: Comment on PR
 # access to secrets
 on:
   workflow_run:
-    workflows: ["Check CHANGELOG Updated"]
+    workflows: [Check CHANGELOG Updated]
     types:
       - completed
 
