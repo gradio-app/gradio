@@ -1067,7 +1067,7 @@ class Blocks(BlockContext):
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
         is_colab = utils.colab_check()
-        if is_colab or (_frontend and not networking.url_ok(self.local_url)):
+        if is_colab or (_frontend and network_interface_address == "127.0.0.1" and not networking.url_ok(self.local_url)):
             if not self.share:
                 raise ValueError(
                     "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
