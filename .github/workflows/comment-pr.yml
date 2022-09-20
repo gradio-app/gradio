@@ -1,0 +1,28 @@
+name: Comment on PR
+
+# read-write repo token
+# access to secrets
+on:
+  workflow_run:
+    workflows: ["Check CHANGELOG Updated"]
+    types:
+      - completed
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - name: 'Comment on PR'
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.workflow_run.event }},
+              body: 'Everything is OK. Thank you for the PR!'
+            });
