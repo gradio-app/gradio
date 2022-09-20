@@ -1,22 +1,24 @@
 # Upcoming Release 
 
 ## New Features
-    1. New Sketching and inpainting for Images! :pr:`1456` 
-       <code example>
-       <screenshot>
+
 ## Bug Fixes
-    1. <>
+
 ## Documentation Changes
-    1. <>
+1. **Auto Release Notes** 🤖: We've created a new system for automatically tracking the changes that go
+    into new releases. On every pull request commit,
+    a github action will check whether the `website/CHANGELOG.md` file has been updated with a line containing a brief summary
+    of the change and associated pull request number. This check can be skipped if the `no-changelog-update` label is added
+    to the PR. 
+
 ## Testing and Infrastructure Changes
-    1. Demos now deployed to huggingface spaces :pr:`1600`
+
 ## Breaking Changes
-    1. <>
 
 ## Full Changelog
-    * New Sketching and inpainting for Images! :pr:`1456`
-    * Demos now deployed to huggingface spaces :pr:`1600`
-    etc 
+* Automated release notes :pr:`2306` 
+* Demos now deployed to huggingface spaces :pr:`1600`
+
 ## Contributors Shoutout
 
 
