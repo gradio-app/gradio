@@ -138,6 +138,7 @@ class TestProcessExamples:
         io.close()
         assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")
 
+
 def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
     def foo(a, b):
         return a + b
