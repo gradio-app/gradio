@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 import warnings
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 from gradio.blocks import Block
 
@@ -44,7 +44,7 @@ class Changeable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-        
+
         self.set_event_trigger(
             "change",
             fn,
@@ -95,7 +95,7 @@ class Clickable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "click",
             fn,
@@ -147,7 +147,7 @@ class Submittable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "submit",
             fn,
@@ -198,7 +198,7 @@ class Editable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "edit",
             fn,
@@ -300,7 +300,7 @@ class Playable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "play",
             fn,
@@ -349,7 +349,7 @@ class Playable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "pause",
             fn,
@@ -398,7 +398,7 @@ class Playable(Block):
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-            
+
         self.set_event_trigger(
             "stop",
             fn,
@@ -446,12 +446,12 @@ class Streamable(Block):
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
-        
+
         if status_tracker:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-        
+
         self.set_event_trigger(
             "stream",
             fn,
