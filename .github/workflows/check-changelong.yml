@@ -8,7 +8,7 @@ jobs:
   check-changelog-updated:
     name: Check CHANGELOG Updated
     runs-on: ubuntu-latest
-    if: !contains( github.event.pull_request.labels.*.name, 'no-changelog-update')
+    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-changelog-update') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
