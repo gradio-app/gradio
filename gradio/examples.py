@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import inspect
+import json
 import os
 import warnings
 from pathlib import Path
@@ -294,5 +295,10 @@ class Examples:
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
         for component, value in zip(self.outputs, example):
-            output.append(component.serialize(value, self.cached_folder))
+            try:
+                value_as_dict = json.loads(value)
+                assert utils.is_update(value_as_dict)
+                output.append(component.get_specific_update(value_as_dict))
+            except (json.decoder.JSONDecodeError, ValueError, AssertionError):
+                output.append(component.serialize(value, self.cached_folder))
         return output

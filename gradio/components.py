@@ -59,7 +59,7 @@ from gradio.serializing import (
 set_documentation_group("component")
 
 
-class _Keywords(Enum):
+class _Keywords(str, Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
@@ -205,7 +205,7 @@ class IOComponent(Component, Serializable):
         if interactive is not None:
             config["mode"] = "dynamic" if interactive else "static"
         return config
-
+    
     @staticmethod
     def get_load_fn_and_initial_value(value):
         if callable(value):

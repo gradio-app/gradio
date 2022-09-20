@@ -206,15 +206,18 @@ class CSVLogger(FlaggingCallback):
                         component.label or f"component {idx}"
                     ),
                 )
-                csv_data.append(
-                    component.deserialize(
-                        sample,
-                        save_dir=save_dir,
-                        encryption_key=self.encryption_key,
+                if utils.is_update(sample):
+                    csv_data.append(json.dumps(sample))
+                else:
+                    csv_data.append(
+                        component.deserialize(
+                            sample,
+                            save_dir=save_dir,
+                            encryption_key=self.encryption_key,
+                        )
+                        if sample is not None
+                        else ""
                     )
-                    if sample is not None
-                    else ""
-                )
             csv_data.append(flag_option if flag_option is not None else "")
             csv_data.append(username if username is not None else "")
             csv_data.append(str(datetime.datetime.now()))

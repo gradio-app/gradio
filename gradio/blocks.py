@@ -182,6 +182,14 @@ class Block:
             "elem_id": self.elem_id,
             "style": self._style,
         }
+        
+    @classmethod
+    def get_specific_update(cls, generic_update):
+        del generic_update["__type__"]
+        generic_update = cls.update(
+            **generic_update
+        )
+        return generic_update
 
 
 class BlockContext(Block):
@@ -302,10 +310,6 @@ def update(**kwargs) -> dict:
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
-
-
-def is_update(val):
-    return type(val) is dict and "update" in val.get("__type__", "")
 
 
 def skip() -> dict:
@@ -682,17 +686,13 @@ class Blocks(BlockContext):
                     break
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
-                    if not is_update(predictions[i]):
+                    if not utils.is_update(predictions[i]):
                         state[output_id] = predictions[i]
                     output.append(None)
                 else:
                     prediction_value = predictions[i]
-                    if is_update(prediction_value):
-                        if prediction_value["__type__"] == "generic_update":
-                            del prediction_value["__type__"]
-                            prediction_value = block.__class__.update(
-                                **prediction_value
-                            )
+                    if utils.is_update(prediction_value):
+                        prediction_value = block.get_specific_update(prediction_value)
                         # If the prediction is the default (NO_VALUE) enum then the user did
                         # not specify a value for the 'value' key and we can get rid of it
                         if (
