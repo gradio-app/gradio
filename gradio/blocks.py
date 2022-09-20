@@ -1034,8 +1034,8 @@ class Blocks(BlockContext):
         else:
             server_name, network_interface_address, server_port, local_url, app, server = networking.start_server(
                 self,
-                server_name,
                 network_interface_address,
+                server_name,
                 server_port,
                 ssl_keyfile,
                 ssl_certfile,
