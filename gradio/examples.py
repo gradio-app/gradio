@@ -197,7 +197,8 @@ class Examples:
                         "Examples are being cached but not all input components have "
                         "example values. This may result in an exception being thrown by "
                         "your function. If you do get an error while caching examples, make "
-                        "sure all of your inputs have example values for all of your examples."
+                        "sure all of your inputs have example values for all of your examples "
+                        "or you provide default values for those particular parameters in your function."
                     )
                     break
 
@@ -265,7 +266,6 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         processed_input = self.processed_examples[example_id]
-        self.inputs_with_examples
         if not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])

@@ -135,7 +135,7 @@ def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
         )
 
         def many_missing(a, b, c):
-            a * b
+            return a * b
 
         with pytest.warns(
             UserWarning,
