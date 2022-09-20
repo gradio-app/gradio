@@ -114,7 +114,6 @@ class Block:
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = None,
         no_target: bool = False,
-        status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
     ) -> None:
         """
@@ -131,7 +130,6 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status_tracker: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter
@@ -160,9 +158,6 @@ class Block:
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
-            "status_tracker": status_tracker._id
-            if status_tracker is not None
-            else None,
             "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
@@ -487,13 +482,10 @@ class Blocks(BlockContext):
                 dependency["outputs"] = [
                     original_mapping[o] for o in dependency["outputs"]
                 ]
-                if dependency.get("status_tracker", None) is not None:
-                    dependency["status_tracker"] = original_mapping[
-                        dependency["status_tracker"]
-                    ]
+                dependency.pop("status_tracker", None)
                 dependency["_js"] = dependency.pop("js", None)
-                dependency["_preprocess"] = False
-                dependency["_postprocess"] = False
+                dependency["preprocess"] = False
+                dependency["postprocess"] = False
 
                 for target in targets:
                     event_method = getattr(original_mapping[target], trigger)
