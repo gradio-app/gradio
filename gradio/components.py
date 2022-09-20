@@ -1483,8 +1483,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1504,8 +1504,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
@@ -1939,8 +1939,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1962,8 +1962,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
     def style(
@@ -3265,14 +3265,16 @@ class Gallery(IOComponent):
     def style(
         self,
         *,
-        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
+        grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
-        **kwargs,
+        **kwargs
     ):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
+            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
         """

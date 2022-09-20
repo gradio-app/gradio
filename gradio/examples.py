@@ -187,6 +187,20 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
         ]
+        if cache_examples:
+            for ex in non_none_examples:
+                if (
+                    len([sample for sample in ex if sample is not None])
+                    != self.inputs_with_examples
+                ):
+                    warnings.warn(
+                        "Examples are being cached but not all input components have "
+                        "example values. This may result in an exception being thrown by "
+                        "your function. If you do get an error while caching examples, make "
+                        "sure all of your inputs have example values for all of your examples "
+                        "or you provide default values for those particular parameters in your function."
+                    )
+                    break
 
         self.dataset = Dataset(
             components=inputs_with_examples,
@@ -222,7 +236,7 @@ class Examples:
                 inputs=[self.dataset],
                 outputs=self.inputs_with_examples
                 + (self.outputs if self.cache_examples else []),
-                _postprocess=False,
+                postprocess=False,
                 queue=False,
             )
             if self.run_on_click and not self.cache_examples:
