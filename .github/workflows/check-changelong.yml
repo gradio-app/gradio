@@ -1,0 +1,22 @@
+name: Check CHANGELOG Updated
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
+
+jobs:
+  check-changelog-updated:
+    name: Check CHANGELOG Updated
+    runs-on: ubuntu-latest
+    if: !contains( github.event.pull_request.labels.*.name, 'no-changelog-update')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Release notes added
+        run: |
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+          cat website/source/CHANGELOG.md | grep ":pr:\`${{ env.PR_NUMBER }}\`"
