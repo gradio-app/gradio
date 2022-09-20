@@ -16,7 +16,7 @@
 ## Breaking Changes
 
 ## Full Changelog
-* Automated release notes :pr:`2306` 
+* Automated release notes :pr:`2307` 
 * Demos now deployed to huggingface spaces :pr:`1600`
 
 ## Contributors Shoutout
