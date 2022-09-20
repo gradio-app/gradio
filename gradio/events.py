@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+import warnings
 
 from gradio.blocks import Block
 
@@ -15,6 +16,7 @@ class Changeable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -38,6 +40,11 @@ class Changeable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+        
         self.set_event_trigger(
             "change",
             fn,
@@ -60,6 +67,7 @@ class Clickable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue=None,
@@ -83,6 +91,11 @@ class Clickable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "click",
             fn,
@@ -105,6 +118,7 @@ class Submittable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -129,6 +143,11 @@ class Submittable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "submit",
             fn,
@@ -151,6 +170,7 @@ class Editable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -174,6 +194,11 @@ class Editable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "edit",
             fn,
@@ -196,6 +221,7 @@ class Clearable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -219,6 +245,11 @@ class Clearable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+
         self.set_event_trigger(
             "submit",
             fn,
@@ -241,6 +272,7 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -264,6 +296,11 @@ class Playable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "play",
             fn,
@@ -284,6 +321,7 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: Optional[AnyStr] = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -307,6 +345,11 @@ class Playable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "pause",
             fn,
@@ -327,6 +370,7 @@ class Playable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -350,6 +394,11 @@ class Playable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+            
         self.set_event_trigger(
             "stop",
             fn,
@@ -372,6 +421,7 @@ class Streamable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -396,6 +446,12 @@ class Streamable(Block):
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
+        
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+        
         self.set_event_trigger(
             "stream",
             fn,
