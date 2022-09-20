@@ -5,7 +5,7 @@ name: Comment on PR
 on:
   workflow_run:
     workflows:
-      - Check CHANGELOG Updated
+      - changelog-check
     types:
       - completed
 

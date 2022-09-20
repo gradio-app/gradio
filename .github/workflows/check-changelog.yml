@@ -1,4 +1,4 @@
-name: Check CHANGELOG Updated
+name: changelog-check
 
 on:
   pull_request:
