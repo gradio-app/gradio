@@ -13,7 +13,12 @@
 
 <h2 id="documentation-changes">Documentation Changes</h2>
 
-<h3 id="1-something-here-2">1. Something here</h3>
+<h3 id="1-auto-release-notes">1. Auto Release Notes 🤖</h3>
+
+<p>We've created a new system for automatically tracking the changes that go into new releases. On every pull request commit,
+a github action will check whether the <code>website/CHANGELOG.md</code> file has been updated with a line containing a brief summary
+of the change and its associated pull request number. This check can be skipped if the <code>no-changelog-update</code> label is added
+to the PR. The <code>CHANGELOG.md</code> file is then converted and displayed on our website!</p>
 
 <h2 id="testing-and-infrastructure-changes">Testing and Infrastructure Changes</h2>
 
@@ -21,12 +26,12 @@
 
 <h2 id="breaking-changes">Breaking Changes</h2>
 
-<h3 id="1-something-here-3">1. Something here</h3>
+<h3 id="1-something-here-2">1. Something here</h3>
 
 <h2 id="full-changelog">Full Changelog</h2>
 
 <ul>
-<li>New Sketching and inpainting for Images! :pr:<code>1456</code></li>
+<li>Automated release notes :pr:<code>2307</code> </li>
 <li>Demos now deployed to huggingface spaces :pr:<code>1600</code></li>
 </ul>
 
