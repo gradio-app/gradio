@@ -142,3 +142,11 @@ code.language-python {
 .selected-demo-window {
   @apply rounded-b-md border-2  border-gray-100 -mt-0.5;
 }
+
+
+/* changelog
+
+code, pre {
+  background: rgb(249,250,251);
+  color: black;
+} */

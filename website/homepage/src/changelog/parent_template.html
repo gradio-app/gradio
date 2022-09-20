@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with title="Changelog", url="https://gradio.app/changelog", image="https://www.gradio.app/assets/img/meta-image.png", description="Gradio Changelog and Release Notes" %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    {% include "templates/navbar.html" %}
+    <div class="container mx-auto px-4 flex gap-4 relative">
+      <div class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50"
+           style="min-width: 18%">
+          <div class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
+             style="max-width: 12rem">
+             Version History
+          </div>
+            <a class="guide-link current-nav-link pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+                style="max-width: 12rem"
+                href="#upcoming-release">Upcoming Release</a>
+            <a class="guide-link pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+               style="max-width: 12rem"
+               href="#version-33">v3.3</a>            
+      </div>
+      <div class="w-full">
+        <div class="prose text-lg max-w-full">{% include "changelog/inner_template.html" %}</div>
+      </div>
+    </div>
+    <script src="/assets/prism.js"></script>
+    <script>window.__gradio_mode__ = "website";</script>
+    <script type="module" src="/assets/index.js"></script>
+    {% include 'templates/footer.html' %}
+    <script>{% include 'templates/add_anchors.js' %}</script>
+    <script>{% include 'templates/add_copy.js' %}</script>
+  </body>
+</html>
