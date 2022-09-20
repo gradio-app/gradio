@@ -50,7 +50,6 @@ from gradio.events import (
 from gradio.layouts import Form
 from gradio.serializing import (
     FileSerializable,
-    ImgSerializable,
     JSONSerializable,
     Serializable,
     SimpleSerializable,
@@ -3343,14 +3342,14 @@ class Gallery(IOComponent):
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
         for img_data in x:
-            ImgSerializable.deserialize(self, img_data, gallery_path)
+            FileSerializable.deserialize(self, img_data, gallery_path)
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            img = ImgSerializable.serialize(self, file_path)
+            img = FileSerializable.serialize(self, file_path)
             files.append(img)
         return files
 
