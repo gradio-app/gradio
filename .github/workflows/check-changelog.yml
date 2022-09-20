@@ -18,3 +18,15 @@ jobs:
       - name: Release notes added
         run: |
           cat website/CHANGELOG.md | grep ":pr:\`${{ github.event.number }}\`"
+      - name: Save PR number
+        if: ${{ failure() }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          mkdir -p ./pr
+          echo $PR_NUMBER > ./pr/pr_number
+      - uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: pr_number
+          path: pr/
