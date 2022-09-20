@@ -17,6 +17,4 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Release notes added
         run: |
-          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
-          cat website/CHANGELOG.md | grep ":pr:\`${{ env.PR_NUMBER }}\`"
+          cat website/CHANGELOG.md | grep ":pr:\`${{ github.event.number }}\`"
