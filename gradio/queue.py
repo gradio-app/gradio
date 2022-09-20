@@ -229,7 +229,17 @@ class Queue:
                 return
             begin_time = time.time()
             response = await self.call_prediction(event)
-            if response.json.get("is_generating", False):
+            if response.has_exception:
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_completed",
+                        "output": {"error": str(response.exception)},
+                        "success": False,
+                    },
+                )
+                raise response.exception
+            elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
                     old_response = response
                     await self.send_message(
