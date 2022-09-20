@@ -398,7 +398,7 @@ def test_respect_queue_when_load_from_config():
         with unittest.mock.patch(
             "gradio.external.get_pred_from_ws", return_value={"data": ["foo"]}
         ):
-            interface = gr.Interface.load("spaces/multimodalart/saymyname")
+            interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
             assert interface("bob") == "foo"
 
 

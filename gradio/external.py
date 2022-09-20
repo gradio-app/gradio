@@ -471,10 +471,10 @@ def get_spaces_blocks(model_name, config):
     for d, dependency in enumerate(config["dependencies"]):
         if dependency["backend_fn"]:
 
-            def get_fn(outputs, fn_index):
+            def get_fn(outputs, fn_index, use_ws):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
-                    if use_websocket(config, dependency):
+                    if use_ws:
                         result = utils.synchronize_async(ws_fn, data)
                         output = result["data"]
                     else:
@@ -496,7 +496,9 @@ def get_spaces_blocks(model_name, config):
 
                 return fn
 
-            fn = get_fn(deepcopy(dependency["outputs"]), d)
+            fn = get_fn(
+                deepcopy(dependency["outputs"]), d, use_websocket(config, dependency)
+            )
             fns.append(fn)
         else:
             fns.append(None)
