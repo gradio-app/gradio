@@ -17,7 +17,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Get comment body
         run: |
-          echo "COMMENT_BODY=$(cat .github/workflows/comment_body.txt)" >> $GITHUB_ENV
+          echo "COMMENT_BODY=`cat .github/workflows/comment_body.txt`" >> $GITHUB_ENV
       - name: Release notes added
         run: |
           cat website/CHANGELOG.md | grep ":pr:\`${{ github.event.number }}\`"
