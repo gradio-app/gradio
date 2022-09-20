@@ -16,6 +16,7 @@ import pytest
 import wandb
 
 import gradio as gr
+from gradio.components import component
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -406,6 +407,39 @@ class TestCallFunction:
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
+
+
+class TestSpecificUpdate:
+    def test_without_update(self):
+        with pytest.raises(KeyError):
+            gr.Textbox.get_specific_update({"lines": 4})
+        
+    def test_with_update(self):
+        specific_update = gr.Textbox.get_specific_update({"lines": 4, "__type__": "update"})        
+        assert specific_update == {
+            'lines': 4,
+            'max_lines': None,
+            'placeholder': None,
+            'label': None,
+            'show_label': None,
+            'visible': None,
+            'value': gr.components._Keywords.NO_VALUE,
+            '__type__': 'update'}         
+    
+    def test_with_generic_update(self):
+        specific_update = gr.Video.get_specific_update(
+            {"visible": True, 
+             "value": "test.mp4", 
+             "__type__": "generic_update"
+        })
+        assert specific_update == {
+            'source': None,
+            'label': None,
+            'show_label': None,
+            'interactive': None,
+            'visible': True,
+            'value': 'test.mp4',
+            '__type__': 'update'}
 
 
 if __name__ == "__main__":
