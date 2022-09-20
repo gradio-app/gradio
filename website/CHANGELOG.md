@@ -32,7 +32,7 @@ to the PR. The `CHANGELOG.md` file is then converted and displayed on our websit
 
 ## Full Changelog
 
-* Automated release notes :pr:`2307` 
+* Automated release notes :pr:`2306` 
 * Demos now deployed to huggingface spaces :pr:`1600`
 
 ## Contributors Shoutout
