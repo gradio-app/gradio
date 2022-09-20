@@ -238,7 +238,7 @@ class Queue:
                         "success": False,
                     },
                 )
-                raise Exception(response.exception)
+                raise response.exception
             elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
                     old_response = response

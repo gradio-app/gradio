@@ -146,6 +146,7 @@ class TestQueueProcessEvents:
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
         queue.call_prediction.return_value = MagicMock()
+        queue.call_prediction.return_value.has_exception = False
         queue.call_prediction.return_value.json = {"is_generating": False}
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
