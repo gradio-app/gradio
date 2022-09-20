@@ -205,7 +205,7 @@ class IOComponent(Component, Serializable):
         if interactive is not None:
             config["mode"] = "dynamic" if interactive else "static"
         return config
-    
+
     @staticmethod
     def get_load_fn_and_initial_value(value):
         if callable(value):

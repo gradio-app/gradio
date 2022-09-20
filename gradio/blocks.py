@@ -182,13 +182,11 @@ class Block:
             "elem_id": self.elem_id,
             "style": self._style,
         }
-        
+
     @classmethod
     def get_specific_update(cls, generic_update):
         del generic_update["__type__"]
-        generic_update = cls.update(
-            **generic_update
-        )
+        generic_update = cls.update(**generic_update)
         return generic_update
 
 

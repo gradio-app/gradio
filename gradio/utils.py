@@ -679,4 +679,3 @@ def validate_url(possible_url: str) -> bool:
 
 def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
-
