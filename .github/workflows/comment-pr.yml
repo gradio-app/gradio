@@ -4,10 +4,8 @@ name: Comment on PR
 # access to secrets
 on:
   workflow_run:
-    workflows:
-      - changelog-check
-    types:
-      - completed
+    workflows: [changelog-check]
+    types: [completed]
 
 jobs:
   upload:
