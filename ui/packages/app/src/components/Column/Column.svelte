@@ -6,16 +6,17 @@
 	export let min_width: number = 0;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let variant: "default" | "panel" | "group" = "default";
+	export let variant: "default" | "panel" | "box" = "default";
 	export let style: Styles = {};
 </script>
 
 <div
 	id={elem_id}
-	class="overflow-hidden flex flex-col relative col gap-4 {create_classes(
+	class="overflow-hidden flex flex-col relative col {create_classes(
 		style
 	)}"
-	class:gr-group={variant === "group"}
+	class:gap-4={style.gap !== false}
+	class:gr-group={variant === "box"}
 	class:gr-panel={variant === "panel"}
 	class:!hidden={!visible}
 	style={`min-width: min(${min_width}px, 100%); flex-grow: ${scale}`}

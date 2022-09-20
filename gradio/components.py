@@ -192,17 +192,17 @@ class IOComponent(Component, Serializable):
         """
         if "rounded" in kwargs:
             warnings.warn(
-                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='group')."
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
             )
             kwargs.pop("rounded")
         if "margin" in kwargs:
             warnings.warn(
-                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='group')."
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
             )
             kwargs.pop("margin")
         if "border" in kwargs:
             warnings.warn(
-                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='group')."
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
             )
             kwargs.pop("border")
         if container is not None:
@@ -3268,7 +3268,7 @@ class Gallery(IOComponent):
         grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the gallery component.

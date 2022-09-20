@@ -63,7 +63,7 @@ class Block:
         Adds self into appropriate BlockContext
         """
         if Context.block is not None:
-            Context.block.children.append(self)
+            Context.block.add(self)            
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
@@ -203,6 +203,9 @@ class BlockContext(Block):
         self.parent = Context.block
         Context.block = self
         return self
+
+    def add(self, child):
+        self.children.append(child)
 
     def fill_expected_parents(self):
         children = []

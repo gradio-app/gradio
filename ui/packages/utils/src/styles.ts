@@ -9,6 +9,7 @@ export interface Styles {
 	item_container?: boolean;
 	color_map?: Record<string, string>;
 	label_container?: boolean;
+	gap?: boolean;
 }
 
 type PartialRecord<K extends keyof any, T> = {

@@ -35,12 +35,12 @@ class Row(BlockContext):
     ):
         """
         Parameters:
-            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'group' (rounded corners and no internal gap).
+            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'box' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.variant = variant
-        if variant == "group":
+        if variant == "box":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
@@ -107,14 +107,14 @@ class Column(BlockContext):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'group' (rounded corners and no internal gap).
+            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'box' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.scale = scale
         self.min_width = min_width
         self.variant = variant
-        if variant == "group":
+        if variant == "box":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
@@ -243,9 +243,10 @@ class Tab(TabItem):
 Tab = TabItem  # noqa: F811
 
 
-class Group(Column):
+@document()
+class Group(BlockContext):
     """
-    DEPRECATED. Group is a layout element within Blocks which groups together children so that
+    Group is a layout element within Blocks which groups together children so that
     they do not have any padding or margin between them.
     Example:
         with gradio.Group():
@@ -255,6 +256,9 @@ class Group(Column):
 
     def __init__(
         self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -262,13 +266,25 @@ class Group(Column):
             visible: If False, group will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        warnings.warn("'Group' has been deprecated. Use Row(variant='group') instead.")
-        super().__init__(variant="group", **kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+
+    def get_config(self):
+        return {"type": "group", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
 
 
+@document()
 class Box(BlockContext):
     """
-    DEPRECATED. Box is a a layout element which places children in a box with rounded corners and
+    Box is a a layout element which places children in a box with rounded corners and
     some padding around them.
     Example:
         with gradio.Box():
@@ -278,6 +294,9 @@ class Box(BlockContext):
 
     def __init__(
         self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -285,8 +304,28 @@ class Box(BlockContext):
             visible: If False, box will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        warnings.warn("'Box' has been deprecated. Use Row(variant='group') instead.")
-        super().__init__(variant="group", **kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+
+    def get_config(self):
+        return {"type": "box", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
+
+    def style(self, **kwargs):
+        return self
+
+    def add(self, child):
+        if isinstance(child, Row) or isinstance(child, Column):
+            child.variant = "box"
+            child.allow_expected_parents = False
+        super().add(child)
 
 
 class Form(BlockContext):

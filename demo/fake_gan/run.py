@@ -23,7 +23,7 @@ def fake_gan():
 
 
 with gr.Blocks() as demo:
-    with gr.Row(variant="group"):
+    with gr.Row(variant="box"):
         text = gr.Textbox(
             label="Enter your prompt",
             show_label=False,

@@ -45,7 +45,7 @@
 }
 
 .gr-group {
-	@apply gap-0 !rounded-lg overflow-clip border items-stretch;
+	@apply gap-0 !rounded-lg overflow-clip border border-gray-200 dark:border-gray-700 items-stretch;
 }
 
 .gr-text-input {
