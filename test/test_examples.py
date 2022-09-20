@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 import pytest
 
@@ -89,3 +90,62 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(1)
         io.close()
         assert prediction[0] == "Hello Dunya"
+
+
+def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
+    def foo(a, b):
+        return a + b
+
+    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    foo,
+                    inputs=["text", "text"],
+                    outputs=["text"],
+                    examples=[["foo"], ["bar"]],
+                    cache_examples=True,
+                )
+
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    foo,
+                    inputs=["text", "text"],
+                    outputs=["text"],
+                    examples=[["foo", "bar"], ["bar", None]],
+                    cache_examples=True,
+                )
+
+        def foo_no_exception(a, b=2):
+            return a * b
+
+        gr.Interface(
+            foo_no_exception,
+            inputs=["text", "number"],
+            outputs=["text"],
+            examples=[["foo"], ["bar"]],
+            cache_examples=True,
+        )
+
+        def many_missing(a, b, c):
+            return a * b
+
+        with pytest.warns(
+            UserWarning,
+            match="^Examples are being cached but not all input components have",
+        ):
+            with pytest.raises(Exception):
+                gr.Interface(
+                    many_missing,
+                    inputs=["text", "number", "number"],
+                    outputs=["text"],
+                    examples=[["foo", None, None], ["bar", 2, 3]],
+                    cache_examples=True,
+                )
