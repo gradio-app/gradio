@@ -136,18 +136,6 @@ class TestQueueEstimation:
         assert estimation.rank == 2
         assert estimation.rank_eta == 15
 
-    @pytest.mark.asyncio
-    async def queue_sets_concurrency_count(self):
-        queue_object = Queue(
-            live_updates=True,
-            concurrency_count=5,
-            data_gathering_start=1,
-            update_intervals=1,
-            max_size=None,
-        )
-        assert len(queue_object.active_jobs) == 5
-        queue_object.close()
-
 
 class TestQueueProcessEvents:
     @pytest.mark.asyncio
@@ -158,6 +146,7 @@ class TestQueueProcessEvents:
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
         queue.call_prediction.return_value = MagicMock()
+        queue.call_prediction.return_value.has_exception = False
         queue.call_prediction.return_value.json = {"is_generating": False}
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
