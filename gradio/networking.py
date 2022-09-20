@@ -88,6 +88,7 @@ def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
 
 def start_server(
     blocks: Blocks,
+    network_interface_address: Optional[str] = None,
     server_name: Optional[str] = None,
     server_port: Optional[int] = None,
     ssl_keyfile: Optional[str] = None,
@@ -98,6 +99,8 @@ def start_server(
     Parameters:
     blocks: The Blocks object to run on the server
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
+    network_interface_address: The address to use for the server network interface. Defaults to the local interface 127.0.0.1. Change it to 0.0.0.0 or an ip address 
+    of a specific network interface if you want the gradio server be available over the network. 
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
     auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
@@ -109,7 +112,18 @@ def start_server(
     app: the FastAPI app object
     server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
-    server_name = server_name or LOCALHOST_NAME
+    import socket
+    if server_name is None:
+        if network_interface_address is None:
+            url_host_name = LOCALHOST_NAME
+            network_interface_address = "127.0.0.1"
+        else:
+            url_host_name = socket.getfqdn()
+    else:
+        url_host_name = server_name
+        if network_interface_address is None:
+            network_interface_address = "0.0.0.0"
+            
     # if port is not specified, search for first available port
     if server_port is None:
         port = get_first_available_port(
@@ -128,7 +142,6 @@ def start_server(
             )
         port = server_port
 
-    url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
 
     if ssl_keyfile is not None:
         if ssl_certfile is None:
@@ -146,7 +159,7 @@ def start_server(
     config = uvicorn.Config(
         app=app,
         port=port,
-        host=server_name,
+        host=network_interface_address,
         log_level="warning",
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
@@ -154,7 +167,7 @@ def start_server(
     )
     server = Server(config=config)
     server.run_in_thread()
-    return server_name, port, path_to_local_server, app, server
+    return url_host_name, network_interface_address, port, path_to_local_server, app, server
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:
