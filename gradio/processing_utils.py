@@ -30,10 +30,8 @@ with warnings.catch_warnings():
 
 def to_binary(x: str | Dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
-    print(x)
     if isinstance(x, dict):
         x = encode_url_or_file_to_base64(x["name"])
-    print(x)
     return base64.b64decode(x.split(",")[1])
 
 #########################
