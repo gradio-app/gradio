@@ -28,15 +28,18 @@ with warnings.catch_warnings():
 # GENERAL
 #########################
 
+
 def to_binary(x: str | Dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
     if isinstance(x, dict):
         x = encode_url_or_file_to_base64(x["name"])
     return base64.b64decode(x.split(",")[1])
 
+
 #########################
 # IMAGE PRE-PROCESSING
 #########################
+
 
 def decode_base64_to_image(encoding):
     content = encoding.split(";")[1]
