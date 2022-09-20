@@ -166,16 +166,14 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: speechbrain/mtl-mimic-voicebank
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
-            "preprocess": lambda i: to_binary,
+            "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
         },
         "feature-extraction": {
