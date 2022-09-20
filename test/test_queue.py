@@ -158,10 +158,79 @@ class TestQueueProcessEvents:
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
         queue.call_prediction.return_value = MagicMock()
+        queue.call_prediction.return_value.has_exception = False
         queue.call_prediction.return_value.json = {"is_generating": False}
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
         await queue.process_event(mock_event)
 
-        assert queue.call_prediction.called
-        assert mock_event.disconnect.called
+        queue.call_prediction.assert_called_once()
+        mock_event.disconnect.assert_called_once()
+        queue.clean_event.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_process_event_handles_error_when_gathering_data(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        mock_event.websocket.send_json.side_effect = ValueError("Can't connect")
+        queue.call_prediction = AsyncMock()
+        mock_event.disconnect = AsyncMock()
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        await queue.process_event(mock_event)
+        assert not queue.call_prediction.called
+        mock_event.disconnect.assert_called_once()
+        assert queue.clean_event.call_count >= 1
+
+    @pytest.mark.asyncio
+    async def test_process_event_handles_error_sending_process_start_msg(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        mock_event.websocket.send_json.side_effect = ["2", ValueError("Can't connect")]
+        queue.call_prediction = AsyncMock()
+        mock_event.disconnect = AsyncMock()
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        await queue.process_event(mock_event)
+        assert not queue.call_prediction.called
+        mock_event.disconnect.assert_called_once()
+        assert queue.clean_event.call_count >= 1
+
+    @pytest.mark.asyncio
+    async def test_process_event_handles_exception_in_call_prediction_request(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.disconnect = AsyncMock()
+        queue.gather_event_data = AsyncMock(return_value=True)
+        queue.clean_event = AsyncMock()
+        queue.send_message = AsyncMock(return_value=True)
+        queue.call_prediction = AsyncMock(
+            return_value=MagicMock(has_exception=True, exception=ValueError("foo"))
+        )
+        await queue.process_event(mock_event)
+        queue.call_prediction.assert_called_once()
+        mock_event.disconnect.assert_called_once()
+        assert queue.clean_event.call_count >= 1
+
+    @pytest.mark.asyncio
+    async def test_process_event_handles_error_sending_process_completed_msg(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        mock_event.websocket.send_json.side_effect = [
+            "2",
+            "3",
+            ValueError("Can't connect"),
+        ]
+        queue.call_prediction = AsyncMock(
+            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+        )
+        mock_event.disconnect = AsyncMock()
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        await queue.process_event(mock_event)
+        queue.call_prediction.assert_called_once()
+        mock_event.disconnect.assert_called_once()
+        assert queue.clean_event.call_count >= 1
