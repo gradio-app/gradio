@@ -36,7 +36,7 @@ class Queue:
         self.max_thread_count = concurrency_count
         self.data_gathering_start = data_gathering_start
         self.update_intervals = update_intervals
-        self.active_jobs: List[None | Event] = [None]
+        self.active_jobs: List[None | Event] = [None] * concurrency_count
         self.delete_lock = asyncio.Lock()
         self.server_path = None
         self.duration_history_total = 0
