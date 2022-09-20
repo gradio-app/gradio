@@ -222,7 +222,7 @@ class Examples:
                 inputs=[self.dataset],
                 outputs=self.inputs_with_examples
                 + (self.outputs if self.cache_examples else []),
-                _postprocess=False,
+                postprocess=False,
                 queue=False,
             )
             if self.run_on_click and not self.cache_examples:

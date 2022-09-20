@@ -255,10 +255,6 @@ def assert_configs_are_equivalent_besides_ids(
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert_same_components(o1, o2)
 
-        # status tracker is popped since we allow it to have different ids
-        d1.pop("status_tracker", None)
-        d2.pop("status_tracker", None)
-
         assert d1 == d2, f"{d1} does not match {d2}"
 
     return True

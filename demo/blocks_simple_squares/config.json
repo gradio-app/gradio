@@ -108,7 +108,6 @@
       ],
       "backend_fn": true,
       "js": null,
-      "status_tracker": null,
       "queue": null
     }
   ]
