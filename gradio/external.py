@@ -442,10 +442,13 @@ def get_ws_fn(ws_url):
     return ws_fn
 
 
-def use_websocket(config):
-    return config["enable_queue"] and version.parse(
-        config["version"]
+def use_websocket(config, dependency):
+    queue_enabled = config.get("enable_queue", False)
+    queue_uses_websocket = version.parse(
+        config.get("version", "2.0")
     ) >= version.Version("3.2")
+    dependency_uses_queue = dependency.get("queue", False) is not False
+    return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
 
 def get_spaces_blocks(model_name, config):
@@ -463,7 +466,6 @@ def get_spaces_blocks(model_name, config):
     ws_url = "wss://spaces.huggingface.tech/{}/queue/join".format(model_name)
 
     ws_fn = get_ws_fn(ws_url)
-    connect_to_websocket = use_websocket(config)
 
     fns = []
     for d, dependency in enumerate(config["dependencies"]):
@@ -472,7 +474,7 @@ def get_spaces_blocks(model_name, config):
             def get_fn(outputs, fn_index):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
-                    if connect_to_websocket:
+                    if use_websocket(config, dependency):
                         result = utils.synchronize_async(ws_fn, data)
                         output = result["data"]
                     else:
