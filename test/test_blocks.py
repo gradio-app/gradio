@@ -16,7 +16,6 @@ import pytest
 import wandb
 
 import gradio as gr
-from gradio.components import component
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
