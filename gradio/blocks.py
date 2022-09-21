@@ -1260,6 +1260,7 @@ class Blocks(BlockContext):
                 )
 
     def startup_events(self):
+        """Events that should be run when the app containing this block starts up."""
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start)
         utils.run_coro_in_background(self.create_limiter)

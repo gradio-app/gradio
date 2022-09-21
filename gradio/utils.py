@@ -685,6 +685,16 @@ def is_update(val):
 def mount_gradio_app(
     app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str
 ) -> fastapi.FastAPI:
+    """Mount a gradio application (created with gr.routes.App.create_app(block)) to an existing FastAPI application.
+
+    Parameters:
+        app: The parent FastAPI application.
+        gradio_app: The gradio application we are mounting on `app`.
+        server_name: The host where the FastAPI application will run. Must match the value of uvicorn --host (or whatever) server you use to run the app.
+        port: The port where the application will run.
+        path: The path at which the gradio application will be mounted.
+    """
+
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.blocks.enable_queue:
