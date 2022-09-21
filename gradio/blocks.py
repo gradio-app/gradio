@@ -40,6 +40,8 @@ set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
+    import mlflow
+    import wandb
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, IOComponent
