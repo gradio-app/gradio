@@ -413,33 +413,35 @@ class TestSpecificUpdate:
     def test_without_update(self):
         with pytest.raises(KeyError):
             gr.Textbox.get_specific_update({"lines": 4})
-        
+
     def test_with_update(self):
-        specific_update = gr.Textbox.get_specific_update({"lines": 4, "__type__": "update"})        
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update"}
+        )
         assert specific_update == {
-            'lines': 4,
-            'max_lines': None,
-            'placeholder': None,
-            'label': None,
-            'show_label': None,
-            'visible': None,
-            'value': gr.components._Keywords.NO_VALUE,
-            '__type__': 'update'}         
-    
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+        }
+
     def test_with_generic_update(self):
         specific_update = gr.Video.get_specific_update(
-            {"visible": True, 
-             "value": "test.mp4", 
-             "__type__": "generic_update"
-        })
+            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+        )
         assert specific_update == {
-            'source': None,
-            'label': None,
-            'show_label': None,
-            'interactive': None,
-            'visible': True,
-            'value': 'test.mp4',
-            '__type__': 'update'}
+            "source": None,
+            "label": None,
+            "show_label": None,
+            "interactive": None,
+            "visible": True,
+            "value": "test.mp4",
+            "__type__": "update",
+        }
 
 
 if __name__ == "__main__":

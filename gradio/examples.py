@@ -3,9 +3,9 @@ Defines helper methods useful for loading and caching Interface examples.
 """
 from __future__ import annotations
 
+import ast
 import csv
 import inspect
-import json
 import os
 import warnings
 from pathlib import Path
@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 import anyio
 
 from gradio import utils
+from gradio.blocks import postprocess_update_dict
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -190,9 +191,8 @@ class Examples:
         ]
         if cache_examples:
             for ex in non_none_examples:
-                if (
-                    len([sample for sample in ex if sample is not None])
-                    != self.inputs_with_examples
+                if len([sample for sample in ex if sample is not None]) != len(
+                    self.inputs_with_examples
                 ):
                     warnings.warn(
                         "Examples are being cached but not all input components have "
@@ -279,10 +279,15 @@ class Examples:
         if len(self.outputs) == 1:
             predictions = [predictions]
         if not self._api_mode:
-            predictions = [
-                output_component.postprocess(predictions[i])
-                for i, output_component in enumerate(self.outputs)
-            ]
+            predictions_ = []
+            for i, output_component in enumerate(self.outputs):
+                if utils.is_update(predictions[i]):
+                    predictions_.append(
+                        postprocess_update_dict(output_component, predictions[i])
+                    )
+                else:
+                    predictions_.append(output_component.postprocess(predictions[i]))
+            predictions = predictions_
         return predictions
 
     async def load_from_cache(self, example_id: int) -> List[Any]:
@@ -296,9 +301,9 @@ class Examples:
         output = []
         for component, value in zip(self.outputs, example):
             try:
-                value_as_dict = json.loads(value)
+                value_as_dict = ast.literal_eval(value)
                 assert utils.is_update(value_as_dict)
-                output.append(component.get_specific_update(value_as_dict))
-            except (json.decoder.JSONDecodeError, ValueError, AssertionError):
+                output.append(value_as_dict)
+            except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(component.serialize(value, self.cached_folder))
         return output

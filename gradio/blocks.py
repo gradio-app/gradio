@@ -314,6 +314,16 @@ def skip() -> dict:
     return update()
 
 
+def postprocess_update_dict(block, update_dict):
+    prediction_value = block.get_specific_update(update_dict)
+    if prediction_value.get("value") == components._Keywords.NO_VALUE:
+        prediction_value.pop("value")
+    prediction_value = delete_none(prediction_value, skip_value=True)
+    if "value" in prediction_value:
+        prediction_value["value"] = block.postprocess(prediction_value["value"])
+    return prediction_value
+
+
 @document("load")
 class Blocks(BlockContext):
     """
@@ -690,28 +700,9 @@ class Blocks(BlockContext):
                 else:
                     prediction_value = predictions[i]
                     if utils.is_update(prediction_value):
-                        prediction_value = block.get_specific_update(prediction_value)
-                        # If the prediction is the default (NO_VALUE) enum then the user did
-                        # not specify a value for the 'value' key and we can get rid of it
-                        if (
-                            prediction_value.get("value")
-                            == components._Keywords.NO_VALUE
-                        ):
-                            prediction_value.pop("value")
-                        prediction_value = delete_none(
-                            prediction_value, skip_value=True
-                        )
-                        if "value" in prediction_value:
-                            prediction_value["value"] = block.postprocess(
-                                prediction_value["value"]
-                            )
-                        output_value = prediction_value
+                        output_value = postprocess_update_dict(block, prediction_value)
                     else:
-                        output_value = (
-                            block.postprocess(prediction_value)
-                            if prediction_value is not None
-                            else None
-                        )
+                        output_value = block.postprocess(prediction_value)
                     output.append(output_value)
 
         else:

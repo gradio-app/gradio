@@ -85,11 +85,33 @@ class TestProcessExamples:
             "text",
             examples=[["World"], ["Dunya"], ["Monde"]],
         )
-        io.launch(prevent_thread_lock=True)
         await io.examples_handler.cache_interface_examples()
         prediction = await io.examples_handler.load_from_cache(1)
-        io.close()
         assert prediction[0] == "Hello Dunya"
+
+    @pytest.mark.asyncio
+    async def test_caching_with_update(self):
+        io = gr.Interface(
+            lambda x: gr.update(visible=False),
+            "text",
+            "image",
+            examples=[["World"], ["Dunya"], ["Monde"]],
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(1)
+        assert prediction[0] == {"visible": False, "__type__": "update"}
+
+    @pytest.mark.asyncio
+    async def test_caching_with_mix_update(self):
+        io = gr.Interface(
+            lambda x: [gr.update(lines=4, value="hello"), "test/test_files/bus.png"],
+            "text",
+            ["text", "image"],
+            examples=[["World"], ["Dunya"], ["Monde"]],
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(1)
+        assert prediction[0] == {"lines": 4, "value": "hello", "__type__": "update"}
 
 
 def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):

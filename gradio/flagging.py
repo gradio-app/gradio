@@ -207,7 +207,7 @@ class CSVLogger(FlaggingCallback):
                     ),
                 )
                 if utils.is_update(sample):
-                    csv_data.append(json.dumps(sample))
+                    csv_data.append(str(sample))
                 else:
                     csv_data.append(
                         component.deserialize(
