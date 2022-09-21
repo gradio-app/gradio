@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import copy
 import inspect
@@ -13,10 +12,10 @@ import pkgutil
 import random
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
+from urllib.parse import urljoin
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -32,6 +31,7 @@ from typing import (
 
 import aiohttp
 import analytics
+import fastapi
 import fsspec.asyn
 import httpx
 import requests
@@ -40,9 +40,9 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
+    from gradio.routes import App
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -680,3 +680,15 @@ def validate_url(possible_url: str) -> bool:
 
 def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
+
+
+def mount_gradio_app(app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str) -> fastapi.FastAPI:
+
+    @app.on_event("startup")
+    async def start_queue():
+        if gradio_app.blocks.enable_queue:
+            gradio_app.blocks._queue.set_url(urljoin(f'http://{server_name}:{port}', f'{path}' + "/"))
+            gradio_app.blocks.startup_events()
+
+    app.mount(path, gradio_app)
+    return app

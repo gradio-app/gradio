@@ -17,7 +17,6 @@ from typing import Any, List, Optional, Type
 
 import orjson
 import pkg_resources
-import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -335,13 +334,8 @@ class App(FastAPI):
             dependencies=[Depends(login_check)],
         )
         async def startup_events():
-            from gradio.utils import run_coro_in_background
-            app.blocks._queue.set_url(app.blocks.local_url)
-
-            if app.blocks.enable_queue:
-               gradio.utils.run_coro_in_background(app.blocks._queue.start)
-            gradio.utils.run_coro_in_background(app.blocks.create_limiter)
-
+            app.blocks.startup_events()
+            return True
 
         return app
 
