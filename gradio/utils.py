@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
-from urllib.parse import urljoin
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -28,6 +27,7 @@ from typing import (
     Tuple,
     Type,
 )
+from urllib.parse import urljoin
 
 import aiohttp
 import analytics
@@ -682,12 +682,15 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-def mount_gradio_app(app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str) -> fastapi.FastAPI:
-
+def mount_gradio_app(
+    app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str
+) -> fastapi.FastAPI:
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.blocks.enable_queue:
-            gradio_app.blocks._queue.set_url(urljoin(f'http://{server_name}:{port}', f'{path}' + "/"))
+            gradio_app.blocks._queue.set_url(
+                urljoin(f"http://{server_name}:{port}", f"{path}" + "/")
+            )
             gradio_app.blocks.startup_events()
 
     app.mount(path, gradio_app)
