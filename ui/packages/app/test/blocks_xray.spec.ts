@@ -61,7 +61,7 @@ test("can run an api request and display the data", async ({ page }) => {
 	await page.check("label:has-text('Covid')");
 	await page.check("label:has-text('Lung Cancer')");
 
-	const run_button = await page.locator("button", { hasText: /Run/ });
+	const run_button = await page.locator("button", { hasText: /Run/ }).first();
 
 	await Promise.all([
 		run_button.click(),
