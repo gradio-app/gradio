@@ -190,10 +190,8 @@ class Examples:
             for example in self.processed_examples
         ]
         if cache_examples:
-            for ex in non_none_examples:
-                if len([sample for sample in ex if sample is not None]) != len(
-                    self.inputs_with_examples
-                ):
+            for example in self.examples:
+                if len([ex for ex in example if ex is not None]) != len(self.inputs):
                     warnings.warn(
                         "Examples are being cached but not all input components have "
                         "example values. This may result in an exception being thrown by "
