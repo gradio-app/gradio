@@ -63,7 +63,7 @@ class Block:
         Adds self into appropriate BlockContext
         """
         if Context.block is not None:
-            Context.block.add(self)            
+            Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
