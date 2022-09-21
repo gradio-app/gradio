@@ -7,8 +7,7 @@ RUN pip install numpy matplotlib
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
-COPY ./setup.py ./setup.py
-COPY ./MANIFEST.in ./MANIFEST.in
+COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
 RUN pip install .

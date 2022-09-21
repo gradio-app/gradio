@@ -1488,8 +1488,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1509,8 +1509,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
@@ -1948,8 +1948,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1971,8 +1971,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
     def style(
@@ -2000,7 +2000,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_two_files
+    Demos: zip_to_json, zip_files
     """
 
     def __init__(
@@ -2133,7 +2133,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 {
                     "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
-                        file, self.temp_dir
+                        file, dir=self.temp_dir
                     ).name,
                     "size": os.path.getsize(file),
                     "data": None,
@@ -2171,8 +2171,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             rounded=rounded,
         )
 
-    def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+    def as_example(self, input_data: str | List) -> str:
+        if isinstance(input_data, list):
+            return [Path(file).name for file in input_data]
+        else:
+            return Path(input_data).name
 
 
 @document("change", "style")
@@ -3288,7 +3291,7 @@ class Gallery(IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
+        grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
     ):
@@ -3296,6 +3299,7 @@ class Gallery(IOComponent):
         This method can be used to change the appearance of the gallery component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
         """

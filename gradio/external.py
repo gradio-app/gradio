@@ -11,13 +11,15 @@ import operator
 import re
 import warnings
 from copy import deepcopy
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple
 
 import requests
+import websockets
 import yaml
+from packaging import version
 
 import gradio
-from gradio import components, utils
+from gradio import components, exceptions, utils
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
@@ -417,6 +419,38 @@ def get_spaces(model_name, api_key, alias, **kwargs):
         return get_spaces_blocks(model_name, config)
 
 
+async def get_pred_from_ws(
+    websocket: websockets.WebSocketClientProtocol, data: str
+) -> Dict[str, Any]:
+    completed = False
+    while not completed:
+        msg = await websocket.recv()
+        resp = json.loads(msg)
+        if resp["msg"] == "queue_full":
+            raise exceptions.Error("Queue is full! Please try again.")
+        elif resp["msg"] == "send_data":
+            await websocket.send(data)
+        completed = resp["msg"] == "process_completed"
+    return resp["output"]
+
+
+def get_ws_fn(ws_url):
+    async def ws_fn(data):
+        async with websockets.connect(ws_url, open_timeout=10) as websocket:
+            return await get_pred_from_ws(websocket, data)
+
+    return ws_fn
+
+
+def use_websocket(config, dependency):
+    queue_enabled = config.get("enable_queue", False)
+    queue_uses_websocket = version.parse(
+        config.get("version", "2.0")
+    ) >= version.Version("3.2")
+    dependency_uses_queue = dependency.get("queue", False) is not False
+    return queue_enabled and queue_uses_websocket and dependency_uses_queue
+
+
 def get_spaces_blocks(model_name, config):
     def streamline_config(config: dict) -> dict:
         """Streamlines the blocks config dictionary to fix components that don't render correctly."""
@@ -429,33 +463,42 @@ def get_spaces_blocks(model_name, config):
     config = streamline_config(config)
     api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
+    ws_url = "wss://spaces.huggingface.tech/{}/queue/join".format(model_name)
+
+    ws_fn = get_ws_fn(ws_url)
 
     fns = []
     for d, dependency in enumerate(config["dependencies"]):
         if dependency["backend_fn"]:
 
-            def get_fn(outputs, fn_index):
+            def get_fn(outputs, fn_index, use_ws):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
-                    response = requests.post(api_url, headers=headers, data=data)
-                    result = json.loads(response.content.decode("utf-8"))
-                    try:
+                    if use_ws:
+                        result = utils.synchronize_async(ws_fn, data)
                         output = result["data"]
-                    except KeyError:
-                        if "error" in result and "429" in result["error"]:
-                            raise TooManyRequestsError(
-                                "Too many requests to the Hugging Face API"
+                    else:
+                        response = requests.post(api_url, headers=headers, data=data)
+                        result = json.loads(response.content.decode("utf-8"))
+                        try:
+                            output = result["data"]
+                        except KeyError:
+                            if "error" in result and "429" in result["error"]:
+                                raise TooManyRequestsError(
+                                    "Too many requests to the Hugging Face API"
+                                )
+                            raise KeyError(
+                                f"Could not find 'data' key in response from external Space. Response received: {result}"
                             )
-                        raise KeyError(
-                            f"Could not find 'data' key in response from external Space. Response received: {result}"
-                        )
                     if len(outputs) == 1:
                         output = output[0]
                     return output
 
                 return fn
 
-            fn = get_fn(deepcopy(dependency["outputs"]), d)
+            fn = get_fn(
+                deepcopy(dependency["outputs"]), d, use_websocket(config, dependency)
+            )
             fns.append(fn)
         else:
             fns.append(None)
