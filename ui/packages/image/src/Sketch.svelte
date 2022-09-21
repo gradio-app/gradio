@@ -122,7 +122,7 @@
 		});
 		chain_length = brush_radius;
 
-		canvas_observer = new ResizeObserver((entries, observer) => {
+		canvas_observer = new ResizeObserver((entries, observer, ...rest) => {
 			handle_canvas_resize(entries, observer);
 		});
 		canvas_observer.observe(canvas_container);
@@ -242,7 +242,19 @@
 		}
 	};
 
+	let old_width = 0;
+	let old_height = 0;
+	let old_container_height = 0;
+	let old_img = undefined;
+
 	let handle_canvas_resize = async () => {
+		if (
+			width === old_width &&
+			height === old_height &&
+			old_container_height === container_height
+		) {
+			return;
+		}
 		const dimensions = { width: width, height: height };
 
 		const container_dimensions = {
@@ -261,6 +273,12 @@
 		brush_radius = 20 * (dimensions.width / container_dimensions.width);
 
 		loop({ once: true });
+
+		setTimeout(() => {
+			old_height = height;
+			old_width = width;
+			old_container_height = container_height;
+		}, 100);
 	};
 
 	$: {

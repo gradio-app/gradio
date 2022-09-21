@@ -141,6 +141,12 @@
 	let max_width;
 
 	let static_image = undefined;
+
+	$: {
+		if (value === null || (value.image === null && value.mask === null)) {
+			static_image = undefined;
+		}
+	}
 </script>
 
 <BlockLabel
