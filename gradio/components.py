@@ -1327,7 +1327,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             return x
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
-
         im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -1336,7 +1335,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
-        if self.source == "webcam" and self.mirror_webcam is True:
+        if (
+            self.source == "webcam"
+            and self.mirror_webcam is True
+            and self.tool != "color-sketch"
+        ):
             im = PIL.ImageOps.mirror(im)
 
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:

@@ -13,6 +13,7 @@
 	export let container_height: number;
 	export let img_width: number;
 	export let img_height: number;
+	export let mode: "mask" | "other" = "other";
 
 	$: width = container_height * (img_width / img_height);
 </script>
@@ -33,14 +34,16 @@
 		{/if}
 	</span>
 
-	<span class="absolute top-6 right-0">
-		<IconButton Icon={Color} on:click={() => (show_col = !show_col)} />
-		{#if show_col}
-			<input
-				bind:value={brush_color}
-				class="absolute top-[-3px] right-6"
-				type="color"
-			/>
-		{/if}
-	</span>
+	{#if mode !== "mask"}
+		<span class="absolute top-6 right-0">
+			<IconButton Icon={Color} on:click={() => (show_col = !show_col)} />
+			{#if show_col}
+				<input
+					bind:value={brush_color}
+					class="absolute top-[-3px] right-6"
+					type="color"
+				/>
+			{/if}
+		</span>
+	{/if}
 </div>

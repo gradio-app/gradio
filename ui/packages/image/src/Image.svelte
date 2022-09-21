@@ -52,15 +52,23 @@
 
 	function handle_clear({ detail }: CustomEvent<null>) {
 		value = null;
+		static_image = undefined;
 		dispatch("clear");
 	}
 
-	async function handle_save({ detail }: { detail: string }) {
+	async function handle_save({ detail }: { detail: string }, initial) {
 		if (mode === "mask") {
-			value = {
-				image: typeof value === "string" ? value : value?.image || null,
-				mask: detail
-			};
+			if (source === "webcam" && initial) {
+				value = {
+					image: detail,
+					mask: null
+				};
+			} else {
+				value = {
+					image: typeof value === "string" ? value : value?.image || null,
+					mask: detail
+				};
+			}
 		} else if (
 			(source === "upload" || source === "webcam") &&
 			tool === "sketch"
@@ -100,6 +108,7 @@
 		sketch.clear();
 		await tick();
 		value = null;
+		static_image = undefined;
 	}
 
 	let img_height = 0;
@@ -115,7 +124,10 @@
 			mode = "bw-sketch";
 		} else if (tool === "color-sketch") {
 			mode = "color-sketch";
-		} else if (source === "upload" && tool === "sketch") {
+		} else if (
+			(source === "upload" || source === "webcam") &&
+			tool === "sketch"
+		) {
 			mode = "mask";
 		} else {
 			mode = "editor";
@@ -185,9 +197,10 @@
 					{upload_text}
 				</div>
 			</Upload>
-		{:else if source === "webcam"}
+		{:else if source === "webcam" && !static_image}
 			<Webcam
-				on:capture={handle_save}
+				on:capture={(e) =>
+					tool === "color-sketch" ? handle_upload(e) : handle_save(e, true)}
 				on:stream={handle_save}
 				{streaming}
 				{pending}
@@ -211,7 +224,7 @@
 			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
 		/>
 	{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
-		{#key static_image || value}
+		{#key static_image}
 			<img
 				bind:this={value_img}
 				class="absolute w-full h-full object-contain"
@@ -233,18 +246,20 @@
 				height={img_height || max_height}
 				container_height={container_height || max_height}
 				{value_img}
+				{source}
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
 				on:clear={handle_mask_clear}
 			/>
-			{#if tool === "color-sketch"}
+			{#if tool === "color-sketch" || tool === "sketch"}
 				<SketchSettings
 					bind:brush_radius
 					bind:brush_color
 					container_height={container_height || max_height}
 					img_width={img_width || max_width}
 					img_height={img_height || max_height}
+					{mode}
 				/>
 			{/if}
 		{/if}

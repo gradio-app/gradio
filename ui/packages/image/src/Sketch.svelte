@@ -13,6 +13,7 @@
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
+	export let source;
 
 	export let width = 400;
 	export let height = 200;
@@ -79,11 +80,35 @@
 
 		if (value_img) {
 			value_img.addEventListener("load", (_) => {
-				ctx.temp.drawImage(value_img, 0, 0);
+				if (source === "webcam") {
+					ctx.temp.save();
+					ctx.temp.translate(width, 0);
+					ctx.temp.scale(-1, 1);
+					ctx.temp.drawImage(value_img, 0, 0);
+					ctx.temp.restore();
+				} else {
+					ctx.temp.drawImage(value_img, 0, 0);
+				}
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+
+				trigger_on_change();
 			});
 
 			setTimeout(() => {
-				ctx.temp.drawImage(value_img, 0, 0);
+				if (source === "webcam") {
+					ctx.temp.save();
+					ctx.temp.translate(width, 0);
+					ctx.temp.scale(-1, 1);
+					ctx.temp.drawImage(value_img, 0, 0);
+					ctx.temp.restore();
+				} else {
+					ctx.temp.drawImage(value_img, 0, 0);
+				}
+
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+
+				draw_lines({ lines: lines.slice() });
+				trigger_on_change();
 			}, 100);
 		}
 
@@ -130,8 +155,26 @@
 	export function undo() {
 		const _lines = lines.slice(0, -1);
 		clear();
+
+		if (value_img) {
+			if (source === "webcam") {
+				ctx.temp.save();
+				ctx.temp.translate(width, 0);
+				ctx.temp.scale(-1, 1);
+				ctx.temp.drawImage(value_img, 0, 0);
+				ctx.temp.restore();
+			} else {
+				ctx.temp.drawImage(value_img, 0, 0);
+			}
+
+			if (!lines || !lines.length) {
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+			}
+		}
+
 		draw_lines({ lines: _lines });
 		line_count = lines.length;
+
 		trigger_on_change();
 	}
 
@@ -297,8 +340,7 @@
 
 		ctx.temp.strokeStyle = brush_color;
 		ctx.temp.lineWidth = brush_radius;
-
-		if (!points) return;
+		if (!points || !points.length) return;
 		let p1 = points[0];
 		let p2 = points[1];
 		ctx.temp.moveTo(p2.x, p2.y);
@@ -337,7 +379,7 @@
 
 	let save_mask_line = () => {
 		lines.push({
-			points: points,
+			points: points.slice(),
 			brush_color: "#fff",
 			brush_radius
 		});
@@ -350,10 +392,10 @@
 	};
 
 	let saveLine = () => {
-		if (points.length < 2) return;
+		if (points.length < 1) return;
 
 		lines.push({
-			points: points,
+			points: points.slice(),
 			brush_color: brush_color,
 			brush_radius
 		});
