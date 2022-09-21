@@ -135,7 +135,9 @@ class Block:
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
-            batch_fn: an optional function call with a batch (list) of inputs
+            batch: whether this function takes in a batch of inputs
+            max_batch_size: the maximum batch size to send to the function
+            batch_timeout: the maximum time to wait for a batch to fill up before sending it to the function 
         Returns: None
         """
         # Support for singular parameter
@@ -902,8 +904,6 @@ class Blocks(BlockContext):
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
         max_size: Optional[int] = None,
-        batch_size: Optional[int] = None,
-        batch_timeout: Optional[float] = 1.0,
     ):
         """
         You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
@@ -913,8 +913,6 @@ class Blocks(BlockContext):
             client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
             default_enabled: If True, all event listeners will use queueing by default.
             max_size: Maximum number of jobs that can be queued at once. Jobs beyond this limit simply return an error message to the user asking them to try again. If None, there is no limit.
-            batch_size: If not None, the Queue will process jobs in batches of this size (or unless batch_timeout has been reached).
-            batch_timeout: If a smaller number of jobs than batch_size have been queued within this number of seconds, the Queue will process the jobs in the batch.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
