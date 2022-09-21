@@ -135,7 +135,7 @@ class Block:
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
-            batch_timeout: the maximum time to wait for a batch to fill up before sending it to the function 
+            batch_timeout: the maximum time (in seconds) to wait for a batch to fill up before sending it to the function 
         Returns: None
         """
         # Support for singular parameter
