@@ -115,8 +115,10 @@ export const fn =
 			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 			if (is_space) {
-				const SPACE_REGEX = /embed\/(.*)\/\+\//g;
-				var ws_path = Array.from(ws_endpoint.matchAll(SPACE_REGEX))[0][1];
+				const SPACE_REGEX = /embed\/(.*)\/\+/g;
+				var ws_path = Array.from(
+					ws_endpoint.matchAll(SPACE_REGEX)
+				)[0][1].concat("/");
 				var ws_host = "spaces.huggingface.tech/";
 			} else {
 				var ws_path = location.pathname === "/" ? "/" : location.pathname;
@@ -146,7 +148,6 @@ export const fn =
 
 			websocket.onmessage = async function (event) {
 				const data = JSON.parse(event.data);
-				console.log(data);
 
 				switch (data.msg) {
 					case "send_data":
