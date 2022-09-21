@@ -17,4 +17,4 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Release notes added
         run: |
-          cat website/CHANGELOG.md | grep ":pr:\`${{ github.event.number }}\`"
+          cat website/CHANGELOG.md | grep -w ":pr:${{ github.event.number }}"
