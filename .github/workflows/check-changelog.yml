@@ -1,4 +1,4 @@
-name: changelog-check
+name: check-changelog
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-changelog-updated:
-    name: Check CHANGELOG Updated
+    name: Check CHANGELOG file
     runs-on: ubuntu-latest
     if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-changelog-update') }}
     steps:
@@ -18,15 +18,3 @@ jobs:
       - name: Release notes added
         run: |
           cat website/CHANGELOG.md | grep ":pr:\`${{ github.event.number }}\`"
-      - name: Save PR number
-        if: ${{ failure() }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          mkdir -p ./pr
-          echo $PR_NUMBER > ./pr/pr_number
-      - uses: actions/upload-artifact@v2
-        if: ${{ failure() }}
-        with:
-          name: pr_number
-          path: pr/

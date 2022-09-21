@@ -2,7 +2,7 @@
 
 ## New Features
 
-### 1. New Sketching and inpainting for Images! :pr:`1456` 
+### 1. New Sketching and inpainting for Images! :pr:1456 
 
 ```python
 code here
@@ -24,7 +24,7 @@ to the PR. The `CHANGELOG.md` file is then converted and displayed on our websit
 
 ## Testing and Infrastructure Changes
 
-### 1. Demos now deployed to huggingface spaces :pr:`1600`
+### 1. Demos now deployed to huggingface spaces :pr:1600
 
 ## Breaking Changes
 
@@ -32,8 +32,8 @@ to the PR. The `CHANGELOG.md` file is then converted and displayed on our websit
 
 ## Full Changelog
 
-* Automated release notes :pr:`2307` 
-* Demos now deployed to huggingface spaces :pr:`1600`
+* Automated release notes :pr:2306
+* Demos now deployed to huggingface spaces :pr:1600
 
 ## Contributors Shoutout
 
@@ -99,28 +99,28 @@ gr.Interface.load("models/scikit-learn/tabular-playground").launch()
 
 ## Full Changelog
 
-* safari fixes by @pngwn in :pr:`2138`
-* Fix roundedness and form borders by @aliabid94 in :pr:`2147`
-* Better processing of example data prior to creating dataset component by @freddyaboulton in :pr:`2147`
-* Show error on Connection drops by @aliabid94 in :pr:`2147`
-* 3.2 release! by @abidlabs in :pr:`2139`
-* Fixed Named API Requests by @abidlabs in :pr:`2151`
-* Quick Fix: Cannot upload Model3D image after clearing it by @dawoodkhan82 in :pr:`2168`
-* Fixed misleading log when server_name is '0.0.0.0' by @lamhoangtung in :pr:`2176`
-* Keep embedded PngInfo metadata by @cobryan05 in :pr:`2170`
-* Skops integration: Load tabular classification and regression models from the hub by @freddyaboulton in :pr:`2126`
-* Respect original filename when cached example files are downloaded by @freddyaboulton in :pr:`2145`
-* Add manual trigger to deploy to pypi by @abidlabs in :pr:`2192`
-* Fix bugs with gr.update by @freddyaboulton in :pr:`2157`
-* Make queue per app by @aliabid94 in :pr:`2193`
-* Preserve Labels In Interpretation Components by @freddyaboulton in :pr:`2166`
-* Quick Fix: Multiple file download not working by @dawoodkhan82 in :pr:`2169`
-* use correct MIME type for js-script file by @daspartho in :pr:`2200`
-* Add accordion component by @aliabid94 in :pr:`2208`
+* safari fixes by @pngwn in :pr:2138
+* Fix roundedness and form borders by @aliabid94 in :pr:2147
+* Better processing of example data prior to creating dataset component by @freddyaboulton in :pr:2147
+* Show error on Connection drops by @aliabid94 in :pr:2147
+* 3.2 release! by @abidlabs in :pr:2139
+* Fixed Named API Requests by @abidlabs in :pr:2151
+* Quick Fix: Cannot upload Model3D image after clearing it by @dawoodkhan82 in :pr:2168
+* Fixed misleading log when server_name is '0.0.0.0' by @lamhoangtung in :pr:2176
+* Keep embedded PngInfo metadata by @cobryan05 in :pr:2170
+* Skops integration: Load tabular classification and regression models from the hub by @freddyaboulton in :pr:2126
+* Respect original filename when cached example files are downloaded by @freddyaboulton in :pr:2145
+* Add manual trigger to deploy to pypi by @abidlabs in :pr:2192
+* Fix bugs with gr.update by @freddyaboulton in :pr:2157
+* Make queue per app by @aliabid94 in :pr:2193
+* Preserve Labels In Interpretation Components by @freddyaboulton in :pr:2166
+* Quick Fix: Multiple file download not working by @dawoodkhan82 in :pr:2169
+* use correct MIME type for js-script file by @daspartho in :pr:2200
+* Add accordion component by @aliabid94 in :pr:2208
 
 
 ## Contributors Shoutout
 
-* @lamhoangtung made their first contribution in :pr:`2176`
-* @cobryan05 made their first contribution in :pr:`2170`
-* @daspartho made their first contribution in :pr:`2200`
+* @lamhoangtung made their first contribution in :pr:2176
+* @cobryan05 made their first contribution in :pr:2170
+* @daspartho made their first contribution in :pr:2200
