@@ -1,4 +1,5 @@
 import os
+import tempfile
 from unittest.mock import patch
 
 import pytest
@@ -61,6 +62,7 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_predict_example(self):
@@ -113,12 +115,26 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(1)
         assert prediction[0] == {"lines": 4, "value": "hello", "__type__": "update"}
 
+    @pytest.mark.asyncio
+    async def test_caching_with_dict(self):
+        text = gr.Textbox()
+        out = gr.Label()
 
-def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
-    def foo(a, b):
-        return a + b
+        io = gr.Interface(
+            lambda _: {text: gr.update(lines=4), out: "lion"},
+            "textbox",
+            [text, out],
+            examples=["abc"],
+            cache_examples=True,
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction == [{"lines": 4, "__type__": "update"}, {"label": "lion"}]
 
-    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+    def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
+        def foo(a, b):
+            return a + b
+
         with pytest.warns(
             UserWarning,
             match="^Examples are being cached but not all input components have",

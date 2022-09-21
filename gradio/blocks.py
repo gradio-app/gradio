@@ -40,11 +40,9 @@ set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
-    import mlflow
-    import wandb
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component, IOComponent
 
 
 class Block:
@@ -314,14 +312,33 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(block, update_dict):
+def postprocess_update_dict(block: Block, update_dict: Dict):
     prediction_value = block.get_specific_update(update_dict)
-    if prediction_value.get("value") == components._Keywords.NO_VALUE:
+    if prediction_value.get("value") is components._Keywords.NO_VALUE:
         prediction_value.pop("value")
     prediction_value = delete_none(prediction_value, skip_value=True)
     if "value" in prediction_value:
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
+
+
+def convert_update_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+    keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+    if all(keys_are_blocks):
+        reordered_predictions = [skip() for _ in outputs_ids]
+        for component, value in predictions.items():
+            if component._id not in outputs_ids:
+                return ValueError(
+                    f"Returned component {component} not specified as output of function."
+                )
+            output_index = outputs_ids.index(component._id)
+            reordered_predictions[output_index] = value
+        predictions = utils.resolve_singleton(reordered_predictions)
+    elif any(keys_are_blocks):
+        raise ValueError(
+            "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
+        )
+    return predictions
 
 
 @document("load")
@@ -668,21 +685,10 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
 
         if type(predictions) is dict and len(predictions) > 0:
-            keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
-            if all(keys_are_blocks):
-                reordered_predictions = [skip() for _ in dependency["outputs"]]
-                for component, value in predictions.items():
-                    if component._id not in dependency["outputs"]:
-                        return ValueError(
-                            f"Returned component {component} not specified as output of function."
-                        )
-                    output_index = dependency["outputs"].index(component._id)
-                    reordered_predictions[output_index] = value
-                predictions = utils.resolve_singleton(reordered_predictions)
-            elif any(keys_are_blocks):
-                raise ValueError(
-                    "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
-                )
+            predictions = convert_update_dict_to_list(
+                dependency["outputs"], predictions
+            )
+
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
 

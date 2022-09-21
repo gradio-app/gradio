@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 import anyio
 
 from gradio import utils
-from gradio.blocks import postprocess_update_dict
+from gradio.blocks import convert_update_dict_to_list, postprocess_update_dict
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -274,6 +274,11 @@ class Examples:
             predictions = await self.fn(*processed_input)
         else:
             predictions = await anyio.to_thread.run_sync(self.fn, *processed_input)
+
+        output_ids = [output._id for output in self.outputs]
+        if type(predictions) is dict and len(predictions) > 0:
+            predictions = convert_update_dict_to_list(output_ids, predictions)
+
         if len(self.outputs) == 1:
             predictions = [predictions]
         if not self._api_mode:
