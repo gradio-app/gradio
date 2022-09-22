@@ -67,10 +67,8 @@
 	let is_drawing = false;
 	let is_pressing = false;
 	let lazy = null;
-	let chain_length = null;
 	let canvas_container = null;
 	let canvas_observer = null;
-	let save_data = "";
 	let line_count = 0;
 
 	onMount(async () => {
@@ -115,14 +113,13 @@
 		}
 
 		lazy = new LazyBrush({
-			radius: brush_radius / 1.5,
+			radius: brush_radius * 0.05,
 			enabled: true,
 			initialPoint: {
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2
+				x: width / 2,
+				y: height / 2
 			}
 		});
-		chain_length = brush_radius;
 
 		canvas_observer = new ResizeObserver((entries, observer, ...rest) => {
 			handle_canvas_resize(entries, observer);
@@ -143,8 +140,8 @@
 	function init() {
 		const initX = width / 2;
 		const initY = height / 2;
-		lazy.update({ x: initX - chain_length / 3, y: initY }, { both: true });
-		lazy.update({ x: initX + chain_length / 3, y: initY }, { both: false });
+		lazy.update({ x: initX, y: initY }, { both: true });
+		lazy.update({ x: initX, y: initY }, { both: false });
 		mouse_has_moved = true;
 		values_changed = true;
 	}
@@ -289,9 +286,8 @@
 
 	$: {
 		if (lazy) {
-			chain_length = brush_radius * 2;
 			init();
-			lazy.setRadius(brush_radius / 1.5);
+			lazy.setRadius(brush_radius * 0.05);
 		}
 	}
 
@@ -358,8 +354,6 @@
 		mouse_has_moved = true;
 	};
 
-	// const handle_pointer_move = debounce(base_handle_pointer_move, 1);
-
 	let draw_points = ({ points, brush_color, brush_radius }) => {
 		if (!points || points.length < 2) return;
 		ctx.temp.lineJoin = "round";
@@ -408,15 +402,7 @@
 
 	let save_mask_line = () => {
 		if (points.length < 1) return;
-
-		// mask_lines.push({
-		// 	points: points.slice(),
-		// 	brush_color: "#fff",
-		// 	brush_radius
-		// });
-
 		points.length = 0;
-
 		ctx.mask.drawImage(canvas.temp_fake, 0, 0, width, height);
 
 		trigger_on_change();
@@ -488,7 +474,6 @@
 		}
 	};
 
-	$: catenary_size = brush_radius * 0.15;
 	$: brush_dot = brush_radius * 0.075;
 
 	let draw_interface = (ctx, pointer, brush) => {
@@ -499,22 +484,6 @@
 		ctx.fillStyle = brush_color;
 		ctx.arc(brush.x, brush.y, brush_radius / 2, 0, Math.PI * 2, true);
 		ctx.fill();
-
-		// mouse point dangler
-		ctx.beginPath();
-		ctx.fillStyle = catenary_color;
-		ctx.arc(pointer.x, pointer.y, catenary_size, 0, Math.PI * 2, true);
-		ctx.fill();
-
-		//  catenary
-		if (lazy.isEnabled()) {
-			ctx.beginPath();
-			ctx.lineWidth = 2;
-			ctx.lineCap = "round";
-			ctx.setLineDash([catenary_size, catenary_size * 2]);
-			ctx.strokeStyle = catenary_color;
-			ctx.stroke();
-		}
 
 		// tiny brush point dot
 		ctx.beginPath();
