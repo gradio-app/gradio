@@ -154,7 +154,8 @@
 
 	export function undo() {
 		const _lines = lines.slice(0, -1);
-		clear();
+
+		clear_canvas();
 
 		if (value_img) {
 			if (source === "webcam") {
@@ -173,7 +174,11 @@
 		}
 
 		draw_lines({ lines: _lines });
-		line_count = lines.length;
+		line_count = _lines.length;
+
+		if (lines.length) {
+			lines = _lines;
+		}
 
 		trigger_on_change();
 	}
@@ -189,7 +194,6 @@
 	let draw_lines = ({ lines }) => {
 		lines.forEach((line) => {
 			const { points: _points, brush_color, brush_radius } = line;
-
 			draw_points({
 				points: _points,
 				brush_color,
@@ -205,12 +209,13 @@
 			}
 
 			points = _points;
-			saveLine({ brush_color, brush_radius });
-			if (mode === "mask") {
-				save_mask_line();
-			}
+
 			return;
 		});
+		saveLine({ brush_color, brush_radius });
+		if (mode === "mask") {
+			save_mask_line();
+		}
 	};
 
 	let handle_draw_start = (e) => {
@@ -245,7 +250,6 @@
 	let old_width = 0;
 	let old_height = 0;
 	let old_container_height = 0;
-	let old_img = undefined;
 
 	let handle_canvas_resize = async () => {
 		if (
@@ -352,13 +356,16 @@
 		mouse_has_moved = true;
 	};
 
+	// const handle_pointer_move = debounce(base_handle_pointer_move, 1);
+
 	let draw_points = ({ points, brush_color, brush_radius }) => {
+		if (!points || points.length < 2) return;
 		ctx.temp.lineJoin = "round";
 		ctx.temp.lineCap = "round";
 
 		ctx.temp.strokeStyle = brush_color;
 		ctx.temp.lineWidth = brush_radius;
-		if (!points || !points.length) return;
+		if (!points || points.length < 2) return;
 		let p1 = points[0];
 		let p2 = points[1];
 		ctx.temp.moveTo(p2.x, p2.y);
@@ -375,10 +382,12 @@
 	};
 
 	let draw_fake_points = ({ points, brush_color, brush_radius }) => {
+		if (!points || points.length < 2) return;
+
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		ctx.temp_fake.clearRect(0, 0, width, height);
+		// ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -396,11 +405,13 @@
 	};
 
 	let save_mask_line = () => {
-		lines.push({
-			points: points.slice(),
-			brush_color: "#fff",
-			brush_radius
-		});
+		if (points.length < 1) return;
+
+		// mask_lines.push({
+		// 	points: points.slice(),
+		// 	brush_color: "#fff",
+		// 	brush_radius
+		// });
 
 		points.length = 0;
 
@@ -417,6 +428,7 @@
 			brush_color: brush_color,
 			brush_radius
 		});
+
 		if (mode !== "mask") {
 			points.length = 0;
 		}
@@ -433,6 +445,13 @@
 
 	export function clear() {
 		lines = [];
+		clear_canvas();
+		line_count = 0;
+
+		return true;
+	}
+
+	function clear_canvas() {
 		values_changed = true;
 		ctx.temp.clearRect(0, 0, width, height);
 
@@ -450,10 +469,6 @@
 			ctx.mask.fillStyle = "#000";
 			ctx.mask.fillRect(0, 0, width, height);
 		}
-
-		line_count = 0;
-
-		return true;
 	}
 
 	let loop = ({ once = false } = {}) => {

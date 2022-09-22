@@ -20,11 +20,19 @@ io3b = gr.Interface(
     gr.ImageMask(),
     [gr.Image(), gr.Image()],
 )
+
 io3b2 = gr.Interface(
     lambda x: [x["mask"], x["image"]],
     gr.ImageMask(),
     [gr.Image(), gr.Image()],
 )
+
+io3b3 = gr.Interface(
+    lambda x: [x["mask"], x["image"]],
+    gr.ImageMask(),
+    [gr.Image(), gr.Image()],
+)
+
 io3c = gr.Interface(
     lambda x: [x["mask"], x["image"]],
     gr.Image(source="webcam", tool="sketch"),
@@ -119,9 +127,9 @@ gr.Interface(
     io5c.render()
     md("**Tabs**")
     with gr.Tab("One"):
-        io3b.render()
-    with gr.Tab("Two"):
         io3b2.render()
+    with gr.Tab("Two"):
+        io3b3.render()
 
 
 if __name__ == "__main__":

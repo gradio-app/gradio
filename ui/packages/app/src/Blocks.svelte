@@ -41,7 +41,6 @@
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
 
-	$: console.log(components.filter((x) => x.type === "image"));
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
