@@ -73,10 +73,12 @@
 	let save_data = "";
 	let line_count = 0;
 
-	onMount(() => {
+	onMount(async () => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
 		});
+
+		await tick();
 
 		if (value_img) {
 			value_img.addEventListener("load", (_) => {
