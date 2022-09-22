@@ -99,14 +99,15 @@ def start_server(
     Parameters:
     blocks: The Blocks object to run on the server
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
-    network_interface_address: The address to use for the server network interface. Defaults to the local interface 127.0.0.1. Change it to 0.0.0.0 or an ip address 
-    of a specific network interface if you want the gradio server be available over the network. 
+    network_interface_address: The address to use for the server network interface. Defaults to the local interface 127.0.0.1. Change it to 0.0.0.0 or an ip address of a specific network interface if you want the gradio server be available over the network. 
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
     auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
     ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
     Returns:
+    url_host_name: actual hostname as used for in the user-facing URL
+    network_interface_address: ip address of the internal interface to use to serve the gradio content
     port: the port number the server is running on
     path_to_local_server: the complete address that the local server can be accessed at
     app: the FastAPI app object

@@ -955,8 +955,7 @@ class Blocks(BlockContext):
             prevent_thread_lock: If True, the interface will block the main thread while the server is running.
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
-            network_interface_address: The address to use for the server network interface. Defaults to the local interface 127.0.0.1. Change it to 0.0.0.0 or an ip address 
-            of a specific network interface if you want the gradio server be available over the network. 
+            network_interface_address: The address to use for the server network interface. Defaults to the local interface 127.0.0.1. Change it to 0.0.0.0 or an ip address of a specific network interface if you want the gradio server be available over the network. 
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
             enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
