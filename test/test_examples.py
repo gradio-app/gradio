@@ -1,5 +1,6 @@
 import filecmp
 import os
+import tempfile
 from unittest.mock import patch
 
 import pytest
@@ -80,6 +81,7 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_predict_example(self):
@@ -104,10 +106,8 @@ class TestProcessExamples:
             "text",
             examples=[["World"], ["Dunya"], ["Monde"]],
         )
-        io.launch(prevent_thread_lock=True)
         await io.examples_handler.cache_interface_examples()
         prediction = await io.examples_handler.load_from_cache(1)
-        io.close()
         assert prediction[0] == "Hello Dunya"
 
     @pytest.mark.asyncio
@@ -138,12 +138,49 @@ class TestProcessExamples:
         io.close()
         assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")
 
+    async def test_caching_with_update(self):
+        io = gr.Interface(
+            lambda x: gr.update(visible=False),
+            "text",
+            "image",
+            examples=[["World"], ["Dunya"], ["Monde"]],
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(1)
+        assert prediction[0] == {"visible": False, "__type__": "update"}
 
-def test_raise_helpful_error_message_if_providing_partial_examples(tmp_path):
-    def foo(a, b):
-        return a + b
+    @pytest.mark.asyncio
+    async def test_caching_with_mix_update(self):
+        io = gr.Interface(
+            lambda x: [gr.update(lines=4, value="hello"), "test/test_files/bus.png"],
+            "text",
+            ["text", "image"],
+            examples=[["World"], ["Dunya"], ["Monde"]],
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(1)
+        assert prediction[0] == {"lines": 4, "value": "hello", "__type__": "update"}
 
-    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+    @pytest.mark.asyncio
+    async def test_caching_with_dict(self):
+        text = gr.Textbox()
+        out = gr.Label()
+
+        io = gr.Interface(
+            lambda _: {text: gr.update(lines=4), out: "lion"},
+            "textbox",
+            [text, out],
+            examples=["abc"],
+            cache_examples=True,
+        )
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction == [{"lines": 4, "__type__": "update"}, {"label": "lion"}]
+
+    def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
+        def foo(a, b):
+            return a + b
+
         with pytest.warns(
             UserWarning,
             match="^Examples are being cached but not all input components have",
