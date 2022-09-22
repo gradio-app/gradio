@@ -282,6 +282,8 @@
 			old_width = width;
 			old_container_height = container_height;
 		}, 100);
+
+		clear();
 	};
 
 	$: {
