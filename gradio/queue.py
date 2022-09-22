@@ -220,49 +220,61 @@ class Queue:
         return response
 
     async def process_event(self, event: Event) -> None:
-        client_awake = await self.gather_event_data(event)
-        if not client_awake:
-            return
-        client_awake = await self.send_message(event, {"msg": "process_starts"})
-        if not client_awake:
-            return
-        begin_time = time.time()
-        response = await self.call_prediction(event)
-        if response.json.get("is_generating", False):
-            while response.json.get("is_generating", False):
-                old_response = response
+        try:
+            client_awake = await self.gather_event_data(event)
+            if not client_awake:
+                return
+            client_awake = await self.send_message(event, {"msg": "process_starts"})
+            if not client_awake:
+                return
+            begin_time = time.time()
+            response = await self.call_prediction(event)
+            if response.has_exception:
                 await self.send_message(
                     event,
                     {
-                        "msg": "process_generating",
+                        "msg": "process_completed",
+                        "output": {"error": str(response.exception)},
+                        "success": False,
+                    },
+                )
+            elif response.json.get("is_generating", False):
+                while response.json.get("is_generating", False):
+                    old_response = response
+                    await self.send_message(
+                        event,
+                        {
+                            "msg": "process_generating",
+                            "output": old_response.json,
+                            "success": old_response.status == 200,
+                        },
+                    )
+                    response = await self.call_prediction(event)
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_completed",
                         "output": old_response.json,
                         "success": old_response.status == 200,
                     },
                 )
-                response = await self.call_prediction(event)
-            await self.send_message(
-                event,
-                {
-                    "msg": "process_completed",
-                    "output": old_response.json,
-                    "success": old_response.status == 200,
-                },
-            )
-        else:
-            await self.send_message(
-                event,
-                {
-                    "msg": "process_completed",
-                    "output": response.json,
-                    "success": response.status == 200,
-                },
-            )
-        end_time = time.time()
-        if response.status == 200:
-            self.update_estimation(end_time - begin_time)
-
-        await event.disconnect()
-        await self.clean_event(event)
+            else:
+                await self.send_message(
+                    event,
+                    {
+                        "msg": "process_completed",
+                        "output": response.json,
+                        "success": response.status == 200,
+                    },
+                )
+            end_time = time.time()
+            if response.status == 200:
+                self.update_estimation(end_time - begin_time)
+        finally:
+            try:
+                await event.disconnect()
+            finally:
+                await self.clean_event(event)
 
     async def send_message(self, event, data: Dict) -> bool:
         try:
