@@ -33,6 +33,7 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
+import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
@@ -1176,11 +1177,11 @@ class Dropdown(Radio):
         )
 
 
-@document("edit", "clear", "change", "stream", "change")
+@document("edit", "clear", "change", "stream", "change", "style")
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
@@ -1195,7 +1196,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
-        tool: str = "editor",
+        tool: str = None,
         type: str = "numpy",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1213,7 +1214,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
+            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1229,7 +1230,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self.image_mode = image_mode
         self.source = source
         requires_permissions = source == "webcam"
-        self.tool = tool
+        if tool is None:
+            self.tool = "sketch" if source == "canvas" else "editor"
+        else:
+            self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
@@ -1280,9 +1284,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def _format_image(
-        self, im: Optional[PIL.Image], fmt: str
+        self, im: Optional[PIL.Image]
     ) -> np.array | PIL.Image | str | None:
         """Helper method to format an image based on self.type"""
+        fmt = im.format
         if im is None:
             return im
         if self.type == "pil":
@@ -1315,17 +1320,15 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
     def preprocess(self, x: str | Dict) -> np.array | PIL.Image | str | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
         Returns:
-            image in requested format
+            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
         if x is None:
             return x
-        if self.tool == "sketch":
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
-
         im = processing_utils.decode_base64_to_image(x)
-        fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -1333,18 +1336,21 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
-        if self.source == "webcam" and self.mirror_webcam is True:
+        if (
+            self.source == "webcam"
+            and self.mirror_webcam is True
+            and self.tool != "color-sketch"
+        ):
             im = PIL.ImageOps.mirror(im)
 
-        if not (self.tool == "sketch"):
-            return self._format_image(im, fmt)
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
+            mask_im = processing_utils.decode_base64_to_image(mask)
+            return {
+                "image": self._format_image(im),
+                "mask": self._format_image(mask_im),
+            }
 
-        mask_im = processing_utils.decode_base64_to_image(mask)
-        mask_fmt = mask_im.format
-        return {
-            "image": self._format_image(im, fmt),
-            "mask": self._format_image(mask_im, mask_fmt),
-        }
+        return self._format_image(im)
 
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
@@ -1489,8 +1495,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1510,8 +1516,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
@@ -1949,8 +1955,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1972,8 +1978,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
     def style(
@@ -3303,7 +3309,7 @@ class Gallery(IOComponent):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
+        grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
     ):
@@ -3311,6 +3317,7 @@ class Gallery(IOComponent):
         This method can be used to change the appearance of the gallery component.
         Parameters:
             rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
         """
