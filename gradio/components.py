@@ -3335,10 +3335,11 @@ class Gallery(IOComponent):
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
         for img_data in x:
-            prefix = None
             if isinstance(img_data, list) or isinstance(img_data, tuple):
                 img_data, caption = img_data
                 prefix = f"[{utils.make_valid_filename(caption)}]-"
+            else:
+                prefix = None
             processing_utils.decode_base64_to_file(
                 img_data, dir=save_dir, encryption_key=encryption_key, prefix=prefix
             )
