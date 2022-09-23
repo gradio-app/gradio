@@ -649,6 +649,28 @@ class Blocks(BlockContext):
             processed_input = raw_input
         return processed_input
 
+    async def call_batch_function(self, fn_index, processed_input_batch):
+        block_fn = self.fns[fn_index]
+        start = time.time()
+        
+        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(block_fn.fn):
+            raise ValueError("Gradio does not support generators in batch mode.")
+        
+        if inspect.iscoroutinefunction(block_fn.fn):
+            prediction = await block_fn.fn(processed_input_batch)
+        else:
+            prediction = await anyio.to_thread.run_sync(
+                block_fn.fn, processed_input_batch, limiter=self.limiter
+            )
+
+        duration = time.time() - start
+        
+        return {
+            "predictions": predictions,
+            "duration": duration,
+        }
+        
+
     async def call_function(self, fn_index, processed_input, iterator=None):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
@@ -731,7 +753,7 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Optional[Dict[int, Any]] = None,
+        state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] = None,
     ) -> Dict[str, Any]:
         """
@@ -744,20 +766,34 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
+        batch = self.dependencies[fn_index]["batch"]
 
-        inputs = self.preprocess_data(fn_index, inputs, state)
-        iterator = iterators.get(fn_index, None)
+        if batch:
+            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
+            batch_size = len(inputs)
+            assert batch_size <= max_batch_size, f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+            
+            input_batch = [self.preprocess_data(fn_index, i, state) for i in inputs]
+            result = await self.call_batch_function(fn_index, input_batch)
+            predictions = result["predictions"]
+            predictions = [self.postprocess(fn_index, o, state) for o in predictions] 
+            is_generating, iterator = None, None
+            
+        else:
+            inputs = self.preprocess_data(fn_index, inputs, state)
+            iterator = iterators.get(fn_index, None)
 
-        result = await self.call_function(fn_index, inputs, iterator)
-        block_fn.total_runtime += result["duration"]
-        block_fn.total_runs += 1
+            result = await self.call_function(fn_index, inputs, iterator)
+            block_fn.total_runtime += result["duration"]
+            block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, result["prediction"], state)
-
+            predictions = self.postprocess_data(fn_index, result["prediction"], state)
+            is_generating, iterator = result["is_generating"], result["iterator"]
+            
         return {
             "data": predictions,
-            "is_generating": result["is_generating"],
-            "iterator": result["iterator"],
+            "is_generating": is_generating,
+            "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
