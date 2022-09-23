@@ -554,26 +554,25 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         block_fn = self.fns[fn_index]
 
+        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+            block_fn.fn
+        ):
+            raise ValueError("Cannot __call__ this if function is a generator.")
+
         processed_input = []
         for i, input_id in enumerate(dependency["inputs"]):
             block = self.blocks[input_id]
             if getattr(block, "stateful", False):
                 raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the inputs are stateful."
+                    "Cannot __call__ this if any of the inputs are stateful."
                 )
             else:
                 serialized_input = block.serialize(params[i])
                 processed_input.append(serialized_input)
 
-        processed_input = self.preprocess_data(fn_index, processed_input, None)
-
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-        else:
-            predictions = block_fn.fn(*processed_input)
-
-        predictions = self.postprocess_data(fn_index, predictions, None)
+        predictions = utils.synchronize_async(
+            self.process_api, fn_index, *processed_input
+        )
 
         output_copy = copy.deepcopy(predictions)
         predictions = []
@@ -659,9 +658,9 @@ class Blocks(BlockContext):
             raise ValueError("Gradio does not support generators in batch mode.")
 
         if inspect.iscoroutinefunction(block_fn.fn):
-            prediction = await block_fn.fn(processed_input_batch)
+            predictions = await block_fn.fn(processed_input_batch)
         else:
-            prediction = await anyio.to_thread.run_sync(
+            predictions = await anyio.to_thread.run_sync(
                 block_fn.fn, processed_input_batch, limiter=self.limiter
             )
 
