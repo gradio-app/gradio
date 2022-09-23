@@ -314,7 +314,7 @@ class App(FastAPI):
                 ws_url = urlparse(str(websocket.url))
                 scheme = "http" if ws_url.scheme == "ws" else "https"
                 port = f":{ws_url.port}" if ws_url.port else ""
-                predict_endpoint = f"{scheme}://{ws_url.hostname}:{port}{ws_url.path.replace('queue/join', '')}"
+                predict_endpoint = f"{scheme}://{ws_url.hostname}{port}{ws_url.path.replace('queue/join', '')}"
                 print(f"New endpoint: {predict_endpoint}")
                 app.blocks._queue.set_url(predict_endpoint)
 
