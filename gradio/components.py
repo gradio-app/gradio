@@ -17,7 +17,6 @@ import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
-from sys import prefix
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
