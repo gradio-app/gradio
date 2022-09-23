@@ -11,6 +11,7 @@ import numbers
 import operator
 import os
 import random
+from sys import prefix
 import tempfile
 import uuid
 import warnings
@@ -3327,15 +3328,27 @@ class Gallery(IOComponent):
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
         for img_data in x:
-            ImgSerializable.deserialize(self, img_data, gallery_path)
+            prefix = None
+            if isinstance(img_data, list) or isinstance(img_data, tuple):
+                img_data, caption = img_data
+                prefix = f"[{utils.make_valid_filename(caption)}]-"
+            processing_utils.decode_base64_to_file(
+                x, dir=save_dir, encryption_key=encryption_key, prefix=prefix
+            )
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
+            caption = None
+            if file.startswith("[") and "]" in file:
+                caption = file[1:file.index("]")]            
             img = ImgSerializable.serialize(self, file_path)
-            files.append(img)
+            if caption:
+                files.append([img, caption])
+            else:
+                files.append(img)
         return files
 
 

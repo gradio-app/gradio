@@ -35,6 +35,7 @@ import fsspec.asyn
 import httpx
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
+import string
 
 import gradio
 
@@ -679,3 +680,11 @@ def validate_url(possible_url: str) -> bool:
     except Exception:
         pass
     return False
+
+
+def is_update(val):
+    return type(val) is dict and "update" in val.get("__type__", "")
+
+def make_valid_filename(name):
+    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    return ''.join(c for c in name if c in valid_chars)
