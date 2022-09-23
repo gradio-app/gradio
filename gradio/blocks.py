@@ -575,7 +575,7 @@ class Blocks(BlockContext):
         )["data"]
 
         output_copy = copy.deepcopy(predictions)
-        
+
         predictions = []
         for o, output_id in enumerate(dependency["outputs"]):
             block = self.blocks[output_id]

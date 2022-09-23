@@ -338,8 +338,8 @@ class TestCallFunction:
         output = await demo.call_function(0, ["World"])
         assert output["prediction"] == "Hello, World"
         output = demo("World")
-        assert output == "Hello, World"        
-        
+        assert output == "Hello, World"
+
         output = await demo.call_function(0, ["Abubakar"])
         assert output["prediction"] == "Hello, Abubakar"
 
@@ -363,12 +363,12 @@ class TestCallFunction:
         output = await demo.call_function(0, ["World"])
         assert output["prediction"] == "Hello, World"
         output = demo("World")
-        assert output == "Hello, World"        
+        assert output == "Hello, World"
 
         output = await demo.call_function(1, ["World"])
         assert output["prediction"] == "Hi, World"
         output = demo("World", fn_index=1)  # fn_index must be a keyword argument
-        assert output == "Hi, World"        
+        assert output == "Hi, World"
 
     @pytest.mark.asyncio
     async def test_call_generator(self):
