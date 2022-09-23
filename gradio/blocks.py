@@ -11,7 +11,17 @@ import time
 import warnings
 import webbrowser
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+)
 
 import anyio
 import requests
@@ -544,52 +554,6 @@ class Blocks(BlockContext):
 
         return blocks
 
-    def __call__(self, *params, fn_index=0):
-        """
-        Allows Blocks objects to be called as functions
-        Parameters:
-        *params: the parameters to pass to the function
-        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
-        """
-        dependency = self.dependencies[fn_index]
-        block_fn = self.fns[fn_index]
-
-        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
-            block_fn.fn
-        ):
-            raise ValueError("Cannot __call__ this if function is a generator.")
-
-        processed_input = []
-        for i, input_id in enumerate(dependency["inputs"]):
-            block = self.blocks[input_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot __call__ this if any of the inputs are stateful."
-                )
-            else:
-                serialized_input = block.serialize(params[i])
-                processed_input.append(serialized_input)
-
-        predictions = utils.synchronize_async(
-            self.process_api, fn_index, processed_input
-        )["data"]
-
-        output_copy = copy.deepcopy(predictions)
-
-        predictions = []
-        for o, output_id in enumerate(dependency["outputs"]):
-            block = self.blocks[output_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the outputs are stateful."
-                )
-            else:
-                deserialized = block.deserialize(output_copy[o])
-                predictions.append(deserialized)
-
-        return utils.resolve_singleton(predictions)
-
     def __str__(self):
         return self.__repr__()
 
@@ -633,46 +597,63 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
-    def preprocess_data(self, fn_index, raw_input, state):
-        block_fn = self.fns[fn_index]
+    def is_callable(self, fn_index: int = 0) -> bool:
+        """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
         dependency = self.dependencies[fn_index]
-
-        if block_fn.preprocess:
-            processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
-                else:
-                    processed_input.append(block.preprocess(raw_input[i]))
-        else:
-            processed_input = raw_input
-        return processed_input
-
-    async def call_batch_function(self, fn_index, processed_input_batch):
         block_fn = self.fns[fn_index]
-        start = time.time()
 
-        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
-            block_fn.fn
-        ):
-            raise ValueError("Gradio does not support generators in batch mode.")
+        if inspect.isasyncgenfunction(block_fn.fn):
+            return False
+        if inspect.isgeneratorfunction(block_fn.fn):
+            raise False
+        for input_id in dependency["inputs"]:
+            block = self.blocks[input_id]
+            if getattr(block, "stateful", False):
+                return False
+        for output_id in dependency["outputs"]:
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                return False
 
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = await block_fn.fn(processed_input_batch)
-        else:
-            predictions = await anyio.to_thread.run_sync(
-                block_fn.fn, processed_input_batch, limiter=self.limiter
+        return True
+
+    def __call__(self, *inputs, fn_index: int = 0):
+        """
+        Allows Blocks objects to be called as functions
+        Parameters:
+        *params: the parameters to pass to the function
+        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        """
+        if not (self.is_callable(fn_index)):
+            raise ValueError(
+                "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
             )
 
-        duration = time.time() - start
+        batch = self.dependencies[fn_index]["batch"]
 
-        return {
-            "predictions": predictions,
-            "duration": duration,
-        }
+        if batch:
+            processed_inputs = [self.serialize_data(fn_index, i) for i in inputs]
+        else:
+            processed_inputs = self.serialize_data(fn_index, inputs)
 
-    async def call_function(self, fn_index, processed_input, iterator=None):
+        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)[
+            "data"
+        ]
+
+        if batch:
+            processed_outputs = [self.deserialize_data(fn_index, o) for o in outputs]
+        else:
+            processed_outputs = self.deserialize_data(fn_index, outputs)
+            processed_outputs = utils.resolve_singleton(processed_outputs)
+
+        return processed_outputs
+
+    async def call_function(
+        self,
+        fn_index: int,
+        processed_input: List[Any],
+        iterator: Iterator[Any] | None = None,
+    ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
@@ -714,7 +695,74 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    def postprocess_data(self, fn_index, predictions, state):
+    async def call_batch_function(
+        self,
+        fn_index: int,
+        processed_input_batch: List[List[Any]],
+    ):
+        block_fn = self.fns[fn_index]
+        start = time.time()
+
+        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+            block_fn.fn
+        ):
+            raise ValueError("Gradio does not support generators in batch mode.")
+
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = await block_fn.fn(processed_input_batch)
+        else:
+            predictions = await anyio.to_thread.run_sync(
+                block_fn.fn, processed_input_batch, limiter=self.limiter
+            )
+
+        duration = time.time() - start
+
+        return {
+            "predictions": predictions,
+            "duration": duration,
+        }
+
+    def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        processed_input = []
+
+        for i, input_id in enumerate(dependency["inputs"]):
+            block: IOComponent = self.blocks[input_id]
+            serialized_input = block.serialize(inputs[i])
+            processed_input.append(serialized_input)
+
+        return processed_input
+
+    def deserialize_data(self, fn_index: int, outputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        predictions = []
+
+        for o, output_id in enumerate(dependency["outputs"]):
+            block: IOComponent = self.blocks[output_id]
+            deserialized = block.deserialize(outputs[o])
+            predictions.append(deserialized)
+
+        return predictions
+
+    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+
+        if block_fn.preprocess:
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block: IOComponent = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(inputs[i]))
+        else:
+            processed_input = inputs
+        return processed_input
+
+    def postprocess_data(
+        self, fn_index: int, predictions: List[Any], state: Dict[int, Any]
+    ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -770,6 +818,7 @@ class Blocks(BlockContext):
         batch = self.dependencies[fn_index]["batch"]
 
         if batch:
+            print(">>>", len(inputs), inputs)
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_size = len(inputs)
             assert (
@@ -783,6 +832,7 @@ class Blocks(BlockContext):
             is_generating, iterator = None, None
 
         else:
+            print(">>>no")
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
 

@@ -438,6 +438,22 @@ class TestCallFunction:
         assert output["prediction"] == (0, 3)
 
 
+class TestCallBatchFunction:
+    async def test_call_regular_function(self):
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(lambda x: "Hello, " + x, inputs=text, outputs=text, batch=True)
+
+        output = await demo.call_function(0, ["World"])
+        assert output["prediction"] == "Hello, World"
+        output = demo("World")
+        assert output == "Hello, World"
+
+        output = await demo.call_function(0, ["Abubakar"])
+        assert output["prediction"] == "Hello, Abubakar"
+
+
 class TestSpecificUpdate:
     def test_without_update(self):
         with pytest.raises(KeyError):
