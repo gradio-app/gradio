@@ -571,10 +571,11 @@ class Blocks(BlockContext):
                 processed_input.append(serialized_input)
 
         predictions = utils.synchronize_async(
-            self.process_api, fn_index, *processed_input
-        )
+            self.process_api, fn_index, processed_input
+        )["data"]
 
         output_copy = copy.deepcopy(predictions)
+        
         predictions = []
         for o, output_id in enumerate(dependency["outputs"]):
             block = self.blocks[output_id]
@@ -783,7 +784,7 @@ class Blocks(BlockContext):
 
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
-            iterator = iterators.get(fn_index, None)
+            iterator = iterators.get(fn_index, None) if iterators else None
 
             result = await self.call_function(fn_index, inputs, iterator)
             block_fn.total_runtime += result["duration"]
