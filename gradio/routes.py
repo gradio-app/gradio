@@ -314,7 +314,7 @@ class App(FastAPI):
                 ws_url = urlparse(str(websocket.url))
                 scheme = "http" if ws_url.scheme == "ws" else "https"
                 port = f":{ws_url.port}" if ws_url.port else ""
-                predict_endpoint = f"{scheme}://{ws_url.hostname}:{ws_url.port}{ws_url.path.replace('queue/join', '')}"
+                predict_endpoint = f"{scheme}://{ws_url.hostname}:{port}{ws_url.path.replace('queue/join', '')}"
                 print(f"New endpoint: {predict_endpoint}")
                 app.blocks._queue.set_url(predict_endpoint)
 
@@ -405,9 +405,6 @@ def mount_gradio_app(
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.blocks.enable_queue:
-            #gradio_app.blocks._queue.set_url(
-            #    urljoin(f"http://{server_name}:{port}", f"{path}" + "/")
-            #)
             gradio_app.blocks.startup_events()
 
     app.mount(path, gradio_app)

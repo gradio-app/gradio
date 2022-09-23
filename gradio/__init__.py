@@ -57,6 +57,7 @@ from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.mix import Parallel, Series
+from gradio.routes import mount_gradio_app
 from gradio.templates import (
     Files,
     Highlight,
@@ -75,7 +76,6 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
-from gradio.routes import mount_gradio_app
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version
