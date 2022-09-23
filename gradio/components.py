@@ -11,13 +11,13 @@ import numbers
 import operator
 import os
 import random
-from sys import prefix
 import tempfile
 import uuid
 import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
+from sys import prefix
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
@@ -3340,7 +3340,7 @@ class Gallery(IOComponent):
                 img_data, caption = img_data
                 prefix = f"[{utils.make_valid_filename(caption)}]-"
             processing_utils.decode_base64_to_file(
-                x, dir=save_dir, encryption_key=encryption_key, prefix=prefix
+                img_data, dir=save_dir, encryption_key=encryption_key, prefix=prefix
             )
         return os.path.abspath(gallery_path)
 
@@ -3350,7 +3350,7 @@ class Gallery(IOComponent):
             file_path = os.path.join(x, file)
             caption = None
             if file.startswith("[") and "]" in file:
-                caption = file[1:file.index("]")]            
+                caption = file[1 : file.index("]")]
             img = ImgSerializable.serialize(self, file_path)
             if caption:
                 files.append([img, caption])

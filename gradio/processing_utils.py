@@ -243,7 +243,9 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None, prefix=None):
+def decode_base64_to_file(
+    encoding, encryption_key=None, file_path=None, dir=None, prefix=None
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
