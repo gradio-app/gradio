@@ -311,12 +311,9 @@ class App(FastAPI):
         async def join_queue(websocket: WebSocket):
             if app.blocks._queue.server_path is None:
                 print(f"WS: {str(websocket.url)}")
-                ws_url = urlparse(str(websocket.url))
-                scheme = "http" if ws_url.scheme == "ws" else "https"
-                port = f":{ws_url.port}" if ws_url.port else ""
-                predict_endpoint = f"{scheme}://{ws_url.hostname}{port}{ws_url.path.replace('queue/join', '')}"
-                print(f"New endpoint: {predict_endpoint}")
-                app.blocks._queue.set_url(predict_endpoint)
+                app_url = get_server_url_from_ws_url(str(websocket.url))
+                print(f"Server URL: {app_url}")
+                app.blocks._queue.set_url(app_url)
 
             await websocket.accept()
             event = Event(websocket)
@@ -389,18 +386,25 @@ def get_types(cls_set: List[Type]):
     return docset, types
 
 
+def get_server_url_from_ws_url(ws_url: str):
+    ws_url = urlparse(ws_url)
+    scheme = "http" if ws_url.scheme == "ws" else "https"
+    port = f":{ws_url.port}" if ws_url.port else ""
+    return f"{scheme}://{ws_url.hostname}{port}{ws_url.path.replace('queue/join', '')}"
+
+
 def mount_gradio_app(
-    app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str
+    app: fastapi.FastAPI, blocks: gradio.Blocks, path: str
 ) -> fastapi.FastAPI:
     """Mount a gradio application (created with gr.routes.App.create_app(block)) to an existing FastAPI application.
 
     Parameters:
         app: The parent FastAPI application.
-        gradio_app: The gradio application we are mounting on `app`.
-        server_name: The host where the FastAPI application will run. Must match the value of uvicorn --host (or whatever) server you use to run the app.
-        port: The port where the application will run.
+        blocks: The blocks application we want to moung
         path: The path at which the gradio application will be mounted.
     """
+
+    gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
     async def start_queue():
