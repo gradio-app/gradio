@@ -135,7 +135,7 @@ class Block:
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
-            batch_timeout: the maximum time (in seconds) to wait for a batch to fill up before sending it to the function 
+            batch_timeout: the maximum time (in seconds) to wait for a batch to fill up before sending it to the function
         Returns: None
         """
         # Support for singular parameter
@@ -170,7 +170,7 @@ class Block:
             "show_progress": show_progress,
             "batch": batch,
             "max_batch_size": max_batch_size,
-            "batch_timeout": batch_timeout
+            "batch_timeout": batch_timeout,
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -652,10 +652,12 @@ class Blocks(BlockContext):
     async def call_batch_function(self, fn_index, processed_input_batch):
         block_fn = self.fns[fn_index]
         start = time.time()
-        
-        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(block_fn.fn):
+
+        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+            block_fn.fn
+        ):
             raise ValueError("Gradio does not support generators in batch mode.")
-        
+
         if inspect.iscoroutinefunction(block_fn.fn):
             prediction = await block_fn.fn(processed_input_batch)
         else:
@@ -664,12 +666,11 @@ class Blocks(BlockContext):
             )
 
         duration = time.time() - start
-        
+
         return {
             "predictions": predictions,
             "duration": duration,
         }
-        
 
     async def call_function(self, fn_index, processed_input, iterator=None):
         """Calls and times function with given index and preprocessed input."""
@@ -771,14 +772,16 @@ class Blocks(BlockContext):
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_size = len(inputs)
-            assert batch_size <= max_batch_size, f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
-            
+            assert (
+                batch_size <= max_batch_size
+            ), f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+
             input_batch = [self.preprocess_data(fn_index, i, state) for i in inputs]
             result = await self.call_batch_function(fn_index, input_batch)
             predictions = result["predictions"]
-            predictions = [self.postprocess(fn_index, o, state) for o in predictions] 
+            predictions = [self.postprocess(fn_index, o, state) for o in predictions]
             is_generating, iterator = None, None
-            
+
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None)
@@ -789,7 +792,7 @@ class Blocks(BlockContext):
 
             predictions = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
-            
+
         return {
             "data": predictions,
             "is_generating": is_generating,
