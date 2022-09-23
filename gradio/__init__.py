@@ -75,7 +75,7 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
-from gradio.utils import mount_gradio_app
+from gradio.routes import mount_gradio_app
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version

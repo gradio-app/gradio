@@ -27,11 +27,9 @@ from typing import (
     Tuple,
     Type,
 )
-from urllib.parse import urljoin
 
 import aiohttp
 import analytics
-import fastapi
 import fsspec.asyn
 import httpx
 import requests
@@ -42,7 +40,6 @@ import gradio
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
     from gradio.components import Component
-    from gradio.routes import App
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -315,8 +312,6 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     Returns:
     cls: the component class
     """
-    import gradio.components
-    import gradio.layouts
     import gradio.templates
 
     components = [
@@ -682,26 +677,3 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-def mount_gradio_app(
-    app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str
-) -> fastapi.FastAPI:
-    """Mount a gradio application (created with gr.routes.App.create_app(block)) to an existing FastAPI application.
-
-    Parameters:
-        app: The parent FastAPI application.
-        gradio_app: The gradio application we are mounting on `app`.
-        server_name: The host where the FastAPI application will run. Must match the value of uvicorn --host (or whatever) server you use to run the app.
-        port: The port where the application will run.
-        path: The path at which the gradio application will be mounted.
-    """
-
-    @app.on_event("startup")
-    async def start_queue():
-        if gradio_app.blocks.enable_queue:
-            gradio_app.blocks._queue.set_url(
-                urljoin(f"http://{server_name}:{port}", f"{path}" + "/")
-            )
-            gradio_app.blocks.startup_events()
-
-    app.mount(path, gradio_app)
-    return app

@@ -14,7 +14,9 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
+from urllib.parse import urljoin, urlparse
 
+import fastapi
 import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -307,6 +309,15 @@ class App(FastAPI):
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
+            if app.blocks._queue.server_path is None:
+                print(f"WS: {str(websocket.url)}")
+                ws_url = urlparse(str(websocket.url))
+                scheme = "http" if ws_url.scheme == "ws" else "https"
+                port = f":{ws_url.port}" if ws_url.port else ""
+                predict_endpoint = f"{scheme}://{ws_url.hostname}:{ws_url.port}{ws_url.path.replace('queue/join', '')}"
+                print(f"New endpoint: {predict_endpoint}")
+                app.blocks._queue.set_url(predict_endpoint)
+
             await websocket.accept()
             event = Event(websocket)
             rank = app.blocks._queue.push(event)
@@ -376,3 +387,28 @@ def get_types(cls_set: List[Type]):
                 types.append(line.split("value (")[1].split(")")[0])
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
+
+
+def mount_gradio_app(
+    app: fastapi.FastAPI, gradio_app: App, server_name: str, port: str, path: str
+) -> fastapi.FastAPI:
+    """Mount a gradio application (created with gr.routes.App.create_app(block)) to an existing FastAPI application.
+
+    Parameters:
+        app: The parent FastAPI application.
+        gradio_app: The gradio application we are mounting on `app`.
+        server_name: The host where the FastAPI application will run. Must match the value of uvicorn --host (or whatever) server you use to run the app.
+        port: The port where the application will run.
+        path: The path at which the gradio application will be mounted.
+    """
+
+    @app.on_event("startup")
+    async def start_queue():
+        if gradio_app.blocks.enable_queue:
+            #gradio_app.blocks._queue.set_url(
+            #    urljoin(f"http://{server_name}:{port}", f"{path}" + "/")
+            #)
+            gradio_app.blocks.startup_events()
+
+    app.mount(path, gradio_app)
+    return app
