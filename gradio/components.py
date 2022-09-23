@@ -3340,7 +3340,7 @@ class Gallery(IOComponent):
             else:
                 prefix = None
             processing_utils.decode_base64_to_file(
-                img_data, dir=save_dir, encryption_key=encryption_key, prefix=prefix
+                img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
             )
         return os.path.abspath(gallery_path)
 
