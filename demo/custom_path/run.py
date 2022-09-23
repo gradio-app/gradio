@@ -12,7 +12,7 @@ def read_main():
 
 
 io = gr.Interface(lambda x: "Hello, " + x + "!", "textbox", "textbox")
-app = gr.mount_gradio_app(app, io, path="/gradio")
+app = gr.mount_gradio_app(app, io, path=CUSTOM_PATH)
 
 
 # Run this from the terminal as you would normally start a FastAPI app: `uvicorn run:app`

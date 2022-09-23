@@ -402,7 +402,7 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: Optional[str],
+    gradio_api_url: Optional[str] = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -411,6 +411,16 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+    Example:
+        from fastapi import FastAPI
+        import gradio as gr
+        app = FastAPI()
+        @app.get("/")
+        def read_main():
+            return {"message": "This is your main app"}
+        io = gr.Interface(lambda x: "Hello, " + x + "!", "textbox", "textbox")
+        app = gr.mount_gradio_app(app, io, path="/gradio")
+        # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
 
     gradio_app = App.create_app(blocks)
