@@ -15,5 +15,5 @@ elif [[ $OUTPUT == *"NO CHANGES"* ]]; then
   :
 else 
     LATEST=$(git log -1 | fgrep commit)$(git log -1 | tail -1)
-    curl -X POST -H 'Content-type: application/json' --data '{"text":"gradio.app relaoded successfully! :ship:\n\n Latest live commit:\n>`'"${LATEST}"'`"}' ${SLACK_WEBHOOK}
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"gradio.app reloaded successfully! :ship:\n\n Latest live commit:\n>`'"${LATEST}"'`"}' ${SLACK_WEBHOOK}
 fi
