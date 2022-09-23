@@ -1130,13 +1130,13 @@ class Blocks(BlockContext):
                         time.sleep(1)
                     display(
                         HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
                 else:
                     display(
                         HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
             except ImportError:
