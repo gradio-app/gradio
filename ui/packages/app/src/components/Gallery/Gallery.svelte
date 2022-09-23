@@ -108,7 +108,7 @@
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute group inset-0 z-20 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur h-full"
+				class="absolute group inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur h-full"
 				class:min-h-[350px]={style.height !== "auto"}
 				class:max-h-[55vh]={style.height !== "auto"}
 				class:xl:min-h-[450px]={style.height !== "auto"}
@@ -117,14 +117,17 @@
 
 				<img
 					on:click={() => (selected_image = next)}
-					class="w-full object-contain h-[calc(100%-50px)]"
+					class="w-full object-contain"
+					class:h-[calc(100%-80px)]={_value[selected_image][1] !== null}
+					class:h-[calc(100%-60px)]={_value[selected_image][1] === null}
 					src={_value[selected_image][0]}
-					alt=""
+					alt={_value[selected_image][1] || ""}
+					title={_value[selected_image][1] || null}
 				/>
 				{#if _value[selected_image][1]}
-					<div class="bottom-[70px] absolute z-40 flex justify-center w-full">
+					<div class="bottom-[50px] absolute z-[5] flex justify-center w-full">
 						<div
-							class="bg-gray-100 dark:bg-gray-600 font-semibold p-2 rounded group-hover:opacity-70 transition-opacity"
+							class=" dark:text-gray-200 font-semibold px-3 py-1 max-w-full truncate"
 						>
 							{_value[selected_image][1]}
 						</div>
@@ -132,7 +135,7 @@
 				{/if}
 				<div
 					bind:this={container}
-					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
+					class="absolute h-[60px] overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
 					{#each _value as image, i}
 						<button
@@ -144,9 +147,10 @@
 								: 'scale-90 transform'}"
 						>
 							<img
-								alt=""
 								class="h-full w-full overflow-hidden object-contain"
 								src={image[0]}
+								title={image[1] || null}
+								alt={image[1] || null}
 							/>
 						</button>
 					{/each}
@@ -169,7 +173,7 @@
 				<div class="grid gap-2 {classes}" class:pt-6={show_label}>
 					{#each _value as [image, caption], i}
 						<button
-							class="gallery-item"
+							class="gallery-item group"
 							on:click={() => (selected_image = can_zoom ? i : selected_image)}
 						>
 							<img
@@ -178,9 +182,9 @@
 								src={image}
 							/>
 							{#if caption}
-								<div class="bottom-6 absolute z-10 flex justify-center w-full">
+								<div class="bottom-0 absolute z-[5] flex justify-end w-full">
 									<div
-										class="bg-gray-100 dark:bg-gray-600 font-semibold p-2 rounded group-hover:opacity-70 transition-opacity"
+										class="bg-gray-50 dark:bg-gray-700 dark:text-gray-200 border-t border-l dark:border-gray-600 font-semibold px-3 py-1 rounded-tl-lg group-hover:opacity-50 max-w-full truncate"
 									>
 										{caption}
 									</div>
