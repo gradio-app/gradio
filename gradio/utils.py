@@ -312,6 +312,8 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     Returns:
     cls: the component class
     """
+    import gradio.components
+    import gradio.layouts
     import gradio.templates
 
     components = [
