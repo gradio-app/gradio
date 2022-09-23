@@ -184,7 +184,7 @@
 							{#if caption}
 								<div class="bottom-0 absolute z-[5] flex justify-end w-full">
 									<div
-										class="bg-gray-50 dark:bg-gray-700 dark:text-gray-200 border-t border-l dark:border-gray-600 font-semibold px-3 py-1 rounded-tl-lg group-hover:opacity-50 max-w-full truncate"
+										class="bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-xs border-t border-l dark:border-gray-600 font-semibold px-3 py-1 rounded-tl-lg group-hover:opacity-50 max-w-full truncate"
 									>
 										{caption}
 									</div>
