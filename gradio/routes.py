@@ -14,7 +14,7 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import fastapi
 import orjson
@@ -31,6 +31,7 @@ from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor, utils
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
 
@@ -393,15 +394,23 @@ def get_server_url_from_ws_url(ws_url: str):
     return f"{scheme}://{ws_url.hostname}{port}{ws_url.path.replace('queue/join', '')}"
 
 
+set_documentation_group("routes")
+
+
+@document()
 def mount_gradio_app(
-    app: fastapi.FastAPI, blocks: gradio.Blocks, path: str
+    app: fastapi.FastAPI,
+    blocks: gradio.Blocks,
+    path: str,
+    gradio_api_url: Optional[str],
 ) -> fastapi.FastAPI:
-    """Mount a gradio application (created with gr.routes.App.create_app(block)) to an existing FastAPI application.
+    """Mount a gradio.Blocks to an existing FastAPI application.
 
     Parameters:
         app: The parent FastAPI application.
-        blocks: The blocks application we want to moung
+        blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
+        gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
     """
 
     gradio_app = App.create_app(blocks)
@@ -409,6 +418,8 @@ def mount_gradio_app(
     @app.on_event("startup")
     async def start_queue():
         if gradio_app.blocks.enable_queue:
+            if gradio_api_url:
+                gradio_app.blocks._queue.set_url(gradio_api_url)
             gradio_app.blocks.startup_events()
 
     app.mount(path, gradio_app)
