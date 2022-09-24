@@ -57,20 +57,23 @@
 	}
 
 	async function prepare_audio() {
-		const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-		.then((stream) => {
-			return stream;
-		})
-		.catch((err) => {
-			if (err instanceof DOMException && err.name == "NotAllowedError") {
-				alert("Please allow the use of microphone if you wish to record audio.")
-				return null;
-			} else {
-				throw err;
-			}
-		});
+		const stream = await navigator.mediaDevices
+			.getUserMedia({ audio: true })
+			.then((stream) => {
+				return stream;
+			})
+			.catch((err) => {
+				if (err instanceof DOMException && err.name == "NotAllowedError") {
+					alert(
+						"Please allow the use of microphone if you wish to record audio."
+					);
+					return null;
+				} else {
+					throw err;
+				}
+			});
 
-		if(stream === null) {
+		if (stream === null) {
 			return;
 		}
 
