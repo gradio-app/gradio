@@ -634,21 +634,17 @@ class Blocks(BlockContext):
 
         inputs = list(inputs)
         processed_inputs = self.serialize_data(fn_index, inputs)
-        print("processed_inputs", processed_inputs)
         batch = self.dependencies[fn_index]["batch"]
         if batch:
             processed_inputs = [processed_inputs]
 
-        print("processed_inputs", processed_inputs)
         outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
         outputs = outputs["data"]
 
         if batch:
             outputs = outputs[0]
 
-        print("outputs", outputs)
         processed_outputs = self.deserialize_data(fn_index, outputs)
-        print("processed_outputs", processed_outputs)
         processed_outputs = utils.resolve_singleton(processed_outputs)
 
         return processed_outputs
