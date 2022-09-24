@@ -619,9 +619,12 @@ class Blocks(BlockContext):
 
     def __call__(self, *inputs, fn_index: int = 0):
         """
-        Allows Blocks objects to be called as functions
+        Allows Blocks objects to be called as functions. Supply the parameters to the
+        function as positional arguments. To choose which function to call, use the
+        fn_index parameter, which must be a keyword argument.
+
         Parameters:
-        *params: the parameters to pass to the function
+        *inputs: the parameters to pass to the function
         fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
         """
         if not (self.is_callable(fn_index)):
@@ -629,22 +632,24 @@ class Blocks(BlockContext):
                 "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
             )
 
+        inputs = list(inputs)
+        processed_inputs = self.serialize_data(fn_index, inputs)
+        print("processed_inputs", processed_inputs)
         batch = self.dependencies[fn_index]["batch"]
+        if batch:
+            processed_inputs = [processed_inputs]
+
+        print("processed_inputs", processed_inputs)
+        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
+        outputs = outputs["data"]
 
         if batch:
-            processed_inputs = [self.serialize_data(fn_index, i) for i in inputs]
-        else:
-            processed_inputs = self.serialize_data(fn_index, inputs)
+            outputs = outputs[0]
 
-        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)[
-            "data"
-        ]
-
-        if batch:
-            processed_outputs = [self.deserialize_data(fn_index, o) for o in outputs]
-        else:
-            processed_outputs = self.deserialize_data(fn_index, outputs)
-            processed_outputs = utils.resolve_singleton(processed_outputs)
+        print("outputs", outputs)
+        processed_outputs = self.deserialize_data(fn_index, outputs)
+        print("processed_outputs", processed_outputs)
+        processed_outputs = utils.resolve_singleton(processed_outputs)
 
         return processed_outputs
 
@@ -765,13 +770,14 @@ class Blocks(BlockContext):
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+        batch = dependency["batch"]
 
         if type(predictions) is dict and len(predictions) > 0:
             predictions = convert_update_dict_to_list(
                 dependency["outputs"], predictions
             )
 
-        if len(dependency["outputs"]) == 1:
+        if len(dependency["outputs"]) == 1 and not (batch):
             predictions = (predictions,)
 
         if block_fn.postprocess:
@@ -824,27 +830,32 @@ class Blocks(BlockContext):
             assert (
                 batch_size <= max_batch_size
             ), f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
-
             input_batch = [self.preprocess_data(fn_index, i, state) for i in inputs]
+            print("input_batch", input_batch)
             result = await self.call_batch_function(fn_index, input_batch)
+            print("result", result)
             predictions = result["predictions"]
-            predictions = [self.postprocess(fn_index, o, state) for o in predictions]
+            print("predictions", predictions)
+            data = [self.postprocess_data(fn_index, o, state) for o in predictions]
             is_generating, iterator = None, None
 
         else:
             print(">>>no")
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
+            print("preprocess_data", inputs)
 
             result = await self.call_function(fn_index, inputs, iterator)
-            block_fn.total_runtime += result["duration"]
-            block_fn.total_runs += 1
+            print("predictions", result["prediction"])
 
-            predictions = self.postprocess_data(fn_index, result["prediction"], state)
+            data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
+        block_fn.total_runtime += result["duration"]
+        block_fn.total_runs += 1
+
         return {
-            "data": predictions,
+            "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
             "duration": result["duration"],

@@ -32,7 +32,7 @@ class Changeable(Block):
         or uploads an image). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -92,7 +92,7 @@ class Clickable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -153,7 +153,7 @@ class Submittable(Block):
 
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -213,7 +213,7 @@ class Editable(Block):
         built-in editor. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -273,7 +273,7 @@ class Clearable(Block):
         using the X button for the component. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -333,7 +333,7 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -391,7 +391,7 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -449,7 +449,7 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs
@@ -509,7 +509,7 @@ class Streamable(Block):
         component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function
+            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
             inputs: List of inputs
             outputs: List of outputs
             api_name: Defining this parameter exposes the endpoint in the api docs

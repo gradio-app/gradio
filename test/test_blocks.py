@@ -439,19 +439,64 @@ class TestCallFunction:
 
 
 class TestCallBatchFunction:
+    @pytest.mark.asyncio
     async def test_call_regular_function(self):
+        def batch_fn(x):
+            results = []
+            for word in x:
+                results.append("Hello " + word[0])
+            return [[r] for r in results]
+
         with gr.Blocks() as demo:
             text = gr.Textbox()
             btn = gr.Button()
-            btn.click(lambda x: "Hello, " + x, inputs=text, outputs=text, batch=True)
+            btn.click(batch_fn, inputs=text, outputs=text, batch=True)
 
-        output = await demo.call_function(0, ["World"])
-        assert output["prediction"] == "Hello, World"
-        output = demo("World")
-        assert output == "Hello, World"
+        output = await demo.call_batch_function(0, [["Adam"], ["Yahya"]])
+        assert output["predictions"] == [["Hello Adam"], ["Hello Yahya"]]
+        output = demo("Abubakar")
+        assert output == "Hello Abubakar"
 
-        output = await demo.call_function(0, ["Abubakar"])
-        assert output["prediction"] == "Hello, Abubakar"
+    @pytest.mark.asyncio
+    async def test_functions_multiple_parameters(self):
+        def regular_fn(word1, word2):
+            return len(word1) > len(word2)
+
+        def batch_fn(batch):
+            results = []
+            for sample in batch:
+                word1, word2 = sample
+                results.append([word2, word1, len(word1) > len(word2)])
+            return results
+
+        with gr.Blocks() as demo:
+            text1 = gr.Textbox()
+            text2 = gr.Textbox()
+            word1_bigger = gr.Checkbox()
+            btn1 = gr.Button("Check")
+            btn2 = gr.Button("Check and Swap")
+            btn1.click(regular_fn, inputs=[text1, text2], outputs=word1_bigger)
+            btn2.click(
+                batch_fn,
+                inputs=[text1, text2],
+                outputs=[text1, text2, word1_bigger],
+                batch=True,
+            )
+
+        output = await demo.call_function(0, ["Adam", "Yahya"])
+        assert output["prediction"] == False
+        output = demo("Abubakar", "Abid")
+        assert output == True
+
+        output = await demo.call_batch_function(
+            1, [["Adam", "Yahya"], ["Mary", "John"]]
+        )
+        assert output["predictions"] == [
+            ["Yahya", "Adam", False],
+            ["John", "Mary", False],
+        ]
+        output = demo("Abubakar", "Abid", fn_index=1)
+        assert output == ["Abid", "Abubakar", True]
 
 
 class TestSpecificUpdate:
