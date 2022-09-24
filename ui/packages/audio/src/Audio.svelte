@@ -57,7 +57,23 @@
 	}
 
 	async function prepare_audio() {
-		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+		.then((stream) => {
+			return stream;
+		})
+		.catch((err) => {
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				alert("Please allow the use of microphone if you wish to record audio.")
+				return null;
+			} else {
+				throw err;
+			}
+		});
+
+		if(stream === null) {
+			return;
+		}
+
 		recorder = new MediaRecorder(stream);
 
 		recorder.addEventListener("dataavailable", (event) => {
@@ -80,12 +96,14 @@
 	}
 
 	async function record() {
-		recording = true;
-		audio_chunks = [];
-
 		if (!inited) await prepare_audio();
 
-		recorder.start();
+		if (recorder) {
+			recording = true;
+			audio_chunks = [];
+
+			recorder.start();
+		}
 	}
 
 	onDestroy(() => {
