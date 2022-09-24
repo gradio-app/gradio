@@ -387,6 +387,7 @@ class TestCallFunction:
             )
 
         demo.queue()
+        assert demo.config["enable_queue"]
 
         output = await demo.call_function(0, [3])
         assert output["prediction"] == 0

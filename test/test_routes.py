@@ -1,8 +1,12 @@
 """Contains tests for networking.py and app.py"""
-
+import json
 import os
+import sys
 import unittest
+from unittest.mock import patch
 
+import pytest
+import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -239,6 +243,46 @@ class TestAuthenticatedRoutes(unittest.TestCase):
     def tearDown(self) -> None:
         self.io.close()
         close_all()
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    sys.version_info < (3, 8),
+    reason="Mocks don't work with async context managers in 3.7",
+)
+@patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
+async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
+    io = Interface(lambda x: x, "text", "text").queue()
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    io._queue.server_path = None
+    async with websockets.connect(
+        f"{io.local_url.replace('http', 'ws')}queue/join"
+    ) as ws:
+        completed = False
+        while not completed:
+            msg = json.loads(await ws.recv())
+            if msg["msg"] == "send_data":
+                await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
+            completed = msg["msg"] == "process_completed"
+    assert io._queue.server_path == "foo_url"
+
+
+@pytest.mark.parametrize(
+    "ws_url,answer",
+    [
+        ("ws://127.0.0.1:7861/queue/join", "http://127.0.0.1:7861/"),
+        (
+            "ws://127.0.0.1:7861/gradio/gradio/gradio/queue/join",
+            "http://127.0.0.1:7861/gradio/gradio/gradio/",
+        ),
+        (
+            "wss://huggingface.co.tech/path/queue/join",
+            "https://huggingface.co.tech/path/",
+        ),
+    ],
+)
+def test_get_server_url_from_ws_url(ws_url, answer):
+    assert routes.get_server_url_from_ws_url(ws_url) == answer
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import copy
 import inspect
@@ -13,7 +12,6 @@ import pkgutil
 import random
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
@@ -40,7 +38,6 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 

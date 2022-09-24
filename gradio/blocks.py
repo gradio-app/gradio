@@ -1016,6 +1016,7 @@ class Blocks(BlockContext):
             max_size=max_size,
             blocks_dependencies=self.dependencies,
         )
+        self.config = self.get_config_file()
         return self
 
     def launch(
@@ -1361,3 +1362,9 @@ class Blocks(BlockContext):
                     no_target=True,
                     queue=False,
                 )
+
+    def startup_events(self):
+        """Events that should be run when the app containing this block starts up."""
+        if self.enable_queue:
+            utils.run_coro_in_background(self._queue.start)
+        utils.run_coro_in_background(self.create_limiter)
