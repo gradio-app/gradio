@@ -824,29 +824,22 @@ class Blocks(BlockContext):
         batch = self.dependencies[fn_index]["batch"]
 
         if batch:
-            print(">>>", len(inputs), inputs)
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_size = len(inputs)
             assert (
                 batch_size <= max_batch_size
             ), f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
             input_batch = [self.preprocess_data(fn_index, i, state) for i in inputs]
-            print("input_batch", input_batch)
             result = await self.call_batch_function(fn_index, input_batch)
-            print("result", result)
             predictions = result["predictions"]
-            print("predictions", predictions)
             data = [self.postprocess_data(fn_index, o, state) for o in predictions]
             is_generating, iterator = None, None
 
         else:
-            print(">>>no")
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            print("preprocess_data", inputs)
 
             result = await self.call_function(fn_index, inputs, iterator)
-            print("predictions", result["prediction"])
 
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1021,6 +1014,7 @@ class Blocks(BlockContext):
             data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
+            blocks_dependencies=self.dependencies,
         )
         return self
 
