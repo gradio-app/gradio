@@ -71,8 +71,9 @@ class QueuePushBody(BaseModel):
 
 class PredictBody(BaseModel):
     session_hash: Optional[str]
-    data: Any
+    data: List[Any]
     fn_index: Optional[int]
+    batched: Optional[bool] = False
 
 
 ###########
@@ -267,8 +268,14 @@ class App(FastAPI):
             else:
                 session_state = {}
                 iterator = {}
+
             raw_input = body.data
             fn_index = body.fn_index
+            batch = app.blocks.dependencies[fn_index]["batch"]
+
+            if not (body.batched) and batch:
+                raw_input = [raw_input]
+
             try:
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state, iterators
@@ -285,6 +292,10 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+
+            if not (body.batched) and batch:
+                output["data"] = output["data"][0]
+
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])

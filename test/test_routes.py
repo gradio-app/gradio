@@ -6,6 +6,7 @@ import unittest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+import gradio as gr
 from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -108,6 +109,32 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])
+
+    def test_predict_route_batching(self):
+        def batch_fn(x):
+            results = []
+            for word in x:
+                results.append("Hello " + word[0])
+            return [[r] for r in results]
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(batch_fn, inputs=text, outputs=text, batch=True, api_name="pred")
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/pred/", json={"data": ["test"]})
+        output = dict(response.json())
+        self.assertEqual(output["data"], ["Hello test"])
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post(
+            "/api/pred/", json={"data": [["test"], ["test2"]], "batched": True}
+        )
+        output = dict(response.json())
+        self.assertEqual(output["data"], [["Hello test"], ["Hello test2"]])
 
     def test_state(self):
         def predict(input, history):
