@@ -21,7 +21,7 @@ def queue() -> Queue:
         data_gathering_start=1,
         update_intervals=1,
         max_size=None,
-        blocks_dependencies=[]
+        blocks_dependencies=[],
     )
     yield queue_object
     queue_object.close()
