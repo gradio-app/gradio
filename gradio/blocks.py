@@ -235,6 +235,9 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on a block context.
+        """
         return y
 
 
