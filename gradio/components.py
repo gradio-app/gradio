@@ -3273,7 +3273,7 @@ class Gallery(IOComponent):
     def postprocess(
         self,
         y: List[np.ndarray | PIL.Image | str]
-        | List[Tuple[np.ndarray | PIL.Image | str], str]
+        | List[Tuple[np.ndarray | PIL.Image | str, str]]
         | None,
     ) -> List[str]:
         """
