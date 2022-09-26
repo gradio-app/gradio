@@ -3280,7 +3280,7 @@ class Gallery(IOComponent):
         Parameters:
             y: list of images, or list of (image, caption) tuples
         Returns:
-            list of [base64 image data, caption] list pairs
+            list of base64 data or (base64 image data, caption) pairs
         """
         if y is None:
             return []
