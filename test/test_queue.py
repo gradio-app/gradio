@@ -30,7 +30,7 @@ def queue() -> Queue:
 @pytest.fixture()
 def mock_event() -> Event:
     websocket = MagicMock()
-    event = Event(websocket=websocket)
+    event = Event(websocket=websocket, fn_index=0)
     yield event
 
 
