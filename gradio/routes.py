@@ -322,9 +322,7 @@ class App(FastAPI):
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
             if app.blocks._queue.server_path is None:
-                print(f"WS: {str(websocket.url)}")
                 app_url = get_server_url_from_ws_url(str(websocket.url))
-                print(f"Server URL: {app_url}")
                 app.blocks._queue.set_url(app_url)
 
             await websocket.accept()
