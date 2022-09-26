@@ -3354,9 +3354,11 @@ class Gallery(IOComponent):
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
+        captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            captions_file = os.path.join(x, "captions.json")
+            if file_path == captions_file:
+                continue
             if os.path.exists(captions_file):
                 with open(captions_file) as captions_json:
                     captions = json.load(captions_json)

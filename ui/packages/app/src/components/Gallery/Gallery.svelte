@@ -23,6 +23,9 @@
 			: value.map((img) => (Array.isArray(img) ? img : [img, null]));
 
 	let selected_image: number | null = null;
+	$: if (value) {
+		selected_image = null;
+	}
 
 	$: previous =
 		((selected_image ?? 0) + (_value?.length ?? 0) - 1) % (_value?.length ?? 0);
@@ -117,12 +120,13 @@
 
 				<img
 					on:click={() => (selected_image = next)}
-					class="w-full object-contain"
-					class:h-[calc(100%-80px)]={_value[selected_image][1] !== null}
-					class:h-[calc(100%-60px)]={_value[selected_image][1] === null}
+					class="w-full object-contain h-full"
 					src={_value[selected_image][0]}
 					alt={_value[selected_image][1] || ""}
 					title={_value[selected_image][1] || null}
+					style="height: calc(100% - {_value[selected_image][1]
+						? '80px'
+						: '60px'})"
 				/>
 				{#if _value[selected_image][1]}
 					<div class="bottom-[50px] absolute z-[5] flex justify-center w-full">
