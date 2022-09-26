@@ -3333,24 +3333,36 @@ class Gallery(IOComponent):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        captions = {}
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
                 img_data, caption = img_data
-                prefix = f"[{utils.make_valid_filename(caption)}]-"
+                prefix = f"[{utils.strip_invalid_filename_characters(caption)}]-"
             else:
+                caption = None
                 prefix = None
-            processing_utils.decode_base64_to_file(
+            file_obj = processing_utils.decode_base64_to_file(
                 img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
             )
+            if caption is not None:
+                captions[file_obj.name] = caption
+        if len(captions):
+            captions_file = os.path.join(gallery_path, "captions.json")
+            with open(captions_file, "w") as captions_json:
+                json.dump(captions, captions_json)
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            caption = None
-            if file.startswith("[") and "]" in file:
-                caption = file[1 : file.index("]")]
+            captions_file = os.path.join(x, "captions.json")
+            if os.path.exists(captions_file):
+                with open(captions_file) as captions_json:
+                    captions = json.load(captions_json)
+                caption = captions.get(x)
+            else:
+                caption = None
             img = ImgSerializable.serialize(self, file_path)
             if caption:
                 files.append([img, caption])

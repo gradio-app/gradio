@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import copy
 import inspect
@@ -11,10 +10,8 @@ import json.decoder
 import os
 import pkgutil
 import random
-import string
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
@@ -41,7 +38,6 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 
@@ -618,8 +614,10 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
+    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
+        :max_size
+    ]
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -681,8 +679,3 @@ def validate_url(possible_url: str) -> bool:
 
 def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
-
-
-def make_valid_filename(name):
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    return ("".join(c for c in name if c in valid_chars))[:200]
