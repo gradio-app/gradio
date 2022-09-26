@@ -3362,7 +3362,7 @@ class Gallery(IOComponent):
             if os.path.exists(captions_file):
                 with open(captions_file) as captions_json:
                     captions = json.load(captions_json)
-                caption = captions.get(x)
+                caption = captions.get(file_path)
             else:
                 caption = None
             img = ImgSerializable.serialize(self, file_path)

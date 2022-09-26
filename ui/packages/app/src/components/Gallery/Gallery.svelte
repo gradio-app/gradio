@@ -22,9 +22,11 @@
 			? null
 			: value.map((img) => (Array.isArray(img) ? img : [img, null]));
 
+	let prevValue: Array<string | [string, string]> | null = null;
 	let selected_image: number | null = null;
-	$: if (value) {
+	$: if (prevValue !== value) {
 		selected_image = null;
+		prevValue = value;
 	}
 
 	$: previous =
