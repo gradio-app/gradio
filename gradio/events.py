@@ -22,7 +22,6 @@ class Changeable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -41,7 +40,6 @@ class Changeable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -65,7 +63,6 @@ class Changeable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
 
@@ -82,7 +79,6 @@ class Clickable(Block):
         queue=None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -101,7 +97,6 @@ class Clickable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -122,7 +117,6 @@ class Clickable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
@@ -142,7 +136,6 @@ class Submittable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -162,7 +155,6 @@ class Submittable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -186,7 +178,6 @@ class Submittable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
 
@@ -203,7 +194,6 @@ class Editable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -222,7 +212,6 @@ class Editable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -246,7 +235,6 @@ class Editable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
 
@@ -263,7 +251,6 @@ class Clearable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -282,7 +269,6 @@ class Clearable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -306,7 +292,6 @@ class Clearable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
 
@@ -323,7 +308,6 @@ class Playable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -342,7 +326,6 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -366,7 +349,6 @@ class Playable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
     def pause(
@@ -381,7 +363,6 @@ class Playable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -400,7 +381,6 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -424,7 +404,6 @@ class Playable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
     def stop(
@@ -439,7 +418,6 @@ class Playable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -458,7 +436,6 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -482,7 +459,6 @@ class Playable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
 
 
@@ -499,7 +475,6 @@ class Streamable(Block):
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
@@ -518,7 +493,6 @@ class Streamable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time (in seconds) to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -544,5 +518,4 @@ class Streamable(Block):
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            batch_timeout=batch_timeout,
         )
