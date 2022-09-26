@@ -31,9 +31,9 @@ class Changeable(Block):
         or uploads an image). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -88,9 +88,9 @@ class Clickable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -146,9 +146,9 @@ class Submittable(Block):
 
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -203,9 +203,9 @@ class Editable(Block):
         built-in editor. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -260,9 +260,9 @@ class Clearable(Block):
         using the X button for the component. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -317,9 +317,9 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -372,9 +372,9 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -427,9 +427,9 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
@@ -484,9 +484,9 @@ class Streamable(Block):
         component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. If batch is True, the function must accept a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to the function, and similarly should return a *nested* list of outputs
-            inputs: List of inputs
-            outputs: List of outputs
+            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
