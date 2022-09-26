@@ -252,11 +252,13 @@ class Queue:
         return response
 
     async def process_events(self, events: List[Event], batch: bool) -> None:
+        print("Processing events")
         try:
             awake_events: List[Event] = []
-
+            print("Events": events)
             for event in events:
                 client_awake = await self.gather_event_data(event)
+                print("Client awake": client_awake)
                 if client_awake:
                     client_awake = await self.send_message(
                         event, {"msg": "process_starts"}
