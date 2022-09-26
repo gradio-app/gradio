@@ -129,7 +129,7 @@ export const fn =
 			}
 			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
 
-			var websocket = new WebSocket(WS_ENDPOINT);
+			var websocket = new WebSocket(WS_ENDPOINT + `?fn=${fn_index}`);
 			ws_map.set(fn_index, websocket);
 
 			websocket.onclose = (evt) => {

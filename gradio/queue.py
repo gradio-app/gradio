@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import time
 from typing import TYPE_CHECKING, Dict, List, Optional
@@ -25,10 +26,11 @@ class Estimation(BaseModel):
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket):
+    def __init__(self, websocket: fastapi.WebSocket, fn_index: int):
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
+        self.fn_index: int = fn_index
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -99,13 +101,13 @@ class Queue:
                 first_event = self.event_queue.pop(0)
                 events = [first_event]
 
-                event_fn_index = first_event.data["fn_index"]
+                event_fn_index = first_event.fn_index
                 batch = self.blocks_dependencies[event_fn_index]["batch"]
                 batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
 
                 if batch:
                     while len(events) < batch_size:
-                        fn_indices = [ev.data["fn_index"] for ev in self.event_queue]
+                        fn_indices = [ev.fn_index for ev in self.event_queue]
                         try:
                             index = fn_indices.index(event_fn_index)
                             events.append(self.event_queue.pop(index))
@@ -239,10 +241,10 @@ class Queue:
         )
 
     async def call_prediction(self, events: List[Event], batch: bool):
+        data = events[0].data
         if batch:
-            pass
-        else:
-            data = events[0].data
+            data["data"] = [event.data["data"] for event in events]
+            data["batched"] = True
 
         response = await Request(
             method=Request.Method.POST,
@@ -252,13 +254,10 @@ class Queue:
         return response
 
     async def process_events(self, events: List[Event], batch: bool) -> None:
-        print("Processing events")
+        awake_events: List[Event] = []
         try:
-            awake_events: List[Event] = []
-            print("Events": events)
             for event in events:
                 client_awake = await self.gather_event_data(event)
-                print("Client awake": client_awake)
                 if client_awake:
                     client_awake = await self.send_message(
                         event, {"msg": "process_starts"}
@@ -304,12 +303,15 @@ class Queue:
                         },
                     )
             else:
-                for event in awake_events:
+                for e, event in enumerate(awake_events):
+                    output = copy.deepcopy(response.json)
+                    if batch:
+                        output["data"] = output["data"][e]
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": response.json,
+                            "output": output,
                             "success": response.status == 200,
                         },
                     )
@@ -321,6 +323,7 @@ class Queue:
                 for event in awake_events:
                     await event.disconnect()
             finally:
+                self.active_jobs[self.active_jobs.index(events)] = None
                 for event in awake_events:
                     await self.clean_event(event)
 

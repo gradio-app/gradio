@@ -511,6 +511,8 @@ class Interface(Blocks):
                         api_name="predict",
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
+                        batch=batch,
+                        max_batch_size=max_batch_size,
                     )
                 else:
                     for component in self.input_components:
@@ -549,6 +551,8 @@ class Interface(Blocks):
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
+                    batch=batch,
+                    max_batch_size=max_batch_size,
                 )
             clear_btn.click(
                 None,

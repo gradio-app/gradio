@@ -320,13 +320,13 @@ class App(FastAPI):
             return await run_predict(body=body, username=username)
 
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket):
+        async def join_queue(websocket: WebSocket, fn_index: int = 0):
             if app.blocks._queue.server_path is None:
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
 
             await websocket.accept()
-            event = Event(websocket)
+            event = Event(websocket, fn_index)
             rank = app.blocks._queue.push(event)
             if rank is None:
                 await app.blocks._queue.send_message(event, {"msg": "queue_full"})
