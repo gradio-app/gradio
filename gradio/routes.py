@@ -268,7 +268,7 @@ class App(FastAPI):
                 iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
-                iterator = {}
+                iterators = {}
             raw_input = body.data
             fn_index = body.fn_index
             try:
