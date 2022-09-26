@@ -44,7 +44,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import wandb
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component, IOComponent
 
 
 class Block:
@@ -114,7 +114,6 @@ class Block:
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = None,
         no_target: bool = False,
-        status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
     ) -> None:
         """
@@ -131,7 +130,6 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status_tracker: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter
@@ -160,9 +158,6 @@ class Block:
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
-            "status_tracker": status_tracker._id
-            if status_tracker is not None
-            else None,
             "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
@@ -187,6 +182,12 @@ class Block:
             "elem_id": self.elem_id,
             "style": self._style,
         }
+
+    @classmethod
+    def get_specific_update(cls, generic_update):
+        del generic_update["__type__"]
+        generic_update = cls.update(**generic_update)
+        return generic_update
 
 
 class BlockContext(Block):
@@ -234,6 +235,9 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on a block context.
+        """
         return y
 
 
@@ -309,12 +313,37 @@ def update(**kwargs) -> dict:
     return kwargs
 
 
-def is_update(val):
-    return type(val) is dict and "update" in val.get("__type__", "")
-
-
 def skip() -> dict:
     return update()
+
+
+def postprocess_update_dict(block: Block, update_dict: Dict):
+    prediction_value = block.get_specific_update(update_dict)
+    if prediction_value.get("value") is components._Keywords.NO_VALUE:
+        prediction_value.pop("value")
+    prediction_value = delete_none(prediction_value, skip_value=True)
+    if "value" in prediction_value:
+        prediction_value["value"] = block.postprocess(prediction_value["value"])
+    return prediction_value
+
+
+def convert_update_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+    keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+    if all(keys_are_blocks):
+        reordered_predictions = [skip() for _ in outputs_ids]
+        for component, value in predictions.items():
+            if component._id not in outputs_ids:
+                return ValueError(
+                    f"Returned component {component} not specified as output of function."
+                )
+            output_index = outputs_ids.index(component._id)
+            reordered_predictions[output_index] = value
+        predictions = utils.resolve_singleton(reordered_predictions)
+    elif any(keys_are_blocks):
+        raise ValueError(
+            "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
+        )
+    return predictions
 
 
 @document("load")
@@ -413,6 +442,7 @@ class Blocks(BlockContext):
         self.app_id = random.getrandbits(64)
         self.temp_dirs = set()
         self.title = title
+        self.show_api = True
 
         data = {
             "mode": self.mode,
@@ -486,13 +516,10 @@ class Blocks(BlockContext):
                 dependency["outputs"] = [
                     original_mapping[o] for o in dependency["outputs"]
                 ]
-                if dependency.get("status_tracker", None) is not None:
-                    dependency["status_tracker"] = original_mapping[
-                        dependency["status_tracker"]
-                    ]
+                dependency.pop("status_tracker", None)
                 dependency["_js"] = dependency.pop("js", None)
-                dependency["_preprocess"] = False
-                dependency["_postprocess"] = False
+                dependency["preprocess"] = False
+                dependency["postprocess"] = False
 
                 for target in targets:
                     event_method = getattr(original_mapping[target], trigger)
@@ -663,21 +690,10 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
 
         if type(predictions) is dict and len(predictions) > 0:
-            keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
-            if all(keys_are_blocks):
-                reordered_predictions = [skip() for _ in dependency["outputs"]]
-                for component, value in predictions.items():
-                    if component._id not in dependency["outputs"]:
-                        return ValueError(
-                            f"Returned component {component} not specified as output of function."
-                        )
-                    output_index = dependency["outputs"].index(component._id)
-                    reordered_predictions[output_index] = value
-                predictions = reordered_predictions
-            elif any(keys_are_blocks):
-                raise ValueError(
-                    "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
-                )
+            predictions = convert_update_dict_to_list(
+                dependency["outputs"], predictions
+            )
+
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
 
@@ -689,36 +705,15 @@ class Blocks(BlockContext):
                     break
                 block = self.blocks[output_id]
                 if getattr(block, "stateful", False):
-                    if not is_update(predictions[i]):
+                    if not utils.is_update(predictions[i]):
                         state[output_id] = predictions[i]
                     output.append(None)
                 else:
                     prediction_value = predictions[i]
-                    if is_update(prediction_value):
-                        if prediction_value["__type__"] == "generic_update":
-                            del prediction_value["__type__"]
-                            prediction_value = block.__class__.update(
-                                **prediction_value
-                            )
-                        # If the prediction is the default (NO_VALUE) enum then the user did
-                        # not specify a value for the 'value' key and we can get rid of it
-                        if (
-                            prediction_value.get("value")
-                            == components._Keywords.NO_VALUE
-                        ):
-                            prediction_value.pop("value")
-                        prediction_value = delete_none(prediction_value)
-                        if "value" in prediction_value:
-                            prediction_value["value"] = block.postprocess(
-                                prediction_value["value"]
-                            )
-                        output_value = prediction_value
+                    if utils.is_update(prediction_value):
+                        output_value = postprocess_update_dict(block, prediction_value)
                     else:
-                        output_value = (
-                            block.postprocess(prediction_value)
-                            if prediction_value is not None
-                            else None
-                        )
+                        output_value = block.postprocess(prediction_value)
                     output.append(output_value)
 
         else:
@@ -783,6 +778,7 @@ class Blocks(BlockContext):
             "is_space": self.is_space,
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
+            "show_api": self.show_api,
         }
 
         def getLayout(block):
@@ -919,6 +915,7 @@ class Blocks(BlockContext):
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
         )
+        self.config = self.get_config_file()
         return self
 
     def launch(
@@ -944,6 +941,7 @@ class Blocks(BlockContext):
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
         quiet: bool = False,
+        show_api: bool = True,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -972,6 +970,7 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
+            show_api: If True, shows the api docs in the footer of the app. Default True.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -998,6 +997,7 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.show_api = show_api
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1124,13 +1124,13 @@ class Blocks(BlockContext):
                         time.sleep(1)
                     display(
                         HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
                 else:
                     display(
                         HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
             except ImportError:
@@ -1261,3 +1261,9 @@ class Blocks(BlockContext):
                     no_target=True,
                     queue=False,
                 )
+
+    def startup_events(self):
+        """Events that should be run when the app containing this block starts up."""
+        if self.enable_queue:
+            utils.run_coro_in_background(self._queue.start)
+        utils.run_coro_in_background(self.create_limiter)

@@ -19,11 +19,11 @@ You wish to pass custom error messages to the user. To do so, raise a `gr.Error(
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
 
-There are three arguments in `Interface` constructor to specify where this content should go:
+There are three arguments in the `Interface` constructor to specify where this content should go:
 
-* `title`: which accepts text and can displays it at the very top of interface, and also becomes the page title.
+* `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
 * `description`: which accepts text, markdown or HTML and places it right under the title.
-* `article`: which is also accepts text, markdown or HTML and places it below the interface.
+* `article`: which also accepts text, markdown or HTML and places it below the interface.
 
 ![annotated](/assets/guides/annotated.png)
 
@@ -114,10 +114,11 @@ img = gr.Image("lion.jpg").style(height='24', rounded=False)
 
 Take a look at the [Docs](https://gradio.app/docs) to see all the styling options for each Component.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg:
+For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
+The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 
 ```python
-with gr.Interface(css="body {background-color: red}") as demo:
+with gr.Interface(css=".gradio-container {background-color: red}") as demo:
     ...
 ```
 

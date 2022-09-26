@@ -108,6 +108,9 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert config["show_api"] is True
+        _ = demo.launch(prevent_thread_lock=True, show_api=False)
+        assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         def update(name):
@@ -301,6 +304,25 @@ class TestComponentsInBlocks:
         assert output[0]["value"] == "NO_VALUE"
 
 
+def test_blocks_returns_correct_output_dict_single_key():
+
+    with gr.Blocks() as demo:
+        num = gr.Number()
+        num2 = gr.Number()
+        update = gr.Button(value="update")
+
+        def update_values():
+            return {num2: gr.Number.update(value=42)}
+
+        update.click(update_values, inputs=[num], outputs=[num2])
+
+    output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state=None)
+    assert output[0]["value"] == 42
+
+    output = demo.postprocess_data(0, {num2: 23}, state=None)
+    assert output[0] == 23
+
+
 class TestCallFunction:
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
@@ -335,6 +357,7 @@ class TestCallFunction:
             )
 
         demo.queue()
+        assert demo.config["enable_queue"]
 
         output = await demo.call_function(0, [3])
         assert output["prediction"] == 0
@@ -384,6 +407,41 @@ class TestCallFunction:
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
+
+
+class TestSpecificUpdate:
+    def test_without_update(self):
+        with pytest.raises(KeyError):
+            gr.Textbox.get_specific_update({"lines": 4})
+
+    def test_with_update(self):
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update"}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+        }
+
+    def test_with_generic_update(self):
+        specific_update = gr.Video.get_specific_update(
+            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+        )
+        assert specific_update == {
+            "source": None,
+            "label": None,
+            "show_label": None,
+            "interactive": None,
+            "visible": True,
+            "value": "test.mp4",
+            "__type__": "update",
+        }
 
 
 if __name__ == "__main__":
