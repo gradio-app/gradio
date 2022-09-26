@@ -127,7 +127,6 @@ class Block:
         queue: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -145,7 +144,6 @@ class Block:
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
-            batch_timeout: the maximum time (in seconds) to wait for a batch to fill up before sending it to the function
         Returns: None
         """
         # Support for singular parameter
@@ -180,7 +178,6 @@ class Block:
             "show_progress": show_progress,
             "batch": batch,
             "max_batch_size": max_batch_size,
-            "batch_timeout": batch_timeout,
         }
         if api_name is not None:
             dependency["documentation"] = [

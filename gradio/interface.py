@@ -153,7 +153,6 @@ class Interface(Blocks):
         analytics_enabled: Optional[bool] = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        batch_timeout: float = 1,
         _api_mode: bool = False,
         **kwargs,
     ):
@@ -181,7 +180,6 @@ class Interface(Blocks):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
-            batch_timeout: Maximum amount of time to wait for inputs to arrive to the queue before calling the function (only relevant if batch=True, and queue is enabled for this event)
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
