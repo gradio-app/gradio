@@ -3216,7 +3216,7 @@ class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
     """
@@ -3270,17 +3270,25 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
+    def postprocess(
+        self,
+        y: List[np.ndarray | PIL.Image | str]
+        | List[Tuple[np.ndarray | PIL.Image | str, str]]
+        | None,
+    ) -> List[str]:
         """
         Parameters:
-            y: list of images
+            y: list of images, or list of (image, caption) tuples
         Returns:
-            list of base64 url data for images
+            list of base64 data or (base64 image data, caption) pairs
         """
         if y is None:
             return []
         output = []
         for img in y:
+            caption = None
+            if isinstance(img, tuple) or isinstance(img, list):
+                img, caption = img
             if isinstance(img, np.ndarray):
                 img = processing_utils.encode_array_to_base64(img)
             elif isinstance(img, PIL.Image.Image):
@@ -3291,7 +3299,10 @@ class Gallery(IOComponent):
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
                 )
-            output.append(img)
+            if caption is not None:
+                output.append([img, caption])
+            else:
+                output.append(img)
         return output
 
     def style(
@@ -3322,16 +3333,43 @@ class Gallery(IOComponent):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        captions = {}
         for img_data in x:
-            ImgSerializable.deserialize(self, img_data, gallery_path)
+            if isinstance(img_data, list) or isinstance(img_data, tuple):
+                img_data, caption = img_data
+                prefix = f"[{utils.strip_invalid_filename_characters(caption)}]-"
+            else:
+                caption = None
+                prefix = None
+            file_obj = processing_utils.decode_base64_to_file(
+                img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
+            )
+            if caption is not None:
+                captions[file_obj.name] = caption
+        if len(captions):
+            captions_file = os.path.join(gallery_path, "captions.json")
+            with open(captions_file, "w") as captions_json:
+                json.dump(captions, captions_json)
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
+        captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
+            if file_path == captions_file:
+                continue
+            if os.path.exists(captions_file):
+                with open(captions_file) as captions_json:
+                    captions = json.load(captions_json)
+                caption = captions.get(file_path)
+            else:
+                caption = None
             img = ImgSerializable.serialize(self, file_path)
-            files.append(img)
+            if caption:
+                files.append([img, caption])
+            else:
+                files.append(img)
         return files
 
 

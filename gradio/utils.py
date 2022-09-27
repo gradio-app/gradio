@@ -614,8 +614,10 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
+    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
+        :max_size
+    ]
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
