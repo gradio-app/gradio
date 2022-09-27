@@ -96,7 +96,7 @@ class TestQueueMethods:
     @pytest.mark.asyncio
     async def test_gather_data_for_first_ranks(self, queue: Queue, mock_event: Event):
         websocket = MagicMock()
-        mock_event2 = Event(websocket=websocket)
+        mock_event2 = Event(websocket=websocket, fn_index=0)
         queue.send_message = AsyncMock()
         queue.get_message = AsyncMock()
         queue.send_message.return_value = True
@@ -163,7 +163,7 @@ class TestQueueProcessEvents:
         queue.call_prediction.return_value.json = {"is_generating": False}
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
-        await queue.process_event(mock_event)
+        await queue.process_events([mock_event])
 
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
@@ -179,7 +179,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
         mock_event.data = None
-        await queue.process_event(mock_event)
+        await queue.process_events([mock_event])
         assert not queue.call_prediction.called
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
@@ -194,7 +194,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
         mock_event.data = None
-        await queue.process_event(mock_event)
+        await queue.process_events([mock_event])
         assert not queue.call_prediction.called
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
@@ -210,7 +210,7 @@ class TestQueueProcessEvents:
         queue.call_prediction = AsyncMock(
             return_value=MagicMock(has_exception=True, exception=ValueError("foo"))
         )
-        await queue.process_event(mock_event)
+        await queue.process_events([mock_event])
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
@@ -231,7 +231,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
         mock_event.data = None
-        await queue.process_event(mock_event)
+        await queue.process_events([mock_event])
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
