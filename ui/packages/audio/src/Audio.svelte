@@ -13,6 +13,8 @@
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
+	import { MediaRecorder, IMediaRecorder, register } from 'extendable-media-recorder';
+	import { connect } from 'extendable-media-recorder-wav-encoder';
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -29,13 +31,15 @@
 	// export let type: "normal" | "numpy" = "normal";
 
 	let recording = false;
-	let recorder: MediaRecorder;
+	let recorder: IMediaRecorder;
 	let mode = "";
-	let audio_chunks: Array<Blob> = [];
+	let header: Uint8Array;
+	let num_header_bytes = 44;
 	let audio_blob;
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
+	let streaming_timeslice = 500;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -57,21 +61,26 @@
 	}
 
 	async function prepare_audio() {
+		await register(await connect());
 		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-		recorder = new MediaRecorder(stream);
-
-		recorder.addEventListener("dataavailable", (event) => {
-			audio_chunks.push(event.data);
-		});
-
-		recorder.addEventListener("stop", async () => {
+		recorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+		recorder.addEventListener("dataavailable", async (event) => {
+			let blob = event.data;
+			let buffer = await event.data.arrayBuffer();
+			let payload = new Uint8Array(buffer);
+			if (!header) {
+				header = new Uint8Array(buffer.slice(0, num_header_bytes));
+			} else {
+				let new_payload = new Uint8Array(header.length + payload.length);
+				new_payload.set(header);
+				new_payload.set(payload, header.length);
+				blob = new Blob([new_payload], { type: 'audio/wav'})
+			}
 			if (!streaming) {
 				recording = false;
 			}
-			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
-			audio_chunks = [];
 			value = {
-				data: await blob_to_data_url(audio_blob),
+				data: await blob_to_data_url(blob),
 				name
 			};
 			dispatch(streaming ? "stream" : "change", value);
@@ -81,11 +90,13 @@
 
 	async function record() {
 		recording = true;
-		audio_chunks = [];
 
 		if (!inited) await prepare_audio();
-
-		recorder.start();
+		if (streaming) {
+			recorder.start(streaming_timeslice);
+		} else {
+			recorder.start();
+		}
 	}
 
 	onDestroy(() => {
@@ -156,20 +167,6 @@
 
 	export let dragging = false;
 	$: dispatch("drag", dragging);
-
-	if (streaming) {
-		window.setInterval(() => {
-			if (
-				recording &&
-				recorder &&
-				recorder.state === "recording" &&
-				pending === false
-			) {
-				stop();
-				record();
-			}
-		}, 500);
-	}
 </script>
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
