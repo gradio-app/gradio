@@ -266,7 +266,6 @@ class Queue:
                     awake_events.append(event)
             if not (awake_events):
                 return
-
             begin_time = time.time()
             response = await self.call_prediction(events, batch)
 
