@@ -29,7 +29,6 @@ from typing import (
 )
 
 import aiohttp
-import analytics
 import fsspec.asyn
 import httpx
 import requests
@@ -43,7 +42,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
