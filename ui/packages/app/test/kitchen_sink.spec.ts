@@ -51,7 +51,7 @@ test("test inputs", async ({ page }) => {
 
 	const uploaded_image = await page.locator("img").nth(0);
 	const image_data = await uploaded_image.getAttribute("src");
-	await expect(image_data).toEqual(BASE64_IMAGE);
+	await expect(image_data).toContain("cheetah1.jpg");
 
 	// Image Input w/ Cropper
 	const image_cropper = await page.locator("input").nth(10);
@@ -59,7 +59,7 @@ test("test inputs", async ({ page }) => {
 
 	const uploaded_image_cropper = await page.locator("img").nth(0);
 	const image_data_cropper = await uploaded_image_cropper.getAttribute("src");
-	await expect(image_data_cropper).toEqual(BASE64_IMAGE);
+	await expect(image_data_cropper).toContain("cheetah1.jpg");
 });
 
 test("test outputs", async ({ page }) => {

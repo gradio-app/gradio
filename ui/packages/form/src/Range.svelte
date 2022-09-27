@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { create_classes } from "@gradio/utils";
+	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
@@ -18,10 +18,10 @@
 	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
-
 	const dispatch = createEventDispatcher<{ change: number }>();
 
 	$: dispatch("change", value);
+	$: ({ classes } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <div class="w-full flex flex-col ">
@@ -29,9 +29,15 @@
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<div class={"font-medium dark:text-gray-300" + create_classes(style)}>
-			{value}
-		</div>
+		<input
+			type="number"
+			class="gr-box gr-input gr-text-input text-center h-6 {classes}"
+			bind:value
+			min={minimum}
+			max={maximum}
+			{step}
+			{disabled}
+		/>
 	</div>
 </div>
 

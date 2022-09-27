@@ -164,7 +164,7 @@
         "headers": [],
         "samples": [
           [
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/blocks_inputs/lion.jpg"
+            "lion.jpg"
           ]
         ],
         "type": "index",

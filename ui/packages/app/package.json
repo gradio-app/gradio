@@ -8,7 +8,7 @@
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
 		"preview": "vite preview",
-		"test:browser": "pnpm exec python test/create_demo_configs.py && pnpm exec playwright test test/ --config=../../playwright.config.js",
+		"test:browser": "python test/create_demo_configs.py && pnpm exec playwright test test/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpm exec playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
