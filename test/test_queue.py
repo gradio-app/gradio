@@ -247,3 +247,32 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
+
+
+class TestQueueBatch:
+    @pytest.mark.asyncio
+    async def test_process_event(self, queue: Queue, mock_event: Event):
+        queue.gather_event_data = AsyncMock()
+        queue.gather_event_data.return_value = True
+        queue.send_message = AsyncMock()
+        queue.send_message.return_value = True
+        queue.call_prediction = AsyncMock()
+        queue.call_prediction.return_value = MagicMock()
+        queue.call_prediction.return_value.has_exception = False
+        queue.call_prediction.return_value.json = {"is_generating": False, "data": [[1], [2]]}
+        mock_event.disconnect = AsyncMock()
+        queue.clean_event = AsyncMock()
+        
+        websocket = MagicMock()
+        mock_event2 = Event(websocket=websocket, fn_index=0)
+        mock_event2.disconnect = AsyncMock()
+        queue.active_jobs = [[mock_event, mock_event2]]
+        
+
+        await queue.process_events([mock_event, mock_event2], batch=True)
+
+        queue.call_prediction.assert_called_once()  # called once for both events
+        mock_event.disconnect.assert_called_once()
+        
+        mock_event2.disconnect.assert_called_once()
+        queue.clean_event.call_count == 2
