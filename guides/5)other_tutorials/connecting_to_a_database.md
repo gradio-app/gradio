@@ -3,6 +3,7 @@
 # Connecting to a Database
 
 Related spaces: https://huggingface.co/spaces/freddyaboulton/chicago-bike-share-dashboard
+Tags: TABULAR, PLOTS 
 
 ## Introduction
 
@@ -19,13 +20,17 @@ Our goal is to create a dashboard that will enable our business stakeholders to 
 1. Are electric bikes more popular than regular bikes?
 2. What are the top 5 most popular departure bike stations?
 
+At the end of this guide, we will have a functioning application that looks like this:
+
+<gradio-app space="freddyaboulton/chicago-bike-share-dashboard"> </gradio-app>
+
 
 ## Step 1 - Creating your database
 
 We will be storing our data on a PostgreSQL hosted on Amazon's RDS service. Create an AWS account if you don't already have one
 and create a PostgreSQL database on the free tier. 
 
-**Important**: If you plan to host this demo on HuggingFace spaces, make sure database is on port **8080**. Spaces will
+**Important**: If you plan to host this demo on HuggingFace Spaces, make sure database is on port **8080**. Spaces will
 block all outgoing connections unless they are made to port 80, 443, or 8080 as noted [here](https://huggingface.co/docs/hub/spaces-overview#networking).
 RDS will not let you create a postgreSQL instance on ports 80 or 443.
 
@@ -112,8 +117,9 @@ def get_most_popular_stations():
 ```
 
 ## Step 2.c - Write your gradio app
-We will display or matplotlib plots in two separate `gr.Plot` components. We will fetch the latest data from the
-database each time the application loads.
+We will display or matplotlib plots in two separate `gr.Plot` components displayed side by side using `gr.Row()`.
+Because we have wrapped our function to fetch the data in a `demo.load()` event trigger,
+our demo will fetch the latest data **dynamically** from the database each time the web page loads. 🪄
 
 ```python
 with gr.Blocks() as demo:
@@ -128,10 +134,13 @@ demo.launch()
 ```
 
 ## Step 3 - Deployment
-We will be deploying our app to HuggingFace spaces. If you wish, you could also run your app locally and get a
-shareable link by passing the `share=True` parameter to `launch`.
+If you run the code above, your app will start running locally.
+You can even get a temporary shareable link by passing the `share=True` parameter to `launch`.
 
-If you haven't used spaces before, follow the previous guide [here](/using_hugging_face_integrations).
+But what if you want to a permanent deployment solution?
+Let's deploy our Gradio app to the free HuggingFace Spaces platform.
+
+If you haven't used Spaces before, follow the previous guide [here](/using_hugging_face_integrations).
 You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "Repo Secrets". You can do this in the "Settings" tab.
 
 ![secrets](/assets/guides/secrets.png)
@@ -139,10 +148,7 @@ You will have to add the `DB_USER`, `DB_PASSWORD`, and `DB_HOST` variables as "R
 ## Conclusion
 Congratulations! You know how to connect your gradio app to a database hosted on the cloud! ☁️
 
-You can checkout the finished dasboard below:
-
-<gradio-app space="freddyaboulton/chicago-bike-share-dashboard"> </gradio-app>
-
-as well as on [spaces](https://huggingface.co/spaces/freddyaboulton/chicago-bike-share-dashboard).
+Our dashboard is now running on [Spaces](https://huggingface.co/spaces/freddyaboulton/chicago-bike-share-dashboard).
+The complete code is [here](https://huggingface.co/spaces/freddyaboulton/chicago-bike-share-dashboard/blob/main/app.py)
  
 As you can see, gradio gives you the power to connect to your data wherever it lives and display however you want! 🔥
