@@ -13,8 +13,12 @@
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
-	import { MediaRecorder, IMediaRecorder, register } from 'extendable-media-recorder';
-	import { connect } from 'extendable-media-recorder-wav-encoder';
+	import {
+		MediaRecorder,
+		IMediaRecorder,
+		register
+	} from "extendable-media-recorder";
+	import { connect } from "extendable-media-recorder-wav-encoder";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -33,13 +37,13 @@
 	let recording = false;
 	let recorder: IMediaRecorder;
 	let mode = "";
-	let header: Uint8Array;
-	let num_header_bytes = 44;
-	let audio_blob;
+	let header: Uint8Array | undefined = undefined;
+	let pending_stream: Array<Uint8Array> = [];
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
-	let streaming_timeslice = 500;
+	const STREAM_TIMESLICE = 500;
+	const NUM_HEADER_BYTES = 44;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -63,27 +67,31 @@
 	async function prepare_audio() {
 		await register(await connect());
 		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-		recorder = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+		recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 		recorder.addEventListener("dataavailable", async (event) => {
-			let blob = event.data;
 			let buffer = await event.data.arrayBuffer();
 			let payload = new Uint8Array(buffer);
 			if (!header) {
-				header = new Uint8Array(buffer.slice(0, num_header_bytes));
+				header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+				payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+			}
+			if (pending) {
+				pending_stream.push(payload);
 			} else {
-				let new_payload = new Uint8Array(header.length + payload.length);
-				new_payload.set(header);
-				new_payload.set(payload, header.length);
-				blob = new Blob([new_payload], { type: 'audio/wav'})
+				let blobParts = [header].concat(pending_stream, [payload]);
+				let blob = new Blob(blobParts, { type: "audio/wav" });
+				value = {
+					data: await blob_to_data_url(blob),
+					name
+				};
+				pending_stream = [];
+				if (streaming) {
+					dispatch("stream", value);
+				} else {
+					recording = false;
+					dispatch("change", value);
+				}
 			}
-			if (!streaming) {
-				recording = false;
-			}
-			value = {
-				data: await blob_to_data_url(blob),
-				name
-			};
-			dispatch(streaming ? "stream" : "change", value);
 		});
 		inited = true;
 	}
@@ -92,8 +100,9 @@
 		recording = true;
 
 		if (!inited) await prepare_audio();
+		header = undefined;
 		if (streaming) {
-			recorder.start(streaming_timeslice);
+			recorder.start(STREAM_TIMESLICE);
 		} else {
 			recorder.start();
 		}
