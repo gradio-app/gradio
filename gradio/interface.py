@@ -485,7 +485,8 @@ class Interface(Blocks):
 
                     with Column(variant="panel"):
                         for component in self.output_components:
-                            component.render()
+                            if not (isinstance(component, State)):
+                                component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
