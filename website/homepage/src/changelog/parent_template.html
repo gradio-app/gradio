@@ -16,12 +16,11 @@
              style="max-width: 12rem">
              Version History
           </div>
-            <a class="guide-link current-nav-link pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+          {% for version in versions %} 
+            <a class="guide-link {% if loop.first %}current-nav-link{% endif %} pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                 style="max-width: 12rem"
-                href="#upcoming-release">Upcoming Release</a>
-            <a class="guide-link pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
-               style="max-width: 12rem"
-               href="#version-33">v3.3</a>            
+                href="#{{ version[1] }}">{{ version[0] }}</a>
+          {% endfor %}
       </div>
       <div class="w-full">
         <div class="prose text-lg max-w-full">{% include "changelog/inner_template.html" %}</div>
@@ -33,5 +32,36 @@
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    <script>
+      let mainNavLinks = document.querySelectorAll(".side-navigation a");
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+        mainNavLinks.forEach(function(link, index) {
+          if (index < mainNavLinks.length - 1) {
+            let section = document.querySelector(link.hash);
+            let nextSection = document.querySelector(mainNavLinks[index + 1].hash);
+            if (
+              section.offsetTop <= fromTop*1.01 &&
+              nextSection.offsetTop > fromTop*1.01
+            ) {
+              link.classList.add("current-nav-link");
+            } else {
+              link.classList.remove("current-nav-link");
+            }
+          } else {
+            let section = document.querySelector(link.hash);
+            if (
+              section.offsetTop <= fromTop*1.01 &&
+              window.pageYOffset > fromTop*0.9
+            ) {
+              link.classList.add("current-nav-link");
+            } else {
+              link.classList.remove("current-nav-link");
+            }
+          };
+        });
+      });
+  
+    </script>
   </body>
 </html>

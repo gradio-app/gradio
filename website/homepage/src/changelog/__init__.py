@@ -17,10 +17,11 @@ def render_md(filepath):
             content,
         )
     content = re.sub(r"```", "</code></pre></div>", content)
+    
+    versions = re.findall(r"# Version \d\.\d[^\n ]*", content)
+    versions = [("Upcoming Release", "upcoming-release")] + [("v" + v.strip("# Version "), "version-" + v.strip("# Version ").replace('.','')) for v in versions]
 
-    with open(INNER_TEMPLATE_FILE, "w+") as temp_html:
-        temp_html.write(
-            markdown2.markdown(
+    content_html = markdown2.markdown(
                 content,
                 extras=[
                     "target-blank-links",
@@ -29,14 +30,17 @@ def render_md(filepath):
                     "fenced-code-blocks",
                 ],
             )
-        )
+
+    with open(INNER_TEMPLATE_FILE, "w+") as temp_html:
+        temp_html.write(content_html)
     
+    return versions
 
 def build(output_dir, jinja_env):
-    inner_template = render_md(CHANGELOG_FILE)
+    versions = render_md(CHANGELOG_FILE)
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("changelog/parent_template.html")
-    output = template.render()
+    output = template.render(versions=versions)
     output_folder = os.path.join(output_dir, "changelog")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
