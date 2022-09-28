@@ -36,9 +36,7 @@ to the PR. The `CHANGELOG.md` file is then converted and displayed on our websit
 * Demos now deployed to huggingface spaces :pr:1600
 
 ## Contributors Shoutout:
-
-
-<br>
+No changes to highlight.
 
 # Version 3.4
 
@@ -120,49 +118,49 @@ As well as other fixes
 
 
 ## Bug Fixes:
-1. Fix bug where max concurrency count is not respected in queue by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2286
-2. fix : queue could be blocked by @SkyTNT in https://github.com/gradio-app/gradio/pull/2288
-3. Supports `gr.update()` in example caching by @abidlabs in https://github.com/gradio-app/gradio/pull/2309
-4. Clipboard fix for iframes by @abidlabs in https://github.com/gradio-app/gradio/pull/2321
-5. Fix: Dataframe column headers are reset when you add a new column by @dawoodkhan82 in https://github.com/gradio-app/gradio/pull/2318
-6. Added support for URLs for Video, Audio, and Image by @abidlabs in https://github.com/gradio-app/gradio/pull/2256
-7. Add documentation about how to create and use the Gradio FastAPI app by @abidlabs in https://github.com/gradio-app/gradio/pull/2263
+1. Fix bug where max concurrency count is not respected in queue by @freddyaboulton in :pr:2286
+2. fix : queue could be blocked by @SkyTNT in :pr:2288
+3. Supports `gr.update()` in example caching by @abidlabs in :pr:2309
+4. Clipboard fix for iframes by @abidlabs in :pr:2321
+5. Fix: Dataframe column headers are reset when you add a new column by @dawoodkhan82 in :pr:2318
+6. Added support for URLs for Video, Audio, and Image by @abidlabs in :pr:2256
+7. Add documentation about how to create and use the Gradio FastAPI app by @abidlabs in :pr:2263
 
 ## Documentation Changes:
-1. Adding a Playground Tab to the Website by @aliabd in https://github.com/gradio-app/gradio/pull/1860
-3. Gradio for Tabular Data Science Workflows Guide by @merveenoyan in https://github.com/gradio-app/gradio/pull/2199
-4. Promotes `postprocess` and `preprocess` to documented parameters by @abidlabs in https://github.com/gradio-app/gradio/pull/2293
-5. Update 2)key_features.md by @voidxd in https://github.com/gradio-app/gradio/pull/2326
-6. Add docs to blocks context postprocessing function by @Ian-GL in https://github.com/gradio-app/gradio/pull/2332
+1. Adding a Playground Tab to the Website by @aliabd in :pr:1860
+3. Gradio for Tabular Data Science Workflows Guide by @merveenoyan in :pr:2199
+4. Promotes `postprocess` and `preprocess` to documented parameters by @abidlabs in :pr:2293
+5. Update 2)key_features.md by @voidxd in :pr:2326
+6. Add docs to blocks context postprocessing function by @Ian-GL in :pr:2332
 
 ## Testing and Infrastructure Changes
-1. Website fixes and refactoring by @aliabd in https://github.com/gradio-app/gradio/pull/2280
-2. Don't deploy to spaces on release by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2313
+1. Website fixes and refactoring by @aliabd in :pr:2280
+2. Don't deploy to spaces on release by @freddyaboulton in :pr:2313
 
-## What's Changed
-* Website fixes and refactoring by @aliabd in https://github.com/gradio-app/gradio/pull/2280
-* Fix bug where max concurrency count is not respected in queue by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2286
-* Promotes `postprocess` and `preprocess` to documented parameters by @abidlabs in https://github.com/gradio-app/gradio/pull/2293
-* Raise warning when trying to cache examples but not all inputs have examples by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2279
-* fix : queue could be blocked by @SkyTNT in https://github.com/gradio-app/gradio/pull/2288
-* Don't deploy to spaces on release by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2313
-* Supports `gr.update()` in example caching by @abidlabs in https://github.com/gradio-app/gradio/pull/2309
-* Respect Upstream Queue when loading interfaces/blocks from Spaces by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2294
-* Clipboard fix for iframes by @abidlabs in https://github.com/gradio-app/gradio/pull/2321
-* Sketching + Inpainting Capabilities to Gradio by @abidlabs in https://github.com/gradio-app/gradio/pull/2144
-* Update 2)key_features.md by @voidxd in https://github.com/gradio-app/gradio/pull/2326
-* release 3.4b3 by @abidlabs in https://github.com/gradio-app/gradio/pull/2328
-* Fix: Dataframe column headers are reset when you add a new column by @dawoodkhan82 in https://github.com/gradio-app/gradio/pull/2318
-* Start queue when gradio is a sub application by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2319
-* Fix Web Tracker Script by @aliabd in https://github.com/gradio-app/gradio/pull/2308
-* Add docs to blocks context postprocessing function by @Ian-GL in https://github.com/gradio-app/gradio/pull/2332
-* Fix typo in iterator variable name in run_predict function by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2340
-* Add captions to galleries by @aliabid94 in https://github.com/gradio-app/gradio/pull/2284
-* Typeable value on gradio.Slider by @dawoodkhan82 in https://github.com/gradio-app/gradio/pull/2329
+## Full Changelog:
+* Website fixes and refactoring by @aliabd in :pr:2280
+* Fix bug where max concurrency count is not respected in queue by @freddyaboulton in :pr:2286
+* Promotes `postprocess` and `preprocess` to documented parameters by @abidlabs in :pr:2293
+* Raise warning when trying to cache examples but not all inputs have examples by @freddyaboulton in :pr:2279
+* fix : queue could be blocked by @SkyTNT in :pr:2288
+* Don't deploy to spaces on release by @freddyaboulton in :pr:2313
+* Supports `gr.update()` in example caching by @abidlabs in :pr:2309
+* Respect Upstream Queue when loading interfaces/blocks from Spaces by @freddyaboulton in :pr:2294
+* Clipboard fix for iframes by @abidlabs in :pr:2321
+* Sketching + Inpainting Capabilities to Gradio by @abidlabs in :pr:2144
+* Update 2)key_features.md by @voidxd in :pr:2326
+* release 3.4b3 by @abidlabs in :pr:2328
+* Fix: Dataframe column headers are reset when you add a new column by @dawoodkhan82 in :pr:2318
+* Start queue when gradio is a sub application by @freddyaboulton in :pr:2319
+* Fix Web Tracker Script by @aliabd in :pr:2308
+* Add docs to blocks context postprocessing function by @Ian-GL in :pr:2332
+* Fix typo in iterator variable name in run_predict function by @freddyaboulton in :pr:2340
+* Add captions to galleries by @aliabid94 in :pr:2284
+* Typeable value on gradio.Slider by @dawoodkhan82 in :pr:2329
 
-## New Contributors:
-* @SkyTNT made their first contribution in https://github.com/gradio-app/gradio/pull/2288
-* @voidxd made their first contribution in https://github.com/gradio-app/gradio/pull/2326
+## Contributors Shoutout:
+* @SkyTNT made their first contribution in :pr:2288
+* @voidxd made their first contribution in :pr:2326
 
 # Version 3.3
 
