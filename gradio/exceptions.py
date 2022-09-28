@@ -1,4 +1,4 @@
-class DuplicateBlockError(KeyError):
+class DuplicateBlockError(ValueError):
     pass
 
 
