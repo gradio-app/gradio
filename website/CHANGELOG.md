@@ -1,6 +1,6 @@
 # Upcoming Release 
 
-## New Features
+## New Features:
 
 ### 1. New Sketching and inpainting for Images! :pr:1456 
 
@@ -8,11 +8,11 @@
 code here
 ```
        
-## Bug Fixes
+## Bug Fixes:
 
 ### 1. Something here
 
-## Documentation Changes
+## Documentation Changes:
 
 ### 1. Auto Release Notes 🤖
 
@@ -22,27 +22,27 @@ of the change and its associated pull request number. This check can be skipped 
 to the PR. The `CHANGELOG.md` file is then converted and displayed on our website!
 
 
-## Testing and Infrastructure Changes
+## Testing and Infrastructure Changes:
 
 ### 1. Demos now deployed to huggingface spaces :pr:1600
 
-## Breaking Changes
+## Breaking Changes:
 
 ### 1. Something here
 
-## Full Changelog
+## Full Changelog:
 
 * Automated release notes :pr:2306
 * Demos now deployed to huggingface spaces :pr:1600
 
-## Contributors Shoutout
+## Contributors Shoutout:
 
 
 <br>
 
 # Version 3.4
 
-## New Features
+## New Features:
 
 ### 1. Gallery Captions 🖼️ 
 
@@ -119,7 +119,7 @@ demo.launch()
 As well as other fixes 
 
 
-## Bug Fixes
+## Bug Fixes:
 1. Fix bug where max concurrency count is not respected in queue by @freddyaboulton in https://github.com/gradio-app/gradio/pull/2286
 2. fix : queue could be blocked by @SkyTNT in https://github.com/gradio-app/gradio/pull/2288
 3. Supports `gr.update()` in example caching by @abidlabs in https://github.com/gradio-app/gradio/pull/2309
@@ -128,7 +128,7 @@ As well as other fixes
 6. Added support for URLs for Video, Audio, and Image by @abidlabs in https://github.com/gradio-app/gradio/pull/2256
 7. Add documentation about how to create and use the Gradio FastAPI app by @abidlabs in https://github.com/gradio-app/gradio/pull/2263
 
-## Documentation Changes
+## Documentation Changes:
 1. Adding a Playground Tab to the Website by @aliabd in https://github.com/gradio-app/gradio/pull/1860
 3. Gradio for Tabular Data Science Workflows Guide by @merveenoyan in https://github.com/gradio-app/gradio/pull/2199
 4. Promotes `postprocess` and `preprocess` to documented parameters by @abidlabs in https://github.com/gradio-app/gradio/pull/2293
@@ -160,13 +160,13 @@ As well as other fixes
 * Add captions to galleries by @aliabid94 in https://github.com/gradio-app/gradio/pull/2284
 * Typeable value on gradio.Slider by @dawoodkhan82 in https://github.com/gradio-app/gradio/pull/2329
 
-## New Contributors
+## New Contributors:
 * @SkyTNT made their first contribution in https://github.com/gradio-app/gradio/pull/2288
 * @voidxd made their first contribution in https://github.com/gradio-app/gradio/pull/2326
 
 # Version 3.3
 
-## New Features
+## New Features:
 
 ### 1. Iterative Outputs ⏳  
 
@@ -211,15 +211,15 @@ gr.Interface.load("models/scikit-learn/tabular-playground").launch()
 ![187936493-5c90c01d-a6dd-400f-aa42-833a096156a1](https://user-images.githubusercontent.com/9021060/189090519-328fbcb4-120b-43c8-aa54-d6fccfa6b7e8.png)
 
 
-## Bug Fixes
-
-## Documentation Changes
-
-## Testing and Infrastructure Changes
-
-## Breaking Changes
-
-## Full Changelog
+## Bug Fixes:
+No changes to highlight.
+## Documentation Changes:
+No changes to highlight.
+## Testing and Infrastructure Changes:
+No changes to highlight.
+## Breaking Changes:
+No changes to highlight.
+## Full Changelog:
 
 * safari fixes by @pngwn in :pr:2138
 * Fix roundedness and form borders by @aliabid94 in :pr:2147
@@ -241,7 +241,7 @@ gr.Interface.load("models/scikit-learn/tabular-playground").launch()
 * Add accordion component by @aliabid94 in :pr:2208
 
 
-## Contributors Shoutout
+## Contributors Shoutout:
 
 * @lamhoangtung made their first contribution in :pr:2176
 * @cobryan05 made their first contribution in :pr:2170
