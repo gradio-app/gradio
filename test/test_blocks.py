@@ -16,6 +16,7 @@ import pytest
 import wandb
 
 import gradio as gr
+from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -442,6 +443,53 @@ class TestSpecificUpdate:
             "value": "test.mp4",
             "__type__": "update",
         }
+
+
+class TestDuplicateBlockError:
+    def test_error(self):
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            with gr.Blocks():
+                t.render()
+                gr.Number()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            with gr.Blocks():
+                t = gr.Textbox()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                io.render()
+
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            io = gr.Interface(lambda x: x, t, gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                t.render()
+
+    def test_no_error(self):
+        t = gr.Textbox()
+        t2 = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+            t2.render()
+
+        t = gr.Textbox()
+        io = gr.Interface(lambda x: x, t, gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            gr.Textbox()
+
+        io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        io2 = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            io2.render()
 
 
 if __name__ == "__main__":
