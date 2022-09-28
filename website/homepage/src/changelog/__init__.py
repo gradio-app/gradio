@@ -17,6 +17,18 @@ def render_md(filepath):
             content,
         )
     content = re.sub(r"```", "</code></pre></div>", content)
+
+    content = re.sub(
+            r"\:pr\:(\d[^\n ]*)",
+            lambda x: f"<a href='https://github.com/gradio-app/gradio/pull/{x.group(1)}'>https://github.com/gradio-app/gradio/pull/{x.group(1)}</a>",
+            content,
+        )
+    
+    content = re.sub(
+            r"\@([^\n ]*)",
+            lambda x: f"<a href='https://github.com/{x.group(1)}'>@{x.group(1)}</a>",
+            content,
+        )
     
     versions = re.findall(r"# Version \d\.\d[^\n ]*", content)
     versions = [("Upcoming Release", "upcoming-release")] + [("v" + v.strip("# Version "), "version-" + v.strip("# Version ").replace('.','')) for v in versions]
