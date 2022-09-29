@@ -53,6 +53,7 @@
 		pause: undefined;
 		ended: undefined;
 		drag: boolean;
+		error: string;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -65,8 +66,26 @@
 	}
 
 	async function prepare_audio() {
+		let stream: MediaStream | null;
+
+		try {
+			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		} catch (err) {
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				dispatch(
+					"error",
+					"Please allow access to the microphone for recording."
+				);
+				return;
+			} else {
+				throw err;
+			}
+		}
+
+		if (stream == null) return;
+
 		await register(await connect());
-		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
 		recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 		recorder.addEventListener("dataavailable", async (event) => {
 			let buffer = await event.data.arrayBuffer();
