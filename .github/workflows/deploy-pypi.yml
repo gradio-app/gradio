@@ -61,12 +61,12 @@ jobs:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
           body_path: website/releases/UPCOMING.md
-      - name: set_output
+      - id: set_output
         run: echo "::set-output name=version::${{ env.INPUT_NAME }}"
   modify-release-notes:
     needs: gh-release
     runs-on: ubuntu-latest
-    if: ${{ !contains( ${{ needs.gh-release.outputs.version }}, 'b') }}
+    if: ${{ !contains( needs.gh-release.outputs.version, 'b') }}
     steps:
       - uses: actions/checkout@v3
       - name: Install Python
