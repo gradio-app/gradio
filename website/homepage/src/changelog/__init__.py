@@ -50,6 +50,8 @@ def render_md(version_filename):
 
 versions = []
 for version_filename in os.listdir(RELEASES_DIR):
+    if version_filename == "TEMPLATE.md":
+        continue
     render_md(version_filename)
     versions.append(version_filename[:-3])
 
