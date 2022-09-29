@@ -106,13 +106,17 @@
   <table class="mb-4 table-fixed w-full mt-6">
     <thead class="text-left">
       <tr>
-        <th class="p-3 font-semibold w-2/5">Interface String Shortcut</th>
+        <th class="p-3 font-semibold w-2/5">Class</th>
+        <th class="p-3 font-semibold">Interface String Shortcut</th>
         <th class="p-3 font-semibold">Initialization</th>
       </tr>
     </thead>
     <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
-    {% for shortcut, settings in obj["string_shortcuts"] %}
+    {% for name, shortcut, settings in obj["string_shortcuts"] %}
         <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+          <td class="p-3 w-2/5">
+            <p><code class="lang-python">gradio.{{ name }}</code></p>
+          </td>
           <td class="p-3 w-2/5">
             <p>"{{ shortcut }}"</p>
           </td>

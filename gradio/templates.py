@@ -54,7 +54,7 @@ class Sketchpad(components.Image):
 
 class Paint(components.Image):
     """
-    Sets source="canvas", tool="color-sketch"
+    Sets: source="canvas", tool="color-sketch"
     """
 
     is_template = True
@@ -67,7 +67,7 @@ class Paint(components.Image):
 
 class ImageMask(components.Image):
     """
-    Sets source="canvas", tool="sketch"
+    Sets: source="canvas", tool="sketch"
     """
 
     is_template = True
@@ -78,7 +78,7 @@ class ImageMask(components.Image):
 
 class ImagePaint(components.Image):
     """
-    Sets source="upload", tool="color-sketch"
+    Sets: source="upload", tool="color-sketch"
     """
 
     is_template = True
