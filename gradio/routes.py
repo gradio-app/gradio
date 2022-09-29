@@ -9,6 +9,8 @@ import mimetypes
 import os
 import posixpath
 import secrets
+import threading
+import time
 import traceback
 from collections import defaultdict
 from copy import deepcopy
@@ -346,7 +348,7 @@ class App(FastAPI):
             return result
 
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket):
+        async def join_queue(websocket: WebSocket, fn_index: int = 0):
             if app.blocks._queue.server_path is None:
                 print(f"WS: {str(websocket.url)}")
                 app_url = get_server_url_from_ws_url(str(websocket.url))
@@ -362,14 +364,18 @@ class App(FastAPI):
             event.session_hash = session_hash["session_hash"]
             event.fn_index = session_hash["fn_index"]
 
-            rank = app.blocks._queue.push(event)
+            if app.blocks.dependencies[fn_index]["trigger"] == "load" and app.blocks.dependencies[fn_index]["continuous"]:
+                utils.run_coro_in_background(app.blocks._queue.process_event, event)
 
-            if rank is None:
-                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
-                await event.disconnect()
-                return
-            estimation = app.blocks._queue.get_estimation()
-            await app.blocks._queue.send_estimation(event, estimation, rank)
+            else:
+                rank = app.blocks._queue.push(event)
+
+                if rank is None:
+                    await app.blocks._queue.send_message(event, {"msg": "queue_full"})
+                    await event.disconnect()
+                    return
+                estimation = app.blocks._queue.get_estimation()
+                await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:

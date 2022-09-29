@@ -129,7 +129,7 @@ export const fn =
 						? BACKEND_URL.replace("http://", "").slice(0, -1)
 						: location.host;
 			}
-			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
+			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join?fn_index=${fn_index}`;
 
 			var websocket = new WebSocket(WS_ENDPOINT);
 			ws_map.set(fn_index, websocket);

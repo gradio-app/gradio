@@ -685,3 +685,10 @@ def validate_url(possible_url: str) -> bool:
 
 def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
+
+
+class Time(Enum):
+    seconds = 1
+    minutes = 60
+    hours = 60 * 60
+    days = 24 * 60 * 60

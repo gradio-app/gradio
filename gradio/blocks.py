@@ -14,6 +14,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
+import asyncio
 import requests
 from anyio import CapacityLimiter
 
@@ -120,6 +121,7 @@ class Block:
         no_target: bool = False,
         queue: Optional[bool] = None,
         cancels: List[int] | None = None,
+        continuous: bool = False
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -168,6 +170,7 @@ class Block:
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
             "cancels": cancels if cancels else [],
+            "continuous": continuous
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -693,14 +696,14 @@ class Blocks(BlockContext):
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
                 prediction = await block_fn.fn(*processed_input)
+            elif inspect.isasyncgenfunction(block_fn.fn):
+                prediction = await block_fn.fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
 
-        if inspect.isasyncgenfunction(block_fn.fn):
-            raise ValueError("Gradio does not support async generators.")
-        if inspect.isgeneratorfunction(block_fn.fn):
+        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(block_fn.fn):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
@@ -783,7 +786,7 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
-
+        breakpoint()
         inputs = self.preprocess_data(fn_index, inputs, state)
         iterator = iterators.get(fn_index, None) if iterators else None
 
@@ -931,6 +934,41 @@ class Blocks(BlockContext):
                 js=_js,
             )
 
+    def continuous(
+        self,
+        fn: Optional[Callable] = None,
+        inputs: Optional[List[Component]] = None,
+        outputs: Optional[List[Component]] = None,
+        every: int = 1,
+        _js: Optional[str] = None,
+    ) -> None:
+        """
+        Run the function continuously on a given timestamp
+
+        Instance method: adds an event for when the demo loads in the browser and returns None.
+        Parameters:
+            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional api key for use with Hugging Face Hub
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            fn: Instance Method - Callable function
+            inputs: Instance Method - input list
+            outputs: Instance Method - output list
+        """
+        async def refresh_every(*args):
+            while True:
+                yield fn(*args)
+
+        self.set_event_trigger(
+            event_name="load",
+            fn=refresh_every,
+            inputs=inputs,
+            outputs=outputs,
+            no_target=True,
+            continuous=True,
+            js=_js,
+        )
+
     def clear(self):
         """Resets the layout of the Blocks object."""
         self.blocks = {}
@@ -967,6 +1005,7 @@ class Blocks(BlockContext):
             data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
+            dependencies=self.dependencies
         )
         self.config = self.get_config_file()
         return self

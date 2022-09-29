@@ -29,6 +29,7 @@ class Queue:
         data_gathering_start: int,
         update_intervals: int,
         max_size: Optional[int],
+        dependencies
     ):
         self.event_queue = []
         self.events_pending_reconnection = []
@@ -47,6 +48,7 @@ class Queue:
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
         self.max_size = max_size
+        self.dependencies = dependencies
 
     async def start(self):
         run_coro_in_background(self.start_processing)
