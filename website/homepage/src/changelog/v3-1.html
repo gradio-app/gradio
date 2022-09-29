@@ -1,0 +1,95 @@
+<h1 id="version-31">Version 3.1</h1>
+
+<h2 id="new-features">New Features:</h2>
+
+<h3 id="1-embedding-demos-on-any-website">1.  Embedding Demos on Any Website 💻</h3>
+
+<p>With PR #1444, Gradio is now distributed as a web component. This means demos can be natively embedded on websites. You'll just need to add two lines: one to load the gradio javascript, and one to link to the demos backend.</p>
+
+<p>Here's a simple example that embeds the demo from a Hugging Face space:</p>
+
+<div class='codeblock'><pre><code class='lang-html'><script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.0.18/gradio.js"></script>
+<gradio-app space="abidlabs/pytorch-image-classifier"></gradio-app>
+</code></pre></div>
+
+<p>But you can also embed demos that are running anywhere, you just need to link the demo to <code>src</code> instead of <code>space</code>. In fact, all the demos on the gradio website are embedded this way: </p>
+
+<p><img width="1268" alt="Screen Shot 2022-07-14 at 2 41 44 PM" src="https://user-images.githubusercontent.com/9021060/178997124-b2f05af2-c18f-4716-bf1b-cb971d012636.png"></p>
+
+<p>Read more in the <a rel="noopener" target="_blank" href="https://gradio.app/embedding_gradio_demos">Embedding Gradio Demos</a> guide.</p>
+
+<h3 id="2-reload-mode">2. Reload Mode 👨‍💻</h3>
+
+<p>Reload mode helps developers create gradio demos faster by automatically reloading the demo whenever the code changes. It can support development on Python IDEs (VS Code, PyCharm, etc), the terminal, as well as Jupyter notebooks. </p>
+
+<p>If your demo code is in a script named <code>app.py</code>, instead of running <code>python app.py</code> you can now run <code>gradio app.py</code> and that will launch the demo in reload mode:</p>
+
+<div class='codeblock'><pre><code class='lang-bash'>Launching in reload mode on: http://127.0.0.1:7860 (Press CTRL+C to quit)
+Watching...
+WARNING: The --reload flag should not be used in production on Windows.
+</code></pre></div>
+
+<p>If you're working from a Jupyter or Colab Notebook, use these magic commands instead: <code>%load_ext gradio</code> when you import gradio, and <code>%%blocks</code> in the top of the cell with the demo code. Here's an example that shows how much faster the development becomes:</p>
+
+<p><img src="https://user-images.githubusercontent.com/9021060/178986488-ed378cc8-5141-4330-ba41-672b676863d0.gif" alt="Blocks" /></p>
+
+<h3 id="3-inpainting-support-on-grimage">3. Inpainting Support on <code>gr.Image()</code> 🎨</h3>
+
+<p>We updated the Image component to add support for inpainting demos. It works by adding <code>tool="sketch"</code> as a parameter, that passes both an image and a sketchable mask to your prediction function.</p>
+
+<p>Here's an example from the <a rel="noopener" target="_blank" href="https://huggingface.co/spaces/akhaliq/lama">LAMA space</a>:</p>
+
+<p><img src="https://user-images.githubusercontent.com/9021060/178989479-549867c8-7fb0-436a-a97d-1e91c9f5e611.jpeg" alt="FXApVlFVsAALSD-" /></p>
+
+<h3 id="4-markdown-and-html-support-in-dataframes">4. Markdown and HTML support in Dataframes 🔢</h3>
+
+<p>We upgraded the Dataframe component in PR #1684 to support rendering Markdown and HTML inside the cells. </p>
+
+<p>This means you can build Dataframes that look like the following:</p>
+
+<p><img src="https://user-images.githubusercontent.com/9021060/178991233-41cb07a5-e7a3-433e-89b8-319bc78eb9c2.png" alt="image (8)" /></p>
+
+<h3 id="5-grexamples-for-blocks">5. <code>gr.Examples()</code> for Blocks 🧱</h3>
+
+<p>We've added the <code>gr.Examples</code> component helper to allow you to add examples to any Blocks demo. This class is a wrapper over the <code>gr.Dataset</code> component. </p>
+
+<p><img width="1271" alt="Screen Shot 2022-07-14 at 2 23 50 PM" src="https://user-images.githubusercontent.com/9021060/178992715-c8bc7550-bc3d-4ddc-9fcb-548c159cd153.png"></p>
+
+<p>gr.Examples takes two required parameters: </p>
+
+<ul>
+<li><code>examples</code> which takes in a nested list</li>
+<li><code>inputs</code> which takes in a component or list of components</li>
+</ul>
+
+<p>You can read more in the <a rel="noopener" target="_blank" href="https://gradio.app/docs/#examples">Examples docs</a> or the <a rel="noopener" target="_blank" href="https://gradio.app/adding_examples_to_your_app/">Adding Examples to your Demos guide</a>.</p>
+
+<h3 id="6-fixes-to-audio-streaming">6. Fixes to Audio Streaming</h3>
+
+<p>With PR <a rel="noopener" target="_blank" href="a href='https://github.com/gradio-app/gradio/pull/1828),'">#1828</a>,</a> we now hide the status loading animation, as well as remove the echo in streaming. Check out the <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py">stream_audio</a> demo for more or read through our <a rel="noopener" target="_blank" href="https://gradio.app/real_time_speech_recognition/">Real Time Speech Recognition</a> guide.</p>
+
+<p><img width="785" alt="Screen Shot 2022-07-19 at 6 02 35 PM" src="https://user-images.githubusercontent.com/9021060/179808136-9e84502c-f9ee-4f30-b5e9-1086f678fe91.png"></p>
+
+<h2 id="full-changelog">Full Changelog:</h2>
+
+<ul>
+<li>File component: list multiple files and allow for download #1446 by <a rel="noopener" target="_blank" href='https://github.com/dawoodkhan82'>@dawoodkhan82</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1681'>https://github.com/gradio-app/gradio/pull/1681</a></li>
+<li>Add ColorPicker to docs by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1768'>https://github.com/gradio-app/gradio/pull/1768</a></li>
+<li>Mock out requests in TestRequest unit tests by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1794'>https://github.com/gradio-app/gradio/pull/1794</a></li>
+<li>Add requirements.txt and test_files to source dist by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1817'>https://github.com/gradio-app/gradio/pull/1817</a></li>
+<li>refactor: f-string for tunneling.py by <a rel="noopener" target="_blank" href='https://github.com/nhankiet'>@nhankiet</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1819'>https://github.com/gradio-app/gradio/pull/1819</a></li>
+<li>Miscellaneous formatting improvements to website by <a rel="noopener" target="_blank" href='https://github.com/aliabd'>@aliabd</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1754'>https://github.com/gradio-app/gradio/pull/1754</a></li>
+<li><code>integrate()</code> method moved to <code>Blocks</code> by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1776'>https://github.com/gradio-app/gradio/pull/1776</a></li>
+<li>Add python-3.7 tests by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1818'>https://github.com/gradio-app/gradio/pull/1818</a></li>
+<li>Copy test dir in website dockers by <a rel="noopener" target="_blank" href='https://github.com/aliabd'>@aliabd</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1827'>https://github.com/gradio-app/gradio/pull/1827</a></li>
+<li>Add info to docs on how to set default values for components by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1788'>https://github.com/gradio-app/gradio/pull/1788</a></li>
+<li>Embedding Components on Docs by <a rel="noopener" target="_blank" href='https://github.com/aliabd'>@aliabd</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1726'>https://github.com/gradio-app/gradio/pull/1726</a></li>
+<li>Remove usage of deprecated gr.inputs and gr.outputs from website by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1796'>https://github.com/gradio-app/gradio/pull/1796</a></li>
+<li>Some cleanups to the docs page by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1822'>https://github.com/gradio-app/gradio/pull/1822</a></li>
+</ul>
+
+<h2 id="contributors-shoutout">Contributors Shoutout:</h2>
+
+<ul>
+<li><a rel="noopener" target="_blank" href='https://github.com/nhankiet'>@nhankiet</a> made their first contribution in <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1819'>https://github.com/gradio-app/gradio/pull/1819</a></li>
+</ul>
