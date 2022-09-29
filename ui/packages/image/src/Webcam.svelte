@@ -21,8 +21,13 @@
 			});
 			video_source.srcObject = stream;
 			video_source.play();
-		} catch (error) {
-			console.error(error);
+		} catch (err) {
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				dispatch("error", "Please allow access to the webcam for recording.");
+				return null;
+			} else {
+				throw err;
+			}
 		}
 	}
 
