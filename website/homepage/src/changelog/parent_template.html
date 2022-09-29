@@ -24,13 +24,13 @@
             {% else %}
             <a class="version-link {% if loop.first %}current-nav-link{% endif %} pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                 style="max-width: 12rem"
-                href="#{{ version }}-section">{{ version | replace("-",".")   }}</a>
+                href="#{{ version | replace('.','-') }}-section">{{ version }}</a>
             {% endif %}
           {% endfor %}
       </div>
       <div class="w-full">
         {% for version in versions %} 
-        <div class="prose text-lg max-w-full" id="{{ version }}-section">{% include "changelog/%s.html" % version %}</div>
+        <div class="prose text-lg max-w-full" id="{{ version | replace('.','-') }}-section">{% include "changelog/%s.html" % version %}</div>
         {% endfor %}
       </div>
     </div>
