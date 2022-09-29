@@ -690,20 +690,18 @@ class Blocks(BlockContext):
     async def call_function(self, fn_index, processed_input, iterator=None):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-        is_generating = False
+        is_generating = self.dependencies[fn_index]["continuous"]
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
-                prediction = await block_fn.fn(*processed_input)
-            elif inspect.isasyncgenfunction(block_fn.fn):
                 prediction = await block_fn.fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
 
-        if inspect.isgeneratorfunction(block_fn.fn) or inspect.isasyncgenfunction(block_fn.fn):
+        if inspect.isgeneratorfunction(block_fn.fn):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
             try:
@@ -786,7 +784,6 @@ class Blocks(BlockContext):
         Returns: None
         """
         block_fn = self.fns[fn_index]
-        breakpoint()
         inputs = self.preprocess_data(fn_index, inputs, state)
         iterator = iterators.get(fn_index, None) if iterators else None
 
@@ -956,8 +953,10 @@ class Blocks(BlockContext):
             outputs: Instance Method - output list
         """
         async def refresh_every(*args):
-            while True:
-                yield fn(*args)
+            loop = asyncio.get_running_loop()
+            a = await loop.run_in_executor(None, fn, *args)
+            await asyncio.sleep(every)
+            return a
 
         self.set_event_trigger(
             event_name="load",
