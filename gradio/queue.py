@@ -273,6 +273,8 @@ class Queue:
         finally:
             try:
                 await event.disconnect()
+            except Exception:
+                pass
             finally:
                 await self.clean_event(event)
 
