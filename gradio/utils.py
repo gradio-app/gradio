@@ -687,7 +687,7 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-class Time(Enum):
+class Time:
     seconds = 1
     minutes = 60
     hours = 60 * 60
