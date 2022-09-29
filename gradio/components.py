@@ -32,6 +32,7 @@ import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
+import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
@@ -1175,11 +1176,11 @@ class Dropdown(Radio):
         )
 
 
-@document("edit", "clear", "change", "stream", "change")
+@document("edit", "clear", "change", "stream", "change", "style")
 class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
@@ -1194,7 +1195,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
-        tool: str = "editor",
+        tool: str = None,
         type: str = "numpy",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1212,7 +1213,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
+            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1228,7 +1229,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self.image_mode = image_mode
         self.source = source
         requires_permissions = source == "webcam"
-        self.tool = tool
+        if tool is None:
+            self.tool = "sketch" if source == "canvas" else "editor"
+        else:
+            self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
@@ -1279,9 +1283,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def _format_image(
-        self, im: Optional[PIL.Image], fmt: str
+        self, im: Optional[PIL.Image]
     ) -> np.array | PIL.Image | str | None:
         """Helper method to format an image based on self.type"""
+        fmt = im.format
         if im is None:
             return im
         if self.type == "pil":
@@ -1314,17 +1319,15 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
     def preprocess(self, x: str | Dict) -> np.array | PIL.Image | str | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
         Returns:
-            image in requested format
+            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
         if x is None:
             return x
-        if self.tool == "sketch":
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
-
         im = processing_utils.decode_base64_to_image(x)
-        fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -1332,18 +1335,21 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
-        if self.source == "webcam" and self.mirror_webcam is True:
+        if (
+            self.source == "webcam"
+            and self.mirror_webcam is True
+            and self.tool != "color-sketch"
+        ):
             im = PIL.ImageOps.mirror(im)
 
-        if not (self.tool == "sketch"):
-            return self._format_image(im, fmt)
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
+            mask_im = processing_utils.decode_base64_to_image(mask)
+            return {
+                "image": self._format_image(im),
+                "mask": self._format_image(mask_im),
+            }
 
-        mask_im = processing_utils.decode_base64_to_image(mask)
-        mask_fmt = mask_im.format
-        return {
-            "image": self._format_image(im, fmt),
-            "mask": self._format_image(mask_im, mask_fmt),
-        }
+        return self._format_image(im)
 
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
@@ -3210,7 +3216,7 @@ class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
     """
@@ -3264,17 +3270,25 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
+    def postprocess(
+        self,
+        y: List[np.ndarray | PIL.Image | str]
+        | List[Tuple[np.ndarray | PIL.Image | str, str]]
+        | None,
+    ) -> List[str]:
         """
         Parameters:
-            y: list of images
+            y: list of images, or list of (image, caption) tuples
         Returns:
-            list of base64 url data for images
+            list of base64 data or (base64 image data, caption) pairs
         """
         if y is None:
             return []
         output = []
         for img in y:
+            caption = None
+            if isinstance(img, tuple) or isinstance(img, list):
+                img, caption = img
             if isinstance(img, np.ndarray):
                 img = processing_utils.encode_array_to_base64(img)
             elif isinstance(img, PIL.Image.Image):
@@ -3285,7 +3299,10 @@ class Gallery(IOComponent):
                 raise ValueError(
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
                 )
-            output.append(img)
+            if caption is not None:
+                output.append([img, caption])
+            else:
+                output.append(img)
         return output
 
     def style(
@@ -3316,16 +3333,43 @@ class Gallery(IOComponent):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        captions = {}
         for img_data in x:
-            ImgSerializable.deserialize(self, img_data, gallery_path)
+            if isinstance(img_data, list) or isinstance(img_data, tuple):
+                img_data, caption = img_data
+                prefix = f"[{utils.strip_invalid_filename_characters(caption)}]-"
+            else:
+                caption = None
+                prefix = None
+            file_obj = processing_utils.decode_base64_to_file(
+                img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
+            )
+            if caption is not None:
+                captions[file_obj.name] = caption
+        if len(captions):
+            captions_file = os.path.join(gallery_path, "captions.json")
+            with open(captions_file, "w") as captions_json:
+                json.dump(captions, captions_json)
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
+        captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
+            if file_path == captions_file:
+                continue
+            if os.path.exists(captions_file):
+                with open(captions_file) as captions_json:
+                    captions = json.load(captions_json)
+                caption = captions.get(file_path)
+            else:
+                caption = None
             img = ImgSerializable.serialize(self, file_path)
-            files.append(img)
+            if caption:
+                files.append([img, caption])
+            else:
+                files.append(img)
         return files
 
 
