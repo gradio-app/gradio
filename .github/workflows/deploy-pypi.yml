@@ -68,6 +68,8 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
+      - name: Set release name
+        run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
       - name: Format Release Notes for Next Release
         run: python scripts/format_release_notes.py ${{ env.INPUT_NAME }}
       - name: Commit files
