@@ -13,12 +13,8 @@
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
-	import {
-		MediaRecorder,
-		IMediaRecorder,
-		register
-	} from "extendable-media-recorder";
-	import { connect } from "extendable-media-recorder-wav-encoder";
+
+	import type { IMediaRecorder } from "extendable-media-recorder";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -44,6 +40,23 @@
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
+
+	let module_promises:
+		| [
+				Promise<typeof import("extendable-media-recorder")>,
+				Promise<typeof import("extendable-media-recorder-wav-encoder")>
+		  ];
+
+	function get_modules() {
+		module_promises = [
+			import("extendable-media-recorder"),
+			import("extendable-media-recorder-wav-encoder")
+		];
+	}
+
+	if (streaming) {
+		get_modules();
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -81,6 +94,10 @@
 				throw err;
 			}
 		}
+
+		const [{ MediaRecorder, register }, { connect }] = await Promise.all(
+			module_promises
+		);
 
 		if (stream == null) return;
 
