@@ -1,36 +1,38 @@
 <h1 id="upcoming-release">Upcoming Release</h1>
 
-<h2 id="new-features">New Features:</h2>
-
-<h3 id="1-new-sketching-and-inpainting-for-images-a-hrefhttpsgithubcomgradio-appgradiopull1456httpsgithubcomgradio-appgradiopull1456a">1. New Sketching and inpainting for Images! <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1456'>https://github.com/gradio-app/gradio/pull/1456</a></h3>
-
-<div class='codeblock'><pre><code class='lang-python'>code here
-</code></pre></div>
-
 <h2 id="bug-fixes">Bug Fixes:</h2>
 
-<h3 id="1-something-here">1. Something here</h3>
+<ol>
+<li>Fix typo in guide image path by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2357</li>
+<li>Raise error if Blocks has duplicate component with same IDs by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2359</li>
+<li>Catch the permission exception on the audio component by <a rel="noopener" target="_blank" href='https://github.com/Ian-GL'>@Ian-GL</a> in https://github.com/gradio-app/gradio/pull/2330</li>
+<li>Fix image<em>classifier</em>interface_load demo by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2365</li>
+</ol>
 
 <h2 id="documentation-changes">Documentation Changes:</h2>
 
-<h3 id="1-auto-release-notes">1. Auto Release Notes 🤖</h3>
+<ol>
+<li><p>New Guide: Connecting to a Database 🗄️</p>
 
-<p>We've created a new system for automatically tracking the changes that go into new releases. On every pull request commit,
-a github action will check whether the <code>website/CHANGELOG.md</code> file has been updated with a line containing a brief summary
-of the change and its associated pull request number. This check can be skipped if the <code>no-changelog-update</code> label is added
-to the PR. The <code>CHANGELOG.md</code> file is then converted and displayed on our website!</p>
+<p>A new guide by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> that explains how you can use Gradio to connect your app to a database. Read more <a rel="noopener" target="_blank" href="https://gradio.app/connecting_to_a_database/">here</a>.</p></li>
+<li><p>New Guide: Running Background Tasks 🥷</p>
 
-<h2 id="testing-and-infrastructure-changes">Testing and Infrastructure Changes:</h2>
-
-<h3 id="1-demos-now-deployed-to-huggingface-spaces-a-hrefhttpsgithubcomgradio-appgradiopull1600httpsgithubcomgradio-appgradiopull1600a">1. Demos now deployed to huggingface spaces <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1600'>https://github.com/gradio-app/gradio/pull/1600</a></h3>
-
-<h2 id="breaking-changes">Breaking Changes:</h2>
-
-<h3 id="1-something-here-2">1. Something here</h3>
+<p>A new guide by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> that explains how you can run background tasks from your gradio app. Read more <a rel="noopener" target="_blank" href="https://gradio.app/running_background_tasks/">here</a>.</p></li>
+<li><p>Small fixes to docs for <code>Image</code> component by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2372</p></li>
+</ol>
 
 <h2 id="full-changelog">Full Changelog:</h2>
 
 <ul>
-<li>Automated release notes <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/2306'>https://github.com/gradio-app/gradio/pull/2306</a></li>
-<li>Demos now deployed to huggingface spaces <a rel="noopener" target="_blank" href='https://github.com/gradio-app/gradio/pull/1600'>https://github.com/gradio-app/gradio/pull/1600</a></li>
+<li>Create a guide on how to connect an app to a database hosted on the cloud by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2341</li>
+<li>Removes <code>analytics</code> dependency by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2347</li>
+<li>Add guide on launching background tasks from your app by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2350</li>
+<li>Fix typo in guide image path by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2357</li>
+<li>Raise error if Blocks has duplicate component with same IDs by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2359</li>
+<li>Hotfix: fix version back to 3.4 by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2361</li>
+<li>Change version.txt to 3.4 instead of 3.4.0 by <a rel="noopener" target="_blank" href='https://github.com/aliabd'>@aliabd</a> in https://github.com/gradio-app/gradio/pull/2363</li>
+<li>Catch the permission exception on the audio component by <a rel="noopener" target="_blank" href='https://github.com/Ian-GL'>@Ian-GL</a> in https://github.com/gradio-app/gradio/pull/2330</li>
+<li>Fix image<em>classifier</em>interface_load demo by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2365</li>
+<li>Small fixes to docs for <code>Image</code> component by <a rel="noopener" target="_blank" href='https://github.com/abidlabs'>@abidlabs</a> in https://github.com/gradio-app/gradio/pull/2372</li>
+<li>Automated Release Notes by <a rel="noopener" target="_blank" href='https://github.com/freddyaboulton'>@freddyaboulton</a> in https://github.com/gradio-app/gradio/pull/2306</li>
 </ul>
