@@ -208,6 +208,7 @@
 				on:capture={(e) =>
 					tool === "color-sketch" ? handle_upload(e) : handle_save(e, true)}
 				on:stream={handle_save}
+				on:error
 				{streaming}
 				{pending}
 				{mirror_webcam}
