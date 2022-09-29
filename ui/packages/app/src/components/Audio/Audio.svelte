@@ -16,6 +16,7 @@
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		stream: typeof value;
+		error: string;
 	}>();
 
 	export let elem_id: string = "";
@@ -72,6 +73,11 @@
 			on:play
 			on:pause
 			on:ended
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				loading_status.message = detail;
+			}}
 			drop_text={$_("interface.drop_audio")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
