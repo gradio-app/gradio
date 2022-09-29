@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import copy
 import inspect
@@ -13,7 +12,6 @@ import pkgutil
 import random
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
@@ -31,7 +29,6 @@ from typing import (
 )
 
 import aiohttp
-import analytics
 import fsspec.asyn
 import httpx
 import requests
@@ -40,13 +37,11 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
@@ -617,8 +612,10 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
+    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
+        :max_size
+    ]
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:

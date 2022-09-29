@@ -334,12 +334,23 @@
 
 	let header_edit: string | boolean;
 
+	function update_headers_data() {
+		if (typeof selected === "string") {
+			const new_header = els[selected].input?.value;
+			if (_headers.find((i) => i.id === selected)) {
+				let obj = _headers.find((i) => i.id === selected);
+				if (new_header) obj!["value"] = new_header;
+			} else {
+				if (new_header) _headers.push({ id: selected, value: new_header });
+			}
+		}
+	}
+
 	async function edit_header(_id: string, select?: boolean) {
 		if (!editable || col_count[1] !== "dynamic" || editing === _id) return;
 		header_edit = _id;
 		await tick();
 		els[_id].input?.focus();
-
 		if (select) els[_id].input?.select();
 	}
 
@@ -348,15 +359,13 @@
 
 		switch (event.key) {
 			case "Escape":
-				event.preventDefault();
-				selected = header_edit;
-				header_edit = false;
-
-				break;
 			case "Enter":
+			case "Tab":
 				event.preventDefault();
 				selected = header_edit;
 				header_edit = false;
+				update_headers_data();
+				break;
 		}
 	}
 
@@ -412,6 +421,9 @@
 				els[header_edit].cell !== event.target &&
 				!els[header_edit].cell?.contains(event.target as Node | null)
 			) {
+				selected = header_edit;
+				header_edit = false;
+				update_headers_data();
 				header_edit = false;
 			}
 		}
