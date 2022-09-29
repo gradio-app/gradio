@@ -1,9 +1,14 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
 
-       
+### 1. See Past and Upcoming Changes in the Release Histoy 👀
+
+You can now see gradio's release history directly on the website, and also keep track of upcoming changes. Just go [here](https://gradio.app/changelog/).
+
+![release-history](https://user-images.githubusercontent.com/9021060/193145458-3de699f7-7620-45de-aa73-a1c1b9b96257.gif)
+
+
 ## Bug Fixes:
 
 1. Fix typo in guide image path by @freddyaboulton in :pr:2357
