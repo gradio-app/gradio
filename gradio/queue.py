@@ -111,7 +111,7 @@ class Queue:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
-        await self.gather_data_for_first_ranks()
+        # await self.gather_data_for_first_ranks()
         if self.live_updates:
             await self.broadcast_estimations()
 
