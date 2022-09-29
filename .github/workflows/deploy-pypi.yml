@@ -58,3 +58,21 @@ jobs:
         with:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
+          body_path: website/releases/UPCOMING.md
+  modify-release-notes:
+    needs: gh-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Format Release Notes for Next Release
+        run: python scripts/format_release_notes.py ${{ env.INPUT_NAME }}
+      - name: Commit files
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: website/releases
+          author_name: "GH ACTIONS"
+          author_email: ""
