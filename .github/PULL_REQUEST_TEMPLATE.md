@@ -25,7 +25,7 @@ Hello 👋 and thank you for contributing to Gradio!
 
 All pull requests must update the change log located in website/CHANGELOG.md unless they are labeled with the no-changelog-update label.
 
-Please add a brief summary of the change to the Full Changelog section of the Upcoming Release and include the pr number.
+Please add a brief summary of the change to the Full Changelog section of the UPCOMING.md file and include the pr number.
 For example, "* Added a cool new feature :pr:123". 
 
 If you would like to elaborate on your change further, feel free to include a longer explanation in the other sections.
