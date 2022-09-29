@@ -67,7 +67,7 @@
 					"error",
 					"Please allow access to the microphone for recording."
 				);
-				return null;
+				return;
 			} else {
 				throw err;
 			}
