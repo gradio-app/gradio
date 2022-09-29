@@ -45,6 +45,7 @@
 		pause: undefined;
 		ended: undefined;
 		drag: boolean;
+		error: string;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -64,8 +65,9 @@
 			})
 			.catch((err) => {
 				if (err instanceof DOMException && err.name == "NotAllowedError") {
-					alert(
-						"Please allow the use of microphone if you wish to record audio."
+					dispatch(
+						"error",
+						"Please allow access to the microphone for recording."
 					);
 					return null;
 				} else {

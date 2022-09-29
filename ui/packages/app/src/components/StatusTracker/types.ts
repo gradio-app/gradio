@@ -6,4 +6,5 @@ export interface LoadingStatus {
 	scroll_to_output: boolean;
 	visible: boolean;
 	fn_index: number;
+	message: string | null;
 }
