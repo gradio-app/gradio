@@ -446,16 +446,16 @@ class TestCallBatchFunction:
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word[0])
-            return [[r] for r in results]
+                results.append("Hello " + word)
+            return (results,)
 
         with gr.Blocks() as demo:
             text = gr.Textbox()
             btn = gr.Button()
             btn.click(batch_fn, inputs=text, outputs=text, batch=True)
 
-        output = await demo.call_batch_function(0, [["Adam"], ["Yahya"]])
-        assert output["predictions"] == [["Hello Adam"], ["Hello Yahya"]]
+        output = await demo.call_batch_function(0, ["Adam", "Yahya"])
+        assert output["predictions"][0] == ["Hello Adam", "Hello Yahya"]
         output = demo("Abubakar")
         assert output == "Hello Abubakar"
 
@@ -464,24 +464,26 @@ class TestCallBatchFunction:
         def regular_fn(word1, word2):
             return len(word1) > len(word2)
 
-        def batch_fn(batch):
-            results = []
-            for sample in batch:
-                word1, word2 = sample
-                results.append([word2, word1, len(word1) > len(word2)])
-            return results
+        def batch_fn(words, lengths):
+            comparisons = []
+            trim_words = []
+            for word, length in zip(words, lengths):
+                trim_words.append(word[:length])
+                comparisons.append(len(word) > length)
+            return trim_words, comparisons
 
         with gr.Blocks() as demo:
             text1 = gr.Textbox()
             text2 = gr.Textbox()
-            word1_bigger = gr.Checkbox()
+            leng = gr.Number()
+            bigger = gr.Checkbox()
             btn1 = gr.Button("Check")
-            btn2 = gr.Button("Check and Swap")
-            btn1.click(regular_fn, inputs=[text1, text2], outputs=word1_bigger)
+            btn2 = gr.Button("Trim")
+            btn1.click(regular_fn, inputs=[text1, text2], outputs=bigger)
             btn2.click(
                 batch_fn,
-                inputs=[text1, text2],
-                outputs=[text1, text2, word1_bigger],
+                inputs=[text1, leng],
+                outputs=[text1, bigger],
                 batch=True,
             )
 
@@ -491,14 +493,14 @@ class TestCallBatchFunction:
         assert output
 
         output = await demo.call_batch_function(
-            1, [["Adam", "Yahya"], ["Mary", "John"]]
+            1, [["Adam", "Mary"], [3, 5]]
         )
-        assert output["predictions"] == [
-            ["Yahya", "Adam", False],
-            ["John", "Mary", False],
-        ]
-        output = demo("Abubakar", "Abid", fn_index=1)
-        assert output == ["Abid", "Abubakar", True]
+        assert output["predictions"] == (
+            ["Ada", "Mary"],
+            [True, False],
+        )
+        output = demo("Abubakar", 3, fn_index=1)
+        assert output == ["Abu", True]
 
 
 class TestSpecificUpdate:

@@ -118,8 +118,8 @@ class TestRoutes(unittest.TestCase):
         def batch_fn(x):
             results = []
             for word in x:
-                results.append("Hello " + word[0])
-            return [[r] for r in results]
+                results.append("Hello " + word)
+            return (results, )
 
         with gr.Blocks() as demo:
             text = gr.Textbox()
@@ -135,10 +135,10 @@ class TestRoutes(unittest.TestCase):
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post(
-            "/api/pred/", json={"data": [["test"], ["test2"]], "batched": True}
+            "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], [["Hello test"], ["Hello test2"]])
+        self.assertEqual(output["data"], [["Hello test", "Hello test2"]])
 
     def test_state(self):
         def predict(input, history):
