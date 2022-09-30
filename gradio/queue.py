@@ -85,7 +85,7 @@ class Queue:
 
             self.active_jobs[self.active_jobs.index(None)] = event
             run_coro_in_background(self.process_event, event)
-            run_coro_in_background(self.gather_data_and_broadcast_estimations)
+            run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
         """
@@ -107,11 +107,10 @@ class Queue:
         elif event in self.active_jobs:
             self.active_jobs[self.active_jobs.index(event)] = None
 
-    async def gather_data_and_broadcast_estimations(self) -> None:
+    async def broadcast_live_estimations(self) -> None:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
-        # await self.gather_data_for_first_ranks()
         if self.live_updates:
             await self.broadcast_estimations()
 
