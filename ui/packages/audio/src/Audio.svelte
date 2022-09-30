@@ -7,14 +7,14 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
 
-	import type { IMediaRecorder } from "extendable-media-recorder";
+	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -40,7 +40,8 @@
 	let crop_values = [0, 100];
 	const STREAM_TIMESLICE = 500;
 	const NUM_HEADER_BYTES = 44;
-
+	let audio_chunks: Array<Blob> = [];
+	let audio_blob;
 	let module_promises:
 		| [
 				Promise<typeof import("extendable-media-recorder")>,
@@ -95,40 +96,61 @@
 			}
 		}
 
-		const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-			module_promises
-		);
-
 		if (stream == null) return;
 
-		await register(await connect());
+		if (streaming) {
+			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
+				module_promises
+			);
 
-		recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
-		recorder.addEventListener("dataavailable", async (event) => {
-			let buffer = await event.data.arrayBuffer();
-			let payload = new Uint8Array(buffer);
-			if (!header) {
-				header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
-				payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
-			}
-			if (pending) {
-				pending_stream.push(payload);
-			} else {
-				let blobParts = [header].concat(pending_stream, [payload]);
-				let blob = new Blob(blobParts, { type: "audio/wav" });
-				value = {
-					data: await blob_to_data_url(blob),
-					name
-				};
-				pending_stream = [];
-				if (streaming) {
-					dispatch("stream", value);
+			await register(await connect());
+
+			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+
+			async function handle_chunk(event: IBlobEvent) {
+				let buffer = await event.data.arrayBuffer();
+				let payload = new Uint8Array(buffer);
+				if (!header) {
+					header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+					payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+				}
+				if (pending) {
+					console.log("hi");
+					pending_stream.push(payload);
 				} else {
-					recording = false;
-					dispatch("change", value);
+					console.log("hi2");
+
+					let blobParts = [header].concat(pending_stream, [payload]);
+					let blob = new Blob(blobParts, { type: "audio/wav" });
+					value = {
+						data: await blob_to_data_url(blob),
+						name
+					};
+					pending_stream = [];
+					dispatch("stream", value);
 				}
 			}
-		});
+			recorder.addEventListener("dataavailable", handle_chunk);
+		} else {
+			recorder = new MediaRecorder(stream);
+
+			recorder.addEventListener("dataavailable", (event) => {
+				audio_chunks.push(event.data);
+			});
+
+			recorder.addEventListener("stop", async () => {
+				recording = false;
+
+				audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+				audio_chunks = [];
+				value = {
+					data: await blob_to_data_url(audio_blob),
+					name
+				};
+				dispatch("change", value);
+			});
+		}
+
 		inited = true;
 	}
 
