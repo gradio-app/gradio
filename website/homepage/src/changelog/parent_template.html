@@ -17,21 +17,13 @@
              Version History
           </div>
           {% for version in versions %} 
-            {% if version == "UPCOMING" %}
-            <a class="version-link {% if loop.first %}current-nav-link{% endif %} pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+            <a class="guide-link {% if loop.first %}current-nav-link{% endif %} pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
                 style="max-width: 12rem"
-                href="#UPCOMING-section">Upcoming Release</a>
-            {% else %}
-            <a class="version-link {% if loop.first %}current-nav-link{% endif %} pb-1 -indent-2 ml-2 thin-link px-4 block overflow-hidden"
-                style="max-width: 12rem"
-                href="#{{ version | replace('.','-') }}-section">{{ version }}</a>
-            {% endif %}
+                href="#{{ version[1] }}">{{ version[0] }}</a>
           {% endfor %}
       </div>
       <div class="w-full">
-        {% for version in versions %} 
-        <div class="prose text-lg max-w-full" id="{{ version | replace('.','-') }}-section">{% include "changelog/%s.html" % version %}</div>
-        {% endfor %}
+        <div class="prose text-lg max-w-full">{% include "changelog/inner_template.html" %}</div>
       </div>
     </div>
     <script src="/assets/prism.js"></script>
@@ -44,19 +36,31 @@
       let mainNavLinks = document.querySelectorAll(".side-navigation a");
       window.addEventListener("scroll", event => {
         let fromTop = window.scrollY;
-        mainNavLinks.forEach(link => {
-          let section = document.querySelector(link.hash);
-          if (
-            section.offsetTop <= fromTop*1.01 &&
-            section.offsetTop + section.offsetHeight > fromTop*1.01
-          ) {
-            link.classList.add("current-nav-link");
+        mainNavLinks.forEach(function(link, index) {
+          if (index < mainNavLinks.length - 1) {
+            let section = document.querySelector(link.hash);
+            let nextSection = document.querySelector(mainNavLinks[index + 1].hash);
+            if (
+              section.offsetTop <= fromTop*1.01 &&
+              nextSection.offsetTop > fromTop*1.01
+            ) {
+              link.classList.add("current-nav-link");
+            } else {
+              link.classList.remove("current-nav-link");
+            }
           } else {
-            link.classList.remove("current-nav-link");
-          }
+            let section = document.querySelector(link.hash);
+            if (
+              section.offsetTop <= fromTop*1.01 &&
+              window.pageYOffset > fromTop*0.9
+            ) {
+              link.classList.add("current-nav-link");
+            } else {
+              link.classList.remove("current-nav-link");
+            }
+          };
         });
       });
-  
     </script>
   </body>
 </html>
