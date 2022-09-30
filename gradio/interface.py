@@ -158,7 +158,7 @@ class Interface(Blocks):
     ):
         """
         Parameters:
-            fn: the function to wrap an interface around. Often a machine learning model's prediction function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
@@ -178,8 +178,8 @@ class Interface(Blocks):
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
         """
         super().__init__(
             analytics_enabled=analytics_enabled,

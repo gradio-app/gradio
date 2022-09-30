@@ -31,15 +31,15 @@ class Changeable(Block):
         or uploads an image). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -88,15 +88,15 @@ class Clickable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -146,15 +146,15 @@ class Submittable(Block):
 
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -203,15 +203,15 @@ class Editable(Block):
         built-in editor. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -260,15 +260,15 @@ class Clearable(Block):
         using the X button for the component. This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -317,15 +317,15 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -372,15 +372,15 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -427,15 +427,15 @@ class Playable(Block):
         This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
@@ -484,15 +484,15 @@ class Streamable(Block):
         component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
-            fn: Callable function. When batch is False, each parameter of the function corresponds to one input component, and each return value corresponds to one output component. But if batch is True, the function must accept a *single* parameter, which is a *nested* list of inputs, where the outer list represents the batch, and the inner list represents the inputs to underlying prediction. For example, if the prediction takes two inputs, the input to the function would be [[input1, input2], [input1, input2], [input1, input2]]. Similarly, the function must return a single *nested* list of outputs. For example, if the prediction has one output, the output of the function should be [[output1], [output1], [output1]].
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
             outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
-            batch: If True, we expect the function to take a list of inputs (up to length `max_batch_size`) and return a list of outputs of equal length
-            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True, and queue is enabled for this event)
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component. 
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
