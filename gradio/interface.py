@@ -387,23 +387,22 @@ class Interface(Blocks):
 
         self.favicon_path = None
 
-        data = {
-            "mode": self.mode,
-            "fn": fn,
-            "inputs": inputs,
-            "outputs": outputs,
-            "live": live,
-            "ip_address": self.ip_address,
-            "interpretation": interpretation,
-            "allow_flagging": allow_flagging,
-            "custom_css": self.css is not None,
-            "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt")
-            .decode("ascii")
-            .strip(),
-        }
-
         if self.analytics_enabled:
+            data = {
+                "mode": self.mode,
+                "fn": fn,
+                "inputs": inputs,
+                "outputs": outputs,
+                "live": live,
+                "ip_address": self.ip_address,
+                "interpretation": interpretation,
+                "allow_flagging": allow_flagging,
+                "custom_css": self.css is not None,
+                "theme": self.theme,
+                "version": pkgutil.get_data(__name__, "version.txt")
+                .decode("ascii")
+                .strip(),
+            }
             utils.initiated_analytics(data)
 
         utils.version_check()
@@ -490,7 +489,8 @@ class Interface(Blocks):
 
                     with Column(variant="panel"):
                         for component in self.output_components:
-                            component.render()
+                            if not (isinstance(component, State)):
+                                component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")

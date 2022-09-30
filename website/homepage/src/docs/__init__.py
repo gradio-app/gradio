@@ -15,14 +15,14 @@ def add_component_shortcuts():
         if not getattr(component["class"], "allow_string_shortcut", True):
             continue
         component["string_shortcuts"] = [
-            (component["name"].lower(), "Uses default values")
+            (component["class"].__name__, component["name"].lower(), "Uses default values")
         ]
         for subcls in component["class"].__subclasses__():
             if getattr(subcls, "is_template", False):
                 _, tags, _ = document_cls(subcls)
                 component["string_shortcuts"].append(
-                    (subcls.__name__.lower(), "Uses " + tags.get("sets", "default values"))
-                )
+                    (subcls.__name__, subcls.__name__.lower(), "Uses " + tags.get("sets", "default values"))
+                )                
 add_component_shortcuts()
 def add_demos():
     for mode in docs:
