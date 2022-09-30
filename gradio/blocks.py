@@ -651,13 +651,13 @@ class Blocks(BlockContext):
         processed_inputs = self.serialize_data(fn_index, inputs)
         batch = self.dependencies[fn_index]["batch"]
         if batch:
-            processed_inputs = [processed_inputs]
+            processed_inputs = [[inp] for inp in processed_inputs]
 
         outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
         outputs = outputs["data"]
 
         if batch:
-            outputs = list(outputs)[0]
+            outputs = [out[0] for out in outputs]
 
         processed_outputs = self.deserialize_data(fn_index, outputs)
         processed_outputs = utils.resolve_singleton(processed_outputs)
@@ -810,28 +810,28 @@ class Blocks(BlockContext):
         batch = self.dependencies[fn_index]["batch"]
 
         if batch:
+            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
+            batch_sizes = [len(inp) for inp in inputs]
+            batch_size = batch_sizes[0]
+
             if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
                 block_fn.fn
             ):
                 raise ValueError("Gradio does not support generators in batch mode.")
-
-            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
-            batch_size = len(inputs)
+            if not all(x == batch_sizes for x in batch_sizes):
+                raise ValueError(
+                    f"All inputs to a batch function must have the same length but instead have sizes: {batch_sizes}."
+                )
             if batch_size > max_batch_size:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-            print("inputs", inputs)
+
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            print("inputs", inputs)
             result = await self.call_function(fn_index, zip(*inputs), None)
-            print("result", result)
             preds = result["prediction"]
-            print("preds", preds)
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
-            print("data", data)
             data = zip(*data)
-            print("data", data)
             is_generating, iterator = None, None
 
         else:

@@ -475,7 +475,7 @@ class TestCallBatchFunction:
         with gr.Blocks() as demo:
             text1 = gr.Textbox()
             text2 = gr.Textbox()
-            leng = gr.Number()
+            leng = gr.Number(precision=0)
             bigger = gr.Checkbox()
             btn1 = gr.Button("Check")
             btn2 = gr.Button("Trim")
