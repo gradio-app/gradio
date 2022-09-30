@@ -366,7 +366,6 @@ class App(FastAPI):
 
             if app.blocks.dependencies[fn_index]["trigger"] == "load" and app.blocks.dependencies[fn_index]["continuous"]:
                 utils.run_coro_in_background(app.blocks._queue.process_event, event)
-
             else:
                 rank = app.blocks._queue.push(event)
 
