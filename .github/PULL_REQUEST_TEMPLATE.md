@@ -11,7 +11,7 @@ Closes: # (issue)
 # Checklist:
 
 - [ ] I have performed a self-review of my own code
-- [ ] I have added a short summary of my change to the CHANGELOG in website/CHANGELOG.md
+- [ ] I have added a short summary of my change to the CHANGELOG in website/releases/UPCOMING.md
 - [ ] My code follows the style guidelines of this project
 - [ ] I have commented my code in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
@@ -23,7 +23,7 @@ Closes: # (issue)
 
 Hello 👋 and thank you for contributing to Gradio!
 
-All pull requests must update the change log located in website/CHANGELOG.md unless they are labeled with the no-changelog-update label.
+All pull requests must update the change log located in website/releases/UPCOMING.md unless they are labeled with the no-changelog-update label.
 
 Please add a brief summary of the change to the Full Changelog section of the UPCOMING.md file and include the pr number.
 For example, "* Added a cool new feature :pr:123". 
