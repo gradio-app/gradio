@@ -813,12 +813,11 @@ class Blocks(BlockContext):
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_sizes = [len(inp) for inp in inputs]
             batch_size = batch_sizes[0]
-
             if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
                 block_fn.fn
             ):
                 raise ValueError("Gradio does not support generators in batch mode.")
-            if not all(x == batch_sizes for x in batch_sizes):
+            if not all(x == batch_size for x in batch_sizes):
                 raise ValueError(
                     f"All inputs to a batch function must have the same length but instead have sizes: {batch_sizes}."
                 )

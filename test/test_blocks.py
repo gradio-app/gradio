@@ -440,7 +440,7 @@ class TestCallFunction:
         assert output["prediction"] == (0, 3)
 
 
-class TestCallBatchFunction:
+class TestBatchProcessing:
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
@@ -500,6 +500,55 @@ class TestCallBatchFunction:
         output = demo("Abubakar", 3, fn_index=1)
         assert output == ["Abu", True]
 
+    @pytest.mark.asyncio
+    async def test_invalid_batch_generator(self):
+        with pytest.raises(ValueError):
+            def batch_fn(x):
+                results = []
+                for word in x:
+                    results.append("Hello " + word)
+                    yield (results,)
+
+            with gr.Blocks() as demo:
+                text = gr.Textbox()
+                btn = gr.Button()
+                btn.click(batch_fn, inputs=text, outputs=text, batch=True)
+            
+            await demo.process_api(0, [["Adam", "Yahya"]])
+
+    @pytest.mark.asyncio
+    async def test_exceeds_max_batch_size(self):
+        with pytest.raises(ValueError):
+            def batch_fn(x):
+                results = []
+                for word in x:
+                    results.append("Hello " + word)
+                return (results,)
+
+            with gr.Blocks() as demo:
+                text = gr.Textbox()
+                btn = gr.Button()
+                btn.click(batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2)
+
+            await demo.process_api(0, [["A", "B", "C"]])
+
+    @pytest.mark.asyncio
+    async def test_unequal_batch_sizes(self):
+        with pytest.raises(ValueError):
+            def batch_fn(x, y):
+                results = []
+                for word1, word2 in zip(x, y):
+                    results.append("Hello " + word1 + word2)
+                return (results,)
+
+            with gr.Blocks() as demo:
+                t1 = gr.Textbox()
+                t2 = gr.Textbox()
+                btn = gr.Button()
+                btn.click(batch_fn, inputs=[t1, t2], outputs=t1, batch=True)
+
+            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]])
+       
 
 class TestSpecificUpdate:
     def test_without_update(self):
