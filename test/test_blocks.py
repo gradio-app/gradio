@@ -492,9 +492,7 @@ class TestCallBatchFunction:
         output = demo("Abubakar", "Abid")
         assert output
 
-        output = await demo.call_batch_function(
-            1, [["Adam", "Mary"], [3, 5]]
-        )
+        output = await demo.call_batch_function(1, [["Adam", "Mary"], [3, 5]])
         assert output["predictions"] == (
             ["Ada", "Mary"],
             [True, False],

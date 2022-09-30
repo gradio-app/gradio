@@ -119,7 +119,7 @@ class TestRoutes(unittest.TestCase):
             results = []
             for word in x:
                 results.append("Hello " + word)
-            return (results, )
+            return (results,)
 
         with gr.Blocks() as demo:
             text = gr.Textbox()

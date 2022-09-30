@@ -711,33 +711,6 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    async def call_batch_function(
-        self,
-        fn_index: int,
-        processed_input_batch: List[List[Any]],
-    ):
-        block_fn = self.fns[fn_index]
-        start = time.time()
-
-        if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
-            block_fn.fn
-        ):
-            raise ValueError("Gradio does not support generators in batch mode.")
-
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = await block_fn.fn(processed_input_batch)
-        else:
-            predictions = await anyio.to_thread.run_sync(
-                block_fn.fn, processed_input_batch, limiter=self.limiter
-            )
-
-        duration = time.time() - start
-
-        return {
-            "predictions": predictions,
-            "duration": duration,
-        }
-
     def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
         dependency = self.dependencies[fn_index]
         processed_input = []
@@ -829,10 +802,18 @@ class Blocks(BlockContext):
             data: data recieved from the frontend
             username: name of user if authentication is set up
             state: data stored from stateful components for session
+            iterators: a dictionary mapping function index to iterators
+            state: a dictionary mapping function index to state
         Returns: None
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
+        
+        if batch and inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+            block_fn.fn
+        ):
+            raise ValueError("Gradio does not support generators in batch mode.")
+        
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
@@ -840,18 +821,17 @@ class Blocks(BlockContext):
             assert (
                 batch_size <= max_batch_size
             ), f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
-            input_batch = [self.preprocess_data(fn_index, i, state) for i in inputs]
-            result = await self.call_batch_function(fn_index, input_batch)
-            predictions = result["predictions"]
-            data = [self.postprocess_data(fn_index, o, state) for o in predictions]
+            inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
+            result = await self.call_function(fn_index, zip(*inputs), None)
+            preds = result["predictions"]
+            data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
+            data = zip(*data)
             is_generating, iterator = None, None
 
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-
             result = await self.call_function(fn_index, inputs, iterator)
-
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import json
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
@@ -85,6 +84,24 @@ class Queue:
             if worker is not None:
                 count += 1
         return count
+    
+    def get_events_in_batch(self) -> Tuple[List[Event], bool]:
+        first_event = self.event_queue.pop(0)
+        events = [first_event]
+
+        event_fn_index = first_event.fn_index
+        batch = self.blocks_dependencies[event_fn_index]["batch"]
+        batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
+
+        if batch:
+            while len(events) < batch_size:
+                fn_indices = [ev.fn_index for ev in self.event_queue]
+                try:
+                    index = fn_indices.index(event_fn_index)
+                    events.append(self.event_queue.pop(index))
+                except ValueError:
+                    break
+        return events, batch
 
     async def start_processing(self) -> None:
         while not self.stopped:
@@ -98,21 +115,7 @@ class Queue:
 
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
-                first_event = self.event_queue.pop(0)
-                events = [first_event]
-
-                event_fn_index = first_event.fn_index
-                batch = self.blocks_dependencies[event_fn_index]["batch"]
-                batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
-
-                if batch:
-                    while len(events) < batch_size:
-                        fn_indices = [ev.fn_index for ev in self.event_queue]
-                        try:
-                            index = fn_indices.index(event_fn_index)
-                            events.append(self.event_queue.pop(index))
-                        except ValueError:
-                            break
+                events = self.get_events_in_batch()
 
             self.active_jobs[self.active_jobs.index(None)] = events
             run_coro_in_background(self.process_events, events, batch)
