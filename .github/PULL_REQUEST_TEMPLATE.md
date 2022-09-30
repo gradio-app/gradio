@@ -29,5 +29,5 @@ Please add a brief summary of the change to the Full Changelog section of the UP
 For example, "* Added a cool new feature :pr:123". 
 
 If you would like to elaborate on your change further, feel free to include a longer explanation in the other sections.
-If you would like an image/gif/video showcasing your feature, it may be best to edit the CHANGELOG file directly on the 
-Github web UI since that lets you upload files directly via drag-and-drop.
+If you would like an image/gif/video showcasing your feature, it may be best to edit the CHANGELOG file using the 
+GitHub web UI since that lets you upload files directly via drag-and-drop.
