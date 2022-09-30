@@ -799,11 +799,11 @@ class Blocks(BlockContext):
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
         Parameters:
-            data: data recieved from the frontend
+            fn_index: Index of function to run.
+            inputs: input data received from the frontend
             username: name of user if authentication is set up
-            state: data stored from stateful components for session
-            iterators: a dictionary mapping function index to iterators
             state: a dictionary mapping function index to state
+            iterators: a dictionary mapping function index to iterators
         Returns: None
         """
         block_fn = self.fns[fn_index]
