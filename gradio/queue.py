@@ -84,7 +84,7 @@ class Queue:
             if worker is not None:
                 count += 1
         return count
-    
+
     def get_events_in_batch(self) -> Tuple[List[Event], bool]:
         first_event = self.event_queue.pop(0)
         events = [first_event]
@@ -115,7 +115,7 @@ class Queue:
 
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
-                events = self.get_events_in_batch()
+                events, batch = self.get_events_in_batch()
 
             self.active_jobs[self.active_jobs.index(None)] = events
             run_coro_in_background(self.process_events, events, batch)

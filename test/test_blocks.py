@@ -454,8 +454,8 @@ class TestCallBatchFunction:
             btn = gr.Button()
             btn.click(batch_fn, inputs=text, outputs=text, batch=True)
 
-        output = await demo.call_batch_function(0, ["Adam", "Yahya"])
-        assert output["predictions"][0] == ["Hello Adam", "Hello Yahya"]
+        output = await demo.call_function(0, ["Adam", "Yahya"])
+        assert output["prediction"][0] == ["Hello Adam", "Hello Yahya"]
         output = demo("Abubakar")
         assert output == "Hello Abubakar"
 
@@ -492,8 +492,8 @@ class TestCallBatchFunction:
         output = demo("Abubakar", "Abid")
         assert output
 
-        output = await demo.call_batch_function(1, [["Adam", "Mary"], [3, 5]])
-        assert output["predictions"] == (
+        output = await demo.call_function(1, [["Adam", "Mary"], [3, 5]])
+        assert output["prediction"] == (
             ["Ada", "Mary"],
             [True, False],
         )

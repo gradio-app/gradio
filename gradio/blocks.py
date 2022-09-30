@@ -808,22 +808,20 @@ class Blocks(BlockContext):
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
-        
-        if batch and inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
-            block_fn.fn
-        ):
-            raise ValueError("Gradio does not support generators in batch mode.")
-        
 
         if batch:
+            if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+                block_fn.fn
+            ):
+                raise ValueError("Gradio does not support generators in batch mode.")
+
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_size = len(inputs)
-            assert (
-                batch_size <= max_batch_size
-            ), f"Batch size of ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+            if batch_size > max_batch_size:
+                raise ValueError(f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})")
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
             result = await self.call_function(fn_index, zip(*inputs), None)
-            preds = result["predictions"]
+            preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = zip(*data)
             is_generating, iterator = None, None
