@@ -115,11 +115,8 @@
 					payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
 				}
 				if (pending) {
-					console.log("hi");
 					pending_stream.push(payload);
 				} else {
-					console.log("hi2");
-
 					let blobParts = [header].concat(pending_stream, [payload]);
 					let blob = new Blob(blobParts, { type: "audio/wav" });
 					value = {
