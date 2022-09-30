@@ -657,7 +657,7 @@ class Blocks(BlockContext):
         outputs = outputs["data"]
 
         if batch:
-            outputs = outputs[0]
+            outputs = list(outputs)[0]
 
         processed_outputs = self.deserialize_data(fn_index, outputs)
         processed_outputs = utils.resolve_singleton(processed_outputs)
@@ -818,12 +818,20 @@ class Blocks(BlockContext):
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
             batch_size = len(inputs)
             if batch_size > max_batch_size:
-                raise ValueError(f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})")
+                raise ValueError(
+                    f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+                )
+            print("inputs", inputs)
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
+            print("inputs", inputs)
             result = await self.call_function(fn_index, zip(*inputs), None)
+            print("result", result)
             preds = result["prediction"]
+            print("preds", preds)
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
+            print("data", data)
             data = zip(*data)
+            print("data", data)
             is_generating, iterator = None, None
 
         else:
