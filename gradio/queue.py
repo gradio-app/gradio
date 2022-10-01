@@ -9,8 +9,8 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, run_coro_in_background
 from gradio.routes import PredictBody
+from gradio.utils import Request, run_coro_in_background
 
 
 class Estimation(BaseModel):
