@@ -8,10 +8,9 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import fastapi
 from pydantic import BaseModel
 
+from gradio.dataclasses import PredictBody
 from gradio.utils import Request, run_coro_in_background
-
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.routes import PredictBody
+from gradio.routes import PredictBody
 
 
 class Estimation(BaseModel):
@@ -249,13 +248,12 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         if batch:
-            data["data"] = [event.data.data for event in events]
-            data["batched"] = True
-
+            data.data = list(zip(*[event.data.data for event in events]))
+            data.batched = True
         response = await Request(
             method=Request.Method.POST,
             url=f"{self.server_path}api/predict",
-            json=data,
+            json=dict(data),
         )
         return response
 
@@ -274,7 +272,6 @@ class Queue:
                 return
             begin_time = time.time()
             response = await self.call_prediction(events, batch)
-
             if response.has_exception:
                 for event in awake_events:
                     await self.send_message(
@@ -308,15 +305,15 @@ class Queue:
                         },
                     )
             else:
-                data = copy.deepcopy(response.json.get("data", {}))
+                output = copy.deepcopy(response.json)
                 for e, event in enumerate(awake_events):
                     if batch:
-                        response.json["data"] = data[e]
+                        output["data"] = response.json.get("data")[e]
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": response.json,
+                            "output": output,
                             "success": response.status == 200,
                         },
                     )
@@ -340,10 +337,10 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[Dict]:
+    async def get_message(self, event) -> Optional[PredictBody]:
         try:
             data = await event.websocket.receive_json()
-            return data
+            return PredictBody(**data)
         except:
             await self.clean_event(event)
             return None

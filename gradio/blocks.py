@@ -830,7 +830,7 @@ class Blocks(BlockContext):
             result = await self.call_function(fn_index, zip(*inputs), None)
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
-            data = zip(*data)
+            data = list(zip(*data))
             is_generating, iterator = None, None
 
         else:

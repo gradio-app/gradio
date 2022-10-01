@@ -25,12 +25,12 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor, utils
+from gradio.dataclasses import PredictBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
@@ -53,29 +53,6 @@ class ORJSONResponse(JSONResponse):
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
-
-
-###########
-# Data Models
-###########
-
-
-class QueueStatusBody(BaseModel):
-    hash: str
-
-
-class QueuePushBody(BaseModel):
-    fn_index: int
-    action: str
-    session_hash: str
-    data: Any
-
-
-class PredictBody(BaseModel):
-    session_hash: Optional[str]
-    data: List[Any]
-    fn_index: Optional[int]
-    batched: Optional[bool] = False
 
 
 ###########
@@ -273,10 +250,8 @@ class App(FastAPI):
             raw_input = body.data
             fn_index = body.fn_index
             batch = app.blocks.dependencies[fn_index]["batch"]
-
             if not (body.batched) and batch:
                 raw_input = [raw_input]
-
             try:
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state, iterators
@@ -296,7 +271,6 @@ class App(FastAPI):
 
             if not (body.batched) and batch:
                 output["data"] = output["data"][0]
-
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
