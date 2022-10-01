@@ -307,7 +307,7 @@ class Queue:
                 output = copy.deepcopy(response.json)
                 for e, event in enumerate(awake_events):
                     if batch:
-                        output["data"] = response.json.get("data")[e]
+                        output["data"] = list(zip(*response.json.get("data")))[e]
                     await self.send_message(
                         event,
                         {
