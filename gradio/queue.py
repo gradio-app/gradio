@@ -85,22 +85,24 @@ class Queue:
                 count += 1
         return count
 
-    def get_events_in_batch(self) -> Tuple[List[Event], bool]:
+    def get_events_in_batch(self) -> Tuple[List[Event] | None, bool]:
+        if not (self.event_queue):
+            return None, False
+
         first_event = self.event_queue.pop(0)
         events = [first_event]
 
         event_fn_index = first_event.fn_index
         batch = self.blocks_dependencies[event_fn_index]["batch"]
-        batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
 
         if batch:
-            while len(events) < batch_size:
-                fn_indices = [ev.fn_index for ev in self.event_queue]
-                try:
-                    index = fn_indices.index(event_fn_index)
-                    events.append(self.event_queue.pop(index))
-                except ValueError:
-                    break
+            batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
+            rest_of_batch = [
+                event for event in self.event_queue if event.fn_index == event_fn_index
+            ][: batch_size - 1]
+            events.extend(rest_of_batch)
+            [self.event_queue.remove(event) for event in rest_of_batch]
+
         return events, batch
 
     async def start_processing(self) -> None:
@@ -117,9 +119,10 @@ class Queue:
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
 
-            self.active_jobs[self.active_jobs.index(None)] = events
-            run_coro_in_background(self.process_events, events, batch)
-            run_coro_in_background(self.gather_data_and_broadcast_estimations)
+            if events:
+                self.active_jobs[self.active_jobs.index(None)] = events
+                run_coro_in_background(self.process_events, events, batch)
+                run_coro_in_background(self.gather_data_and_broadcast_estimations)
 
     def push(self, event: Event) -> int | None:
         """
@@ -246,7 +249,7 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         if batch:
-            data["data"] = [event.data["data"] for event in events]
+            data["data"] = [event.data.data for event in events]
             data["batched"] = True
 
         response = await Request(
@@ -305,15 +308,15 @@ class Queue:
                         },
                     )
             else:
+                data = copy.deepcopy(response.json.get("data", {}))
                 for e, event in enumerate(awake_events):
-                    output = copy.deepcopy(response.json)
                     if batch:
-                        output["data"] = output["data"][e]
+                        response.json["data"] = data[e]
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": output,
+                            "output": response.json,
                             "success": response.status == 200,
                         },
                     )

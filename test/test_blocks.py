@@ -503,6 +503,7 @@ class TestBatchProcessing:
     @pytest.mark.asyncio
     async def test_invalid_batch_generator(self):
         with pytest.raises(ValueError):
+
             def batch_fn(x):
                 results = []
                 for word in x:
@@ -513,12 +514,13 @@ class TestBatchProcessing:
                 text = gr.Textbox()
                 btn = gr.Button()
                 btn.click(batch_fn, inputs=text, outputs=text, batch=True)
-            
+
             await demo.process_api(0, [["Adam", "Yahya"]])
 
     @pytest.mark.asyncio
     async def test_exceeds_max_batch_size(self):
         with pytest.raises(ValueError):
+
             def batch_fn(x):
                 results = []
                 for word in x:
@@ -528,13 +530,16 @@ class TestBatchProcessing:
             with gr.Blocks() as demo:
                 text = gr.Textbox()
                 btn = gr.Button()
-                btn.click(batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2)
+                btn.click(
+                    batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2
+                )
 
             await demo.process_api(0, [["A", "B", "C"]])
 
     @pytest.mark.asyncio
     async def test_unequal_batch_sizes(self):
         with pytest.raises(ValueError):
+
             def batch_fn(x, y):
                 results = []
                 for word1, word2 in zip(x, y):
@@ -548,7 +553,7 @@ class TestBatchProcessing:
                 btn.click(batch_fn, inputs=[t1, t2], outputs=t1, batch=True)
 
             await demo.process_api(0, [["A", "B", "C"], ["D", "E"]])
-       
+
 
 class TestSpecificUpdate:
     def test_without_update(self):

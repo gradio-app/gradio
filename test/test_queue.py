@@ -278,3 +278,71 @@ class TestQueueBatch:
 
         mock_event2.disconnect.assert_called_once()
         queue.clean_event.call_count == 2
+
+
+class TestGetEventsInBatch:
+    def test_empty_event_queue(self, queue: Queue):
+        queue.event_queue = []
+        events, _ = queue.get_events_in_batch()
+        assert events is None
+
+    def test_single_type_of_event(self, queue: Queue):
+        queue.blocks_dependencies = [{"batch": True, "max_batch_size": 3}]
+        queue.event_queue = [
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=0),
+        ]
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [0, 0, 0]
+
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [0]
+
+    def test_multiple_batch_events(self, queue: Queue):
+        queue.blocks_dependencies = [
+            {"batch": True, "max_batch_size": 3},
+            {"batch": True, "max_batch_size": 2},
+        ]
+        queue.event_queue = [
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=1),
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=1),
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=0),
+        ]
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [0, 0, 0]
+
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [1, 1]
+
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [0]
+
+    def test_both_types_of_event(self, queue: Queue):
+        queue.blocks_dependencies = [
+            {"batch": True, "max_batch_size": 3},
+            {"batch": False},
+        ]
+        queue.event_queue = [
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=1),
+            Event(websocket=MagicMock(), fn_index=0),
+            Event(websocket=MagicMock(), fn_index=1),
+            Event(websocket=MagicMock(), fn_index=1),
+        ]
+        events, batch = queue.get_events_in_batch()
+        assert batch
+        assert [e.fn_index for e in events] == [0, 0]
+
+        events, batch = queue.get_events_in_batch()
+        assert not (batch)
+        assert [e.fn_index for e in events] == [1]
