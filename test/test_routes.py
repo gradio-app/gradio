@@ -253,7 +253,7 @@ class TestAuthenticatedRoutes(unittest.TestCase):
 @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
 async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
     io = Interface(lambda x: x, "text", "text").queue()
-    app, _, _ = io.launch(prevent_thread_lock=True)
+    io.launch(prevent_thread_lock=True)
     io._queue.server_path = None
     async with websockets.connect(
         f"{io.local_url.replace('http', 'ws')}queue/join"
