@@ -473,18 +473,22 @@ class Request:
         Returns:
             Request
         """
-        # Send the request and get the response.
-        self._response: httpx.Response = await Request.client.send(self._request)
-        # Raise for _status
-
-        self._status = self._response.status_code
-
-        if self._raise_for_status:
-            self._response.raise_for_status()
-        # Parse client response data to JSON
-        self._json_response_data = self._response.json()
-        # Validate response data
-        self._validated_data = self._validate_response_data(self._json_response_data)
+        try:
+            # Send the request and get the response.
+            self._response: httpx.Response = await Request.client.send(self._request)
+            # Raise for _status
+            self._status = self._response.status_code
+            if self._raise_for_status:
+                self._response.raise_for_status()
+            # Parse client response data to JSON
+            self._json_response_data = self._response.json()
+            # Validate response data
+            self._validated_data = self._validate_response_data(
+                self._json_response_data
+            )
+        except Exception as exception:
+            # If there is an exception, store it to do further inspections.
+            self._exception = self._exception_type(exception)
         return self
 
     @staticmethod
