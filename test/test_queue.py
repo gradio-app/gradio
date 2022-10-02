@@ -261,7 +261,7 @@ class TestQueueBatch:
         queue.call_prediction.return_value.has_exception = False
         queue.call_prediction.return_value.json = {
             "is_generating": False,
-            "data": [[1], [2]],
+            "data": [[1, 2]],
         }
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
