@@ -12,7 +12,6 @@ import pkgutil
 import random
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
@@ -30,7 +29,6 @@ from typing import (
 )
 
 import aiohttp
-import analytics
 import fsspec.asyn
 import httpx
 import requests
@@ -39,13 +37,11 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
@@ -255,10 +251,6 @@ def assert_configs_are_equivalent_besides_ids(
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert_same_components(o1, o2)
 
-        # status tracker is popped since we allow it to have different ids
-        d1.pop("status_tracker", None)
-        d2.pop("status_tracker", None)
-
         assert d1 == d2, f"{d1} does not match {d2}"
 
     return True
@@ -281,14 +273,14 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
     return output
 
 
-def delete_none(_dict):
+def delete_none(_dict, skip_value=False):
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
     Credit: https://stackoverflow.com/a/66127889/5209347
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
-            if key == "value":
+            if skip_value and key == "value":
                 continue
             if isinstance(value, (list, dict, tuple, set)):
                 _dict[key] = delete_none(value)
@@ -620,8 +612,10 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
+    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
+        :max_size
+    ]
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -670,3 +664,16 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
             suffix_counter += 1
             new_name = name + f"_{suffix_counter}"
         return new_name
+
+
+def validate_url(possible_url: str) -> bool:
+    try:
+        if requests.get(possible_url).status_code == 200:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def is_update(val):
+    return type(val) is dict and "update" in val.get("__type__", "")

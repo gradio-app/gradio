@@ -112,8 +112,8 @@ class OutputPreprocessing(unittest.TestCase):
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
     def test_create_tmp_copy_of_file(self):
-        os.system("touch test.txt")
-        temp_file = gr.processing_utils.create_tmp_copy_of_file("test.txt")
+        f = tempfile.NamedTemporaryFile(delete=False)
+        temp_file = gr.processing_utils.create_tmp_copy_of_file(f.name)
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
     float_dtype_list = [

@@ -2,11 +2,13 @@
 	import { Component as Column } from "../Column";
 	export let label: string;
 	export let elem_id: string;
-	export let visible: string;
+	export let visible: boolean = true;
 	export let open: boolean = true;
 
+	let _open = open;
+
 	const toggle = () => {
-		open = !open;
+		_open = !_open;
 	};
 </script>
 
@@ -17,9 +19,9 @@
 >
 	<div on:click={toggle} class="w-full flex justify-between cursor-pointer">
 		<span>{label}</span>
-		<span class:rotate-90={!open} class="transition">▼</span>
+		<span class:rotate-90={!_open} class="transition">▼</span>
 	</div>
-	<Column visible={open}>
+	<Column visible={_open}>
 		<slot />
 	</Column>
 </div>

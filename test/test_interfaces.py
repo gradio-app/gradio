@@ -3,6 +3,8 @@ import sys
 import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
+from functools import partial
+from string import capwords
 
 import mlflow
 import pytest
@@ -48,6 +50,14 @@ class TestInterface(unittest.TestCase):
     def test_no_input_or_output(self):
         with self.assertRaises(TypeError):
             Interface(lambda x: x, examples=1234)
+
+    def test_partial_functions(self):
+        def greet(name, formatter):
+            return formatter("Hello " + name + "!")
+
+        greet_upper_case = partial(greet, formatter=capwords)
+        demo = Interface(fn=greet_upper_case, inputs="text", outputs="text")
+        assert demo("abubakar") == "Hello Abubakar!"
 
     def test_examples_valid_path(self):
         path = os.path.join(

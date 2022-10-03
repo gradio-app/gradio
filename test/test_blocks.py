@@ -7,6 +7,8 @@ import time
 import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
+from functools import partial
+from string import capwords
 from unittest.mock import patch
 
 import mlflow
@@ -14,6 +16,7 @@ import pytest
 import wandb
 
 import gradio as gr
+from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -106,6 +109,9 @@ class TestBlocks(unittest.TestCase):
 
         config = demo.get_config_file()
         self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert config["show_api"] is True
+        _ = demo.launch(prevent_thread_lock=True, show_api=False)
+        assert demo.config["show_api"] is False
 
     def test_load_from_config(self):
         def update(name):
@@ -123,6 +129,19 @@ class TestBlocks(unittest.TestCase):
         demo2 = gr.Blocks.from_config(config1, [update])
         config2 = demo2.get_config_file()
         self.assertTrue(assert_configs_are_equivalent_besides_ids(config1, config2))
+
+    def test_partial_fn_in_config(self):
+        def greet(name, formatter):
+            return formatter("Hello " + name + "!")
+
+        greet_upper_case = partial(greet, formatter=capwords)
+        with gr.Blocks() as demo:
+            t = gr.Textbox()
+            o = gr.Textbox()
+            t.change(greet_upper_case, t, o)
+
+        assert len(demo.fns) == 1
+        assert "fn" in str(demo.fns[0])
 
     @pytest.mark.asyncio
     async def test_async_function(self):
@@ -206,77 +225,103 @@ class TestBlocks(unittest.TestCase):
         mock_post.assert_called_once()
 
 
-def test_slider_random_value_config():
+class TestComponentsInBlocks:
+    def test_slider_random_value_config(self):
+        with gr.Blocks() as demo:
+            gr.Slider(
+                value=11.2,
+                minimum=-10.2,
+                maximum=15,
+                label="Non-random Slider (Static)",
+            )
+            gr.Slider(
+                randomize=True,
+                minimum=100,
+                maximum=200,
+                label="Random Slider (Input 1)",
+            )
+            gr.Slider(
+                randomize=True,
+                minimum=10,
+                maximum=23.2,
+                label="Random Slider (Input 2)",
+            )
+        for component in demo.blocks.values():
+            if isinstance(component, gr.components.IOComponent):
+                if "Non-random" in component.label:
+                    assert not component.attach_load_event
+                else:
+                    assert component.attach_load_event
+        dependencies_on_load = [
+            dep["trigger"] == "load" for dep in demo.config["dependencies"]
+        ]
+        assert all(dependencies_on_load)
+        assert len(dependencies_on_load) == 2
+        assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+
+    def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
+        io_components = [comp for comp in io_components if not (comp == gr.State)]
+        interface = gr.Interface(
+            lambda *args: None,
+            inputs=[comp(value=lambda: None) for comp in io_components],
+            outputs=None,
+        )
+
+        dependencies_on_load = [
+            dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
+        ]
+        assert len(dependencies_on_load) == len(io_components)
+
+    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+        io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
+        with gr.Blocks() as demo:
+            for component in io_components:
+                component.render()
+            btn = gr.Button(value="Reset")
+            btn.click(
+                lambda: [gr.update(value=None) for _ in io_components],
+                inputs=[],
+                outputs=io_components,
+            )
+
+        output = demo.postprocess_data(
+            0, [gr.update(value=None) for _ in io_components], state=None
+        )
+        assert all(
+            [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
+        )
+
+    def test_blocks_does_not_replace_keyword_literal(self):
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button(value="Reset")
+            btn.click(
+                lambda: gr.update(value="NO_VALUE"),
+                inputs=[],
+                outputs=text,
+            )
+
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        assert output[0]["value"] == "NO_VALUE"
+
+
+def test_blocks_returns_correct_output_dict_single_key():
+
     with gr.Blocks() as demo:
-        gr.Slider(
-            value=11.2, minimum=-10.2, maximum=15, label="Non-random Slider (Static)"
-        )
-        gr.Slider(
-            randomize=True, minimum=100, maximum=200, label="Random Slider (Input 1)"
-        )
-        gr.Slider(
-            randomize=True, minimum=10, maximum=23.2, label="Random Slider (Input 2)"
-        )
-    for component in demo.blocks.values():
-        if isinstance(component, gr.components.IOComponent):
-            if "Non-random" in component.label:
-                assert not component.attach_load_event
-            else:
-                assert component.attach_load_event
-    dependencies_on_load = [
-        dep["trigger"] == "load" for dep in demo.config["dependencies"]
-    ]
-    assert all(dependencies_on_load)
-    assert len(dependencies_on_load) == 2
-    assert not any([dep["queue"] for dep in demo.config["dependencies"]])
+        num = gr.Number()
+        num2 = gr.Number()
+        update = gr.Button(value="update")
 
+        def update_values():
+            return {num2: gr.Number.update(value=42)}
 
-def test_io_components_attach_load_events_when_value_is_fn(io_components):
-    io_components = [comp for comp in io_components if not (comp == gr.State)]
-    interface = gr.Interface(
-        lambda *args: None,
-        inputs=[comp(value=lambda: None) for comp in io_components],
-        outputs=None,
-    )
+        update.click(update_values, inputs=[num], outputs=[num2])
 
-    dependencies_on_load = [
-        dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
-    ]
-    assert len(dependencies_on_load) == len(io_components)
+    output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state=None)
+    assert output[0]["value"] == 42
 
-
-def test_blocks_do_not_filter_none_values_from_updates(io_components):
-    io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
-    with gr.Blocks() as demo:
-        for component in io_components:
-            component.render()
-        btn = gr.Button(value="Reset")
-        btn.click(
-            lambda: [gr.update(value=None) for _ in io_components],
-            inputs=[],
-            outputs=io_components,
-        )
-
-    output = demo.postprocess_data(
-        0, [gr.update(value=None) for _ in io_components], state=None
-    )
-    assert all(
-        [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
-    )
-
-
-def test_blocks_does_not_replace_keyword_literal():
-    with gr.Blocks() as demo:
-        text = gr.Textbox()
-        btn = gr.Button(value="Reset")
-        btn.click(
-            lambda: gr.update(value="NO_VALUE"),
-            inputs=[],
-            outputs=text,
-        )
-
-    output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
-    assert output[0]["value"] == "NO_VALUE"
+    output = demo.postprocess_data(0, {num2: 23}, state=None)
+    assert output[0] == 23
 
 
 class TestCallFunction:
@@ -313,6 +358,7 @@ class TestCallFunction:
             )
 
         demo.queue()
+        assert demo.config["enable_queue"]
 
         output = await demo.call_function(0, [3])
         assert output["prediction"] == 0
@@ -362,6 +408,88 @@ class TestCallFunction:
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
+
+
+class TestSpecificUpdate:
+    def test_without_update(self):
+        with pytest.raises(KeyError):
+            gr.Textbox.get_specific_update({"lines": 4})
+
+    def test_with_update(self):
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update"}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+        }
+
+    def test_with_generic_update(self):
+        specific_update = gr.Video.get_specific_update(
+            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+        )
+        assert specific_update == {
+            "source": None,
+            "label": None,
+            "show_label": None,
+            "interactive": None,
+            "visible": True,
+            "value": "test.mp4",
+            "__type__": "update",
+        }
+
+
+class TestDuplicateBlockError:
+    def test_error(self):
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            with gr.Blocks():
+                t.render()
+                gr.Number()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            with gr.Blocks():
+                t = gr.Textbox()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                io.render()
+
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            io = gr.Interface(lambda x: x, t, gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                t.render()
+
+    def test_no_error(self):
+        t = gr.Textbox()
+        t2 = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+            t2.render()
+
+        t = gr.Textbox()
+        io = gr.Interface(lambda x: x, t, gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            gr.Textbox()
+
+        io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        io2 = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            io2.render()
 
 
 if __name__ == "__main__":

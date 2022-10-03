@@ -758,14 +758,14 @@
             ],
             "baz",
             "bar",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "world.mp4",
+            "cantina.wav",
+            "cantina.wav",
+            "titanic.csv",
             [
               [
                 1,
@@ -778,7 +778,7 @@
                 5
               ]
             ],
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+            "time.csv"
           ],
           [
             "the quick brown fox",
@@ -793,14 +793,14 @@
             ],
             "baz",
             "bar",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "world.mp4",
+            "cantina.wav",
+            "cantina.wav",
+            "titanic.csv",
             [
               [
                 1,
@@ -813,7 +813,7 @@
                 5
               ]
             ],
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+            "time.csv"
           ],
           [
             "the quick brown fox",
@@ -828,14 +828,14 @@
             ],
             "baz",
             "bar",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cheetah1.jpg",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/world.mp4",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/cantina.wav",
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/titanic.csv",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "cheetah1.jpg",
+            "world.mp4",
+            "cantina.wav",
+            "cantina.wav",
+            "titanic.csv",
             [
               [
                 1,
@@ -848,7 +848,7 @@
                 5
               ]
             ],
-            "/Users/dawoodkhan/Desktop/Developer/gradio/demo/kitchen_sink/files/time.csv"
+            "time.csv"
           ]
         ],
         "type": "index",
@@ -1071,7 +1071,7 @@
       ],
       "backend_fn": true,
       "js": null,
-      "status_tracker": 42,
+      "status_tracker": null,
       "queue": null,
       "api_name": "predict",
       "scroll_to_output": true,

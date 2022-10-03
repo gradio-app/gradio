@@ -14,7 +14,7 @@ import requests
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
 from PIL import Image, ImageOps, PngImagePlugin
 
-from gradio import encryptor
+from gradio import encryptor, utils
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -31,10 +31,9 @@ def decode_base64_to_image(encoding):
 
 
 def encode_url_or_file_to_base64(path, encryption_key=None):
-    try:
-        requests.get(path)
+    if utils.validate_url(path):
         return encode_url_to_base64(path, encryption_key=encryption_key)
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
+    else:
         return encode_file_to_base64(path, encryption_key=encryption_key)
 
 
@@ -88,6 +87,15 @@ def encode_plot_to_base64(plt):
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
+
+
+def download_to_file(url, dir=None):
+    file_suffix = os.path.splitext(url)[1]
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix, dir=dir)
+    with requests.get(url, stream=True) as r:
+        with open(file_obj.name, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return file_obj
 
 
 def save_array_to_file(image_array, dir=None):
@@ -235,12 +243,13 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None):
+def decode_base64_to_file(
+    encoding, encryption_key=None, file_path=None, dir=None, prefix=None
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
-    prefix = None
-    if file_path is not None:
+    if file_path is not None and prefix is None:
         filename = os.path.basename(file_path)
         prefix = filename
         if "." in filename:
