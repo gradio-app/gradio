@@ -39,7 +39,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded, height: style.height, width: style.width }}
+	style={{ height: style.height, width: style.width }}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}

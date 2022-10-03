@@ -68,7 +68,7 @@ class Block:
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
         if Context.block is not None:
-            Context.block.children.append(self)
+            Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
@@ -214,6 +214,10 @@ class BlockContext(Block):
         Context.block = self
         return self
 
+    def add(self, child):
+        child.parent = self
+        self.children.append(child)
+
     def fill_expected_parents(self):
         children = []
         pseudo_parent = None
@@ -232,10 +236,12 @@ class BlockContext(Block):
                     children.append(pseudo_parent)
                     pseudo_parent.children = [child]
                     Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                child.parent = pseudo_parent
         self.children = children
 
     def __exit__(self, *args):
-        self.fill_expected_parents()
+        if getattr(self, "allow_expected_parents", True):
+            self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):
