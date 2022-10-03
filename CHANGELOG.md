@@ -3,7 +3,7 @@
 
 ## New Features:
 
-### 1. See Past and Upcoming Changes in the Release Histoy 👀
+### 1. See Past and Upcoming Changes in the Release History 👀
 
 You can now see gradio's release history directly on the website, and also keep track of upcoming changes. Just go [here](https://gradio.app/changelog/).
 
