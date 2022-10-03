@@ -8,6 +8,14 @@ You can now see gradio's release history directly on the website, and also keep 
 
 ![release-history](https://user-images.githubusercontent.com/9021060/193145458-3de699f7-7620-45de-aa73-a1c1b9b96257.gif)
 
+### 2. Add `gr.Row(variant="compact")` for combining adjacent components without gaps
+
+This comes with deprecation of the following arguments for `Component.style`:
+- `round`
+- `margin`
+- `border`
+
+The new variant will automatically handle rounding and borders of adjacent components.
 
 ## Bug Fixes:
 
