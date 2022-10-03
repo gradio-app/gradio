@@ -321,17 +321,33 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(block: Block, update_dict: Dict):
+def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+    """
+    Converts a dictionary of updates into a format that can be sent to the frontend.
+    E.g. {"__type__": "generic_update", "value": "2", "interactive": False} 
+    Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
+    
+    Parameters:
+        block: The Block that is being updated with this update dictionary.
+        update_dict: The original update dictionary
+        postprocess: Whether to postprocess the "value" key of the update dictionary.
+    """
     prediction_value = block.get_specific_update(update_dict)
     if prediction_value.get("value") is components._Keywords.NO_VALUE:
         prediction_value.pop("value")
     prediction_value = delete_none(prediction_value, skip_value=True)
-    if "value" in prediction_value:
+    if "value" in prediction_value and postprocess:
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
 
 
-def convert_update_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+    """
+    Converts a dictionary of component updates into a list of updates in the order of 
+    the outputs_ids.
+    E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
+    Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
+    """
     keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
     if all(keys_are_blocks):
         reordered_predictions = [skip() for _ in outputs_ids]
@@ -705,7 +721,7 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
 
         if type(predictions) is dict and len(predictions) > 0:
-            predictions = convert_update_dict_to_list(
+            predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
 
