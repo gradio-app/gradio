@@ -321,12 +321,6 @@ class Box(BlockContext):
     def style(self, **kwargs):
         return self
 
-    def add(self, child):
-        if isinstance(child, Row) or isinstance(child, Column):
-            child.variant = "box"
-            child.allow_expected_parents = False
-        super().add(child)
-
 
 class Form(BlockContext):
     def get_config(self):
