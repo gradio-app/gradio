@@ -37,7 +37,7 @@
 }
 
 .gr-panel {
-	@apply py-2.5 px-3 bg-gray-50 p-2 rounded-lg;
+	@apply py-2.5 px-3;
 }
 
 .gr-box-sm {
