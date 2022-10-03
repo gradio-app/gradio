@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 from unittest.mock import patch
@@ -42,21 +43,46 @@ class TestExamples:
             [gr.media_data.BASE64_IMAGE, "hi"],
         ]
 
-    def test_no_preprocessing(self):
-        examples = gr.Examples(
-            [["hello", gr.media_data.BASE64_IMAGE]],
-            [gr.Textbox(), gr.Image()],
-            postprocess=False,
-        )
-        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+    @pytest.mark.asyncio
+    async def test_no_preprocessing(self):
+        with gr.Blocks():
+            image = gr.Image()
+            textbox = gr.Textbox()
 
-    def test_no_postprocessing(self):
-        examples = gr.Examples(
-            [["hello", gr.media_data.BASE64_IMAGE]],
-            [gr.Textbox(), gr.Image()],
-            postprocess=False,
-        )
-        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+            examples = gr.Examples(
+                examples=["test/test_files/bus.png"],
+                inputs=image,
+                outputs=textbox,
+                fn=lambda x: x,
+                cache_examples=True,
+                preprocess=False,
+            )
+
+        await examples.cache_interface_examples()
+        prediction = await examples.load_from_cache(0)
+        assert isinstance(prediction[0], str)
+
+    @pytest.mark.asyncio
+    async def test_no_postprocessing(self):
+        def im(x):
+            return [gr.media_data.BASE64_IMAGE]
+
+        with gr.Blocks():
+            text = gr.Textbox()
+            gall = gr.Gallery()
+
+            examples = gr.Examples(
+                examples=["hi"],
+                inputs=text,
+                outputs=gall,
+                fn=im,
+                cache_examples=True,
+                postprocess=False,
+            )
+
+        await examples.cache_interface_examples()
+        prediction = await examples.load_from_cache(0)
+        assert prediction[0] == [gr.media_data.BASE64_IMAGE]
 
 
 class TestExamplesDataset:
