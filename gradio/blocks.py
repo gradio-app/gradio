@@ -211,6 +211,7 @@ class BlockContext(Block):
         return self
 
     def add(self, child):
+        child.parent = self
         self.children.append(child)
 
     def fill_expected_parents(self):
@@ -231,6 +232,7 @@ class BlockContext(Block):
                     children.append(pseudo_parent)
                     pseudo_parent.children = [child]
                     Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                child.parent = pseudo_parent
         self.children = children
 
     def __exit__(self, *args):

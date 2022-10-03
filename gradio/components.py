@@ -47,7 +47,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
-from gradio.layouts import Form
+from gradio.layouts import Form, Row, Column
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -190,15 +190,20 @@ class IOComponent(Component, Serializable):
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
+        put_deprecated_params_in_box = False
         if "rounded" in kwargs:
             warnings.warn(
                 "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
             )
+            if isinstance(kwargs["rounded"], list) or isinstance(kwargs["rounded"], tuple):
+                put_deprecated_params_in_box = True
             kwargs.pop("rounded")
         if "margin" in kwargs:
             warnings.warn(
                 "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
             )
+            if isinstance(kwargs["margin"], list) or isinstance(kwargs["margin"], tuple):
+                put_deprecated_params_in_box = True
             kwargs.pop("margin")
         if "border" in kwargs:
             warnings.warn(
@@ -210,6 +215,8 @@ class IOComponent(Component, Serializable):
         if len(kwargs):
             for key in kwargs:
                 warnings.warn(f"Unknown style parameter: {key}")
+        if put_deprecated_params_in_box and getattr(self, "parent", None).__class__ in [Row, Column] and self.parent.variant == "default":
+            self.parent.variant = "box"
         return self
 
     @staticmethod
