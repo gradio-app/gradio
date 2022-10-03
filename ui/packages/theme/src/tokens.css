@@ -36,8 +36,12 @@
 	@apply text-gray-600 text-sm mb-2 block;
 }
 
-.gr-panel {
+.gr-padded {
 	@apply py-2.5 px-3;
+}
+
+.gr-panel {
+	@apply p-2 bg-gray-50 dark:bg-gray-900 rounded-lg;
 }
 
 .gr-box-sm {

@@ -48,7 +48,7 @@
 	class="gr-block gr-box relative w-full overflow-hidden {styles[
 		variant
 	]} {styles[color]} {classes}"
-	class:gr-panel={padding}
+	class:gr-padded={padding}
 	style={size_style || null}
 >
 	<slot />
