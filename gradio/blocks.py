@@ -324,9 +324,9 @@ def skip() -> dict:
 def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
-    E.g. {"__type__": "generic_update", "value": "2", "interactive": False} 
+    E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
     Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
-    
+
     Parameters:
         block: The Block that is being updated with this update dictionary.
         update_dict: The original update dictionary
@@ -343,7 +343,7 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
 
 def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
     """
-    Converts a dictionary of component updates into a list of updates in the order of 
+    Converts a dictionary of component updates into a list of updates in the order of
     the outputs_ids and including every output component.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
@@ -741,13 +741,14 @@ class Blocks(BlockContext):
             else:
                 prediction_value = predictions[i]
                 if utils.is_update(prediction_value):
-                    prediction_value = postprocess_update_dict(block=block, update_dict=prediction_value, postprocess=block_fn.postprocess)
+                    prediction_value = postprocess_update_dict(
+                        block=block,
+                        update_dict=prediction_value,
+                        postprocess=block_fn.postprocess,
+                    )
                 elif block_fn.postprocess:
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
-
-        else:
-            output = predictions
         return output
 
     async def process_api(
@@ -755,22 +756,24 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Optional[Dict[int, Any]] = None,
-        iterators: Dict[int, Any] = None,
+        state: Dict[int, Any] | None = None,
+        iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
         Parameters:
             data: data recieved from the frontend
-            username: name of user if authentication is set up
-            state: data stored from stateful components for session
+            inputs: the list of raw inputs to pass to the function
+            username: name of user if authentication is set up (not used)
+            state: data stored from stateful components for session (key is input block id)
+            iterators: the in-progress iterators for each generator function (key is function index)
         Returns: None
         """
         block_fn = self.fns[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
-        iterator = iterators.get(fn_index, None)
+        iterator = iterators.get(fn_index, None) if iterators else None
 
         result = await self.call_function(fn_index, inputs, iterator)
         block_fn.total_runtime += result["duration"]
