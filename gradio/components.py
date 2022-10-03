@@ -225,7 +225,7 @@ class IOComponent(Component, Serializable):
             and getattr(self, "parent", None).__class__ in [Row, Column]
             and self.parent.variant == "default"
         ):
-            self.parent.variant = "box"
+            self.parent.variant = "compact"
         return self
 
     @staticmethod
