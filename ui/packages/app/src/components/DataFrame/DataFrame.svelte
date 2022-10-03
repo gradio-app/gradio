@@ -3,7 +3,6 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { createEventDispatcher, tick } from "svelte";
-	import type { Styles } from "@gradio/utils";
 
 	type Headers = Array<string>;
 	type Data = Array<Array<string | number>>;
@@ -19,7 +18,6 @@
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
-	export let style: Styles = {};
 	export let label: string | null = null;
 	export let wrap: boolean;
 	export let datatype: Datatype | Array<Datatype>;
@@ -48,7 +46,6 @@
 		{headers}
 		on:change={({ detail }) => handle_change(detail)}
 		editable={mode === "dynamic"}
-		{style}
 		{wrap}
 		{datatype}
 	/>

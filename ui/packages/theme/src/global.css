@@ -60,6 +60,10 @@
 	.col > .gr-form > * {
 		@apply w-full;
 	}
+	.gr-compact > *,
+	.gr-compact .gr-box {
+		@apply !rounded-none !border-0;
+	}
 
 	.scroll-hide {
 		-ms-overflow-style: none;

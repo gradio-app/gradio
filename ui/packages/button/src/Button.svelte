@@ -8,18 +8,13 @@
 	export let variant: "primary" | "secondary" = "secondary";
 	export let size: "sm" | "lg" = "lg";
 
-	$: ({ classes } = get_styles(style, [
-		"border",
-		"full_width",
-		"rounded",
-		"margin"
-	]));
+	$: ({ classes } = get_styles(style, ["full_width"]));
 </script>
 
 <button
 	on:click
 	class:!hidden={!visible}
-	class="gr-button gr-button-{size} gr-button-{variant} self-start
+	class="gr-button gr-button-{size} gr-button-{variant}
 		{classes}"
 	id={elem_id}
 >

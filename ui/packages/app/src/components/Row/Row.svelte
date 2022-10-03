@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { create_classes } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
 	export let style: Styles = {};
 	export let elem_id: string;
 	export let visible: boolean = true;
+	export let variant: "default" | "panel" | "compact" = "default";
 </script>
 
 <div
-	class="flex gr-gap gr-form-gap row gap-4 w-full flex-wrap {create_classes(
-		style
-	)}"
+	class="flex row w-full flex-wrap gap-4"
+	class:gr-compact={variant === "compact"}
+	class:gr-panel={variant === "panel"}
 	class:unequal-height={style.equal_height === false}
+	class:items-stretch={style.equal_height}
 	class:!hidden={!visible}
 	id={elem_id}
 >

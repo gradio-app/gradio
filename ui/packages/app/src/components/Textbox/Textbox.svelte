@@ -31,7 +31,6 @@
 	<StatusTracker {...loading_status} />
 
 	<TextBox
-		{style}
 		bind:value
 		{label}
 		{show_label}
