@@ -49,6 +49,8 @@ jobs:
   gh-release:
     needs: deploy
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_output.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: Set release name
@@ -58,3 +60,25 @@ jobs:
         with:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
+      - id: set_output
+        run: echo "::set-output name=version::${{ env.INPUT_NAME }}"
+  modify-release-notes:
+    needs: gh-release
+    runs-on: ubuntu-latest
+    if: ${{ !contains( needs.gh-release.outputs.version, 'b') }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Set release name
+        run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
+      - name: Format Release Notes for Next Release
+        run: python scripts/format_release_notes.py ${{ env.INPUT_NAME }}
+      - name: Commit files
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: CHANGELOG.md
+          author_name: "GH ACTIONS"
+          author_email: ""
