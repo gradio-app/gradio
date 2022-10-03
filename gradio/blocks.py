@@ -344,7 +344,7 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
 def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
     """
     Converts a dictionary of component updates into a list of updates in the order of 
-    the outputs_ids.
+    the outputs_ids and including every output component.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
@@ -728,24 +728,23 @@ class Blocks(BlockContext):
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
 
-        if block_fn.postprocess:
-            output = []
-            for i, output_id in enumerate(dependency["outputs"]):
-                if predictions[i] is components._Keywords.FINISHED_ITERATING:
-                    output.append(None)
-                    break
-                block = self.blocks[output_id]
-                if getattr(block, "stateful", False):
-                    if not utils.is_update(predictions[i]):
-                        state[output_id] = predictions[i]
-                    output.append(None)
-                else:
-                    prediction_value = predictions[i]
-                    if utils.is_update(prediction_value):
-                        output_value = postprocess_update_dict(block, prediction_value)
-                    else:
-                        output_value = block.postprocess(prediction_value)
-                    output.append(output_value)
+        output = []
+        for i, output_id in enumerate(dependency["outputs"]):
+            if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                output.append(None)
+                continue
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                if not utils.is_update(predictions[i]):
+                    state[output_id] = predictions[i]
+                output.append(None)
+            else:
+                prediction_value = predictions[i]
+                if utils.is_update(prediction_value):
+                    prediction_value = postprocess_update_dict(block=block, update_dict=prediction_value, postprocess=block_fn.postprocess)
+                elif block_fn.postprocess:
+                    prediction_value = block.postprocess(prediction_value)
+                output.append(prediction_value)
 
         else:
             output = predictions
