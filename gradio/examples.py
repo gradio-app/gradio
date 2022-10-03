@@ -88,7 +88,7 @@ class Examples:
         elem_id: Optional[str] = None,
         run_on_click: bool = False,
         preprocess: bool = True,
-        postprocess: bool = True,        
+        postprocess: bool = True,
         _initiated_directly: bool = True,
     ):
         """
@@ -294,7 +294,7 @@ class Examples:
             for i, output_component in enumerate(self.outputs):
                 output = predictions[i]
                 if utils.is_update(predictions[i]):
-                    output = postprocess_update_dict(output_component, output) 
+                    output = postprocess_update_dict(output_component, output)
                 elif self.postprocess:
                     output = output_component.postprocess(output)
                 predictions_.append(output)

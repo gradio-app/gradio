@@ -42,6 +42,22 @@ class TestExamples:
             [gr.media_data.BASE64_IMAGE, "hi"],
         ]
 
+    def test_no_preprocessing(self):
+        examples = gr.Examples(
+            [["hello", gr.media_data.BASE64_IMAGE]],
+            [gr.Textbox(), gr.Image()],
+            postprocess=False,
+        )
+        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+
+    def test_no_postprocessing(self):
+        examples = gr.Examples(
+            [["hello", gr.media_data.BASE64_IMAGE]],
+            [gr.Textbox(), gr.Image()],
+            postprocess=False,
+        )
+        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
+
 
 class TestExamplesDataset:
     def test_no_headers(self):
