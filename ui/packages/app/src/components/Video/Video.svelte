@@ -47,6 +47,11 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				loading_status.message = detail;
+			}}
 			{label}
 			{show_label}
 			{source}

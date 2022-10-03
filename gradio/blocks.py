@@ -34,6 +34,7 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
+from gradio.exceptions import DuplicateBlockError
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -62,6 +63,10 @@ class Block:
         """
         Adds self into appropriate BlockContext
         """
+        if Context.root_block is not None and self._id in Context.root_block.blocks:
+            raise DuplicateBlockError(
+                f"A block with id: {self._id} has already been rendered in the current Blocks."
+            )
         if Context.block is not None:
             Context.block.add(self)
         if Context.root_block is not None:
@@ -72,8 +77,7 @@ class Block:
     def unrender(self):
         """
         Removes self from BlockContext if it has been rendered (otherwise does nothing).
-        Only deletes the first occurrence of self in BlockContext. Removes from the
-        layout and collection of Blocks, but does not delete any event triggers.
+        Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         if Context.block is not None:
             try:
@@ -241,6 +245,9 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on a block context.
+        """
         return y
 
 
@@ -437,7 +444,7 @@ class Blocks(BlockContext):
         self.width = None
         self.height = None
 
-        self.ip_address = utils.get_local_ip_address()
+        self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -447,16 +454,17 @@ class Blocks(BlockContext):
         self.title = title
         self.show_api = True
 
-        data = {
-            "mode": self.mode,
-            "ip_address": self.ip_address,
-            "custom_css": self.css is not None,
-            "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt")
-            .decode("ascii")
-            .strip(),
-        }
         if self.analytics_enabled:
+            self.ip_address = utils.get_local_ip_address()
+            data = {
+                "mode": self.mode,
+                "ip_address": self.ip_address,
+                "custom_css": self.css is not None,
+                "theme": self.theme,
+                "version": pkgutil.get_data(__name__, "version.txt")
+                .decode("ascii")
+                .strip(),
+            }
             utils.initiated_analytics(data)
 
     @property
@@ -609,6 +617,15 @@ class Blocks(BlockContext):
 
     def render(self):
         if Context.root_block is not None:
+            if self._id in Context.root_block.blocks:
+                raise DuplicateBlockError(
+                    f"A block with id: {self._id} has already been rendered in the current Blocks."
+                )
+            if not set(Context.root_block.blocks).isdisjoint(self.blocks):
+                raise DuplicateBlockError(
+                    "At least one block in this Blocks has already been rendered."
+                )
+
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
             for dependency in self.dependencies:
@@ -627,6 +644,7 @@ class Blocks(BlockContext):
                         dependency["api_name"] = api_name_
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
@@ -918,6 +936,7 @@ class Blocks(BlockContext):
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
         )
+        self.config = self.get_config_file()
         return self
 
     def launch(
@@ -1126,32 +1145,32 @@ class Blocks(BlockContext):
                         time.sleep(1)
                     display(
                         HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
                 else:
                     display(
                         HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
             except ImportError:
                 pass
 
-        data = {
-            "launch_method": "browser" if inbrowser else "inline",
-            "is_google_colab": is_colab,
-            "is_sharing_on": self.share,
-            "share_url": self.share_url,
-            "ip_address": self.ip_address,
-            "enable_queue": self.enable_queue,
-            "show_tips": self.show_tips,
-            "server_name": server_name,
-            "server_port": server_port,
-            "is_spaces": self.is_space,
-            "mode": self.mode,
-        }
-        if hasattr(self, "analytics_enabled") and self.analytics_enabled:
+        if getattr(self, "analytics_enabled", False):
+            data = {
+                "launch_method": "browser" if inbrowser else "inline",
+                "is_google_colab": is_colab,
+                "is_sharing_on": self.share,
+                "share_url": self.share_url,
+                "ip_address": self.ip_address,
+                "enable_queue": self.enable_queue,
+                "show_tips": self.show_tips,
+                "server_name": server_name,
+                "server_port": server_port,
+                "is_spaces": self.is_space,
+                "mode": self.mode,
+            }
             utils.launch_analytics(data)
 
         utils.show_tip(self)
@@ -1263,3 +1282,9 @@ class Blocks(BlockContext):
                     no_target=True,
                     queue=False,
                 )
+
+    def startup_events(self):
+        """Events that should be run when the app containing this block starts up."""
+        if self.enable_queue:
+            utils.run_coro_in_background(self._queue.start)
+        utils.run_coro_in_background(self.create_limiter)

@@ -108,7 +108,8 @@ demo.launch(auth=same_auth)
 
 ## Mounting Within Another FastAPI App
 
-In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo. You can do this by easily using the `gradio.routes.App.create_app()` function, which creates a FastAPI app (but does not launch it), and then adding it to your existing FastAPI app with `FastAPI.mount()`.
+In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.
+You can easily do this with `gradio.mount_gradio_app()`.
 
 Here's a complete example:
 
