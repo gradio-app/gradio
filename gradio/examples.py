@@ -40,7 +40,8 @@ def create_examples(
     label: str | None = None,
     elem_id: str | None = None,
     run_on_click: bool = False,
-    preprocess: bool = 
+    preprocess: bool = True,
+    postprocess: bool = True,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
