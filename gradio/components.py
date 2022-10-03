@@ -1993,7 +1993,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     ):
         """
         This method can be used to change the appearance of the audio component.
-        Parameters:
         """
         return IOComponent.style(
             self,
@@ -2174,7 +2173,6 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
     ):
         """
         This method can be used to change the appearance of the file component.
-        Parameters:
         """
         return IOComponent.style(
             self,
@@ -2433,7 +2431,6 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     ):
         """
         This method can be used to change the appearance of the DataFrame component.
-        Parameters:
         """
         return IOComponent.style(
             self,
@@ -2572,7 +2569,6 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
     ):
         """
         This method can be used to change the appearance of the TimeSeries component.
-        Parameters:
         """
         return IOComponent.style(
             self,
@@ -3305,7 +3301,6 @@ class Gallery(IOComponent):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
