@@ -60,8 +60,8 @@
 	.col > .gr-form > * {
 		@apply w-full;
 	}
-	.gr-group > *,
-	.gr-group .gr-box {
+	.gr-compact > *,
+	.gr-compact .gr-box {
 		@apply !rounded-none !border-0;
 	}
 

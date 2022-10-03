@@ -44,7 +44,7 @@
 	@apply space-x-2 border py-1.5 px-3;
 }
 
-.gr-group {
+.gr-compact {
 	@apply gap-0 !rounded-lg overflow-clip border border-gray-200 dark:border-gray-700 items-stretch;
 }
 

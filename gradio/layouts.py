@@ -35,12 +35,12 @@ class Row(BlockContext):
     ):
         """
         Parameters:
-            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'box' (rounded corners and no internal gap).
+            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.variant = variant
-        if variant == "box":
+        if variant == "compact":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
@@ -107,14 +107,14 @@ class Column(BlockContext):
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
             min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
-            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'box' (rounded corners and no internal gap).
+            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.scale = scale
         self.min_width = min_width
         self.variant = variant
-        if variant == "box":
+        if variant == "compact":
             self.allow_expected_parents = False
         super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
@@ -243,7 +243,6 @@ class Tab(TabItem):
 Tab = TabItem  # noqa: F811
 
 
-@document()
 class Group(BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that

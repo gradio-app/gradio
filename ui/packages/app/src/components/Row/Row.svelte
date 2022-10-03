@@ -4,12 +4,12 @@
 	export let style: Styles = {};
 	export let elem_id: string;
 	export let visible: boolean = true;
-	export let variant: "default" | "panel" | "box" = "default";
+	export let variant: "default" | "panel" | "compact" = "default";
 </script>
 
 <div
 	class="flex row w-full flex-wrap gap-4"
-	class:gr-group={variant === "box"}
+	class:gr-compact={variant === "compact"}
 	class:gr-panel={variant === "panel"}
 	class:unequal-height={style.equal_height === false}
 	class:items-stretch={style.equal_height}
