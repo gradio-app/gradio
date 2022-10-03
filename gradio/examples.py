@@ -102,6 +102,8 @@ class Examples:
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
         """
         if _initiated_directly:
             warnings.warn(
