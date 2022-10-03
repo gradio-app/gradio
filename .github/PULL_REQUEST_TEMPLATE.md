@@ -23,7 +23,7 @@ Closes: # (issue)
 
 Hello 👋 and thank you for contributing to Gradio!
 
-All pull requests must update the change log located in website/releases/UPCOMING.md unless they are labeled with the no-changelog-update label.
+All pull requests must update the change log located in CHANGELOG.md, unless the pull request is labeled with the "no-changelog-update" label.
 
 Please add a brief summary of the change to the Upcoming Release > Full Changelog section of the CHANGELOG.md file and include
 a link to the PR (formatted in markdown) and a link to your github profile (if you like). For example, "* Added a cool new feature by `[@myusername](link-to-your-github-profile)` in `[PR 11111](https://github.com/gradio-app/gradio/pull/11111)`".
