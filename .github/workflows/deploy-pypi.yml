@@ -60,7 +60,6 @@ jobs:
         with:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
-          body_path: website/releases/UPCOMING.md
       - id: set_output
         run: echo "::set-output name=version::${{ env.INPUT_NAME }}"
   modify-release-notes:
@@ -80,6 +79,6 @@ jobs:
       - name: Commit files
         uses: EndBug/add-and-commit@v9
         with:
-          add: website/releases
+          add: CHANGELOG.md
           author_name: "GH ACTIONS"
           author_email: ""

@@ -33,7 +33,7 @@ No changes to highlight.
 
 
 def format_release_notes(latest_version: str):
-    upcoming = current_dir / "CHANGELOG.MD"
+    upcoming = current_dir / "CHANGELOG.md"
     with open(upcoming, "r") as latest:
         lines = latest.readlines()
         assert lines[0] == "# Upcoming Release \n"
