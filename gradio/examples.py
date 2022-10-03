@@ -55,6 +55,8 @@ def create_examples(
         label=label,
         elem_id=elem_id,
         run_on_click=run_on_click,
+        preprocess=preprocess,
+        postprocess=postprocess,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -85,6 +87,8 @@ class Examples:
         label: str = "Examples",
         elem_id: Optional[str] = None,
         run_on_click: bool = False,
+        preprocess: bool = True,
+        postprocess: bool = True,        
         _initiated_directly: bool = True,
     ):
         """
@@ -178,6 +182,8 @@ class Examples:
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
         self._api_mode = _api_mode
+        self.preprocess = preprocess
+        self.postprocess = postprocess
 
         with utils.set_directory(working_directory):
             self.processed_examples = [
@@ -267,7 +273,7 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         processed_input = self.processed_examples[example_id]
-        if not self._api_mode:
+        if self.preprocess and not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])
                 for i, input_component in enumerate(self.inputs_with_examples)
@@ -286,12 +292,12 @@ class Examples:
         if not self._api_mode:
             predictions_ = []
             for i, output_component in enumerate(self.outputs):
+                output = predictions[i]
                 if utils.is_update(predictions[i]):
-                    predictions_.append(
-                        postprocess_update_dict(output_component, predictions[i])
-                    )
-                else:
-                    predictions_.append(output_component.postprocess(predictions[i]))
+                    output = postprocess_update_dict(output_component, output) 
+                elif self.postprocess:
+                    output = output_component.postprocess(output)
+                predictions_.append(output)
             predictions = predictions_
         return predictions
 
