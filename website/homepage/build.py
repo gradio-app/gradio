@@ -1,7 +1,7 @@
 import os
 import shutil
 import jinja2
-from src import index, guides, docs, demos
+from src import index, guides, docs, demos, changelog
 
 SRC_DIR = "src"
 BUILD_DIR = "build"
@@ -17,4 +17,5 @@ index.build(BUILD_DIR, jinja_env)
 guides.build(BUILD_DIR, jinja_env)
 docs.build(BUILD_DIR, jinja_env)
 demos.build(BUILD_DIR, jinja_env)
+changelog.build(BUILD_DIR, jinja_env)
 

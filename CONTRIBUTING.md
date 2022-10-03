@@ -79,6 +79,7 @@ All PRs must pass the continuous integration tests before merging. To test local
 All PRs should be against `main`. Direct commits to main are blocked, and PRs require an approving review to merge into main. By convention, the Gradio maintainers will review PRs when:
 
 * An initial review has been requested, and
+* A description of the change (with a link to the GitHub PR) has been added to CHANGELOG.md, and
 * A maintainer (@abidlabs, @aliabid94, @aliabd, @AK391, @dawoodkhan82, @pngwn, @freddyaboulton) is tagged in the PR comments and asked to complete a review
 
 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.
