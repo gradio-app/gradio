@@ -32,14 +32,15 @@ set_documentation_group("component-helpers")
 def create_examples(
     examples: List[Any] | List[List[Any]] | str,
     inputs: IOComponent | List[IOComponent],
-    outputs: Optional[IOComponent | List[IOComponent]] = None,
-    fn: Optional[Callable] = None,
+    outputs: IOComponent | List[IOComponent] | None = None,
+    fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
     _api_mode: bool = False,
-    label: Optional[str] = None,
-    elem_id: Optional[str] = None,
+    label: str | None = None,
+    elem_id: str | None = None,
     run_on_click: bool = False,
+    preprocess: bool = 
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
