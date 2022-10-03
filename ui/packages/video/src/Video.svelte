@@ -26,6 +26,7 @@
 		pause: undefined;
 		ended: undefined;
 		drag: boolean;
+		error: string;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
@@ -61,6 +62,7 @@
 		<Webcam
 			{mirror_webcam}
 			mode="video"
+			on:error
 			on:capture={({ detail }) => dispatch("change", detail)}
 		/>
 	{/if}

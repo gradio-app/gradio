@@ -19,8 +19,7 @@ RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
-COPY ./setup.py ./setup.py
-COPY ./MANIFEST.in ./MANIFEST.in
+COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
 RUN pip install .
@@ -34,6 +33,9 @@ COPY ./demo ./demo
 WORKDIR /gradio/website/homepage
 RUN npm install
 RUN npm run build
+ARG AUTH_TOKEN
+ENV AUTH_TOKEN $AUTH_TOKEN
+RUN python src/demos/upload_demos.py
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
@@ -42,4 +44,3 @@ RUN ASSETS_FILE=$(grep -oE index.[a-z0-9]+.js /gradio/gradio/templates/cdn/index
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
-

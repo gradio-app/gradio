@@ -196,7 +196,6 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
                     "outputs": [2],
                     "backend_fn": True,
                     "js": None,
-                    "status_tracker": None,
                     "queue": None,
                     "api_name": "greet",
                     "scroll_to_output": False,

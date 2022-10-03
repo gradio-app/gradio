@@ -59,7 +59,6 @@
       ],
       "backend_fn": true,
       "js": false,
-      "status_tracker": null,
       "queue": null,
       "api_name": null,
       "scroll_to_output": false,

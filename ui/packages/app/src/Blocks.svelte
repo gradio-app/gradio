@@ -35,6 +35,7 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
+	export let show_api: boolean = true;
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
@@ -66,7 +67,6 @@
 			}
 		}
 	});
-	let show_api_docs = dependencies.some((d) => "documentation" in d);
 	let api_docs_visible = false;
 
 	function is_dep(
@@ -456,7 +456,7 @@
 	<footer
 		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
 	>
-		{#if show_api_docs}
+		{#if show_api}
 			<div
 				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 				on:click={() => {

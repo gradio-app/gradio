@@ -1,7 +1,7 @@
 <script>
 	// @ts-nocheck
 
-	import { onMount, onDestroy, createEventDispatcher } from "svelte";
+	import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
 	import { fade } from "svelte/transition";
 	import { LazyBrush } from "lazy-brush/src";
 	import ResizeObserver from "resize-observer-polyfill";
@@ -9,19 +9,22 @@
 	const dispatch = createEventDispatcher();
 
 	export let value;
+	export let value_img;
 	export let mode = "sketch";
 	export let brush_color = "#0b0f19";
 	export let brush_radius = 50;
+	export let source;
 
-	export let width = undefined;
-	export let height = undefined;
+	export let width = 400;
+	export let height = 200;
+	export let container_height = 200;
 
 	let mounted;
 
 	let catenary_color = "#aaa";
 
-	let canvas_width = width || 400;
-	let canvas_height = height || 400;
+	let canvas_width = width;
+	let canvas_height = height;
 
 	$: mounted && !value && clear();
 
@@ -64,58 +67,84 @@
 	let is_drawing = false;
 	let is_pressing = false;
 	let lazy = null;
-	let chain_length = null;
 	let canvas_container = null;
 	let canvas_observer = null;
-	let save_data = "";
 	let line_count = 0;
 
-	let display_natural_ratio = 1;
-
-	function calculate_ratio() {
-		const x = canvas.interface.getBoundingClientRect();
-		display_natural_ratio = width / x.width;
-	}
-
-	onMount(() => {
+	onMount(async () => {
 		Object.keys(canvas).forEach((key) => {
 			ctx[key] = canvas[key].getContext("2d");
 		});
+
+		await tick();
+
+		if (value_img) {
+			value_img.addEventListener("load", (_) => {
+				if (source === "webcam") {
+					ctx.temp.save();
+					ctx.temp.translate(width, 0);
+					ctx.temp.scale(-1, 1);
+					ctx.temp.drawImage(value_img, 0, 0);
+					ctx.temp.restore();
+				} else {
+					ctx.temp.drawImage(value_img, 0, 0);
+				}
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+
+				trigger_on_change();
+			});
+
+			setTimeout(() => {
+				if (source === "webcam") {
+					ctx.temp.save();
+					ctx.temp.translate(width, 0);
+					ctx.temp.scale(-1, 1);
+					ctx.temp.drawImage(value_img, 0, 0);
+					ctx.temp.restore();
+				} else {
+					ctx.temp.drawImage(value_img, 0, 0);
+				}
+
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+
+				draw_lines({ lines: lines.slice() });
+				trigger_on_change();
+			}, 100);
+		}
+
 		lazy = new LazyBrush({
-			radius: brush_radius / 1.5,
+			radius: brush_radius * 0.05,
 			enabled: true,
 			initialPoint: {
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2
+				x: width / 2,
+				y: height / 2
 			}
 		});
-		chain_length = brush_radius;
 
-		canvas_observer = new ResizeObserver((entries, observer) => {
+		canvas_observer = new ResizeObserver((entries, observer, ...rest) => {
 			handle_canvas_resize(entries, observer);
-
-			calculate_ratio();
 		});
 		canvas_observer.observe(canvas_container);
 
 		loop();
 		mounted = true;
-		window.setTimeout(() => {
-			const initX = window.innerWidth / 2;
-			const initY = window.innerHeight / 2;
-			lazy.update({ x: initX - chain_length / 4, y: initY }, { both: true });
-			lazy.update({ x: initX + chain_length / 4, y: initY }, { both: false });
-			mouse_has_moved = true;
-			values_changed = true;
-			clear();
 
-			if (save_data) {
-				load_save_data(save_data);
-			}
-		}, 100);
-
-		calculate_ratio();
+		requestAnimationFrame(() => {
+			init();
+			requestAnimationFrame(() => {
+				clear();
+			});
+		});
 	});
+
+	function init() {
+		const initX = width / 2;
+		const initY = height / 2;
+		lazy.update({ x: initX, y: initY }, { both: true });
+		lazy.update({ x: initX, y: initY }, { both: false });
+		mouse_has_moved = true;
+		values_changed = true;
+	}
 
 	onDestroy(() => {
 		mounted = false;
@@ -124,9 +153,32 @@
 
 	export function undo() {
 		const _lines = lines.slice(0, -1);
-		clear();
+
+		clear_canvas();
+
+		if (value_img) {
+			if (source === "webcam") {
+				ctx.temp.save();
+				ctx.temp.translate(width, 0);
+				ctx.temp.scale(-1, 1);
+				ctx.temp.drawImage(value_img, 0, 0);
+				ctx.temp.restore();
+			} else {
+				ctx.temp.drawImage(value_img, 0, 0);
+			}
+
+			if (!lines || !lines.length) {
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+			}
+		}
+
 		draw_lines({ lines: _lines });
-		line_count = lines.length;
+		line_count = _lines.length;
+
+		if (lines.length) {
+			lines = _lines;
+		}
+
 		trigger_on_change();
 	}
 
@@ -138,39 +190,9 @@
 		});
 	};
 
-	let load_save_data = (save_data) => {
-		if (typeof save_data !== "string") {
-			throw new Error("save_data needs to be of type string!");
-		}
-		const { lines, width, height } = JSON.parse(save_data);
-		if (!lines || typeof lines.push !== "function") {
-			throw new Error("save_data.lines needs to be an array!");
-		}
-		clear();
-		if (width === canvas_width && height === canvas_height) {
-			draw_lines({
-				lines
-			});
-		} else {
-			const scaleX = canvas_width / width;
-			const scaleY = canvas_height / height;
-			draw_lines({
-				lines: lines.map((line) => ({
-					...line,
-					points: line.points.map((p) => ({
-						x: p.x * scaleX,
-						y: p.y * scaleY
-					})),
-					brush_radius: line.brush_radius
-				}))
-			});
-		}
-	};
-
 	let draw_lines = ({ lines }) => {
 		lines.forEach((line) => {
 			const { points: _points, brush_color, brush_radius } = line;
-
 			draw_points({
 				points: _points,
 				brush_color,
@@ -179,19 +201,20 @@
 
 			if (mode === "mask") {
 				draw_fake_points({
-					points: points,
+					points: _points,
 					brush_color,
 					brush_radius
 				});
 			}
 
 			points = _points;
-			saveLine({ brush_color, brush_radius });
-			if (mode === "mask") {
-				save_mask_line();
-			}
+
 			return;
 		});
+		saveLine({ brush_color, brush_radius });
+		if (mode === "mask") {
+			save_mask_line();
+		}
 	};
 
 	let handle_draw_start = (e) => {
@@ -223,29 +246,72 @@
 		}
 	};
 
-	let handle_canvas_resize = (entries) => {
-		const save_data = get_save_data();
-		for (const entry of entries) {
-			const { width, height } = entry.contentRect;
-			set_canvas_size(canvas.interface, width, height);
-			set_canvas_size(canvas.drawing, width, height);
-			set_canvas_size(canvas.temp, width, height);
-			set_canvas_size(canvas.temp_fake, width, height);
-			set_canvas_size(canvas.mask, width, height);
+	let old_width = 0;
+	let old_height = 0;
+	let old_container_height = 0;
 
-			loop({ once: true });
+	let handle_canvas_resize = async () => {
+		if (
+			width === old_width &&
+			height === old_height &&
+			old_container_height === container_height
+		) {
+			return;
 		}
-		load_save_data(save_data, true);
+		const dimensions = { width: width, height: height };
+
+		const container_dimensions = {
+			height: container_height,
+			width: container_height * (dimensions.width / dimensions.height)
+		};
+
+		await Promise.all([
+			set_canvas_size(canvas.interface, dimensions, container_dimensions),
+			set_canvas_size(canvas.drawing, dimensions, container_dimensions),
+			set_canvas_size(canvas.temp, dimensions, container_dimensions),
+			set_canvas_size(canvas.temp_fake, dimensions, container_dimensions),
+			set_canvas_size(canvas.mask, dimensions, container_dimensions, false)
+		]);
+
+		brush_radius = 20 * (dimensions.width / container_dimensions.width);
+
+		loop({ once: true });
+
+		setTimeout(() => {
+			old_height = height;
+			old_width = width;
+			old_container_height = container_height;
+		}, 100);
+
+		clear();
 	};
 
-	let set_canvas_size = (canvas, _width, _height) => {
-		canvas.width = width || _width * 3;
-		canvas.height = height || _height * 3;
-		if (mode === "sketch") {
+	$: {
+		if (lazy) {
+			init();
+			lazy.setRadius(brush_radius * 0.05);
 		}
+	}
 
-		canvas.style.width = mode === "mask" ? "auto" : _width;
-		canvas.style.height = mode === "mask" ? "100%" : _height;
+	$: {
+		if (width || height) {
+			handle_canvas_resize();
+		}
+	}
+
+	let set_canvas_size = async (canvas, dimensions, container, scale = true) => {
+		if (!mounted) return;
+		await tick();
+
+		const dpr = window.devicePixelRatio || 1;
+		canvas.width = dimensions.width * (scale ? dpr : 1);
+		canvas.height = dimensions.height * (scale ? dpr : 1);
+
+		const ctx = canvas.getContext("2d");
+		scale && ctx.scale(dpr, dpr);
+
+		canvas.style.width = `${container.width}px`;
+		canvas.style.height = `${container.height}px`;
 	};
 
 	let get_pointer_pos = (e) => {
@@ -257,18 +323,15 @@
 			clientX = e.changedTouches[0].clientX;
 			clientY = e.changedTouches[0].clientY;
 		}
+
 		return {
-			x: clientX - rect.left,
-			y: clientY - rect.top
+			x: ((clientX - rect.left) / rect.width) * width,
+			y: ((clientY - rect.top) / rect.height) * height
 		};
 	};
 
 	let handle_pointer_move = (x, y) => {
-		lazy.update(
-			mode === "sketch"
-				? { x: x * 3, y: y * 3 }
-				: { x: x * display_natural_ratio, y: y * display_natural_ratio }
-		);
+		lazy.update({ x: x, y: y });
 		const is_disabled = !lazy.isEnabled();
 		if ((is_pressing && !is_drawing) || (is_disabled && is_pressing)) {
 			is_drawing = true;
@@ -276,7 +339,6 @@
 		}
 		if (is_drawing) {
 			points.push(lazy.brush.toObject());
-
 			draw_points({
 				points: points,
 				brush_color,
@@ -295,11 +357,13 @@
 	};
 
 	let draw_points = ({ points, brush_color, brush_radius }) => {
+		if (!points || points.length < 2) return;
 		ctx.temp.lineJoin = "round";
 		ctx.temp.lineCap = "round";
+
 		ctx.temp.strokeStyle = brush_color;
-		ctx.temp.clearRect(0, 0, ctx.temp.canvas.width, ctx.temp.canvas.height);
 		ctx.temp.lineWidth = brush_radius;
+		if (!points || points.length < 2) return;
 		let p1 = points[0];
 		let p2 = points[1];
 		ctx.temp.moveTo(p2.x, p2.y);
@@ -316,15 +380,12 @@
 	};
 
 	let draw_fake_points = ({ points, brush_color, brush_radius }) => {
+		if (!points || points.length < 2) return;
+
 		ctx.temp_fake.lineJoin = "round";
 		ctx.temp_fake.lineCap = "round";
 		ctx.temp_fake.strokeStyle = "#fff";
-		ctx.temp_fake.clearRect(
-			0,
-			0,
-			ctx.temp.canvas.width,
-			ctx.temp.canvas.height
-		);
+		// ctx.temp_fake.clearRect(0, 0, width, height);
 		ctx.temp_fake.lineWidth = brush_radius;
 		let p1 = points[0];
 		let p2 = points[1];
@@ -342,52 +403,51 @@
 	};
 
 	let save_mask_line = () => {
-		// if (points.length < 2) return;
-
-		lines.push({
-			points: [...points],
-			brush_color: "#fff",
-			brush_radius
-		});
-
+		if (points.length < 1) return;
 		points.length = 0;
-		const width = canvas.temp_fake.width;
-		const height = canvas.temp_fake.height;
 		ctx.mask.drawImage(canvas.temp_fake, 0, 0, width, height);
 
-		ctx.temp_fake.clearRect(0, 0, width, height);
 		trigger_on_change();
 	};
 
 	let saveLine = () => {
-		if (points.length < 2) return;
+		if (points.length < 1) return;
 
 		lines.push({
-			points: [...points],
+			points: points.slice(),
 			brush_color: brush_color,
 			brush_radius
 		});
-		points.length = 0;
-		const width = canvas.temp.width;
-		const height = canvas.temp.height;
+
+		if (mode !== "mask") {
+			points.length = 0;
+		}
+
 		ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
 
-		ctx.temp.clearRect(0, 0, width, height);
 		trigger_on_change();
 	};
 
 	let trigger_on_change = () => {
-		dispatch("change", get_image_data());
+		const x = get_image_data();
+		dispatch("change", x);
 	};
 
 	export function clear() {
 		lines = [];
-		values_changed = true;
-		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
-		ctx.temp.clearRect(0, 0, canvas.temp.width, canvas.temp.height);
+		clear_canvas();
+		line_count = 0;
 
-		ctx.drawing.fillStyle = mode === "sketch" ? "#FFFFFF" : "transparent";
-		ctx.drawing.fillRect(0, 0, canvas.drawing.width, canvas.drawing.height);
+		return true;
+	}
+
+	function clear_canvas() {
+		values_changed = true;
+		ctx.temp.clearRect(0, 0, width, height);
+
+		ctx.temp.fillStyle = mode === "mask" ? "transparent" : "#FFFFFF";
+		ctx.temp.fillRect(0, 0, width, height);
+
 		if (mode === "mask") {
 			ctx.temp_fake.clearRect(
 				0,
@@ -395,12 +455,10 @@
 				canvas.temp_fake.width,
 				canvas.temp_fake.height
 			);
-			ctx.mask.clearRect(0, 0, canvas.temp_fake.width, canvas.temp_fake.height);
+			ctx.mask.clearRect(0, 0, width, height);
 			ctx.mask.fillStyle = "#000";
-			ctx.mask.fillRect(0, 0, canvas.mask.width, canvas.mask.height);
+			ctx.mask.fillRect(0, 0, width, height);
 		}
-
-		line_count = 0;
 	}
 
 	let loop = ({ once = false } = {}) => {
@@ -418,8 +476,10 @@
 		}
 	};
 
+	$: brush_dot = brush_radius * 0.075;
+
 	let draw_interface = (ctx, pointer, brush) => {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.clearRect(0, 0, width, height);
 
 		// brush preview
 		ctx.beginPath();
@@ -427,33 +487,17 @@
 		ctx.arc(brush.x, brush.y, brush_radius / 2, 0, Math.PI * 2, true);
 		ctx.fill();
 
-		// mouse point dangler
-		ctx.beginPath();
-		ctx.fillStyle = catenary_color;
-		ctx.arc(pointer.x, pointer.y, 4, 0, Math.PI * 2, true);
-		ctx.fill();
-
-		//  catenary
-		if (lazy.isEnabled()) {
-			ctx.beginPath();
-			ctx.lineWidth = 2;
-			ctx.lineCap = "round";
-			ctx.setLineDash([2, 4]);
-			ctx.strokeStyle = catenary_color;
-			ctx.stroke();
-		}
-
 		// tiny brush point dot
 		ctx.beginPath();
 		ctx.fillStyle = catenary_color;
-		ctx.arc(brush.x, brush.y, 2, 0, Math.PI * 2, true);
+		ctx.arc(brush.x, brush.y, brush_dot, 0, Math.PI * 2, true);
 		ctx.fill();
 	};
 
 	export function get_image_data() {
 		return mode === "mask"
-			? canvas.mask.toDataURL("image/png")
-			: canvas.drawing.toDataURL("image/png");
+			? canvas.mask.toDataURL("image/jpg")
+			: canvas.drawing.toDataURL("image/jpg");
 	}
 </script>
 
@@ -474,11 +518,8 @@
 	{#each canvas_types as { name, zIndex }}
 		<canvas
 			key={name}
-			class="inset-0 m-auto"
-			style=" display:block;position:absolute; z-index:{zIndex}; width: {mode ===
-			'sketch'
-				? canvas_width
-				: width}px; height: {mode === 'sketch' ? canvas_height : height}px"
+			class="inset-0 m-auto hover:cursor-none"
+			style=" display:block;position:absolute; z-index:{zIndex};"
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}

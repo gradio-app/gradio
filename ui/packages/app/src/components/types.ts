@@ -26,7 +26,6 @@ export interface Dependency {
 	scroll_to_output: boolean;
 	show_progress: boolean;
 	frontend_fn?: Function;
-	status_tracker: number | null;
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;

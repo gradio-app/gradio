@@ -61,13 +61,13 @@ test("can run an api request and display the data", async ({ page }) => {
 	await page.check("label:has-text('Covid')");
 	await page.check("label:has-text('Lung Cancer')");
 
-	const run_button = await page.locator("button", { hasText: /Run/ });
+	const run_button = await page.locator("button", { hasText: /Run/ }).first();
 
 	await Promise.all([
 		run_button.click(),
 		page.waitForResponse("**/api/predict/")
 	]);
 
-	const json = await page.locator("data-testid=json");
+	const json = await page.locator("data-testid=json").first();
 	await expect(json).toContainText(`Covid: 0.75, Lung Cancer: 0.25`);
 });

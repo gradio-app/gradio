@@ -10,7 +10,7 @@ $code_hello_blocks
 $demo_hello_blocks
 
 - First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.
-- Next come the Components. These are the same Components used in `Interface`. However, instead of being being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
+- Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
 - Finally, the `click()` event listener. Event listeners define the data flows within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
 
 ## Event Listeners and Interactivity
