@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 import anyio
 
 from gradio import utils
-from gradio.blocks import convert_update_dict_to_list, postprocess_update_dict
+from gradio.blocks import convert_component_dict_to_list, postprocess_update_dict
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -287,7 +287,7 @@ class Examples:
 
         output_ids = [output._id for output in self.outputs]
         if type(predictions) is dict and len(predictions) > 0:
-            predictions = convert_update_dict_to_list(output_ids, predictions)
+            predictions = convert_component_dict_to_list(output_ids, predictions)
 
         if len(self.outputs) == 1:
             predictions = [predictions]
@@ -296,7 +296,9 @@ class Examples:
             for i, output_component in enumerate(self.outputs):
                 output = predictions[i]
                 if utils.is_update(predictions[i]):
-                    output = postprocess_update_dict(output_component, output)
+                    output = postprocess_update_dict(
+                        output_component, output, self.postprocess
+                    )
                 elif self.postprocess:
                     output = output_component.postprocess(output)
                 predictions_.append(output)
