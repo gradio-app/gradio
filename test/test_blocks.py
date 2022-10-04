@@ -219,10 +219,22 @@ class TestBlocksMethods(unittest.TestCase):
         demo.close()
 
     @mock.patch("requests.post")
-    def test_initiated_analytics(self, mock_post):
-        with gr.Blocks(analytics_enabled=True):
+    def test_initiated_analytics_and_show_error(self, mock_post):
+        with gr.Blocks(analytics_enabled=True) as demo:
             pass
         mock_post.assert_called_once()
+
+    def test_show_error(self):
+        with gr.Blocks() as demo:
+            pass
+
+        assert demo.show_error
+        demo.launch(prevent_thread_lock=True)
+        assert not demo.show_error
+        demo.close()
+        demo.launch(show_error=True, prevent_thread_lock=True)
+        assert demo.show_error
+        demo.close()
 
 
 class TestComponentsInBlocks:
