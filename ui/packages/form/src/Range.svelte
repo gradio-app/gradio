@@ -21,8 +21,6 @@
 	const dispatch = createEventDispatcher<{ change: number }>();
 
 	$: dispatch("change", value);
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
-
 	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
 </script>
 
