@@ -340,7 +340,9 @@ class TestComponentsInBlocks:
         assert output["data"][1] == {"__type__": "update", "visible": True}
 
     @pytest.mark.asyncio
-    async def test_blocks_update_dict_does_not_postprocess_value_if_postprocessing_false(self):
+    async def test_blocks_update_dict_does_not_postprocess_value_if_postprocessing_false(
+        self,
+    ):
         def infer(x):
             return gr.Image.update(value=gr.media_data.BASE64_IMAGE)
 
@@ -351,7 +353,11 @@ class TestComponentsInBlocks:
             run_button.click(infer, [prompt], [image], postprocess=False)
 
         output = await demo.process_api(0, ["test"])
-        assert output["data"][0] == {"__type__": "update", "value": gr.media_data.BASE64_IMAGE}
+        assert output["data"][0] == {
+            "__type__": "update",
+            "value": gr.media_data.BASE64_IMAGE,
+        }
+
 
 class TestCallFunction:
     @pytest.mark.asyncio
