@@ -10,6 +10,7 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:
     def test_handle_single_input(self):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
@@ -58,9 +59,8 @@ class TestExamples:
                 preprocess=False,
             )
 
-        await examples.cache_interface_examples()
         prediction = await examples.load_from_cache(0)
-        assert isinstance(prediction[0], str)
+        assert prediction == [gr.media_data.BASE64_IMAGE]
 
     @pytest.mark.asyncio
     async def test_no_postprocessing(self):
@@ -85,6 +85,7 @@ class TestExamples:
         assert prediction[0] == [gr.media_data.BASE64_IMAGE]
 
 
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
     def test_no_headers(self):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
