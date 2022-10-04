@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 from unittest.mock import patch
@@ -9,6 +10,7 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:
     def test_handle_single_input(self):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
@@ -42,7 +44,47 @@ class TestExamples:
             [gr.media_data.BASE64_IMAGE, "hi"],
         ]
 
+    @pytest.mark.asyncio
+    async def test_no_preprocessing(self):
+        with gr.Blocks():
+            image = gr.Image()
+            textbox = gr.Textbox()
 
+            examples = gr.Examples(
+                examples=["test/test_files/bus.png"],
+                inputs=image,
+                outputs=textbox,
+                fn=lambda x: x,
+                cache_examples=True,
+                preprocess=False,
+            )
+
+        prediction = await examples.load_from_cache(0)
+        assert prediction == [gr.media_data.BASE64_IMAGE]
+
+    @pytest.mark.asyncio
+    async def test_no_postprocessing(self):
+        def im(x):
+            return [gr.media_data.BASE64_IMAGE]
+
+        with gr.Blocks():
+            text = gr.Textbox()
+            gall = gr.Gallery()
+
+            examples = gr.Examples(
+                examples=["hi"],
+                inputs=text,
+                outputs=gall,
+                fn=im,
+                cache_examples=True,
+                postprocess=False,
+            )
+
+        prediction = await examples.load_from_cache(0)
+        assert prediction[0] == [gr.media_data.BASE64_IMAGE]
+
+
+@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
     def test_no_headers(self):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
