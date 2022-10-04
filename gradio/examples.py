@@ -296,7 +296,7 @@ class Examples:
             for i, output_component in enumerate(self.outputs):
                 output = predictions[i]
                 if utils.is_update(predictions[i]):
-                    output = postprocess_update_dict(output_component, output)
+                    output = postprocess_update_dict(output_component, output, self.postprocess)
                 elif self.postprocess:
                     output = output_component.postprocess(output)
                 predictions_.append(output)
