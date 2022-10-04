@@ -48,7 +48,7 @@ from gradio.events import (
     Streamable,
     Submittable,
 )
-from gradio.layouts import Form
+from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -182,23 +182,50 @@ class IOComponent(Component, Serializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if border is not None:
-            self._style["border"] = border
+        put_deprecated_params_in_box = False
+        if "rounded" in kwargs:
+            warnings.warn(
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["rounded"], list) or isinstance(
+                kwargs["rounded"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("rounded")
+        if "margin" in kwargs:
+            warnings.warn(
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["margin"], list) or isinstance(
+                kwargs["margin"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("margin")
+        if "border" in kwargs:
+            warnings.warn(
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
+            )
+            kwargs.pop("border")
         if container is not None:
             self._style["container"] = container
+        if len(kwargs):
+            for key in kwargs:
+                warnings.warn(f"Unknown style parameter: {key}")
+        if (
+            put_deprecated_params_in_box
+            and getattr(self, "parent", None).__class__ in [Row, Column]
+            and self.parent.variant == "default"
+        ):
+            self.parent.variant = "compact"
         return self
 
     @staticmethod
@@ -704,6 +731,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
+        *,
         container: Optional[bool] = None,
     ):
         """
@@ -949,25 +977,21 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the CheckboxGroup.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             item_container: If True, will place the items in a container.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            container=container,
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1093,8 +1117,10 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
+        *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the radio component.
@@ -1105,10 +1131,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            container=container,
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1158,22 +1181,13 @@ class Dropdown(Radio):
             **kwargs,
         )
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        container: Optional[bool] = None,
-    ):
+    def style(self, *, container: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the Dropdown.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(
-            self, rounded=rounded, border=border, container=container
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("edit", "clear", "change", "stream", "change", "style")
@@ -1468,15 +1482,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return output_scores.tolist()
 
     def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the Image component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the image.
             width: Width of the image.
         """
@@ -1484,7 +1494,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self._style["width"] = width
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def stream(
@@ -1684,15 +1694,11 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the video component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the video.
             width: Width of the video.
         """
@@ -1700,7 +1706,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         self._style["width"] = width
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -1983,16 +1989,14 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the audio component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str) -> str:
@@ -2165,16 +2169,14 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the file component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str | List) -> str:
@@ -2425,16 +2427,14 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the DataFrame component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data):
@@ -2565,16 +2565,14 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the TimeSeries component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -2669,30 +2667,16 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             "__type__": "update",
         }
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        full_width: Optional[str] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def style(self, *, full_width: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            full_width: If True, the button will span the full width of the container.
-            border: If True, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
+            full_width: If True, will expand to fill parent container.
         """
         if full_width is not None:
             self._style["full_width"] = full_width
-        if margin is not None:
-            self._style["margin"] = margin
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document("change", "submit", "style")
@@ -2897,6 +2881,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
+        *,
         container: Optional[bool] = None,
     ):
         """
@@ -3045,21 +3030,21 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         color_map: Optional[Dict[str, str]] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the HighlightedText component.
         Parameters:
-            rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return IOComponent.style(self, rounded=rounded, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -3137,13 +3122,13 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         else:
             return y
 
-    def style(self, container: Optional[bool] = None):
+    def style(self, *, container: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the JSON component.
         Parameters:
             container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(self, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change")
@@ -3307,15 +3292,15 @@ class Gallery(IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
@@ -3325,7 +3310,7 @@ class Gallery(IOComponent):
         if height is not None:
             self._style["height"] = height
 
-        return IOComponent.style(self, rounded=rounded, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
     def deserialize(
         self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
@@ -3538,15 +3523,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         return [] if y is None else y
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        color_map: Optional[List[str, str]] = None,
-    ):
+    def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
         This method can be used to change the appearance of the Chatbot component.
         Parameters:
-            rounded: If True, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: List containing colors to apply to chat bubbles.
         Returns:
 
@@ -3556,7 +3536,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -3668,18 +3648,13 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         }
         return data
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Model3D component.
-        Args:
-            rounded: If True, will round the corners of the Model3D component. If a tuple, will round the corners of the Model3D according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def as_example(self, input_data: str) -> str:
@@ -3913,22 +3888,11 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Dataset component.
-        Parameters:
-            rounded: If True, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
         """
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document()
