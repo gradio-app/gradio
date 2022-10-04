@@ -434,6 +434,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
+        self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -786,7 +787,6 @@ class Blocks(BlockContext):
         block_fn.total_runs += 1
 
         predictions = self.postprocess_data(fn_index, result["prediction"], state)
-
         return {
             "data": predictions,
             "is_generating": result["is_generating"],
