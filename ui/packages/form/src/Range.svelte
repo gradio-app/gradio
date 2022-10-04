@@ -22,12 +22,8 @@
 
 	$: dispatch("change", value);
 	$: ({ classes } = get_styles(style, ["rounded", "border"]));
-	
-	const check_validity = (e) => {
-		if (e.target.value > maximum || e.target.value < minimum) {
-			e.target.reportValidity()
-		}
-  	};
+
+	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
 </script>
 
 <div class="w-full flex flex-col ">
@@ -35,18 +31,16 @@
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<form>
-			<input
-				type="number"
-				class="gr-box gr-input gr-text-input text-center h-6 {classes}"
-				bind:value
-				min={minimum}
-				max={maximum}
-				on:keyup={check_validity}
-				{step}
-				{disabled}
-			/>
-		</form>
+		<input
+			type="number"
+			class="gr-box gr-input gr-text-input text-center h-6 {classes}"
+			bind:value
+			min={minimum}
+			max={maximum}
+			on:blur={clamp}
+			{step}
+			{disabled}
+		/>
 	</div>
 </div>
 
