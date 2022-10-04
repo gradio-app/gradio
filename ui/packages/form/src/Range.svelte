@@ -33,7 +33,7 @@
 		</label>
 		<input
 			type="number"
-			class="gr-box gr-input gr-text-input text-center h-6 {classes}"
+			class="gr-box gr-input gr-text-input text-center h-6"
 			bind:value
 			min={minimum}
 			max={maximum}

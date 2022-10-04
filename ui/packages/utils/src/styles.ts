@@ -1,10 +1,4 @@
-type BoolTuple = [boolean, boolean, boolean, boolean];
-type BoolOrTuple = boolean | BoolTuple;
-
 export interface Styles {
-	rounded?: BoolOrTuple;
-	border?: BoolOrTuple;
-	margin?: BoolOrTuple;
 	container?: boolean;
 	grid?: number | Array<number>;
 	height?: "auto" | string | number;
@@ -15,6 +9,7 @@ export interface Styles {
 	item_container?: boolean;
 	color_map?: Record<string, string>;
 	label_container?: boolean;
+	gap?: boolean;
 }
 
 type PartialRecord<K extends keyof any, T> = {
@@ -54,38 +49,6 @@ type StyleHandlers = {
 };
 
 const style_handlers: StyleHandlers = {
-	rounded(rounded) {
-		let _style: BoolTuple = Array.isArray(rounded)
-			? rounded
-			: bool_to_tuple(rounded);
-
-		return tuple_to_class(
-			_style,
-			"!rounded-",
-			["tl", "tr", "br", "bl"],
-			["lg", "none"]
-		);
-	},
-
-	border(border) {
-		let _style: BoolTuple = Array.isArray(border)
-			? border
-			: bool_to_tuple(border);
-
-		return tuple_to_class(
-			_style,
-			"!border-",
-			["t", "r", "b", "l"],
-			[false, "0"]
-		);
-	},
-	margin(margin) {
-		let _style: BoolTuple = Array.isArray(margin)
-			? margin
-			: bool_to_tuple(margin);
-
-		return tuple_to_class(_style, "!m", ["t", "r", "b", "l"], [false, "0"]);
-	},
 	container(container_visible) {
 		return container_visible
 			? ""
@@ -111,10 +74,10 @@ const style_handlers: StyleHandlers = {
 		return height === "auto" ? "auto" : "";
 	},
 	full_width(full_width) {
-		return full_width ? "!w-full" : "";
+		return full_width ? "w-full grow" : "grow-0";
 	},
 	equal_height(equal_height) {
-		return equal_height ? "" : "unequal-height";
+		return equal_height ? "items-stretch" : "unequal-height";
 	},
 	visible(visible) {
 		return visible ? "" : "!hidden";
@@ -123,39 +86,6 @@ const style_handlers: StyleHandlers = {
 		return visible ? "" : "!border-none";
 	}
 } as const;
-
-export function bool_to_tuple(bool: boolean): BoolTuple {
-	return !!bool ? [true, true, true, true] : [false, false, false, false];
-}
-
-export function tuple_to_class(
-	tuple: BoolTuple,
-	prefix: string = "",
-	position_map: [string, string, string, string],
-	condition_map: [string, string] | [false, string] | [string, false]
-) {
-	const [_true_class, _false_class] = condition_map;
-
-	return tuple
-		.map((condition, i) => {
-			if (!_true_class && condition) {
-				return "";
-			} else if (!_false_class && !condition) {
-				return "";
-			}
-
-			const suffix = !condition_map[0]
-				? condition_map[1]
-				: condition
-				? condition_map[0]
-				: condition_map[1];
-
-			return `${prefix}${position_map[i]}-${suffix}`;
-		})
-		.join(" ")
-		.replace(/\s+/g, " ")
-		.trim();
-}
 
 export const create_classes = (
 	styles: Record<string, any>,
@@ -217,7 +147,10 @@ export const create_classes = (
 
 	switch (target_styles.full_width) {
 		case true:
-			classes.push("!w-full");
+			classes.push("w-full");
+			break;
+		case false:
+			classes.push("!grow-0");
 			break;
 	}
 
