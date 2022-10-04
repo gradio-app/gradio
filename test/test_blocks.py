@@ -219,8 +219,8 @@ class TestBlocksMethods(unittest.TestCase):
         demo.close()
 
     @mock.patch("requests.post")
-    def test_initiated_analytics_and_show_error(self, mock_post):
-        with gr.Blocks(analytics_enabled=True) as demo:
+    def test_initiated_analytics(self, mock_post):
+        with gr.Blocks(analytics_enabled=True):
             pass
         mock_post.assert_called_once()
 
