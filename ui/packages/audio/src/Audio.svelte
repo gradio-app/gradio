@@ -35,6 +35,7 @@
 	let mode = "";
 	let header: Uint8Array | undefined = undefined;
 	let pending_stream: Array<Uint8Array> = [];
+	let submit_pending_stream_on_pending_end: boolean = false;
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
@@ -79,6 +80,18 @@
 		});
 	}
 
+	const dispatch_blob = async (
+		blobs: Array<Uint8Array> | Blob[],
+		event: "stream" | "change"
+	) => {
+		let audio_blob = new Blob(blobs, { type: "audio/wav" });
+		value = {
+			data: await blob_to_data_url(audio_blob),
+			name
+		};
+		dispatch(event, value);
+	};
+
 	async function prepare_audio() {
 		let stream: MediaStream | null;
 
@@ -118,13 +131,8 @@
 					pending_stream.push(payload);
 				} else {
 					let blobParts = [header].concat(pending_stream, [payload]);
-					let blob = new Blob(blobParts, { type: "audio/wav" });
-					value = {
-						data: await blob_to_data_url(blob),
-						name
-					};
+					dispatch_blob(blobParts, "stream");
 					pending_stream = [];
-					dispatch("stream", value);
 				}
 			}
 			recorder.addEventListener("dataavailable", handle_chunk);
@@ -137,18 +145,21 @@
 
 			recorder.addEventListener("stop", async () => {
 				recording = false;
-
-				audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+				await dispatch_blob(audio_chunks, "change");
 				audio_chunks = [];
-				value = {
-					data: await blob_to_data_url(audio_blob),
-					name
-				};
-				dispatch("change", value);
 			});
 		}
 
 		inited = true;
+	}
+
+	$: if (submit_pending_stream_on_pending_end && pending === false) {
+		submit_pending_stream_on_pending_end = false;
+		if (header && pending_stream) {
+			let blobParts: Array<Uint8Array> = [header].concat(pending_stream);
+			pending_stream = [];
+			dispatch_blob(blobParts, "stream");
+		}
 	}
 
 	async function record() {
@@ -169,10 +180,13 @@
 		}
 	});
 
-	const stop = () => {
+	const stop = async () => {
 		recorder.stop();
 		if (streaming) {
 			recording = false;
+			if (pending) {
+				submit_pending_stream_on_pending_end = true;
+			}
 		}
 	};
 
