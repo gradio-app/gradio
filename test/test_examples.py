@@ -80,7 +80,6 @@ class TestExamples:
                 postprocess=False,
             )
 
-        await examples.cache_interface_examples()
         prediction = await examples.load_from_cache(0)
         assert prediction[0] == [gr.media_data.BASE64_IMAGE]
 
