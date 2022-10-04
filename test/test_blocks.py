@@ -224,6 +224,18 @@ class TestBlocksMethods(unittest.TestCase):
             pass
         mock_post.assert_called_once()
 
+    def test_show_error(self):
+        with gr.Blocks() as demo:
+            pass
+
+        assert demo.show_error
+        demo.launch(prevent_thread_lock=True)
+        assert not demo.show_error
+        demo.close()
+        demo.launch(show_error=True, prevent_thread_lock=True)
+        assert demo.show_error
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
