@@ -232,6 +232,7 @@ importers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       cropperjs: ^1.5.12
       lazy-brush: ^1.0.1
       resize-observer-polyfill: ^1.5.1
@@ -239,6 +240,7 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
+      '@gradio/utils': link:../utils
       cropperjs: 1.5.12
       lazy-brush: 1.0.1
       resize-observer-polyfill: 1.5.1
@@ -387,8 +389,13 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
     devDependencies:
+<<<<<<< HEAD
       '@sveltejs/adapter-auto': 1.0.0-next.73
       '@sveltejs/kit': 1.0.0-next.318
+=======
+      '@sveltejs/adapter-auto': 1.0.0-next.80
+      '@sveltejs/kit': 1.0.0-next.318_svelte@3.49.0
+>>>>>>> main
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -567,35 +574,59 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
 
+<<<<<<< HEAD
   /@sveltejs/adapter-auto/1.0.0-next.73:
     resolution: {integrity: sha512-KvCnZtpyfJ6mhCX5jSTn/C4KfBe22VNcTLaHKBhdp/DUDDHJHX4so9nfSAXIC6TuLpxsKnA6dDKLVojlMe9H6g==}
     dependencies:
       '@sveltejs/adapter-cloudflare': 1.0.0-next.33
       '@sveltejs/adapter-netlify': 1.0.0-next.77
       '@sveltejs/adapter-vercel': 1.0.0-next.74
+=======
+  /@sveltejs/adapter-auto/1.0.0-next.80:
+    resolution: {integrity: sha512-352WoZr9fQgxJqgNENvxRr2gsA+wTF6V9AVaQaaatDYd3RVEBaXTYOOalFaRLSa25mRUJaLYP2aaliqczMl23g==}
+    dependencies:
+      '@sveltejs/adapter-cloudflare': 1.0.0-next.38
+      '@sveltejs/adapter-netlify': 1.0.0-next.78
+      '@sveltejs/adapter-vercel': 1.0.0-next.77
+>>>>>>> main
     transitivePeerDependencies:
       - encoding
       - supports-color
     dev: true
 
+<<<<<<< HEAD
   /@sveltejs/adapter-cloudflare/1.0.0-next.33:
     resolution: {integrity: sha512-RNHHv3qcIZG7JbvucZEUEM5Vxqt6VApfIpXcOuAfq5IhJ+AOR33L+aAtkbIxhCcXr8d237YHibNWFSnxCHoVOg==}
+=======
+  /@sveltejs/adapter-cloudflare/1.0.0-next.38:
+    resolution: {integrity: sha512-N6jdTomRZkdKlcNoguwYD7lpdXSt0beIyUJsp0MS/YLm/4gI83y698zFYInFKJ9t5e6DAnuEBSAXcg568z2oFA==}
+>>>>>>> main
     dependencies:
       '@cloudflare/workers-types': 3.14.1
       esbuild: 0.15.7
       worktop: 0.8.0-next.14
     dev: true
 
+<<<<<<< HEAD
   /@sveltejs/adapter-netlify/1.0.0-next.77:
     resolution: {integrity: sha512-g4+i8xQROxw4Olt5T0bJAj3qCDuluQ/JnvzqajEz620COuIddpa2B1xK5DmbAhxQox823jLNTxg7LOEpBqD3bw==}
+=======
+  /@sveltejs/adapter-netlify/1.0.0-next.78:
+    resolution: {integrity: sha512-Yyn/j/0QcLK3Db442ducLUZmyvkO74j7Gdcwu9xN0fQN3kBlCJP9Itx5o4SySrPFGc4Q8cLJ5ELNg+mWduLBAA==}
+>>>>>>> main
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.15.7
       set-cookie-parser: 2.4.8
     dev: true
 
+<<<<<<< HEAD
   /@sveltejs/adapter-vercel/1.0.0-next.74:
     resolution: {integrity: sha512-BMAeib/aH0JdCyMncnugZteVMc47DfKtqE49BpH8JtiIBna34mkYevUWFLyIEVjoNUu2hHr9GMZXBI0q7JL8tQ==}
+=======
+  /@sveltejs/adapter-vercel/1.0.0-next.77:
+    resolution: {integrity: sha512-r4MqtP+lzx83HfcvI8PU0Yxzmxt6WQq9nzZETLboJouJzhSBUFIN5RmNZfEn6nNIlUwZbGQUEK/FxsRnnxI/Ig==}
+>>>>>>> main
     dependencies:
       '@vercel/nft': 0.22.0
       esbuild: 0.15.7
@@ -2773,14 +2804,22 @@ packages:
       resolve: 1.22.1
     dev: false
 
+<<<<<<< HEAD
   /postcss-js/4.0.0_postcss@8.4.6:
+=======
+  /postcss-js/4.0.0_postcss@8.4.14:
+>>>>>>> main
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
     engines: {node: ^12 || ^14 || >= 16}
     peerDependencies:
       postcss: ^8.3.3
     dependencies:
       camelcase-css: 2.0.1
+<<<<<<< HEAD
       postcss: 8.4.6
+=======
+      postcss: 8.4.14
+>>>>>>> main
 
   /postcss-load-config/3.1.1:
     resolution: {integrity: sha512-c/9XYboIbSEUZpiD1UQD0IKiUe8n9WHYV7YFe7X7J+ZwCsEKkUJSFWjS9hBU1RR9THR7jMXst8sxiqP0jjo2mg==}
@@ -2812,6 +2851,18 @@ packages:
       yaml: 1.10.2
     dev: false
 
+<<<<<<< HEAD
+=======
+  /postcss-nested/5.0.6_postcss@8.4.14:
+    resolution: {integrity: sha512-rKqm2Fk0KbA8Vt3AdGN0FB9OBOMDVajMG6ZCf/GoHgdxUJ4sBFp0A/uMIRm+MJUdo33YXEtjqIz8u7DAp8B7DA==}
+    engines: {node: '>=12.0'}
+    peerDependencies:
+      postcss: ^8.2.14
+    dependencies:
+      postcss: 8.4.14
+      postcss-selector-parser: 6.0.9
+
+>>>>>>> main
   /postcss-nested/5.0.6_postcss@8.4.6:
     resolution: {integrity: sha512-rKqm2Fk0KbA8Vt3AdGN0FB9OBOMDVajMG6ZCf/GoHgdxUJ4sBFp0A/uMIRm+MJUdo33YXEtjqIz8u7DAp8B7DA==}
     engines: {node: '>=12.0'}
@@ -2820,6 +2871,7 @@ packages:
     dependencies:
       postcss: 8.4.6
       postcss-selector-parser: 6.0.9
+    dev: false
 
   /postcss-selector-parser/6.0.10:
     resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
@@ -3518,10 +3570,10 @@ packages:
       is-glob: 4.0.3
       normalize-path: 3.0.0
       object-hash: 2.2.0
-      postcss: 8.4.6
-      postcss-js: 4.0.0_postcss@8.4.6
+      postcss: 8.4.14
+      postcss-js: 4.0.0_postcss@8.4.14
       postcss-load-config: 3.1.1
-      postcss-nested: 5.0.6_postcss@8.4.6
+      postcss-nested: 5.0.6_postcss@8.4.14
       postcss-selector-parser: 6.0.9
       postcss-value-parser: 4.2.0
       quick-lru: 5.1.1

@@ -3,7 +3,6 @@
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
 
-	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 
 	import { Upload } from "@gradio/upload";
@@ -21,7 +20,6 @@
 	export let row_count: [number, "fixed" | "dynamic"];
 
 	export let editable = true;
-	export let style: Styles = {};
 	export let wrap: boolean = false;
 
 	$: {
@@ -334,12 +332,23 @@
 
 	let header_edit: string | boolean;
 
+	function update_headers_data() {
+		if (typeof selected === "string") {
+			const new_header = els[selected].input?.value;
+			if (_headers.find((i) => i.id === selected)) {
+				let obj = _headers.find((i) => i.id === selected);
+				if (new_header) obj!["value"] = new_header;
+			} else {
+				if (new_header) _headers.push({ id: selected, value: new_header });
+			}
+		}
+	}
+
 	async function edit_header(_id: string, select?: boolean) {
 		if (!editable || col_count[1] !== "dynamic" || editing === _id) return;
 		header_edit = _id;
 		await tick();
 		els[_id].input?.focus();
-
 		if (select) els[_id].input?.select();
 	}
 
@@ -348,15 +357,13 @@
 
 		switch (event.key) {
 			case "Escape":
-				event.preventDefault();
-				selected = header_edit;
-				header_edit = false;
-
-				break;
 			case "Enter":
+			case "Tab":
 				event.preventDefault();
 				selected = header_edit;
 				header_edit = false;
+				update_headers_data();
+				break;
 		}
 	}
 
@@ -412,6 +419,9 @@
 				els[header_edit].cell !== event.target &&
 				!els[header_edit].cell?.contains(event.target as Node | null)
 			) {
+				selected = header_edit;
+				header_edit = false;
+				update_headers_data();
 				header_edit = false;
 			}
 		}
@@ -476,8 +486,6 @@
 	}
 
 	let dragging = false;
-
-	$: ({ classes } = get_styles(style, ["rounded"]));
 </script>
 
 <svelte:window
@@ -494,7 +502,7 @@
 		</p>
 	{/if}
 	<div
-		class="scroll-hide  overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll {classes}"
+		class="scroll-hide  overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
 		class:border-green-400={dragging}
 		class:whitespace-nowrap={!wrap}
 	>
@@ -520,7 +528,7 @@
 						{#each _headers as { value, id }, i (id)}
 							<th
 								bind:this={els[id].cell}
-								class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none {classes}"
+								class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none"
 								class:bg-orange-50={header_edit === id}
 								class:dark:bg-transparent={header_edit === id}
 								class:rounded-tl-lg={i === 0}
@@ -578,7 +586,7 @@
 									on:click={() => handle_cell_click(id)}
 									on:dblclick={() => start_edit(id)}
 									on:keydown={(e) => handle_keydown(e, i, j, id)}
-									class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative {classes}"
+									class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
 								>
 									<div
 										class:border-transparent={selected !== id}

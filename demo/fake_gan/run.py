@@ -6,9 +6,9 @@ import random
 import gradio as gr
 
 
-def fake_gan(count, *args):
+def fake_gan():
     images = [
-        random.choice(
+        (random.choice(
             [
                 "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
                 "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=386&q=80",
@@ -16,36 +16,30 @@ def fake_gan(count, *args):
                 "https://images.unsplash.com/photo-1546456073-92b9f0a8d413?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
                 "https://images.unsplash.com/photo-1601412436009-d964bd02edbc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
             ]
-        )
-        for _ in range(int(count))
+        ), f"label {i}" if i != 0 else "label" * 50)
+        for i in range(3)
     ]
     return images
 
 
-cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
+with gr.Blocks() as demo:
+    with gr.Column(variant="panel"):
+        with gr.Row(variant="compact"):
+            text = gr.Textbox(
+                label="Enter your prompt",
+                show_label=False,
+                max_lines=1,
+                placeholder="Enter your prompt",
+            ).style(
+                container=False,
+            )
+            btn = gr.Button("Generate image").style(full_width=False)
 
-demo = gr.Interface(
-    fn=fake_gan,
-    inputs=[
-        gr.Number(label="Generation Count"),
-        gr.Image(label="Initial Image (optional)"),
-        gr.Slider(0, 50, 25, label="TV_scale (for smoothness)"),
-        gr.Slider(0, 50, 25, label="Range_Scale (out of range RBG)"),
-        gr.Number(label="Seed"),
-        gr.Number(label="Respacing"),
-    ],
-    outputs=gr.Gallery(label="Generated Images"),
-    title="FD-GAN",
-    description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
-    examples=[
-        [2, cheetah, None, 12, None, None],
-        [1, cheetah, None, 2, None, None],
-        [4, cheetah, None, 42, None, None],
-        [5, cheetah, None, 23, None, None],
-        [4, cheetah, None, 11, None, None],
-        [3, cheetah, None, 1, None, None],
-    ],
-)
+        gallery = gr.Gallery(
+            label="Generated images", show_label=False, elem_id="gallery"
+        ).style(grid=[2], height="auto")
+
+    btn.click(fake_gan, None, gallery)
 
 if __name__ == "__main__":
     demo.launch()
