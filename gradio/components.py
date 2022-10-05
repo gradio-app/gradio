@@ -1236,7 +1236,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerial
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.mirror_webcam = mirror_webcam
         self.type = type
         self.shape = shape
@@ -1342,7 +1341,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerial
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
         im = processing_utils.decode_base64_to_image(x)
-
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -1371,23 +1369,18 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, FileSerial
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
-            string file path to image in temp directory
+            base64 url data
         """
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            file = processing_utils.save_array_to_file(y, dir=self.temp_dir)
+            return processing_utils.encode_array_to_base64(y)
         elif isinstance(y, PIL.Image.Image):
-            file = processing_utils.save_pil_to_file(y, dir=self.temp_dir)
+            return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            if utils.validate_url(y):
-                file = processing_utils.download_to_file(y, dir=self.temp_dir)
-            else:
-                file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+            return processing_utils.encode_url_or_file_to_base64(y)
         else:
-            raise ValueError(f"Cannot process type as Image: {type(y)}")
-
-        return {"name": file.name, "data": None, "is_file": True}
+            raise ValueError("Cannot process this value as an Image")
 
     def set_interpret_parameters(self, segments: int = 16):
         """
