@@ -28,7 +28,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "model3D",
         "reset_components",
         "reverse_audio",
-        "sst_or_tts",
+        "stt_or_tts",
         "stream_audio",
         "stream_frames",
         "zip_files",
