@@ -25,10 +25,13 @@
 			? null
 			: value.map((img) =>
 					Array.isArray(img)
-						? normalise_file(
-								typeof img[0] === "string" ? img[0] : img[0].data,
-								root
-						  )
+						? [
+								normalise_file(
+									typeof img[0] === "string" ? img[0] : img[0].data,
+									root
+								),
+								img[1]
+						  ]
 						: [
 								normalise_file(typeof img === "string" ? img : img.data, root),
 								null

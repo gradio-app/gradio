@@ -3288,7 +3288,13 @@ class Gallery(IOComponent):
                     )
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-            output.append({"name": file.name, "data": None, "is_file": True})
+
+            if caption is not None:
+                output.append(
+                    [{"name": file.name, "data": None, "is_file": True}, caption]
+                )
+            else:
+                output.append({"name": file.name, "data": None, "is_file": True})
 
         return output
 
