@@ -86,6 +86,7 @@ class Component(Block):
         }
 
 
+
 class IOComponent(Component, Serializable):
     """
     A base class for defining methods that all input/output components should have.
