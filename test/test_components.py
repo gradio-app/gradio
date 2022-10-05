@@ -1637,7 +1637,6 @@ def test_gallery(mock_uuid):
         path = gallery.deserialize(data, tmpdir)
         assert path.endswith("my-uuid")
         data_restored = gallery.serialize(path)
-        data_restored = [d["data"] for d in data_restored]
         assert sorted(data) == sorted(data_restored)
 
 
