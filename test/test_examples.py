@@ -1,4 +1,3 @@
-import filecmp
 import os
 import tempfile
 from unittest.mock import patch
@@ -6,7 +5,6 @@ from unittest.mock import patch
 import pytest
 
 import gradio as gr
-from gradio import processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -21,46 +19,29 @@ class TestExamples:
         assert examples.processed_examples == [["hello"]]
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
-
-        tmp_filename = examples.processed_examples[0][0]["name"]
-        assert tmp_filename is not None
-
-        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
+        assert examples.processed_examples == [[gr.media_data.BASE64_IMAGE]]
 
     def test_handle_multiple_inputs(self):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
-        assert examples.processed_examples[0][0] == "hello"
-        tmp_filename = examples.processed_examples[0][1]["name"]
-        assert tmp_filename is not None
-        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
+        assert examples.processed_examples == [["hello", gr.media_data.BASE64_IMAGE]]
 
     def test_handle_directory(self):
         examples = gr.Examples("test/test_files/images", gr.Image())
-
-        tmp_filename = examples.processed_examples[0][0]["name"]
-        assert tmp_filename is not None
-        assert filecmp.cmp(tmp_filename, "test/test_files/bus.png")
-
-        tmp_filename = examples.processed_examples[1][0]["name"]
-        assert tmp_filename is not None
-        assert filecmp.cmp(tmp_filename, "test/test_files/images/bus_copy.png")
+        assert examples.processed_examples == [
+            [gr.media_data.BASE64_IMAGE],
+            [gr.media_data.BASE64_IMAGE],
+        ]
 
     def test_handle_directory_with_log_file(self):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
-
-        tmp_filename = examples.processed_examples[0][0]["name"]
-        assert tmp_filename is not None
-        assert filecmp.cmp(tmp_filename, "test/test_files/images_log/im/bus.png")
-        assert examples.processed_examples[0][1] == "hello"
-
-        tmp_filename = examples.processed_examples[1][0]["name"]
-        assert tmp_filename is not None
-        assert filecmp.cmp(tmp_filename, "test/test_files/images_log/im/bus_copy.png")
-        assert examples.processed_examples[1][1] == "hi"
+        assert examples.processed_examples == [
+            [gr.media_data.BASE64_IMAGE, "hello"],
+            [gr.media_data.BASE64_IMAGE, "hi"],
+        ]
 
     @pytest.mark.asyncio
     async def test_no_preprocessing(self):

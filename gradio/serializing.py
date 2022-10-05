@@ -54,6 +54,43 @@ class SimpleSerializable(Serializable):
         return x
 
 
+class ImgSerializable(Serializable):
+    def serialize(
+        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> str:
+        """
+        Convert from human-friendly version of a file (string filepath) to a seralized
+        representation (base64).
+        Parameters:
+            x: String path to file to serialize
+            load_dir: Path to directory containing x
+            encryption_key: Used to encrypt the file
+        """
+        if x is None or x == "":
+            return None
+        return processing_utils.encode_url_or_file_to_base64(
+            os.path.join(load_dir, x), encryption_key=encryption_key
+        )
+
+    def deserialize(
+        self, x: str, save_dir: str | None = None, encryption_key: bytes | None = None
+    ) -> str:
+        """
+        Convert from serialized representation of a file (base64) to a human-friendly
+        version (string filepath). Optionally, save the file to the directory specified by save_dir
+        Parameters:
+            x: Base64 representation of image to deserialize into a string filepath
+            save_dir: Path to directory to save the deserialized image to
+            encryption_key: Used to decrypt the file
+        """
+        if x is None or x == "":
+            return None
+        file = processing_utils.decode_base64_to_file(
+            x, dir=save_dir, encryption_key=encryption_key
+        )
+        return file.name
+
+
 class FileSerializable(Serializable):
     def serialize(
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
