@@ -2,7 +2,6 @@
 	import { createEventDispatcher } from "svelte";
 	import { Image, StaticImage } from "@gradio/image";
 	import { Block } from "@gradio/atoms";
-
 	import { _ } from "svelte-i18n";
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import type { LoadingStatus } from "../StatusTracker/types";

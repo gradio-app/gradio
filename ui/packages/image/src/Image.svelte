@@ -31,14 +31,12 @@
 
 	let sketch: Sketch;
 
-	$: {
-		if (
-			value &&
-			(source === "upload" || source === "webcam") &&
-			tool === "sketch"
-		) {
-			value = { image: value as string, mask: null };
-		}
+	if (
+		value &&
+		(source === "upload" || source === "webcam") &&
+		tool === "sketch"
+	) {
+		value = { image: value as string, mask: null };
 	}
 
 	function handle_upload({ detail }: CustomEvent<string>) {
