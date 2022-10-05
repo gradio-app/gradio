@@ -21,6 +21,7 @@
 	const dispatch = createEventDispatcher<{ change: number }>();
 
 	$: dispatch("change", value);
+	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
 </script>
 
 <div class="w-full flex flex-col ">
@@ -34,6 +35,7 @@
 			bind:value
 			min={minimum}
 			max={maximum}
+			on:blur={clamp}
 			{step}
 			{disabled}
 		/>
