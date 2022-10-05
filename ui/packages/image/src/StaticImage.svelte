@@ -4,7 +4,7 @@
 
 	import { Image } from "@gradio/icons";
 
-	export let value: null | string = null;
+	export let value: null | string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 

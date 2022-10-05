@@ -8,7 +8,7 @@
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
 	import type { FileData } from "@gradio/upload";
-	import { normalise_files } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let loading_status: LoadingStatus;
@@ -23,7 +23,17 @@
 	$: _value =
 		value === null
 			? null
-			: value.map((img) => (Array.isArray(img) ? img : [img, null]));
+			: value.map((img) =>
+					Array.isArray(img)
+						? normalise_file(
+								typeof img[0] === "string" ? img[0] : img[0].data,
+								root
+						  )
+						: [
+								normalise_file(typeof img === "string" ? img : img.data, root),
+								null
+						  ]
+			  );
 
 	let prevValue: Array<string | [string, string]> | null = null;
 	let selected_image: number | null = null;
@@ -87,9 +97,6 @@
 
 	let height = 0;
 	let window_height = 0;
-
-	let _value: null | Array<FileData>;
-	$: _value = normalise_files(value, root);
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
