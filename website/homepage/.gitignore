@@ -3,3 +3,4 @@
 /generated
 client_secrets.json
 google_credentials.json
+/src/changelog/inner_template.html
