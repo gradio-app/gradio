@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import queue
 import time
 from typing import Dict, List, Optional
 
@@ -30,7 +31,9 @@ class Queue:
         update_intervals: int,
         max_size: Optional[int],
     ):
-        self.event_queue = []
+        self.event_queue_no_data = []
+        self.event_queue_gathering_data = []
+        self.event_queue_with_data = []
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -59,6 +62,21 @@ class Queue:
     def resume(self):
         self.stopped = False
 
+    def __len__(self):
+        return (
+            len(self.event_queue_with_data)
+            + len(self.event_queue_gathering_data)
+            + len(self.event_queue_no_data)
+        )
+
+    async def shift_queues(self, event, queue_a, queue_b):
+        async with self.delete_lock:
+            try:
+                queue_a.remove(event)
+            except ValueError:
+                return
+            queue_b.append(event)
+
     def set_url(self, url: str):
         self.server_path = url
 
@@ -71,21 +89,27 @@ class Queue:
 
     async def start_processing(self) -> None:
         while not self.stopped:
-            if not self.event_queue:
+            num_events_to_gather_data_for = min(
+                len(self.event_queue_no_data),
+                self.data_gathering_start
+                - len(self.event_queue_with_data)
+                - len(self.event_queue_gathering_data),
+            )
+            if num_events_to_gather_data_for > 0:
+                run_coro_in_background(
+                    self.gather_data_for_first_ranks, num_events_to_gather_data_for
+                )
+
+            if not self.event_queue_with_data or not (None in self.active_jobs):
                 await asyncio.sleep(self.sleep_when_free)
                 continue
 
-            if not (None in self.active_jobs):
-                await asyncio.sleep(self.sleep_when_free)
-                continue
-
-            # Using mutex to avoid editing a list in use
             async with self.delete_lock:
-                event = self.event_queue.pop(0)
+                event = self.event_queue_with_data.pop(0)
 
             self.active_jobs[self.active_jobs.index(None)] = event
             run_coro_in_background(self.process_event, event)
-            run_coro_in_background(self.gather_data_and_broadcast_estimations)
+            run_coro_in_background(self.broadcast_estimations)
 
     def push(self, event: Event) -> int | None:
         """
@@ -95,35 +119,32 @@ class Queue:
         Returns:
             rank of submitted Event
         """
-        if self.max_size is not None and len(self.event_queue) >= self.max_size:
+        if self.max_size is not None and len(self) >= self.max_size:
             return None
-        self.event_queue.append(event)
-        return len(self.event_queue) - 1
+        self.event_queue_no_data.append(event)
+        return len(self) - 1
 
     async def clean_event(self, event: Event) -> None:
-        if event in self.event_queue:
-            async with self.delete_lock:
-                self.event_queue.remove(event)
-        elif event in self.active_jobs:
+        event.deleted = True
+        for queue in (
+            self.event_queue_no_data,
+            self.event_queue_gathering_data,
+            self.event_queue_with_data,
+        ):
+            if event in queue:
+                async with self.delete_lock:
+                    queue.remove(event)
+        if event in self.active_jobs:
             self.active_jobs[self.active_jobs.index(event)] = None
 
-    async def gather_data_and_broadcast_estimations(self) -> None:
+    async def gather_data_for_first_ranks(self, event_count) -> None:
         """
-        Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
+        Gather data for the first 'event_count' events.
         """
-        await self.gather_data_for_first_ranks()
-        if self.live_updates:
-            await self.broadcast_estimations()
-
-    async def gather_data_for_first_ranks(self) -> None:
-        """
-        Gather data for the first x events.
-        """
-        # Send all messages concurrently
         await asyncio.gather(
             *[
                 self.gather_event_data(event)
-                for event in self.event_queue[: self.data_gathering_start]
+                for event in self.event_queue_no_data[:event_count]
             ]
         )
 
@@ -134,11 +155,19 @@ class Queue:
         Parameters:
             event:
         """
-        if not event.data:
-            client_awake = await self.send_message(event, {"msg": "send_data"})
-            if not client_awake:
-                return False
-            event.data = await self.get_message(event)
+        if event not in self.event_queue_no_data:
+            return
+        await self.shift_queues(
+            event, self.event_queue_no_data, self.event_queue_gathering_data
+        )
+        client_awake = await self.send_message(event, {"msg": "send_data"})
+        if not client_awake:
+            return False
+        event.data = await self.get_message(event)
+        if not event.deleted:
+            await self.shift_queues(
+                event, self.event_queue_gathering_data, self.event_queue_with_data
+            )
         return True
 
     async def notify_clients(self) -> None:
@@ -147,7 +176,7 @@ class Queue:
         """
         while not self.stopped:
             await asyncio.sleep(self.update_intervals)
-            if self.event_queue:
+            if len(self):
                 await self.broadcast_estimations()
 
     async def broadcast_estimations(self) -> None:
@@ -156,7 +185,9 @@ class Queue:
         await asyncio.gather(
             *[
                 self.send_estimation(event, estimation, rank)
-                for rank, event in enumerate(self.event_queue)
+                for rank, event in enumerate(
+                    self.event_queue_with_data + self.event_queue_no_data
+                )
             ]
         )
 
@@ -201,11 +232,11 @@ class Queue:
         self.avg_concurrent_process_time = self.avg_process_time / min(
             self.max_thread_count, self.duration_history_count
         )
-        self.queue_duration = self.avg_concurrent_process_time * len(self.event_queue)
+        self.queue_duration = self.avg_concurrent_process_time * len(self)
 
     def get_estimation(self) -> Estimation:
         return Estimation(
-            queue_size=len(self.event_queue),
+            queue_size=len(self),
             avg_event_process_time=self.avg_process_time,
             avg_event_concurrent_process_time=self.avg_concurrent_process_time,
             queue_eta=self.queue_duration,
@@ -221,9 +252,6 @@ class Queue:
 
     async def process_event(self, event: Event) -> None:
         try:
-            client_awake = await self.gather_event_data(event)
-            if not client_awake:
-                return
             client_awake = await self.send_message(event, {"msg": "process_starts"})
             if not client_awake:
                 return
@@ -300,6 +328,7 @@ class Event:
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
+        self.deleted = False
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)

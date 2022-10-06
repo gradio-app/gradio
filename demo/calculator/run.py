@@ -1,6 +1,8 @@
 import gradio as gr
+import time
 
 def calculator(num1, operation, num2):
+    time.sleep(10)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -29,5 +31,6 @@ demo = gr.Interface(
     title="Toy Calculator",
     description="Here's a sample toy calculator. Enjoy!",
 )
+demo.queue(client_position_to_load_data=3)
 if __name__ == "__main__":
     demo.launch()
