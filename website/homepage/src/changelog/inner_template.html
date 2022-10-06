@@ -1,8 +1,10 @@
 <h1 id="upcoming-release">Upcoming Release</h1>
 
+<h1 id="version-341">Version 3.4.1</h1>
+
 <h2 id="new-features">New Features:</h2>
 
-<h3 id="1-see-past-and-upcoming-changes-in-the-release-histoy">1. See Past and Upcoming Changes in the Release Histoy 👀</h3>
+<h3 id="1-see-past-and-upcoming-changes-in-the-release-history">1. See Past and Upcoming Changes in the Release History 👀</h3>
 
 <p>You can now see gradio's release history directly on the website, and also keep track of upcoming changes. Just go <a rel="noopener" target="_blank" href="https://gradio.app/changelog/">here</a>.</p>
 
@@ -15,6 +17,8 @@
 <li>Raise error if Blocks has duplicate component with same IDs by <a rel="noopener" target="_blank" href="https://github.com/abidlabs">@abidlabs</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2359">PR 2359</a></li>
 <li>Catch the permission exception on the audio component by <a rel="noopener" target="_blank" href="https://github.com/Ian-GL">@Ian-GL</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2330">PR 2330</a></li>
 <li>Fix image<em>classifier</em>interface_load demo by <a rel="noopener" target="_blank" href="https://github.com/freddyaboulton">@freddyaboulton</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2365">PR 2365</a></li>
+<li>Fix combining adjacent components without gaps by introducing <code>gr.Row(variant="compact")</code> by <a rel="noopener" target="_blank" href="https://github.com/aliabid94">@aliabid94</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2291">PR 2291</a> This comes with deprecation of the following arguments for <code>Component.style</code>: <code>round</code>, <code>margin</code>, <code>border</code>.</li>
+<li>Fix audio streaming, which was previously choppy in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2351">PR 2351</a>. Big thanks to <a rel="noopener" target="_blank" href="https://github.com/yannickfunk">@yannickfunk</a> for the proposed solution.</li>
 </ol>
 
 <h2 id="documentation-changes">Documentation Changes:</h2>
@@ -43,6 +47,12 @@
 <li>Fix image<em>classifier</em>interface_load demo by <a rel="noopener" target="_blank" href="https://github.com/freddyaboulton">@freddyaboulton</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2365">PR 2365</a></li>
 <li>Small fixes to docs for <code>Image</code> component by <a rel="noopener" target="_blank" href="https://github.com/abidlabs">@abidlabs</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2372">PR 2372</a></li>
 <li>Automated Release Notes by <a rel="noopener" target="_blank" href="https://github.com/freddyaboulton">@freddyaboulton</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2306">PR 2306</a></li>
+<li>Fixed small typos in the docs <a rel="noopener" target="_blank" href="https://github.com/julien-c">@julien-c</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2373">PR 2373</a></li>
+<li>Adds ability to disable pre/post-processing for examples <a rel="noopener" target="_blank" href="https://github.com/abidlabs">@abidlabs</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2383">PR 2383</a></li>
+<li>Copy changelog file in website docker by <a rel="noopener" target="_blank" href="https://github.com/aliabd">@aliabd</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2384">PR 2384</a></li>
+<li>Lets users provide a <code>gr.update()</code> dictionary even if post-processing is diabled <a rel="noopener" target="_blank" href="https://github.com/abidlabs">@abidlabs</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2385">PR 2385</a></li>
+<li>Fix bug where errors would cause apps run in reload mode to hang forever by <a rel="noopener" target="_blank" href="https://github.com/freddyaboulton">@freddyaboulton</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2394">PR 2394</a></li>
+<li>Fix bug where new typeable slider doesn't respect the minimum and maximum values <a rel="noopener" target="_blank" href="https://github.com/dawoodkhan82">@dawoodkhan82</a> in <a rel="noopener" target="_blank" href="https://github.com/gradio-app/gradio/pull/2380">PR 2380</a></li>
 </ul>
 
 <h1 id="version-34">Version 3.4</h1>
