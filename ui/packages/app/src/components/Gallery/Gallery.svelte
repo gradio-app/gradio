@@ -25,20 +25,11 @@
 			? null
 			: value.map((img) =>
 					Array.isArray(img)
-						? [
-								normalise_file(
-									typeof img[0] === "string" ? img[0] : img[0].data,
-									root
-								),
-								img[1]
-						  ]
-						: [
-								normalise_file(typeof img === "string" ? img : img.data, root),
-								null
-						  ]
+						? [normalise_file(img[0], root), img[1]]
+						: [normalise_file(img, root), null]
 			  );
 
-	let prevValue: Array<string | [string, string]> | null = null;
+	let prevValue: string[] | FileData[] | null = null;
 	let selected_image: number | null = null;
 	$: if (prevValue !== value) {
 		selected_image = null;
