@@ -3351,7 +3351,7 @@ class Gallery(IOComponent):
         captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            files.append(img)
+            files.append(file)
             if file_path == captions_file:
                 continue
             if os.path.exists(captions_file):
