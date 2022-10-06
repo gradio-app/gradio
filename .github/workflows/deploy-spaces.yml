@@ -39,7 +39,7 @@ jobs:
         python3 -m build -w
         aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ github.sha  }}/
     - name: Install Hub Client Library
-      run: pip install huggingface-hub==0.8.1
+      run: pip install huggingface-hub
     - name: Set up Demos
       run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
     - name: Upload kitchen sink to spaces
