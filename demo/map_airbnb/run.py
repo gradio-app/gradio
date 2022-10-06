@@ -6,15 +6,15 @@ df = pd.read_csv("AB_NYC_2019.csv")
 
 def filter_map(min_price, max_price, boroughs):
 
-    new_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
+    filtered_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
           (df['price'] > min_price) & (df['price'] < max_price)]
-    names = df["name"].tolist()
-    prices = df["price"].tolist()
+    names = filtered_df["name"].tolist()
+    prices = filtered_df["price"].tolist()
     text_list = [(names[i], prices[i]) for i in range(0, len(names))]
     fig = go.Figure(go.Scattermapbox(
             customdata=text_list,
-            lat=new_df['latitude'].tolist(),
-            lon=new_df['longitude'].tolist(),
+            lat=filtered_df['latitude'].tolist(),
+            lon=filtered_df['longitude'].tolist(),
             mode='markers',
             marker=go.scattermapbox.Marker(
                 size=6
@@ -50,4 +50,5 @@ with gr.Blocks() as demo:
     demo.load(filter_map, [min_price, max_price, boroughs], map)
     btn.click(filter_map, [min_price, max_price, boroughs], map)
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
