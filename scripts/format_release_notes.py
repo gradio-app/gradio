@@ -1,4 +1,3 @@
-import shutil
 import pathlib
 import argparse
 import textwrap
@@ -36,7 +35,7 @@ def format_release_notes(latest_version: str):
     upcoming = current_dir / "CHANGELOG.md"
     with open(upcoming, "r") as latest:
         lines = latest.readlines()
-        assert lines[0] == "# Upcoming Release \n"
+        assert "# Upcoming Release" in lines[0]
     with open(upcoming, "w") as latest:
         lines[0] = latest_version.replace("v", "# Version ") + "\n"
         lines = textwrap.dedent(TEMPLATE).splitlines(keepends=True) + lines
