@@ -1,6 +1,30 @@
 # Upcoming Release
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.4.1
+
+## New Features:
 
 ### 1. See Past and Upcoming Changes in the Release History 👀
 
@@ -15,6 +39,7 @@ You can now see gradio's release history directly on the website, and also keep 
 3. Catch the permission exception on the audio component by [@Ian-GL](https://github.com/Ian-GL) in [PR 2330](https://github.com/gradio-app/gradio/pull/2330)
 4. Fix image_classifier_interface_load demo by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2365](https://github.com/gradio-app/gradio/pull/2365)
 5. Fix combining adjacent components without gaps by introducing `gr.Row(variant="compact")` by [@aliabid94](https://github.com/aliabid94) in [PR 2291](https://github.com/gradio-app/gradio/pull/2291) This comes with deprecation of the following arguments for `Component.style`: `round`, `margin`, `border`.
+6. Fix audio streaming, which was previously choppy in [PR 2351](https://github.com/gradio-app/gradio/pull/2351). Big thanks to [@yannickfunk](https://github.com/yannickfunk) for the proposed solution.
 
 ## Documentation Changes:
 
@@ -53,6 +78,7 @@ No changes to highlight.
 * Copy changelog file in website docker by [@aliabd](https://github.com/aliabd) in [PR 2384](https://github.com/gradio-app/gradio/pull/2384)
 * Lets users provide a `gr.update()` dictionary even if post-processing is diabled [@abidlabs](https://github.com/abidlabs) in [PR 2385](https://github.com/gradio-app/gradio/pull/2385)
 * Fix bug where errors would cause apps run in reload mode to hang forever by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2394](https://github.com/gradio-app/gradio/pull/2394)
+* Fix bug where new typeable slider doesn't respect the minimum and maximum values [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2380](https://github.com/gradio-app/gradio/pull/2380)
 
 ## Contributors Shoutout:
 No changes to highlight.

@@ -423,7 +423,7 @@ class Streamable(Block):
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
-        show_progress: bool = True,
+        show_progress: bool = False,
         queue: Optional[bool] = None,
         preprocess: bool = True,
         postprocess: bool = True,

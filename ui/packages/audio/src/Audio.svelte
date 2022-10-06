@@ -7,12 +7,14 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	// @ts-ignore
 	import Range from "svelte-range-slider-pips";
+
+	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -29,13 +31,34 @@
 	// export let type: "normal" | "numpy" = "normal";
 
 	let recording = false;
-	let recorder: MediaRecorder;
+	let recorder: IMediaRecorder;
 	let mode = "";
-	let audio_chunks: Array<Blob> = [];
-	let audio_blob;
+	let header: Uint8Array | undefined = undefined;
+	let pending_stream: Array<Uint8Array> = [];
+	let submit_pending_stream_on_pending_end: boolean = false;
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
+	const STREAM_TIMESLICE = 500;
+	const NUM_HEADER_BYTES = 44;
+	let audio_chunks: Array<Blob> = [];
+	let audio_blob;
+	let module_promises:
+		| [
+				Promise<typeof import("extendable-media-recorder")>,
+				Promise<typeof import("extendable-media-recorder-wav-encoder")>
+		  ];
+
+	function get_modules() {
+		module_promises = [
+			import("extendable-media-recorder"),
+			import("extendable-media-recorder-wav-encoder")
+		];
+	}
+
+	if (streaming) {
+		get_modules();
+	}
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -57,8 +80,21 @@
 		});
 	}
 
+	const dispatch_blob = async (
+		blobs: Array<Uint8Array> | Blob[],
+		event: "stream" | "change"
+	) => {
+		let audio_blob = new Blob(blobs, { type: "audio/wav" });
+		value = {
+			data: await blob_to_data_url(audio_blob),
+			name
+		};
+		dispatch(event, value);
+	};
+
 	async function prepare_audio() {
 		let stream: MediaStream | null;
+
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		} catch (err) {
@@ -73,38 +109,67 @@
 			}
 		}
 
-		if (stream === null) {
-			return;
+		if (stream == null) return;
+
+		if (streaming) {
+			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
+				module_promises
+			);
+
+			await register(await connect());
+
+			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+
+			async function handle_chunk(event: IBlobEvent) {
+				let buffer = await event.data.arrayBuffer();
+				let payload = new Uint8Array(buffer);
+				if (!header) {
+					header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+					payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+				}
+				if (pending) {
+					pending_stream.push(payload);
+				} else {
+					let blobParts = [header].concat(pending_stream, [payload]);
+					dispatch_blob(blobParts, "stream");
+					pending_stream = [];
+				}
+			}
+			recorder.addEventListener("dataavailable", handle_chunk);
+		} else {
+			recorder = new MediaRecorder(stream);
+
+			recorder.addEventListener("dataavailable", (event) => {
+				audio_chunks.push(event.data);
+			});
+
+			recorder.addEventListener("stop", async () => {
+				recording = false;
+				await dispatch_blob(audio_chunks, "change");
+				audio_chunks = [];
+			});
 		}
 
-		recorder = new MediaRecorder(stream);
-
-		recorder.addEventListener("dataavailable", (event) => {
-			audio_chunks.push(event.data);
-		});
-
-		recorder.addEventListener("stop", async () => {
-			if (!streaming) {
-				recording = false;
-			}
-			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
-			audio_chunks = [];
-			value = {
-				data: await blob_to_data_url(audio_blob),
-				name
-			};
-			dispatch(streaming ? "stream" : "change", value);
-		});
 		inited = true;
 	}
 
+	$: if (submit_pending_stream_on_pending_end && pending === false) {
+		submit_pending_stream_on_pending_end = false;
+		if (header && pending_stream) {
+			let blobParts: Array<Uint8Array> = [header].concat(pending_stream);
+			pending_stream = [];
+			dispatch_blob(blobParts, "stream");
+		}
+	}
+
 	async function record() {
+		recording = true;
+
 		if (!inited) await prepare_audio();
-
-		if (recorder) {
-			recording = true;
-			audio_chunks = [];
-
+		header = undefined;
+		if (streaming) {
+			recorder.start(STREAM_TIMESLICE);
+		} else {
 			recorder.start();
 		}
 	}
@@ -115,10 +180,13 @@
 		}
 	});
 
-	const stop = () => {
+	const stop = async () => {
 		recorder.stop();
 		if (streaming) {
 			recording = false;
+			if (pending) {
+				submit_pending_stream_on_pending_end = true;
+			}
 		}
 	};
 
@@ -177,20 +245,6 @@
 
 	export let dragging = false;
 	$: dispatch("drag", dragging);
-
-	if (streaming) {
-		window.setInterval(() => {
-			if (
-				recording &&
-				recorder &&
-				recorder.state === "recording" &&
-				pending === false
-			) {
-				stop();
-				record();
-			}
-		}, 500);
-	}
 </script>
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
