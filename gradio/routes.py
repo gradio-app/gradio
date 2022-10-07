@@ -262,8 +262,11 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
-            app.iterators[body.session_hash][body.fn_index] = None
-            print("RESETTING STATE")
+            async with asyncio.Lock():
+                app.iterators[body.session_hash][body.fn_index] = None
+                app.iterators[body.session_hash]["locked_by_coro"].add(body.fn_index)
+
+            print("RESETTING STATE route")
             print(f"hash: {body.session_hash} and fn_index {body.fn_index}")
             print(app.iterators[body.session_hash][body.fn_index])
             return {"success": True}
@@ -280,6 +283,7 @@ class App(FastAPI):
                     }
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
+                app.iterators[body.session_hash]["locked_by_coro"] = set([])
             else:
                 session_state = {}
                 iterators = {}
@@ -293,7 +297,11 @@ class App(FastAPI):
                 if hasattr(body, "session_hash"):
                     print("Modifying iterators")
                     print(f"input: {raw_input}")
-                    app.iterators[body.session_hash][fn_index] = iterator
+                    if fn_index in app.iterators[body.session_hash]["locked_by_coro"]:
+                        print("In locked by coro!")
+                        app.iterators[body.session_hash][fn_index] = None
+                    else:
+                        app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
@@ -322,17 +330,17 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
-            target_id = app.blocks.dependencies[body.fn_index]['targets'][0]
+            target_id = app.blocks.dependencies[body.fn_index]["targets"][0]
             comp = app.blocks.blocks[target_id]
             if getattr(comp, "is_stop", False):
                 body.data = [body.session_hash]
             result = await run_predict(body=body, username=username)
             if getattr(comp, "is_stop", False):
-                await asyncio.sleep(2)
                 for fn_index in comp.fn_to_comp:
-                    print("RESETTING STATE")
+                    print("RESETTING STATE 2")
                     app.iterators[body.session_hash][fn_index] = None
             return result
+
         # @app.post("/api/cancel", dependencies=[Depends(login_check)])
         # @app.post("/api/cancel/", dependencies=[Depends(login_check)])
         # async def cancel(body: PredictBody):
@@ -354,10 +362,10 @@ class App(FastAPI):
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
             event = Event(websocket)
-            await websocket.send_json({'msg': 'send_hash'})
+            await websocket.send_json({"msg": "send_hash"})
             session_hash = await websocket.receive_json()
-            event.session_hash = session_hash['session_hash']
-            event.fn_index = session_hash['fn_index']
+            event.session_hash = session_hash["session_hash"]
+            event.fn_index = session_hash["fn_index"]
             rank = app.blocks._queue.push(event)
             if rank is None:
                 await app.blocks._queue.send_message(event, {"msg": "queue_full"})

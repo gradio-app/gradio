@@ -45,7 +45,6 @@ from gradio.components import (
     component,
 )
 from gradio.examples import create_examples as Examples
-from gradio.stop_button import StopButton
 from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
@@ -59,6 +58,7 @@ from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.mix import Parallel, Series
 from gradio.routes import mount_gradio_app
+from gradio.stop_button import StopButton
 from gradio.templates import (
     Files,
     Highlight,

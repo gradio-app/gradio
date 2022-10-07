@@ -3750,9 +3750,6 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
         return self.postprocess(input_data)
 
 
-
-
-
 ############################
 # Special Components
 ############################

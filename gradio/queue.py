@@ -279,11 +279,14 @@ class Queue:
                 pass
             finally:
                 await self.clean_event(event)
-                # await Request(
-                #    method=Request.Method.POST,
-                #    url=f"{self.server_path}reset",
-                #    json={'session_hash': event.session_hash, 'fn_index': event.fn_index},
-                # )
+                await Request(
+                    method=Request.Method.POST,
+                    url=f"{self.server_path}reset",
+                    json={
+                        "session_hash": event.session_hash,
+                        "fn_index": event.fn_index,
+                    },
+                )
 
     async def send_message(self, event, data: Dict) -> bool:
         try:

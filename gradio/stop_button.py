@@ -1,19 +1,22 @@
 import asyncio
 import uuid
 
+from gradio.blocks import update
 from gradio.components import Button, _Keywords
 from gradio.context import Context
-from gradio.blocks import update
 
 
 class StopButton:
-
     def __init__(self, *dependencies):
 
         fn_to_comp = {}
         for dep in dependencies:
-            fn_index = next(i for i, d in enumerate(Context.root_block.dependencies) if d == dep)
-            fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep['outputs']]
+            fn_index = next(
+                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+            )
+            fn_to_comp[fn_index] = [
+                Context.root_block.blocks[o] for o in dep["outputs"]
+            ]
 
         async def stop(session_hash: str):
             output = {}
@@ -22,7 +25,7 @@ class StopButton:
                     output[comp] = update(value=_Keywords.NO_VALUE)
             task_ids = set([f"{session_hash}_{fn_index}" for fn_index in fn_to_comp])
 
-            for task in filter(lambda t: not t.cancelled(), asyncio.all_tasks()):
+            for task in asyncio.all_tasks():
                 if task.get_name() in task_ids:
                     matching_id = None
                     for id_ in task_ids:
@@ -30,10 +33,9 @@ class StopButton:
                             matching_id = id_
                     fn_index_ = int(matching_id.split("_")[1])
                     task.cancel()
-                    try:
-                        await task
-                    except asyncio.CancelledError:
-                        print(f"Cancelled task {matching_id}")
+                    await asyncio.gather(task, return_exceptions=True)
+                    await asyncio.wait([task])
+                    print(f"Cancelled task {matching_id}")
                     for comp in fn_to_comp[fn_index_]:
                         output[comp] = update(value=None)
             return output
@@ -44,4 +46,10 @@ class StopButton:
         self.stop = Button(value="Stop")
         self.stop.is_stop = True
         self.stop.fn_to_comp = fn_to_comp
-        self.stop.click(stop, inputs=None, outputs=[c for comps in fn_to_comp.values() for c in comps], queue=False, preprocess=False)
+        self.stop.click(
+            stop,
+            inputs=None,
+            outputs=[c for comps in fn_to_comp.values() for c in comps],
+            queue=False,
+            preprocess=False,
+        )
