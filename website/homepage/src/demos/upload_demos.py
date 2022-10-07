@@ -68,8 +68,9 @@ def upload_demo_to_space(
     return f"https://huggingface.co/spaces/{space_id}"
 
 if __name__ == "__main__":
-    for category in demos_by_category:
-        for demo in category["demos"]:
-            space_id = "gradio/" + demo["dir"]
-            upload_demo_to_space(demo_name=demo["dir"], space_id=space_id, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
+    if AUTH_TOKEN is not None:
+        for category in demos_by_category:
+            for demo in category["demos"]:
+                space_id = "gradio/" + demo["dir"]
+                upload_demo_to_space(demo_name=demo["dir"], space_id=space_id, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
 
