@@ -1206,7 +1206,8 @@ class TestVideo(unittest.TestCase):
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         self.assertEqual((await iface([x_video]))[0]["data"], x_video["data"])
 
-    def test_video_postprocess_converts_to_playable_format(self, test_file_dir):
+    def test_video_postprocess_converts_to_playable_format(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
             suffix="bad_video.mp4"
@@ -1749,7 +1750,7 @@ class TestGallery:
             path = gallery.deserialize(data, tmpdir)
             assert path.endswith("my-uuid")
             data_restored = gallery.serialize(path)
-            assert sorted(data) == sorted(data_restored)
+            assert sorted(data) == sorted([d['data'] for d in data_restored])
 
 
 class TestState:

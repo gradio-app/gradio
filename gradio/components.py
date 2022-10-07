@@ -3328,18 +3328,13 @@ class Gallery(IOComponent):
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
         captions = {}
         for img_data in x:
-            FileSerializable.deserialize(self, img_data, gallery_path)
             if isinstance(img_data, list) or isinstance(img_data, tuple):
                 img_data, caption = img_data
-                prefix = f"[{utils.strip_invalid_filename_characters(caption)}]-"
             else:
                 caption = None
-                prefix = None
-            file_obj = processing_utils.decode_base64_to_file(
-                img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
-            )
+            name = FileSerializable.deserialize(self, img_data, gallery_path)
             if caption is not None:
-                captions[file_obj.name] = caption
+                captions[name] = caption
         if len(captions):
             captions_file = os.path.join(gallery_path, "captions.json")
             with open(captions_file, "w") as captions_json:
@@ -3351,7 +3346,6 @@ class Gallery(IOComponent):
         captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            files.append(file)
             if file_path == captions_file:
                 continue
             if os.path.exists(captions_file):
