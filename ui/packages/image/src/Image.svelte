@@ -164,7 +164,86 @@
 	bind:offsetHeight={max_height}
 	bind:offsetWidth={max_width}
 >
-	{#if source === "canvas"}
+	{#if source === "upload"}
+		<Upload
+			bind:dragging
+			filetype="image/x-png,image/gif,image/jpeg"
+			on:load={handle_upload}
+			include_file_metadata={false}
+			disable_click={!!value}
+		>
+			{#if (value === null && !static_image) || streaming}
+				<div class="flex flex-col">
+					{drop_text}
+					<span class="text-gray-300">- {or_text} -</span>
+					{upload_text}
+				</div>
+			{:else if tool === "select"}
+				<Cropper image={value} on:crop={handle_save} />
+				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
+			{:else if tool === "editor"}
+				<ModifyUpload
+					on:edit={() => (tool = "select")}
+					on:clear={handle_clear}
+					editable
+				/>
+
+				<img
+					class="w-full h-full object-contain"
+					src={value}
+					alt=""
+					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+				/>
+			{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
+				{#key static_image}
+					<img
+						bind:this={value_img}
+						class="absolute w-full h-full object-contain"
+						src={static_image || value?.image || value}
+						alt=""
+						on:load={handle_image_load}
+						class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+					/>
+				{/key}
+				{#if img_width > 0}
+					<Sketch
+						{value}
+						bind:this={sketch}
+						bind:brush_radius
+						bind:brush_color
+						on:change={handle_save}
+						{mode}
+						width={img_width || max_width}
+						height={img_height || max_height}
+						container_height={container_height || max_height}
+						{value_img}
+						{source}
+					/>
+					<ModifySketch
+						on:undo={() => sketch.undo()}
+						on:clear={handle_mask_clear}
+					/>
+					{#if tool === "color-sketch" || tool === "sketch"}
+						<SketchSettings
+							bind:brush_radius
+							bind:brush_color
+							container_height={container_height || max_height}
+							img_width={img_width || max_width}
+							img_height={img_height || max_height}
+							{mode}
+						/>
+					{/if}
+				{/if}
+			{:else}
+				<img
+					class="w-full h-full object-contain"
+					src={value.image || value}
+					alt=""
+					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+				/>
+			{/if}
+		</Upload>
+	{:else if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
 			on:clear={() => sketch.clear()}
@@ -190,20 +269,7 @@
 			container_height={container_height || max_height}
 		/>
 	{:else if (value === null && !static_image) || streaming}
-		{#if source === "upload"}
-			<Upload
-				bind:dragging
-				filetype="image/x-png,image/gif,image/jpeg"
-				on:load={handle_upload}
-				include_file_metadata={false}
-			>
-				<div class="flex flex-col">
-					{drop_text}
-					<span class="text-gray-300">- {or_text} -</span>
-					{upload_text}
-				</div>
-			</Upload>
-		{:else if source === "webcam" && !static_image}
+		{#if source === "webcam" && !static_image}
 			<Webcam
 				on:capture={(e) =>
 					tool === "color-sketch" ? handle_upload(e) : handle_save(e, true)}
