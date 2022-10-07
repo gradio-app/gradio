@@ -1,5 +1,3 @@
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.1.0/gradio.js"></script>
-
 # Custom Machine Learning Interpretations with Blocks
 Tags: INTERPRETATION, SENTIMENT ANALYSIS
 
