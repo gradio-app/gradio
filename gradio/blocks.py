@@ -17,6 +17,7 @@ import anyio
 import requests
 from anyio import CapacityLimiter
 
+import gradio.exceptions
 from gradio import (
     components,
     encryptor,
