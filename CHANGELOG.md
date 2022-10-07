@@ -16,7 +16,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Automatically restart spaces if they're down by [@aliabd](https://github.com/aliabd) in [PR 2404](https://github.com/gradio-app/gradio/pull/2404)
 
 ## Contributors Shoutout:
 No changes to highlight.
