@@ -252,11 +252,13 @@ function create_custom_element() {
 			observer.observe(this.root, { childList: true });
 
 			const space = this.getAttribute("space");
+			const control_page_title = this.getAttribute("control_page_title");
+			const initial_height = this.getAttribute("initial_height");
+			let autoscroll = this.getAttribute("autoscroll");
+
 			let source = space
 				? `https://hf.space/embed/${space}/+/`
 				: this.getAttribute("src");
-			const initial_height = this.getAttribute("initial_height");
-			let autoscroll = this.getAttribute("autoscroll");
 
 			const _autoscroll = autoscroll === "true" ? true : false;
 
@@ -266,7 +268,17 @@ function create_custom_element() {
 			if (config === null) {
 				this.wrapper.remove();
 			} else {
-				mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+				mount_app(
+					{
+						...config,
+						control_page_title:
+							control_page_title && control_page_title === "true" ? true : false
+					},
+					this.root,
+					this.wrapper,
+					this._id,
+					_autoscroll
+				);
 			}
 		}
 	}
@@ -289,7 +301,7 @@ async function unscoped_mount() {
 	});
 
 	const config = await handle_config(target, null);
-	mount_app(config, false, target, 0);
+	mount_app({ ...config, control_page_title: true }, false, target, 0);
 }
 
 // dev mode or if inside an iframe
