@@ -96,7 +96,7 @@ class Clickable(Block):
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
 
-        self.set_event_trigger(
+        return self.set_event_trigger(
             "click",
             fn,
             inputs,

@@ -4,6 +4,7 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import math
@@ -37,7 +38,8 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils, utils
-from gradio.blocks import Block
+from gradio.blocks import Block, update
+from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -3748,33 +3750,8 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
         return self.postprocess(input_data)
 
 
-class StopButton:
 
-    def __init__(self, fn_index: int, component: IOComponent):
 
-        async def stop(fn_index: int, session_hash: str):
-            import asyncio
-            for task in asyncio.all_tasks():
-                if task.get_name() == f"{session_hash}_{fn_index}":
-                    task.cancel()
-                    try:
-                        await task
-                    except asyncio.CancelledError:
-                        print(f"Cancelled task {session_hash}_{fn_index}")
-                    return None
-
-        self.fn_index = fn_index
-        self.is_stop = True
-        self.stop = Button(value="Stop")
-        self.stop.is_stop = True
-        self.stop.click(stop, inputs=None, outputs=[component], queue=False, preprocess=False)
-
-    # def get_config(self):
-    #     return {
-    #         "is_stop": True,
-    #         "fn_index": self.fn_index,
-    #         **super().get_config(),
-    #     }
 
 ############################
 # Special Components

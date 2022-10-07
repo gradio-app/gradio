@@ -45,6 +45,7 @@ from gradio.components import (
     component,
 )
 from gradio.examples import create_examples as Examples
+from gradio.stop_button import StopButton
 from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,

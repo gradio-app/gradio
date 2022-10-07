@@ -77,6 +77,11 @@ class PredictBody(BaseModel):
     fn_index: Optional[int]
 
 
+class ResetBody(BaseModel):
+    session_hash: str
+    fn_index: int
+
+
 ###########
 # Auth
 ###########
@@ -254,6 +259,15 @@ class App(FastAPI):
         def file_deprecated(path: str):
             return file(path)
 
+        @app.post("/reset/")
+        @app.post("/reset")
+        async def reset_iterator(body: ResetBody):
+            app.iterators[body.session_hash][body.fn_index] = None
+            print("RESETTING STATE")
+            print(f"hash: {body.session_hash} and fn_index {body.fn_index}")
+            print(app.iterators[body.session_hash][body.fn_index])
+            return {"success": True}
+
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
@@ -277,6 +291,8 @@ class App(FastAPI):
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
+                    print("Modifying iterators")
+                    print(f"input: {raw_input}")
                     app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
@@ -309,20 +325,25 @@ class App(FastAPI):
             target_id = app.blocks.dependencies[body.fn_index]['targets'][0]
             comp = app.blocks.blocks[target_id]
             if getattr(comp, "is_stop", False):
-                body.data = [0, body.session_hash] #[component.fn_index, body.session_hash]
-            return await run_predict(body=body, username=username)
-
-        @app.post("/api/cancel", dependencies=[Depends(login_check)])
-        @app.post("/api/cancel/", dependencies=[Depends(login_check)])
-        async def cancel(body: PredictBody):
-            with asyncio.Lock():
-                for task, session_hash, fn_index in app.blocks._queue.running_tasks:
-                    if session_hash == body.session_hash and fn_index == body.fn_index:
-                        task.cancel()
-                        try:
-                            await task
-                        except asyncio.CancelledError:
-                            print("Cancelled {task}")
+                body.data = [body.session_hash]
+            result = await run_predict(body=body, username=username)
+            if getattr(comp, "is_stop", False):
+                await asyncio.sleep(2)
+                for fn_index in comp.fn_to_comp:
+                    print("RESETTING STATE")
+                    app.iterators[body.session_hash][fn_index] = None
+            return result
+        # @app.post("/api/cancel", dependencies=[Depends(login_check)])
+        # @app.post("/api/cancel/", dependencies=[Depends(login_check)])
+        # async def cancel(body: PredictBody):
+        #     with asyncio.Lock():
+        #         for task, session_hash, fn_index in app.blocks._queue.running_tasks:
+        #             if session_hash == body.session_hash and fn_index == body.fn_index:
+        #                 task.cancel()
+        #                 try:
+        #                     await task
+        #                 except asyncio.CancelledError:
+        #                     print("Cancelled {task}")
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):

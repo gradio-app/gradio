@@ -6,6 +6,7 @@ import time
 from typing import Dict, List, Optional, Set, Tuple
 
 import fastapi
+import requests
 from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
@@ -86,6 +87,7 @@ class Queue:
             self.active_jobs[self.active_jobs.index(None)] = event
             task = run_coro_in_background(self.process_event, event)
             task.set_name(f"{event.session_hash}_{event.fn_index}")
+            task.add_done_callback(lambda t: print("IN CALLBACK!"))
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -277,6 +279,11 @@ class Queue:
                 pass
             finally:
                 await self.clean_event(event)
+                # await Request(
+                #    method=Request.Method.POST,
+                #    url=f"{self.server_path}reset",
+                #    json={'session_hash': event.session_hash, 'fn_index': event.fn_index},
+                # )
 
     async def send_message(self, event, data: Dict) -> bool:
         try:
