@@ -3224,6 +3224,7 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.temp_dir = tempfile.mkdtemp()
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3265,7 +3266,7 @@ class Gallery(IOComponent):
         Parameters:
             y: list of images, or list of (image, caption) tuples
         Returns:
-            list of base64 data or (base64 image data, caption) pairs
+            list of string file paths to images in temp directory
         """
         if y is None:
             return []
@@ -3275,19 +3276,26 @@ class Gallery(IOComponent):
             if isinstance(img, tuple) or isinstance(img, list):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                img = processing_utils.encode_array_to_base64(img)
+                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
             elif isinstance(img, PIL.Image.Image):
-                img = processing_utils.encode_pil_to_base64(img)
+                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
             elif isinstance(img, str):
-                img = processing_utils.encode_url_or_file_to_base64(img)
+                if utils.validate_url(img):
+                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
+                else:
+                    file = processing_utils.create_tmp_copy_of_file(
+                        img, dir=self.temp_dir
+                    )
             else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
-                )
+                raise ValueError(f"Cannot process type as image: {type(img)}")
+
             if caption is not None:
-                output.append([img, caption])
+                output.append(
+                    [{"name": file.name, "data": None, "is_file": True}, caption]
+                )
             else:
-                output.append(img)
+                output.append({"name": file.name, "data": None, "is_file": True})
+
         return output
 
     def style(
@@ -3322,15 +3330,11 @@ class Gallery(IOComponent):
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
                 img_data, caption = img_data
-                prefix = f"[{utils.strip_invalid_filename_characters(caption)}]-"
             else:
                 caption = None
-                prefix = None
-            file_obj = processing_utils.decode_base64_to_file(
-                img_data, dir=gallery_path, encryption_key=encryption_key, prefix=prefix
-            )
+            name = FileSerializable.deserialize(self, img_data, gallery_path)
             if caption is not None:
-                captions[file_obj.name] = caption
+                captions[name] = caption
         if len(captions):
             captions_file = os.path.join(gallery_path, "captions.json")
             with open(captions_file, "w") as captions_json:
@@ -3350,7 +3354,7 @@ class Gallery(IOComponent):
                 caption = captions.get(file_path)
             else:
                 caption = None
-            img = ImgSerializable.serialize(self, file_path)
+            img = FileSerializable.serialize(self, file_path)
             if caption:
                 files.append([img, caption])
             else:
