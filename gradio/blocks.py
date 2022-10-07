@@ -707,7 +707,7 @@ class Blocks(BlockContext):
                     utils.async_iteration, iterator, limiter=self.limiter
                 )
                 is_generating = True
-            except GradioStopIteration:
+            except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
