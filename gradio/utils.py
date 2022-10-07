@@ -384,6 +384,14 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     return event_loop.create_task(func(*args, **kwargs))
 
 
+def async_iteration(iterator):
+    try:
+        return next(iterator)
+    except StopIteration:
+        # raise a ValueError here because co-routines can't raise StopIteration themselves
+        raise StopAsyncIteration()
+
+
 class Request:
     """
     The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.

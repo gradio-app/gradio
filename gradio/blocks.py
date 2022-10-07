@@ -703,9 +703,11 @@ class Blocks(BlockContext):
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = next(iterator)
+                prediction = await anyio.to_thread.run_sync(
+                    utils.async_iteration, iterator, limiter=self.limiter
+                )
                 is_generating = True
-            except StopIteration:
+            except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
