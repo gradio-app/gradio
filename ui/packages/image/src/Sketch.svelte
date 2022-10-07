@@ -28,6 +28,33 @@
 
 	$: mounted && !value && clear();
 
+	let last_value_img;
+
+	$: {
+		if (mounted && value_img !== last_value_img) {
+			last_value_img = value_img;
+
+			clear();
+
+			setTimeout(() => {
+				if (source === "webcam") {
+					ctx.temp.save();
+					ctx.temp.translate(width, 0);
+					ctx.temp.scale(-1, 1);
+					ctx.temp.drawImage(value_img, 0, 0);
+					ctx.temp.restore();
+				} else {
+					ctx.temp.drawImage(value_img, 0, 0);
+				}
+
+				ctx.drawing.drawImage(canvas.temp, 0, 0, width, height);
+
+				draw_lines({ lines: lines.slice() });
+				trigger_on_change();
+			}, 50);
+		}
+	}
+
 	function mid_point(p1, p2) {
 		return {
 			x: p1.x + (p2.x - p1.x) / 2,
@@ -530,6 +557,7 @@
 			on:touchmove={name === "interface" ? handle_draw_move : undefined}
 			on:touchend={name === "interface" ? handle_draw_end : undefined}
 			on:touchcancel={name === "interface" ? handle_draw_end : undefined}
+			on:click|stopPropagation
 		/>
 	{/each}
 </div>
