@@ -51,7 +51,7 @@
             {% with obj=find_cls("Blocks") %}
               {% if "fns" in obj and obj["fns"]|length %}
                 {% for fn in obj["fns"] %}
-                  <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+                  <a class="thinner-link px-4 pl-8 block" href="#blocks-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
                 {% endfor %}
               {% endif %}
             {% endwith %}
