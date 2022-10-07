@@ -5,7 +5,8 @@
 * Ensure that Gradio does not take control of the HTML page title when embedding a gradio app as a web component, this behaviour flipped by adding `control_page_title="true"` to the webcomponent. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2400)
 
 ## New Features:
-No changes to highlight.
+
+* When an `Image` component is set to `source="upload"`, it is now possible to drag and drop and image to replace a previously uploaded image.
 
 ## Bug Fixes:
 No changes to highlight.
