@@ -20,6 +20,7 @@ from packaging import version
 
 import gradio
 from gradio import components, exceptions, utils
+from gradio.processing_utils import to_binary
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
@@ -158,9 +159,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Label(label="Class"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": lambda i: to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
@@ -169,18 +168,14 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: speechbrain/mtl-mimic-voicebank
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
         },
         "feature-extraction": {
@@ -202,9 +197,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # Example: google/vit-base-patch16-224
             "inputs": components.Image(type="filepath", label="Input Image"),
             "outputs": components.Label(label="Classification"),
-            "preprocess": lambda i: base64.b64decode(
-                i.split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),

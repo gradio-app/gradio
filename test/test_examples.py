@@ -1,4 +1,3 @@
-import copy
 import os
 import tempfile
 from unittest.mock import patch
@@ -81,7 +80,7 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0] == [gr.media_data.BASE64_IMAGE]
+        assert prediction[0][0]["data"] == gr.media_data.BASE64_IMAGE
 
 
 @patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
@@ -132,6 +131,34 @@ class TestProcessExamples:
         await io.examples_handler.cache_interface_examples()
         prediction = await io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
+
+    @pytest.mark.asyncio
+    async def test_caching_image(self):
+        io = gr.Interface(
+            lambda x: x,
+            "image",
+            "image",
+            examples=[["test/test_files/bus.png"]],
+        )
+        io.launch(prevent_thread_lock=True)
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        io.close()
+        assert prediction[0].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+
+    @pytest.mark.asyncio
+    async def test_caching_audio(self):
+        io = gr.Interface(
+            lambda x: x,
+            "audio",
+            "audio",
+            examples=[["test/test_files/audio_sample.wav"]],
+        )
+        io.launch(prevent_thread_lock=True)
+        await io.examples_handler.cache_interface_examples()
+        prediction = await io.examples_handler.load_from_cache(0)
+        io.close()
+        assert prediction[0]["data"].startswith("data:audio/wav;base64,UklGRgA/")
 
     @pytest.mark.asyncio
     async def test_caching_with_update(self):
