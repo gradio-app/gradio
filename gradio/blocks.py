@@ -883,10 +883,10 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
 
 
-        Instance method: adds an event for when the demo loads in the browser and returns None.
+        Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
             name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
             src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
@@ -895,6 +895,15 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+        Example:
+            import gradio as gr
+            import datetime
+            with gr.Blocks() as demo:
+                def get_time():
+                    return datetime.datetime.now().time()
+                dt = gr.Textbox(label="Current time")
+                demo.load(get_time, inputs=None, outputs=dt)
+            demo.launch()
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
