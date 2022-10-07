@@ -17,7 +17,6 @@ import anyio
 import requests
 from anyio import CapacityLimiter
 
-import gradio.exceptions
 from gradio import (
     components,
     encryptor,
@@ -35,7 +34,7 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import DuplicateBlockError
+from gradio.exceptions import DuplicateBlockError, GradioStopIteration
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -708,7 +707,7 @@ class Blocks(BlockContext):
                     utils.async_iteration, iterator, limiter=self.limiter
                 )
                 is_generating = True
-            except gradio.exceptions.GradioStopIteration:
+            except GradioStopIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
