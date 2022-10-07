@@ -884,7 +884,7 @@ class Blocks(BlockContext):
         Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
 
 
-        Instance method: adds event that runs as soon as the demo loads in the browser.
+        Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
             name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
             src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
