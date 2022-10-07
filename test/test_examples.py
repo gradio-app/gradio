@@ -80,7 +80,7 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0]['data'] == gr.media_data.BASE64_IMAGE
+        assert prediction[0][0]["data"] == gr.media_data.BASE64_IMAGE
 
 
 @patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())

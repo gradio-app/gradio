@@ -1750,7 +1750,7 @@ class TestGallery:
             path = gallery.deserialize(data, tmpdir)
             assert path.endswith("my-uuid")
             data_restored = gallery.serialize(path)
-            assert sorted(data) == sorted([d['data'] for d in data_restored])
+            assert sorted(data) == sorted([d["data"] for d in data_restored])
 
 
 class TestState:
