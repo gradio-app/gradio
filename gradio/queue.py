@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 import fastapi
 from pydantic import BaseModel
@@ -84,7 +84,8 @@ class Queue:
                 event = self.event_queue.pop(0)
 
             self.active_jobs[self.active_jobs.index(None)] = event
-            run_coro_in_background(self.process_event, event)
+            task = run_coro_in_background(self.process_event, event)
+            task.set_name(f"{event.session_hash}_{event.fn_index}")
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -301,6 +302,8 @@ class Event:
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
+        self.fn_index = None
+        self.session_hash = None
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)

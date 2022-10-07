@@ -153,6 +153,9 @@ export const fn =
 					case "send_data":
 						send_message(fn_index, payload);
 						break;
+					case "send_hash":
+						ws_map.get(fn_index)?.send(JSON.stringify({"session_hash": session_hash, 'fn_index': fn_index}));
+						break;
 					case "queue_full":
 						loading_status.update(
 							fn_index,

@@ -306,7 +306,23 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
+            target_id = app.blocks.dependencies[body.fn_index]['targets'][0]
+            comp = app.blocks.blocks[target_id]
+            if getattr(comp, "is_stop", False):
+                body.data = [0, body.session_hash] #[component.fn_index, body.session_hash]
             return await run_predict(body=body, username=username)
+
+        @app.post("/api/cancel", dependencies=[Depends(login_check)])
+        @app.post("/api/cancel/", dependencies=[Depends(login_check)])
+        async def cancel(body: PredictBody):
+            with asyncio.Lock():
+                for task, session_hash, fn_index in app.blocks._queue.running_tasks:
+                    if session_hash == body.session_hash and fn_index == body.fn_index:
+                        task.cancel()
+                        try:
+                            await task
+                        except asyncio.CancelledError:
+                            print("Cancelled {task}")
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
@@ -315,9 +331,12 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 print(f"Server URL: {app_url}")
                 app.blocks._queue.set_url(app_url)
-
             await websocket.accept()
             event = Event(websocket)
+            await websocket.send_json({'msg': 'send_hash'})
+            session_hash = await websocket.receive_json()
+            event.session_hash = session_hash['session_hash']
+            event.fn_index = session_hash['fn_index']
             rank = app.blocks._queue.push(event)
             if rank is None:
                 await app.blocks._queue.send_message(event, {"msg": "queue_full"})
