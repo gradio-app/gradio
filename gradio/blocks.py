@@ -901,7 +901,7 @@ class Blocks(BlockContext):
                     return datetime.datetime.now().time()
                 dt = gr.Textbox(label="Current time")
                 demo.load(get_time, inputs=None, outputs=dt)
-            demo.launch()        
+            demo.launch()
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
