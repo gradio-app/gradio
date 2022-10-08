@@ -23,12 +23,12 @@ class Estimation(BaseModel):
 
 class Queue:
     def __init__(
-      self,
-      live_updates: bool,
-      concurrency_count: int,
-      data_gathering_start: int,
-      update_intervals: int,
-      max_size: Optional[int],
+        self,
+        live_updates: bool,
+        concurrency_count: int,
+        data_gathering_start: int,
+        update_intervals: int,
+        max_size: Optional[int],
     ):
         self.event_queue = []
         self.events_pending_reconnection = []
@@ -112,7 +112,9 @@ class Queue:
         Runs awaits gather_data_for_first_ranks and runs broadcast_estimations in background.
         """
         await self.gather_data_for_first_ranks()
-        if self.live_updates:  # TODO: Might await broadcast_estimations in the future as well.
+        if (
+            self.live_updates
+        ):  # TODO: Might await broadcast_estimations in the future as well.
             run_coro_in_background(self.broadcast_estimations)
 
     async def gather_data_for_first_ranks(self) -> None:
@@ -161,7 +163,7 @@ class Queue:
         )
 
     async def send_estimation(
-      self, event: Event, estimation: Estimation, rank: int
+        self, event: Event, estimation: Estimation, rank: int
     ) -> Estimation:
         """
         Send estimation about ETA to the client.
@@ -175,8 +177,8 @@ class Queue:
 
         if self.avg_concurrent_process_time is not None:
             estimation.rank_eta = (
-              estimation.rank * self.avg_concurrent_process_time
-              + self.avg_process_time
+                estimation.rank * self.avg_concurrent_process_time
+                + self.avg_process_time
             )
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
@@ -196,7 +198,7 @@ class Queue:
         self.duration_history_total += duration
         self.duration_history_count += 1
         self.avg_process_time = (
-          self.duration_history_total / self.duration_history_count
+            self.duration_history_total / self.duration_history_count
         )
         self.avg_concurrent_process_time = self.avg_process_time / min(
             self.max_thread_count, self.duration_history_count
