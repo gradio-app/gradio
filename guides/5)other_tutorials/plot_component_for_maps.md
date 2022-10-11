@@ -9,20 +9,20 @@ This guide explains how you can use Gradio to plot geographical data on a map us
 
 ## Overview 
     
-We will be using the New York City Airbnb dataset, which is hosted on kaggle [here](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data).
-Using this data we will plot Airbnb locations on a map output and allow filtering based on price and location. Below is the demo that we will be buiding. ⚡️
+We will be using the New York City Airbnb dataset, which is hosted on kaggle [here](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data). I've uploaded it to the Hugging Face Hub as a dataset [here](https://huggingface.co/datasets/dawood/NYC-Airbnb-Open-Data) for easier use and download. Using this data we will plot Airbnb locations on a map output and allow filtering based on price and location. Below is the demo that we will be buiding. ⚡️
 
 <gradio-app space="dawood/NYC-Airbnb-Map"> </gradio-app>
 
 
 ## Step 1 - Loading CSV data 💾
 
-Let's start by loading the Airbnb NYC data from the csv data we [downloaded](https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data).
+Let's start by loading the Airbnb NYC data from the Hugging Face Hub.
 
 ```python
 import pandas as pd
 
-df = pd.read_csv("AB_NYC_2019.csv")
+dataset = load_dataset("dawood/NYC-Airbnb-Open-Data", split="train")
+df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
     new_df = df[(df['neighbourhood_group'].isin(boroughs)) & 
@@ -99,7 +99,8 @@ import gradio as gr
 import pandas as pd
 import plotly.graph_objects as go
 
-df = pd.read_csv("AB_NYC_2019.csv")
+dataset = load_dataset("dawood/NYC-Airbnb-Open-Data", split="train")
+df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
 

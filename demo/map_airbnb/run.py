@@ -1,8 +1,10 @@
 import gradio as gr
 import pandas as pd
 import plotly.graph_objects as go
+from datasets import load_dataset
 
-df = pd.read_csv("AB_NYC_2019.csv")
+dataset = load_dataset("dawood/NYC-Airbnb-Open-Data", split="train")
+df = dataset.to_pandas()
 
 def filter_map(min_price, max_price, boroughs):
 
