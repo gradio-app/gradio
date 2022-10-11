@@ -5,6 +5,7 @@ import json
 import time
 from typing import Dict, List, Optional
 from collections import deque
+from itertools import islice
 
 import fastapi
 from pydantic import BaseModel
@@ -122,11 +123,11 @@ class Queue:
         Gather data for the first x events.
         """
         # Send all messages concurrently
-        queue_len = len(self.event_queue)
+        # deque cannot naturally perform slice, so itertools.islice is used
         await asyncio.gather(
             *[
-                self.gather_event_data(self.event_queue[i])
-                for i in range(queue_len if queue_len < self.data_gathering_start else self.data_gathering_start)
+                self.gather_event_data(event)
+                for event in islice(self.event_queue, self.data_gathering_start)
             ]
         )
 
