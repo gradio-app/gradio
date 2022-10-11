@@ -222,6 +222,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					cancels,
 					...rest
 				},
 				i
@@ -250,7 +251,8 @@
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
-						loading_status: loading_status
+						loading_status: loading_status,
+						cancels
 					});
 
 					function handle_update(output: any) {
@@ -303,7 +305,8 @@
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
 								queue_callback: handle_update,
-								loading_status: loading_status
+								loading_status: loading_status,
+								cancels
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {

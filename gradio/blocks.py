@@ -119,7 +119,8 @@ class Block:
         js: Optional[str] = None,
         no_target: bool = False,
         queue: Optional[bool] = None,
-    ) -> None:
+        cancels: List[int] | None = None,
+    ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -166,6 +167,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "cancels": cancels if cancels else [],
         }
         if api_name is not None:
             dependency["documentation"] = [

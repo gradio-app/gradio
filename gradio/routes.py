@@ -262,13 +262,11 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
+            if body.session_hash not in app.iterators:
+                return {"success": False}
             async with asyncio.Lock():
                 app.iterators[body.session_hash][body.fn_index] = None
-                app.iterators[body.session_hash]["locked_by_coro"].add(body.fn_index)
-
-            print("RESETTING STATE route")
-            print(f"hash: {body.session_hash} and fn_index {body.fn_index}")
-            print(app.iterators[body.session_hash][body.fn_index])
+                app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
             return {"success": True}
 
         async def run_predict(
@@ -283,7 +281,14 @@ class App(FastAPI):
                     }
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
-                app.iterators[body.session_hash]["locked_by_coro"] = set([])
+                # The should_reset set keeps track of the fn_indices
+                # that have been cancelled. When a job is cancelled,
+                # the /reset route will mark the jobs as having been reset.
+                # That way if the cancel job finishes BEFORE the job being cancelled
+                # the job being cancelled will not overwrite the state of the iterator.
+                # In all cases, should_reset will be the empty set the next time
+                # the fn_index is run.
+                app.iterators[body.session_hash]["should_reset"] = set([])
             else:
                 session_state = {}
                 iterators = {}
@@ -295,10 +300,7 @@ class App(FastAPI):
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    print("Modifying iterators")
-                    print(f"input: {raw_input}")
-                    if fn_index in app.iterators[body.session_hash]["locked_by_coro"]:
-                        print("In locked by coro!")
+                    if fn_index in app.iterators[body.session_hash]["should_reset"]:
                         app.iterators[body.session_hash][fn_index] = None
                     else:
                         app.iterators[body.session_hash][fn_index] = iterator
@@ -330,28 +332,12 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
-            target_id = app.blocks.dependencies[body.fn_index]["targets"][0]
-            comp = app.blocks.blocks[target_id]
-            if getattr(comp, "is_stop", False):
+            # If this fn_index cancels jobs, then the only input we need is the
+            # current session hash
+            if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
             result = await run_predict(body=body, username=username)
-            if getattr(comp, "is_stop", False):
-                for fn_index in comp.fn_to_comp:
-                    print("RESETTING STATE 2")
-                    app.iterators[body.session_hash][fn_index] = None
             return result
-
-        # @app.post("/api/cancel", dependencies=[Depends(login_check)])
-        # @app.post("/api/cancel/", dependencies=[Depends(login_check)])
-        # async def cancel(body: PredictBody):
-        #     with asyncio.Lock():
-        #         for task, session_hash, fn_index in app.blocks._queue.running_tasks:
-        #             if session_hash == body.session_hash and fn_index == body.fn_index:
-        #                 task.cancel()
-        #                 try:
-        #                     await task
-        #                 except asyncio.CancelledError:
-        #                     print("Cancelled {task}")
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
@@ -362,11 +348,16 @@ class App(FastAPI):
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
             event = Event(websocket)
+
+            # In order to cancel jobs, we need the session_hash and fn_index
+            # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
             session_hash = await websocket.receive_json()
             event.session_hash = session_hash["session_hash"]
             event.fn_index = session_hash["fn_index"]
+
             rank = app.blocks._queue.push(event)
+
             if rank is None:
                 await app.blocks._queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()

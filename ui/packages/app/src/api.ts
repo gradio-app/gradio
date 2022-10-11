@@ -77,7 +77,8 @@ export const fn =
 		frontend_fn,
 		output_data,
 		queue_callback,
-		loading_status
+		loading_status,
+		cancels
 	}: {
 		action: string;
 		payload: Payload;
@@ -87,6 +88,7 @@ export const fn =
 		output_data?: Output["data"];
 		queue_callback: Function;
 		loading_status: LoadingStatusType;
+		cancels: Array<number>;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
@@ -154,7 +156,14 @@ export const fn =
 						send_message(fn_index, payload);
 						break;
 					case "send_hash":
-						ws_map.get(fn_index)?.send(JSON.stringify({"session_hash": session_hash, 'fn_index': fn_index}));
+						ws_map
+							.get(fn_index)
+							?.send(
+								JSON.stringify({
+									session_hash: session_hash,
+									fn_index: fn_index
+								})
+							);
 						break;
 					case "queue_full":
 						loading_status.update(
@@ -246,6 +255,20 @@ export const fn =
 					output.average_duration as number,
 					null
 				);
+				// Cancelled jobs are set to complete
+				if (cancels.length > 0) {
+					cancels.forEach((fn_index) =>
+						loading_status.update(
+							fn_index,
+							"complete",
+							queue,
+							null,
+							null,
+							null,
+							null
+						)
+					);
+				}
 			} else {
 				loading_status.update(
 					fn_index,

@@ -87,7 +87,6 @@ class Queue:
             self.active_jobs[self.active_jobs.index(None)] = event
             task = run_coro_in_background(self.process_event, event)
             task.set_name(f"{event.session_hash}_{event.fn_index}")
-            task.add_done_callback(lambda t: print("IN CALLBACK!"))
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -279,6 +278,10 @@ class Queue:
                 pass
             finally:
                 await self.clean_event(event)
+                # Always reset the state of the iterator
+                # If the job finished successfully, this has no effect
+                # If the job is cancelled, this will enable future runs
+                # to start "from scratch"
                 await Request(
                     method=Request.Method.POST,
                     url=f"{self.server_path}reset",

@@ -4,7 +4,6 @@ each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 import json
 import math
@@ -38,8 +37,7 @@ from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils, utils
-from gradio.blocks import Block, update
-from gradio.context import Context
+from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
