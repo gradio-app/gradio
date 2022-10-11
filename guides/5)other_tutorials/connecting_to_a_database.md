@@ -1,5 +1,3 @@
-<script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.1.0/gradio.js"></script>
-
 # Connecting to a Database
 
 Related spaces: https://huggingface.co/spaces/freddyaboulton/chicago-bike-share-dashboard
