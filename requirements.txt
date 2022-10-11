@@ -19,4 +19,4 @@ Jinja2
 fsspec
 httpx
 pydantic
-websockets
+websockets>=10.0
