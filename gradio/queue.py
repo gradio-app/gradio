@@ -4,6 +4,7 @@ import asyncio
 import json
 import time
 from typing import Dict, List, Optional
+from collections import deque
 
 import fastapi
 from pydantic import BaseModel
@@ -30,7 +31,7 @@ class Queue:
         update_intervals: int,
         max_size: Optional[int],
     ):
-        self.event_queue = []
+        self.event_queue = deque()
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -81,7 +82,7 @@ class Queue:
 
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
-                event = self.event_queue.pop(0)
+                event = self.event_queue.popleft()
 
             self.active_jobs[self.active_jobs.index(None)] = event
             run_coro_in_background(self.process_event, event)
@@ -95,10 +96,11 @@ class Queue:
         Returns:
             rank of submitted Event
         """
-        if self.max_size is not None and len(self.event_queue) >= self.max_size:
+        queue_len = len(self.event_queue)
+        if self.max_size is not None and queue_len >= self.max_size:
             return None
         self.event_queue.append(event)
-        return len(self.event_queue) - 1
+        return queue_len
 
     async def clean_event(self, event: Event) -> None:
         if event in self.event_queue:
@@ -120,10 +122,11 @@ class Queue:
         Gather data for the first x events.
         """
         # Send all messages concurrently
+        queue_len = len(self.event_queue)
         await asyncio.gather(
             *[
-                self.gather_event_data(event)
-                for event in self.event_queue[: self.data_gathering_start]
+                self.gather_event_data(self.event_queue[i])
+                for i in range(queue_len if queue_len < self.data_gathering_start else self.data_gathering_start)
             ]
         )
 
