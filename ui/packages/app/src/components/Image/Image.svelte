@@ -39,7 +39,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded, height: style.height, width: style.width }}
+	style={{ height: style.height, width: style.width }}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
@@ -54,6 +54,11 @@
 			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				loading_status.message = detail;
+			}}
 			{label}
 			{show_label}
 			{pending}

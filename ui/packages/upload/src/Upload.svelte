@@ -10,6 +10,7 @@
 	export let center: boolean = true;
 	export let flex: boolean = true;
 	export let file_count: string = "single";
+	export let disable_click = false;
 
 	let hidden_upload: HTMLInputElement;
 
@@ -21,6 +22,7 @@
 
 	const openFileUpload = () => {
 		if (!click) return;
+		if (disable_click) return;
 		hidden_upload.click();
 	};
 

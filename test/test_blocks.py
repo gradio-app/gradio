@@ -16,6 +16,7 @@ import pytest
 import wandb
 
 import gradio as gr
+from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
@@ -36,7 +37,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class TestBlocks(unittest.TestCase):
+class TestBlocksMethods(unittest.TestCase):
     maxDiff = None
 
     def test_set_share(self):
@@ -223,6 +224,18 @@ class TestBlocks(unittest.TestCase):
             pass
         mock_post.assert_called_once()
 
+    def test_show_error(self):
+        with gr.Blocks() as demo:
+            pass
+
+        assert demo.show_error
+        demo.launch(prevent_thread_lock=True)
+        assert not demo.show_error
+        demo.close()
+        demo.launch(show_error=True, prevent_thread_lock=True)
+        assert demo.show_error
+        demo.close()
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):
@@ -303,24 +316,59 @@ class TestComponentsInBlocks:
         output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
         assert output[0]["value"] == "NO_VALUE"
 
+    def test_blocks_returns_correct_output_dict_single_key(self):
+        with gr.Blocks() as demo:
+            num = gr.Number()
+            num2 = gr.Number()
+            update = gr.Button(value="update")
 
-def test_blocks_returns_correct_output_dict_single_key():
+            def update_values():
+                return {num2: gr.Number.update(value=42)}
 
-    with gr.Blocks() as demo:
-        num = gr.Number()
-        num2 = gr.Number()
-        update = gr.Button(value="update")
+            update.click(update_values, inputs=[num], outputs=[num2])
 
-        def update_values():
-            return {num2: gr.Number.update(value=42)}
+        output = demo.postprocess_data(
+            0, {num2: gr.Number.update(value=42)}, state=None
+        )
+        assert output[0]["value"] == 42
 
-        update.click(update_values, inputs=[num], outputs=[num2])
+        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        assert output[0] == 23
 
-    output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state=None)
-    assert output[0]["value"] == 42
+    @pytest.mark.asyncio
+    async def test_blocks_update_dict_without_postprocessing(self):
+        def infer(x):
+            return gr.media_data.BASE64_IMAGE, gr.update(visible=True)
 
-    output = demo.postprocess_data(0, {num2: 23}, state=None)
-    assert output[0] == 23
+        with gr.Blocks() as demo:
+            prompt = gr.Textbox()
+            image = gr.Image()
+            run_button = gr.Button()
+            share_button = gr.Button("share", visible=False)
+            run_button.click(infer, prompt, [image, share_button], postprocess=False)
+
+        output = await demo.process_api(0, ["test"])
+        assert output["data"][0] == gr.media_data.BASE64_IMAGE
+        assert output["data"][1] == {"__type__": "update", "visible": True}
+
+    @pytest.mark.asyncio
+    async def test_blocks_update_dict_does_not_postprocess_value_if_postprocessing_false(
+        self,
+    ):
+        def infer(x):
+            return gr.Image.update(value=gr.media_data.BASE64_IMAGE)
+
+        with gr.Blocks() as demo:
+            prompt = gr.Textbox()
+            image = gr.Image()
+            run_button = gr.Button()
+            run_button.click(infer, [prompt], [image], postprocess=False)
+
+        output = await demo.process_api(0, ["test"])
+        assert output["data"][0] == {
+            "__type__": "update",
+            "value": gr.media_data.BASE64_IMAGE,
+        }
 
 
 class TestCallFunction:
@@ -357,6 +405,7 @@ class TestCallFunction:
             )
 
         demo.queue()
+        assert demo.config["enable_queue"]
 
         output = await demo.call_function(0, [3])
         assert output["prediction"] == 0
@@ -406,6 +455,88 @@ class TestCallFunction:
         assert output["iterator"] is None
         output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
+
+
+class TestSpecificUpdate:
+    def test_without_update(self):
+        with pytest.raises(KeyError):
+            gr.Textbox.get_specific_update({"lines": 4})
+
+    def test_with_update(self):
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update"}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+        }
+
+    def test_with_generic_update(self):
+        specific_update = gr.Video.get_specific_update(
+            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+        )
+        assert specific_update == {
+            "source": None,
+            "label": None,
+            "show_label": None,
+            "interactive": None,
+            "visible": True,
+            "value": "test.mp4",
+            "__type__": "update",
+        }
+
+
+class TestDuplicateBlockError:
+    def test_error(self):
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            with gr.Blocks():
+                t.render()
+                gr.Number()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            with gr.Blocks():
+                t = gr.Textbox()
+                t.render()
+
+        with pytest.raises(DuplicateBlockError):
+            io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                io.render()
+
+        with pytest.raises(DuplicateBlockError):
+            t = gr.Textbox()
+            io = gr.Interface(lambda x: x, t, gr.Textbox())
+            with gr.Blocks():
+                io.render()
+                t.render()
+
+    def test_no_error(self):
+        t = gr.Textbox()
+        t2 = gr.Textbox()
+        with gr.Blocks():
+            t.render()
+            t2.render()
+
+        t = gr.Textbox()
+        io = gr.Interface(lambda x: x, t, gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            gr.Textbox()
+
+        io = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        io2 = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
+        with gr.Blocks():
+            io.render()
+            io2.render()
 
 
 if __name__ == "__main__":

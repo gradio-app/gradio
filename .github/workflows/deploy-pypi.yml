@@ -49,6 +49,8 @@ jobs:
   gh-release:
     needs: deploy
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_output.outputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: Set release name
@@ -58,38 +60,25 @@ jobs:
         with:
           name: ${{ env.INPUT_NAME }}
           tag_name: ${{ env.INPUT_NAME }}
-  spaces-test-release:
+      - id: set_output
+        run: echo "::set-output name=version::${{ env.INPUT_NAME }}"
+  modify-release-notes:
+    needs: gh-release
     runs-on: ubuntu-latest
-    needs: deploy
+    if: ${{ !contains( needs.gh-release.outputs.version, 'b') }}
     steps:
       - uses: actions/checkout@v3
       - name: Install Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.9'
-      - name: Install Hub Client Library
-        run: pip install huggingface-hub==0.8.1
-      - name: get release name
-        run: echo "GRADIO_VERSION=$(cat gradio/version.txt)" >> $GITHUB_ENV
-      - name: Upload kitchen sink to spaces
-        run: |
-          python scripts/upload_demo_to_space.py kitchen_sink \
-          gradio-test-deploys/${{ env.GRADIO_VERSION }}_kitchen_sink \
-          ${{ secrets.SPACES_DEPLOY_TOKEN }} \
-          --gradio-version  ${{ env.GRADIO_VERSION }} > url.txt
-          echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_ENV
-      - name: Comment On Release PR
-        uses: thollander/actions-comment-pull-request@v1
+          python-version: '3.x'
+      - name: Set release name
+        run: echo "INPUT_NAME=v$(cat gradio/version.txt)" >> $GITHUB_ENV
+      - name: Format Release Notes for Next Release
+        run: python scripts/format_release_notes.py ${{ env.INPUT_NAME }}
+      - name: Commit files
+        uses: EndBug/add-and-commit@v9
         with:
-          message: |
-            Deployed a demo with this version at ${{ env.SPACE_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Comment on Slack
-        uses: slackapi/slack-github-action@v1.21.0
-        with:
-          payload: |
-            {
-              "text": "@here Checkout out the deploy for ${{ env.GRADIO_VERSION }} at ${{ env.SPACE_URL }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          add: CHANGELOG.md
+          author_name: "GH ACTIONS"
+          author_email: ""

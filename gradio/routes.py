@@ -14,10 +14,11 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
+from urllib.parse import urlparse
 
+import fastapi
 import orjson
 import pkg_resources
-import requests
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -30,6 +31,7 @@ from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor, utils
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
 
@@ -266,7 +268,7 @@ class App(FastAPI):
                 iterators = app.iterators[body.session_hash]
             else:
                 session_state = {}
-                iterator = {}
+                iterators = {}
             raw_input = body.data
             fn_index = body.fn_index
             try:
@@ -308,6 +310,12 @@ class App(FastAPI):
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
+            if app.blocks._queue.server_path is None:
+                print(f"WS: {str(websocket.url)}")
+                app_url = get_server_url_from_ws_url(str(websocket.url))
+                print(f"Server URL: {app_url}")
+                app.blocks._queue.set_url(app_url)
+
             await websocket.accept()
             event = Event(websocket)
             rank = app.blocks._queue.push(event)
@@ -335,12 +343,7 @@ class App(FastAPI):
             dependencies=[Depends(login_check)],
         )
         async def startup_events():
-            from gradio.utils import run_coro_in_background
-
-            if app.blocks.enable_queue:
-                gradio.utils.run_coro_in_background(app.blocks._queue.start)
-            gradio.utils.run_coro_in_background(app.blocks.create_limiter)
-
+            app.blocks.startup_events()
             return True
 
         return app
@@ -382,3 +385,52 @@ def get_types(cls_set: List[Type]):
                 types.append(line.split("value (")[1].split(")")[0])
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
+
+
+def get_server_url_from_ws_url(ws_url: str):
+    ws_url = urlparse(ws_url)
+    scheme = "http" if ws_url.scheme == "ws" else "https"
+    port = f":{ws_url.port}" if ws_url.port else ""
+    return f"{scheme}://{ws_url.hostname}{port}{ws_url.path.replace('queue/join', '')}"
+
+
+set_documentation_group("routes")
+
+
+@document()
+def mount_gradio_app(
+    app: fastapi.FastAPI,
+    blocks: gradio.Blocks,
+    path: str,
+    gradio_api_url: Optional[str] = None,
+) -> fastapi.FastAPI:
+    """Mount a gradio.Blocks to an existing FastAPI application.
+
+    Parameters:
+        app: The parent FastAPI application.
+        blocks: The blocks object we want to mount to the parent app.
+        path: The path at which the gradio application will be mounted.
+        gradio_api_url: The full url at which the gradio app will run. This is only needed if deploying to Huggingface spaces of if the websocket endpoints of your deployed app are on a different network location than the gradio app. If deploying to spaces, set gradio_api_url to 'http://localhost:7860/'
+    Example:
+        from fastapi import FastAPI
+        import gradio as gr
+        app = FastAPI()
+        @app.get("/")
+        def read_main():
+            return {"message": "This is your main app"}
+        io = gr.Interface(lambda x: "Hello, " + x + "!", "textbox", "textbox")
+        app = gr.mount_gradio_app(app, io, path="/gradio")
+        # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
+    """
+
+    gradio_app = App.create_app(blocks)
+
+    @app.on_event("startup")
+    async def start_queue():
+        if gradio_app.blocks.enable_queue:
+            if gradio_api_url:
+                gradio_app.blocks._queue.set_url(gradio_api_url)
+            gradio_app.blocks.startup_events()
+
+    app.mount(path, gradio_app)
+    return app

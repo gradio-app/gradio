@@ -383,23 +383,22 @@ class Interface(Blocks):
 
         self.favicon_path = None
 
-        data = {
-            "mode": self.mode,
-            "fn": fn,
-            "inputs": inputs,
-            "outputs": outputs,
-            "live": live,
-            "ip_address": self.ip_address,
-            "interpretation": interpretation,
-            "allow_flagging": allow_flagging,
-            "custom_css": self.css is not None,
-            "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt")
-            .decode("ascii")
-            .strip(),
-        }
-
         if self.analytics_enabled:
+            data = {
+                "mode": self.mode,
+                "fn": fn,
+                "inputs": inputs,
+                "outputs": outputs,
+                "live": live,
+                "ip_address": self.ip_address,
+                "interpretation": interpretation,
+                "allow_flagging": allow_flagging,
+                "custom_css": self.css is not None,
+                "theme": self.theme,
+                "version": pkgutil.get_data(__name__, "version.txt")
+                .decode("ascii")
+                .strip(),
+            }
             utils.initiated_analytics(data)
 
         utils.version_check()
@@ -456,11 +455,6 @@ class Interface(Blocks):
                 ]:
                     with Column(variant="panel"):
                         input_component_column = Column()
-                        if self.interface_type in [
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
-                        ]:
-                            status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
                                 component.render()
@@ -490,9 +484,9 @@ class Interface(Blocks):
                 ]:
 
                     with Column(variant="panel"):
-                        status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
-                            component.render()
+                            if not (isinstance(component, State)):
+                                component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
@@ -509,9 +503,8 @@ class Interface(Blocks):
                         None,
                         self.output_components,
                         api_name="predict",
-                        status_tracker=status_tracker,
-                        _preprocess=not (self.api_mode),
-                        _postprocess=not (self.api_mode),
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
                     )
                 else:
                     for component in self.input_components:
@@ -522,8 +515,8 @@ class Interface(Blocks):
                                     self.input_components,
                                     self.output_components,
                                     api_name="predict",
-                                    _preprocess=not (self.api_mode),
-                                    _postprocess=not (self.api_mode),
+                                    preprocess=not (self.api_mode),
+                                    postprocess=not (self.api_mode),
                                 )
                                 continue
                             else:
@@ -538,8 +531,8 @@ class Interface(Blocks):
                                 self.input_components,
                                 self.output_components,
                                 api_name="predict",
-                                _preprocess=not (self.api_mode),
-                                _postprocess=not (self.api_mode),
+                                preprocess=not (self.api_mode),
+                                postprocess=not (self.api_mode),
                             )
             else:
                 submit_btn.click(
@@ -548,9 +541,8 @@ class Interface(Blocks):
                     self.output_components,
                     api_name="predict",
                     scroll_to_output=True,
-                    status_tracker=status_tracker,
-                    _preprocess=not (self.api_mode),
-                    _postprocess=not (self.api_mode),
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
                 )
             clear_btn.click(
                 None,
@@ -612,7 +604,7 @@ class Interface(Blocks):
                             flag_method,
                             inputs=flag_components,
                             outputs=[],
-                            _preprocess=False,
+                            preprocess=False,
                             queue=False,
                         )
 
@@ -639,8 +631,7 @@ class Interface(Blocks):
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
-                    status_tracker=status_tracker,
-                    _preprocess=False,
+                    preprocess=False,
                 )
 
             if self.article:
@@ -699,7 +690,7 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
-    Demos: sst_or_tts
+    Demos: stt_or_tts
     """
 
     def __init__(

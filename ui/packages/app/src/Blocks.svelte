@@ -36,6 +36,8 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	export let show_api: boolean = true;
+	export let control_page_title = false;
+
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
@@ -422,7 +424,9 @@
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+	{#if control_page_title}
+		<title>{title}</title>
+	{/if}
 	{#if analytics_enabled}
 		<script
 			async

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import json
 import mimetypes
@@ -8,6 +10,7 @@ import subprocess
 import tempfile
 import warnings
 from io import BytesIO
+from typing import Dict
 
 import numpy as np
 import requests
@@ -22,8 +25,22 @@ with warnings.catch_warnings():
 
 
 #########################
+# GENERAL
+#########################
+
+
+def to_binary(x: str | Dict) -> bytes:
+    """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
+    if isinstance(x, dict):
+        x = encode_url_or_file_to_base64(x["name"])
+    return base64.b64decode(x.split(",")[1])
+
+
+#########################
 # IMAGE PRE-PROCESSING
 #########################
+
+
 def decode_base64_to_image(encoding):
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
@@ -243,12 +260,13 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None):
+def decode_base64_to_file(
+    encoding, encryption_key=None, file_path=None, dir=None, prefix=None
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
-    prefix = None
-    if file_path is not None:
+    if file_path is not None and prefix is None:
         filename = os.path.basename(file_path)
         prefix = filename
         if "." in filename:

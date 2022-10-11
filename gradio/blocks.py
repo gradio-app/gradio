@@ -34,6 +34,7 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
+from gradio.exceptions import DuplicateBlockError
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -44,7 +45,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import wandb
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component, IOComponent
 
 
 class Block:
@@ -62,8 +63,12 @@ class Block:
         """
         Adds self into appropriate BlockContext
         """
+        if Context.root_block is not None and self._id in Context.root_block.blocks:
+            raise DuplicateBlockError(
+                f"A block with id: {self._id} has already been rendered in the current Blocks."
+            )
         if Context.block is not None:
-            Context.block.children.append(self)
+            Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
@@ -72,8 +77,7 @@ class Block:
     def unrender(self):
         """
         Removes self from BlockContext if it has been rendered (otherwise does nothing).
-        Only deletes the first occurrence of self in BlockContext. Removes from the
-        layout and collection of Blocks, but does not delete any event triggers.
+        Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
         if Context.block is not None:
             try:
@@ -114,7 +118,6 @@ class Block:
         api_name: Optional[AnyStr] = None,
         js: Optional[str] = None,
         no_target: bool = False,
-        status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
     ) -> None:
         """
@@ -131,7 +134,6 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status_tracker: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter
@@ -160,9 +162,6 @@ class Block:
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
-            "status_tracker": status_tracker._id
-            if status_tracker is not None
-            else None,
             "queue": False if fn is None else queue,
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
@@ -188,6 +187,12 @@ class Block:
             "style": self._style,
         }
 
+    @classmethod
+    def get_specific_update(cls, generic_update):
+        del generic_update["__type__"]
+        generic_update = cls.update(**generic_update)
+        return generic_update
+
 
 class BlockContext(Block):
     def __init__(
@@ -209,6 +214,10 @@ class BlockContext(Block):
         Context.block = self
         return self
 
+    def add(self, child):
+        child.parent = self
+        self.children.append(child)
+
     def fill_expected_parents(self):
         children = []
         pseudo_parent = None
@@ -227,13 +236,18 @@ class BlockContext(Block):
                     children.append(pseudo_parent)
                     pseudo_parent.children = [child]
                     Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                child.parent = pseudo_parent
         self.children = children
 
     def __exit__(self, *args):
-        self.fill_expected_parents()
+        if getattr(self, "allow_expected_parents", True):
+            self.fill_expected_parents()
         Context.block = self.parent
 
     def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on a block context.
+        """
         return y
 
 
@@ -309,12 +323,53 @@ def update(**kwargs) -> dict:
     return kwargs
 
 
-def is_update(val):
-    return type(val) is dict and "update" in val.get("__type__", "")
-
-
 def skip() -> dict:
     return update()
+
+
+def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+    """
+    Converts a dictionary of updates into a format that can be sent to the frontend.
+    E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
+    Into -> {"__type__": "update", "value": 2.0, "mode": "static"}
+
+    Parameters:
+        block: The Block that is being updated with this update dictionary.
+        update_dict: The original update dictionary
+        postprocess: Whether to postprocess the "value" key of the update dictionary.
+    """
+    prediction_value = block.get_specific_update(update_dict)
+    if prediction_value.get("value") is components._Keywords.NO_VALUE:
+        prediction_value.pop("value")
+    prediction_value = delete_none(prediction_value, skip_value=True)
+    if "value" in prediction_value and postprocess:
+        prediction_value["value"] = block.postprocess(prediction_value["value"])
+    return prediction_value
+
+
+def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+    """
+    Converts a dictionary of component updates into a list of updates in the order of
+    the outputs_ids and including every output component.
+    E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
+    Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
+    """
+    keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
+    if all(keys_are_blocks):
+        reordered_predictions = [skip() for _ in outputs_ids]
+        for component, value in predictions.items():
+            if component._id not in outputs_ids:
+                return ValueError(
+                    f"Returned component {component} not specified as output of function."
+                )
+            output_index = outputs_ids.index(component._id)
+            reordered_predictions[output_index] = value
+        predictions = utils.resolve_singleton(reordered_predictions)
+    elif any(keys_are_blocks):
+        raise ValueError(
+            "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
+        )
+    return predictions
 
 
 @document("load")
@@ -379,6 +434,7 @@ class Blocks(BlockContext):
         self.share = False
         self.enable_queue = None
         self.max_threads = 40
+        self.show_error = True
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -405,7 +461,7 @@ class Blocks(BlockContext):
         self.width = None
         self.height = None
 
-        self.ip_address = utils.get_local_ip_address()
+        self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -415,16 +471,17 @@ class Blocks(BlockContext):
         self.title = title
         self.show_api = True
 
-        data = {
-            "mode": self.mode,
-            "ip_address": self.ip_address,
-            "custom_css": self.css is not None,
-            "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt")
-            .decode("ascii")
-            .strip(),
-        }
         if self.analytics_enabled:
+            self.ip_address = utils.get_local_ip_address()
+            data = {
+                "mode": self.mode,
+                "ip_address": self.ip_address,
+                "custom_css": self.css is not None,
+                "theme": self.theme,
+                "version": pkgutil.get_data(__name__, "version.txt")
+                .decode("ascii")
+                .strip(),
+            }
             utils.initiated_analytics(data)
 
     @property
@@ -487,13 +544,10 @@ class Blocks(BlockContext):
                 dependency["outputs"] = [
                     original_mapping[o] for o in dependency["outputs"]
                 ]
-                if dependency.get("status_tracker", None) is not None:
-                    dependency["status_tracker"] = original_mapping[
-                        dependency["status_tracker"]
-                    ]
+                dependency.pop("status_tracker", None)
                 dependency["_js"] = dependency.pop("js", None)
-                dependency["_preprocess"] = False
-                dependency["_postprocess"] = False
+                dependency["preprocess"] = False
+                dependency["postprocess"] = False
 
                 for target in targets:
                     event_method = getattr(original_mapping[target], trigger)
@@ -580,6 +634,15 @@ class Blocks(BlockContext):
 
     def render(self):
         if Context.root_block is not None:
+            if self._id in Context.root_block.blocks:
+                raise DuplicateBlockError(
+                    f"A block with id: {self._id} has already been rendered in the current Blocks."
+                )
+            if not set(Context.root_block.blocks).isdisjoint(self.blocks):
+                raise DuplicateBlockError(
+                    "At least one block in this Blocks has already been rendered."
+                )
+
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
             for dependency in self.dependencies:
@@ -598,6 +661,7 @@ class Blocks(BlockContext):
                         dependency["api_name"] = api_name_
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
@@ -639,9 +703,11 @@ class Blocks(BlockContext):
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = next(iterator)
+                prediction = await anyio.to_thread.run_sync(
+                    utils.async_iteration, iterator, limiter=self.limiter
+                )
                 is_generating = True
-            except StopIteration:
+            except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
@@ -664,68 +730,34 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
 
         if type(predictions) is dict and len(predictions) > 0:
-            keys_are_blocks = [isinstance(key, Block) for key in predictions.keys()]
-            if all(keys_are_blocks):
-                reordered_predictions = [skip() for _ in dependency["outputs"]]
-                for component, value in predictions.items():
-                    if component._id not in dependency["outputs"]:
-                        return ValueError(
-                            f"Returned component {component} not specified as output of function."
-                        )
-                    output_index = dependency["outputs"].index(component._id)
-                    reordered_predictions[output_index] = value
-                predictions = utils.resolve_singleton(reordered_predictions)
-            elif any(keys_are_blocks):
-                raise ValueError(
-                    "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
-                )
+            predictions = convert_component_dict_to_list(
+                dependency["outputs"], predictions
+            )
+
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
 
-        if block_fn.postprocess:
-            output = []
-            for i, output_id in enumerate(dependency["outputs"]):
-                if predictions[i] is components._Keywords.FINISHED_ITERATING:
-                    output.append(None)
-                    break
-                block = self.blocks[output_id]
-                if getattr(block, "stateful", False):
-                    if not is_update(predictions[i]):
-                        state[output_id] = predictions[i]
-                    output.append(None)
-                else:
-                    prediction_value = predictions[i]
-                    if is_update(prediction_value):
-                        if prediction_value["__type__"] == "generic_update":
-                            del prediction_value["__type__"]
-                            prediction_value = block.__class__.update(
-                                **prediction_value
-                            )
-                        # If the prediction is the default (NO_VALUE) enum then the user did
-                        # not specify a value for the 'value' key and we can get rid of it
-                        if (
-                            prediction_value.get("value")
-                            == components._Keywords.NO_VALUE
-                        ):
-                            prediction_value.pop("value")
-                        prediction_value = delete_none(
-                            prediction_value, skip_value=True
-                        )
-                        if "value" in prediction_value:
-                            prediction_value["value"] = block.postprocess(
-                                prediction_value["value"]
-                            )
-                        output_value = prediction_value
-                    else:
-                        output_value = (
-                            block.postprocess(prediction_value)
-                            if prediction_value is not None
-                            else None
-                        )
-                    output.append(output_value)
-
-        else:
-            output = predictions
+        output = []
+        for i, output_id in enumerate(dependency["outputs"]):
+            if predictions[i] is components._Keywords.FINISHED_ITERATING:
+                output.append(None)
+                continue
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                if not utils.is_update(predictions[i]):
+                    state[output_id] = predictions[i]
+                output.append(None)
+            else:
+                prediction_value = predictions[i]
+                if utils.is_update(prediction_value):
+                    prediction_value = postprocess_update_dict(
+                        block=block,
+                        update_dict=prediction_value,
+                        postprocess=block_fn.postprocess,
+                    )
+                elif block_fn.postprocess:
+                    prediction_value = block.postprocess(prediction_value)
+                output.append(prediction_value)
         return output
 
     async def process_api(
@@ -733,29 +765,30 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Optional[Dict[int, Any]] = None,
-        iterators: Dict[int, Any] = None,
+        state: Dict[int, Any] | None = None,
+        iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
         Parameters:
             data: data recieved from the frontend
-            username: name of user if authentication is set up
-            state: data stored from stateful components for session
+            inputs: the list of raw inputs to pass to the function
+            username: name of user if authentication is set up (not used)
+            state: data stored from stateful components for session (key is input block id)
+            iterators: the in-progress iterators for each generator function (key is function index)
         Returns: None
         """
         block_fn = self.fns[fn_index]
 
         inputs = self.preprocess_data(fn_index, inputs, state)
-        iterator = iterators.get(fn_index, None)
+        iterator = iterators.get(fn_index, None) if iterators else None
 
         result = await self.call_function(fn_index, inputs, iterator)
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
         predictions = self.postprocess_data(fn_index, result["prediction"], state)
-
         return {
             "data": predictions,
             "is_generating": result["is_generating"],
@@ -850,10 +883,10 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
 
 
-        Instance method: adds an event for when the demo loads in the browser and returns None.
+        Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
             name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
             src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
@@ -862,6 +895,15 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+        Example:
+            import gradio as gr
+            import datetime
+            with gr.Blocks() as demo:
+                def get_time():
+                    return datetime.datetime.now().time()
+                dt = gr.Textbox(label="Current time")
+                demo.load(get_time, inputs=None, outputs=dt)
+            demo.launch()
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
@@ -923,6 +965,7 @@ class Blocks(BlockContext):
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
         )
+        self.config = self.get_config_file()
         return self
 
     def launch(
@@ -1131,32 +1174,32 @@ class Blocks(BlockContext):
                         time.sleep(1)
                     display(
                         HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
                 else:
                     display(
                         HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone;" frameborder="0" allowfullscreen></iframe></div>'
+                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
             except ImportError:
                 pass
 
-        data = {
-            "launch_method": "browser" if inbrowser else "inline",
-            "is_google_colab": is_colab,
-            "is_sharing_on": self.share,
-            "share_url": self.share_url,
-            "ip_address": self.ip_address,
-            "enable_queue": self.enable_queue,
-            "show_tips": self.show_tips,
-            "server_name": server_name,
-            "server_port": server_port,
-            "is_spaces": self.is_space,
-            "mode": self.mode,
-        }
-        if hasattr(self, "analytics_enabled") and self.analytics_enabled:
+        if getattr(self, "analytics_enabled", False):
+            data = {
+                "launch_method": "browser" if inbrowser else "inline",
+                "is_google_colab": is_colab,
+                "is_sharing_on": self.share,
+                "share_url": self.share_url,
+                "ip_address": self.ip_address,
+                "enable_queue": self.enable_queue,
+                "show_tips": self.show_tips,
+                "server_name": server_name,
+                "server_port": server_port,
+                "is_spaces": self.is_space,
+                "mode": self.mode,
+            }
             utils.launch_analytics(data)
 
         utils.show_tip(self)
@@ -1268,3 +1311,9 @@ class Blocks(BlockContext):
                     no_target=True,
                     queue=False,
                 )
+
+    def startup_events(self):
+        """Events that should be run when the app containing this block starts up."""
+        if self.enable_queue:
+            utils.run_coro_in_background(self._queue.start)
+        utils.run_coro_in_background(self.create_limiter)

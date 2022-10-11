@@ -63,7 +63,9 @@ def upload_demo_to_space(
         )
     return f"https://huggingface.co/spaces/{space_id}"
 
-for demo in os.listdir(GRADIO_DEMO_DIR):
-    if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) or not os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py")):
-        continue
-    upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
+if __name__ == "__main__":
+    if AUTH_TOKEN is not None:
+        for demo in os.listdir(GRADIO_DEMO_DIR):
+            if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) or not os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py")):
+                continue
+            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)

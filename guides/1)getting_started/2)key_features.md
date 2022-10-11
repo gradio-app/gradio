@@ -15,15 +15,15 @@ You can load a large dataset into the examples to browse and interact with the d
 
 You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the the calculator demo above, a popup modal will display the custom error message.
 
-## Decriptive Content
+## Descriptive Content
 
 In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
 
-There are three arguments in `Interface` constructor to specify where this content should go:
+There are three arguments in the `Interface` constructor to specify where this content should go:
 
-* `title`: which accepts text and can displays it at the very top of interface, and also becomes the page title.
+* `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
 * `description`: which accepts text, markdown or HTML and places it right under the title.
-* `article`: which is also accepts text, markdown or HTML and places it below the interface.
+* `article`: which also accepts text, markdown or HTML and places it below the interface.
 
 ![annotated](/assets/guides/annotated.png)
 

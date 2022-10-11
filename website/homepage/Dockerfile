@@ -19,6 +19,7 @@ RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
+COPY ./CHANGELOG.md ./CHANGELOG.md 
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test

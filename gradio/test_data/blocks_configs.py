@@ -37,7 +37,12 @@ XRAY_CONFIG = {
         {
             "id": 27,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 28,
@@ -83,7 +88,12 @@ XRAY_CONFIG = {
         {
             "id": 32,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 33,
@@ -186,7 +196,6 @@ XRAY_CONFIG = {
             "outputs": [29],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -199,7 +208,6 @@ XRAY_CONFIG = {
             "outputs": [34],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -212,7 +220,6 @@ XRAY_CONFIG = {
             "outputs": [36],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -268,7 +275,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 6,
@@ -318,7 +330,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 11,
@@ -418,7 +435,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "outputs": [7],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -431,7 +447,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "outputs": [12],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -444,7 +459,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "outputs": [141],
             "backend_fn": True,
             "js": None,
-            "status_tracker": None,
             "queue": None,
             "api_name": None,
             "scroll_to_output": False,
@@ -498,7 +512,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "style": {}, "value": True},
+            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
         },
         {
             "id": 6,
@@ -544,7 +558,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "style": {}, "value": True},
+            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
         },
         {
             "id": 11,
@@ -622,7 +636,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
-            "status_tracker": None,
             "api_name": None,
             "scroll_to_output": False,
             "show_progress": True,
@@ -632,7 +645,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
-            "status_tracker": None,
             "api_name": None,
             "scroll_to_output": False,
             "show_progress": True,
