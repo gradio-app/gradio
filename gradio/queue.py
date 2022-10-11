@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from typing import Dict, List, Optional
 from collections import deque
 from itertools import islice
+from typing import Dict, List, Optional
 
 import fastapi
 from pydantic import BaseModel
