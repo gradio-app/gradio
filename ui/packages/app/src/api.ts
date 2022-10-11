@@ -156,14 +156,12 @@ export const fn =
 						send_message(fn_index, payload);
 						break;
 					case "send_hash":
-						ws_map
-							.get(fn_index)
-							?.send(
-								JSON.stringify({
-									session_hash: session_hash,
-									fn_index: fn_index
-								})
-							);
+						ws_map.get(fn_index)?.send(
+							JSON.stringify({
+								session_hash: session_hash,
+								fn_index: fn_index
+							})
+						);
 						break;
 					case "queue_full":
 						loading_status.update(
