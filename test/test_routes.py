@@ -237,7 +237,7 @@ async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
             if msg["msg"] == "send_data":
                 await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
             if msg["msg"] == "send_hash":
-                await ws.send(json.dumps({"fn_index": 0, "session_hash": 'shdce'}))
+                await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
             completed = msg["msg"] == "process_completed"
     assert io._queue.server_path == "foo_url"
 
