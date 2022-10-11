@@ -1745,8 +1745,8 @@ class TestCarousel:
     def test_deprecation_in_blocks(self):
         with pytest.raises(DeprecationWarning):
             with gr.Blocks():
-                textbox = gr.Textbox()
-                carousel = gr.Carousel()
+                gr.Textbox()
+                gr.Carousel()
 
 
 class TestGallery:
