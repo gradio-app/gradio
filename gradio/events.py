@@ -38,7 +38,6 @@ def get_cancel_function(
                 fn_index_ = int(matching_id.split("_")[1])
                 task.cancel()
                 await asyncio.gather(task, return_exceptions=True)
-                print(f"Cancelled task {matching_id}")
                 for comp in fn_to_comp[fn_index_]:
                     output[comp] = update(value=None)
         return output
