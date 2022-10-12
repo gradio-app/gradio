@@ -1147,6 +1147,62 @@ class TestDataframe(unittest.TestCase):
         }
 
 
+class TestDataset:
+    def test_preprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert dataset.preprocess(1) == [
+            15,
+            "hi",
+            bus,
+            "<i>Italics</i>",
+            "<p><em>Italics</em></p>\n",
+        ]
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            type="index",
+        )
+
+        assert dataset.preprocess(1) == 1
+
+    def test_postprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"], type="index"
+        )
+
+        output = dataset.postprocess(
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert output == {
+            "samples": [
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            "__type__": "update",
+        }
+
+
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
         """
