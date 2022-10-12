@@ -33,5 +33,5 @@ export const component_map = {
 	colorpicker: ExampleColorPicker,
 	timeseries: ExampleTimeSeries,
 	markdown: ExampleMarkdown,
-	html: ExampleHTML,
+	html: ExampleHTML
 };

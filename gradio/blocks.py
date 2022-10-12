@@ -359,7 +359,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
             if component._id not in outputs_ids:
-                return ValueError(
+                raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
             output_index = outputs_ids.index(component._id)

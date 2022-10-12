@@ -30,12 +30,12 @@ test("a component acts as both input and output", async ({ page }) => {
 	await mock_api(page, [["tset"]]);
 	await page.goto("http://localhost:3000");
 
-	const textbox = await page.locator("label:has-text('Input-Output')");
-	const button = await page.locator("button");
+	const textbox = await page.getByLabel("Input-Output");
 
 	await textbox.fill("test");
-	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
-	await expect(await page.inputValue("label:has-text('Input-Output')")).toEqual(
-		"tset"
-	);
+	await Promise.all([
+		page.click("button"),
+		page.waitForResponse("**/api/predict/")
+	]);
+	await expect(await textbox).toHaveValue("tset");
 });
