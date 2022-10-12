@@ -30,13 +30,11 @@ test("renders the correct elements", async ({ page }) => {
 	await mock_api(page, [["Welcome! This page has loaded for Frank"]]);
 	await page.goto("http://localhost:3000");
 
-	const textbox = await page.locator("label:has-text('Name')");
+	const textbox = await page.getByLabel("Name");
 
 	await textbox.fill("Frank");
-	await expect(await page.inputValue("label:has-text('Name')")).toEqual(
-		"Frank"
-	);
-	await expect(await page.inputValue("label:has-text('Output')")).toEqual(
+	await expect(await textbox.inputValue()).toEqual("Frank");
+	await expect(await page.getByLabel("Output")).toHaveValue(
 		"Welcome! This page has loaded for Frank"
 	);
 });
