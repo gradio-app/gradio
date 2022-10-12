@@ -54,6 +54,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
       - run: pip install -r ../requirements.txt
+      - run: pip install -r ../demo/outbreak_forecast/requirements.txt
       - run: pip install gradio
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
