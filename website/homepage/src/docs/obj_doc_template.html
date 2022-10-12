@@ -46,7 +46,7 @@
   {% endif %}
   {% if is_component %}
     <div class="embedded-component">
-      <gradio-app src="/demo/{{ obj['name'] }}_component" />
+      <gradio-app src="/demo/{{ obj['name'].lower() }}_component" />
     </div>
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
