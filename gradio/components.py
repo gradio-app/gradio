@@ -3739,9 +3739,12 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data: str) -> str:
+        return self.postprocess(input_data)
+
 
 ############################
-# Static Components
+# Special Components
 ############################
 
 
@@ -3750,7 +3753,7 @@ class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
-    Preprocessing: this component does *not* accept input.
+    Preprocessing: passes the selected sample either as a {list} of data (if type="value") or as an {int} index (if type="index")
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
@@ -3759,7 +3762,7 @@ class Dataset(Clickable, Component):
         *,
         label: Optional[str] = None,
         components: List[IOComponent] | List[str],
-        samples: List[List[Any]],
+        samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
@@ -3768,7 +3771,7 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
@@ -3777,7 +3780,8 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
-        for example in samples:
+        self.samples = [[]] if samples is None else samples
+        for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
@@ -3788,7 +3792,6 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
-        self.samples = samples
 
     def get_config(self):
         return {
@@ -3821,6 +3824,12 @@ class Dataset(Clickable, Component):
             return x
         elif self.type == "values":
             return self.samples[x]
+
+    def postprocess(self, samples: List[List[Any]]) -> Dict:
+        return {
+            "samples": samples,
+            "__type__": "update",
+        }
 
     def style(self, **kwargs):
         """
