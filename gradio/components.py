@@ -3808,7 +3808,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
     def style(self):
         return self
-    
+
     def as_example(self, input_data: str) -> str:
         return self.postprocess(input_data)
 
