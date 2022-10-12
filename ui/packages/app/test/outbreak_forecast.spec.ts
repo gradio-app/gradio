@@ -33,7 +33,7 @@ test("matplotlib", async ({ page }) => {
 
 	await page.getByLabel("Plot Type").selectOption("Matplotlib");
 	await page.getByLabel("Month").selectOption("January");
-	await page.getByLabel("Social Distancing?").click();
+	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
 		page.click("text=Submit"),
@@ -59,7 +59,7 @@ test("plotly", async ({ page }) => {
 
 	await page.getByLabel("Plot Type").selectOption("Plotly");
 	await page.getByLabel("Month").selectOption("January");
-	await page.getByLabel("Social Distancing?").click();
+	await page.getByLabel("Social Distancing?").check();
 
 	await Promise.all([
 		page.click("text=Submit"),
