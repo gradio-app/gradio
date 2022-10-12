@@ -13,6 +13,7 @@ DIR = os.path.dirname(__file__)
 GRADIO_DEMO_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "demo"))
 with open(VERSION_TXT) as f:
     gradio_version=f.read()
+gradio_version = gradio_version.strip()
 
 def upload_demo_to_space(
     demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str]
@@ -65,7 +66,9 @@ def upload_demo_to_space(
 
 if __name__ == "__main__":
     if AUTH_TOKEN is not None:
-        for demo in os.listdir(GRADIO_DEMO_DIR):
-            if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) or not os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py")):
-                continue
-            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
+        demos = os.listdir(GRADIO_DEMO_DIR)
+        if huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"] != gradio_version:
+            for demo in demos:
+                if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) or not os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py")):
+                    continue
+                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
