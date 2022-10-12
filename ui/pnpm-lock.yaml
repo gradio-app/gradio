@@ -5,7 +5,7 @@ importers:
   .:
     specifiers:
       '@gradio/tootils': workspace:^0.0.1
-      '@playwright/test': ^1.24.2
+      '@playwright/test': ^1.27.1
       '@sveltejs/vite-plugin-svelte': ^1.0.0-next.44
       '@tailwindcss/forms': ^0.5.0
       '@testing-library/dom': ^8.11.3
@@ -18,7 +18,7 @@ importers:
       happy-dom: ^2.49.0
       node-html-parser: ^5.3.3
       npm-run-all: ^4.1.5
-      playwright: ^1.24.2
+      playwright: ^1.27.1
       plotly.js-dist-min: ^2.10.1
       polka: ^1.0.0-next.22
       postcss: ^8.4.5
@@ -38,7 +38,7 @@ importers:
       vitest: ^0.12.7
     dependencies:
       '@gradio/tootils': link:packages/tootils
-      '@playwright/test': 1.24.2
+      '@playwright/test': 1.27.1
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.44_svelte@3.49.0+vite@2.9.5
       '@tailwindcss/forms': 0.5.0_tailwindcss@3.1.6
       '@testing-library/dom': 8.11.3
@@ -50,7 +50,7 @@ importers:
       happy-dom: 2.49.0
       node-html-parser: 5.3.3
       npm-run-all: 4.1.5
-      playwright: 1.24.2
+      playwright: 1.27.1
       plotly.js-dist-min: 2.11.1
       polka: 1.0.0-next.22
       postcss: 8.4.6
@@ -104,7 +104,6 @@ importers:
       '@gradio/video': workspace:^0.0.1
       d3-dsv: ^3.0.1
       mime-types: ^2.1.34
-      playwright: ^1.22.2
       svelte-i18n: ^3.3.13
     dependencies:
       '@gradio/atoms': link:../atoms
@@ -132,7 +131,6 @@ importers:
       '@gradio/video': link:../video
       d3-dsv: 3.0.1
       mime-types: 2.1.34
-      playwright: 1.22.2
       svelte-i18n: 3.3.13
 
   packages/atoms:
@@ -393,7 +391,7 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
     devDependencies:
-      '@sveltejs/adapter-auto': 1.0.0-next.80
+      '@sveltejs/adapter-auto': 1.0.0-next.82
       '@sveltejs/kit': 1.0.0-next.318
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
@@ -560,13 +558,13 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
 
-  /@playwright/test/1.24.2:
-    resolution: {integrity: sha512-Q4X224pRHw4Dtkk5PoNJplZCokLNvVbXD9wDQEMrHcEuvWpJWEQDeJ9gEwkZ3iCWSFSWBshIX177B231XW4wOQ==}
+  /@playwright/test/1.27.1:
+    resolution: {integrity: sha512-mrL2q0an/7tVqniQQF6RBL2saskjljXzqNcCOVMUjRIgE6Y38nCNaP+Dc2FBW06bcpD3tqIws/HT9qiMHbNU0A==}
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
       '@types/node': 17.0.14
-      playwright-core: 1.24.2
+      playwright-core: 1.27.1
     dev: false
 
   /@polka/url/1.0.0-next.21:
@@ -580,12 +578,12 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.1
 
-  /@sveltejs/adapter-auto/1.0.0-next.80:
-    resolution: {integrity: sha512-352WoZr9fQgxJqgNENvxRr2gsA+wTF6V9AVaQaaatDYd3RVEBaXTYOOalFaRLSa25mRUJaLYP2aaliqczMl23g==}
+  /@sveltejs/adapter-auto/1.0.0-next.82:
+    resolution: {integrity: sha512-TWckpkD7fLwwNcHHN7gDuV+xpu07NJ6aaMa6p9FgeFF16yBeEyGVtsM2bpujjS+u0w6IP4VGsRWEMOOF2b/WYA==}
     dependencies:
       '@sveltejs/adapter-cloudflare': 1.0.0-next.38
-      '@sveltejs/adapter-netlify': 1.0.0-next.78
-      '@sveltejs/adapter-vercel': 1.0.0-next.77
+      '@sveltejs/adapter-netlify': 1.0.0-next.80
+      '@sveltejs/adapter-vercel': 1.0.0-next.78
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -599,16 +597,16 @@ packages:
       worktop: 0.8.0-next.14
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.78:
-    resolution: {integrity: sha512-Yyn/j/0QcLK3Db442ducLUZmyvkO74j7Gdcwu9xN0fQN3kBlCJP9Itx5o4SySrPFGc4Q8cLJ5ELNg+mWduLBAA==}
+  /@sveltejs/adapter-netlify/1.0.0-next.80:
+    resolution: {integrity: sha512-L7Y3hXenJwmPbuzG+o8eUPm/6F3KpHHPUKRgoryYKgVjYGEHt1y1Go1k0JF6Tww8WF59y/j+ljWcBo9RU7MpeQ==}
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.15.7
       set-cookie-parser: 2.4.8
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.77:
-    resolution: {integrity: sha512-r4MqtP+lzx83HfcvI8PU0Yxzmxt6WQq9nzZETLboJouJzhSBUFIN5RmNZfEn6nNIlUwZbGQUEK/FxsRnnxI/Ig==}
+  /@sveltejs/adapter-vercel/1.0.0-next.78:
+    resolution: {integrity: sha512-K7zOlVwX/MV/b6iUbrY7QVn+v8ABBSEi6rjIfYiXCZc+j0nS5WNrcH1/Qdk/pzxK+7O5OuaNZAw3QylJDV5CZw==}
     dependencies:
       '@vercel/nft': 0.22.0
       esbuild: 0.15.7
@@ -2851,34 +2849,19 @@ packages:
     engines: {node: '>=4'}
     dev: false
 
-  /playwright-core/1.22.2:
-    resolution: {integrity: sha512-w/hc/Ld0RM4pmsNeE6aL/fPNWw8BWit2tg+TfqJ3+p59c6s3B6C8mXvXrIPmfQEobkcFDc+4KirNzOQ+uBSP1Q==}
+  /playwright-core/1.27.1:
+    resolution: {integrity: sha512-9EmeXDncC2Pmp/z+teoVYlvmPWUC6ejSSYZUln7YaP89Z6lpAaiaAnqroUt/BoLo8tn7WYShcfaCh+xofZa44Q==}
     engines: {node: '>=14'}
     hasBin: true
     dev: false
 
-  /playwright-core/1.24.2:
-    resolution: {integrity: sha512-zfAoDoPY/0sDLsgSgLZwWmSCevIg1ym7CppBwllguVBNiHeixZkc1AdMuYUPZC6AdEYc4CxWEyLMBTw2YcmRrA==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dev: false
-
-  /playwright/1.22.2:
-    resolution: {integrity: sha512-hUTpg7LytIl3/O4t0AQJS1V6hWsaSY5uZ7w1oCC8r3a1AQN5d6otIdCkiB3cbzgQkcMaRxisinjMFMVqZkybdQ==}
+  /playwright/1.27.1:
+    resolution: {integrity: sha512-xXYZ7m36yTtC+oFgqH0eTgullGztKSRMb4yuwLPl8IYSmgBM88QiB+3IWb1mRIC9/NNwcgbG0RwtFlg+EAFQHQ==}
     engines: {node: '>=14'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      playwright-core: 1.22.2
-    dev: false
-
-  /playwright/1.24.2:
-    resolution: {integrity: sha512-iMWDLgaFRT+7dXsNeYwgl8nhLHsUrzFyaRVC+ftr++P1dVs70mPrFKBZrGp1fOKigHV9d1syC03IpPbqLKlPsg==}
-    engines: {node: '>=14'}
-    hasBin: true
-    requiresBuild: true
-    dependencies:
-      playwright-core: 1.24.2
+      playwright-core: 1.27.1
     dev: false
 
   /plotly.js-dist-min/2.11.1:
