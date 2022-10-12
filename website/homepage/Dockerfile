@@ -23,7 +23,7 @@ COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
-RUN pip install .
+RUN pip install gradio -U
 WORKDIR /gradio
 COPY ./website ./website
 WORKDIR /gradio/website/homepage
