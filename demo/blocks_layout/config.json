@@ -1,0 +1,410 @@
+{
+  "version": "3.4.1\n",
+  "mode": "blocks",
+  "dev_mode": true,
+  "components": [
+    {
+      "id": 1,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "variant": "default",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "interactive": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "variant": "default",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "",
+        "label": "Text",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 6,
+      "type": "number",
+      "props": {
+        "label": "Count",
+        "show_label": true,
+        "name": "number",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 7,
+      "type": "radio",
+      "props": {
+        "choices": [
+          "One",
+          "Two"
+        ],
+        "show_label": true,
+        "name": "radio",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 8,
+      "type": "form",
+      "props": {
+        "type": "form",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "variant": "default",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "variant": "default",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 11,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "default",
+        "scale": 1,
+        "min_width": 320,
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 12,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "",
+        "label": "Text",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "number",
+      "props": {
+        "label": "Count",
+        "show_label": true,
+        "name": "number",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 14,
+      "type": "radio",
+      "props": {
+        "choices": [
+          "One",
+          "Two"
+        ],
+        "show_label": true,
+        "name": "radio",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "form",
+      "props": {
+        "type": "form",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 17,
+      "type": "column",
+      "props": {
+        "type": "column",
+        "variant": "default",
+        "scale": 1,
+        "min_width": 320,
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "interactive": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "streaming": false,
+        "mirror_webcam": true,
+        "show_label": true,
+        "name": "image",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 21,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "value": "",
+        "label": "Text",
+        "show_label": true,
+        "name": "textbox",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 22,
+      "type": "number",
+      "props": {
+        "label": "Count",
+        "show_label": true,
+        "name": "number",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 23,
+      "type": "radio",
+      "props": {
+        "choices": [
+          "One",
+          "Two"
+        ],
+        "show_label": true,
+        "name": "radio",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 24,
+      "type": "form",
+      "props": {
+        "type": "form",
+        "visible": true,
+        "style": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "css": null,
+  "title": "Gradio",
+  "is_space": false,
+  "enable_queue": null,
+  "show_error": true,
+  "show_api": true,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1,
+        "children": [
+          {
+            "id": 2
+          },
+          {
+            "id": 3
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "children": [
+          {
+            "id": 8,
+            "children": [
+              {
+                "id": 5
+              },
+              {
+                "id": 6
+              },
+              {
+                "id": 7
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "children": [
+          {
+            "id": 10,
+            "children": [
+              {
+                "id": 11,
+                "children": [
+                  {
+                    "id": 15,
+                    "children": [
+                      {
+                        "id": 12
+                      },
+                      {
+                        "id": 13
+                      },
+                      {
+                        "id": 14
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": 16
+              },
+              {
+                "id": 17,
+                "children": [
+                  {
+                    "id": 18
+                  },
+                  {
+                    "id": 19
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 20
+      },
+      {
+        "id": 24,
+        "children": [
+          {
+            "id": 21
+          },
+          {
+            "id": 22
+          },
+          {
+            "id": 23
+          }
+        ]
+      }
+    ]
+  },
+  "dependencies": []
+}

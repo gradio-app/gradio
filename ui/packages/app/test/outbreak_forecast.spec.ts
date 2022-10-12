@@ -30,13 +30,9 @@ test("matplotlib", async ({ page }) => {
 	await mock_demo(page, "outbreak_forecast");
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
 	await page.goto("http://localhost:3000");
-	await page
-		.locator("text=Plot Type MatplotlibPlotlyBokeh >> select")
-		.selectOption("Matplotlib");
-	await page
-		.locator("text=Month JanuaryFebruaryMarchAprilMay >> select")
-		.selectOption("January");
-	await page.locator('label:has-text("Social Distancing?")').click();
+	await page.getByLabel("Plot Type").selectOption("Matplotlib");
+	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Social Distancing?").click();
 
 	const submit_button = await page.locator("text=Submit");
 	await Promise.all([
@@ -60,13 +56,9 @@ test("plotly", async ({ page }) => {
 		]
 	]);
 	await page.goto("http://localhost:3000");
-	await page
-		.locator("text=Plot Type MatplotlibPlotlyBokeh >> select")
-		.selectOption("Plotly");
-	await page
-		.locator("text=Month JanuaryFebruaryMarchAprilMay >> select")
-		.selectOption("January");
-	await page.locator('label:has-text("Social Distancing?")').click();
+	await page.getByLabel("Plot Type").selectOption("Plotly");
+	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Social Distancing?").click();
 
 	const submit_button = await page.locator("text=Submit");
 	await Promise.all([

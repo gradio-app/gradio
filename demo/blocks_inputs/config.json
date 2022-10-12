@@ -1,5 +1,5 @@
 {
-  "version": "3.1.4",
+  "version": "3.4.1\n",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -61,6 +61,7 @@
       "type": "row",
       "props": {
         "type": "row",
+        "variant": "default",
         "visible": true,
         "style": {}
       }
@@ -164,11 +165,20 @@
         "headers": [],
         "samples": [
           [
-            "lion.jpg"
+            "/Users/peterallen/Projects/gradio/demo/blocks_inputs/lion.jpg"
           ]
         ],
         "type": "index",
         "name": "dataset",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 13,
+      "type": "form",
+      "props": {
+        "type": "form",
         "visible": true,
         "style": {}
       }
@@ -177,18 +187,26 @@
   "theme": "default",
   "css": null,
   "title": "Gradio",
-  "enable_queue": false,
+  "is_space": false,
+  "enable_queue": null,
+  "show_error": true,
+  "show_api": true,
   "layout": {
     "id": 0,
     "children": [
       {
-        "id": 1
-      },
-      {
-        "id": 2
-      },
-      {
-        "id": 3
+        "id": 13,
+        "children": [
+          {
+            "id": 1
+          },
+          {
+            "id": 2
+          },
+          {
+            "id": 3
+          }
+        ]
       },
       {
         "id": 4

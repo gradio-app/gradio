@@ -1,5 +1,5 @@
 {
-  "version": "3.1.4",
+  "version": "3.4.1\n",
   "mode": "blocks",
   "dev_mode": true,
   "components": [
@@ -32,14 +32,6 @@
     },
     {
       "id": 3,
-      "type": "tabs",
-      "props": {
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 4,
       "type": "tabitem",
       "props": {
         "label": "X-ray",
@@ -48,16 +40,17 @@
       }
     },
     {
-      "id": 5,
+      "id": 4,
       "type": "row",
       "props": {
         "type": "row",
+        "variant": "default",
         "visible": true,
         "style": {}
       }
     },
     {
-      "id": 6,
+      "id": 5,
       "type": "image",
       "props": {
         "image_mode": "RGB",
@@ -72,7 +65,7 @@
       }
     },
     {
-      "id": 7,
+      "id": 6,
       "type": "json",
       "props": {
         "show_label": true,
@@ -82,7 +75,7 @@
       }
     },
     {
-      "id": 8,
+      "id": 7,
       "type": "button",
       "props": {
         "value": "Run",
@@ -93,17 +86,7 @@
       }
     },
     {
-      "id": 9,
-      "type": "statustracker",
-      "props": {
-        "cover_container": true,
-        "name": "statustracker",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 10,
+      "id": 8,
       "type": "tabitem",
       "props": {
         "label": "CT Scan",
@@ -112,16 +95,17 @@
       }
     },
     {
-      "id": 11,
+      "id": 9,
       "type": "row",
       "props": {
         "type": "row",
+        "variant": "default",
         "visible": true,
         "style": {}
       }
     },
     {
-      "id": 12,
+      "id": 10,
       "type": "image",
       "props": {
         "image_mode": "RGB",
@@ -136,7 +120,7 @@
       }
     },
     {
-      "id": 13,
+      "id": 11,
       "type": "json",
       "props": {
         "show_label": true,
@@ -146,7 +130,7 @@
       }
     },
     {
-      "id": 14,
+      "id": 12,
       "type": "button",
       "props": {
         "value": "Run",
@@ -157,17 +141,7 @@
       }
     },
     {
-      "id": 15,
-      "type": "statustracker",
-      "props": {
-        "cover_container": true,
-        "name": "statustracker",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 16,
+      "id": 13,
       "type": "button",
       "props": {
         "value": "Upload Results",
@@ -178,11 +152,18 @@
       }
     },
     {
-      "id": 17,
-      "type": "statustracker",
+      "id": 14,
+      "type": "form",
       "props": {
-        "cover_container": false,
-        "name": "statustracker",
+        "type": "form",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 15,
+      "type": "tabs",
+      "props": {
         "visible": true,
         "style": {}
       }
@@ -191,7 +172,10 @@
   "theme": "default",
   "css": null,
   "title": "Gradio",
-  "enable_queue": false,
+  "is_space": false,
+  "enable_queue": null,
+  "show_error": true,
+  "show_api": true,
   "layout": {
     "id": 0,
     "children": [
@@ -199,77 +183,73 @@
         "id": 1
       },
       {
-        "id": 2
-      },
-      {
-        "id": 3,
+        "id": 14,
         "children": [
           {
-            "id": 4,
+            "id": 2
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "children": [
+          {
+            "id": 3,
             "children": [
               {
-                "id": 5,
+                "id": 4,
                 "children": [
                   {
-                    "id": 6
+                    "id": 5
                   },
                   {
-                    "id": 7
+                    "id": 6
                   }
                 ]
               },
               {
-                "id": 8
-              },
-              {
-                "id": 9
+                "id": 7
               }
             ]
           },
           {
-            "id": 10,
+            "id": 8,
             "children": [
               {
-                "id": 11,
+                "id": 9,
                 "children": [
                   {
-                    "id": 12
+                    "id": 10
                   },
                   {
-                    "id": 13
+                    "id": 11
                   }
                 ]
               },
               {
-                "id": 14
-              },
-              {
-                "id": 15
+                "id": 12
               }
             ]
           }
         ]
       },
       {
-        "id": 16
-      },
-      {
-        "id": 17
+        "id": 13
       }
     ]
   },
   "dependencies": [
     {
       "targets": [
-        8
+        7
       ],
       "trigger": "click",
       "inputs": [
         2,
-        6
+        5
       ],
       "outputs": [
-        7
+        6
       ],
       "backend_fn": true,
       "js": null,
@@ -284,7 +264,7 @@
             "List[str]"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ]
         ],
@@ -298,15 +278,15 @@
     },
     {
       "targets": [
-        14
+        12
       ],
       "trigger": "click",
       "inputs": [
         2,
-        12
+        10
       ],
       "outputs": [
-        13
+        11
       ],
       "backend_fn": true,
       "js": null,
@@ -321,7 +301,7 @@
             "List[str]"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ]
         ],
@@ -335,12 +315,12 @@
     },
     {
       "targets": [
-        16
+        13
       ],
       "trigger": "click",
       "inputs": [
-        13,
-        7
+        11,
+        6
       ],
       "outputs": [],
       "backend_fn": true,

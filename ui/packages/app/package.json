@@ -8,7 +8,7 @@
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
 		"preview": "vite preview",
-		"test:browser": "python test/create_demo_configs.py && pnpm exec playwright test test/ --config=../../playwright.config.js",
+		"test:browser": "pnpm exec playwright test test/ snapshots/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpm exec playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
@@ -37,7 +37,6 @@
 		"@gradio/video": "workspace:^0.0.1",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
-		"playwright": "^1.22.2",
 		"svelte-i18n": "^3.3.13"
 	}
 }

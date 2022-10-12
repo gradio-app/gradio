@@ -1,5 +1,5 @@
 {
-  "version": "3.1.4",
+  "version": "3.4.1\n",
   "mode": "interface",
   "dev_mode": true,
   "components": [
@@ -28,10 +28,10 @@
       "type": "row",
       "props": {
         "type": "row",
+        "variant": "default",
         "visible": true,
         "style": {
-          "equal_height": false,
-          "mobile_collapse": true
+          "equal_height": false
         }
       }
     },
@@ -41,6 +41,8 @@
       "props": {
         "type": "column",
         "variant": "panel",
+        "scale": 1,
+        "min_width": 320,
         "visible": true,
         "style": {}
       }
@@ -51,6 +53,8 @@
       "props": {
         "type": "column",
         "variant": "default",
+        "scale": 1,
+        "min_width": 320,
         "visible": true,
         "style": {}
       }
@@ -229,7 +233,7 @@
       "props": {
         "image_mode": "RGB",
         "source": "canvas",
-        "tool": "editor",
+        "tool": "sketch",
         "streaming": false,
         "mirror_webcam": true,
         "label": "Sketchpad",
@@ -374,17 +378,25 @@
     },
     {
       "id": 38,
-      "type": "row",
+      "type": "form",
       "props": {
-        "type": "row",
+        "type": "form",
         "visible": true,
-        "style": {
-          "mobile_collapse": false
-        }
+        "style": {}
       }
     },
     {
       "id": 39,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "variant": "default",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 40,
       "type": "button",
       "props": {
         "value": "Clear",
@@ -395,7 +407,7 @@
       }
     },
     {
-      "id": 40,
+      "id": 41,
       "type": "button",
       "props": {
         "value": "Submit",
@@ -406,21 +418,13 @@
       }
     },
     {
-      "id": 41,
+      "id": 42,
       "type": "column",
       "props": {
         "type": "column",
         "variant": "panel",
-        "visible": true,
-        "style": {}
-      }
-    },
-    {
-      "id": 42,
-      "type": "statustracker",
-      "props": {
-        "cover_container": true,
-        "name": "statustracker",
+        "scale": 1,
+        "min_width": 320,
         "visible": true,
         "style": {}
       }
@@ -501,17 +505,18 @@
       "id": 24,
       "type": "highlightedtext",
       "props": {
-        "color_map": {
-          "punc": "pink",
-          "test 0": "blue"
-        },
         "show_legend": false,
         "label": "HighlightedText",
         "show_label": true,
         "interactive": false,
         "name": "highlightedtext",
         "visible": true,
-        "style": {}
+        "style": {
+          "color_map": {
+            "punc": "pink",
+            "test 0": "blue"
+          }
+        }
       }
     },
     {
@@ -681,10 +686,9 @@
       "type": "row",
       "props": {
         "type": "row",
+        "variant": "default",
         "visible": true,
-        "style": {
-          "mobile_collapse": false
-        }
+        "style": {}
       }
     },
     {
@@ -700,6 +704,15 @@
     },
     {
       "id": 45,
+      "type": "form",
+      "props": {
+        "type": "form",
+        "visible": true,
+        "style": {}
+      }
+    },
+    {
+      "id": 46,
       "type": "dataset",
       "props": {
         "components": [
@@ -758,11 +771,11 @@
             ],
             "baz",
             "bar",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "world.mp4",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/world.mp4",
             "cantina.wav",
             "cantina.wav",
             "titanic.csv",
@@ -778,7 +791,7 @@
                 5
               ]
             ],
-            "time.csv"
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/time.csv"
           ],
           [
             "the quick brown fox",
@@ -793,11 +806,11 @@
             ],
             "baz",
             "bar",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "world.mp4",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/world.mp4",
             "cantina.wav",
             "cantina.wav",
             "titanic.csv",
@@ -813,7 +826,7 @@
                 5
               ]
             ],
-            "time.csv"
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/time.csv"
           ],
           [
             "the quick brown fox",
@@ -828,11 +841,11 @@
             ],
             "baz",
             "bar",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "cheetah1.jpg",
-            "world.mp4",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/cheetah1.jpg",
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/world.mp4",
             "cantina.wav",
             "cantina.wav",
             "titanic.csv",
@@ -848,7 +861,7 @@
                 5
               ]
             ],
-            "time.csv"
+            "/Users/peterallen/Projects/gradio/demo/kitchen_sink/files/time.csv"
           ]
         ],
         "type": "index",
@@ -858,7 +871,7 @@
       }
     },
     {
-      "id": 46,
+      "id": 47,
       "type": "markdown",
       "props": {
         "value": "<p>Learn more about <a href=\"http://gradio.app\">Gradio</a></p>",
@@ -871,7 +884,10 @@
   "theme": "default",
   "css": null,
   "title": "Kitchen Sink",
-  "enable_queue": false,
+  "is_space": false,
+  "enable_queue": null,
+  "show_error": true,
+  "show_api": true,
   "layout": {
     "id": 32,
     "children": [
@@ -891,31 +907,36 @@
                 "id": 37,
                 "children": [
                   {
-                    "id": 0
-                  },
-                  {
-                    "id": 1
-                  },
-                  {
-                    "id": 2
-                  },
-                  {
-                    "id": 3
-                  },
-                  {
-                    "id": 4
-                  },
-                  {
-                    "id": 5
-                  },
-                  {
-                    "id": 6
-                  },
-                  {
-                    "id": 7
-                  },
-                  {
-                    "id": 8
+                    "id": 38,
+                    "children": [
+                      {
+                        "id": 0
+                      },
+                      {
+                        "id": 1
+                      },
+                      {
+                        "id": 2
+                      },
+                      {
+                        "id": 3
+                      },
+                      {
+                        "id": 4
+                      },
+                      {
+                        "id": 5
+                      },
+                      {
+                        "id": 6
+                      },
+                      {
+                        "id": 7
+                      },
+                      {
+                        "id": 8
+                      }
+                    ]
                   },
                   {
                     "id": 9
@@ -950,26 +971,28 @@
                 ]
               },
               {
-                "id": 38,
+                "id": 39,
                 "children": [
                   {
-                    "id": 39
+                    "id": 40
                   },
                   {
-                    "id": 40
+                    "id": 41
                   }
                 ]
               }
             ]
           },
           {
-            "id": 41,
+            "id": 42,
             "children": [
               {
-                "id": 42
-              },
-              {
-                "id": 19
+                "id": 45,
+                "children": [
+                  {
+                    "id": 19
+                  }
+                ]
               },
               {
                 "id": 20
@@ -1020,17 +1043,17 @@
         ]
       },
       {
-        "id": 45
+        "id": 46
       },
       {
-        "id": 46
+        "id": 47
       }
     ]
   },
   "dependencies": [
     {
       "targets": [
-        40
+        41
       ],
       "trigger": "click",
       "inputs": [
@@ -1071,7 +1094,6 @@
       ],
       "backend_fn": true,
       "js": null,
-      "status_tracker": null,
       "queue": null,
       "api_name": "predict",
       "scroll_to_output": true,
@@ -1079,11 +1101,11 @@
       "documentation": [
         [
           [
-            "text",
+            "sample input to preprocess.",
             "str | None"
           ],
           [
-            "text",
+            "sample input to preprocess.",
             "str | None"
           ],
           [
@@ -1091,16 +1113,16 @@
             "float | None"
           ],
           [
-            "numeric input",
-            "float"
+            null,
+            "Any"
           ],
           [
-            "numeric input",
-            "float"
+            null,
+            "Any"
           ],
           [
-            "boolean input",
-            "bool"
+            null,
+            "Any"
           ],
           [
             "list of selected choices",
@@ -1115,23 +1137,23 @@
             "str"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ],
           [
-            "base64 url data, or (if tool == \"sketch) a dict of image and mask base64 url data",
+            "base64 url data, or (if tool == \"sketch\") a dict of image and mask base64 url data",
             "str | Dict"
           ],
           [
-            "JSON object with filename as 'name' property and base64 data as 'data' property",
+            "a dictionary with the following keys: 'name' (containing the file path to a video), 'data' (with either the file URL or base64 representation of the video), and 'is_file` (True if `data` contains the file URL).",
             "Dict[str, str] | None"
           ],
           [
@@ -1166,23 +1188,23 @@
           ],
           [
             "base64 url data",
-            "str"
+            "str | None"
           ],
           [
             "base64 url data",
             "str"
           ],
           [
-            "base64 url data",
-            "str"
+            null,
+            "None"
           ],
           [
             "List of (word, category) tuples",
-            "Optional[List[Tuple[str, str | float | None]]]"
+            "List[Tuple[str, str | float | None]] | None"
           ],
           [
             "List of (word, category) tuples",
-            "Optional[List[Tuple[str, str | float | None]]]"
+            "List[Tuple[str, str | float | None]] | None"
           ],
           [
             "JSON output",
@@ -1213,7 +1235,7 @@
     },
     {
       "targets": [
-        39
+        40
       ],
       "trigger": "click",
       "inputs": [],
@@ -1254,8 +1276,7 @@
       ],
       "backend_fn": false,
       "js": "() => [\"\", \"\", null, 15, 0, null, [], \"baz\", null, null, null, null, null, null, null, null, null, null, null, \"\", null, null, null, null, null, null, null, null, null, null, null, null, {\"variant\": null, \"visible\": true, \"__type__\": \"update\"}]\n                ",
-      "status_tracker": null,
-      "queue": null,
+      "queue": false,
       "api_name": null,
       "scroll_to_output": false,
       "show_progress": true
@@ -1302,7 +1323,6 @@
       "outputs": [],
       "backend_fn": true,
       "js": null,
-      "status_tracker": null,
       "queue": false,
       "api_name": null,
       "scroll_to_output": false,
@@ -1310,11 +1330,11 @@
     },
     {
       "targets": [
-        45
+        46
       ],
       "trigger": "click",
       "inputs": [
-        45
+        46
       ],
       "outputs": [
         0,
@@ -1335,11 +1355,23 @@
         15,
         16,
         17,
-        18
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
       ],
       "backend_fn": true,
       "js": null,
-      "status_tracker": null,
       "queue": false,
       "api_name": null,
       "scroll_to_output": false,
