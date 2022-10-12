@@ -30,6 +30,8 @@ test("renders the correct elements", async ({ page }) => {
 	await mock_api(page, [[25, 45]]);
 	await page.goto("http://localhost:3000");
 
-	const button = await page.locator("button");
-	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
+	await Promise.all([
+		page.click("button"),
+		page.waitForResponse("**/api/predict/")
+	]);
 });
