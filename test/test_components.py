@@ -1148,7 +1148,7 @@ class TestDataframe(unittest.TestCase):
 
 
 class TestDataset:
-    def test_preprocessing():
+    def test_preprocessing(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         bus = pathlib.Path(test_file_dir, "bus.png")
 
@@ -1163,7 +1163,7 @@ class TestDataset:
         assert dataset.preprocess(1) == [
             15,
             "hi",
-            "lion.jpg",
+            bus,
             "<i>Italics</i>",
             "<p><em>Italics</em></p>\n",
         ]
@@ -1179,7 +1179,7 @@ class TestDataset:
 
         assert dataset.preprocess(1) == 1
 
-    def test_postrpocessing():
+    def test_postprocessing(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         bus = pathlib.Path(test_file_dir, "bus.png")
 
@@ -1196,8 +1196,8 @@ class TestDataset:
 
         assert output == {
             "samples": [
-                [5, "hello", "lion.jpg", "<b>Bold</b>", "**Bold**"],
-                [15, "hi", "lion.jpg", "<i>Italics</i>", "*Italics*"],
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
             ],
             "__type__": "update",
         }
