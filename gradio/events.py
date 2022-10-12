@@ -465,3 +465,52 @@ class Streamable(Block):
             postprocess=postprocess,
             queue=queue,
         )
+
+class Blurable(Block):
+    def blur(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        api_name: AnyStr = None,
+        status_tracker: Optional[StatusTracker] = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
+        queue: Optional[bool] = None,
+        preprocess: bool = True,
+        postprocess: bool = True,
+        _js: Optional[str] = None,
+    ):
+        """
+        This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.
+
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            api_name: Defining this parameter exposes the endpoint in the api docs
+            scroll_to_output: If True, will scroll to output component on completion
+            show_progress: If True, will show progress animation while pending
+            queue: If True, will place the request on the queue, if the queue exists
+            preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+        """
+        # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        if status_tracker:
+            warnings.warn(
+                "The 'status_tracker' parameter has been deprecated and has no effect."
+            )
+
+        self.set_event_trigger(
+            "blur",
+            fn,
+            inputs,
+            outputs,
+            api_name=api_name,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            js=_js,
+            preprocess=preprocess,
+            postprocess=postprocess,
+            queue=queue,
+        )
