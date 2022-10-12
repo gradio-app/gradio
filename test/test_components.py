@@ -1147,6 +1147,62 @@ class TestDataframe(unittest.TestCase):
         }
 
 
+class TestDataset:
+    def test_preprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert dataset.preprocess(1) == [
+            15,
+            "hi",
+            bus,
+            "<i>Italics</i>",
+            "<p><em>Italics</em></p>\n",
+        ]
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            type="index",
+        )
+
+        assert dataset.preprocess(1) == 1
+
+    def test_postprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"], type="index"
+        )
+
+        output = dataset.postprocess(
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert output == {
+            "samples": [
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            "__type__": "update",
+        }
+
+
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
         """
@@ -1730,6 +1786,23 @@ class TestColorPicker(unittest.TestCase):
         """
         component = gr.ColorPicker("#000000")
         self.assertEqual(component.get_config().get("value"), "#000000")
+
+
+class TestCarousel:
+    def test_deprecation(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with pytest.raises(DeprecationWarning):
+            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
+
+    def test_deprecation_in_interface(self):
+        with pytest.raises(DeprecationWarning):
+            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
+
+    def test_deprecation_in_blocks(self):
+        with pytest.raises(DeprecationWarning):
+            with gr.Blocks():
+                gr.Textbox()
+                gr.Carousel()
 
 
 class TestGallery:

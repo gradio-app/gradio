@@ -3362,90 +3362,20 @@ class Gallery(IOComponent):
         return files
 
 
-class Carousel(IOComponent, Changeable):
+class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
-    Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
+    Deprecated Component
     """
 
     def __init__(
         self,
-        *,
-        components: Component | List[Component],
-        label: Optional[str] = None,
-        show_label: bool = True,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
+        *args,
         **kwargs,
     ):
-        """
-        Parameters:
-            components: Classes of component(s) that will be scrolled through.
-            label: component name in interface.
-            show_label: if True, will display label.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        warnings.warn(
-            "The Carousel component is partially deprecated. It may not behave as expected.",
+        raise DeprecationWarning(
+            "The Carousel component is deprecated. Please consider using the Gallery "
+            "component, which can be used to display images (and optional captions).",
         )
-        if not isinstance(components, list):
-            components = [components]
-        self.components = [
-            get_component_instance(component) for component in components
-        ]
-        IOComponent.__init__(
-            self,
-            label=label,
-            show_label=show_label,
-            visible=visible,
-            elem_id=elem_id,
-            **kwargs,
-        )
-
-    def get_config(self):
-        return {
-            "components": [component.get_config() for component in self.components],
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
-    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
-        """
-        Parameters:
-            y: carousel output
-        Returns:
-            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
-        """
-        if y is None:
-            return None
-        if isinstance(y, list):
-            if len(y) != 0 and not isinstance(y[0], list):
-                y = [[z] for z in y]
-            output = []
-            for row in y:
-                output_row = []
-                for i, cell in enumerate(row):
-                    output_row.append(self.components[i].postprocess(cell))
-                output.append(output_row)
-            return output
-        else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
 
 @document("change", "style")
@@ -3809,9 +3739,12 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data: str) -> str:
+        return self.postprocess(input_data)
+
 
 ############################
-# Static Components
+# Special Components
 ############################
 
 
@@ -3820,7 +3753,7 @@ class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
-    Preprocessing: this component does *not* accept input.
+    Preprocessing: passes the selected sample either as a {list} of data (if type="value") or as an {int} index (if type="index")
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
@@ -3829,7 +3762,7 @@ class Dataset(Clickable, Component):
         *,
         label: Optional[str] = None,
         components: List[IOComponent] | List[str],
-        samples: List[List[Any]],
+        samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
@@ -3838,7 +3771,7 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
@@ -3847,7 +3780,8 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
-        for example in samples:
+        self.samples = [[]] if samples is None else samples
+        for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
@@ -3858,7 +3792,6 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
-        self.samples = samples
 
     def get_config(self):
         return {
@@ -3891,6 +3824,12 @@ class Dataset(Clickable, Component):
             return x
         elif self.type == "values":
             return self.samples[x]
+
+    def postprocess(self, samples: List[List[Any]]) -> Dict:
+        return {
+            "samples": samples,
+            "__type__": "update",
+        }
 
     def style(self, **kwargs):
         """
