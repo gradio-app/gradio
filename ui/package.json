@@ -18,7 +18,7 @@
 		"test": "vitest dev",
 		"test:run": "vitest run",
 		"test:browser": "pnpm --filter @gradio/app test:browser:full",
-		"test:browser:full": "run-s build test:browser:full",
+		"test:browser:full": "run-s build test:browser",
 		"test:browser:debug": "pnpm --filter @gradio/app test:browser:debug"
 	},
 	"type": "module",
