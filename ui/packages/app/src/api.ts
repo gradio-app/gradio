@@ -255,7 +255,7 @@ export const fn =
 				);
 				// Cancelled jobs are set to complete
 				if (cancels.length > 0) {
-					cancels.forEach((fn_index) =>
+					cancels.forEach((fn_index) => {
 						loading_status.update(
 							fn_index,
 							"complete",
@@ -264,8 +264,9 @@ export const fn =
 							null,
 							null,
 							null
-						)
-					);
+						);
+						ws_map.get(fn_index)?.close();
+					});
 				}
 			} else {
 				loading_status.update(
