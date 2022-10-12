@@ -10,6 +10,7 @@
 		"preview": "vite preview",
 		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../playwright.config.js",
 		"test:browser": "pnpm exec playwright test test/ --config=../../playwright.config.js",
+		"test:browser:full": "python test/create_demo_configs.py && pnpm exec playwright test test/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpm exec playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
