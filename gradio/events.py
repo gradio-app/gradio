@@ -23,6 +23,7 @@ class Changeable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "wait"
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
@@ -38,6 +39,7 @@ class Changeable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -57,6 +59,7 @@ class Changeable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -74,6 +77,7 @@ class Clickable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
@@ -89,6 +93,7 @@ class Clickable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -108,6 +113,7 @@ class Clickable(Block):
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -125,6 +131,7 @@ class Submittable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -141,6 +148,7 @@ class Submittable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -160,6 +168,7 @@ class Submittable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -177,6 +186,7 @@ class Editable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
@@ -192,6 +202,7 @@ class Editable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -211,6 +222,7 @@ class Editable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -228,6 +240,7 @@ class Clearable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
@@ -243,6 +256,7 @@ class Clearable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -262,6 +276,7 @@ class Clearable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -279,6 +294,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user plays the component (e.g. audio or video).
@@ -294,6 +310,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -313,6 +330,7 @@ class Playable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
     def pause(
@@ -328,6 +346,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user pauses the component (e.g. audio or video).
@@ -343,6 +362,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -362,6 +382,7 @@ class Playable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
     def stop(
@@ -377,6 +398,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user stops the component (e.g. audio or video).
@@ -392,6 +414,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -411,6 +434,7 @@ class Playable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
 
 
@@ -428,6 +452,7 @@ class Streamable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         _js: Optional[str] = None,
+        behavior_when_pending: str = "wait"
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -443,6 +468,7 @@ class Streamable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
@@ -464,4 +490,5 @@ class Streamable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            behavior_when_pending=behavior_when_pending
         )
