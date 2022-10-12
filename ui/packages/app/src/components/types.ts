@@ -30,6 +30,8 @@ export interface Dependency {
 	queue: boolean | null;
 	api_name: string | null;
 	documentation?: Array<Array<Array<string>>>;
+	behavior_when_pending: "block" | "wait" | "run";
+	pending_request: boolean;
 }
 
 export interface LayoutNode {

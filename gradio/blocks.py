@@ -119,6 +119,7 @@ class Block:
         js: Optional[str] = None,
         no_target: bool = False,
         queue: Optional[bool] = None,
+        behavior_when_pending: str = "block"
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -166,6 +167,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "behavior_when_pending": behavior_when_pending
         }
         if api_name is not None:
             dependency["documentation"] = [

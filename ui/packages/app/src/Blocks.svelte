@@ -227,6 +227,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					behavior_when_pending,
 					...rest
 				},
 				i
@@ -291,28 +292,35 @@
 				target_instances.forEach(
 					([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
-						instance?.$on(trigger, () => {
+						instance?.$on(trigger, async () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
-								return;
+								if (behavior_when_pending === "block") {
+									return;
+								} else if (behavior_when_pending === "wait") {
+									dependencies[i].pending_request = true;
+									return;
+								}
 							}
 
-							// page events
-							const req = fn({
-								action: "predict",
-								backend_fn,
-								frontend_fn,
-								payload: {
-									fn_index: i,
-									data: inputs.map((id) => instance_map[id].props.value)
-								},
-								output_data: outputs.map((id) => instance_map[id].props.value),
-								queue: queue === null ? enable_queue : queue,
-								queue_callback: handle_update,
-								loading_status: loading_status
-							});
-
 							if (!(queue === null ? enable_queue : queue)) {
-								req.then(handle_update);
+								do {
+									dependencies[i].pending_request = false;
+									const req = fn({
+										action: "predict",
+										backend_fn,
+										frontend_fn,
+										payload: {
+											fn_index: i,
+											data: dependencies[i].inputs.map((id) => instance_map[id].props.value)
+										},
+										output_data: outputs.map((id) => instance_map[id].props.value),
+										queue: queue === null ? enable_queue : queue,
+										queue_callback: handle_update,
+										loading_status: loading_status
+									});
+									const output = await req;
+									handle_update(output)
+								} while (dependencies[i].pending_request)
 							}
 						});
 
