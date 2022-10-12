@@ -64,11 +64,11 @@ def upload_demo_to_space(
         )
     return f"https://huggingface.co/spaces/{space_id}"
 
+demos = os.listdir(GRADIO_DEMO_DIR)
+demos = [demo for demo in demos if demo != "all_demos" and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
+
 if __name__ == "__main__":
     if AUTH_TOKEN is not None:
-        demos = os.listdir(GRADIO_DEMO_DIR)
         if huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"] != gradio_version:
             for demo in demos:
-                if demo == "all_demos" or not os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) or not os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py")):
-                    continue
                 upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
