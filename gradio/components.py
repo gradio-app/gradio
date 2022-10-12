@@ -47,7 +47,7 @@ from gradio.events import (
     Playable,
     Streamable,
     Submittable,
-    Blurable,
+    Blurrable,
 )
 from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
@@ -255,7 +255,7 @@ class FormComponent:
 
 
 @document("change", "submit", "blur", "style")
-class Textbox(Changeable, Submittable, Blurable, IOComponent, SimpleSerializable, FormComponent):
+class Textbox(Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -421,7 +421,7 @@ class Textbox(Changeable, Submittable, Blurable, IOComponent, SimpleSerializable
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, Blurable, IOComponent, SimpleSerializable, FormComponent):
+class Number(Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.

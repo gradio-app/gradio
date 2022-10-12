@@ -466,7 +466,7 @@ class Streamable(Block):
             queue=queue,
         )
 
-class Blurable(Block):
+class Blurrable(Block):
     def blur(
         self,
         fn: Callable,
@@ -496,10 +496,6 @@ class Blurable(Block):
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        if status_tracker:
-            warnings.warn(
-                "The 'status_tracker' parameter has been deprecated and has no effect."
-            )
 
         self.set_event_trigger(
             "blur",
