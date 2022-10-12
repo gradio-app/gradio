@@ -13,6 +13,8 @@ import ExampleDataframe from "./ExampleComponents/Dataframe.svelte";
 import ExampleModel3D from "./ExampleComponents/Model3D.svelte";
 import ExampleColorPicker from "./ExampleComponents/ColorPicker.svelte";
 import ExampleTimeSeries from "./ExampleComponents/TimeSeries.svelte";
+import ExampleMarkdown from "./ExampleComponents/Markdown.svelte";
+import ExampleHTML from "./ExampleComponents/HTML.svelte";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -29,5 +31,7 @@ export const component_map = {
 	dataframe: ExampleDataframe,
 	model3d: ExampleModel3D,
 	colorpicker: ExampleColorPicker,
-	timeseries: ExampleTimeSeries
+	timeseries: ExampleTimeSeries,
+	markdown: ExampleMarkdown,
+	html: ExampleHTML,
 };
