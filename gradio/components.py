@@ -3362,90 +3362,20 @@ class Gallery(IOComponent):
         return files
 
 
-class Carousel(IOComponent, Changeable):
+class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
-    Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
+    Deprecated Component
     """
 
     def __init__(
         self,
-        *,
-        components: Component | List[Component],
-        label: Optional[str] = None,
-        show_label: bool = True,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
+        *args,
         **kwargs,
     ):
-        """
-        Parameters:
-            components: Classes of component(s) that will be scrolled through.
-            label: component name in interface.
-            show_label: if True, will display label.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        warnings.warn(
-            "The Carousel component is partially deprecated. It may not behave as expected.",
+        raise DeprecationWarning(
+            "The Carousel component is deprecated. Please consider using the Gallery "
+            "component, which can be used to display images (and optional captions).",
         )
-        if not isinstance(components, list):
-            components = [components]
-        self.components = [
-            get_component_instance(component) for component in components
-        ]
-        IOComponent.__init__(
-            self,
-            label=label,
-            show_label=show_label,
-            visible=visible,
-            elem_id=elem_id,
-            **kwargs,
-        )
-
-    def get_config(self):
-        return {
-            "components": [component.get_config() for component in self.components],
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
-    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
-        """
-        Parameters:
-            y: carousel output
-        Returns:
-            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
-        """
-        if y is None:
-            return None
-        if isinstance(y, list):
-            if len(y) != 0 and not isinstance(y[0], list):
-                y = [[z] for z in y]
-            output = []
-            for row in y:
-                output_row = []
-                for i, cell in enumerate(row):
-                    output_row.append(self.components[i].postprocess(cell))
-                output.append(output_row)
-            return output
-        else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
 
 @document("change", "style")

@@ -1732,6 +1732,23 @@ class TestColorPicker(unittest.TestCase):
         self.assertEqual(component.get_config().get("value"), "#000000")
 
 
+class TestCarousel:
+    def test_deprecation(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with pytest.raises(DeprecationWarning):
+            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
+
+    def test_deprecation_in_interface(self):
+        with pytest.raises(DeprecationWarning):
+            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
+
+    def test_deprecation_in_blocks(self):
+        with pytest.raises(DeprecationWarning):
+            with gr.Blocks():
+                gr.Textbox()
+                gr.Carousel()
+
+
 class TestGallery:
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
