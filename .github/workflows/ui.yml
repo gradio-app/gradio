@@ -57,8 +57,7 @@ jobs:
       - run: pip install gradio
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
-      - run: pnpm build
-      - run: pnpm test:browser
+      - run: pnpm test:browser:full
       - name: Upload failed tests screenshots
         if: failure()
         uses: actions/upload-artifact@v3
