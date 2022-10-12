@@ -22,7 +22,7 @@ concurrency:
 jobs:
   quick-checks:
     name: static checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
