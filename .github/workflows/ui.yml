@@ -57,7 +57,6 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
-      - run: python -m pip install --upgrade pip
       - run: cd .. && bash scripts/install_gradio.sh
       - run: pip install -r ../demo/outbreak_forecast/requirements.txt
       - run: pnpm install --frozen-lockfile
