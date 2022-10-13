@@ -12,6 +12,7 @@ import warnings
 import webbrowser
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+import pkg_resources
 
 import anyio
 import requests
@@ -1100,8 +1101,9 @@ class Blocks(BlockContext):
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        is_colab = utils.colab_check()
-        if is_colab and not quiet:
+
+        self.is_colab = utils.colab_check()
+        if self.is_colab and not quiet:
             if debug:
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
@@ -1118,7 +1120,7 @@ class Blocks(BlockContext):
                     self.protocol, self.server_name, self.server_port
                 )
             )
-        if is_colab and self.requires_permissions:
+        if self.is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
         if self.share:
@@ -1166,6 +1168,16 @@ class Blocks(BlockContext):
                             f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
+                # elif self.is_colab:
+                elif True:
+                    with open(
+                        pkg_resources.resource_filename(
+                            "gradio", "templates/colab.html"
+                        )
+                    ) as colab_file:
+                        colab_html = colab_file.read()
+                    colab_html = colab_html.replace("$PORT", str(self.server_port))
+                    display(HTML(colab_html))
                 else:
                     display(
                         HTML(
@@ -1178,7 +1190,7 @@ class Blocks(BlockContext):
         if getattr(self, "analytics_enabled", False):
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
-                "is_google_colab": is_colab,
+                "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "ip_address": self.ip_address,

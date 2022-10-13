@@ -1,0 +1,27 @@
+here:
+<script>
+    document.querySelector("base").href = "https://localhost:$PORT";
+
+    function rehydrate() {
+        for (const script of document.querySelectorAll("script")) {
+            const newScript = document.createElement('script')
+            newScript.type = script.type;
+            newScript.src = script.src;
+            newScript.textContent = script.textContent;
+            const head = document.getElementsByTagName('head')[0];
+            if (script.textContent.includes("window.gradio_config =")) {
+                window.gradio_config = JSON.parse(script.textContent.replace("window.gradio_config =", "").replace(/;$/, "").trim());
+            }
+            head.appendChild(newScript);
+            newScript.remove();
+        }
+
+        console.log(window)
+    }
+    fetch(".")
+        .then((x) => x.text())
+        .then((html) => {
+            document.body.innerHTML = html;
+        })
+        .then(() => rehydrate());
+</script>
