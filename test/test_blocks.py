@@ -541,6 +541,10 @@ class TestDuplicateBlockError:
             io2.render()
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 8),
+    reason="Mocks of async context manager don't work for 3.7",
+)
 @pytest.mark.asyncio
 async def test_cancel_function(capsys):
     async def long_job():
