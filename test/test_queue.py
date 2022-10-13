@@ -1,9 +1,10 @@
 import os
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from gradio.queue import Event, Queue
+from gradio.utils import Request
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -162,7 +163,8 @@ class TestQueueEstimation:
 
 class TestQueueProcessEvents:
     @pytest.mark.asyncio
-    async def test_process_event(self, queue: Queue, mock_event: Event):
+    @patch("gradio.queue.Request", new_callable=AsyncMock)
+    async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
         queue.gather_event_data = AsyncMock()
         queue.gather_event_data.return_value = True
         queue.send_message = AsyncMock()
@@ -178,6 +180,14 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         queue.clean_event.assert_called_once()
+        mock_request.assert_called_with(
+            method=Request.Method.POST,
+            url=f"{queue.server_path}reset",
+            json={
+                "session_hash": mock_event.session_hash,
+                "fn_index": mock_event.fn_index,
+            },
+        )
 
     @pytest.mark.asyncio
     async def test_process_event_handles_error_when_gathering_data(
@@ -247,8 +257,9 @@ class TestQueueProcessEvents:
         assert queue.clean_event.call_count >= 1
 
     @pytest.mark.asyncio
+    @patch("gradio.queue.Request", new_callable=AsyncMock)
     async def test_process_event_handles_exception_during_disconnect(
-        self, queue: Queue, mock_event: Event
+        self, mock_request, queue: Queue, mock_event: Event
     ):
         mock_event.websocket.send_json = AsyncMock()
         queue.call_prediction = AsyncMock(
@@ -259,3 +270,11 @@ class TestQueueProcessEvents:
         queue.clean_event = AsyncMock()
         mock_event.data = None
         await queue.process_event(mock_event)
+        mock_request.assert_called_with(
+            method=Request.Method.POST,
+            url=f"{queue.server_path}reset",
+            json={
+                "session_hash": mock_event.session_hash,
+                "fn_index": mock_event.fn_index,
+            },
+        )

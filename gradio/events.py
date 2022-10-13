@@ -12,7 +12,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 def get_cancel_function(
     dependencies: List[Dict[str, Any]]
-) -> Tuple[Callable, List[Block], List[int]]:
+) -> Tuple[Callable, List[int]]:
     fn_to_comp = {}
     for dep in dependencies:
         fn_index = next(
@@ -33,14 +33,13 @@ def get_cancel_function(
 
     return (
         cancel,
-        [c for comps in fn_to_comp.values() for c in comps],
         list(fn_to_comp.keys()),
     )
 
 
 def set_cancel_events(block: Block, event_name: str, cancels: List[Dict[str, Any]]):
     if cancels:
-        cancel_fn, output, fn_indices_to_cancel = get_cancel_function(cancels)
+        cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
         block.set_event_trigger(
             event_name,
             cancel_fn,

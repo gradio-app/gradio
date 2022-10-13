@@ -177,8 +177,6 @@ class Interface(Blocks):
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
-        stop_btn_color = "#stop-btn {background: red}"
-        css = css + stop_btn_color if css else stop_btn_color
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="interface",
@@ -480,13 +478,13 @@ class Interface(Blocks):
                                     # as a proxy of whether the queue will be enabled.
                                     # Using a generator function without the queue will raise an error.
                                     if inspect.isgeneratorfunction(fn):
-                                        stop_btn = Button(
-                                            "Stop", visible=False, elem_id="stop-btn"
-                                        )
+                                        stop_btn = Button("Stop", variant="stop")
 
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Submit", variant="primary")
+                                if inspect.isgeneratorfunction(fn) and not self.live:
+                                    stop_btn = Button("Stop", variant="stop")
                                 if self.allow_flagging == "manual":
                                     flag_btns = render_flag_btns(self.flagging_options)
 
@@ -503,15 +501,13 @@ class Interface(Blocks):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")
-                                if inspect.isgeneratorfunction(fn):
+                                if inspect.isgeneratorfunction(fn) and not self.live:
                                     # Stopping jobs only works if the queue is enabled
                                     # We don't know if the queue is enabled when the interface
                                     # is created. We use whether a generator function is provided
                                     # as a proxy of whether the queue will be enabled.
                                     # Using a generator function without the queue will raise an error.
-                                    stop_btn = Button(
-                                        "Stop", visible=False, elem_id="stop-btn"
-                                    )
+                                    stop_btn = Button("Stop", variant="stop")
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -566,23 +562,10 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                 )
                 if inspect.isgeneratorfunction(fn):
-                    submit_btn.click(
-                        lambda: {
-                            submit_btn: update(visible=False),
-                            stop_btn: update(visible=True),
-                        },
-                        inputs=None,
-                        outputs=[submit_btn, stop_btn],
-                        queue=False,
-                    )
                     stop_btn.click(
-                        lambda: {
-                            submit_btn: update(visible=True),
-                            stop_btn: update(visible=False),
-                        },
+                        None,
                         inputs=None,
-                        outputs=[submit_btn, stop_btn],
-                        queue=False,
+                        outputs=None,
                         cancels=[pred],
                     )
 

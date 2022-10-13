@@ -16,6 +16,8 @@ import pytest
 import wandb
 
 import gradio as gr
+import gradio.events
+from gradio.blocks import Block
 from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -537,6 +539,55 @@ class TestDuplicateBlockError:
         with gr.Blocks():
             io.render()
             io2.render()
+
+
+@pytest.mark.asyncio
+async def test_cancel_function(capsys):
+    async def long_job():
+        await asyncio.sleep(10)
+        print("HELLO FROM LONG JOB")
+
+    with gr.Blocks():
+        button = gr.Button(value="Start")
+        click = button.click(long_job, None, None)
+        cancel = gr.Button(value="Cancel")
+        cancel.click(None, None, None, cancels=[click])
+        cancel_fun, _ = gradio.events.get_cancel_function(dependencies=[click])
+
+    task = asyncio.create_task(long_job())
+    task.set_name("foo_0")
+    # If cancel_fun didn't cancel long_job the message would be printed to the console
+    # The test would also take 10 seconds
+    await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+    captured = capsys.readouterr()
+    assert "HELLO FROM LONG JOB" not in captured.out
+
+
+def test_raise_exception_if_cancelling_an_event_thats_not_queued():
+    def iteration(a):
+        yield a
+
+    msg = "In order to cancel an event, the queue for that event must be enabled!"
+    with pytest.raises(ValueError, match=msg):
+        gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
+            prevent_thread_lock=True
+        )
+
+    with pytest.raises(ValueError, match=msg):
+        with gr.Blocks() as demo:
+            button = gr.Button(value="Predict")
+            click = button.click(None, None, None)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+        demo.launch(prevent_thread_lock=True)
+
+    with pytest.raises(ValueError, match=msg):
+        with gr.Blocks() as demo:
+            button = gr.Button(value="Predict")
+            click = button.click(None, None, None, queue=False)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+        demo.queue().launch(prevent_thread_lock=True)
 
 
 if __name__ == "__main__":

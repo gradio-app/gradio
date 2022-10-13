@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import time
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 import fastapi
-import requests
 from pydantic import BaseModel
 
 from gradio.utils import Request, run_coro_in_background
@@ -315,8 +313,8 @@ class Event:
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index = None
-        self.session_hash = None
+        self.fn_index = 0
+        self.session_hash = "foo"
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)

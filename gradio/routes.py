@@ -98,7 +98,7 @@ class App(FastAPI):
         self.blocks: Optional[gradio.Blocks] = None
         self.state_holder = {}
         self.iterators = defaultdict(dict)
-
+        self.lock = asyncio.Lock()
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -264,7 +264,7 @@ class App(FastAPI):
         async def reset_iterator(body: ResetBody):
             if body.session_hash not in app.iterators:
                 return {"success": False}
-            async with asyncio.Lock():
+            async with app.lock:
                 app.iterators[body.session_hash][body.fn_index] = None
                 app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
             return {"success": True}
