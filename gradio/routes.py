@@ -289,6 +289,8 @@ class App(FastAPI):
                 )
             return output
 
+        @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
+        @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
@@ -302,7 +304,7 @@ class App(FastAPI):
                 if body.fn_index is None:
                     return JSONResponse(
                         content={
-                            "error": f"This app has no endpoint /api/{api_name}/."
+                            "error": f"This app has no endpoint /run/{api_name}/."
                         },
                         status_code=500,
                     )

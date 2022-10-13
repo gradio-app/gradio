@@ -359,7 +359,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
             if component._id not in outputs_ids:
-                raise ValueError(
+                return ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
             output_index = outputs_ids.index(component._id)
@@ -483,18 +483,6 @@ class Blocks(BlockContext):
                 .strip(),
             }
             utils.initiated_analytics(data)
-
-    @property
-    def share(self):
-        return self._share
-
-    @share.setter
-    def share(self, value: Optional[bool]):
-        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
-        if value is None:
-            self._share = True if utils.colab_check() else False
-        else:
-            self._share = value
 
     @classmethod
     def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
@@ -972,7 +960,7 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: Optional[bool] = None,
+        share: bool = False,
         debug: bool = False,
         enable_queue: bool = None,
         max_threads: int = 40,
@@ -1113,16 +1101,17 @@ class Blocks(BlockContext):
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
         is_colab = utils.colab_check()
-        if is_colab or (_frontend and not networking.url_ok(self.local_url)):
+        if is_colab and not quiet:
+            if debug:
+                print(strings.en["COLAB_DEBUG_TRUE"])
+            else:
+                print(strings.en["COLAB_DEBUG_FALSE"])
+
+        if _frontend and not networking.url_ok(self.local_url):
             if not self.share:
                 raise ValueError(
-                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
+                    "When localhost is not accessible, a shareable link must be created. Please set share=True."
                 )
-            if is_colab and not quiet:
-                if debug:
-                    print(strings.en["COLAB_DEBUG_TRUE"])
-                else:
-                    print(strings.en["COLAB_DEBUG_FALSE"])
         else:
             print(
                 strings.en["RUNNING_LOCALLY_SEPARATED"].format(
