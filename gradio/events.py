@@ -466,6 +466,7 @@ class Streamable(Block):
             queue=queue,
         )
 
+
 class Blurrable(Block):
     def blur(
         self,
