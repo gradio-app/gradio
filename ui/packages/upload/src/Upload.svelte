@@ -21,23 +21,10 @@
 	};
 
 	const openFileUpload = () => {
-		console.log("Hit1")
 		if (!click) return;
-		console.log("Hit2")
 		if (disable_click) return;
-		console.log("Hit3")
-		disable_click = true;
-//		hidden_upload.click();
+		hidden_upload.click();
 	};
-
-	document.body.onkeyup = function(e) {
-		if (e.key == " " ||
-			e.code == "Space" ||      
-			e.keyCode == 32      
-		) {
-			hidden_upload.click()
-		}
-	}
 
 	const loadFiles = (files: FileList) => {
 		let _files: Array<File> = Array.from(files);

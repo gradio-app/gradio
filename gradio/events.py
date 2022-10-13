@@ -474,7 +474,6 @@ class Blurrable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -519,7 +518,6 @@ class Loadable(Block):
         inputs: List[Component],
         outputs: List[Component],
         api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
@@ -528,7 +526,7 @@ class Loadable(Block):
         _js: Optional[str] = None,
     ):
         """
-        This event is triggered when the user uploads something into the component. This method can be used when this component is in a Gradio Blocks.
+        This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component). This method can be used when this component is in a Gradio Blocks.
 
         Parameters:
             fn: Callable function
