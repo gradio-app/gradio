@@ -20,7 +20,7 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
-from gradio.blocks import Blocks
+from gradio.blocks import Blocks, update
 from gradio.components import (
     Button,
     Component,
@@ -177,6 +177,8 @@ class Interface(Blocks):
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
+        stop_btn_color = "#stop-btn {background: red}"
+        css = css + stop_btn_color if css else stop_btn_color
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="interface",
@@ -472,6 +474,16 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear")
                                 if not self.live:
                                     submit_btn = Button("Submit", variant="primary")
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    if inspect.isgeneratorfunction(fn):
+                                        stop_btn = Button(
+                                            "Stop", visible=False, elem_id="stop-btn"
+                                        )
+
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Submit", variant="primary")
@@ -491,6 +503,15 @@ class Interface(Blocks):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")
+                                if inspect.isgeneratorfunction(fn):
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    stop_btn = Button(
+                                        "Stop", visible=False, elem_id="stop-btn"
+                                    )
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -535,7 +556,7 @@ class Interface(Blocks):
                                 postprocess=not (self.api_mode),
                             )
             else:
-                submit_btn.click(
+                pred = submit_btn.click(
                     self.fn,
                     self.input_components,
                     self.output_components,
@@ -544,6 +565,27 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                 )
+                if inspect.isgeneratorfunction(fn):
+                    submit_btn.click(
+                        lambda: {
+                            submit_btn: update(visible=False),
+                            stop_btn: update(visible=True),
+                        },
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                    )
+                    stop_btn.click(
+                        lambda: {
+                            submit_btn: update(visible=True),
+                            stop_btn: update(visible=False),
+                        },
+                        inputs=None,
+                        outputs=[submit_btn, stop_btn],
+                        queue=False,
+                        cancels=[pred],
+                    )
+
             clear_btn.click(
                 None,
                 [],

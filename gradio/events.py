@@ -20,27 +20,16 @@ def get_cancel_function(
         )
         fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
 
-    async def cancel(session_hash: str):
-        from gradio.components import _Keywords
+    async def cancel(session_hash: str) -> None:
 
-        output = {}
-        for comps in fn_to_comp.values():
-            for comp in comps:
-                output[comp] = update(value=_Keywords.NO_VALUE)
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
 
-        for task in asyncio.all_tasks():
-            if task.get_name() in task_ids:
-                matching_id = None
-                for id_ in task_ids:
-                    if task.get_name() == id_:
-                        matching_id = id_
-                fn_index_ = int(matching_id.split("_")[1])
-                task.cancel()
-                await asyncio.gather(task, return_exceptions=True)
-                for comp in fn_to_comp[fn_index_]:
-                    output[comp] = update(value=None)
-        return output
+        matching_tasks = [
+            task for task in asyncio.all_tasks() if task.get_name() in task_ids
+        ]
+        for task in matching_tasks:
+            task.cancel()
+        await asyncio.gather(*matching_tasks, return_exceptions=True)
 
     return (
         cancel,
@@ -56,7 +45,7 @@ def set_cancel_events(block: Block, event_name: str, cancels: List[Dict[str, Any
             event_name,
             cancel_fn,
             inputs=None,
-            outputs=output,
+            outputs=None,
             queue=False,
             preprocess=False,
             cancels=fn_indices_to_cancel,
@@ -93,6 +82,7 @@ class Changeable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -147,6 +137,7 @@ class Clickable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -202,6 +193,7 @@ class Submittable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -256,6 +248,7 @@ class Editable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -310,6 +303,7 @@ class Clearable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -364,6 +358,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -416,6 +411,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -468,6 +464,7 @@ class Playable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -522,6 +519,7 @@ class Streamable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
@@ -561,6 +559,7 @@ class Blurrable(Block):
         queue: Optional[bool] = None,
         preprocess: bool = True,
         postprocess: bool = True,
+        cancels: List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -576,6 +575,7 @@ class Blurrable(Block):
             queue: If True, will place the request on the queue, if the queue exists
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
+            cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
@@ -592,3 +592,4 @@ class Blurrable(Block):
             postprocess=postprocess,
             queue=queue,
         )
+        set_cancel_events(self, "blur", cancels)
