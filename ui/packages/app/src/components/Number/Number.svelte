@@ -30,5 +30,6 @@
 		disabled={mode === "static"}
 		on:change
 		on:submit
+		on:blur
 	/>
 </Block>
