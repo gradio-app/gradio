@@ -69,6 +69,8 @@
 		ended: undefined;
 		drag: boolean;
 		error: string;
+		load: FileData;
+		clear: undefined;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -192,6 +194,7 @@
 
 	function clear() {
 		dispatch("change");
+		dispatch("clear");
 		mode = "";
 		value = null;
 	}
@@ -241,6 +244,7 @@
 	}) {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
+		dispatch("load", detail);
 	}
 
 	export let dragging = false;

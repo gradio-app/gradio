@@ -24,6 +24,7 @@
 		value = detail;
 		await tick();
 		dispatch("change", value);
+		dispatch("load", detail);
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -36,6 +37,7 @@
 		change: FileData | null;
 		clear: undefined;
 		drag: boolean;
+		load: FileData;
 	}>();
 
 	let dragging = false;

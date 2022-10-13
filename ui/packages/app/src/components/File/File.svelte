@@ -45,6 +45,7 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change
 			on:clear
+			on:load
 			drop_text={$_("interface.drop_file")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}

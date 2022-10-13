@@ -27,10 +27,12 @@
 		ended: undefined;
 		drag: boolean;
 		error: string;
+		load: FileData;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
 		dispatch("change", detail);
+		dispatch("load", detail!);
 		value = detail;
 	}
 
