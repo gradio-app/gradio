@@ -12,9 +12,9 @@ import warnings
 import webbrowser
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
-import pkg_resources
 
 import anyio
+import pkg_resources
 import requests
 from anyio import CapacityLimiter
 
@@ -360,7 +360,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
             if component._id not in outputs_ids:
-                return ValueError(
+                raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
             output_index = outputs_ids.index(component._id)
@@ -961,7 +961,7 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: bool = False,
+        share: Optional[bool] = None,
         debug: bool = False,
         enable_queue: bool = None,
         max_threads: int = 40,
@@ -1052,7 +1052,6 @@ class Blocks(BlockContext):
             self.queue()
 
         self.config = self.get_config_file()
-        self.share = share
         self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
@@ -1099,20 +1098,30 @@ class Blocks(BlockContext):
                     )
         utils.launch_counter()
 
+        self.is_colab = utils.colab_check()
+        self.share = (
+            share
+            if share is not None
+            else True
+            if self.is_colab and self.enable_queue
+            else False
+        )
+
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
 
-        self.is_colab = utils.colab_check()
         if self.is_colab and not quiet:
             if debug:
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
 
-        if _frontend and not networking.url_ok(self.local_url):
+        if (self.is_colab and not self.share) or (
+            _frontend and not networking.url_ok(self.local_url)
+        ):
             if not self.share:
                 raise ValueError(
-                    "When localhost is not accessible, a shareable link must be created. Please set share=True."
+                    "When using queueing in Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
                 )
         else:
             print(
@@ -1162,14 +1171,13 @@ class Blocks(BlockContext):
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
-                        time.sleep(1)
+                        time.sleep(0.2)
                     display(
                         HTML(
                             f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
-                # elif self.is_colab:
-                elif True:
+                elif self.is_colab:
                     with open(
                         pkg_resources.resource_filename(
                             "gradio", "templates/colab.html"
