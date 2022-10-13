@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { get_styles } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: string = "";
-	export let style: Styles = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
@@ -21,10 +18,15 @@
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;
+		blur: undefined;
 	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);
+	}
+
+	function handle_blur(e: FocusEvent) {
+		dispatch("blur");
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
@@ -84,8 +86,6 @@
 			destroy: () => el.removeEventListener("input", resize)
 		};
 	}
-
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -96,24 +96,26 @@
 		<input
 			data-testid="textbox"
 			type="text"
-			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
+			class="scroll-hide block gr-box gr-input w-full gr-text-input"
 			bind:value
 			bind:this={el}
 			{placeholder}
 			{disabled}
 			on:keypress={handle_keypress}
+			on:blur={handle_blur}
 		/>
 	{:else}
 		<textarea
 			data-testid="textbox"
 			use:text_area_resize={value}
-			class="scroll-hide block gr-box gr-input w-full gr-text-input {classes}"
+			class="scroll-hide block gr-box gr-input w-full gr-text-input"
 			bind:value
 			bind:this={el}
 			{placeholder}
 			rows={lines}
 			{disabled}
 			on:keypress={handle_keypress}
+			on:blur={handle_blur}
 		/>
 	{/if}
 </label>

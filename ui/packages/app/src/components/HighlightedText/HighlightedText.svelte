@@ -31,7 +31,6 @@
 	{visible}
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
-	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 	{#if label}

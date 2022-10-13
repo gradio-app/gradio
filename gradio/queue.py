@@ -116,11 +116,11 @@ class Queue:
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
-
+            
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
                 run_coro_in_background(self.process_events, events, batch)
-                run_coro_in_background(self.gather_data_and_broadcast_estimations)
+                run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
         """
@@ -140,11 +140,10 @@ class Queue:
             async with self.delete_lock:
                 self.event_queue.remove(event)
 
-    async def gather_data_and_broadcast_estimations(self) -> None:
+    async def broadcast_live_estimations(self) -> None:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
-        await self.gather_data_for_first_ranks()
         if self.live_updates:
             await self.broadcast_estimations()
 
@@ -320,13 +319,14 @@ class Queue:
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
         finally:
-            try:
-                for event in awake_events:
+            for event in awake_events:
+                try:
                     await event.disconnect()
-            finally:
-                self.active_jobs[self.active_jobs.index(events)] = None
-                for event in awake_events:
-                    await self.clean_event(event)
+                except Exception:
+                    pass
+            self.active_jobs[self.active_jobs.index(events)] = None
+            for event in awake_events:
+                await self.clean_event(event)
 
     async def send_message(self, event, data: Dict) -> bool:
         try:

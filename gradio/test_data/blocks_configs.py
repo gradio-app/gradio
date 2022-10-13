@@ -35,7 +35,12 @@ XRAY_CONFIG = {
         {
             "id": 31,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 32,
@@ -76,7 +81,12 @@ XRAY_CONFIG = {
         {
             "id": 36,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 37,
@@ -251,7 +261,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 31,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 32,
@@ -292,7 +307,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 36,
             "type": "row",
-            "props": {"type": "row", "visible": True, "style": {}},
+            "props": {
+                "type": "row",
+                "variant": "default",
+                "visible": True,
+                "style": {},
+            },
         },
         {
             "id": 37,
@@ -475,7 +495,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "style": {}, "value": True},
+            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
         },
         {
             "id": 6,
@@ -521,7 +541,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "style": {}, "value": True},
+            "props": {"type": "row", "variant": "default", "style": {}, "value": True},
         },
         {
             "id": 11,

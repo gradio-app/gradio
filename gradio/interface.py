@@ -698,7 +698,7 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
-    Demos: sst_or_tts
+    Demos: stt_or_tts
     """
 
     def __init__(

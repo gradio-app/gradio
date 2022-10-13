@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 import anyio
 
 from gradio import utils
-from gradio.blocks import convert_update_dict_to_list, postprocess_update_dict
+from gradio.blocks import convert_component_dict_to_list, postprocess_update_dict
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -32,14 +32,16 @@ set_documentation_group("component-helpers")
 def create_examples(
     examples: List[Any] | List[List[Any]] | str,
     inputs: IOComponent | List[IOComponent],
-    outputs: Optional[IOComponent | List[IOComponent]] = None,
-    fn: Optional[Callable] = None,
+    outputs: IOComponent | List[IOComponent] | None = None,
+    fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
     _api_mode: bool = False,
-    label: Optional[str] = None,
-    elem_id: Optional[str] = None,
+    label: str | None = None,
+    elem_id: str | None = None,
     run_on_click: bool = False,
+    preprocess: bool = True,
+    postprocess: bool = True,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -53,6 +55,8 @@ def create_examples(
         label=label,
         elem_id=elem_id,
         run_on_click=run_on_click,
+        preprocess=preprocess,
+        postprocess=postprocess,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -83,6 +87,8 @@ class Examples:
         label: str = "Examples",
         elem_id: Optional[str] = None,
         run_on_click: bool = False,
+        preprocess: bool = True,
+        postprocess: bool = True,
         _initiated_directly: bool = True,
     ):
         """
@@ -96,6 +102,8 @@ class Examples:
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
         """
         if _initiated_directly:
             warnings.warn(
@@ -176,6 +184,8 @@ class Examples:
         self.cache_examples = cache_examples
         self.examples_per_page = examples_per_page
         self._api_mode = _api_mode
+        self.preprocess = preprocess
+        self.postprocess = postprocess
 
         with utils.set_directory(working_directory):
             self.processed_examples = [
@@ -265,7 +275,7 @@ class Examples:
             example_id: The id of the example to process (zero-indexed).
         """
         processed_input = self.processed_examples[example_id]
-        if not self._api_mode:
+        if self.preprocess and not self._api_mode:
             processed_input = [
                 input_component.preprocess(processed_input[i])
                 for i, input_component in enumerate(self.inputs_with_examples)
@@ -277,19 +287,21 @@ class Examples:
 
         output_ids = [output._id for output in self.outputs]
         if type(predictions) is dict and len(predictions) > 0:
-            predictions = convert_update_dict_to_list(output_ids, predictions)
+            predictions = convert_component_dict_to_list(output_ids, predictions)
 
         if len(self.outputs) == 1:
             predictions = [predictions]
         if not self._api_mode:
             predictions_ = []
             for i, output_component in enumerate(self.outputs):
+                output = predictions[i]
                 if utils.is_update(predictions[i]):
-                    predictions_.append(
-                        postprocess_update_dict(output_component, predictions[i])
+                    output = postprocess_update_dict(
+                        output_component, output, self.postprocess
                     )
-                else:
-                    predictions_.append(output_component.postprocess(predictions[i]))
+                elif self.postprocess:
+                    output = output_component.postprocess(output)
+                predictions_.append(output)
             predictions = predictions_
         return predictions
 

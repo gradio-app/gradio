@@ -27,9 +27,9 @@
 		bind:value
 		{label}
 		{show_label}
-		{style}
 		disabled={mode === "static"}
 		on:change
 		on:submit
+		on:blur
 	/>
 </Block>

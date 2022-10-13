@@ -30,17 +30,17 @@ test("test inputs", async ({ page }) => {
 	await mock_demo(page, "kitchen_sink");
 	await page.goto("http://localhost:3000");
 
-	const textbox = await page.locator("label:has-text('Textbox')").nth(0);
+	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
 
 	await textbox.fill("hello world");
 	await expect(textbox).toHaveValue("hello world");
 
-	const textbox2 = await page.locator("label:has-text('Textbox 2')");
+	const textbox2 = await page.getByLabel("Textbox 2");
 	await textbox2.fill("hello world");
 	await expect(textbox2).toHaveValue("hello world");
 
-	const number = await page.locator("label:has-text('Number')");
+	const number = await page.getByLabel("Number");
 	await expect(number).toHaveValue("42");
 	await number.fill("10");
 	await expect(number).toHaveValue("10");
@@ -218,10 +218,10 @@ test("test outputs", async ({ page }) => {
 		page.waitForResponse("**/api/predict/")
 	]);
 
-	const textbox = await page.locator("label:has-text('Textbox')").nth(2);
+	const textbox = await page.getByLabel("Textbox").nth(2);
 	await expect(textbox).toHaveValue("the quick brown fox, selected:foo, baz");
 
-	const label = await page.locator("data-testid=label");
+	const label = await page.getByTestId("label");
 	await expect(label).toContainText(`negative
     negative
     46%
@@ -231,10 +231,10 @@ test("test outputs", async ({ page }) => {
     15%`);
 
 	const highlight_text_color_map = await page
-		.locator("data-testid=highlighted-text")
+		.getByTestId("highlighted-text")
 		.nth(0);
 	const highlight_text_legend = await page
-		.locator("data-testid=highlighted-text")
+		.getByTestId("highlighted-text")
 		.nth(1);
 	await expect(highlight_text_color_map).toContainText(
 		"  HighlightedText  The art quick brown adj fox nn jumped vrb testing testing testing  over prp the art testing  lazy adj dogs nn . punc test 0 test 0 test 1 test 1 test 2 test 2 test 3 test 3 test 4 test 4 test 5 test 5 test 6 test 6 test 7 test 7 test 8 test 8 test 9 test 9"

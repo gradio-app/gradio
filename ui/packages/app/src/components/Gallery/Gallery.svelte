@@ -7,22 +7,29 @@
 	import type { Styles } from "@gradio/utils";
 	import { get_styles } from "@gradio/utils";
 	import { Image } from "@gradio/icons";
+	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
+	export let root: string;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<string | [string, string]> | null = null;
+	export let value: Array<string> | Array<FileData> | null = null;
 	export let style: Styles = {};
 
 	$: _value =
 		value === null
 			? null
-			: value.map((img) => (Array.isArray(img) ? img : [img, null]));
+			: value.map((img) =>
+					Array.isArray(img)
+						? [normalise_file(img[0], root), img[1]]
+						: [normalise_file(img, root), null]
+			  );
 
-	let prevValue: Array<string | [string, string]> | null = null;
+	let prevValue: string[] | FileData[] | null = null;
 	let selected_image: number | null = null;
 	$: if (prevValue !== value) {
 		selected_image = null;
@@ -105,7 +112,7 @@
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	{#if _value === null}
+	{#if value === null || _value === null}
 		<div class="h-full min-h-[15rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><Image /></div>
 		</div>
@@ -122,8 +129,8 @@
 
 				<img
 					on:click={() => (selected_image = next)}
-					class="w-full object-contain h-full"
-					src={_value[selected_image][0]}
+					class="w-full object-contain h-[calc(100%-50px)"
+					src={_value[selected_image][0].data}
 					alt={_value[selected_image][1] || ""}
 					title={_value[selected_image][1] || null}
 					style="height: calc(100% - {_value[selected_image][1]
@@ -154,7 +161,7 @@
 						>
 							<img
 								class="h-full w-full overflow-hidden object-contain"
-								src={image[0]}
+								src={image[0].data}
 								title={image[1] || null}
 								alt={image[1] || null}
 							/>
@@ -185,7 +192,7 @@
 							<img
 								alt=""
 								class="h-full w-full overflow-hidden object-contain"
-								src={image}
+								src={typeof image === "string" ? image : image.data}
 							/>
 							{#if caption}
 								<div class="bottom-0 absolute z-[5] flex justify-end w-full">
