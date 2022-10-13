@@ -1,4 +1,5 @@
 import os
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -162,6 +163,10 @@ class TestQueueEstimation:
 
 
 class TestQueueProcessEvents:
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Mocks of async context manager don't work for 3.7",
+    )
     @pytest.mark.asyncio
     @patch("gradio.queue.Request", new_callable=AsyncMock)
     async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
@@ -256,6 +261,10 @@ class TestQueueProcessEvents:
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Mocks of async context manager don't work for 3.7",
+    )
     @pytest.mark.asyncio
     @patch("gradio.queue.Request", new_callable=AsyncMock)
     async def test_process_event_handles_exception_during_disconnect(
