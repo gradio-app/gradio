@@ -41,7 +41,7 @@
 }
 
 .gr-panel {
-	@apply p-2 bg-gray-50 dark:bg-gray-900 rounded-lg;
+	@apply p-2 bg-gray-100 dark:bg-gray-900 rounded-lg;
 }
 
 .gr-box-sm {
@@ -73,7 +73,7 @@
 }
 
 .gr-button {
-	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white dark:bg-gray-700 dark:border-gray-600 active:shadow-inner text-center px-2 py-0.5 rounded text-sm;
+	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white dark:bg-gray-600 dark:border-gray-600 active:shadow-inner text-center px-2 py-0.5 rounded text-sm;
 }
 
 .gr-button-primary {
@@ -121,11 +121,11 @@
 	.gr-sample-number,
 	.gr-sample-audio,
 	.gr-sample-3d {
-		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left dark:hover:bg-gray-800 dark:bg-transparent;
+		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-sm text-left dark:hover:bg-gray-800 dark:bg-transparent;
 	}
 
 	.gr-sample-dataframe {
-		@apply overflow-hidden items-center border border-collapse cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left dark:hover:bg-gray-800 dark:bg-transparent;
+		@apply overflow-hidden items-center border border-collapse cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-sm text-left dark:hover:bg-gray-800 dark:bg-transparent;
 	}
 }
 

@@ -91,7 +91,7 @@
 
 /* docs */
 .selected-demo {
-  @apply font-semibold bg-gray-50 rounded text-orange-500;
+  @apply font-semibold bg-gray-100 rounded text-orange-500;
 }
 code.language-python {
   @apply !leading-7 !whitespace-pre-wrap !break-all;

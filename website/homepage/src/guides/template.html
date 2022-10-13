@@ -51,7 +51,7 @@
         <div class="flex justify-between mt-4">
           {% if prev_guide is not none %}
             <a href="{{ prev_guide['url'] }}"
-               class="text-left p-4 bg-gray-50 hover:underline">
+               class="text-left p-4 bg-gray-100 hover:underline">
               <div class="text-gray-600 block">&lt; Previous</div>
               <div class="text-lg font-semibold">{{ prev_guide['pretty_name'] }}</div>
             </a>
@@ -60,7 +60,7 @@
           {% endif %}
           {% if next_guide is not none %}
             <a href="{{ next_guide['url'] }}"
-               class="text-right p-4 bg-gray-50 hover:underline">
+               class="text-right p-4 bg-gray-100 hover:underline">
               <div class="text-gray-600 block">Next &gt;</div>
               <div class="text-lg font-semibold">{{ next_guide['pretty_name'] }}</div>
             </a>

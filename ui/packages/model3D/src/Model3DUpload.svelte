@@ -115,7 +115,7 @@
 	</Upload>
 {:else}
 	<div
-		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+		class="input-model w-full h-60 flex justify-center items-center bg-gray-100 dark:bg-gray-600 relative"
 	>
 		<ModifyUpload on:clear={handle_clear} absolute />
 		<canvas class="w-full h-full object-contain" bind:this={canvas} />

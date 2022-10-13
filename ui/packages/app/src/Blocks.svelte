@@ -414,7 +414,7 @@
 	function darkmode() {
 		target.classList.add("dark");
 		if (app_mode) {
-			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
+			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-900 for scrolling outside the body
 		}
 	}
 
@@ -437,7 +437,7 @@
 
 <div class="w-full flex flex-col" class:min-h-screen={app_mode}>
 	<div
-		class="mx-auto container px-4 py-6 dark:bg-gray-950"
+		class="mx-auto container px-4 py-6 dark:bg-gray-900"
 		class:flex-grow={app_mode}
 	>
 		{#if api_docs_visible}

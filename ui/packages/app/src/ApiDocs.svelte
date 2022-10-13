@@ -27,7 +27,7 @@
 			{#each dependencies as dependency, d}
 				{#if dependency.documentation}
 					<div
-						class="bg-gray-50 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 p-6 rounded"
+						class="bg-gray-100 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 p-6 rounded"
 					>
 						<h3 class="text-3xl text-amber-500 font-semibold mb-2">
 							POST /api/{dependency.api_name}
@@ -37,7 +37,7 @@
 								>{root}api/{dependency.api_name}</span
 							>
 							<button
-								class="ml-1 px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700"
+								class="ml-1 px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-600"
 								on:click={() => {
 									navigator.clipboard.writeText(
 										root + "api/" + dependency.api_name
@@ -53,7 +53,7 @@
 						</div>
 						<h4 class="text-2xl mt-6 mb-4">Input Payload</h4>
 						<div
-							class="block mb-4 text-lg bg-gray-100 dark:bg-gray-700 p-4 font-mono"
+							class="block mb-4 text-lg bg-gray-100 dark:bg-gray-600 p-4 font-mono"
 						>
 							&#123;<br />
 							&nbsp;&nbsp;"data": [<br />
@@ -80,7 +80,7 @@
 						</div>
 						<h4 class="text-2xl mt-6 mb-4">Response Object</h4>
 						<div
-							class="block mb-4 text-lg bg-gray-100 dark:bg-gray-700 p-4 font-mono"
+							class="block mb-4 text-lg bg-gray-100 dark:bg-gray-600 p-4 font-mono"
 						>
 							&#123;<br />
 							&nbsp;&nbsp;"data": [<br />

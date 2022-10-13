@@ -208,7 +208,7 @@ export const create_classes = (
 		case "black":
 			classes.push(
 				"!bg-gray-100 !from-gray-100 !to-gray-200 !border-gray-300",
-				"dark:!bg-gray-700 dark:!from-gray-700 dark:!to-gray-800 dark:!border-gray-900"
+				"dark:!bg-gray-600 dark:!from-gray-700 dark:!to-gray-800 dark:!border-gray-900"
 			);
 		case "pink":
 			classes.push(

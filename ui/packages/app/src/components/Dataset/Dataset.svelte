@@ -122,7 +122,7 @@
 				<tbody>
 					{#each component_meta as sample_row, i}
 						<tr
-							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
+							class="group cursor-pointer odd:bg-gray-100 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-600"
 							on:click={() => {
 								value = i + page * samples_per_page;
 								dispatch("click", value);

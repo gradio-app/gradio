@@ -54,7 +54,7 @@
 			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
 		}
 		.checkbox-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white;
+			@apply bg-amber-600 dark:bg-red-600 text-white;
 		}
 	}
 </style>

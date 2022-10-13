@@ -214,7 +214,7 @@
 	}
 
 	.progress-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-600 top-0 left-0 z-10 opacity-80;
 	}
 
 	.meta-text {

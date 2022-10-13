@@ -8,7 +8,7 @@
 
 <div class="login container mt-8">
 	<form
-		class="mx-auto p-4 bg-gray-50 shadow-md w-1/2"
+		class="mx-auto p-4 bg-gray-100 shadow-md w-1/2"
 		id="login"
 		method="POST"
 		action={root + "login"}
@@ -23,7 +23,7 @@
 		<input class="p-2 block" type="password" name="password" />
 		<input
 			type="submit"
-			class="block bg-amber-500 hover:bg-amber-400 dark:hover:bg-amber-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
+			class="block bg-amber-600 hover:bg-amber-400 dark:hover:bg-amber-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
 		/>
 	</form>
 </div>

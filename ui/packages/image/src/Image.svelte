@@ -156,7 +156,7 @@
 />
 
 <div
-	class:bg-gray-200={value}
+	class:bg-gray-100={value}
 	class:h-60={source !== "webcam" ||
 		tool === "sketch" ||
 		tool === "color-sketch"}

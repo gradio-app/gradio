@@ -64,7 +64,7 @@
 <div class="input-image">
 	<BlockTitle>{label}</BlockTitle>
 	<div
-		class="image-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+		class="image-preview w-full h-60 flex justify-center items-center bg-gray-100 dark:bg-gray-600 relative"
 	>
 		<!-- svelte-ignore a11y-missing-attribute -->
 		<div
