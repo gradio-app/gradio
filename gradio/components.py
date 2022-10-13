@@ -45,10 +45,10 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
+    Loadable,
     Playable,
     Streamable,
     Submittable,
-    Loadable,
 )
 from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
@@ -1197,7 +1197,9 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change", "style")
-class Image(Editable, Clearable, Changeable, Streamable, Loadable, IOComponent, ImgSerializable):
+class Image(
+    Editable, Clearable, Changeable, Streamable, Loadable, IOComponent, ImgSerializable
+):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1717,7 +1719,9 @@ class Video(Changeable, Clearable, Playable, Loadable, IOComponent, FileSerializ
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, Loadable, IOComponent, FileSerializable):
+class Audio(
+    Changeable, Clearable, Playable, Streamable, Loadable, IOComponent, FileSerializable
+):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`

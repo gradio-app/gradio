@@ -511,6 +511,7 @@ class Blurrable(Block):
             queue=queue,
         )
 
+
 class Loadable(Block):
     def load(
         self,
