@@ -116,7 +116,7 @@ class Queue:
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
-            
+
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
                 run_coro_in_background(self.process_events, events, batch)

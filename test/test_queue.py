@@ -259,6 +259,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
 
+
 class TestQueueBatch:
     @pytest.mark.asyncio
     async def test_process_event(self, queue: Queue, mock_event: Event):
@@ -302,6 +303,7 @@ class TestQueueBatch:
         queue.clean_event = AsyncMock()
         mock_event.data = None
         await queue.process_event(mock_event)
+
 
 class TestGetEventsInBatch:
     def test_empty_event_queue(self, queue: Queue):
