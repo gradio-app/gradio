@@ -8,7 +8,7 @@ import csv
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from gradio import utils
 from gradio.components import Dataset
@@ -17,8 +17,8 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import IOComponent
     from gradio.blocks import Blocks
+    from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -224,6 +224,7 @@ class Examples:
     async def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
+
         async def load_example(example_id):
             if self.cache_examples:
                 processed_example = self.non_none_processed_examples[
@@ -248,9 +249,9 @@ class Examples:
                     inputs=self.inputs,
                     outputs=self.outputs,
                 )
-                
+
         if self.cache_examples:
-                await self.cache() 
+            await self.cache()
 
     async def cache(self) -> None:
         """
@@ -263,10 +264,10 @@ class Examples:
         else:
             if Context.root_block is None:
                 raise ValueError("Cannot cache examples if not in a Blocks context")
-            
+
             print(f"Caching examples at: '{os.path.abspath(self.cached_file)}'")
             cache_logger = CSVLogger()
-            
+
             # create a fake dependency to process the examples and get the predictions
             dependency = Context.root_block.set_event_trigger(
                 event_name="fake_event",
@@ -274,14 +275,16 @@ class Examples:
                 inputs=self.inputs_with_examples,
                 outputs=self.outputs,
                 preprocess=self.preprocess and not self._api_mode,
-                postprocess=self.postprocess and not self._api_mode
+                postprocess=self.postprocess and not self._api_mode,
             )
-            
+
             fn_index = Context.root_block.dependencies.index(dependency)
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 processed_input = self.processed_examples[example_id]
-                prediction = await Context.root_block.process_api(fn_index, processed_input)
+                prediction = await Context.root_block.process_api(
+                    fn_index, processed_input
+                )
                 cache_logger.flag(prediction["data"])
 
     async def load_from_cache(self, example_id: int) -> List[Any]:

@@ -120,7 +120,7 @@ class Clickable(Block):
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
-        )        
+        )
 
 
 class Submittable(Block):
