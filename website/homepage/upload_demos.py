@@ -29,9 +29,6 @@ def upload_demo_to_space(
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path(GRADIO_DEMO_DIR, demo_name)
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
-        app_file = pathlib.Path(tmpdir, "run.py")
-        # Rename the app file to be app.py
-        app_file.rename(app_file.with_name('app.py'))
         if gradio_version:
             readme = pathlib.Path(tmpdir, "README.md")
             readme_content = f"""
@@ -42,7 +39,7 @@ def upload_demo_to_space(
                                 colorTo: indigo
                                 sdk: gradio
                                 sdk_version: {gradio_version}
-                                app_file: app.py
+                                app_file: run.py
                                 pinned: false
                                 ---
                                 """
