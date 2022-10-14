@@ -10,7 +10,7 @@
   - they are not set as the input or output of an event,
   - `interactive` kwarg is not set. 
 
-[@pngwn](https://github.com/pngwn) in [PR 2459](https://github.com/gradio-app/gradio/pull/2459)
+  [@pngwn](https://github.com/pngwn) in [PR 2459](https://github.com/gradio-app/gradio/pull/2459)
 
 ## New Features:
 
