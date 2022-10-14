@@ -86,6 +86,11 @@
 	dark:from-gray-600 dark:to-gray-700 dark:hover:to-gray-600 dark:text-white dark:border-gray-600;
 }
 
+.gr-button-stop {
+	@apply from-red-200/70 to-red-300/80 hover:to-red-200/90 text-red-600 border-red-200
+	  	 dark:from-red-700 dark:to-red-700 dark:hover:to-red-500 dark:text-white dark:border-red-600;
+}
+
 .gr-button-sm {
 	@apply px-3 py-1 text-sm rounded-md;
 }

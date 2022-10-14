@@ -20,7 +20,7 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
-from gradio.blocks import Blocks
+from gradio.blocks import Blocks, update
 from gradio.components import (
     Button,
     Component,
@@ -472,9 +472,19 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear")
                                 if not self.live:
                                     submit_btn = Button("Submit", variant="primary")
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    if inspect.isgeneratorfunction(fn):
+                                        stop_btn = Button("Stop", variant="stop")
+
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Submit", variant="primary")
+                                if inspect.isgeneratorfunction(fn) and not self.live:
+                                    stop_btn = Button("Stop", variant="stop")
                                 if self.allow_flagging == "manual":
                                     flag_btns = render_flag_btns(self.flagging_options)
 
@@ -491,6 +501,13 @@ class Interface(Blocks):
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")
+                                if inspect.isgeneratorfunction(fn) and not self.live:
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    stop_btn = Button("Stop", variant="stop")
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -535,7 +552,7 @@ class Interface(Blocks):
                                 postprocess=not (self.api_mode),
                             )
             else:
-                submit_btn.click(
+                pred = submit_btn.click(
                     self.fn,
                     self.input_components,
                     self.output_components,
@@ -544,6 +561,14 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                 )
+                if inspect.isgeneratorfunction(fn):
+                    stop_btn.click(
+                        None,
+                        inputs=None,
+                        outputs=None,
+                        cancels=[pred],
+                    )
+
             clear_btn.click(
                 None,
                 [],
