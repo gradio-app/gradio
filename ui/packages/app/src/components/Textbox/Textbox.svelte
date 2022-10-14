@@ -39,6 +39,7 @@
 		{placeholder}
 		on:change
 		on:submit
+		on:blur
 		disabled={mode === "static"}
 	/>
 </Block>

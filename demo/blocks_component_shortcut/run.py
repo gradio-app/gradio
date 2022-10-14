@@ -22,9 +22,9 @@ with gr.Blocks() as demo:
             text1 = gr.component("textarea")
             text2 = gr.TextArea()
             text3 = gr.templates.TextArea()
-    text1.change(greet, text1, text2)
-    text2.change(greet, text2, text3)
-    text3.change(greet, text3, text1)
+    text1.blur(greet, text1, text2)
+    text2.blur(greet, text2, text3)
+    text3.blur(greet, text3, text1)
     button = gr.component("button")
 
 if __name__ == "__main__":
