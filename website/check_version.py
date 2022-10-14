@@ -16,7 +16,6 @@ def is_version_up(version: str) -> bool:
             warnings.filterwarnings("ignore")
             r = requests.head(f"https://pypi.org/project/gradio/{version}/", timeout=3, verify=False)
         if r.status_code == 200:
-            print(version)
             return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
@@ -29,4 +28,11 @@ def wait_for_version(version: str):
             time.sleep(60)
     sys.exit(f"Could not find gradio v{version} on pypi: https://pypi.org/project/gradio/{version}/ does not exist")
 
+def check_not_prerelease(version: str): 
+    if requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"] == version:
+        return True
+    sys.exit(f"Did not restart: gradio v{version} is a prelease, or a later version exists.")
+
+
 wait_for_version(version)
+check_not_prerelease(version)
