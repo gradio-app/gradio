@@ -236,3 +236,27 @@ class TestProcessExamples:
                     examples=[["foo", None, None], ["bar", 2, 3]],
                     cache_examples=True,
                 )
+
+    @pytest.mark.asyncio
+    async def test_caching_with_batch(self):
+        def trim_words(words, lens):
+            trimmed_words = []
+            for w, l in zip(words, lens):
+                trimmed_words.append(w[:l])        
+            return [trimmed_words]
+        
+        io = gr.Interface(trim_words, ["textbox", gr.Number(precision=0)], ["textbox"], batch=True, max_batch_size=16, examples=[["hello", 3], ["hi", 4]], cache_examples=True)
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction == ['hel']
+        
+    @pytest.mark.asyncio
+    async def test_caching_with_batch_multiple_outputs(self):
+        def trim_words(words, lens):
+            trimmed_words = []
+            for w, l in zip(words, lens):
+                trimmed_words.append(w[:l])        
+            return trimmed_words, lens
+        
+        io = gr.Interface(trim_words, ["textbox", gr.Number(precision=0)], ["textbox", gr.Number(precision=0)], batch=True, max_batch_size=16, examples=[["hello", 3], ["hi", 4]], cache_examples=True)
+        prediction = await io.examples_handler.load_from_cache(0)
+        assert prediction == ['hel', '3']        
