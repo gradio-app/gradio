@@ -195,6 +195,7 @@ class Block:
                 ],
             ]
         Context.root_block.dependencies.append(dependency)
+        return dependency
 
     def get_config(self):
         return {
