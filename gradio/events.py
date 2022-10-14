@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 import warnings
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
@@ -21,6 +22,8 @@ def get_cancel_function(
         fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
 
     async def cancel(session_hash: str) -> None:
+        if sys.version_info < (3, 8):
+            return None
 
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
 

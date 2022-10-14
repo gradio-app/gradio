@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 import time
 from typing import Dict, List, Optional
 
@@ -84,7 +85,8 @@ class Queue:
 
             self.active_jobs[self.active_jobs.index(None)] = event
             task = run_coro_in_background(self.process_event, event)
-            task.set_name(f"{event.session_hash}_{event.fn_index}")
+            if sys.version_info >= (3, 8):
+                task.set_name(f"{event.session_hash}_{event.fn_index}")
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -239,6 +241,13 @@ class Queue:
                 )
             elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
+                    # Python 3.7 doesn't have named tasks.
+                    # In order to determine if a task was cancelled, we
+                    # ping the websocket to see if it was closed mid-iteration.
+                    if sys.version_info < (3, 8):
+                        is_alive = await self.send_message(event, {"msg": "alive?"})
+                        if not is_alive:
+                            return
                     old_response = response
                     await self.send_message(
                         event,
