@@ -1,7 +1,69 @@
 # Upcoming Release 
 
 ## New Features:
-* Enable running events to be cancelled from other events by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2433](https://github.com/gradio-app/gradio/pull/2433)
+
+### Cancelling Running Events
+Running events can be cancelled when other events are triggered! To test this feature, pass the `cancels` parameter to the event listener.
+For this feature to work, the queue must be enabled.
+
+![cancel_on_change_rl](https://user-images.githubusercontent.com/41651716/195952623-61a606bd-e82b-4e1a-802e-223154cb8727.gif)
+
+Code:
+```python
+import time
+import gradio as gr
+
+def fake_diffusion(steps):
+    for i in range(steps):
+        time.sleep(1)
+        yield str(i)
+
+def long_prediction(*args, **kwargs):
+    time.sleep(10)
+    return 42
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
+            run = gr.Button()
+            output = gr.Textbox(label="Iterative Output")
+            stop = gr.Button(value="Stop Iterating")
+        with gr.Column():
+            prediction = gr.Number(label="Expensive Calculation")
+            run_pred = gr.Button(value="Run Expensive Calculation")
+        with gr.Column():
+            cancel_on_change = gr.Textbox(label="Cancel Iteration and Expensive Calculation on Change")
+
+    click_event = run.click(fake_diffusion, n, output)
+    stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
+    pred_event = run_pred.click(fn=long_prediction, inputs=None, outputs=prediction)
+
+    cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])
+
+
+demo.queue(concurrency_count=1, max_size=20).launch()
+```
+
+For interfaces, a stop button will be added automatically if the function uses a `yield` statement.
+
+```python
+import gradio as gr
+import time
+
+def iteration(steps):
+    for i in range(steps):
+       time.sleep(0.5)
+       yield i
+
+gr.Interface(iteration,
+             inputs=gr.Slider(minimum=1, maximum=10, step=1, value=5),
+             outputs=gr.Number()).queue().launch()
+```
+
+![stop_interface_rl](https://user-images.githubusercontent.com/41651716/195952883-e7ca4235-aae3-4852-8f28-96d01d0c5822.gif)
+
 
 ## Bug Fixes:
 No changes to highlight.
