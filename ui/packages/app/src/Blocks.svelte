@@ -100,12 +100,7 @@
 			const is_input = is_dep(id, "inputs", dependencies);
 			const is_output = is_dep(id, "outputs", dependencies);
 
-			if (
-				!is_input &&
-				!is_output &&
-				"value" in props &&
-				has_no_default_value(props?.value)
-			)
+			if (!is_input && !is_output && has_no_default_value(props?.value))
 				acc.add(id); // default dynamic
 			if (is_input) acc.add(id);
 
@@ -431,7 +426,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
