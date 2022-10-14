@@ -41,6 +41,17 @@ class TestQueueMethods:
         assert queue.get_active_worker_count() == 0
 
     @pytest.mark.asyncio
+    async def test_dont_gather_data_while_broadcasting(self, queue: Queue):
+        queue.broadcast_live_estimations = AsyncMock()
+        queue.gather_data_for_first_ranks = AsyncMock()
+        await queue.broadcast_live_estimations()
+
+        # Should not gather data while broadcasting estimations
+        # Have seen weird race conditions come up in very viral
+        # spaces
+        queue.gather_data_for_first_ranks.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_stop_resume(self, queue: Queue):
         await queue.start()
         queue.close()
@@ -234,3 +245,17 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
+
+    @pytest.mark.asyncio
+    async def test_process_event_handles_exception_during_disconnect(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        queue.call_prediction = AsyncMock(
+            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+        )
+        # No exception should be raised during `process_event`
+        mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        await queue.process_event(mock_event)
