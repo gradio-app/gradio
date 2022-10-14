@@ -26,7 +26,7 @@ def wait_for_version(version: str):
         if is_version_up(version):
             return True
         else:
-            time.sleep(0.60)
+            time.sleep(60)
     sys.exit(f"Could not find gradio v{version} on pypi: https://pypi.org/project/gradio/{version}/ does not exist")
 
 wait_for_version(version)
