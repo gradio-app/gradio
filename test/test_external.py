@@ -384,7 +384,8 @@ async def test_get_pred_from_ws():
     ]
     mock_ws.recv.side_effect = messages
     data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    output = await get_pred_from_ws(mock_ws, data)
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    output = await get_pred_from_ws(mock_ws, data, hash_data)
     assert output == {"data": ["result!"]}
     mock_ws.send.assert_called_once_with(data)
 
@@ -395,8 +396,9 @@ async def test_get_pred_from_ws_raises_if_queue_full():
     messages = [json.dumps({"msg": "queue_full"})]
     mock_ws.recv.side_effect = messages
     data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
     with pytest.raises(gradio.Error, match="Queue is full!"):
-        await get_pred_from_ws(mock_ws, data)
+        await get_pred_from_ws(mock_ws, data, hash_data)
 
 
 @pytest.mark.skipif(
