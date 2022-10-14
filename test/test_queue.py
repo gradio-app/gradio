@@ -259,6 +259,21 @@ class TestQueueProcessEvents:
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
 
+    @pytest.mark.asyncio
+    async def test_process_event_handles_exception_during_disconnect(
+        self, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        queue.call_prediction = AsyncMock(
+            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+        )
+        # No exception should be raised during `process_event`
+        mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        queue.active_jobs = [[mock_event]]
+        await queue.process_events([mock_event], batch=False)
+
 
 class TestQueueBatch:
     @pytest.mark.asyncio
@@ -289,20 +304,6 @@ class TestQueueBatch:
 
         mock_event2.disconnect.assert_called_once()
         queue.clean_event.call_count == 2
-
-    @pytest.mark.asyncio
-    async def test_process_event_handles_exception_during_disconnect(
-        self, queue: Queue, mock_event: Event
-    ):
-        mock_event.websocket.send_json = AsyncMock()
-        queue.call_prediction = AsyncMock(
-            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
-        )
-        # No exception should be raised during `process_event`
-        mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))
-        queue.clean_event = AsyncMock()
-        mock_event.data = None
-        await queue.process_event(mock_event)
 
 
 class TestGetEventsInBatch:
