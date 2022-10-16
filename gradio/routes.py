@@ -14,7 +14,7 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, List, Optional, Type
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote 
 
 import fastapi
 import orjson
@@ -227,8 +227,10 @@ class App(FastAPI):
             else:
                 return FileResponse(app.blocks.favicon_path)
 
-        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
+        @app.get("/file={path:str}", dependencies=[Depends(login_check)])
         def file(path: str):
+            path = unquote(path)   # TODO: check with URLs as it doesn't seem to work
+            print(path, utils.validate_url(path))
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
             if (
@@ -255,7 +257,7 @@ class App(FastAPI):
                     f"it is not in any of {app.blocks.temp_dirs}"
                 )
 
-        @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+        @app.get("/file/{path:str}", dependencies=[Depends(login_check)])
         def file_deprecated(path: str):
             return file(path)
 
