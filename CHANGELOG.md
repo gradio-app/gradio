@@ -69,7 +69,7 @@ gr.Interface(iteration,
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Adds a demo to show how a sound alert can be played upon completion of a prediction by [@abidlabs](https://github.com/abidlabs)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
