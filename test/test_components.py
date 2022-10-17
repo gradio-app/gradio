@@ -1300,7 +1300,7 @@ class TestVideo(unittest.TestCase):
         _ = video_input.preprocess(x_video)
 
         # Dict mapping filename to FFmpeg options
-        output_params = mock_ffmpeg.call_args.kwargs["outputs"]
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
         assert "flip" in list(output_params.keys())[0]
 
@@ -1316,7 +1316,7 @@ class TestVideo(unittest.TestCase):
         output_file = gr.Video(
             source="webcam", mirror_webcam=True, format="avi"
         ).preprocess(x_video)
-        output_params = mock_ffmpeg.call_args.kwargs["outputs"]
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert "hflip" in list(output_params.values())[0]
         assert "flip" in list(output_params.keys())[0]
         assert ".avi" in list(output_params.keys())[0]
@@ -1326,7 +1326,7 @@ class TestVideo(unittest.TestCase):
         output_file = gr.Video(
             source="webcam", mirror_webcam=False, format="avi"
         ).preprocess(x_video)
-        output_params = mock_ffmpeg.call_args.kwargs["outputs"]
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
         assert list(output_params.values())[0] is None
         assert "flip" not in list(output_params.keys())[0]
         assert ".avi" in list(output_params.keys())[0]
