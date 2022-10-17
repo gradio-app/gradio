@@ -28,6 +28,10 @@ def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
         try:
             target(*args)
         except Exception as e:
+            # On any exception, add it to the queue of exceptions and stop the main
+            # thread. `interrupt_main` send a KeyboardInterrupt signal that is caught
+            # by the gradio server to gracefully terminate.
+            # See: https://docs.python.org/3/library/_thread.html#thread.interrupt_main
             BACKGROUND_TUNNEL_EXCEPTIONS.put_nowait(e)
             _thread.interrupt_main()
             raise
@@ -37,6 +41,7 @@ def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
     thread = threading.Thread(
         target=_inner_target,
         daemon=True,
+        # Custom thread name to ease debugging if a user copy-pastes the traceback
         name=f"Thread-{_NB_DAEMON_THREADS}-{target.__name__}",
     )
     thread.start()
