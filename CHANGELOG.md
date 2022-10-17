@@ -67,7 +67,7 @@ gr.Interface(iteration,
 
 ## Bug Fixes:
 
-* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2474)
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2474](https://github.com/gradio-app/gradio/pull/2474)
 
 ## Documentation Changes:
 No changes to highlight.
