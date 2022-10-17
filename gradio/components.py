@@ -1640,25 +1640,28 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
                 file_data, file_path=file_name
             )
 
-        file_name = file.name
-        uploaded_format = file_name.split(".")[-1].lower()
+        file_name = Path(file.name)
+        uploaded_format = file_name.suffix.replace(".", "")
 
-        if self.format is not None and uploaded_format != self.format:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-            ff.run()
-            return output_file_name
-        elif self.source == "webcam" and self.mirror_webcam is True:
-            path = Path(file_name)
-            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+        modify_format = self.format is not None and uploaded_format != self.format
+        flip = self.source == "webcam" and self.mirror_webcam is True
+        if modify_format or flip:
+            format = f".{self.format if modify_format else uploaded_format}"
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
+            flip_suffix = "_flip" if flip else ""
+            output_file_name = str(
+                file_name.with_name(
+                    f"{file_name.name.replace(file_name.suffix, '')}{flip_suffix}{format}"
+                )
+            )
             ff = FFmpeg(
                 inputs={file_name: None},
-                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+                outputs={output_file_name: output_options},
             )
             ff.run()
             return output_file_name
         else:
-            return file_name
+            return str(file_name)
 
     def generate_sample(self):
         """Generates a random video for testing the API."""
