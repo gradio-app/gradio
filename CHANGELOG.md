@@ -79,6 +79,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Enable running events to be cancelled from other events by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2433](https://github.com/gradio-app/gradio/pull/2433)
+* Small fix for version check before reuploading demos by [@aliabd](https://github.com/aliabd) in [PR 2469](https://github.com/gradio-app/gradio/pull/2469)
 
 ## Contributors Shoutout:
 No changes to highlight.
