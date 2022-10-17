@@ -58,6 +58,7 @@
 	export let timer: boolean = true;
 	export let visible: boolean = true;
 	export let message: string | null = null;
+	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
 
@@ -142,14 +143,21 @@
 <div
 	class="wrap"
 	class:opacity-0={!status || status === "complete"}
-	class:cover-bg={status === "pending" || status === "error"}
+	class:cover-bg={variant === "default" &&
+		(status === "pending" || status === "error")}
 	class:generating={status === "generating"}
 	class:!hidden={!visible}
 	bind:this={el}
 >
 	{#if status === "pending"}
-		<div class="progress-bar" style:transform="scaleX({progress || 0})" />
-		<div class="meta-text dark:text-gray-400">
+		{#if variant === "default"}
+			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+		{/if}
+		<div
+			class="dark:text-gray-400"
+			class:meta-text-center={variant === "center"}
+			class:meta-text={variant === "default"}
+		>
 			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
@@ -219,6 +227,10 @@
 
 	.meta-text {
 		@apply absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs;
+	}
+
+	.meta-text-center {
+		@apply absolute inset-0 font-mono z-20 text-xs text-center flex justify-center items-center translate-y-6;
 	}
 
 	.timer {
