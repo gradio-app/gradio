@@ -66,6 +66,6 @@ demos = [demo for demo in demos if demo != "all_demos" and os.path.isdir(os.path
 
 if __name__ == "__main__":
     if AUTH_TOKEN is not None:
-        if huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"] != gradio_version:
+        if str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"]) != gradio_version:
             for demo in demos:
                 upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
