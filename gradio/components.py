@@ -1655,7 +1655,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
                 )
             )
             ff = FFmpeg(
-                inputs={file_name: None},
+                inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
             )
             ff.run()
