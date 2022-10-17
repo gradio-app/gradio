@@ -1,12 +1,45 @@
+import _thread
 import json
 import select
 import socket
 import struct
 import sys
 import threading
+from queue import Queue
 from time import sleep
+from typing import Callable, Tuple
 
 FRPS_SERVER = ("gradio.proxy.huggingface.tech", 7000)
+
+
+BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1) # To propagate exception to main thread
+_NB_DAEMON_THREADS = 0 # (optional) For better thread naming
+
+
+def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
+    """Start task in the background.
+
+    Thread is set as "daemon" which means it will be killed when the main thread
+    terminates.
+    See https://docs.python.org/3/library/threading.html#threading.Thread.daemon
+    """
+
+    def _inner_target():
+        try:
+            target(*args)
+        except Exception as e:
+            BACKGROUND_TUNNEL_EXCEPTIONS.put_nowait(e)
+            _thread.interrupt_main()
+            raise
+
+    global _NB_DAEMON_THREADS
+    _NB_DAEMON_THREADS += 1
+    thread = threading.Thread(
+        target=_inner_target,
+        daemon=True,
+        name=f"Thread-{_NB_DAEMON_THREADS}-{target.__name__}",
+    )
+    thread.start()
 
 
 def handle_req_work_conn(run_id, port):
@@ -44,21 +77,21 @@ def handle_req_work_conn(run_id, port):
 
 
 # Send a message to frps
-# First byte is the message type 
+# First byte is the message type
 # https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
 # 8 next bytes are the message length
 # Then it's the json body
 def send(client, msg, type):
     binary_message = bytearray(0)
     binary_message.extend([type])
-    json_raw = json.dumps(msg).encode('utf-8')
-    binary_message.extend(struct.pack('>q', len(json_raw)))
+    json_raw = json.dumps(msg).encode("utf-8")
+    binary_message.extend(struct.pack(">q", len(json_raw)))
     binary_message.extend(json_raw)
     client.send(binary_message)
 
 
 # Read message from frps
-# First byte is the message type 
+# First byte is the message type
 # https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
 # 8 next bytes are the message length
 # Then it's the json body
@@ -71,7 +104,7 @@ def read(client):
     size = client.recv(8)
     if not size:
         return None, None
-    size = struct.unpack('>Q', size)[0]
+    size = struct.unpack(">Q", size)[0]
     json_raw = client.recv(size)
     return json.loads(json_raw), binary_type
 
@@ -93,7 +126,7 @@ def client_loop(client, run_id, port):
             break
         # TypeReqWorkConn
         if type == 114:
-            threading.Thread(target=handle_req_work_conn, args=(run_id, port)).start()
+            start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, port))
             continue
         # Pong
         if type == 52:
@@ -107,12 +140,20 @@ def create_tunnel(port):
     frps_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     frps_client.connect(FRPS_SERVER)
 
-    # Send `TypeLogin` 
+    # Send `TypeLogin`
     # TODO
     # Privilege Key and Timestamp should be generate like:
     # https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/util/util/util.go#L46-L46
-    send(frps_client, {"version": "0.44.0", "pool_count": 1, "privilege_key": "20ca2a69b42165ffa674ce38284b04cf",
-                       "timestamp": 1664909098, }, 111)
+    send(
+        frps_client,
+        {
+            "version": "0.44.0",
+            "pool_count": 1,
+            "privilege_key": "20ca2a69b42165ffa674ce38284b04cf",
+            "timestamp": 1664909098,
+        },
+        111,
+    )
 
     # Wait for response `TypeLoginResp`
     login_response, _ = read(frps_client)
@@ -122,7 +163,7 @@ def create_tunnel(port):
         print("error getting response")
         sys.exit(1)
 
-    if 'error' in login_response:
+    if "error" in login_response:
         # TODO Handle this correctly
         print("error during login")
         sys.exit(1)
@@ -137,7 +178,7 @@ def create_tunnel(port):
         sys.exit(1)
 
     # Start a warm-up connection
-    threading.Thread(target=handle_req_work_conn, args=(run_id, port)).start()
+    start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, port))
 
     # Sending proxy information `TypeNewProxy`
     send(frps_client, {"proxy_type": "http"}, 112)
@@ -149,7 +190,7 @@ def create_tunnel(port):
         sys.exit(1)
 
     # Starting heartbeat and frps_client loop
-    threading.Thread(target=heartbeat, args=(frps_client,)).start()
-    threading.Thread(target=client_loop, args=(frps_client, run_id, port)).start()
+    start_as_daemon_thread(target=heartbeat, args=(frps_client,))
+    start_as_daemon_thread(target=client_loop, args=(frps_client, run_id, port))
 
     return msg["remote_addr"]
