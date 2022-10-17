@@ -66,7 +66,8 @@ gr.Interface(iteration,
 
 
 ## Bug Fixes:
-No changes to highlight.
+
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2474)
 
 ## Documentation Changes:
 No changes to highlight.
@@ -80,6 +81,7 @@ No changes to highlight.
 ## Full Changelog:
 * Enable running events to be cancelled from other events by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2433](https://github.com/gradio-app/gradio/pull/2433)
 * Small fix for version check before reuploading demos by [@aliabd](https://github.com/aliabd) in [PR 2469](https://github.com/gradio-app/gradio/pull/2469)
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2474)
 
 ## Contributors Shoutout:
 No changes to highlight.
