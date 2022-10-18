@@ -61,9 +61,15 @@ class TestBlocksMethods(unittest.TestCase):
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             self.assertFalse(demo.share)
-            # default is True, if share is None and colab_check is true
+            # share default is False, if share is None in colab and no queueing
+            demo.launch(prevent_thread_lock=True)
+            self.assertFalse(demo.share)
+            demo.close()
+            # share becomes true, if share is None in colab with queueing
+            demo.queue()
             demo.launch(prevent_thread_lock=True)
             self.assertTrue(demo.share)
+            demo.close()
 
     def test_xray(self):
         def fake_func():
