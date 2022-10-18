@@ -9,8 +9,8 @@
             newScript.textContent = script.textContent;
             const head = document.getElementsByTagName('head')[0];
             if (script.textContent.includes("window.gradio_config =")) {
-                window.gradio_config = JSON.parse(script.textContent.replace("window.gradio_config =", "").replace(/;$/, "").trim());
-            }
+                const config_re = /^\s*window.gradio_config\s*=\s*({[^]+})\s*;\s*$/;
+                window.gradio_config = JSON.parse(config_re.exec(script.textContent)[1]);            }
             head.appendChild(newScript);
             newScript.remove();
         }
