@@ -1138,20 +1138,19 @@ class Blocks(BlockContext):
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
 
-        if self.is_colab and not self.share:
+        if self.is_colab and self.has_any_queue and not self.share:
             raise ValueError(
                 "When using queueing in Colab, a shareable link must be created. Please set share=True."
             )
-        elif _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+        if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True."
             )
-        else:
-            print(
-                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                    self.protocol, self.server_name, self.server_port
-                )
+        print(
+            strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                self.protocol, self.server_name, self.server_port
             )
+        )
         if self.is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
