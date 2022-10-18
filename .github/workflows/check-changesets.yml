@@ -15,6 +15,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Install deps
+        run: python -m pip install pyyaml
       - name: Added a changeset
         run: |
           ls changesets | grep "pr_${{ github.event.number }}.md" || echo "There is no changeset file for this PR!"
