@@ -6,10 +6,12 @@ import unittest
 from unittest.mock import patch
 
 import pytest
+import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+import gradio
 from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -258,6 +260,23 @@ async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
 )
 def test_get_server_url_from_ws_url(ws_url, answer):
     assert routes.get_server_url_from_ws_url(ws_url) == answer
+
+
+def test_mount_gradio_app_set_dev_mode_false():
+    app = FastAPI()
+
+    @app.get("/")
+    def read_main():
+        return {"message": "Hello!"}
+
+    with gradio.Blocks() as blocks:
+        gradio.Textbox("Hello from gradio!")
+
+    app = routes.mount_gradio_app(app, blocks, path="/gradio")
+    gradio_fast_api = next(
+        route for route in app.routes if isinstance(route, starlette.routing.Mount)
+    )
+    assert not gradio_fast_api.app.blocks.dev_mode
 
 
 if __name__ == "__main__":
