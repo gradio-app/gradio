@@ -12,6 +12,6 @@ with gr.Blocks() as demo:
     name = gr.Textbox(label="name")
     greeting = gr.Textbox(label="greeting")
     name.blur(task, name, greeting)
-    greeting.change(None, None, None, _js=js_function)  # Note that _js is a special arugment whose usage may change in the future
+    greeting.change(None, [], [], _js=js_function)  # Note that _js is a special arugment whose usage may change in the future
     
 demo.launch()
