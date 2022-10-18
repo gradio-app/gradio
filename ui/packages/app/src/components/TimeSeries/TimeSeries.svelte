@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Upload } from "@gradio/upload";
+	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
@@ -17,7 +17,10 @@
 		);
 	}
 
-	const dispatch = createEventDispatcher<{ change: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+		clear: undefined;
+	}>();
 
 	interface StaticData {
 		data: Array<Array<number>>;
@@ -119,6 +122,12 @@
 		return v;
 	}
 
+	function handle_clear({ detail }: CustomEvent<FileData | null>) {
+		value = null;
+		dispatch("change");
+		dispatch("clear");
+	}
+
 	$: _value = value == null ? null : _value;
 	$: static_data =
 		mode === "static" && value && format_value(value as StaticData);
@@ -145,13 +154,18 @@
 			</div>
 		{/if}
 	{:else if _value}
-		<Chart
-			value={_value}
-			{y}
-			{x}
-			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
-			{colors}
-		/>
+		<div
+			class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+		>
+			<ModifyUpload on:clear={handle_clear} />
+			<Chart
+				value={_value}
+				{y}
+				{x}
+				on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
+				{colors}
+			/>
+		</div>
 	{:else if value === undefined || value === null}
 		<div class="h-full min-h-[8rem]">
 			<Upload
