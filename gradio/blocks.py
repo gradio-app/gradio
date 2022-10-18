@@ -481,7 +481,7 @@ class Blocks(BlockContext):
         self.share_url = None
         self.width = None
         self.height = None
-        self.api_open = False
+        self.api_open = True
 
         self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -1030,7 +1030,7 @@ class Blocks(BlockContext):
         status_update_rate: float | str = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
-        api_open: bool = False,
+        api_open: bool = True,
         max_size: Optional[int] = None,
     ):
         """
