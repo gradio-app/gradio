@@ -116,26 +116,31 @@ class TestOutputPreprocessing(unittest.TestCase):
         temp_file = gr.processing_utils.create_tmp_copy_of_file(f.name)
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
-    @patch(shutil.copy2)
+    @patch("shutil.copy2")
     def test_create_tmp_filenames(self, mock_copy2):
-        filepath = ("C:/gradio/test_image.png",)
+        filepath = "C:/gradio/test_image.png"
         file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
         assert "test_image" in file_obj.name
         assert file_obj.name.endswith(".png")
 
-        filepath = ("ABCabc123.csv",)
+        filepath = "ABCabc123.csv"
         file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
         assert "ABCabc123" in file_obj.name
         assert file_obj.name.endswith(".csv")
 
-        filepath = ("lion#1.jpeg",)
+        filepath = "lion#1.jpeg"
         file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
         assert "lion1" in file_obj.name
         assert file_obj.name.endswith(".jpeg")
 
-        filepath = ("/home/lion--_1.txt",)
+        filepath = "%%lio|n#1.jpeg"
         file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
         assert "lion1" in file_obj.name
+        assert file_obj.name.endswith(".jpeg")
+
+        filepath = "/home/lion--_1.txt"
+        file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
+        assert "lion--_1" in file_obj.name
         assert file_obj.name.endswith(".txt")
 
     float_dtype_list = [
@@ -175,22 +180,21 @@ class TestOutputPreprocessing(unittest.TestCase):
             assert y.dtype == x.dtype
 
 
-def test_video_has_playable_codecs(test_file_dir):
-    assert gr.processing_utils.video_is_playable(
-        str(test_file_dir / "video_sample.mp4")
-    )
-    assert gr.processing_utils.video_is_playable(
-        str(test_file_dir / "video_sample.ogg")
-    )
-    assert gr.processing_utils.video_is_playable(
-        str(test_file_dir / "video_sample.webm")
-    )
-    assert not gr.processing_utils.video_is_playable(
-        str(test_file_dir / "bad_video_sample.mp4")
-    )
-
-
 class TestVideoProcessing:
+    def test_video_has_playable_codecs(self, test_file_dir):
+        assert gr.processing_utils.video_is_playable(
+            str(test_file_dir / "video_sample.mp4")
+        )
+        assert gr.processing_utils.video_is_playable(
+            str(test_file_dir / "video_sample.ogg")
+        )
+        assert gr.processing_utils.video_is_playable(
+            str(test_file_dir / "video_sample.webm")
+        )
+        assert not gr.processing_utils.video_is_playable(
+            str(test_file_dir / "bad_video_sample.mp4")
+        )
+
     def raise_ffmpy_runtime_exception(*args, **kwargs):
         raise ffmpy.FFRuntimeError("", "", "", "")
 
