@@ -481,6 +481,7 @@ class Blocks(BlockContext):
         self.share_url = None
         self.width = None
         self.height = None
+        self.api_open = False
 
         self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -1029,6 +1030,7 @@ class Blocks(BlockContext):
         status_update_rate: float | str = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
+        api_open: bool = False,
         max_size: Optional[int] = None,
     ):
         """
@@ -1038,13 +1040,15 @@ class Blocks(BlockContext):
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
             default_enabled: If True, all event listeners will use queueing by default.
-            max_size: Maximum number of jobs that can be queued at once. Jobs beyond this limit simply return an error message to the user asking them to try again. If None, there is no limit.
+            api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
+            max_size: The maximum number of events the queue will store at any given moment.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
             demo.launch()
         """
         self.enable_queue = default_enabled
+        self.api_open = api_open
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
@@ -1152,10 +1156,7 @@ class Blocks(BlockContext):
 
         for dep in self.dependencies:
             for i in dep["cancels"]:
-                queue_status = self.dependencies[i]["queue"]
-                if queue_status is False or (
-                    queue_status is None and not self.enable_queue
-                ):
+                if not self.queue_enabled_for_fn(i):
                     raise ValueError(
                         "In order to cancel an event, the queue for that event must be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
@@ -1424,3 +1425,8 @@ class Blocks(BlockContext):
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start)
         utils.run_coro_in_background(self.create_limiter)
+
+    def queue_enabled_for_fn(self, fn_index: int):
+        if self.dependencies[fn_index]["queue"] is None:
+            return self.enable_queue
+        return self.dependencies[fn_index]["queue"]
