@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import warnings
+from ctypes import util
 from io import BytesIO
 from typing import Dict
 
@@ -329,6 +330,7 @@ def create_tmp_copy_of_file(file_path, dir=None):
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
+    prefix = utils.strip_invalid_filename_characters(prefix)
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:

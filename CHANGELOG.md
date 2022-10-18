@@ -68,6 +68,8 @@ gr.Interface(iteration,
 ## Bug Fixes:
 
 * Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2474](https://github.com/gradio-app/gradio/pull/2474)
+* Removes special characters from temporary filenames so that the files can be served by components [@abidlabs](https://github.com/abidlabs) in [PR 2480](https://github.com/gradio-app/gradio/pull/2480)
+
 
 ## Documentation Changes:
 No changes to highlight.
