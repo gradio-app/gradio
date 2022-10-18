@@ -25,4 +25,4 @@ jobs:
         run: |
           ls changesets | grep "pr_${{ github.event.number }}.md" || echo "There is no changeset file for this PR!"
       - name: Check content of changeset file
-        run: bash scripts/check_changeset.py --pr ${{ github.event.number }}
+        run: python scripts/check_changeset.py --pr ${{ github.event.number }}
