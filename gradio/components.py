@@ -1650,9 +1650,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
             flip_suffix = "_flip" if flip else ""
             output_file_name = str(
-                file_name.with_name(
-                    f"{file_name.stem}{flip_suffix}{format}"
-                )
+                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
             ff = FFmpeg(
                 inputs={str(file_name): None},
