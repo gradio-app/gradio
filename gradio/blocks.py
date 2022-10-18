@@ -147,6 +147,8 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if queue:
+            Context.root_block.has_any_queue = True
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
@@ -431,6 +433,7 @@ class Blocks(BlockContext):
         self.save_to = None
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
+        self.has_any_queue = False
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -946,6 +949,8 @@ class Blocks(BlockContext):
             demo.queue(concurrency_count=3)
             demo.launch()
         """
+        if default_enabled:
+            self.has_any_queue = True
         self.enable_queue = default_enabled
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
@@ -1103,7 +1108,7 @@ class Blocks(BlockContext):
             share
             if share is not None
             else True
-            if self.is_colab and self.enable_queue
+            if self.is_colab and self.has_any_queue
             else False
         )
 
@@ -1116,13 +1121,14 @@ class Blocks(BlockContext):
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
 
-        if (self.is_colab and not self.share) or (
-            _frontend and not networking.url_ok(self.local_url)
-        ):
-            if not self.share:
-                raise ValueError(
-                    "When using queueing in Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
-                )
+        if self.is_colab and not self.share:
+            raise ValueError(
+                "When using queueing in Colab, a shareable link must be created. Please set share=True."
+            )
+        elif _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+            raise ValueError(
+                "When localhost is not accessible, a shareable link must be created. Please set share=True."
+            )
         else:
             print(
                 strings.en["RUNNING_LOCALLY_SEPARATED"].format(
