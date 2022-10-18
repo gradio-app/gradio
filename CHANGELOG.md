@@ -1,10 +1,105 @@
-# Upcoming Release
+# Upcoming Release 
+
+## New Features:
+
+### Cancelling Running Events
+Running events can be cancelled when other events are triggered! To test this feature, pass the `cancels` parameter to the event listener.
+For this feature to work, the queue must be enabled.
+
+![cancel_on_change_rl](https://user-images.githubusercontent.com/41651716/195952623-61a606bd-e82b-4e1a-802e-223154cb8727.gif)
+
+Code:
+```python
+import time
+import gradio as gr
+
+def fake_diffusion(steps):
+    for i in range(steps):
+        time.sleep(1)
+        yield str(i)
+
+def long_prediction(*args, **kwargs):
+    time.sleep(10)
+    return 42
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
+            run = gr.Button()
+            output = gr.Textbox(label="Iterative Output")
+            stop = gr.Button(value="Stop Iterating")
+        with gr.Column():
+            prediction = gr.Number(label="Expensive Calculation")
+            run_pred = gr.Button(value="Run Expensive Calculation")
+        with gr.Column():
+            cancel_on_change = gr.Textbox(label="Cancel Iteration and Expensive Calculation on Change")
+
+    click_event = run.click(fake_diffusion, n, output)
+    stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
+    pred_event = run_pred.click(fn=long_prediction, inputs=None, outputs=prediction)
+
+    cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])
+
+
+demo.queue(concurrency_count=1, max_size=20).launch()
+```
+
+For interfaces, a stop button will be added automatically if the function uses a `yield` statement.
+
+```python
+import gradio as gr
+import time
+
+def iteration(steps):
+    for i in range(steps):
+       time.sleep(0.5)
+       yield i
+
+gr.Interface(iteration,
+             inputs=gr.Slider(minimum=1, maximum=10, step=1, value=5),
+             outputs=gr.Number()).queue().launch()
+```
+
+![stop_interface_rl](https://user-images.githubusercontent.com/41651716/195952883-e7ca4235-aae3-4852-8f28-96d01d0c5822.gif)
+
+
+## Bug Fixes:
+
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2474](https://github.com/gradio-app/gradio/pull/2474)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Enable running events to be cancelled from other events by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2433](https://github.com/gradio-app/gradio/pull/2433)
+* Small fix for version check before reuploading demos by [@aliabd](https://github.com/aliabd) in [PR 2469](https://github.com/gradio-app/gradio/pull/2469)
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2474)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.5
 
 ## Bug Fixes:
 
 * Ensure that Gradio does not take control of the HTML page title when embedding a gradio app as a web component, this behaviour flipped by adding `control_page_title="true"` to the webcomponent. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2400)
 * Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
+* Fixed queue getting stuck under very high load by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2374](https://github.com/gradio-app/gradio/pull/2374)
+* Ensure that components always behave as if `interactive=True` were set when the following conditions are true:
+  - no default value is provided, 
+  - they are not set as the input or output of an event,
+  - `interactive` kwarg is not set. 
 
+  [@pngwn](https://github.com/pngwn) in [PR 2459](https://github.com/gradio-app/gradio/pull/2459)
 
 ## New Features:
 
@@ -33,8 +128,9 @@ No changes to highlight.
 * Build Gradio from source in ui tests by by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2440](https://github.com/gradio-app/gradio/pull/2440) 
 * Change "return ValueError" to "raise ValueError" by [@vzakharov](https://github.com/vzakharov) in [PR 2445](https://github.com/gradio-app/gradio/pull/2445) 
 * Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455) 
-
-
+* Stops a gradio launch from hogging a port even after it's been killed [@aliabid94](https://github.com/aliabid94) in [PR 2453](https://github.com/gradio-app/gradio/pull/2453) 
+* Fix embedded interfaces on touch screen devices by [@aliabd](https://github.com/aliabd) in [PR 2457](https://github.com/gradio-app/gradio/pull/2457)
+* Upload all demos to spaces by [@aliabd](https://github.com/aliabd) in [PR 2281](https://github.com/gradio-app/gradio/pull/2281)
 
 ## Contributors Shoutout:
 No changes to highlight.

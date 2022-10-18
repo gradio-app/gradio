@@ -1,5 +1,6 @@
 /node_modules
 /dist
 /generated
+/src/changelog/inner_template.html
 client_secrets.json
 google_credentials.json

@@ -120,7 +120,8 @@ class Block:
         js: Optional[str] = None,
         no_target: bool = False,
         queue: Optional[bool] = None,
-    ) -> None:
+        cancels: List[int] | None = None,
+    ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -169,6 +170,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "cancels": cancels if cancels else [],
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -182,6 +184,7 @@ class Block:
                 ],
             ]
         Context.root_block.dependencies.append(dependency)
+        return dependency
 
     def get_config(self):
         return {
@@ -1055,6 +1058,20 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+
+        for dep in self.dependencies:
+            for i in dep["cancels"]:
+                queue_status = self.dependencies[i]["queue"]
+                if queue_status is False or (
+                    queue_status is None and not self.enable_queue
+                ):
+                    raise ValueError(
+                        "In order to cancel an event, the queue for that event must be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
 
         self.config = self.get_config_file()
         self.encrypt = encrypt

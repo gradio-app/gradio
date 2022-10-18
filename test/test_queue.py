@@ -1,9 +1,11 @@
 import os
-from unittest.mock import MagicMock
+import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from gradio.queue import Event, Queue
+from gradio.utils import Request
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -39,6 +41,17 @@ class TestQueueMethods:
         await queue.start()
         assert queue.stopped is False
         assert queue.get_active_worker_count() == 0
+
+    @pytest.mark.asyncio
+    async def test_dont_gather_data_while_broadcasting(self, queue: Queue):
+        queue.broadcast_live_estimations = AsyncMock()
+        queue.gather_data_for_first_ranks = AsyncMock()
+        await queue.broadcast_live_estimations()
+
+        # Should not gather data while broadcasting estimations
+        # Have seen weird race conditions come up in very viral
+        # spaces
+        queue.gather_data_for_first_ranks.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_stop_resume(self, queue: Queue):
@@ -150,8 +163,13 @@ class TestQueueEstimation:
 
 
 class TestQueueProcessEvents:
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Mocks of async context manager don't work for 3.7",
+    )
     @pytest.mark.asyncio
-    async def test_process_event(self, queue: Queue, mock_event: Event):
+    @patch("gradio.queue.Request", new_callable=AsyncMock)
+    async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
         queue.gather_event_data = AsyncMock()
         queue.gather_event_data.return_value = True
         queue.send_message = AsyncMock()
@@ -167,6 +185,14 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         queue.clean_event.assert_called_once()
+        mock_request.assert_called_with(
+            method=Request.Method.POST,
+            url=f"{queue.server_path}reset",
+            json={
+                "session_hash": mock_event.session_hash,
+                "fn_index": mock_event.fn_index,
+            },
+        )
 
     @pytest.mark.asyncio
     async def test_process_event_handles_error_when_gathering_data(
@@ -234,3 +260,30 @@ class TestQueueProcessEvents:
         queue.call_prediction.assert_called_once()
         mock_event.disconnect.assert_called_once()
         assert queue.clean_event.call_count >= 1
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Mocks of async context manager don't work for 3.7",
+    )
+    @pytest.mark.asyncio
+    @patch("gradio.queue.Request", new_callable=AsyncMock)
+    async def test_process_event_handles_exception_during_disconnect(
+        self, mock_request, queue: Queue, mock_event: Event
+    ):
+        mock_event.websocket.send_json = AsyncMock()
+        queue.call_prediction = AsyncMock(
+            return_value=MagicMock(has_exception=False, json=dict(is_generating=False))
+        )
+        # No exception should be raised during `process_event`
+        mock_event.disconnect = AsyncMock(side_effect=ValueError("..."))
+        queue.clean_event = AsyncMock()
+        mock_event.data = None
+        await queue.process_event(mock_event)
+        mock_request.assert_called_with(
+            method=Request.Method.POST,
+            url=f"{queue.server_path}reset",
+            json={
+                "session_hash": mock_event.session_hash,
+                "fn_index": mock_event.fn_index,
+            },
+        )
