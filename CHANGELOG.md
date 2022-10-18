@@ -69,7 +69,7 @@ gr.Interface(iteration,
 No changes to highlight.
 
 ## Documentation Changes:
-* Adds a demo to show how a sound alert can be played upon completion of a prediction by [@abidlabs](https://github.com/abidlabs)
+* Adds a demo to show how a sound alert can be played upon completion of a prediction by [@abidlabs](https://github.com/abidlabs) in [PR 2478](https://github.com/gradio-app/gradio/pull/2478)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
