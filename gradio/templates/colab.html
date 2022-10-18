@@ -10,17 +10,18 @@
             const head = document.getElementsByTagName('head')[0];
             if (script.textContent.includes("window.gradio_config =")) {
                 const config_re = /^\s*window.gradio_config\s*=\s*({[^]+})\s*;\s*$/;
-                window.gradio_config = JSON.parse(config_re.exec(script.textContent)[1]);            }
+                window.gradio_config = JSON.parse(config_re.exec(script.textContent)[1]);
+            }
             head.appendChild(newScript);
             newScript.remove();
         }
-
-        console.log(window)
     }
     fetch(".")
         .then((x) => x.text())
         .then((html) => {
             document.body.innerHTML = html;
         })
-        .then(() => rehydrate());
+        .then(() => rehydrate()).catch(() => {
+            document.body.innerHTML = `<h1 color="red">There was a problem running Gradio in colab, please rerun the block with gradio==3.5 and file an issue on GitHub if it doesn't not work.</h1>`;
+        });
 </script>
