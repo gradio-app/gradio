@@ -71,7 +71,7 @@ gr.Interface(iteration,
 * Removes special characters from temporary filenames so that the files can be served by components [@abidlabs](https://github.com/abidlabs) in [PR 2480](https://github.com/gradio-app/gradio/pull/2480)
 
 ## Documentation Changes:
-No changes to highlight.
+* Adds a demo to show how a sound alert can be played upon completion of a prediction by [@abidlabs](https://github.com/abidlabs) in [PR 2478](https://github.com/gradio-app/gradio/pull/2478)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
