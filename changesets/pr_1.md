@@ -1,0 +1,4 @@
+---
+type: doc
+bump: patch
+---

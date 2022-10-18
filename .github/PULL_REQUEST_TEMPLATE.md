@@ -23,11 +23,22 @@ Closes: # (issue)
 
 Hello 👋 and thank you for contributing to Gradio!
 
-All pull requests must update the change log located in CHANGELOG.md, unless the pull request is labeled with the "no-changelog-update" label.
+All pull requests must add a changeset file in the changeset directory, unless the pull request is labeled with the "no-changelog-update" label.
 
-Please add a brief summary of the change to the Upcoming Release > Full Changelog section of the CHANGELOG.md file and include
-a link to the PR (formatted in markdown) and a link to your github profile (if you like). For example, "* Added a cool new feature by `[@myusername](link-to-your-github-profile)` in `[PR 11111](https://github.com/gradio-app/gradio/pull/11111)`".
+Please add a file to the changesets directory called `pr_{pr number}.md`. It's important that the PR number in the title matches the number of this PR.
 
-If you would like to elaborate on your change further, feel free to include a longer explanation in the other sections.
-If you would like an image/gif/video showcasing your feature, it may be best to edit the CHANGELOG file using the 
+The format of a changeset file is as follows:
+```
+---
+type: one of bugfix, new-feature, breaking, or doc
+bump: one of patch, minor, or major
+---
+Description of the change
+```
+
+The `type` field corresponds to the type of change, while the `bump` field corresponds to the version bump associated with this change.
+A `major` bump is used when the PR introduces backwards incompatible API changes. The `minor` bump is used when you add a new feature
+in a backwards compatible manner. A `patch` bump is used when you make backwards compatible bug fixes.
+
+If you would like an image/gif/video showcasing your feature, it may be best to edit the changeset file using the 
 GitHub web UI since that lets you upload files directly via drag-and-drop.
