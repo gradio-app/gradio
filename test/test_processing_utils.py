@@ -18,7 +18,7 @@ from gradio import media_data
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class ImagePreprocessing(unittest.TestCase):
+class TestImagePreprocessing(unittest.TestCase):
     def test_decode_base64_to_image(self):
         output_image = gr.processing_utils.decode_base64_to_image(
             deepcopy(media_data.BASE64_IMAGE)
@@ -85,7 +85,7 @@ class ImagePreprocessing(unittest.TestCase):
         )
 
 
-class AudioPreprocessing(unittest.TestCase):
+class TestAudioPreprocessing(unittest.TestCase):
     def test_audio_from_file(self):
         audio = gr.processing_utils.audio_from_file("gradio/test_data/test_audio.wav")
         self.assertEqual(audio[0], 22050)
@@ -98,7 +98,7 @@ class AudioPreprocessing(unittest.TestCase):
         os.remove("test_audio_to_file")
 
 
-class OutputPreprocessing(unittest.TestCase):
+class TestOutputPreprocessing(unittest.TestCase):
     def test_decode_base64_to_binary(self):
         binary = gr.processing_utils.decode_base64_to_binary(
             deepcopy(media_data.BASE64_IMAGE)
@@ -115,6 +115,28 @@ class OutputPreprocessing(unittest.TestCase):
         f = tempfile.NamedTemporaryFile(delete=False)
         temp_file = gr.processing_utils.create_tmp_copy_of_file(f.name)
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
+
+    @patch(shutil.copy2)
+    def test_create_tmp_filenames(self, mock_copy2):
+        filepath = ("C:/gradio/test_image.png",)
+        file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
+        assert "test_image" in file_obj.name
+        assert file_obj.name.endswith(".png")
+
+        filepath = ("ABCabc123.csv",)
+        file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
+        assert "ABCabc123" in file_obj.name
+        assert file_obj.name.endswith(".csv")
+
+        filepath = ("lion#1.jpeg",)
+        file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
+        assert "lion1" in file_obj.name
+        assert file_obj.name.endswith(".jpeg")
+
+        filepath = ("/home/lion--_1.txt",)
+        file_obj = gr.processing_utils.create_tmp_copy_of_file(filepath)
+        assert "lion1" in file_obj.name
+        assert file_obj.name.endswith(".txt")
 
     float_dtype_list = [
         float,
@@ -134,8 +156,8 @@ class OutputPreprocessing(unittest.TestCase):
         # Test all combinations of dtypes conversions
         dtype_combin = np.array(
             np.meshgrid(
-                OutputPreprocessing.float_dtype_list,
-                OutputPreprocessing.float_dtype_list,
+                TestOutputPreprocessing.float_dtype_list,
+                TestOutputPreprocessing.float_dtype_list,
             )
         ).T.reshape(-1, 2)
 
@@ -147,7 +169,7 @@ class OutputPreprocessing(unittest.TestCase):
     def test_subclass_conversion(self):
         """Check subclass conversion behavior"""
         x = np.array([-1, 1])
-        for dtype in OutputPreprocessing.float_dtype_list:
+        for dtype in TestOutputPreprocessing.float_dtype_list:
             x = x.astype(dtype)
             y = gr.processing_utils._convert(x, np.floating)
             assert y.dtype == x.dtype
@@ -168,46 +190,47 @@ def test_video_has_playable_codecs(test_file_dir):
     )
 
 
-def raise_ffmpy_runtime_exception(*args, **kwargs):
-    raise ffmpy.FFRuntimeError("", "", "", "")
+class TestVideoProcessing:
+    def raise_ffmpy_runtime_exception(*args, **kwargs):
+        raise ffmpy.FFRuntimeError("", "", "", "")
 
+    @pytest.mark.parametrize(
+        "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]
+    )
+    def test_video_has_playable_codecs_catches_exceptions(
+        self, exception_to_raise, test_file_dir
+    ):
+        with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
+            with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+                shutil.copy(
+                    str(test_file_dir / "bad_video_sample.mp4"),
+                    tmp_not_playable_vid.name,
+                )
+                assert gr.processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
-@pytest.mark.parametrize(
-    "exception_to_raise", [raise_ffmpy_runtime_exception, KeyError(), IndexError()]
-)
-def test_video_has_playable_codecs_catches_exceptions(
-    exception_to_raise, test_file_dir
-):
-    with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
+    def test_convert_video_to_playable_mp4(self, test_file_dir):
         with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
-            assert gr.processing_utils.video_is_playable(tmp_not_playable_vid.name)
+            playable_vid = gr.processing_utils.convert_video_to_playable_mp4(
+                tmp_not_playable_vid.name
+            )
+            assert gr.processing_utils.video_is_playable(playable_vid)
 
-
-def test_convert_video_to_playable_mp4(test_file_dir):
-    with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
-        shutil.copy(
-            str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
-        )
-        playable_vid = gr.processing_utils.convert_video_to_playable_mp4(
-            tmp_not_playable_vid.name
-        )
-        assert gr.processing_utils.video_is_playable(playable_vid)
-
-
-@patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
-def test_video_conversion_returns_original_video_if_fails(mock_run, test_file_dir):
-    with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
-        shutil.copy(
-            str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
-        )
-        playable_vid = gr.processing_utils.convert_video_to_playable_mp4(
-            tmp_not_playable_vid.name
-        )
-        # If the conversion succeeded it'd be .mp4
-        assert pathlib.Path(playable_vid).suffix == ".avi"
+    @patch("ffmpy.FFmpeg.run", side_effect=raise_ffmpy_runtime_exception)
+    def test_video_conversion_returns_original_video_if_fails(
+        self, mock_run, test_file_dir
+    ):
+        with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+            shutil.copy(
+                str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
+            )
+            playable_vid = gr.processing_utils.convert_video_to_playable_mp4(
+                tmp_not_playable_vid.name
+            )
+            # If the conversion succeeded it'd be .mp4
+            assert pathlib.Path(playable_vid).suffix == ".avi"
 
 
 if __name__ == "__main__":
