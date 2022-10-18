@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-changelog-updated:
-    name: Check CHANGELOG file
+    name: Check changesets directory
     runs-on: ubuntu-latest
     if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-changelog-update') }}
     steps:
@@ -17,4 +17,4 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Release notes added
         run: |
-          cat CHANGELOG.md | grep -w "https://github.com/gradio-app/gradio/pull/${{ github.event.number }}"
+          git diff --quiet HEAD master -- changesets || echo changed
