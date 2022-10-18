@@ -450,6 +450,7 @@
 				{dynamic_ids}
 				{instance_map}
 				{root}
+				{target}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
