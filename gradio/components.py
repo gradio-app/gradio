@@ -1644,14 +1644,14 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         uploaded_format = file_name.suffix.replace(".", "")
 
         modify_format = self.format is not None and uploaded_format != self.format
-        flip = self.source == "webcam" and self.mirror_webcam is True
+        flip = self.source == "webcam" and self.mirror_webcam
         if modify_format or flip:
             format = f".{self.format if modify_format else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
             flip_suffix = "_flip" if flip else ""
             output_file_name = str(
                 file_name.with_name(
-                    f"{file_name.name.replace(file_name.suffix, '')}{flip_suffix}{format}"
+                    f"{file_name.stem}{flip_suffix}{format}"
                 )
             )
             ff = FFmpeg(
