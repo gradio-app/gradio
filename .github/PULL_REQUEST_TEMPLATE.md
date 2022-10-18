@@ -19,7 +19,7 @@ Closes: # (issue)
 - [ ] New and existing unit tests pass locally with my changes
 
 
-# A note about the CHANGELOG
+# A note about changesets 
 
 Hello 👋 and thank you for contributing to Gradio!
 
