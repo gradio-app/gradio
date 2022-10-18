@@ -84,9 +84,12 @@ class Queue:
                 event = self.event_queue.pop(0)
 
             self.active_jobs[self.active_jobs.index(None)] = event
+            # Covers the case for an element entering to the empty queue
+            _ = await self.gather_event_data(event)
             task = run_coro_in_background(self.process_event, event)
             if sys.version_info >= (3, 8):
                 task.set_name(f"{event.session_hash}_{event.fn_index}")
+            await self.gather_data_for_first_ranks()
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -222,9 +225,6 @@ class Queue:
 
     async def process_event(self, event: Event) -> None:
         try:
-            client_awake = await self.gather_event_data(event)
-            if not client_awake:
-                return
             client_awake = await self.send_message(event, {"msg": "process_starts"})
             if not client_awake:
                 return
