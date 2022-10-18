@@ -1,4 +1,0 @@
----
-type: doc
-bump: patch
----
