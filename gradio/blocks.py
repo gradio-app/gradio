@@ -120,7 +120,8 @@ class Block:
         js: Optional[str] = None,
         no_target: bool = False,
         queue: Optional[bool] = None,
-    ) -> None:
+        cancels: List[int] | None = None,
+    ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -167,6 +168,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "cancels": cancels if cancels else [],
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -180,6 +182,7 @@ class Block:
                 ],
             ]
         Context.root_block.dependencies.append(dependency)
+        return dependency
 
     def get_config(self):
         return {
@@ -360,7 +363,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
             if component._id not in outputs_ids:
-                return ValueError(
+                raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
             output_index = outputs_ids.index(component._id)
@@ -405,7 +408,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
     Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
@@ -704,9 +707,11 @@ class Blocks(BlockContext):
             try:
                 if iterator is None:
                     iterator = prediction
-                prediction = next(iterator)
+                prediction = await anyio.to_thread.run_sync(
+                    utils.async_iteration, iterator, limiter=self.limiter
+                )
                 is_generating = True
-            except StopIteration:
+            except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
@@ -882,10 +887,10 @@ class Blocks(BlockContext):
         method, the two of which, confusingly, do two completely different things.
 
 
-        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance.
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally and returns a block instance. Equivalent to gradio.Interface.load()
 
 
-        Instance method: adds an event for when the demo loads in the browser and returns None.
+        Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
             name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
             src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
@@ -894,6 +899,15 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+        Example:
+            import gradio as gr
+            import datetime
+            with gr.Blocks() as demo:
+                def get_time():
+                    return datetime.datetime.now().time()
+                dt = gr.Textbox(label="Current time")
+                demo.load(get_time, inputs=None, outputs=dt)
+            demo.launch()
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if isinstance(self_or_cls, type):
@@ -1051,6 +1065,20 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+
+        for dep in self.dependencies:
+            for i in dep["cancels"]:
+                queue_status = self.dependencies[i]["queue"]
+                if queue_status is False or (
+                    queue_status is None and not self.enable_queue
+                ):
+                    raise ValueError(
+                        "In order to cancel an event, the queue for that event must be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
 
         self.config = self.get_config_file()
         self.share = share

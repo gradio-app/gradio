@@ -9,6 +9,7 @@ import math
 import numbers
 import operator
 import re
+import uuid
 import warnings
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple
@@ -20,6 +21,7 @@ from packaging import version
 
 import gradio
 from gradio import components, exceptions, utils
+from gradio.processing_utils import to_binary
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
@@ -158,9 +160,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Label(label="Class"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": lambda i: to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
@@ -169,18 +169,14 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # example model: speechbrain/mtl-mimic-voicebank
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda i: base64.b64decode(
-                i["data"].split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
         },
         "feature-extraction": {
@@ -202,9 +198,7 @@ def get_models_interface(model_name, api_key, alias, **kwargs):
             # Example: google/vit-base-patch16-224
             "inputs": components.Image(type="filepath", label="Input Image"),
             "outputs": components.Label(label="Classification"),
-            "preprocess": lambda i: base64.b64decode(
-                i.split(",")[1]
-            ),  # convert the base64 representation to binary
+            "preprocess": to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
@@ -420,7 +414,7 @@ def get_spaces(model_name, api_key, alias, **kwargs):
 
 
 async def get_pred_from_ws(
-    websocket: websockets.WebSocketClientProtocol, data: str
+    websocket: websockets.WebSocketClientProtocol, data: str, hash_data: str
 ) -> Dict[str, Any]:
     completed = False
     while not completed:
@@ -428,6 +422,8 @@ async def get_pred_from_ws(
         resp = json.loads(msg)
         if resp["msg"] == "queue_full":
             raise exceptions.Error("Queue is full! Please try again.")
+        if resp["msg"] == "send_hash":
+            await websocket.send(hash_data)
         elif resp["msg"] == "send_data":
             await websocket.send(data)
         completed = resp["msg"] == "process_completed"
@@ -435,9 +431,9 @@ async def get_pred_from_ws(
 
 
 def get_ws_fn(ws_url):
-    async def ws_fn(data):
+    async def ws_fn(data, hash_data):
         async with websockets.connect(ws_url, open_timeout=10) as websocket:
-            return await get_pred_from_ws(websocket, data)
+            return await get_pred_from_ws(websocket, data, hash_data)
 
     return ws_fn
 
@@ -474,8 +470,11 @@ def get_spaces_blocks(model_name, config):
             def get_fn(outputs, fn_index, use_ws):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
+                    hash_data = json.dumps(
+                        {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
+                    )
                     if use_ws:
-                        result = utils.synchronize_async(ws_fn, data)
+                        result = utils.synchronize_async(ws_fn, data, hash_data)
                         output = result["data"]
                     else:
                         response = requests.post(api_url, headers=headers, data=data)

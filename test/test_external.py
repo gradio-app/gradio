@@ -242,14 +242,24 @@ class TestLoadFromPipeline(unittest.TestCase):
         self.assertIsNotNone(output)
 
 
-def test_interface_load_cache_examples(tmp_path):
-    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-    with patch("gradio.examples.CACHED_FOLDER", tmp_path):
-        gr.Interface.load(
-            name="models/google/vit-base-patch16-224",
-            examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
-            cache_examples=True,
-        )
+class TestLoadInterfaceWithExamples:
+    def test_interface_load_examples(self, tmp_path):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+            gr.Interface.load(
+                name="models/google/vit-base-patch16-224",
+                examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+                cache_examples=False,
+            )
+
+    def test_interface_load_cache_examples(self, tmp_path):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+            gr.Interface.load(
+                name="models/google/vit-base-patch16-224",
+                examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+                cache_examples=True,
+            )
 
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
@@ -374,7 +384,8 @@ async def test_get_pred_from_ws():
     ]
     mock_ws.recv.side_effect = messages
     data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    output = await get_pred_from_ws(mock_ws, data)
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    output = await get_pred_from_ws(mock_ws, data, hash_data)
     assert output == {"data": ["result!"]}
     mock_ws.send.assert_called_once_with(data)
 
@@ -385,8 +396,9 @@ async def test_get_pred_from_ws_raises_if_queue_full():
     messages = [json.dumps({"msg": "queue_full"})]
     mock_ws.recv.side_effect = messages
     data = json.dumps({"data": ["foo"], "fn_index": "foo"})
+    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
     with pytest.raises(gradio.Error, match="Queue is full!"):
-        await get_pred_from_ws(mock_ws, data)
+        await get_pred_from_ws(mock_ws, data, hash_data)
 
 
 @pytest.mark.skipif(

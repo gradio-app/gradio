@@ -408,6 +408,21 @@ class TestSlider(unittest.TestCase):
         component = gr.Slider(0, 100, None)
         self.assertEqual(component.get_config().get("value"), 0)
 
+    @patch("gradio.Slider.get_random_value", return_value=7)
+    def test_slider_get_random_value_on_load(self, mock_get_random_value):
+        slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
+        assert slider.attach_load_event
+        assert slider.value == 7
+        assert slider.load_fn() == 7
+
+    @patch("random.randint", return_value=3)
+    def test_slider_rounds_when_using_default_randomizer(self, mock_randint):
+        slider = gr.Slider(minimum=0, maximum=1, randomize=True, step=0.1)
+        # If get_random_value didn't round, this test would fail
+        # because 0.30000000000000004 != 0.3
+        assert slider.get_random_value() == 0.3
+        mock_randint.assert_called()
+
 
 class TestCheckbox(unittest.TestCase):
     def test_component_functions(self):
@@ -840,6 +855,12 @@ class TestAudio(unittest.TestCase):
         iface = gr.Interface(generate_noise, "slider", "audio")
         self.assertTrue((await iface([100]))[0].startswith("data:audio/wav;base64"))
 
+    def test_audio_preprocess_can_be_read_by_scipy(self):
+        x_wav = deepcopy(media_data.BASE64_MICROPHONE)
+        audio_input = gr.Audio(type="filepath")
+        output = audio_input.preprocess(x_wav)
+        wavfile.read(output)
+
 
 class TestFile(unittest.TestCase):
     def test_component_functions(self):
@@ -1063,6 +1084,124 @@ class TestDataframe(unittest.TestCase):
             {"data": [[True, False, True]], "headers": [1, 2, 3]},
         )
 
+    def test_dataframe_postprocess_all_types(self):
+        df = pd.DataFrame(
+            {
+                "date_1": pd.date_range("2021-01-01", periods=2),
+                "date_2": pd.date_range("2022-02-15", periods=2).strftime(
+                    "%B %d, %Y, %r"
+                ),
+                "number": np.array([0.2233, 0.57281]),
+                "number_2": np.array([84, 23]).astype(np.int),
+                "bool": [True, False],
+                "markdown": ["# Hello", "# Goodbye"],
+            }
+        )
+        component = gr.Dataframe(
+            datatype=["date", "date", "number", "number", "bool", "markdown"]
+        )
+        output = component.postprocess(df)
+        assert output == {
+            "headers": list(df.columns),
+            "data": [
+                [
+                    pd.Timestamp("2021-01-01 00:00:00"),
+                    "February 15, 2022, 12:00:00 AM",
+                    0.2233,
+                    84,
+                    True,
+                    "<h1>Hello</h1>\n",
+                ],
+                [
+                    pd.Timestamp("2021-01-02 00:00:00"),
+                    "February 16, 2022, 12:00:00 AM",
+                    0.57281,
+                    23,
+                    False,
+                    "<h1>Goodbye</h1>\n",
+                ],
+            ],
+        }
+
+    def test_dataframe_postprocess_only_dates(self):
+        df = pd.DataFrame(
+            {
+                "date_1": pd.date_range("2021-01-01", periods=2),
+                "date_2": pd.date_range("2022-02-15", periods=2),
+            }
+        )
+        component = gr.Dataframe(datatype=["date", "date"])
+        output = component.postprocess(df)
+        assert output == {
+            "headers": list(df.columns),
+            "data": [
+                [
+                    pd.Timestamp("2021-01-01 00:00:00"),
+                    pd.Timestamp("2022-02-15 00:00:00"),
+                ],
+                [
+                    pd.Timestamp("2021-01-02 00:00:00"),
+                    pd.Timestamp("2022-02-16 00:00:00"),
+                ],
+            ],
+        }
+
+
+class TestDataset:
+    def test_preprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert dataset.preprocess(1) == [
+            15,
+            "hi",
+            bus,
+            "<i>Italics</i>",
+            "<p><em>Italics</em></p>\n",
+        ]
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            type="index",
+        )
+
+        assert dataset.preprocess(1) == 1
+
+    def test_postprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"], type="index"
+        )
+
+        output = dataset.postprocess(
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert output == {
+            "samples": [
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            "__type__": "update",
+        }
+
 
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
@@ -1095,7 +1234,9 @@ class TestVideo(unittest.TestCase):
         x_video["is_example"] = True
         self.assertIsNotNone(video_input.preprocess(x_video))
         video_input = gr.Video(format="avi")
-        self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
+        output_video = video_input.preprocess(x_video)
+        self.assertEqual(output_video[-3:], "avi")
+        assert "flip" not in output_video
 
         assert filecmp.cmp(
             video_input.serialize(x_video["name"])["name"], x_video["name"]
@@ -1122,6 +1263,74 @@ class TestVideo(unittest.TestCase):
         x_video = deepcopy(media_data.BASE64_VIDEO)
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         self.assertEqual((await iface([x_video]))[0]["data"], x_video["data"])
+
+    def test_video_postprocess_converts_to_playable_format(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        # This file has a playable container but not playable codec
+        with tempfile.NamedTemporaryFile(
+            suffix="bad_video.mp4"
+        ) as tmp_not_playable_vid:
+            bad_vid = str(test_file_dir / "bad_video_sample.mp4")
+            assert not processing_utils.video_is_playable(bad_vid)
+            shutil.copy(bad_vid, tmp_not_playable_vid.name)
+            _ = gr.Video().postprocess(tmp_not_playable_vid.name)
+            # The original video gets converted to .mp4 format
+            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
+                ".mp4"
+            )
+            assert processing_utils.video_is_playable(str(full_path_to_output))
+
+        # This file has a playable codec but not a playable container
+        with tempfile.NamedTemporaryFile(
+            suffix="playable_but_bad_container.mkv"
+        ) as tmp_not_playable_vid:
+            bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
+            assert not processing_utils.video_is_playable(bad_vid)
+            shutil.copy(bad_vid, tmp_not_playable_vid.name)
+            _ = gr.Video().postprocess(tmp_not_playable_vid.name)
+            full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
+                ".mp4"
+            )
+            assert processing_utils.video_is_playable(str(full_path_to_output))
+
+    @patch("gradio.components.FFmpeg")
+    def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+        x_video = deepcopy(media_data.BASE64_VIDEO)
+        video_input = gr.Video(source="webcam")
+        _ = video_input.preprocess(x_video)
+
+        # Dict mapping filename to FFmpeg options
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=True, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=False, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert list(output_params.values())[0] is None
+        assert "flip" not in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
 
 
 class TestTimeseries(unittest.TestCase):
@@ -1620,131 +1829,42 @@ class TestColorPicker(unittest.TestCase):
         self.assertEqual(component.get_config().get("value"), "#000000")
 
 
-@patch("uuid.uuid4", return_value="my-uuid")
-def test_gallery(mock_uuid):
-    gallery = gr.Gallery()
-    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-    data = [
-        gr.processing_utils.encode_file_to_base64(
-            pathlib.Path(test_file_dir, "bus.png")
-        ),
-        gr.processing_utils.encode_file_to_base64(
-            pathlib.Path(test_file_dir, "cheetah1.jpg")
-        ),
-    ]
+class TestCarousel:
+    def test_deprecation(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with pytest.raises(DeprecationWarning):
+            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        path = gallery.deserialize(data, tmpdir)
-        assert path.endswith("my-uuid")
-        data_restored = gallery.serialize(path)
-        assert sorted(data) == sorted(data_restored)
+    def test_deprecation_in_interface(self):
+        with pytest.raises(DeprecationWarning):
+            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
+
+    def test_deprecation_in_blocks(self):
+        with pytest.raises(DeprecationWarning):
+            with gr.Blocks():
+                gr.Textbox()
+                gr.Carousel()
 
 
-@patch("gradio.Slider.get_random_value", return_value=7)
-def test_slider_get_random_value_on_load(mock_get_random_value):
-    slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
-    assert slider.attach_load_event
-    assert slider.value == 7
-    assert slider.load_fn() == 7
+class TestGallery:
+    @patch("uuid.uuid4", return_value="my-uuid")
+    def test_gallery(self, mock_uuid):
+        gallery = gr.Gallery()
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        data = [
+            gr.processing_utils.encode_file_to_base64(
+                pathlib.Path(test_file_dir, "bus.png")
+            ),
+            gr.processing_utils.encode_file_to_base64(
+                pathlib.Path(test_file_dir, "cheetah1.jpg")
+            ),
+        ]
 
-
-@patch("random.randint", return_value=3)
-def test_slider_rounds_when_using_default_randomizer(mock_randint):
-    slider = gr.Slider(minimum=0, maximum=1, randomize=True, step=0.1)
-    # If get_random_value didn't round, this test would fail
-    # because 0.30000000000000004 != 0.3
-    assert slider.get_random_value() == 0.3
-    mock_randint.assert_called()
-
-
-def test_dataframe_postprocess_all_types():
-    df = pd.DataFrame(
-        {
-            "date_1": pd.date_range("2021-01-01", periods=2),
-            "date_2": pd.date_range("2022-02-15", periods=2).strftime("%B %d, %Y, %r"),
-            "number": np.array([0.2233, 0.57281]),
-            "number_2": np.array([84, 23]).astype(np.int),
-            "bool": [True, False],
-            "markdown": ["# Hello", "# Goodbye"],
-        }
-    )
-    component = gr.Dataframe(
-        datatype=["date", "date", "number", "number", "bool", "markdown"]
-    )
-    output = component.postprocess(df)
-    assert output == {
-        "headers": list(df.columns),
-        "data": [
-            [
-                pd.Timestamp("2021-01-01 00:00:00"),
-                "February 15, 2022, 12:00:00 AM",
-                0.2233,
-                84,
-                True,
-                "<h1>Hello</h1>\n",
-            ],
-            [
-                pd.Timestamp("2021-01-02 00:00:00"),
-                "February 16, 2022, 12:00:00 AM",
-                0.57281,
-                23,
-                False,
-                "<h1>Goodbye</h1>\n",
-            ],
-        ],
-    }
-
-
-def test_dataframe_postprocess_only_dates():
-    df = pd.DataFrame(
-        {
-            "date_1": pd.date_range("2021-01-01", periods=2),
-            "date_2": pd.date_range("2022-02-15", periods=2),
-        }
-    )
-    component = gr.Dataframe(datatype=["date", "date"])
-    output = component.postprocess(df)
-    assert output == {
-        "headers": list(df.columns),
-        "data": [
-            [pd.Timestamp("2021-01-01 00:00:00"), pd.Timestamp("2022-02-15 00:00:00")],
-            [pd.Timestamp("2021-01-02 00:00:00"), pd.Timestamp("2022-02-16 00:00:00")],
-        ],
-    }
-
-
-def test_audio_preprocess_can_be_read_by_scipy():
-    x_wav = deepcopy(media_data.BASE64_MICROPHONE)
-    audio_input = gr.Audio(type="filepath")
-    output = audio_input.preprocess(x_wav)
-    wavfile.read(output)
-
-
-def test_video_postprocess_converts_to_playable_format(test_file_dir):
-    # This file has a playable container but not playable codec
-    with tempfile.NamedTemporaryFile(suffix="bad_video.mp4") as tmp_not_playable_vid:
-        bad_vid = str(test_file_dir / "bad_video_sample.mp4")
-        assert not processing_utils.video_is_playable(bad_vid)
-        shutil.copy(bad_vid, tmp_not_playable_vid.name)
-        _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-        # The original video gets converted to .mp4 format
-        full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-            ".mp4"
-        )
-        assert processing_utils.video_is_playable(str(full_path_to_output))
-
-    # This file has a playable codec but not a playable container
-    with tempfile.NamedTemporaryFile(
-        suffix="playable_but_bad_container.mkv"
-    ) as tmp_not_playable_vid:
-        bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
-        assert not processing_utils.video_is_playable(bad_vid)
-        shutil.copy(bad_vid, tmp_not_playable_vid.name)
-        _ = gr.Video().postprocess(tmp_not_playable_vid.name)
-        full_path_to_output = pathlib.Path(tmp_not_playable_vid.name).with_suffix(
-            ".mp4"
-        )
-        assert processing_utils.video_is_playable(str(full_path_to_output))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = gallery.deserialize(data, tmpdir)
+            assert path.endswith("my-uuid")
+            data_restored = gallery.serialize(path)
+            assert sorted(data) == sorted([d["data"] for d in data_restored])
 
 
 class TestState:

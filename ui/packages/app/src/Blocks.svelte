@@ -36,6 +36,8 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	export let show_api: boolean = true;
+	export let control_page_title = false;
+
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
@@ -98,12 +100,7 @@
 			const is_input = is_dep(id, "inputs", dependencies);
 			const is_output = is_dep(id, "outputs", dependencies);
 
-			if (
-				!is_input &&
-				!is_output &&
-				"value" in props &&
-				has_no_default_value(props?.value)
-			)
+			if (!is_input && !is_output && has_no_default_value(props?.value))
 				acc.add(id); // default dynamic
 			if (is_input) acc.add(id);
 
@@ -225,6 +222,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					cancels,
 					...rest
 				},
 				i
@@ -253,7 +251,8 @@
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
-						loading_status: loading_status
+						loading_status: loading_status,
+						cancels
 					});
 
 					function handle_update(output: any) {
@@ -306,7 +305,8 @@
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
 								queue_callback: handle_update,
-								loading_status: loading_status
+								loading_status: loading_status,
+								cancels
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {
@@ -422,7 +422,9 @@
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+	{#if control_page_title}
+		<title>{title}</title>
+	{/if}
 	{#if analytics_enabled}
 		<script
 			async

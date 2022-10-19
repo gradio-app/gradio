@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import json
 import mimetypes
@@ -8,6 +10,7 @@ import subprocess
 import tempfile
 import warnings
 from io import BytesIO
+from typing import Dict
 
 import numpy as np
 import requests
@@ -22,8 +25,22 @@ with warnings.catch_warnings():
 
 
 #########################
+# GENERAL
+#########################
+
+
+def to_binary(x: str | Dict) -> bytes:
+    """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
+    if isinstance(x, dict):
+        x = encode_url_or_file_to_base64(x["name"])
+    return base64.b64decode(x.split(",")[1])
+
+
+#########################
 # IMAGE PRE-PROCESSING
 #########################
+
+
 def decode_base64_to_image(encoding):
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
@@ -312,6 +329,7 @@ def create_tmp_copy_of_file(file_path, dir=None):
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
+    prefix = utils.strip_invalid_filename_characters(prefix)
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
