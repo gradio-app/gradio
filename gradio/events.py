@@ -595,6 +595,7 @@ class Blurrable(Block):
         )
         set_cancel_events(self, "blur", cancels)
 
+
 class Uploadable(Block):
     def upload(
         self,
