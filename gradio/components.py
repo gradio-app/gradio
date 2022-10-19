@@ -45,10 +45,10 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
-    Uploadable,
     Playable,
     Streamable,
     Submittable,
+    Uploadable,
 )
 from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
@@ -1198,7 +1198,13 @@ class Dropdown(Radio):
 
 @document("edit", "clear", "change", "stream", "change", "style")
 class Image(
-    Editable, Clearable, Changeable, Streamable, Uploadable, IOComponent, ImgSerializable
+    Editable,
+    Clearable,
+    Changeable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    ImgSerializable,
 ):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1720,7 +1726,13 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
 class Audio(
-    Changeable, Clearable, Playable, Streamable, Uploadable, IOComponent, FileSerializable
+    Changeable,
+    Clearable,
+    Playable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
