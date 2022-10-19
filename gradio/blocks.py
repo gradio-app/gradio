@@ -126,7 +126,7 @@ class Block:
         scroll_to_output: bool = False,
         show_progress: bool = True,
         api_name: AnyStr | None = None,
-        js: str| None = None,
+        js: str | None = None,
         no_target: bool = False,
         queue: bool | None = None,
         batch: bool = False,
@@ -162,7 +162,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
         if not isinstance(cancels, list):
-            cancels = [cancels]            
+            cancels = [cancels]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(

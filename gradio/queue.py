@@ -123,7 +123,9 @@ class Queue:
                 self.active_jobs[self.active_jobs.index(None)] = events
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
-            if sys.version_info >= (3, 8) and not(batch):  # You shouldn't be able to cancel a task if it's part of a batch
+            if sys.version_info >= (3, 8) and not (
+                batch
+            ):  # You shouldn't be able to cancel a task if it's part of a batch
                 task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
 
     def push(self, event: Event) -> int | None:
