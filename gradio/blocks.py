@@ -157,6 +157,8 @@ class Block:
             inputs = []
         if outputs is None:
             outputs = []
+        if cancels is None:
+            cancels = []
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
@@ -186,7 +188,7 @@ class Block:
             "show_progress": show_progress,
             "batch": batch,
             "max_batch_size": max_batch_size,
-            "cancels": cancels if cancels else [],
+            "cancels": cancels,
         }
         if api_name is not None:
             dependency["documentation"] = [
