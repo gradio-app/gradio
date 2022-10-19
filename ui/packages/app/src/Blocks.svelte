@@ -100,12 +100,7 @@
 			const is_input = is_dep(id, "inputs", dependencies);
 			const is_output = is_dep(id, "outputs", dependencies);
 
-			if (
-				!is_input &&
-				!is_output &&
-				"value" in props &&
-				has_no_default_value(props?.value)
-			)
+			if (!is_input && !is_output && has_no_default_value(props?.value))
 				acc.add(id); // default dynamic
 			if (is_input) acc.add(id);
 
@@ -227,6 +222,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					cancels,
 					...rest
 				},
 				i
@@ -255,7 +251,8 @@
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
-						loading_status: loading_status
+						loading_status: loading_status,
+						cancels
 					});
 
 					function handle_update(output: any) {
@@ -308,7 +305,8 @@
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
 								queue_callback: handle_update,
-								loading_status: loading_status
+								loading_status: loading_status,
+								cancels
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {

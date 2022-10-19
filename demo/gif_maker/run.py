@@ -1,10 +1,8 @@
 import cv2
 import gradio as gr
-import tempfile
 
 def gif_maker(img_files):
     img_array = []
-    import os
     for filename in img_files:
         img = cv2.imread(filename.name)
         height, width, _ = img.shape

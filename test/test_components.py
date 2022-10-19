@@ -1234,7 +1234,9 @@ class TestVideo(unittest.TestCase):
         x_video["is_example"] = True
         self.assertIsNotNone(video_input.preprocess(x_video))
         video_input = gr.Video(format="avi")
-        self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
+        output_video = video_input.preprocess(x_video)
+        self.assertEqual(output_video[-3:], "avi")
+        assert "flip" not in output_video
 
         assert filecmp.cmp(
             video_input.serialize(x_video["name"])["name"], x_video["name"]
@@ -1290,6 +1292,45 @@ class TestVideo(unittest.TestCase):
                 ".mp4"
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
+
+    @patch("gradio.components.FFmpeg")
+    def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+        x_video = deepcopy(media_data.BASE64_VIDEO)
+        video_input = gr.Video(source="webcam")
+        _ = video_input.preprocess(x_video)
+
+        # Dict mapping filename to FFmpeg options
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=True, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=False, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert list(output_params.values())[0] is None
+        assert "flip" not in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
 
 
 class TestTimeseries(unittest.TestCase):
