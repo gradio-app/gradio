@@ -48,7 +48,7 @@
 					? { image: detail, mask: null }
 					: detail;
 		}
-		dispatch("load", detail);
+		dispatch("upload", detail);
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -90,7 +90,7 @@
 		edit: undefined;
 		clear: undefined;
 		drag: boolean;
-		load: FileData;
+		upload: FileData;
 	}>();
 
 	$: dispatch("change", value as string);

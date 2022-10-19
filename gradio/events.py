@@ -512,8 +512,8 @@ class Blurrable(Block):
         )
 
 
-class Loadable(Block):
-    def load(
+class Uploadable(Block):
+    def upload(
         self,
         fn: Callable,
         inputs: List[Component],
@@ -543,7 +543,7 @@ class Loadable(Block):
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
         self.set_event_trigger(
-            "load",
+            "upload",
             fn,
             inputs,
             outputs,

@@ -45,7 +45,7 @@ from gradio.events import (
     Clearable,
     Clickable,
     Editable,
-    Loadable,
+    Uploadable,
     Playable,
     Streamable,
     Submittable,
@@ -1198,7 +1198,7 @@ class Dropdown(Radio):
 
 @document("edit", "clear", "change", "stream", "change", "style")
 class Image(
-    Editable, Clearable, Changeable, Streamable, Loadable, IOComponent, ImgSerializable
+    Editable, Clearable, Changeable, Streamable, Uploadable, IOComponent, ImgSerializable
 ):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1539,7 +1539,7 @@ class Image(
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, Loadable, IOComponent, FileSerializable):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1720,7 +1720,7 @@ class Video(Changeable, Clearable, Playable, Loadable, IOComponent, FileSerializ
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
 class Audio(
-    Changeable, Clearable, Playable, Streamable, Loadable, IOComponent, FileSerializable
+    Changeable, Clearable, Playable, Streamable, Uploadable, IOComponent, FileSerializable
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -2014,7 +2014,7 @@ class Audio(
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, Loadable, IOComponent, FileSerializable):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)

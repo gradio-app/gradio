@@ -69,7 +69,7 @@
 		ended: undefined;
 		drag: boolean;
 		error: string;
-		load: FileData;
+		upload: FileData;
 		clear: undefined;
 	}>();
 
@@ -244,7 +244,7 @@
 	}) {
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
-		dispatch("load", detail);
+		dispatch("upload", detail);
 	}
 
 	export let dragging = false;

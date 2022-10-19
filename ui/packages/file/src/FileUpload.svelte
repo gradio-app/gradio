@@ -24,7 +24,7 @@
 		value = detail;
 		await tick();
 		dispatch("change", value);
-		dispatch("load", detail);
+		dispatch("upload", detail);
 	}
 
 	function handle_clear({ detail }: CustomEvent<null>) {
@@ -37,7 +37,7 @@
 		change: FileData | null;
 		clear: undefined;
 		drag: boolean;
-		load: FileData;
+		upload: FileData;
 	}>();
 
 	let dragging = false;

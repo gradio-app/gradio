@@ -72,7 +72,7 @@
 			on:play
 			on:pause
 			on:ended
-			on:load
+			on:upload
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";

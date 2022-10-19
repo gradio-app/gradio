@@ -63,7 +63,7 @@
 			on:clear
 			on:play
 			on:pause
-			on:load
+			on:upload
 		/>
 	{/if}
 </Block>

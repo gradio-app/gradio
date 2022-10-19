@@ -54,7 +54,7 @@
 			on:change
 			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
-			on:load
+			on:upload
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";
