@@ -2,8 +2,9 @@
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
+	import { tick } from "svelte";
 
-	import { afterUpdate, onDestroy } from "svelte";
+	import { afterUpdate, onDestroy, onMount } from "svelte";
 
 	export let value;
 
@@ -72,10 +73,15 @@
 	});
 
 	// Plotly
-	afterUpdate(() => {
+	afterUpdate(async () => {
 		if (value && value["type"] == "plotly") {
 			let plotObj = JSON.parse(value["plot"]);
 			Plotly.react(plotDiv, plotObj);
+
+			const x = document.getElementById("plotly.js-style-global");
+			const y = document.getElementById("plotly.js-style-global").cloneNode();
+
+			console.log(y, x.sheet.cssRules);
 		} else if (value && value["type"] == "bokeh") {
 			document.getElementById("bokehDiv").innerHTML = "";
 			let plotObj = JSON.parse(value["plot"]);
@@ -89,6 +95,8 @@
 			plugin_scripts.forEach((child) => document.removeChild(child));
 		}
 	});
+
+	onMount(() => {});
 </script>
 
 {#if value && value["type"] == "plotly"}
