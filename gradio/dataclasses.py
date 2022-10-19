@@ -8,3 +8,8 @@ class PredictBody(BaseModel):
     data: List[Any]
     fn_index: Optional[int]
     batched: Optional[bool] = False
+
+
+class ResetBody(BaseModel):
+    session_hash: str
+    fn_index: int

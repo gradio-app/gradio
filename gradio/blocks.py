@@ -118,20 +118,21 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: Optional[Callable],
-        inputs: Optional[Component | List[Component]],
-        outputs: Optional[Component | List[Component]],
+        fn: Callable | None,
+        inputs: Component | List[Component] | None,
+        outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        api_name: Optional[AnyStr] = None,
-        js: Optional[str] = None,
+        api_name: AnyStr | None = None,
+        js: str| None = None,
         no_target: bool = False,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-    ) -> None:
+        cancels: List[Dict[str, Any]] | None = None,
+    ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -148,6 +149,7 @@ class Block:
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
+            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         Returns: None
         """
         # Support for singular parameter
@@ -159,6 +161,8 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if not isinstance(cancels, list):
+            cancels = [cancels]            
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -182,6 +186,7 @@ class Block:
             "show_progress": show_progress,
             "batch": batch,
             "max_batch_size": max_batch_size,
+            "cancels": cancels if cancels else [],
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -421,7 +426,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
     Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
@@ -1143,6 +1148,20 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+
+        for dep in self.dependencies:
+            for i in dep["cancels"]:
+                queue_status = self.dependencies[i]["queue"]
+                if queue_status is False or (
+                    queue_status is None and not self.enable_queue
+                ):
+                    raise ValueError(
+                        "In order to cancel an event, the queue for that event must be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
 
         self.config = self.get_config_file()
         self.share = share

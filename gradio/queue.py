@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import sys
 import time
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
@@ -28,6 +29,7 @@ class Event:
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
         self.fn_index: int = fn_index
+        self.session_hash: str = "foo"
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -119,8 +121,10 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
-                run_coro_in_background(self.process_events, events, batch)
+                task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
+            if sys.version_info >= (3, 8) and not(batch):  # You shouldn't be able to cancel a task if it's part of a batch
+                task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
 
     def push(self, event: Event) -> int | None:
         """
@@ -282,6 +286,13 @@ class Queue:
                     )
             elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
+                    # Python 3.7 doesn't have named tasks.
+                    # In order to determine if a task was cancelled, we
+                    # ping the websocket to see if it was closed mid-iteration.
+                    if sys.version_info < (3, 8):
+                        is_alive = await self.send_message(event, {"msg": "alive?"})
+                        if not is_alive:
+                            return
                     old_response = response
                     for event in awake_events:
                         await self.send_message(
@@ -327,6 +338,18 @@ class Queue:
             self.active_jobs[self.active_jobs.index(events)] = None
             for event in awake_events:
                 await self.clean_event(event)
+                # Always reset the state of the iterator
+                # If the job finished successfully, this has no effect
+                # If the job is cancelled, this will enable future runs
+                # to start "from scratch"
+                await Request(
+                    method=Request.Method.POST,
+                    url=f"{self.server_path}reset",
+                    json={
+                        "session_hash": event.session_hash,
+                        "fn_index": event.fn_index,
+                    },
+                )
 
     async def send_message(self, event, data: Dict) -> bool:
         try:

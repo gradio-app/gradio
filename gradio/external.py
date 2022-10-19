@@ -9,6 +9,7 @@ import math
 import numbers
 import operator
 import re
+import uuid
 import warnings
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple
@@ -413,7 +414,7 @@ def get_spaces(model_name, api_key, alias, **kwargs):
 
 
 async def get_pred_from_ws(
-    websocket: websockets.WebSocketClientProtocol, data: str
+    websocket: websockets.WebSocketClientProtocol, data: str, hash_data: str
 ) -> Dict[str, Any]:
     completed = False
     while not completed:
@@ -421,6 +422,8 @@ async def get_pred_from_ws(
         resp = json.loads(msg)
         if resp["msg"] == "queue_full":
             raise exceptions.Error("Queue is full! Please try again.")
+        if resp["msg"] == "send_hash":
+            await websocket.send(hash_data)
         elif resp["msg"] == "send_data":
             await websocket.send(data)
         completed = resp["msg"] == "process_completed"
@@ -428,9 +431,9 @@ async def get_pred_from_ws(
 
 
 def get_ws_fn(ws_url):
-    async def ws_fn(data):
+    async def ws_fn(data, hash_data):
         async with websockets.connect(ws_url, open_timeout=10) as websocket:
-            return await get_pred_from_ws(websocket, data)
+            return await get_pred_from_ws(websocket, data, hash_data)
 
     return ws_fn
 
@@ -467,8 +470,11 @@ def get_spaces_blocks(model_name, config):
             def get_fn(outputs, fn_index, use_ws):
                 def fn(*data):
                     data = json.dumps({"data": data, "fn_index": fn_index})
+                    hash_data = json.dumps(
+                        {"fn_index": fn_index, "session_hash": str(uuid.uuid4())}
+                    )
                     if use_ws:
-                        result = utils.synchronize_async(ws_fn, data)
+                        result = utils.synchronize_async(ws_fn, data, hash_data)
                         output = result["data"]
                     else:
                         response = requests.post(api_url, headers=headers, data=data)

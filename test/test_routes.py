@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import pytest
+import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -263,6 +264,8 @@ async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
             msg = json.loads(await ws.recv())
             if msg["msg"] == "send_data":
                 await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
+            if msg["msg"] == "send_hash":
+                await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
             completed = msg["msg"] == "process_completed"
     assert io._queue.server_path == "foo_url"
 
@@ -283,6 +286,23 @@ async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
 )
 def test_get_server_url_from_ws_url(ws_url, answer):
     assert routes.get_server_url_from_ws_url(ws_url) == answer
+
+
+def test_mount_gradio_app_set_dev_mode_false():
+    app = FastAPI()
+
+    @app.get("/")
+    def read_main():
+        return {"message": "Hello!"}
+
+    with gr.Blocks() as blocks:
+        gr.Textbox("Hello from gradio!")
+
+    app = routes.mount_gradio_app(app, blocks, path="/gradio")
+    gradio_fast_api = next(
+        route for route in app.routes if isinstance(route, starlette.routing.Mount)
+    )
+    assert not gradio_fast_api.app.blocks.dev_mode
 
 
 if __name__ == "__main__":
