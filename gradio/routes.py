@@ -201,7 +201,7 @@ class App(FastAPI):
                         "Did you install Gradio from source files? Share mode only "
                         "works when Gradio is installed through the pip package."
                     )
-                else:                    
+                else:
                     raise ValueError(
                         "Did you install Gradio from source files? You need to build "
                         "the frontend by running /scripts/build_frontend.sh"
