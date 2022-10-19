@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import json
+import sys
 import time
 from typing import Dict, List, Optional
 
@@ -84,7 +84,9 @@ class Queue:
                 event = self.event_queue.pop(0)
 
             self.active_jobs[self.active_jobs.index(None)] = event
-            run_coro_in_background(self.process_event, event)
+            task = run_coro_in_background(self.process_event, event)
+            if sys.version_info >= (3, 8):
+                task.set_name(f"{event.session_hash}_{event.fn_index}")
             run_coro_in_background(self.broadcast_live_estimations)
 
     def push(self, event: Event) -> int | None:
@@ -239,6 +241,13 @@ class Queue:
                 )
             elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
+                    # Python 3.7 doesn't have named tasks.
+                    # In order to determine if a task was cancelled, we
+                    # ping the websocket to see if it was closed mid-iteration.
+                    if sys.version_info < (3, 8):
+                        is_alive = await self.send_message(event, {"msg": "alive?"})
+                        if not is_alive:
+                            return
                     old_response = response
                     await self.send_message(
                         event,
@@ -276,6 +285,18 @@ class Queue:
                 pass
             finally:
                 await self.clean_event(event)
+                # Always reset the state of the iterator
+                # If the job finished successfully, this has no effect
+                # If the job is cancelled, this will enable future runs
+                # to start "from scratch"
+                await Request(
+                    method=Request.Method.POST,
+                    url=f"{self.server_path}reset",
+                    json={
+                        "session_hash": event.session_hash,
+                        "fn_index": event.fn_index,
+                    },
+                )
 
     async def send_message(self, event, data: Dict) -> bool:
         try:
@@ -301,6 +322,8 @@ class Event:
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
+        self.fn_index = 0
+        self.session_hash = "foo"
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)

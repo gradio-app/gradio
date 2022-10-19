@@ -77,6 +77,11 @@ class PredictBody(BaseModel):
     fn_index: Optional[int]
 
 
+class ResetBody(BaseModel):
+    session_hash: str
+    fn_index: int
+
+
 ###########
 # Auth
 ###########
@@ -93,7 +98,7 @@ class App(FastAPI):
         self.blocks: Optional[gradio.Blocks] = None
         self.state_holder = {}
         self.iterators = defaultdict(dict)
-
+        self.lock = asyncio.Lock()
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -254,6 +259,16 @@ class App(FastAPI):
         def file_deprecated(path: str):
             return file(path)
 
+        @app.post("/reset/")
+        @app.post("/reset")
+        async def reset_iterator(body: ResetBody):
+            if body.session_hash not in app.iterators:
+                return {"success": False}
+            async with app.lock:
+                app.iterators[body.session_hash][body.fn_index] = None
+                app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
+            return {"success": True}
+
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
@@ -266,6 +281,14 @@ class App(FastAPI):
                     }
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
+                # The should_reset set keeps track of the fn_indices
+                # that have been cancelled. When a job is cancelled,
+                # the /reset route will mark the jobs as having been reset.
+                # That way if the cancel job finishes BEFORE the job being cancelled
+                # the job being cancelled will not overwrite the state of the iterator.
+                # In all cases, should_reset will be the empty set the next time
+                # the fn_index is run.
+                app.iterators[body.session_hash]["should_reset"] = set([])
             else:
                 session_state = {}
                 iterators = {}
@@ -277,7 +300,10 @@ class App(FastAPI):
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    app.iterators[body.session_hash][fn_index] = iterator
+                    if fn_index in app.iterators[body.session_hash]["should_reset"]:
+                        app.iterators[body.session_hash][fn_index] = None
+                    else:
+                        app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
@@ -306,7 +332,12 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
-            return await run_predict(body=body, username=username)
+            # If this fn_index cancels jobs, then the only input we need is the
+            # current session hash
+            if app.blocks.dependencies[body.fn_index]["cancels"]:
+                body.data = [body.session_hash]
+            result = await run_predict(body=body, username=username)
+            return result
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
@@ -315,10 +346,18 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 print(f"Server URL: {app_url}")
                 app.blocks._queue.set_url(app_url)
-
             await websocket.accept()
             event = Event(websocket)
+
+            # In order to cancel jobs, we need the session_hash and fn_index
+            # to create a unique id for each job
+            await websocket.send_json({"msg": "send_hash"})
+            session_hash = await websocket.receive_json()
+            event.session_hash = session_hash["session_hash"]
+            event.fn_index = session_hash["fn_index"]
+
             rank = app.blocks._queue.push(event)
+
             if rank is None:
                 await app.blocks._queue.send_message(event, {"msg": "queue_full"})
                 await event.disconnect()
@@ -422,7 +461,8 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
-
+    blocks.dev_mode = False
+    blocks.config = blocks.get_config_file()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
