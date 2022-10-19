@@ -252,7 +252,7 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         if batch:
-            data.data = list(zip(*[event.data.data for event in events]))
+            data.data = list(zip(*[event.data.data for event in events if event.data]))
             data.batched = True
         response = await Request(
             method=Request.Method.POST,
@@ -275,7 +275,7 @@ class Queue:
             if not (awake_events):
                 return
             begin_time = time.time()
-            response = await self.call_prediction(events, batch)
+            response = await self.call_prediction(awake_events, batch)
             if response.has_exception:
                 for event in awake_events:
                     await self.send_message(
@@ -305,7 +305,7 @@ class Queue:
                                 "success": old_response.status == 200,
                             },
                         )
-                    response = await self.call_prediction(events, batch)
+                    response = await self.call_prediction(awake_events, batch)
                 for event in awake_events:
                     await self.send_message(
                         event,

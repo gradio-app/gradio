@@ -131,7 +131,7 @@ class Block:
         queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: List[int] | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -157,14 +157,10 @@ class Block:
             inputs = []
         if outputs is None:
             outputs = []
-        if cancels is None:
-            cancels = []
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-        if not isinstance(cancels, list):
-            cancels = [cancels]
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -188,7 +184,7 @@ class Block:
             "show_progress": show_progress,
             "batch": batch,
             "max_batch_size": max_batch_size,
-            "cancels": cancels,
+            "cancels": cancels or [],
         }
         if api_name is not None:
             dependency["documentation"] = [

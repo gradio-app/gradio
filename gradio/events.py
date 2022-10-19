@@ -40,8 +40,12 @@ def get_cancel_function(
     )
 
 
-def set_cancel_events(block: Block, event_name: str, cancels: List[Dict[str, Any]]):
+def set_cancel_events(
+    block: Block, event_name: str, cancels: None | Dict[str, Any] | List[Dict[str, Any]]
+):
     if cancels:
+        if not isinstance(cancels, list):
+            cancels = [cancels]
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
         block.set_event_trigger(
             event_name,
@@ -58,8 +62,8 @@ class Changeable(Block):
     def change(
         self,
         fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
+        inputs: Component | List[Component] | None,
+        outputs: Component | List[Component] | None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
         scroll_to_output: bool = False,
@@ -69,7 +73,7 @@ class Changeable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -119,7 +123,7 @@ class Clickable(Block):
     def click(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -130,7 +134,7 @@ class Clickable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -180,7 +184,7 @@ class Submittable(Block):
     def submit(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -191,7 +195,7 @@ class Submittable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -242,7 +246,7 @@ class Editable(Block):
     def edit(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -253,7 +257,7 @@ class Editable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -303,7 +307,7 @@ class Clearable(Block):
     def clear(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -314,7 +318,7 @@ class Clearable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -364,7 +368,7 @@ class Playable(Block):
     def play(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -375,7 +379,7 @@ class Playable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -423,7 +427,7 @@ class Playable(Block):
     def pause(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: Optional[AnyStr] = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -434,7 +438,7 @@ class Playable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -482,7 +486,7 @@ class Playable(Block):
     def stop(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -493,7 +497,7 @@ class Playable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -543,7 +547,7 @@ class Streamable(Block):
     def stream(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -554,7 +558,7 @@ class Streamable(Block):
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -606,7 +610,7 @@ class Blurrable(Block):
     def blur(
         self,
         fn: Callable,
-        inputs: List[Component],
+        inputs: Component | List[Component] | None,
         outputs: List[Component],
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -615,7 +619,7 @@ class Blurrable(Block):
         queue: Optional[bool] = None,
         preprocess: bool = True,
         postprocess: bool = True,
-        cancels: List[Dict[str, Any]] | None = None,
+        cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -623,8 +627,8 @@ class Blurrable(Block):
 
         Parameters:
             fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
+            inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
             api_name: Defining this parameter exposes the endpoint in the api docs
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
