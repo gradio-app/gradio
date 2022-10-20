@@ -100,11 +100,26 @@ def find_cls(target_cls):
     raise ValueError("Class not found")
 
 def build(output_dir, jinja_env):
+    docs_files = os.listdir("src/docs")
+    for file in docs_files:
+        if file.endswith("_template.html") and file.startswith("v"):
+            pip_filename = file
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs, find_cls=find_cls)
+    output = template.render(docs=docs, find_cls=find_cls, pip_filename=pip_filename)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
     with open(output_file, "w") as index_html:
         index_html.write(output)
+
+def build_pip_template(version, jinja_env):
+    docs_files = os.listdir("src/docs")
+    for file in docs_files:
+        if file.endswith("_template.html") and file.startswith("v"):
+            os.remove(os.path.join("src/docs", file))
+            break
+    template = jinja_env.get_template("docs/main_template.html")
+    output = template.render(docs=docs, find_cls=find_cls)
+    with open(f"src/docs/v{version}_template.html", "w+") as template_file:
+        template_file.write(output)
