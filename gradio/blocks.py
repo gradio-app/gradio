@@ -36,7 +36,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.tunneling_poc import create_tunnel, BACKGROUND_TUNNEL_EXCEPTIONS
+from gradio.tunneling import create_tunnel, BACKGROUND_TUNNEL_EXCEPTIONS
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
