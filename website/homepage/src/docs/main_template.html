@@ -1,0 +1,222 @@
+<main class="container mx-auto px-4 flex gap-4">
+    <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
+          style="min-width: 20%">
+      <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
+      <input id="search"
+             type="search"
+             class="w-4/5 m-4 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+             placeholder="Search ⌘-k / ctrl-k"
+             autocomplete="off"
+             onkeyup="search(this.value);"
+             onsearch="search(this.value);"/>
+      </div>
+      <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
+      <a class="thin-link px-4 block" href="#something-new">Something New</a>
+      <a class="thin-link px-4 block" href="#interface">Interface</a>
+      <div class="sub-links hidden" hash="#interface">
+      {% with obj=find_cls("Interface") %}
+        {% if "fns" in obj and obj["fns"]|length %}
+          {% for fn in obj["fns"] %}
+            <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      </div>
+      <a class="thin-link px-4 block" href="#flagging">Flagging</a>
+      <div class="sub-links hidden" hash="#flagging">
+      {% for flagging_callback in docs["flagging"] %}
+        {% with obj=flagging_callback %}
+          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+        {% endwith %}
+      {% endfor %}
+      </div>
+      <a class="thin-link px-4 block" href="#combining-interfaces">Combining Interfaces</a>
+      <div class="sub-links hidden" hash="#combining-interfaces">
+          <a class="thinner-link px-4 pl-8 block" href="#tabbedinterface">TabbedInterface</a>
+          <a class="thinner-link px-4 pl-8 block" href="#parallel">Parallel</a>
+          <a class="thinner-link px-4 pl-8 block" href="#series">Series</a>
+      </div>
+      <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+      <div class="sub-links hidden" hash="#blocks">
+          {% with obj=find_cls("Blocks") %}
+            {% if "fns" in obj and obj["fns"]|length %}
+              {% for fn in obj["fns"] %}
+                <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+      </div>
+      <a class="thin-link px-4 block" href="#block-layouts">Block Layouts</a>
+      <div class="sub-links hidden" hash="#block-layouts">
+          {% for layout in docs["layout"] %}
+            {% with obj=layout %}
+              <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+            {% endwith %}
+          {% endfor %}
+      </div>
+      <a class="link px-4 my-2 block" href="#components">Components</a>
+      {% for component in docs["component"] %}
+        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+      {% endfor %}
+      <a class="link px-4 my-2 block" href="#component-helpers">Component Helpers
+      {% for component in docs["component-helpers"] %}
+        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+      {% endfor %}
+      <a class="thin-link px-4 block" href="#update">Update</a>
+      <a class="link px-4 my-2 block" href="#routes">Routes
+        {% for component in docs["routes"] %}
+          <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+        {% endfor %}
+    </div>
+    <div class="flex flex-col">
+      <div>
+        <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left">
+                    New to Gradio? Start here: <a class="link" href="/getting_started">Getting Started</a>
+        </p>
+        <p class="bg-gradient-to-r from-green-100 to-green-50 border border-green-200 px-4 py-1 rounded-full text-green-800 mb-1 w-fit float-left sm:float-right">
+          See the <a class="link" href="/changelog">Release History</a>
+        </p>
+        </div>
+      <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
+        <section class="pt-2">
+          <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos">Building Demos</h2>
+          <section id="flagging" class="pt-2">
+            <h3 class="text-4xl font-light my-4" id="something-new">Something New</h3>
+          {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        </section>
+        <section id="flagging" class="pt-2">
+          <h3 class="text-4xl font-light my-4" id="flagging">Flagging</h3>
+          <p class="mt-8 mb-12 text-lg">
+            A Gradio Interface includes a "Flag" button that appears 
+            underneath the output. By default, clicking on the Flag button sends the input and output
+            data back to the machine where the gradio demo is running, and saves it to a CSV log file.
+            But this default behavior can be changed. To set what happens when the Flag button is clicked, 
+            you pass an instance of a subclass of <em>FlaggingCallback</em> to the <em>flagging_callback</em> parameter 
+            in the <em>Interface</em> constructor. You can use one of the <em>FlaggingCallback</em> subclasses 
+            that are listed below, or you can create your own, which lets you do whatever 
+            you want with the data that is being flagged.
+          </p>
+
+          <div class="flex flex-col gap-10">
+          {% for flagging_callback in docs["flagging"] %}
+            {% with obj=flagging_callback, is_class=True, parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+          {% endfor %}
+          </div>
+      </section>
+
+        <section id="combining-interfaces" class="pt-2">
+          <h3 class="text-4xl font-light my-4">Combining Interfaces</h3>
+          <p class="mt-8 mb-12 text-lg">
+            Once you have created several Interfaces, we provide several classes that let you
+            start combining them together. For example, you can chain them in <em>Series</em>
+            or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly.
+            You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.
+          </p>
+          
+          <div class="flex flex-col gap-10">
+            {% with obj=find_cls("TabbedInterface"), parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+            {% with obj=find_cls("Parallel"), is_class=True, parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+            {% with obj=find_cls("Series"), is_class=True, parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+          </div>
+        </section>
+        <section id="blocks" class="pt-2 mb-8">
+          <div class="flex flex-col gap-10">
+            {% with obj=find_cls("Blocks"), is_class=True, parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+          </div>
+        </section>
+        <section id="block-layouts" class="pt-2 mb-8">
+          <h3 class="text-3xl font-light my-4">Block Layouts</h3>
+          <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
+          <div class="flex flex-col gap-10">
+            {% for layout in docs["layout"] %}
+              {% with obj=layout, is_class=True, parent="gradio" %}
+                {% include "docs/obj_doc_template.html" %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+        </section>
+      </section>
+      <section id="components" class="pt-2 flex flex-col gap-10">
+        <div>
+          <h2 id="components-header"
+              class="text-4xl font-light mb-2 pt-2 text-orange-500">Components</h2>
+          <p class="mt-8 text-lg">
+            Gradio includes pre-built components that can be used as
+            inputs or outputs in your Interface or Blocks with a single line of code. Components
+            include <em>preprocessing</em> steps that convert user data submitted through browser
+            to something that be can used by a Python function, and <em>postprocessing</em>
+            steps to convert values returned by a Python function into something that can be displayed in a browser.
+          </p>
+          <p class="mt-2 text-lg">
+            Consider an example with three inputs (Textbox, Number, and Image) and two outputs
+            (Number and Gallery), below is a diagram of what our preprocessing will send to the function and what
+            our postprocessing will require from it.
+          </p>
+          <img src="/assets/img/dataflow.svg" class="mt-4">
+        </div>
+        {% for component in docs["component"] %}
+          {% with obj=component, is_class=True, is_component=True, parent="gradio" %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        {% endfor %}
+      </section>
+      <section id="component-helpers" class="pt-2 flex flex-col gap-10">
+        <div>
+          <h2 id="component-helpers-header"
+              class="text-4xl font-light mb-2 pt-2 text-orange-500">Components Helpers</h2>
+          <p class="mt-8 text-lg">
+            Gradio includes helper classes that abstract over existing components. The goal of these classes is to help you
+            add common functionality to your app without having to repeatedly create the same components and event listeners.
+          </p>
+        </div>
+        {% for component in docs["component-helpers"] %}
+          {% with obj=component, is_class=True, parent="gradio" %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        {% endfor %}
+      </section>
+      <section id="update" class="pt-2 flex flex-col gap-10">
+          <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
+          <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
+            a Blocks events returns a typical value, it updates the value of the 
+            output component. But it is also possible to update the <em>properties</em> 
+            of an output component (such as the number of lines of a `Textbox` or 
+            the visibility of an `Image`) by returning the component's `update()` function, 
+            which takes as parameters any of the constructor parameters for that component.
+            Here's an example:
+          </p>
+          <div class="flex flex-col gap-10">
+            {% with obj=find_cls("update"), parent="gradio" %}
+              {% include "docs/obj_doc_template.html" %}
+            {% endwith %}
+          </div>
+        </section>
+        <section id="routes" class="pt-2 flex flex-col gap-10">
+          <div>
+            <h2 id="routes-header"
+                class="text-4xl font-light mb-2 pt-2 text-orange-500">Routes</h2>
+            <p class="mt-8 text-lg">
+              Gradio includes some helper functions for exposing and interacting with the FastAPI app
+              used to run your demo.
+            </p>
+          </div>
+          {% for component in docs["routes"] %}
+          {% with obj=component, parent="gradio" %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        {% endfor %}
+        </section>
+    </div>
+  </main>

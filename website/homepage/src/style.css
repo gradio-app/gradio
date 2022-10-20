@@ -102,6 +102,12 @@ code.language-python {
 .anchor-img {
   @apply w-7 max-w-full inline-block m-0 ml-2;
 }
+.selected-version {
+  @apply font-semibold text-orange-500;
+}
+.selected-version:before {
+  content:"• ";
+}
 
 /* copy button */
 .clipboard-button {
