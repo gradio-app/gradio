@@ -13,6 +13,7 @@ import webbrowser
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
+import json
 import anyio
 import requests
 from anyio import CapacityLimiter
@@ -1153,9 +1154,30 @@ class Blocks(BlockContext):
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
-                if self.share_url is None:
-                    share_url = networking.setup_tunnel(self.server_port, None)
+                if self.share_url is None:                    
+                    max_share_attempts = 2
+                    while max_share_attempts > 0:
+                        max_share_attempts -= 1
+                        share_url = networking.setup_tunnel(self.server_port, None) 
+                        config_url = share_url + "/config"
+                        connection_attempts = 10
+                        while connection_attempts > 0:
+                            connection_attempts -= 1
+                            try:
+                                resp_config = requests.get(config_url)
+                                resp_config = resp_config.json()
+                            except Exception as e:
+                                print("not up", e)
+                                time.sleep(1)
+                                continue
+                        print("got it")
+                        if json.dumps(resp_config, sort_keys=True) == json.dumps(self.config, sort_keys=True):
+                            print("correct config")
+                            break
+                        else:
+                            print("wrong, retry", resp_config, self.config)
                     self.share_url = share_url
+
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
