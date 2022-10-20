@@ -25,7 +25,7 @@ $code_english_translator
 I already went ahead and hosted it in Hugging Face spaces at [freddyaboulton/english-to-german](https://huggingface.co/spaces/freddyaboulton/english-to-german).
 You can see the demo below as well:
 
-<gradio-app space="freddyaboulton/english-to-german"> </gradio-app>
+<gradio-app space="gradio/english-to-german"> </gradio-app>
 
 Now, let's say you have an app that generates english text, but you wanted to additionally generate german text.
 
