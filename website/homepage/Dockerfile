@@ -15,6 +15,13 @@ WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
+WORKDIR /gradio
+RUN python -m build -w
+ARG GRADIO_VERSION
+ENV GRADIO_VERSION $GRADIO_VERSION
+ARG github.sha
+ENV github.sha $github.sha
+RUN aws s3 cp dist/gradio-$GRADIO_VERSION-py3-none-any.whl s3://gradio-builds/$github.sha/
 RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
@@ -23,7 +30,7 @@ COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
-RUN pip install gradio -U
+RUN pip install .
 WORKDIR /gradio
 COPY ./website ./website
 WORKDIR /gradio/website/homepage
@@ -36,7 +43,7 @@ RUN npm install
 RUN npm run build
 ARG AUTH_TOKEN
 ENV AUTH_TOKEN $AUTH_TOKEN
-RUN python upload_demos.py
+RUN python upload_demos.py --gradio_wheel https://gradio-builds.s3.amazonaws.com/$github.sha/gradio-$env.GRADIO_VERSION-py3-none-any.whl
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/

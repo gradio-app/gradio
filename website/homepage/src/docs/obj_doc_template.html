@@ -15,7 +15,11 @@
       {% for demo_name, demo_code in obj["demos"] %}
       <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
         <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
-        <gradio-app space="gradio/{{ demo_name }}" />
+        {% if version=="git" %}
+          <gradio-app space="gradio/{{ demo_name }}_git" />
+        {% else %}
+          <gradio-app space="gradio/{{ demo_name }}" />      
+        {% endif %}
       </div>
       {% endfor %}
     </div>
@@ -46,7 +50,11 @@
   {% endif %}
   {% if is_component %}
     <div class="embedded-component">
-      <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
+      {% if version=="git" %}
+        <gradio-app space="gradio/{{ obj['name'].lower() }}_component_git" />
+      {% else %}
+        <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
+      {% endif %}
     </div>
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>

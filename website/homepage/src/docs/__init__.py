@@ -106,7 +106,7 @@ def build(output_dir, jinja_env):
             pip_filename = file
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs, find_cls=find_cls, pip_filename=pip_filename)
+    output = template.render(docs=docs, find_cls=find_cls, version="git", pip_filename=pip_filename)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
@@ -120,6 +120,6 @@ def build_pip_template(version, jinja_env):
             os.remove(os.path.join("src/docs", file))
             break
     template = jinja_env.get_template("docs/main_template.html")
-    output = template.render(docs=docs, find_cls=find_cls)
+    output = template.render(docs=docs, find_cls=find_cls, version="pip")
     with open(f"src/docs/v{version}_template.html", "w+") as template_file:
         template_file.write(output)
