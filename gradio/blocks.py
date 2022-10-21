@@ -1156,7 +1156,9 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    self.share_url = create_tunnel(self.server_port).replace("https", "http")
+                    self.share_url = create_tunnel(self.server_port).replace(
+                        "https", "http"
+                    )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
