@@ -9,7 +9,7 @@ from queue import Queue
 from time import sleep
 from typing import Callable, Tuple
 
-FRPS_SERVER = ("gradio.proxy.huggingface.tech", 7000)
+FRPS_SERVER = ("testing.gradiodash.com", 7000)
 
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
