@@ -10,6 +10,7 @@ import sys
 import time
 import warnings
 import webbrowser
+from queue import Empty as EmptyQueueException  # not to confuse with gradio.queue
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
@@ -35,6 +36,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
+from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS, create_tunnel
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -1154,8 +1156,7 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    share_url = networking.setup_tunnel(self.server_port, None)
-                    self.share_url = share_url
+                    self.share_url = create_tunnel(self.server_port)
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
@@ -1308,7 +1309,11 @@ class Blocks(BlockContext):
             while True:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
-            print("Keyboard interruption in main thread... closing server.")
+            try:
+                _ = BACKGROUND_TUNNEL_EXCEPTIONS.get_nowait()
+                print("Exception occurred in tunnel connection... closing server.")
+            except EmptyQueueException:
+                print("Keyboard interruption in main thread... closing server.")
             self.server.close()
 
     def attach_load_events(self):
