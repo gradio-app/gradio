@@ -85,7 +85,15 @@ class Queue:
             async with self.delete_lock:
                 event = self.event_queue.pop(0)
 
-            self.active_jobs[self.active_jobs.index(None)] = event
+            # Only count as active job if it's not continuous
+            if self.dependencies[event.fn_index].get("continuous", False):
+                task = next((task for task in asyncio.all_tasks() if task.get_name() == f"{event.session_hash}_{event.fn_index}"), None)
+                if task:
+                    task.cancel()
+                    await asyncio.gather(task, return_exceptions=True)
+            else:
+                self.active_jobs[self.active_jobs.index(None)] = event
+
             task = run_coro_in_background(self.process_event, event)
             if sys.version_info >= (3, 8):
                 task.set_name(f"{event.session_hash}_{event.fn_index}")

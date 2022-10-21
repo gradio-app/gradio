@@ -14,7 +14,6 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
 import anyio
-import asyncio
 import requests
 from anyio import CapacityLimiter
 
@@ -36,7 +35,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none
+from gradio.utils import component_or_layout_class, delete_none, get_continuous_fn
 
 set_documentation_group("blocks")
 
@@ -121,6 +120,7 @@ class Block:
         no_target: bool = False,
         queue: Optional[bool] = None,
         cancels: List[int] | None = None,
+        every: int | None = None,
         continuous: bool = False
     ) -> Dict[str, Any]:
         """
@@ -148,6 +148,11 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+
+        if every:
+            continuous = True
+            fn = get_continuous_fn(fn, every)
+
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -158,6 +163,7 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -170,6 +176,7 @@ class Block:
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
             "cancels": cancels if cancels else [],
+            "every": every,
             "continuous": continuous
         }
         if api_name is not None:
@@ -952,21 +959,18 @@ class Blocks(BlockContext):
             inputs: Instance Method - input list
             outputs: Instance Method - output list
         """
-        async def refresh_every(*args):
-            loop = asyncio.get_running_loop()
-            a = await loop.run_in_executor(None, fn, *args)
-            await asyncio.sleep(every)
-            return a
 
-        self.set_event_trigger(
+        dep = self.set_event_trigger(
             event_name="load",
-            fn=refresh_every,
+            fn=fn,
             inputs=inputs,
             outputs=outputs,
             no_target=True,
             continuous=True,
             js=_js,
+            every=every
         )
+        return dep
 
     def clear(self):
         """Resets the layout of the Blocks object."""

@@ -692,3 +692,12 @@ class Time:
     minutes = 60
     hours = 60 * 60
     days = 24 * 60 * 60
+
+
+def get_continuous_fn(fn, every):
+    async def refresh_every(*args):
+        loop = asyncio.get_running_loop()
+        a = await loop.run_in_executor(None, fn, *args)
+        await asyncio.sleep(every)
+        return a
+    return refresh_every

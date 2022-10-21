@@ -5,7 +5,7 @@ import sys
 import warnings
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
 
-from gradio.blocks import Block, Context, update
+from gradio.blocks import Block, Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component, StatusTracker
@@ -68,6 +68,7 @@ class Changeable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: List[Dict[str, Any]] | None = None,
+        every: int | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -104,7 +105,12 @@ class Changeable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            every=every
         )
+        # if cancels is None:
+        #     cancels = []
+        # if every:
+        #     cancels.append(dep)
         set_cancel_events(self, "change", cancels)
         return dep
 
@@ -123,6 +129,7 @@ class Clickable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: List[Dict[str, Any]] | None = None,
+        every: int | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -159,6 +166,7 @@ class Clickable(Block):
             js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            every=every
         )
         set_cancel_events(self, "click", cancels)
         return dep
