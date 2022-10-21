@@ -10,9 +10,9 @@ import sys
 import time
 import warnings
 import webbrowser
+from queue import Empty as EmptyQueueException  # not to confuse with gradio.queue
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
-from queue import Empty as EmptyQueueException  # not to confuse with gradio.queue
 
 import anyio
 import requests
@@ -36,7 +36,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.tunneling import create_tunnel, BACKGROUND_TUNNEL_EXCEPTIONS
+from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS, create_tunnel
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")

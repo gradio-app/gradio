@@ -12,8 +12,8 @@ from typing import Callable, Tuple
 FRPS_SERVER = ("gradio.proxy.huggingface.tech", 7000)
 
 
-BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1) # To propagate exception to main thread
-_NB_DAEMON_THREADS = 0 # (optional) For better thread naming
+BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
+_NB_DAEMON_THREADS = 0  # (optional) For better thread naming
 
 
 def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
