@@ -9,10 +9,11 @@
   </head>
   <body>
     {% include "templates/navbar.html" %}
-    <main class="container mx-auto px-4 flex">
+    <main class="container mx-auto px-4 flex flex-row-reverse">
+      <div class="flex flex-row">
       <p class="pl-4 pr-1 py-1 mb-1 w-fit text-gray-600 font-semibold">
-        Viewing 
-        <div class="flex flex-col py-1 mb-2">
+        gradio 
+        <div class="flex flex-col py-1 mb-2 bg-gray-50 rounded-lg">
           <button 
           class="h-2/4 link px-3 text-gray-600 selected-version"
           onclick="this.classList.add('selected-version'); this.nextElementSibling.classList.remove('selected-version'); document.querySelector('#git-docs').classList.add('hidden'); document.querySelector('#pip-docs').classList.remove('hidden');">
@@ -26,6 +27,7 @@
           </button>
         </div>
       </p>
+    </div>
     </main>
     <div id="pip-docs">
       {% include "docs/"+pip_filename %}
