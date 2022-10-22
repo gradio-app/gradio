@@ -25,26 +25,5 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 #         paramiko.SSHClient.connect.assert_called_once()
 #         io.close()
 
-
-class TestVerbose(unittest.TestCase):
-    """Not absolutely needed but just including them for the sake of completion."""
-
-    def setUp(self):
-        self.message = "print test"
-        self.capturedOutput = io.StringIO()  # Create StringIO object
-        sys.stdout = self.capturedOutput  # and redirect stdout.
-
-    def test_verbose_debug_true(self):
-        tunneling.verbose(self.message, debug_mode=True)
-        self.assertEqual(self.capturedOutput.getvalue().strip(), self.message)
-
-    def test_verbose_debug_false(self):
-        tunneling.verbose(self.message, debug_mode=False)
-        self.assertEqual(self.capturedOutput.getvalue().strip(), "")
-
-    def tearDown(self):
-        sys.stdout = sys.__stdout__
-
-
 if __name__ == "__main__":
     unittest.main()
