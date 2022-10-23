@@ -73,6 +73,7 @@ class Block:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
                 Context.root_block.temp_dirs.add(self.temp_dir)
+        return self
 
     def unrender(self):
         """
@@ -667,6 +668,8 @@ class Blocks(BlockContext):
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
+
+        return self
 
     def preprocess_data(self, fn_index, raw_input, state):
         block_fn = self.fns[fn_index]
