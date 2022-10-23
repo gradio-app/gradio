@@ -669,6 +669,8 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
+        return self
+
     def preprocess_data(self, fn_index, raw_input, state):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
