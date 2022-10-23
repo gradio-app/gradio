@@ -17,6 +17,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Fixes the error message if a user builds Gradio locally and tries to use `share=True` by [@abidlabs](https://github.com/abidlabs) in [PR 2502](https://github.com/gradio-app/gradio/pull/2502)
+* Allows the render() function to return self by [@Raul9595](https://github.com/Raul9595) in [PR 2514](https://github.com/gradio-app/gradio/pull/2514)
 
 ## Contributors Shoutout:
 No changes to highlight.

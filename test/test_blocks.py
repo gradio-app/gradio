@@ -494,8 +494,8 @@ class TestSpecificUpdate:
         }
 
 
-class TestDuplicateBlockError:
-    def test_error(self):
+class TestRender:
+    def test_duplicate_error(self):
         with pytest.raises(DuplicateBlockError):
             t = gr.Textbox()
             with gr.Blocks():
@@ -526,7 +526,8 @@ class TestDuplicateBlockError:
         t2 = gr.Textbox()
         with gr.Blocks():
             t.render()
-            t2.render()
+            t3 = t2.render()
+        assert t2 == t3
 
         t = gr.Textbox()
         io = gr.Interface(lambda x: x, t, gr.Textbox())
@@ -538,7 +539,8 @@ class TestDuplicateBlockError:
         io2 = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
         with gr.Blocks():
             io.render()
-            io2.render()
+            io3 = io2.render()
+        assert io2 == io3
 
 
 @pytest.mark.skipif(
