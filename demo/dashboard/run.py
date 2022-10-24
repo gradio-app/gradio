@@ -44,16 +44,15 @@ def create_issue_plot(libraries, issue_choices):
     return gr.update(value=plot, visible=True)
 
 
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             with gr.Box():
-                gr.Markdown("## <u>Select libraries to display<u>")
+                gr.Markdown("## Select libraries to display")
                 libraries = gr.CheckboxGroup(choices=LIBRARIES, label="")
         with gr.Column():
             with gr.Box():
-                gr.Markdown("## <u>Select graphs to display<u>")
+                gr.Markdown("## Select graphs to display")
                 pip = gr.CheckboxGroup(choices=["Pip", "Cumulated"], label="")
                 stars = gr.CheckboxGroup(choices=["Stars", "Week over Week"], label="")
                 issues = gr.CheckboxGroup(choices=["Issue", "Exclude org members", "week over week"], label="")
@@ -69,4 +68,6 @@ with gr.Blocks() as demo:
     fetch.click(create_star_plot, inputs=[libraries, stars], outputs=star_plot)
     fetch.click(create_issue_plot, inputs=[libraries, issues], outputs=issue_plot)
 
-demo.launch()
+
+if __name__ == "__main__":
+    demo.launch()
