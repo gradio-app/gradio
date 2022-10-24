@@ -3,16 +3,17 @@ import requests
 import time
 from threading import Thread
 
-NUM_INTERFACES = 10
-NUM_REQUESTS_PER_INTERFACE = 10
+NUM_INTERFACES = 20
+NUM_REQUESTS_PER_INTERFACE = 1
 BYTE_SIZE = 50
 
 text_data = "a" * BYTE_SIZE
 share_urls = []
 
-for _ in range(NUM_INTERFACES):
+for i in range(NUM_INTERFACES):
+    print(">", i)
     text_iface = gr.Interface(lambda x:x, gr.Text(), gr.Text())
-    _, _, share_url = text_iface.launch(share=True, prevent_thread_lock=True)
+    _, _, share_url = text_iface.launch(share=True, prevent_thread_lock=True, server_port=8860+i)
     share_urls.append(share_url)
 
 def send_request(url, data):

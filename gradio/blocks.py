@@ -1134,7 +1134,7 @@ class Blocks(BlockContext):
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        is_colab = utils.colab_check()
+        is_colab = False # utils.colab_check()
         if is_colab or (_frontend and not networking.url_ok(self.local_url)):
             if not self.share:
                 raise ValueError(
