@@ -24,11 +24,11 @@ class Estimation(BaseModel):
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, fn_index: int):
+    def __init__(self, websocket: fastapi.WebSocket, fn_index: int | None = None):
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index: int | None = None
+        self.fn_index: int | None = fn_index
         self.session_hash: str = "foo"
 
     async def disconnect(self, code=1000):
