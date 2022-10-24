@@ -26,7 +26,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
-GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
+GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 
 
 class Server(uvicorn.Server):
@@ -156,14 +156,13 @@ def start_server(
     return server_name, port, path_to_local_server, app, server
 
 
-def setup_tunnel(local_server_port: int, endpoint: str) -> str:
-    response = requests.get(
-        endpoint + "/v1/tunnel-request" if endpoint is not None else GRADIO_API_SERVER
-    )
+def setup_tunnel(local_host: str, local_port: int) -> str:
+    response = requests.get(GRADIO_API_SERVER)
     if response and response.status_code == 200:
         try:
-            payload = response.json()[0]
-            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
+            payload = response.json()
+            remote_host, remote_port = payload["host"], payload["port"]
+            return create_tunnel(remote_host, remote_port, local_host, local_port)
         except Exception as e:
             raise RuntimeError(str(e))
     else:

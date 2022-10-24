@@ -36,7 +36,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS, create_tunnel
+from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS
 from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
@@ -1159,7 +1159,7 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    self.share_url = create_tunnel(self.server_port)
+                    self.share_url = networking.setup_tunnel(self.server_name, self.server_port)
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
