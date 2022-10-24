@@ -18,5 +18,10 @@
 
 <Block {visible} {elem_id} disable={true}>
 	<StatusTracker {...loading_status} variant="center" />
-	<HTML {value} {elem_id} {visible} on:change />
+	<div
+		class="transition"
+		class:opacity-20={loading_status?.status === "pending"}
+	>
+		<HTML {value} {elem_id} {visible} on:change />
+	</div>
 </Block>
