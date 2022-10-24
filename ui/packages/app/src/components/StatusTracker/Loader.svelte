@@ -2,6 +2,8 @@
 	import { onMount } from "svelte";
 	import { spring } from "svelte/motion";
 
+	export let margin: boolean = true;
+
 	const top = spring([0, 0]);
 	const bottom = spring([0, 0]);
 
@@ -38,7 +40,7 @@
 	});
 </script>
 
-<div class="m-12 z-20">
+<div class=" z-20" class:m-12={margin}>
 	<svg
 		class="text-xl"
 		width="5em"
