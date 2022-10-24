@@ -313,8 +313,11 @@ class TestDevMode:
 
 
 def test_predict_route_is_blocked_if_api_open_false():
-    io = Interface(lambda x: x, "text", "text", examples=[["freddy"]]).queue(api_open=False)
+    io = Interface(lambda x: x, "text", "text", examples=[["freddy"]]).queue(
+        api_open=False
+    )
     app, _, _ = io.launch(prevent_thread_lock=True)
+    assert not io.show_api
     client = TestClient(app)
     result = client.post(
         "/api/predict", json={"fn_index": 0, "data": [5], "session_hash": "foo"}
@@ -332,7 +335,10 @@ def test_predict_route_not_blocked_if_queue_disabled():
             lambda x: f"Hello, {x}!", input, output, queue=False, api_name="not_blocked"
         )
         button.click(lambda: 42, None, number, queue=True, api_name="blocked")
-    app, _, _ = demo.queue(api_open=False).launch(prevent_thread_lock=True)
+    app, _, _ = demo.queue(api_open=False).launch(
+        prevent_thread_lock=True, show_api=True
+    )
+    assert not demo.show_api
     client = TestClient(app)
 
     result = client.post("/api/blocked", json={"data": [], "session_hash": "foo"})
@@ -352,7 +358,10 @@ def test_predict_route_not_blocked_if_routes_open():
         button.click(
             lambda x: f"Hello, {x}!", input, output, queue=True, api_name="not_blocked"
         )
-    app, _, _ = demo.queue(api_open=True).launch(prevent_thread_lock=True)
+    app, _, _ = demo.queue(api_open=True).launch(
+        prevent_thread_lock=True, show_api=False
+    )
+    assert demo.show_api
     client = TestClient(app)
 
     result = client.post(
@@ -360,6 +369,19 @@ def test_predict_route_not_blocked_if_routes_open():
     )
     assert result.status_code == 200
     assert result.json()["data"] == ["Hello, freddy!"]
+
+    demo.close()
+    demo.queue(api_open=False).launch(prevent_thread_lock=True, show_api=False)
+    assert not demo.show_api
+
+
+def test_show_api_queue_not_enabled():
+    io = Interface(lambda x: x, "text", "text", examples=[["freddy"]])
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    assert io.show_api
+    io.close()
+    io.launch(prevent_thread_lock=True, show_api=False)
+    assert not io.show_api
 
 
 if __name__ == "__main__":

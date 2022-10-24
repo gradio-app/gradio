@@ -1112,7 +1112,7 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True.
+            show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of api_docs.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1139,7 +1139,6 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        self.show_api = show_api
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1153,6 +1152,7 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+        self.show_api = self.api_open if self.enable_queue else show_api
 
         for dep in self.dependencies:
             for i in dep["cancels"]:
