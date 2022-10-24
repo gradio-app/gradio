@@ -1,7 +1,52 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### Batched Functions
+
+Gradio now supports the ability to pass *batched* functions. Batched functions are just
+functions which take in a list of inputs and return a list of predictions.
+
+For example, here is a batched function that takes in two lists of inputs (a list of 
+words and a list of ints), and returns a list of trimmed words as output:
+
+```py
+import time
+
+def trim_words(words, lens):
+    trimmed_words = []
+    time.sleep(5)
+    for w, l in zip(words, lens):
+        trimmed_words.append(w[:l])        
+    return [trimmed_words]
+```
+
+The advantage of using batched functions is that if you enable queuing, the Gradio
+server can automatically *batch* incoming requests and process them in parallel, 
+potentially speeding up your demo. Here's what the Gradio code looks like (notice
+the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
+into event triggers or into the `Interface` class) 
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        word = gr.Textbox(label="word", value="abc")
+        leng = gr.Number(label="leng", precision=0, value=1)
+        output = gr.Textbox(label="Output")
+    with gr.Row():
+        run = gr.Button()
+
+    event = run.click(trim_words, [word, leng], output, batch=True, max_batch_size=16)
+
+demo.queue()
+demo.launch()
+```
+
+In the example above, 16 requests could be processed in parallel (for a total inference
+time of 5 seconds), instead of each request being processed separately (for a total
+inference time of 80 seconds).
 
 ## Bug Fixes:
 * Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
@@ -19,6 +64,7 @@ No changes to highlight.
 * Fixes the error message if a user builds Gradio locally and tries to use `share=True` by [@abidlabs](https://github.com/abidlabs) in [PR 2502](https://github.com/gradio-app/gradio/pull/2502)
 * Allows the render() function to return self by [@Raul9595](https://github.com/Raul9595) in [PR 2514](https://github.com/gradio-app/gradio/pull/2514)
 * Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
+* Gradio now supports batched functions by [@abidlabs](https://github.com/abidlabs) in [PR 2218](https://github.com/gradio-app/gradio/pull/2218)
 
 ## Contributors Shoutout:
 No changes to highlight.
