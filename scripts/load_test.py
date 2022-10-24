@@ -30,6 +30,7 @@ for share_url in share_urls:
         thread.start()
         threads.append(thread)
 while True:
+    time.sleep(0.0001)
     live_threads = [thread.is_alive() for thread in threads]
     if not any(live_threads):
         break
