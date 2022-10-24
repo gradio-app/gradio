@@ -271,7 +271,6 @@ class TestQueueRoutes:
                 completed = msg["msg"] == "process_completed"
         assert io._queue.server_path == "foo_url"
 
-
     @pytest.mark.parametrize(
         "ws_url,answer",
         [
