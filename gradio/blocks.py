@@ -73,6 +73,7 @@ class Block:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
                 Context.root_block.temp_dirs.add(self.temp_dir)
+        return self
 
     def unrender(self):
         """
@@ -407,7 +408,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
     Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
@@ -667,6 +668,8 @@ class Blocks(BlockContext):
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
+
+        return self
 
     def preprocess_data(self, fn_index, raw_input, state):
         block_fn = self.fns[fn_index]

@@ -196,10 +196,16 @@ class App(FastAPI):
                     template, {"request": request, "config": config}
                 )
             except TemplateNotFound:
-                raise ValueError(
-                    "Did you install Gradio from source files? You need to build "
-                    "the frontend by running /scripts/build_frontend.sh"
-                )
+                if app.blocks.share:
+                    raise ValueError(
+                        "Did you install Gradio from source files? Share mode only "
+                        "works when Gradio is installed through the pip package."
+                    )
+                else:
+                    raise ValueError(
+                        "Did you install Gradio from source files? You need to build "
+                        "the frontend by running /scripts/build_frontend.sh"
+                    )
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -461,7 +467,8 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
-
+    blocks.dev_mode = False
+    blocks.config = blocks.get_config_file()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
