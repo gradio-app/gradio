@@ -11,7 +11,7 @@ import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-import gradio
+import gradio as gr
 from gradio import Blocks, Interface, Textbox, close_all, routes
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -114,6 +114,33 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])
+
+    def test_predict_route_batching(self):
+        def batch_fn(x):
+            results = []
+            for word in x:
+                results.append("Hello " + word)
+            return (results,)
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(batch_fn, inputs=text, outputs=text, batch=True, api_name="pred")
+
+        demo.queue()
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/pred/", json={"data": ["test"]})
+        output = dict(response.json())
+        self.assertEqual(output["data"], ["Hello test"])
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post(
+            "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
+        )
+        output = dict(response.json())
+        self.assertEqual(output["data"], [["Hello test", "Hello test2"]])
 
     def test_state(self):
         def predict(input, history):
@@ -220,63 +247,64 @@ class TestAuthenticatedRoutes(unittest.TestCase):
         close_all()
 
 
-@pytest.mark.asyncio
-@pytest.mark.skipif(
-    sys.version_info < (3, 8),
-    reason="Mocks don't work with async context managers in 3.7",
-)
-@patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
-async def test_queue_join_routes_sets_url_if_none_set(mock_get_url):
-    io = Interface(lambda x: x, "text", "text").queue()
-    app, _, _ = io.launch(prevent_thread_lock=True)
-    io._queue.server_path = None
-    async with websockets.connect(
-        f"{io.local_url.replace('http', 'ws')}queue/join"
-    ) as ws:
-        completed = False
-        while not completed:
-            msg = json.loads(await ws.recv())
-            if msg["msg"] == "send_data":
-                await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
-            if msg["msg"] == "send_hash":
-                await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-            completed = msg["msg"] == "process_completed"
-    assert io._queue.server_path == "foo_url"
-
-
-@pytest.mark.parametrize(
-    "ws_url,answer",
-    [
-        ("ws://127.0.0.1:7861/queue/join", "http://127.0.0.1:7861/"),
-        (
-            "ws://127.0.0.1:7861/gradio/gradio/gradio/queue/join",
-            "http://127.0.0.1:7861/gradio/gradio/gradio/",
-        ),
-        (
-            "wss://huggingface.co.tech/path/queue/join",
-            "https://huggingface.co.tech/path/",
-        ),
-    ],
-)
-def test_get_server_url_from_ws_url(ws_url, answer):
-    assert routes.get_server_url_from_ws_url(ws_url) == answer
-
-
-def test_mount_gradio_app_set_dev_mode_false():
-    app = FastAPI()
-
-    @app.get("/")
-    def read_main():
-        return {"message": "Hello!"}
-
-    with gradio.Blocks() as blocks:
-        gradio.Textbox("Hello from gradio!")
-
-    app = routes.mount_gradio_app(app, blocks, path="/gradio")
-    gradio_fast_api = next(
-        route for route in app.routes if isinstance(route, starlette.routing.Mount)
+class TestQueueRoutes:
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Mocks don't work with async context managers in 3.7",
     )
-    assert not gradio_fast_api.app.blocks.dev_mode
+    @patch("gradio.routes.get_server_url_from_ws_url", return_value="foo_url")
+    async def test_queue_join_routes_sets_url_if_none_set(self, mock_get_url):
+        io = Interface(lambda x: x, "text", "text").queue()
+        io.launch(prevent_thread_lock=True)
+        io._queue.server_path = None
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["foo"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                completed = msg["msg"] == "process_completed"
+        assert io._queue.server_path == "foo_url"
+
+    @pytest.mark.parametrize(
+        "ws_url,answer",
+        [
+            ("ws://127.0.0.1:7861/queue/join", "http://127.0.0.1:7861/"),
+            (
+                "ws://127.0.0.1:7861/gradio/gradio/gradio/queue/join",
+                "http://127.0.0.1:7861/gradio/gradio/gradio/",
+            ),
+            (
+                "wss://huggingface.co.tech/path/queue/join",
+                "https://huggingface.co.tech/path/",
+            ),
+        ],
+    )
+    def test_get_server_url_from_ws_url(self, ws_url, answer):
+        assert routes.get_server_url_from_ws_url(ws_url) == answer
+
+
+class TestDevMode:
+    def test_mount_gradio_app_set_dev_mode_false(self):
+        app = FastAPI()
+
+        @app.get("/")
+        def read_main():
+            return {"message": "Hello!"}
+
+        with gr.Blocks() as blocks:
+            gr.Textbox("Hello from gradio!")
+
+        app = routes.mount_gradio_app(app, blocks, path="/gradio")
+        gradio_fast_api = next(
+            route for route in app.routes if isinstance(route, starlette.routing.Mount)
+        )
+        assert not gradio_fast_api.app.blocks.dev_mode
 
 
 if __name__ == "__main__":
