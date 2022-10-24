@@ -160,8 +160,8 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
     response = requests.get(GRADIO_API_SERVER)
     if response and response.status_code == 200:
         try:
-            payload = response.json()
-            remote_host, remote_port = payload["host"], payload["port"]
+            payload = response.json()[0]
+            remote_host, remote_port = payload["host"], int(payload["port"])
             return create_tunnel(remote_host, remote_port, local_host, local_port)
         except Exception as e:
             raise RuntimeError(str(e))

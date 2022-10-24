@@ -2,7 +2,6 @@
 
 import os
 import unittest
-import unittest.mock as mock
 import urllib
 import warnings
 
@@ -76,14 +75,16 @@ class TestStartServer(unittest.TestCase):
 
 
 class TestURLs(unittest.TestCase):
-    def test_setup_tunnel(self):
-        networking.create_tunnel = mock.MagicMock(return_value="test")
-        res = networking.setup_tunnel(None, None)
-        self.assertEqual(res, "test")
-
     def test_url_ok(self):
-        res = networking.url_ok("https://www.gradio.app")
-        self.assertTrue(res)
+        assert networking.url_ok("https://www.gradio.app")
+
+
+class TestSharing:
+    def test_setup_tunnel(self):
+        io = Interface(lambda x: x, "text", "text")
+        io.launch(prevent_thread_lock=True, share=False)
+        share_url = networking.setup_tunnel(io.server_name, io.server_port)
+        assert networking.url_ok(share_url)
 
 
 if __name__ == "__main__":
