@@ -1189,25 +1189,25 @@ class Blocks(BlockContext):
                     "Warning: authentication is not supported inline. Please"
                     "click the link to access the interface in a new tab."
                 )
-            try:
-                from IPython.display import HTML, display  # type: ignore
+            # try:
+            #     from IPython.display import HTML, display  # type: ignore
 
-                if self.share:
-                    while not networking.url_ok(self.share_url):
-                        time.sleep(1)
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
-                    )
-                else:
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
-                    )
-            except ImportError:
-                pass
+            #     if self.share:
+            #         while not networking.url_ok(self.share_url):
+            #             time.sleep(1)
+            #         display(
+            #             HTML(
+            #                 f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
+            #             )
+            #         )
+            #     else:
+            #         display(
+            #             HTML(
+            #                 f'<div><iframe src="{self.local_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
+            #             )
+            #         )
+            # except ImportError:
+            #     pass
 
         if getattr(self, "analytics_enabled", False):
             data = {
