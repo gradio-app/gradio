@@ -1163,6 +1163,11 @@ class Blocks(BlockContext):
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
         self.share = share

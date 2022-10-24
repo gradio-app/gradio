@@ -28,7 +28,7 @@ class Event:
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index: int = fn_index
+        self.fn_index: int | None = None
         self.session_hash: str = "foo"
 
     async def disconnect(self, code=1000):

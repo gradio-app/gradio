@@ -325,12 +325,12 @@ class App(FastAPI):
             return result
 
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket, fn_index: int = 0):
+        async def join_queue(websocket: WebSocket):
             if app.blocks._queue.server_path is None:
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket, fn_index)
+            event = Event(websocket)
 
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job

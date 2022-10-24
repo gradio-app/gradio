@@ -490,6 +490,53 @@ class TestCallFunction:
 
 
 class TestBatchProcessing:
+    def test_raise_exception_if_batching_an_event_thats_not_queued(self):
+        def trim(words, lens):
+            trimmed_words = []
+            for w, l in zip(words, lens):
+                trimmed_words.append(w[: int(l)])
+            return [trimmed_words]
+
+        msg = "In order to use batching, the queue must be enabled."
+
+        with pytest.raises(ValueError, match=msg):
+            demo = gr.Interface(
+                trim, ["textbox", "number"], ["textbox"], batch=True, max_batch_size=16
+            )
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                with gr.Row():
+                    word = gr.Textbox(label="word")
+                    leng = gr.Number(label="leng")
+                    output = gr.Textbox(label="Output")
+                with gr.Row():
+                    run = gr.Button()
+
+                run.click(trim, [word, leng], output, batch=True, max_batch_size=16)
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                with gr.Row():
+                    word = gr.Textbox(label="word")
+                    leng = gr.Number(label="leng")
+                    output = gr.Textbox(label="Output")
+                with gr.Row():
+                    run = gr.Button()
+
+                run.click(
+                    trim,
+                    [word, leng],
+                    output,
+                    batch=True,
+                    max_batch_size=16,
+                    queue=False,
+                )
+            demo.queue()
+            demo.launch(prevent_thread_lock=True)
+
     @pytest.mark.asyncio
     async def test_call_regular_function(self):
         def batch_fn(x):
@@ -688,57 +735,57 @@ class TestRender:
         assert io2 == io3
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 8),
-    reason="Tasks dont have names in 3.7",
-)
-@pytest.mark.asyncio
-async def test_cancel_function(capsys):
-    async def long_job():
-        await asyncio.sleep(10)
-        print("HELLO FROM LONG JOB")
+class TestCancel:
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Tasks dont have names in 3.7",
+    )
+    @pytest.mark.asyncio
+    async def test_cancel_function(self, capsys):
+        async def long_job():
+            await asyncio.sleep(10)
+            print("HELLO FROM LONG JOB")
 
-    with gr.Blocks():
-        button = gr.Button(value="Start")
-        click = button.click(long_job, None, None)
-        cancel = gr.Button(value="Cancel")
-        cancel.click(None, None, None, cancels=[click])
-        cancel_fun, _ = gradio.events.get_cancel_function(dependencies=[click])
-
-    task = asyncio.create_task(long_job())
-    task.set_name("foo_0")
-    # If cancel_fun didn't cancel long_job the message would be printed to the console
-    # The test would also take 10 seconds
-    await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
-    captured = capsys.readouterr()
-    assert "HELLO FROM LONG JOB" not in captured.out
-
-
-def test_raise_exception_if_cancelling_an_event_thats_not_queued():
-    def iteration(a):
-        yield a
-
-    msg = "In order to cancel an event, the queue for that event must be enabled!"
-    with pytest.raises(ValueError, match=msg):
-        gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
-            prevent_thread_lock=True
-        )
-
-    with pytest.raises(ValueError, match=msg):
-        with gr.Blocks() as demo:
-            button = gr.Button(value="Predict")
-            click = button.click(None, None, None)
+        with gr.Blocks():
+            button = gr.Button(value="Start")
+            click = button.click(long_job, None, None)
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
-        demo.launch(prevent_thread_lock=True)
+            cancel_fun, _ = gradio.events.get_cancel_function(dependencies=[click])
 
-    with pytest.raises(ValueError, match=msg):
-        with gr.Blocks() as demo:
-            button = gr.Button(value="Predict")
-            click = button.click(None, None, None, queue=False)
-            cancel = gr.Button(value="Cancel")
-            cancel.click(None, None, None, cancels=[click])
-        demo.queue().launch(prevent_thread_lock=True)
+        task = asyncio.create_task(long_job())
+        task.set_name("foo_0")
+        # If cancel_fun didn't cancel long_job the message would be printed to the console
+        # The test would also take 10 seconds
+        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        captured = capsys.readouterr()
+        assert "HELLO FROM LONG JOB" not in captured.out
+
+    def test_raise_exception_if_cancelling_an_event_thats_not_queued(self):
+        def iteration(a):
+            yield a
+
+        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        with pytest.raises(ValueError, match=msg):
+            gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
+                prevent_thread_lock=True
+            )
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Predict")
+                click = button.click(None, None, None)
+                cancel = gr.Button(value="Cancel")
+                cancel.click(None, None, None, cancels=[click])
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Predict")
+                click = button.click(None, None, None, queue=False)
+                cancel = gr.Button(value="Cancel")
+                cancel.click(None, None, None, cancels=[click])
+            demo.queue().launch(prevent_thread_lock=True)
 
 
 if __name__ == "__main__":
