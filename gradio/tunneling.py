@@ -9,8 +9,6 @@ from queue import Queue
 from time import sleep
 from typing import Callable, Tuple
 
-FRPS_SERVER = ("18.236.230.150", 7000)
-
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
@@ -47,10 +45,10 @@ def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
     thread.start()
 
 
-def handle_req_work_conn(run_id, port):
+def handle_req_work_conn(run_id: int, remote_host: str, remote_port: int, local_host: str, local_port: int):
     # Connect to frps for the forward socket
     socket_worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_worker.connect(FRPS_SERVER)
+    socket_worker.connect((remote_host, remote_port))
 
     # Send the run id (TypeNewWorkConn)
     send(socket_worker, {"run_id": run_id}, 119)
@@ -63,7 +61,7 @@ def handle_req_work_conn(run_id, port):
 
     # Connect to the gradio app
     socket_gradio = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_gradio.connect(("127.0.0.1", port))
+    socket_gradio.connect((local_host, local_port))
 
     while True:
         r, w, x = select.select([socket_gradio, socket_worker], [], [])
@@ -124,14 +122,14 @@ def heartbeat(client):
         pass
 
 
-def client_loop(client, run_id, port):
+def client_loop(client, run_id, remote_host, remote_port, local_host, local_port):
     while True:
         msg, type = read(client)
         if not type:
             break
         # TypeReqWorkConn
         if type == 114:
-            start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, port))
+            start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, remote_host, remote_port, local_host, local_port))
             continue
         # Pong
         if type == 52:
@@ -140,10 +138,14 @@ def client_loop(client, run_id, port):
     client.close()
 
 
-def create_tunnel(port):
+def create_tunnel(remote_host: str, remote_port: int, local_host: str, local_port: int) -> str:
+    """
+    Creates a tunnel between a local server/port and a remote server/port. Returns
+    the URL of the share link that is connected to the local server/port.
+    """
     # Connect to frps
     frps_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    frps_client.connect(FRPS_SERVER)
+    frps_client.connect((remote_host, remote_port))
 
     # Send `TypeLogin`
     # TODO
@@ -183,7 +185,7 @@ def create_tunnel(port):
         sys.exit(1)
 
     # Start a warm-up connection
-    start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, port))
+    start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, remote_host, remote_port, local_host, local_port))
 
     # Sending proxy information `TypeNewProxy`
     send(frps_client, {"proxy_type": "http"}, 112)
@@ -196,6 +198,6 @@ def create_tunnel(port):
 
     # Starting heartbeat and frps_client loop
     start_as_daemon_thread(target=heartbeat, args=(frps_client,))
-    start_as_daemon_thread(target=client_loop, args=(frps_client, run_id, port))
+    start_as_daemon_thread(target=client_loop, args=(frps_client, run_id, remote_host, remote_port, local_host, local_port))
 
     return msg["remote_addr"]
