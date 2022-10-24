@@ -1,3 +1,4 @@
+"""Defines methods used internally to set up the share links for the Gradio app."""
 import _thread
 import json
 import select
@@ -8,7 +9,6 @@ import threading
 from queue import Queue
 from time import sleep
 from typing import Callable, Tuple
-
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
@@ -45,7 +45,9 @@ def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
     thread.start()
 
 
-def handle_req_work_conn(run_id: int, remote_host: str, remote_port: int, local_host: str, local_port: int):
+def handle_req_work_conn(
+    run_id: int, remote_host: str, remote_port: int, local_host: str, local_port: int
+):
     # Connect to frps for the forward socket
     socket_worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket_worker.connect((remote_host, remote_port))
@@ -129,7 +131,10 @@ def client_loop(client, run_id, remote_host, remote_port, local_host, local_port
             break
         # TypeReqWorkConn
         if type == 114:
-            start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, remote_host, remote_port, local_host, local_port))
+            start_as_daemon_thread(
+                target=handle_req_work_conn,
+                args=(run_id, remote_host, remote_port, local_host, local_port),
+            )
             continue
         # Pong
         if type == 52:
@@ -138,7 +143,9 @@ def client_loop(client, run_id, remote_host, remote_port, local_host, local_port
     client.close()
 
 
-def create_tunnel(remote_host: str, remote_port: int, local_host: str, local_port: int) -> str:
+def create_tunnel(
+    remote_host: str, remote_port: int, local_host: str, local_port: int
+) -> str:
     """
     Creates a tunnel between a local server/port and a remote server/port. Returns
     the URL of the share link that is connected to the local server/port.
@@ -185,7 +192,10 @@ def create_tunnel(remote_host: str, remote_port: int, local_host: str, local_por
         sys.exit(1)
 
     # Start a warm-up connection
-    start_as_daemon_thread(target=handle_req_work_conn, args=(run_id, remote_host, remote_port, local_host, local_port))
+    start_as_daemon_thread(
+        target=handle_req_work_conn,
+        args=(run_id, remote_host, remote_port, local_host, local_port),
+    )
 
     # Sending proxy information `TypeNewProxy`
     send(frps_client, {"proxy_type": "http"}, 112)
@@ -198,6 +208,9 @@ def create_tunnel(remote_host: str, remote_port: int, local_host: str, local_por
 
     # Starting heartbeat and frps_client loop
     start_as_daemon_thread(target=heartbeat, args=(frps_client,))
-    start_as_daemon_thread(target=client_loop, args=(frps_client, run_id, remote_host, remote_port, local_host, local_port))
+    start_as_daemon_thread(
+        target=client_loop,
+        args=(frps_client, run_id, remote_host, remote_port, local_host, local_port),
+    )
 
     return msg["remote_addr"]
