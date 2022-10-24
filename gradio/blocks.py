@@ -83,6 +83,7 @@ class Block:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
                 Context.root_block.temp_dirs.add(self.temp_dir)
+        return self
 
     def unrender(self):
         """
@@ -638,9 +639,11 @@ class Blocks(BlockContext):
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
+        return self
 
     def is_callable(self, fn_index: int = 0) -> bool:
         """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
+        block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
         block_fn = self.fns[fn_index]
 
