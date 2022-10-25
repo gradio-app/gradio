@@ -1,3 +1,4 @@
+"""Defines methods used internally to set up the share links for the Gradio app."""
 import asyncio
 import hashlib
 import json
