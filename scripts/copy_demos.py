@@ -8,7 +8,7 @@ import argparse
 def copy_all_demos(source_dir: str, dest_dir: str):
     demos_to_copy = [
         # "audio_debugger",
-        "blocks_essay",
+        # "blocks_essay",
         # "blocks_js_methods",
         # "blocks_layout",
         # "blocks_mask",
@@ -16,7 +16,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         # "blocks_update",
         # "calculator",
         # "cancel_events",
-        # "fake_gan",
+        "fake_gan",
         # "fake_diffusion_with_gif",
         # "gender_sentence_default_interpretation",
         # "image_mod_default_image",
