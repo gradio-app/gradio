@@ -128,10 +128,6 @@
 		modes?: Array<string>;
 	};
 
-	$: console.log(components);
-	$: console.log(component_map);
-	$: console.log(instance_map);
-
 	function load_component<T extends ComponentMeta["type"]>(
 		name: T
 	): Promise<{
@@ -289,8 +285,10 @@
 					handled_dependencies[i] = [-1];
 				}
 
+				console.log(target_instances);
 				target_instances
-					.filter((v) => !!v)
+					.filter((v) => !!v && !!v[1])
+					.map((v) => (console.log(v), v))
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
