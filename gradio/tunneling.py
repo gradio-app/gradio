@@ -1,5 +1,6 @@
 """Defines methods used internally to set up the share links for the Gradio app."""
 import _thread
+import hashlib
 import json
 import select
 import socket
@@ -7,15 +8,15 @@ import struct
 import sys
 import threading
 from queue import Queue
-from time import sleep
+from time import sleep, time
 from typing import Callable, Tuple
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
 
 
-def start_as_daemon_thread(target: Callable, args: Tuple) -> None:
-    """Start task in the background.
+def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
+    """Start a task in the background.
 
     Thread is set as "daemon" which means it will be killed when the main thread
     terminates.
@@ -53,13 +54,13 @@ def handle_req_work_conn(
     socket_worker.connect((remote_host, remote_port))
 
     # Send the run id (TypeNewWorkConn)
-    send(socket_worker, {"run_id": run_id}, 119)
+    _send(socket_worker, {"run_id": run_id}, 119)
 
     # Wait for the server to ask to connect
     # We don't use the message as we don't need his content
-    # Usefull if the client implement multiple proxy
+    # Useful if the client implement multiple proxy
     # In our use case only one that we know
-    read(socket_worker)
+    _read(socket_worker)
 
     # Connect to the gradio app
     socket_gradio = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,12 +82,14 @@ def handle_req_work_conn(
     socket_worker.close()
 
 
-# Send a message to frps
-# First byte is the message type
-# https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
-# 8 next bytes are the message length
-# Then it's the json body
-def send(client, msg, type):
+def _send(client, msg, type):
+    """Send a message to frps.
+
+    First byte is the message type
+    https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
+    8 next bytes are the message length.
+    Then it's the json body.
+    """
     binary_message = bytearray(0)
     binary_message.extend([type])
     json_raw = json.dumps(msg).encode("utf-8")
@@ -95,12 +98,14 @@ def send(client, msg, type):
     client.send(binary_message)
 
 
-# Read message from frps
-# First byte is the message type
-# https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
-# 8 next bytes are the message length
-# Then it's the json body
-def read(client):
+def _read(client):
+    """Read message from frps
+
+    First byte is the message type
+    https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/msg/msg.go#L20-L20
+    8 next bytes are the message length.
+    Then it's the json body.
+    """
     data = client.recv(1)
     if not data:
         return None, None
@@ -114,24 +119,24 @@ def read(client):
     return json.loads(json_raw), binary_type
 
 
-# Start heartbeat
-def heartbeat(client):
+def _heartbeat(client):
+    """Heartbeat to keep connection alive."""
     try:
         while True:
-            send(client, {}, 104)
+            _send(client, {}, 104)
             sleep(15)
     except Exception:
         pass
 
 
-def client_loop(client, run_id, remote_host, remote_port, local_host, local_port):
+def _client_loop(client, run_id, remote_host, remote_port, local_host, local_port):
     while True:
-        msg, type = read(client)
+        msg, type = _read(client)
         if not type:
             break
         # TypeReqWorkConn
         if type == 114:
-            start_as_daemon_thread(
+            _start_as_daemon_thread(
                 target=handle_req_work_conn,
                 args=(run_id, remote_host, remote_port, local_host, local_port),
             )
@@ -141,6 +146,16 @@ def client_loop(client, run_id, remote_host, remote_port, local_host, local_port
             # Simple pong from server nothing to do
             continue
     client.close()
+
+
+def _generate_privilege_key() -> Tuple[int, str]:
+    """Generate and return a (timestamp, privilege_key) hash.
+
+    Privilege Key and Timestamp should be generate like:
+    https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/util/util/util.go#L46-L46
+    """
+    timestamp = round(time())
+    return timestamp, hashlib.md5(f"{timestamp}".encode()).hexdigest()
 
 
 def create_tunnel(
@@ -155,22 +170,20 @@ def create_tunnel(
     frps_client.connect((remote_host, remote_port))
 
     # Send `TypeLogin`
-    # TODO
-    # Privilege Key and Timestamp should be generate like:
-    # https://github.com/fatedier/frp/blob/6ecc97c8571df002dd7cf42522e3f2ce9de9a14d/pkg/util/util/util.go#L46-L46
-    send(
+    timestamp, privilege_key = _generate_privilege_key()
+    _send(
         frps_client,
         {
             "version": "0.44.0",
             "pool_count": 1,
-            "privilege_key": "20ca2a69b42165ffa674ce38284b04cf",
-            "timestamp": 1664909098,
+            "privilege_key": privilege_key,
+            "timestamp": timestamp,
         },
         111,
     )
 
     # Wait for response `TypeLoginResp`
-    login_response, _ = read(frps_client)
+    login_response, _ = _read(frps_client)
 
     if not login_response:
         # TODO Handle this correctly
@@ -185,21 +198,21 @@ def create_tunnel(
     run_id = login_response["run_id"]
 
     # Server will ask to warm connection
-    msg, msg_type = read(frps_client)
+    msg, msg_type = _read(frps_client)
 
     if msg_type != 114:
         # TODO Handle this correctly
         sys.exit(1)
 
     # Start a warm-up connection
-    start_as_daemon_thread(
+    _start_as_daemon_thread(
         target=handle_req_work_conn,
         args=(run_id, remote_host, remote_port, local_host, local_port),
     )
 
     # Sending proxy information `TypeNewProxy`
-    send(frps_client, {"proxy_type": "http"}, 112)
-    msg, msg_type = read(frps_client)
+    _send(frps_client, {"proxy_type": "http"}, 112)
+    msg, msg_type = _read(frps_client)
 
     if msg_type != 50:
         # TODO Handle this correctly
@@ -207,9 +220,9 @@ def create_tunnel(
         sys.exit(1)
 
     # Starting heartbeat and frps_client loop
-    start_as_daemon_thread(target=heartbeat, args=(frps_client,))
-    start_as_daemon_thread(
-        target=client_loop,
+    _start_as_daemon_thread(target=_heartbeat, args=(frps_client,))
+    _start_as_daemon_thread(
+        target=_client_loop,
         args=(frps_client, run_id, remote_host, remote_port, local_host, local_port),
     )
 
