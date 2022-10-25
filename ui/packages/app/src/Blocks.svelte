@@ -128,6 +128,10 @@
 		modes?: Array<string>;
 	};
 
+	$: console.log(components);
+	$: console.log(component_map);
+	$: console.log(instance_map);
+
 	function load_component<T extends ComponentMeta["type"]>(
 		name: T
 	): Promise<{
@@ -429,7 +433,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 

@@ -46,6 +46,9 @@
 			instance_map[id].props[k] = e.detail[k];
 		}
 	}
+
+	$: console.log(id);
+	$: console.log(instance_map?.[id]);
 </script>
 
 <svelte:component
