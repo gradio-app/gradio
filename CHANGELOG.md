@@ -52,7 +52,7 @@ inference time of 80 seconds).
 * Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
 
 ## Documentation Changes:
-No changes to highlight.
+* Added an example interactive dashboard to the "Tabular & Plots" section of the Demos page by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2508](https://github.com/gradio-app/gradio/pull/2508)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.

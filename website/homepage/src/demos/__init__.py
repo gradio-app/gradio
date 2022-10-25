@@ -78,6 +78,10 @@ demos_by_category = [
         "category": "📈 Tabular Data & Plots",
         "demos": [
             {
+                "name": "Interactive Dashboard",
+                "dir": "dashboard"
+            },
+            {
                 "name": "Outbreak Forecast", 
                 "dir": "outbreak_forecast", 
             },
