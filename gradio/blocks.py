@@ -621,6 +621,7 @@ class Blocks(BlockContext):
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
+            dependency_offset = len(Context.root_block.dependencies)
             for dependency in self.dependencies:
                 api_name = dependency["api_name"]
                 if api_name is not None:
@@ -635,6 +636,9 @@ class Blocks(BlockContext):
                             )
                         )
                         dependency["api_name"] = api_name_
+                dependency["cancels"] = [
+                    c + dependency_offset for c in dependency["cancels"]
+                ]
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
 
