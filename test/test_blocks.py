@@ -760,6 +760,36 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
+    @pytest.mark.asyncio
+    async def test_cancel_function_with_multiple_blocks(self, capsys):
+        async def long_job():
+            await asyncio.sleep(10)
+            print("HELLO FROM LONG JOB")
+
+        with gr.Blocks() as demo1:
+            textbox = gr.Textbox()
+            button1 = gr.Button(value="Start")
+            button1.click(lambda x: x, textbox, textbox)
+        with gr.Blocks() as demo2:
+            button2 = gr.Button(value="Start")
+            click = button2.click(long_job, None, None)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+
+        with gr.Blocks() as demo:
+            with gr.Tab("Demo 1"):
+                demo1.render()
+            with gr.Tab("Demo 2"):
+                demo2.render()
+
+        cancel_fun = demo.fns[-1].fn
+
+        task = asyncio.create_task(long_job())
+        task.set_name("foo_0")
+        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        captured = capsys.readouterr()
+        assert "HELLO FROM LONG JOB" not in captured.out
+
     def test_raise_exception_if_cancelling_an_event_thats_not_queued(self):
         def iteration(a):
             yield a

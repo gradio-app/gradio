@@ -1161,7 +1161,6 @@ class Blocks(BlockContext):
         for dep in self.dependencies:
             for i in dep["cancels"]:
                 if not self.queue_enabled_for_fn(i):
-                    print(i, self.dependencies[i]["queue"], self.enable_queue)
                     raise ValueError(
                         "In order to cancel an event, the queue for that event must be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
