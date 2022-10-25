@@ -285,10 +285,8 @@
 					handled_dependencies[i] = [-1];
 				}
 
-				console.log(target_instances);
 				target_instances
 					.filter((v) => !!v && !!v[1])
-					.map((v) => (console.log(v), v))
 					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
