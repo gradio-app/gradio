@@ -8,7 +8,7 @@ import argparse
 def copy_all_demos(source_dir: str, dest_dir: str):
     demos_to_copy = [
         # "audio_debugger",
-        "blocks_essay",
+        # "blocks_essay",
         "blocks_js_methods",
         # "blocks_layout",
         # "blocks_mask",
