@@ -17,7 +17,6 @@ import wandb
 
 import gradio as gr
 import gradio.events
-from gradio.blocks import Block
 from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -786,6 +785,22 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
+
+
+def test_queue_enabled_for_fn():
+    with gr.Blocks() as demo:
+        input = gr.Textbox()
+        output = gr.Textbox()
+        number = gr.Number()
+        button = gr.Button()
+        button.click(lambda x: f"Hello, {x}!", input, output)
+        button.click(lambda: 42, None, number, queue=True)
+
+    assert not demo.queue_enabled_for_fn(0)
+    assert demo.queue_enabled_for_fn(1)
+    demo.queue()
+    assert demo.queue_enabled_for_fn(0)
+    assert demo.queue_enabled_for_fn(1)
 
 
 if __name__ == "__main__":
