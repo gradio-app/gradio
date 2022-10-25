@@ -621,6 +621,7 @@ class Blocks(BlockContext):
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
+            dependency_offset = len(Context.root_block.dependencies)
             for dependency in self.dependencies:
                 api_name = dependency["api_name"]
                 if api_name is not None:
@@ -635,6 +636,7 @@ class Blocks(BlockContext):
                             )
                         )
                         dependency["api_name"] = api_name_
+                dependency["cancels"] = [c + dependency_offset for c in dependency["cancels"]] 
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
 
@@ -1157,6 +1159,7 @@ class Blocks(BlockContext):
         for dep in self.dependencies:
             for i in dep["cancels"]:
                 if not self.queue_enabled_for_fn(i):
+                    print(i, self.dependencies[i]["queue"], self.enable_queue)
                     raise ValueError(
                         "In order to cancel an event, the queue for that event must be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
