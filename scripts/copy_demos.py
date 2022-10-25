@@ -7,10 +7,10 @@ import argparse
 
 def copy_all_demos(source_dir: str, dest_dir: str):
     demos_to_copy = [
-        "audio_debugger",
+        # "audio_debugger",
         "blocks_essay",
         "blocks_js_methods",
-        "blocks_layout",
+        # "blocks_layout",
         # "blocks_mask",
         # "blocks_multiple_event_triggers",
         # "blocks_update",
