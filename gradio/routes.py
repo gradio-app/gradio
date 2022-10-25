@@ -72,6 +72,7 @@ class App(FastAPI):
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
+        self.queue_token = secrets.token_urlsafe(32)
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -85,6 +86,8 @@ class App(FastAPI):
             self.auth = None
 
         self.blocks = blocks
+        if hasattr(self.blocks, "_queue"):
+            self.blocks._queue.set_access_token(self.queue_token)
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
@@ -303,7 +306,10 @@ class App(FastAPI):
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
-            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+            api_name: str,
+            body: PredictBody,
+            request: Request,
+            username: str = Depends(get_current_user),
         ):
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
@@ -317,6 +323,15 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
+            if not app.blocks.api_open and app.blocks.queue_enabled_for_fn(
+                body.fn_index
+            ):
+                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not authorized to skip the queue",
+                    )
+
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:

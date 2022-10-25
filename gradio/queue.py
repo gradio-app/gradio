@@ -63,6 +63,7 @@ class Queue:
         self.sleep_when_free = 0.05
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
+        self.access_token = ""
 
     async def start(self):
         run_coro_in_background(self.start_processing)
@@ -77,6 +78,9 @@ class Queue:
 
     def set_url(self, url: str):
         self.server_path = url
+
+    def set_access_token(self, token: str):
+        self.access_token = token
 
     def get_active_worker_count(self) -> int:
         count = 0
@@ -258,6 +262,7 @@ class Queue:
             method=Request.Method.POST,
             url=f"{self.server_path}api/predict",
             json=dict(data),
+            headers={"Authorization": f"Bearer {self.access_token}"},
         )
         return response
 
