@@ -4,6 +4,7 @@ creating tunnels.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import socket
 import threading
@@ -162,7 +163,9 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
         try:
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-            return create_tunnel(remote_host, remote_port, local_host, local_port)
+            return asyncio.run(
+                create_tunnel(remote_host, remote_port, local_host, local_port)
+            )
         except Exception as e:
             raise RuntimeError(str(e))
     else:

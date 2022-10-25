@@ -1,88 +1,80 @@
-"""Defines methods used internally to set up the share links for the Gradio app."""
-import _thread
+import asyncio
 import hashlib
 import json
 import select
 import socket
 import struct
 import sys
-import threading
-from queue import Queue
-from time import sleep, time
-from typing import Callable, Tuple
+from asyncio import StreamReader, StreamWriter
+from time import time
+from typing import Coroutine, Tuple
 
-BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
-_NB_DAEMON_THREADS = 0  # (optional) For better thread naming
+_ALL_BACKGROUND_TASKS = set()
 
 
-def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
+def _start_as_background_task(target: Coroutine) -> None:
     """Start a task in the background.
 
-    Thread is set as "daemon" which means it will be killed when the main thread
-    terminates.
-    See https://docs.python.org/3/library/threading.html#threading.Thread.daemon
+    Taken from https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
     """
+    task = asyncio.create_task(target)
 
-    def _inner_target():
-        try:
-            target(*args)
-        except Exception as e:
-            # On any exception, add it to the queue of exceptions and stop the main
-            # thread. `interrupt_main` send a KeyboardInterrupt signal that is caught
-            # by the gradio server to gracefully terminate.
-            # See: https://docs.python.org/3/library/_thread.html#thread.interrupt_main
-            BACKGROUND_TUNNEL_EXCEPTIONS.put_nowait(e)
-            _thread.interrupt_main()
-            raise
+    # Add task to the set. This creates a strong reference.
+    _ALL_BACKGROUND_TASKS.add(task)
 
-    global _NB_DAEMON_THREADS
-    _NB_DAEMON_THREADS += 1
-    thread = threading.Thread(
-        target=_inner_target,
-        daemon=True,
-        # Custom thread name to ease debugging if a user copy-pastes the traceback
-        name=f"Thread-{_NB_DAEMON_THREADS}-{target.__name__}",
-    )
-    thread.start()
+    # To prevent keeping references to finished tasks forever,
+    # make each task remove its own reference from the set after
+    # completion:
+    task.add_done_callback(_ALL_BACKGROUND_TASKS.discard)
+
+    print(task)
 
 
-def handle_req_work_conn(
+async def handle_req_work_conn(
     run_id: int, remote_host: str, remote_port: int, local_host: str, local_port: int
 ):
     # Connect to frps for the forward socket
     socket_worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket_worker.connect((remote_host, remote_port))
 
+    reader_worker: StreamReader
+    writer_worker: StreamWriter
+    reader_worker, writer_worker = await asyncio.open_connection(sock=socket_worker)
+
     # Send the run id (TypeNewWorkConn)
-    _send(socket_worker, {"run_id": run_id}, 119)
+    _send(writer_worker, {"run_id": run_id}, 119)
 
     # Wait for the server to ask to connect
     # We don't use the message as we don't need his content
     # Useful if the client implement multiple proxy
     # In our use case only one that we know
-    _read(socket_worker)
+    await _read(reader_worker)
 
     # Connect to the gradio app
     socket_gradio = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket_gradio.connect((local_host, local_port))
 
+    reader_gradio: StreamReader
+    writer_gradio: StreamWriter
+    reader_gradio, writer_gradio = await asyncio.open_connection(sock=socket_gradio)
+
     while True:
         r, w, x = select.select([socket_gradio, socket_worker], [], [])
         if socket_gradio in r:
-            data = socket_gradio.recv(1024)
+            data = await reader_gradio.read(1024)
             if len(data) == 0:
                 break
-            socket_worker.send(data)
+            writer_worker.send(data)
         if socket_worker in r:
-            data = socket_worker.recv(1024)
+            data = await reader_worker.read(1024)
             if len(data) == 0:
                 break
-            socket_gradio.send(data)
+            writer_gradio.send(data)
     socket_gradio.close()
     socket_worker.close()
 
 
-def _send(client, msg, type):
+def _send(writer: StreamWriter, msg, type):
     """Send a message to frps.
 
     First byte is the message type
@@ -95,10 +87,10 @@ def _send(client, msg, type):
     json_raw = json.dumps(msg).encode("utf-8")
     binary_message.extend(struct.pack(">q", len(json_raw)))
     binary_message.extend(json_raw)
-    client.send(binary_message)
+    writer.write(binary_message)
 
 
-def _read(client):
+async def _read(reader: StreamReader):
     """Read message from frps
 
     First byte is the message type
@@ -106,39 +98,42 @@ def _read(client):
     8 next bytes are the message length.
     Then it's the json body.
     """
-    data = client.recv(1)
+    data = await reader.read(1)
     if not data:
         return None, None
     binary_type = list(data)[0]
 
-    size = client.recv(8)
+    size = await reader.read(8)
     if not size:
         return None, None
     size = struct.unpack(">Q", size)[0]
-    json_raw = client.recv(size)
+    json_raw = await reader.read(size)
     return json.loads(json_raw), binary_type
 
 
-def _heartbeat(client):
+async def _heartbeat(writer: StreamWriter):
     """Heartbeat to keep connection alive."""
     try:
         while True:
-            _send(client, {}, 104)
-            sleep(15)
+            _send(writer, {}, 104)
+            await asyncio.sleep(15)
     except Exception:
         pass
 
 
-def _client_loop(client, run_id, remote_host, remote_port, local_host, local_port):
+async def _client_loop(
+    client, reader, run_id, remote_host, remote_port, local_host, local_port
+):
     while True:
-        msg, type = _read(client)
+        msg, type = await _read(reader)
         if not type:
             break
         # TypeReqWorkConn
         if type == 114:
-            _start_as_daemon_thread(
-                target=handle_req_work_conn,
-                args=(run_id, remote_host, remote_port, local_host, local_port),
+            _start_as_background_task(
+                handle_req_work_conn(
+                    run_id, remote_host, remote_port, local_host, local_port
+                )
             )
             continue
         # Pong
@@ -158,21 +153,26 @@ def _generate_privilege_key() -> Tuple[int, str]:
     return timestamp, hashlib.md5(f"{timestamp}".encode()).hexdigest()
 
 
-def create_tunnel(
+async def create_tunnel(
     remote_host: str, remote_port: int, local_host: str, local_port: int
-) -> str:
+):
+    """Create a tunnel.
+
+    Based on asyncio and sockets.
+    See:
+    - https://docs.python.org/3/library/asyncio-stream.html#asyncio.open_connection
+    - https://docs.python.org/3/library/asyncio-stream.html#asyncio.StreamReader
     """
-    Creates a tunnel between a local server/port and a remote server/port. Returns
-    the URL of the share link that is connected to the local server/port.
-    """
-    # Connect to frps
     frps_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     frps_client.connect((remote_host, remote_port))
 
-    # Send `TypeLogin`
+    reader: StreamReader
+    writer: StreamWriter
+    reader, writer = await asyncio.open_connection(sock=frps_client)
+
     timestamp, privilege_key = _generate_privilege_key()
     _send(
-        frps_client,
+        writer,
         {
             "version": "0.44.0",
             "pool_count": 1,
@@ -183,7 +183,8 @@ def create_tunnel(
     )
 
     # Wait for response `TypeLoginResp`
-    login_response, _ = _read(frps_client)
+    login_response, _ = await _read(reader)
+    print(login_response)
 
     if not login_response:
         # TODO Handle this correctly
@@ -198,21 +199,20 @@ def create_tunnel(
     run_id = login_response["run_id"]
 
     # Server will ask to warm connection
-    msg, msg_type = _read(frps_client)
+    msg, msg_type = await _read(reader)
 
     if msg_type != 114:
         # TODO Handle this correctly
         sys.exit(1)
 
     # Start a warm-up connection
-    _start_as_daemon_thread(
-        target=handle_req_work_conn,
-        args=(run_id, remote_host, remote_port, local_host, local_port),
+    _start_as_background_task(
+        handle_req_work_conn(run_id, remote_host, remote_port, local_host, local_port)
     )
 
     # Sending proxy information `TypeNewProxy`
-    _send(frps_client, {"proxy_type": "http"}, 112)
-    msg, msg_type = _read(frps_client)
+    _send(writer, {"proxy_type": "http"}, 112)
+    msg, msg_type = await _read(reader)
 
     if msg_type != 50:
         # TODO Handle this correctly
@@ -220,10 +220,17 @@ def create_tunnel(
         sys.exit(1)
 
     # Starting heartbeat and frps_client loop
-    _start_as_daemon_thread(target=_heartbeat, args=(frps_client,))
-    _start_as_daemon_thread(
-        target=_client_loop,
-        args=(frps_client, run_id, remote_host, remote_port, local_host, local_port),
+    _start_as_background_task(_heartbeat(writer))
+    _start_as_background_task(
+        _client_loop(
+            frps_client,
+            reader,
+            run_id,
+            remote_host,
+            remote_port,
+            local_host,
+            local_port,
+        )
     )
 
     return msg["remote_addr"]
