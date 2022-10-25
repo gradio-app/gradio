@@ -760,6 +760,10 @@ class TestCancel:
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Tasks dont have names in 3.7",
+    )
     @pytest.mark.asyncio
     async def test_cancel_function_with_multiple_blocks(self, capsys):
         async def long_job():
