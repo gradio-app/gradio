@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import sys
 import time
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
 
+from gradio.dataclasses import PredictBody
 from gradio.utils import Request, run_coro_in_background
 
 
@@ -21,6 +23,18 @@ class Estimation(BaseModel):
     queue_eta: int
 
 
+class Event:
+    def __init__(self, websocket: fastapi.WebSocket, fn_index: int | None = None):
+        self.websocket = websocket
+        self.data: PredictBody | None = None
+        self.lost_connection_time: float | None = None
+        self.fn_index: int | None = fn_index
+        self.session_hash: str = "foo"
+
+    async def disconnect(self, code=1000):
+        await self.websocket.close(code=code)
+
+
 class Queue:
     def __init__(
         self,
@@ -29,15 +43,15 @@ class Queue:
         data_gathering_start: int,
         update_intervals: int,
         max_size: Optional[int],
-        dependencies
+        blocks_dependencies: List,
     ):
-        self.event_queue = []
+        self.event_queue: List[Event] = []
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.data_gathering_start = data_gathering_start
         self.update_intervals = update_intervals
-        self.active_jobs: List[None | Event] = [None] * concurrency_count
+        self.active_jobs: List[None | List[Event]] = [None] * concurrency_count
         self.delete_lock = asyncio.Lock()
         self.server_path = None
         self.duration_history_total = 0
@@ -48,7 +62,8 @@ class Queue:
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
         self.max_size = max_size
-        self.dependencies = dependencies
+        self.blocks_dependencies = blocks_dependencies
+        self.access_token = ""
 
     async def start(self):
         run_coro_in_background(self.start_processing)
@@ -64,12 +79,35 @@ class Queue:
     def set_url(self, url: str):
         self.server_path = url
 
+    def set_access_token(self, token: str):
+        self.access_token = token
+
     def get_active_worker_count(self) -> int:
         count = 0
         for worker in self.active_jobs:
             if worker is not None:
                 count += 1
         return count
+
+    def get_events_in_batch(self) -> Tuple[List[Event] | None, bool]:
+        if not (self.event_queue):
+            return None, False
+
+        first_event = self.event_queue.pop(0)
+        events = [first_event]
+
+        event_fn_index = first_event.fn_index
+        batch = self.blocks_dependencies[event_fn_index]["batch"]
+
+        if batch:
+            batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
+            rest_of_batch = [
+                event for event in self.event_queue if event.fn_index == event_fn_index
+            ][: batch_size - 1]
+            events.extend(rest_of_batch)
+            [self.event_queue.remove(event) for event in rest_of_batch]
+
+        return events, batch
 
     async def start_processing(self) -> None:
         while not self.stopped:
@@ -83,21 +121,35 @@ class Queue:
 
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
-                event = self.event_queue.pop(0)
+                events, batch = self.get_events_in_batch()
 
-            # Only count as active job if it's not continuous
-            if self.dependencies[event.fn_index].get("continuous", False):
-                task = next((task for task in asyncio.all_tasks() if task.get_name() == f"{event.session_hash}_{event.fn_index}"), None)
-                if task:
-                    task.cancel()
-                    await asyncio.gather(task, return_exceptions=True)
-            else:
-                self.active_jobs[self.active_jobs.index(None)] = event
+            if events:
+                self.active_jobs[self.active_jobs.index(None)] = events
+                task = run_coro_in_background(self.process_events, events, batch)
+                run_coro_in_background(self.broadcast_live_estimations)
+            if sys.version_info >= (3, 8) and not (
+                batch
+            ):  # You shouldn't be able to cancel a task if it's part of a batch
+                task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
 
-            task = run_coro_in_background(self.process_event, event)
-            if sys.version_info >= (3, 8):
-                task.set_name(f"{event.session_hash}_{event.fn_index}")
-            run_coro_in_background(self.broadcast_live_estimations)
+            # if events and batch:
+            #     self.active_jobs[self.active_jobs.index(None)] = events
+            # # elif events and not batch:
+            # #     event = events[0]
+            # #     if self.blocks_dependencies[event.fn_index].get("continuous", False):
+            # #         task = next((task for task in asyncio.all_tasks() if task.get_name() == f"{event.session_hash}_{event.fn_index}"), None)
+            # #         if task:
+            # #             task.cancel()
+            # #             await asyncio.gather(task, return_exceptions=True)
+            #
+            # # Only count as active job if it's not continuous
+            # task = run_coro_in_background(self.process_events, events)
+            # run_coro_in_background(self.broadcast_live_estimations)
+            # if sys.version_info >= (3, 8) and not (
+            #     batch
+            # ):  # You shouldn't be able to cancel a task if it's part of a batch
+            #     task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
+
 
     def push(self, event: Event) -> int | None:
         """
@@ -116,8 +168,6 @@ class Queue:
         if event in self.event_queue:
             async with self.delete_lock:
                 self.event_queue.remove(event)
-        elif event in self.active_jobs:
-            self.active_jobs[self.active_jobs.index(event)] = None
 
     async def broadcast_live_estimations(self) -> None:
         """
@@ -138,7 +188,7 @@ class Queue:
             ]
         )
 
-    async def gather_event_data(self, event: Event) -> None:
+    async def gather_event_data(self, event: Event) -> bool:
         """
         Gather data for the event
 
@@ -222,33 +272,44 @@ class Queue:
             queue_eta=self.queue_duration,
         )
 
-    async def call_prediction(self, event: Event):
+    async def call_prediction(self, events: List[Event], batch: bool):
+        data = events[0].data
+        if batch:
+            data.data = list(zip(*[event.data.data for event in events if event.data]))
+            data.batched = True
         response = await Request(
             method=Request.Method.POST,
             url=f"{self.server_path}api/predict",
-            json=event.data,
+            json=dict(data),
+            headers={"Authorization": f"Bearer {self.access_token}"},
         )
         return response
 
-    async def process_event(self, event: Event) -> None:
+    async def process_events(self, events: List[Event], batch: bool) -> None:
+        awake_events: List[Event] = []
         try:
-            client_awake = await self.gather_event_data(event)
-            if not client_awake:
-                return
-            client_awake = await self.send_message(event, {"msg": "process_starts"})
-            if not client_awake:
+            for event in events:
+                client_awake = await self.gather_event_data(event)
+                if client_awake:
+                    client_awake = await self.send_message(
+                        event, {"msg": "process_starts"}
+                    )
+                if client_awake:
+                    awake_events.append(event)
+            if not (awake_events):
                 return
             begin_time = time.time()
-            response = await self.call_prediction(event)
+            response = await self.call_prediction(awake_events, batch)
             if response.has_exception:
-                await self.send_message(
-                    event,
-                    {
-                        "msg": "process_completed",
-                        "output": {"error": str(response.exception)},
-                        "success": False,
-                    },
-                )
+                for event in awake_events:
+                    await self.send_message(
+                        event,
+                        {
+                            "msg": "process_completed",
+                            "output": {"error": str(response.exception)},
+                            "success": False,
+                        },
+                    )
             elif response.json.get("is_generating", False):
                 while response.json.get("is_generating", False):
                     # Python 3.7 doesn't have named tasks.
@@ -259,41 +320,49 @@ class Queue:
                         if not is_alive:
                             return
                     old_response = response
+                    for event in awake_events:
+                        await self.send_message(
+                            event,
+                            {
+                                "msg": "process_generating",
+                                "output": old_response.json,
+                                "success": old_response.status == 200,
+                            },
+                        )
+                    response = await self.call_prediction(awake_events, batch)
+                for event in awake_events:
                     await self.send_message(
                         event,
                         {
-                            "msg": "process_generating",
+                            "msg": "process_completed",
                             "output": old_response.json,
                             "success": old_response.status == 200,
                         },
                     )
-                    response = await self.call_prediction(event)
-                await self.send_message(
-                    event,
-                    {
-                        "msg": "process_completed",
-                        "output": old_response.json,
-                        "success": old_response.status == 200,
-                    },
-                )
             else:
-                await self.send_message(
-                    event,
-                    {
-                        "msg": "process_completed",
-                        "output": response.json,
-                        "success": response.status == 200,
-                    },
-                )
+                output = copy.deepcopy(response.json)
+                for e, event in enumerate(awake_events):
+                    if batch and "data" in output:
+                        output["data"] = list(zip(*response.json.get("data")))[e]
+                    await self.send_message(
+                        event,
+                        {
+                            "msg": "process_completed",
+                            "output": output,
+                            "success": response.status == 200,
+                        },
+                    )
             end_time = time.time()
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
         finally:
-            try:
-                await event.disconnect()
-            except Exception:
-                pass
-            finally:
+            for event in awake_events:
+                try:
+                    await event.disconnect()
+                except Exception:
+                    pass
+            self.active_jobs[self.active_jobs.index(events)] = None
+            for event in awake_events:
                 await self.clean_event(event)
                 # Always reset the state of the iterator
                 # If the job finished successfully, this has no effect
@@ -316,24 +385,10 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[Dict]:
+    async def get_message(self, event) -> Optional[PredictBody]:
         try:
             data = await event.websocket.receive_json()
-            return data
+            return PredictBody(**data)
         except:
             await self.clean_event(event)
             return None
-
-
-class Event:
-    def __init__(self, websocket: fastapi.WebSocket):
-        from gradio.routes import PredictBody
-
-        self.websocket = websocket
-        self.data: PredictBody | None = None
-        self.lost_connection_time: float | None = None
-        self.fn_index = 0
-        self.session_hash = "foo"
-
-    async def disconnect(self, code=1000):
-        await self.websocket.close(code=code)

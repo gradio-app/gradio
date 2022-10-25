@@ -11,7 +11,17 @@ import time
 import warnings
 import webbrowser
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+)
 
 import anyio
 import requests
@@ -73,6 +83,7 @@ class Block:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
                 Context.root_block.temp_dirs.add(self.temp_dir)
+        return self
 
     def unrender(self):
         """
@@ -108,17 +119,19 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: Optional[Callable],
-        inputs: Optional[Component | List[Component]],
-        outputs: Optional[Component | List[Component]],
+        fn: Callable | None,
+        inputs: Component | List[Component] | None,
+        outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        api_name: Optional[AnyStr] = None,
-        js: Optional[str] = None,
+        api_name: AnyStr | None = None,
+        js: str | None = None,
         no_target: bool = False,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: int | None = None,
         continuous: bool = False
@@ -137,6 +150,9 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            batch: whether this function takes in a batch of inputs
+            max_batch_size: the maximum batch size to send to the function
+            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         Returns: None
         """
         # Support for singular parameter
@@ -175,9 +191,11 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
-            "cancels": cancels if cancels else [],
             "every": every,
-            "continuous": continuous
+            "continuous": continuous,
+            "batch": batch,
+            "max_batch_size": max_batch_size,
+            "cancels": cancels or [],
         }
         if api_name is not None:
             dependency["documentation"] = [
@@ -473,6 +491,7 @@ class Blocks(BlockContext):
         self.share_url = None
         self.width = None
         self.height = None
+        self.api_open = True
 
         self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -579,52 +598,6 @@ class Blocks(BlockContext):
 
         return blocks
 
-    def __call__(self, *params, fn_index=0):
-        """
-        Allows Blocks objects to be called as functions
-        Parameters:
-        *params: the parameters to pass to the function
-        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
-        """
-        dependency = self.dependencies[fn_index]
-        block_fn = self.fns[fn_index]
-
-        processed_input = []
-        for i, input_id in enumerate(dependency["inputs"]):
-            block = self.blocks[input_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the inputs are stateful."
-                )
-            else:
-                serialized_input = block.serialize(params[i])
-                processed_input.append(serialized_input)
-
-        processed_input = self.preprocess_data(fn_index, processed_input, None)
-
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-        else:
-            predictions = block_fn.fn(*processed_input)
-
-        predictions = self.postprocess_data(fn_index, predictions, None)
-
-        output_copy = copy.deepcopy(predictions)
-        predictions = []
-        for o, output_id in enumerate(dependency["outputs"]):
-            block = self.blocks[output_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the outputs are stateful."
-                )
-            else:
-                deserialized = block.deserialize(output_copy[o])
-                predictions.append(deserialized)
-
-        return utils.resolve_singleton(predictions)
-
     def __str__(self):
         return self.__repr__()
 
@@ -677,25 +650,69 @@ class Blocks(BlockContext):
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
+        return self
 
-    def preprocess_data(self, fn_index, raw_input, state):
+    def is_callable(self, fn_index: int = 0) -> bool:
+        """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+        block_fn = self.fns[fn_index]
 
-        if block_fn.preprocess:
-            processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
-                else:
-                    processed_input.append(block.preprocess(raw_input[i]))
-        else:
-            processed_input = raw_input
-        return processed_input
+        if inspect.isasyncgenfunction(block_fn.fn):
+            return False
+        if inspect.isgeneratorfunction(block_fn.fn):
+            raise False
+        for input_id in dependency["inputs"]:
+            block = self.blocks[input_id]
+            if getattr(block, "stateful", False):
+                return False
+        for output_id in dependency["outputs"]:
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                return False
 
-    async def call_function(self, fn_index, processed_input, iterator=None):
+        return True
+
+    def __call__(self, *inputs, fn_index: int = 0):
+        """
+        Allows Blocks objects to be called as functions. Supply the parameters to the
+        function as positional arguments. To choose which function to call, use the
+        fn_index parameter, which must be a keyword argument.
+
+        Parameters:
+        *inputs: the parameters to pass to the function
+        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        """
+        if not (self.is_callable(fn_index)):
+            raise ValueError(
+                "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
+            )
+
+        inputs = list(inputs)
+        processed_inputs = self.serialize_data(fn_index, inputs)
+        batch = self.dependencies[fn_index]["batch"]
+        if batch:
+            processed_inputs = [[inp] for inp in processed_inputs]
+
+        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
+        outputs = outputs["data"]
+
+        if batch:
+            outputs = [out[0] for out in outputs]
+
+        processed_outputs = self.deserialize_data(fn_index, outputs)
+        processed_outputs = utils.resolve_singleton(processed_outputs)
+
+        return processed_outputs
+
+    async def call_function(
+        self,
+        fn_index: int,
+        processed_input: List[Any],
+        iterator: Iterator[Any] | None = None,
+    ):
         """Calls and times function with given index and preprocessed input."""
+        breakpoint()
         block_fn = self.fns[fn_index]
         is_generating = self.dependencies[fn_index]["continuous"]
         start = time.time()
@@ -736,16 +753,57 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    def postprocess_data(self, fn_index, predictions, state):
+    def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        processed_input = []
+
+        for i, input_id in enumerate(dependency["inputs"]):
+            block: IOComponent = self.blocks[input_id]
+            serialized_input = block.serialize(inputs[i])
+            processed_input.append(serialized_input)
+
+        return processed_input
+
+    def deserialize_data(self, fn_index: int, outputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        predictions = []
+
+        for o, output_id in enumerate(dependency["outputs"]):
+            block: IOComponent = self.blocks[output_id]
+            deserialized = block.deserialize(outputs[o])
+            predictions.append(deserialized)
+
+        return predictions
+
+    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+
+        if block_fn.preprocess:
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block: IOComponent = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(inputs[i]))
+        else:
+            processed_input = inputs
+        return processed_input
+
+    def postprocess_data(
+        self, fn_index: int, predictions: List[Any], state: Dict[int, Any]
+    ):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+        batch = dependency["batch"]
 
         if type(predictions) is dict and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
 
-        if len(dependency["outputs"]) == 1:
+        if len(dependency["outputs"]) == 1 and not (batch):
             predictions = (predictions,)
 
         output = []
@@ -776,33 +834,62 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         username: str = None,
-        state: Dict[int, Any] | None = None,
+        state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
         Parameters:
-            data: data recieved from the frontend
-            inputs: the list of raw inputs to pass to the function
+            fn_index: Index of function to run.
+            inputs: input data received from the frontend
             username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
             iterators: the in-progress iterators for each generator function (key is function index)
         Returns: None
         """
+        breakpoint()
         block_fn = self.fns[fn_index]
         inputs = self.preprocess_data(fn_index, inputs, state)
-        iterator = iterators.get(fn_index, None) if iterators else None
+        batch = self.dependencies[fn_index]["batch"]
 
-        result = await self.call_function(fn_index, inputs, iterator)
+        if batch:
+            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
+            batch_sizes = [len(inp) for inp in inputs]
+            batch_size = batch_sizes[0]
+            if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+                block_fn.fn
+            ):
+                raise ValueError("Gradio does not support generators in batch mode.")
+            if not all(x == batch_size for x in batch_sizes):
+                raise ValueError(
+                    f"All inputs to a batch function must have the same length but instead have sizes: {batch_sizes}."
+                )
+            if batch_size > max_batch_size:
+                raise ValueError(
+                    f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+                )
+
+            inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
+            result = await self.call_function(fn_index, zip(*inputs), None)
+            preds = result["prediction"]
+            data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
+            data = list(zip(*data))
+            is_generating, iterator = None, None
+        else:
+            inputs = self.preprocess_data(fn_index, inputs, state)
+            iterator = iterators.get(fn_index, None) if iterators else None
+            result = await self.call_function(fn_index, inputs, iterator)
+            data = self.postprocess_data(fn_index, result["prediction"], state)
+            is_generating, iterator = result["is_generating"], result["iterator"]
+
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, result["prediction"], state)
         return {
-            "data": predictions,
-            "is_generating": result["is_generating"],
-            "iterator": result["iterator"],
+            "data": data,
+            "is_generating": is_generating,
+            "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
@@ -987,6 +1074,7 @@ class Blocks(BlockContext):
         status_update_rate: float | str = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
+        api_open: bool = True,
         max_size: Optional[int] = None,
     ):
         """
@@ -996,19 +1084,22 @@ class Blocks(BlockContext):
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
             default_enabled: If True, all event listeners will use queueing by default.
+            api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
+            max_size: The maximum number of events the queue will store at any given moment.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
             demo.launch()
         """
         self.enable_queue = default_enabled
+        self.api_open = api_open
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
-            dependencies=self.dependencies
+            blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
         return self
@@ -1065,7 +1156,7 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True.
+            show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1092,7 +1183,6 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        self.show_api = show_api
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1106,13 +1196,11 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+        self.show_api = self.api_open if self.enable_queue else show_api
 
         for dep in self.dependencies:
             for i in dep["cancels"]:
-                queue_status = self.dependencies[i]["queue"]
-                if queue_status is False or (
-                    queue_status is None and not self.enable_queue
-                ):
+                if not self.queue_enabled_for_fn(i):
                     raise ValueError(
                         "In order to cancel an event, the queue for that event must be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
@@ -1120,6 +1208,11 @@ class Blocks(BlockContext):
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
         self.share = share
@@ -1376,3 +1469,8 @@ class Blocks(BlockContext):
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start)
         utils.run_coro_in_background(self.create_limiter)
+
+    def queue_enabled_for_fn(self, fn_index: int):
+        if self.dependencies[fn_index]["queue"] is None:
+            return self.enable_queue
+        return self.dependencies[fn_index]["queue"]

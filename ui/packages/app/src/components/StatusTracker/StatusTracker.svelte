@@ -142,6 +142,9 @@
 
 <div
 	class="wrap"
+	class:inset-0={variant === "default"}
+	class:inset-x-0={variant === "center"}
+	class:top-0={variant === "center"}
 	class:opacity-0={!status || status === "complete"}
 	class:cover-bg={variant === "default" &&
 		(status === "pending" || status === "error")}
@@ -169,7 +172,7 @@
 			{/if}
 		</div>
 
-		<Loader />
+		<Loader margin={variant === "default"} />
 
 		{#if !timer}
 			<p class="timer">Loading...</p>
@@ -206,7 +209,7 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute inset-0 z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		@apply absolute  z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
 	}
 
 	:global(.dark) .cover-bg {
