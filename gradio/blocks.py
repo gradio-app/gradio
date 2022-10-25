@@ -712,7 +712,6 @@ class Blocks(BlockContext):
         iterator: Iterator[Any] | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
-        breakpoint()
         block_fn = self.fns[fn_index]
         is_generating = self.dependencies[fn_index]["continuous"]
         start = time.time()
@@ -848,9 +847,7 @@ class Blocks(BlockContext):
             iterators: the in-progress iterators for each generator function (key is function index)
         Returns: None
         """
-        breakpoint()
         block_fn = self.fns[fn_index]
-        inputs = self.preprocess_data(fn_index, inputs, state)
         batch = self.dependencies[fn_index]["batch"]
 
         if batch:

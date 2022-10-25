@@ -118,37 +118,29 @@ class Queue:
             if not (None in self.active_jobs):
                 await asyncio.sleep(self.sleep_when_free)
                 continue
-
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
 
-            if events:
+            if events and not self.blocks_dependencies[events[0].fn_index].get("continuous", False):
+                # Only count as active job if it's not continuous
                 self.active_jobs[self.active_jobs.index(None)] = events
-                task = run_coro_in_background(self.process_events, events, batch)
-                run_coro_in_background(self.broadcast_live_estimations)
+            elif events and not batch:
+                event = events[0]
+                if self.blocks_dependencies[event.fn_index].get("continuous", False):
+                    task = next((task for task in asyncio.all_tasks() if task.get_name() == f"{event.session_hash}_{event.fn_index}"), None)
+                    if task:
+                        task.cancel()
+                        await asyncio.gather(task, return_exceptions=True)
+                else:
+                    self.active_jobs[self.active_jobs.index(None)] = events
+
+            task = run_coro_in_background(self.process_events, events, batch)
+            run_coro_in_background(self.broadcast_live_estimations)
             if sys.version_info >= (3, 8) and not (
                 batch
             ):  # You shouldn't be able to cancel a task if it's part of a batch
                 task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
-
-            # if events and batch:
-            #     self.active_jobs[self.active_jobs.index(None)] = events
-            # # elif events and not batch:
-            # #     event = events[0]
-            # #     if self.blocks_dependencies[event.fn_index].get("continuous", False):
-            # #         task = next((task for task in asyncio.all_tasks() if task.get_name() == f"{event.session_hash}_{event.fn_index}"), None)
-            # #         if task:
-            # #             task.cancel()
-            # #             await asyncio.gather(task, return_exceptions=True)
-            #
-            # # Only count as active job if it's not continuous
-            # task = run_coro_in_background(self.process_events, events)
-            # run_coro_in_background(self.broadcast_live_estimations)
-            # if sys.version_info >= (3, 8) and not (
-            #     batch
-            # ):  # You shouldn't be able to cancel a task if it's part of a batch
-            #     task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
 
 
     def push(self, event: Event) -> int | None:
