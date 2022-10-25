@@ -5,16 +5,12 @@ from __future__ import annotations
 
 import ast
 import csv
-import inspect
 import os
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
-import anyio
-
 from gradio import utils
-from gradio.blocks import convert_component_dict_to_list, postprocess_update_dict
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -42,6 +38,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
+    batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -57,6 +54,7 @@ def create_examples(
         run_on_click=run_on_click,
         preprocess=preprocess,
         postprocess=postprocess,
+        batch=batch,
         _initiated_directly=False,
     )
     utils.synchronize_async(examples_obj.create)
@@ -89,6 +87,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
+        batch: bool = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -104,6 +103,7 @@ class Examples:
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
             preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
             postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
             warnings.warn(
@@ -186,6 +186,7 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
+        self.batch = batch
 
         with utils.set_directory(working_directory):
             self.processed_examples = [
@@ -227,8 +228,6 @@ class Examples:
     async def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
-        if self.cache_examples:
-            await self.cache_interface_examples()
 
         async def load_example(example_id):
             if self.cache_examples:
@@ -255,55 +254,48 @@ class Examples:
                     outputs=self.outputs,
                 )
 
-    async def cache_interface_examples(self) -> None:
-        """Caches all of the examples from an interface."""
+        if self.cache_examples:
+            await self.cache()
+
+    async def cache(self) -> None:
+        """
+        Caches all of the examples so that their predictions can be shown immediately.
+        """
         if os.path.exists(self.cached_file):
             print(
                 f"Using cache from '{os.path.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
+            if Context.root_block is None:
+                raise ValueError("Cannot cache examples if not in a Blocks context")
+
             print(f"Caching examples at: '{os.path.abspath(self.cached_file)}'")
             cache_logger = CSVLogger()
+
+            # create a fake dependency to process the examples and get the predictions
+            dependency = Context.root_block.set_event_trigger(
+                event_name="fake_event",
+                fn=self.fn,
+                inputs=self.inputs_with_examples,
+                outputs=self.outputs,
+                preprocess=self.preprocess and not self._api_mode,
+                postprocess=self.postprocess and not self._api_mode,
+                batch=self.batch,
+            )
+
+            fn_index = Context.root_block.dependencies.index(dependency)
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
-                prediction = await self.predict_example(example_id)
-                cache_logger.flag(prediction)
-
-    async def predict_example(self, example_id: int) -> List[Any]:
-        """Loads an example from the interface and returns its prediction.
-        Parameters:
-            example_id: The id of the example to process (zero-indexed).
-        """
-        processed_input = self.processed_examples[example_id]
-        if self.preprocess and not self._api_mode:
-            processed_input = [
-                input_component.preprocess(processed_input[i])
-                for i, input_component in enumerate(self.inputs_with_examples)
-            ]
-        if inspect.iscoroutinefunction(self.fn):
-            predictions = await self.fn(*processed_input)
-        else:
-            predictions = await anyio.to_thread.run_sync(self.fn, *processed_input)
-
-        output_ids = [output._id for output in self.outputs]
-        if type(predictions) is dict and len(predictions) > 0:
-            predictions = convert_component_dict_to_list(output_ids, predictions)
-
-        if len(self.outputs) == 1:
-            predictions = [predictions]
-        if not self._api_mode:
-            predictions_ = []
-            for i, output_component in enumerate(self.outputs):
-                output = predictions[i]
-                if utils.is_update(predictions[i]):
-                    output = postprocess_update_dict(
-                        output_component, output, self.postprocess
-                    )
-                elif self.postprocess:
-                    output = output_component.postprocess(output)
-                predictions_.append(output)
-            predictions = predictions_
-        return predictions
+                processed_input = self.processed_examples[example_id]
+                if self.batch:
+                    processed_input = [[value] for value in processed_input]
+                prediction = await Context.root_block.process_api(
+                    fn_index, processed_input
+                )
+                output = prediction["data"]
+                if self.batch:
+                    output = [value[0] for value in output]
+                cache_logger.flag(output)
 
     async def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface.
