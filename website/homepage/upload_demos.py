@@ -44,8 +44,10 @@ def upload_demo_to_space(
                             ---
                             """
         readme.open("w").write(textwrap.dedent(readme_content))
-        with open (os.path.join(tmpdir, "requirements.txt"), "w+") as r:
-            r.append(gradio_wheel_url)
+        
+        if gradio_wheel_url:
+            with open (os.path.join(tmpdir, "requirements.txt"), "w+") as r:
+                r.append(gradio_wheel_url)
 
         api = huggingface_hub.HfApi()
         huggingface_hub.create_repo(
@@ -77,4 +79,4 @@ if __name__ == "__main__":
         for demo in demos:
             if hello_world_version != gradio_version:
                 upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
-            upload_demo_to_space(demo_name=demo+"_main", space_id="gradio/" + demo + "_main", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
+            upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
