@@ -39,7 +39,7 @@ with gr.Blocks() as demo:
 
     demo.load(lambda: datetime.datetime.now(), None, c_time2, every=10)
     dep = demo.load(get_plot, None, plot, every=0.5)
-    period.change(get_plot, period, plot, every=2, cancels=[dep])
+    period.change(get_plot, period, plot, every=0.5, cancels=[dep])
 
 if __name__ == "__main__":
     demo.queue().launch()

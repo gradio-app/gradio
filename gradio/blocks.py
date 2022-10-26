@@ -45,7 +45,12 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none, get_cancel_function, get_continuous_fn
+from gradio.utils import (
+    component_or_layout_class,
+    delete_none,
+    get_cancel_function,
+    get_continuous_fn,
+)
 
 set_documentation_group("blocks")
 
@@ -164,9 +169,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        continuous = False
         if every:
-            continuous = True
             fn = get_continuous_fn(fn, every)
 
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
@@ -192,7 +195,6 @@ class Block:
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
             "every": every,
-            "continuous": continuous,
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
@@ -728,7 +730,7 @@ class Blocks(BlockContext):
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
-        is_generating = self.dependencies[fn_index]["continuous"]
+        is_generating = False
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
@@ -739,6 +741,8 @@ class Blocks(BlockContext):
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
 
+        if inspect.isasyncgenfunction(block_fn.fn):
+            raise ValueError("Gradio does not support async generators.")
         if inspect.isgeneratorfunction(block_fn.fn):
             if not self.enable_queue:
                 raise ValueError("Need to enable queue to use generators.")
@@ -987,7 +991,7 @@ class Blocks(BlockContext):
         _js: Optional[str] = None,
         every: None | int = None,
         **kwargs,
-    ) -> Blocks | None:
+    ) -> Blocks | Dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -1005,7 +1009,7 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
-            every:
+            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime

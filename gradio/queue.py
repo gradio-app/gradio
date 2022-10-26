@@ -10,7 +10,7 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, run_coro_in_background
+from gradio.utils import Request, cancel_tasks, run_coro_in_background
 
 
 class Estimation(BaseModel):
@@ -122,28 +122,10 @@ class Queue:
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
 
-            if self.blocks_dependencies[events[0].fn_index].get("continuous", False):
+            if self.blocks_dependencies[events[0].fn_index].get("every", 0):
                 event = events[0]
-                event_name = f"{event.session_hash}_{event.fn_index}"
-                task = next(
-                    (
-                        task
-                        for task in asyncio.all_tasks()
-                        if task.get_name() == event_name
-                    ),
-                    None,
-                )
-                if task:
-                    task.cancel()
-                    await asyncio.gather(task, return_exceptions=True)
-                    await Request(
-                        method=Request.Method.POST,
-                        url=f"{self.server_path}reset",
-                        json={
-                            "session_hash": event.session_hash,
-                            "fn_index": event.fn_index,
-                        },
-                    )
+                await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
+                await self.reset_iterators(event.session_hash, event.fn_index)
             else:
                 self.active_jobs[self.active_jobs.index(None)] = events
 
@@ -371,14 +353,7 @@ class Queue:
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
-                await Request(
-                    method=Request.Method.POST,
-                    url=f"{self.server_path}reset",
-                    json={
-                        "session_hash": event.session_hash,
-                        "fn_index": event.fn_index,
-                    },
-                )
+                await self.reset_iterators(event.session_hash, event.fn_index)
 
     async def send_message(self, event, data: Dict) -> bool:
         try:
@@ -395,3 +370,13 @@ class Queue:
         except:
             await self.clean_event(event)
             return None
+
+    async def reset_iterators(self, session_hash: str, fn_index: int):
+        await Request(
+            method=Request.Method.POST,
+            url=f"{self.server_path}reset",
+            json={
+                "session_hash": session_hash,
+                "fn_index": fn_index,
+            },
+        )

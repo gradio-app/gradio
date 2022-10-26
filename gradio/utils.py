@@ -10,11 +10,8 @@ import json.decoder
 import os
 import pkgutil
 import random
-<<<<<<< HEAD
-import time
-=======
 import sys
->>>>>>> main
+import time
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -693,33 +690,30 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-class ContinuousFn:
-    def __init__(self, fn, every):
-        self.called_before = False
-        self.fn = fn
-        self.every = every
-
-    # async def __call__(self, *args):
-    #     loop = asyncio.get_running_loop()
-    #     a = await loop.run_in_executor(None, self.fn, *args)
-    #     # Want the function to run immediately incase every
-    #     # is very long (minutes or hours)
-    #     await asyncio.sleep(self.every)
-    #     return a
-
-    def __call__(self, *args):
+def get_continuous_fn(fn, every):
+    def continuous_fn(*args):
         called_before = False
         while True:
-            output = self.fn(*args)
+            output = fn(*args)
             if called_before:
-                time.sleep(self.every)
+                time.sleep(every)
             else:
                 called_before = True
             yield output
 
+    return continuous_fn
 
-def get_continuous_fn(fn, every):
-    return ContinuousFn(fn, every).__call__
+
+async def cancel_tasks(task_ids: List[str]):
+    if sys.version_info < (3, 8):
+        return None
+
+    matching_tasks = [
+        task for task in asyncio.all_tasks() if task.get_name() in task_ids
+    ]
+    for task in matching_tasks:
+        task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
 
 
 def get_cancel_function(
@@ -733,17 +727,8 @@ def get_cancel_function(
         fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
 
     async def cancel(session_hash: str) -> None:
-        if sys.version_info < (3, 8):
-            return None
-
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
-
-        matching_tasks = [
-            task for task in asyncio.all_tasks() if task.get_name() in task_ids
-        ]
-        for task in matching_tasks:
-            task.cancel()
-        await asyncio.gather(*matching_tasks, return_exceptions=True)
+        await cancel_tasks(task_ids)
 
     return (
         cancel,
