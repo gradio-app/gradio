@@ -6,9 +6,11 @@
 	import { afterUpdate, onDestroy } from "svelte";
 
 	export let value;
+	export let target;
 
 	// Plotly
 	let plotDiv;
+	let plotlyGlobalStyle;
 
 	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
 
@@ -37,6 +39,17 @@
 		document.head.appendChild(script);
 
 		return script;
+	}
+
+	function load_plotly_css() {
+		if (!plotlyGlobalStyle) {
+				plotlyGlobalStyle = document.getElementById("plotly.js-style-global");
+				const plotlyStyleClone = plotlyGlobalStyle.cloneNode();
+				target.appendChild(plotlyStyleClone);
+				for (const rule of plotlyGlobalStyle.sheet.cssRules) {
+					plotlyStyleClone.sheet.insertRule(rule.cssText);
+				}
+			}
 	}
 
 	const main_script = load_bokeh();
@@ -71,9 +84,9 @@
 		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 	});
 
-	// Plotly
 	afterUpdate(() => {
 		if (value && value["type"] == "plotly") {
+			load_plotly_css();
 			let plotObj = JSON.parse(value["plot"]);
 			Plotly.react(plotDiv, plotObj);
 		} else if (value && value["type"] == "bokeh") {
