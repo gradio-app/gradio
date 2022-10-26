@@ -8,6 +8,7 @@ import pkgutil
 import random
 import sys
 import time
+from tkinter import N
 import warnings
 import webbrowser
 from types import ModuleType
@@ -162,6 +163,8 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if Context.root_block is None:
+            raise AttributeError("Events can only be defined within a Blocks context.")
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
