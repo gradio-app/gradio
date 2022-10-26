@@ -34,7 +34,7 @@ class Parallel(gradio.Interface):
         outputs: List[IOComponent] = []
 
         for interface in interfaces:
-            if not(isinstance(interface, gradio.Interface)):
+            if not (isinstance(interface, gradio.Interface)):
                 raise TypeError("Parallel requires all inputs to be of type Interface.")
             outputs.extend(interface.output_components)
 
@@ -111,7 +111,7 @@ class Series(gradio.Interface):
             return data
 
         for interface in interfaces:
-            if not(isinstance(interface, gradio.Interface)):
+            if not (isinstance(interface, gradio.Interface)):
                 raise TypeError("Series requires all inputs to be of type Interface.")
         connected_fn.__name__ = " => ".join([io.__name__ for io in interfaces])
 
