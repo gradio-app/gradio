@@ -16,14 +16,14 @@
         <div class="flex flex-col py-1 mb-2 bg-gray-50 rounded-lg">
           <button 
           class="h-2/4 link px-3 text-gray-600 selected-version"
-          onclick="this.classList.add('selected-version'); this.nextElementSibling.classList.remove('selected-version'); document.querySelector('#git-docs').classList.add('hidden'); document.querySelector('#pip-docs').classList.remove('hidden');">
+          onclick="this.classList.add('selected-version'); this.nextElementSibling.classList.remove('selected-version'); document.querySelector('#main-docs').classList.add('hidden'); document.querySelector('#pip-docs').classList.remove('hidden');">
           {{ pip_filename[:-14] }}
           </button>
           <button 
           class="h-2/4 link px-3 text-gray-600"
-          onclick="this.classList.add('selected-version'); this.previousElementSibling.classList.remove('selected-version'); document.querySelector('#pip-docs').classList.add('hidden'); document.querySelector('#git-docs').classList.remove('hidden')";
+          onclick="this.classList.add('selected-version'); this.previousElementSibling.classList.remove('selected-version'); document.querySelector('#pip-docs').classList.add('hidden'); document.querySelector('#main-docs').classList.remove('hidden')";
           >
-          git
+          main
           </button>
         </div>
       </p>
@@ -32,7 +32,7 @@
     <div id="pip-docs">
       {% include "docs/"+pip_filename %}
     </div>
-    <div id="git-docs"  class="hidden">
+    <div id="main-docs"  class="hidden">
       {% include "docs/main_template.html" %}
     </div>
     <script src="/assets/prism.js"></script>

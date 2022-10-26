@@ -3,10 +3,19 @@ services:
   homepage:
     environment:
           - AUTH_TOKEN=${AUTH_TOKEN}
+          - AUTH_TOKEN=${AUTH_TOKEN}
+          - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+          - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+          - LATEST_COMMIT=${LATEST_COMMIT}
     build:
       context: ../
       args: 
         AUTH_TOKEN: ${AUTH_TOKEN}
+        AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+        AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+        AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+        LATEST_COMMIT: ${LATEST_COMMIT}
       dockerfile: ./website/homepage/Dockerfile
     container_name: homepage
     ports:
