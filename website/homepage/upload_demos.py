@@ -17,7 +17,7 @@ with open(VERSION_TXT) as f:
 gradio_version = gradio_version.strip()
 
 def upload_demo_to_space(
-    demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str], gradio_wheel: Optional[str] = None
+    demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str], gradio_wheel_url: Optional[str] = None
 ):
     """Upload a demo in the demo directory to a huggingface space.
     Args:
@@ -45,7 +45,7 @@ def upload_demo_to_space(
                             """
         readme.open("w").write(textwrap.dedent(readme_content))
         with open (os.path.join(tmpdir, "requirements.txt"), "w+") as r:
-            r.append(gradio_wheel)
+            r.append(gradio_wheel_url)
 
         api = huggingface_hub.HfApi()
         huggingface_hub.create_repo(
@@ -69,11 +69,12 @@ demos = [demo for demo in demos if demo != "all_demos" and os.path.isdir(os.path
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gradio_wheel", type=str, help="aws link to gradio wheel")
+    parser.add_argument("--url", type=str, help="aws link to gradio wheel")
     args = parser.parse_args()
+    gradio_wheel_url = args.url + f"gradio-{gradio_version}-py3-none-any.whl"
     if AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
             if hello_world_version != gradio_version:
                 upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
-            upload_demo_to_space(demo_name=demo+"_git", space_id="gradio/" + demo + "_git", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel=args.gradio_wheel)
+            upload_demo_to_space(demo_name=demo+"_main", space_id="gradio/" + demo + "_main", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)

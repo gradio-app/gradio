@@ -15,6 +15,7 @@ WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
+RUN pip install build awscli
 WORKDIR /gradio
 RUN python -m build -w
 ARG AWS_ACCESS_KEY_ID
@@ -23,11 +24,9 @@ ARG AWS_SECRET_ACCESS_KEY
 ENV AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY
 ARG AWS_DEFAULT_REGION
 ENV AWS_DEFAULT_REGION $AWS_DEFAULT_REGION
-ARG GRADIO_VERSION
-ENV GRADIO_VERSION $GRADIO_VERSION
-ARG github.sha
-ENV github.sha $github.sha
-RUN aws s3 cp dist/gradio-$GRADIO_VERSION-py3-none-any.whl s3://gradio-builds/$github.sha/
+ARG LATEST_COMMIT
+ENV LATEST_COMMIT $LATEST_COMMIT
+RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
 RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
@@ -49,7 +48,7 @@ RUN npm install
 RUN npm run build
 ARG AUTH_TOKEN
 ENV AUTH_TOKEN $AUTH_TOKEN
-RUN python upload_demos.py --gradio_wheel https://gradio-builds.s3.amazonaws.com/$github.sha/gradio-$env.GRADIO_VERSION-py3-none-any.whl
+RUN python upload_demos.py --url https://gradio-main-build.s3.amazonaws.com/$LATEST_COMMIT/
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
