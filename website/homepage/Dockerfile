@@ -17,16 +17,6 @@ RUN pnpm i
 RUN pnpm build
 RUN pip install build awscli
 WORKDIR /gradio
-RUN python -m build -w
-ARG AWS_ACCESS_KEY_ID
-ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
-ENV AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY
-ARG AWS_DEFAULT_REGION
-ENV AWS_DEFAULT_REGION $AWS_DEFAULT_REGION
-ARG LATEST_COMMIT
-ENV LATEST_COMMIT $LATEST_COMMIT
-RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
 RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
@@ -37,6 +27,16 @@ COPY ./README.md ./README.md
 COPY ./test ./test
 RUN pip install .
 WORKDIR /gradio
+RUN python -m build -w
+ARG AWS_ACCESS_KEY_ID
+ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ENV AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY
+ARG AWS_DEFAULT_REGION
+ENV AWS_DEFAULT_REGION $AWS_DEFAULT_REGION
+ARG LATEST_COMMIT
+ENV LATEST_COMMIT $LATEST_COMMIT
+RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
 COPY ./website ./website
 WORKDIR /gradio/website/homepage
 RUN pip install -r requirements.txt
