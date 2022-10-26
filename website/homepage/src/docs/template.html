@@ -8,8 +8,88 @@
     <link rel="stylesheet" href="/assets/prism.css">
   </head>
   <body>
-    {% include "templates/navbar.html" %}
-    <main class="container mx-auto px-4 flex flex-row-reverse">
+    <!-- {% include "templates/navbar.html" %} -->
+    <div class="container mx-auto flex flex-wrap justify-between flex-row relative items-center px-4 py-5 gap-6 text-lg z-50">
+      <div class="flex flex-row items-center">
+      <a href="/">
+        <img src="/assets/gradio.svg">
+      </a>
+
+      <div class="pl-2 pr-1 py-1 w-fit text-gray-600 font-semibold">
+        <select id="toggle" class="form-select appearance-none block px-3 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded-full transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none w-max" style="width: 135%; padding-top: 0.125rem; padding-bottom: 0.125rem">
+            <option selected>
+              {{ pip_filename[:-14] }}
+            </option>
+            <option>
+              main
+            </option>
+        </select>
+      </div>
+    </div>
+
+      <svg class="h-8 w-8 lg:hidden" viewBox="-10 -10 20 20" onclick="document.querySelector(&quot;nav&quot;).classList.toggle(&quot;hidden&quot;),document.querySelector(&quot;nav&quot;).classList.toggle(&quot;flex&quot;)">
+        <rect x="-7" y="-6" width="14" height="2"></rect>
+        <rect x="-7" y="-1" width="14" height="2"></rect>
+        <rect x="-7" y="4" width="14" height="2"></rect>
+      </svg>
+      <nav class="hidden w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:gap-8">
+        <a class="thin-link flex items-center gap-3" href="/getting_started"><span>⚡</span> <span>Quickstart</span>
+        </a>
+        <a class="thin-link flex items-center gap-3" href="/docs"><span>✍️</span> <span>Docs</span>
+        </a>
+        <a class="thin-link flex items-center gap-3" href="/guides"><span>💡</span> <span>Guides</span></a>
+        <a class="thin-link flex items-center gap-3" href="/demos"><span>🎢</span> <span>Demos</span></a>
+        <div class="group relative flex cursor-pointer items-center gap-3" onclick="document.querySelector(&quot;.help-menu&quot;).classList.toggle(&quot;flex&quot;),document.querySelector(&quot;.help-menu&quot;).classList.toggle(&quot;hidden&quot;)">
+          <span>🖐</span> <span>Community</span>
+          <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path>
+          </svg>
+          <div class="help-menu absolute top-6 hidden w-52 flex-col bg-white shadow group-hover:flex sm:right-0">
+            <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100" href="https://github.com/gradio-app/gradio/issues/new/choose" target="_blank">File an Issue</a>
+            <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100" href="https://discuss.huggingface.co/c/gradio/26" target="_blank">Discuss</a>
+            <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100" target="_blank" href="https://discord.gg/feTf9x3ZSB">Discord</a>
+            <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100" target="_blank" href="https://gradio.curated.co/">Newsletter</a>
+          </div>
+        </div>
+        <a class="thin-link flex items-center gap-3" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github-black.svg" class="w-6">
+        </a>
+      </nav>
+    </div>
+
+    <!-- <main class="container mx-auto px-4 flex flex-row">
+      <div class="flex flex-row">
+    <div class="pl-4 pr-1 py-1 mb-1 w-fit text-gray-600 font-semibold">
+      <select id="toggle" class="form-select appearance-none block px-3 py-1	text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded-lg transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none w-max" style="width: 150%">
+          <option selected>
+            {{ pip_filename[:-14] }}
+          </option>
+          <option>
+            main
+          </option>
+      </select>
+    </div>
+    </div>
+    </main> -->
+    <script>
+      document.getElementById("toggle").onchange = changeListener;
+      
+      function changeListener(){
+      
+      var value = this.value  
+      console.log(value);      
+      if (value == "main") {
+        document.querySelector('#pip-docs').classList.add('hidden'); 
+        document.querySelector('#main-docs').classList.remove('hidden');
+      } else if (value == "{{ pip_filename[:-14] }}" ) {
+        document.querySelector('#main-docs').classList.add('hidden'); 
+        document.querySelector('#pip-docs').classList.remove('hidden');
+      }
+        
+    };
+    
+    </script>
+    <!-- <main class="container mx-auto px-4 flex flex-row">
       <div class="flex flex-row">
       <p class="pl-4 pr-1 py-1 mb-1 w-fit text-gray-600 font-semibold">
         gradio 
@@ -28,7 +108,7 @@
         </div>
       </p>
     </div>
-    </main>
+    </main> -->
     <div id="pip-docs">
       {% include "docs/"+pip_filename %}
     </div>
