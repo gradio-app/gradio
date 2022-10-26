@@ -75,6 +75,12 @@ jobs:
           destination: screenshots
       - store_test_results:
           path: test-reports/
+      - run:
+          name: Compress Artifacts
+          command: tar -cvzf gradio-nightly.tar.gz -C /home/circleci/project/gradio .
+      - store_artifacts: 
+          path: gradio-nightly.tar.gz
+          destination: gradio-nightly.tar.gz
 
 workflows:
   backend:
