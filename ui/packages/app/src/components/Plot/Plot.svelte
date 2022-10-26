@@ -15,6 +15,7 @@
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
+	export let target: HTMLElement;
 </script>
 
 <Block padding={false} {elem_id} {visible}>
@@ -22,5 +23,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} on:change />
+	<Plot {value} {target} on:change />
 </Block>
