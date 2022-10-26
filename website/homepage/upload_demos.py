@@ -46,8 +46,8 @@ def upload_demo_to_space(
         readme.open("w").write(textwrap.dedent(readme_content))
         
         if gradio_wheel_url:
-            with open (os.path.join(tmpdir, "requirements.txt"), "w+") as r:
-                r.append(gradio_wheel_url)
+            with open(os.path.join(tmpdir, "requirements.txt"), "a+") as r:
+                r.write(gradio_wheel_url)
 
         api = huggingface_hub.HfApi()
         huggingface_hub.create_repo(
