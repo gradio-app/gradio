@@ -48,7 +48,10 @@ In the example above, 16 requests could be processed in parallel (for a total in
 time of 5 seconds), instead of each request being processed separately (for a total
 inference time of 80 seconds).
 
-* Add load event for `Video`, `Audio`, `Image`, and `File` components [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2448](https://github.com/gradio-app/gradio/pull/2456)
+### Load Event
+
+`Video`, `Audio`, `Image`, and `File` components now support a `load` event that is triggered when a user uploads a file into any of these components.
+
 
 ## Bug Fixes:
 * Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
