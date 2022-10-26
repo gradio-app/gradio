@@ -10,6 +10,7 @@ import sys
 import time
 import warnings
 import webbrowser
+from tkinter import N
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -45,7 +46,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none
+from gradio.utils import component_or_layout_class, delete_none, get_cancel_function
 
 set_documentation_group("blocks")
 
@@ -162,6 +163,10 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if Context.root_block is None:
+            raise AttributeError(
+                f"{event_name}() and other events can only be called within a Blocks context."
+            )
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -622,7 +627,7 @@ class Blocks(BlockContext):
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
             dependency_offset = len(Context.root_block.dependencies)
-            for dependency in self.dependencies:
+            for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
                 if api_name is not None:
                     api_name_ = utils.append_unique_suffix(
@@ -639,6 +644,18 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
+                # Recreate the cancel function so that it has the latest
+                # dependency fn indices. This is necessary to properly cancel
+                # events in the backend
+                if dependency["cancels"]:
+                    updated_cancels = [
+                        Context.root_block.dependencies[i]
+                        for i in dependency["cancels"]
+                    ]
+                    new_fn = BlockFunction(
+                        get_cancel_function(updated_cancels)[0], False, True
+                    )
+                    Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
 
@@ -650,7 +667,6 @@ class Blocks(BlockContext):
         """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
-        block_fn = self.fns[fn_index]
 
         if inspect.isasyncgenfunction(block_fn.fn):
             return False
