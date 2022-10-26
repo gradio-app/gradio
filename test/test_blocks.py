@@ -17,6 +17,7 @@ import wandb
 
 import gradio as gr
 import gradio.events
+import gradio.utils
 from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -745,13 +746,13 @@ class TestCancel:
             await asyncio.sleep(10)
             print("HELLO FROM LONG JOB")
 
-        with gr.Blocks():
+        with gr.Blocks() as demo:
             button = gr.Button(value="Start")
             click = button.click(long_job, None, None)
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
-            cancel_fun, _ = gradio.events.get_cancel_function(dependencies=[click])
 
+        cancel_fun = demo.fns[-1].fn
         task = asyncio.create_task(long_job())
         task.set_name("foo_0")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
@@ -789,7 +790,7 @@ class TestCancel:
         cancel_fun = demo.fns[-1].fn
 
         task = asyncio.create_task(long_job())
-        task.set_name("foo_0")
+        task.set_name("foo_1")
         await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out

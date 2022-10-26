@@ -1,43 +1,13 @@
 from __future__ import annotations
 
-import asyncio
-import sys
 import warnings
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional
 
-from gradio.blocks import Block, Context
+from gradio.blocks import Block
+from gradio.utils import get_cancel_function
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component, StatusTracker
-
-
-def get_cancel_function(
-    dependencies: List[Dict[str, Any]]
-) -> Tuple[Callable, List[int]]:
-    fn_to_comp = {}
-    for dep in dependencies:
-        fn_index = next(
-            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
-        )
-        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
-
-    async def cancel(session_hash: str) -> None:
-        if sys.version_info < (3, 8):
-            return None
-
-        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
-
-        matching_tasks = [
-            task for task in asyncio.all_tasks() if task.get_name() in task_ids
-        ]
-        for task in matching_tasks:
-            task.cancel()
-        await asyncio.gather(*matching_tasks, return_exceptions=True)
-
-    return (
-        cancel,
-        list(fn_to_comp.keys()),
-    )
 
 
 def set_cancel_events(

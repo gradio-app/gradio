@@ -116,20 +116,12 @@ export const fn =
 			}
 			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
-			if (is_space) {
-				const SPACE_REGEX = /embed\/(.*)\/\+/g;
-				var ws_path = Array.from(
-					ws_endpoint.matchAll(SPACE_REGEX)
-				)[0][1].concat("/");
-				var ws_host = "spaces.huggingface.tech/";
-			} else {
-				var ws_path = location.pathname === "/" ? "/" : location.pathname;
-				var ws_host =
-					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
-						? BACKEND_URL.replace("http://", "").slice(0, -1)
-						: location.host;
-			}
-			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join?fn_index=${fn_index}`;
+			var ws_path = location.pathname === "/" ? "/" : location.pathname;
+			var ws_host =
+				BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
+					? BACKEND_URL.replace("http://", "").slice(0, -1)
+					: location.host;
+			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
 
 			var websocket = new WebSocket(WS_ENDPOINT);
 			ws_map.set(fn_index, websocket);

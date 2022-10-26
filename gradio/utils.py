@@ -10,7 +10,11 @@ import json.decoder
 import os
 import pkgutil
 import random
+<<<<<<< HEAD
 import time
+=======
+import sys
+>>>>>>> main
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -36,6 +40,7 @@ import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
+from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -715,3 +720,32 @@ class ContinuousFn:
 
 def get_continuous_fn(fn, every):
     return ContinuousFn(fn, every).__call__
+
+
+def get_cancel_function(
+    dependencies: List[Dict[str, Any]]
+) -> Tuple[Callable, List[int]]:
+    fn_to_comp = {}
+    for dep in dependencies:
+        fn_index = next(
+            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+        )
+        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+
+    async def cancel(session_hash: str) -> None:
+        if sys.version_info < (3, 8):
+            return None
+
+        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+
+        matching_tasks = [
+            task for task in asyncio.all_tasks() if task.get_name() in task_ids
+        ]
+        for task in matching_tasks:
+            task.cancel()
+        await asyncio.gather(*matching_tasks, return_exceptions=True)
+
+    return (
+        cancel,
+        list(fn_to_comp.keys()),
+    )
