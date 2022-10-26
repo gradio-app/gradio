@@ -98,7 +98,7 @@ class TestAudioPreprocessing(unittest.TestCase):
         os.remove("test_audio_to_file")
 
     def test_convert_to_16_bit_wav(self):
-        # Generate a random audio sample and set fix the amplitude
+        # Generate a random audio sample and set the amplitude
         audio = np.random.randint(-100, 100, size=(100), dtype="int16")
         audio[0] = -32767
         audio[1] = 32766
