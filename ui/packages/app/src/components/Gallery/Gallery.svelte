@@ -190,7 +190,11 @@
 							on:click={() => (selected_image = can_zoom ? i : selected_image)}
 						>
 							<img
-								alt=""
+							        {#if caption}
+							          alt={caption}
+							        {:else}
+								  alt=""
+							        {/if}
 								class="h-full w-full overflow-hidden object-contain"
 								src={typeof image === "string" ? image : image.data}
 							/>
