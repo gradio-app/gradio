@@ -96,26 +96,26 @@ class TestAudioPreprocessing(unittest.TestCase):
         gr.processing_utils.audio_to_file(audio[0], audio[1], "test_audio_to_file")
         self.assertTrue(os.path.exists("test_audio_to_file"))
         os.remove("test_audio_to_file")
-        
+
     def test_convert_to_16_bit_wav(self):
         # Generate a random audio sample and set fix the amplitude
-        audio = np.random.randint(-100, 100, size=(100), dtype='int16')       
+        audio = np.random.randint(-100, 100, size=(100), dtype="int16")
         audio[0] = -32767
-        audio[1] = 32766        
-        
-        audio_ = audio.astype('float64')
-        audio_ = gr.processing_utils.convert_to_16_bit_wav(audio_)
-        assert np.allclose(audio, audio_)
-        assert audio_.dtype == 'int16'
+        audio[1] = 32766
 
-        audio_ = audio.astype('float32')
+        audio_ = audio.astype("float64")
         audio_ = gr.processing_utils.convert_to_16_bit_wav(audio_)
         assert np.allclose(audio, audio_)
-        assert audio_.dtype == 'int16'
+        assert audio_.dtype == "int16"
+
+        audio_ = audio.astype("float32")
+        audio_ = gr.processing_utils.convert_to_16_bit_wav(audio_)
+        assert np.allclose(audio, audio_)
+        assert audio_.dtype == "int16"
 
         audio_ = gr.processing_utils.convert_to_16_bit_wav(audio)
         assert np.allclose(audio, audio_)
-        assert audio_.dtype == 'int16'
+        assert audio_.dtype == "int16"
 
 
 class TestOutputPreprocessing(unittest.TestCase):
