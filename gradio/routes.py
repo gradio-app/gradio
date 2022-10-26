@@ -356,17 +356,14 @@ class App(FastAPI):
             event.session_hash = session_hash["session_hash"]
             event.fn_index = session_hash["fn_index"]
 
-            if app.blocks.dependencies[fn_index]["trigger"] == "load" and app.blocks.dependencies[fn_index]["continuous"]:
-                utils.run_coro_in_background(app.blocks._queue.process_event, event)
-            else:
-                rank = app.blocks._queue.push(event)
+            rank = app.blocks._queue.push(event)
 
-                if rank is None:
-                    await app.blocks._queue.send_message(event, {"msg": "queue_full"})
-                    await event.disconnect()
-                    return
-                estimation = app.blocks._queue.get_estimation()
-                await app.blocks._queue.send_estimation(event, estimation, rank)
+            if rank is None:
+                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
+                await event.disconnect()
+                return
+            estimation = app.blocks._queue.get_estimation()
+            await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:

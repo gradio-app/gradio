@@ -134,7 +134,6 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: int | None = None,
-        continuous: bool = False
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -165,6 +164,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
+        continuous = False
         if every:
             continuous = True
             fn = get_continuous_fn(fn, every)
@@ -974,6 +974,7 @@ class Blocks(BlockContext):
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
         _js: Optional[str] = None,
+        every: None | int = None,
         **kwargs,
     ) -> Blocks | None:
         """
@@ -993,6 +994,7 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+            every:
         Example:
             import gradio as gr
             import datetime
@@ -1017,48 +1019,15 @@ class Blocks(BlockContext):
                 kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
-            self_or_cls.set_event_trigger(
+            return self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
-                no_target=True,
                 js=_js,
+                no_target=True,
+                every=every,
             )
-
-    def run_forever(
-        self,
-        fn: Optional[Callable] = None,
-        inputs: Optional[List[Component]] = None,
-        outputs: Optional[List[Component]] = None,
-        every: int = 1,
-        _js: Optional[str] = None,
-    ) -> None:
-        """
-        Run the function continuously on a given timestamp
-
-        Instance method: adds an event for when the demo loads in the browser and returns None.
-        Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional api key for use with Hugging Face Hub
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name
-            fn: Instance Method - Callable function
-            inputs: Instance Method - input list
-            outputs: Instance Method - output list
-        """
-
-        dep = self.set_event_trigger(
-            event_name="load",
-            fn=fn,
-            inputs=inputs,
-            outputs=outputs,
-            no_target=True,
-            continuous=True,
-            js=_js,
-            every=every
-        )
-        return dep
 
     def clear(self):
         """Resets the layout of the Blocks object."""

@@ -76,7 +76,6 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
-from gradio.utils import Time
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version

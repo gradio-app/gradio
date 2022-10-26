@@ -10,6 +10,7 @@ import json.decoder
 import os
 import pkgutil
 import random
+import time
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -687,17 +688,30 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-class Time:
-    seconds = 1
-    minutes = 60
-    hours = 60 * 60
-    days = 24 * 60 * 60
+class ContinuousFn:
+    def __init__(self, fn, every):
+        self.called_before = False
+        self.fn = fn
+        self.every = every
+
+    # async def __call__(self, *args):
+    #     loop = asyncio.get_running_loop()
+    #     a = await loop.run_in_executor(None, self.fn, *args)
+    #     # Want the function to run immediately incase every
+    #     # is very long (minutes or hours)
+    #     await asyncio.sleep(self.every)
+    #     return a
+
+    def __call__(self, *args):
+        called_before = False
+        while True:
+            output = self.fn(*args)
+            if called_before:
+                time.sleep(self.every)
+            else:
+                called_before = True
+            yield output
 
 
 def get_continuous_fn(fn, every):
-    async def refresh_every(*args):
-        loop = asyncio.get_running_loop()
-        a = await loop.run_in_executor(None, fn, *args)
-        await asyncio.sleep(every)
-        return a
-    return refresh_every
+    return ContinuousFn(fn, every).__call__

@@ -52,8 +52,8 @@ def set_cancel_events(
             cancel_fn,
             inputs=None,
             outputs=None,
-            queue=False,
             preprocess=False,
+            queue=False,
             cancels=fn_indices_to_cancel,
         )
 
@@ -74,7 +74,7 @@ class Changeable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -94,33 +94,29 @@ class Changeable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
             warnings.warn(
                 "The 'status_tracker' parameter has been deprecated and has no effect."
             )
-
         dep = self.set_event_trigger(
             "change",
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
-            every=every,
             batch=batch,
             max_batch_size=max_batch_size,
+            every=every,
         )
-        # if cancels is None:
-        #     cancels = []
-        # if every:
-        #     cancels.append(dep)
         set_cancel_events(self, "change", cancels)
         return dep
 
@@ -141,7 +137,7 @@ class Clickable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -161,6 +157,7 @@ class Clickable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -173,16 +170,16 @@ class Clickable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
+            preprocess=preprocess,
+            postprocess=postprocess,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            js=_js,
-            preprocess=preprocess,
-            postprocess=postprocess,
-            every=every
+            every=every,
         )
         set_cancel_events(self, "click", cancels)
         return dep
@@ -204,7 +201,7 @@ class Submittable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -225,6 +222,7 @@ class Submittable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -237,16 +235,16 @@ class Submittable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            every=every
+            every=every,
         )
         set_cancel_events(self, "submit", cancels)
         return dep
@@ -268,7 +266,7 @@ class Editable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -288,6 +286,7 @@ class Editable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -300,16 +299,16 @@ class Editable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            every=every
+            every=every,
         )
         set_cancel_events(self, "edit", cancels)
         return dep
@@ -331,7 +330,7 @@ class Clearable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -351,6 +350,7 @@ class Clearable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -363,16 +363,16 @@ class Clearable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
-            every=every,
             max_batch_size=max_batch_size,
+            every=every,
         )
         set_cancel_events(self, "submit", cancels)
         return dep
@@ -394,7 +394,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -414,6 +414,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -426,12 +427,12 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
@@ -455,7 +456,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -475,6 +476,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -487,12 +489,12 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
@@ -516,7 +518,7 @@ class Playable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -536,6 +538,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -548,16 +551,16 @@ class Playable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
-            every=every,
             max_batch_size=max_batch_size,
+            every=every,
         )
         set_cancel_events(self, "stop", cancels)
         return dep
@@ -579,7 +582,7 @@ class Streamable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -599,6 +602,7 @@ class Streamable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
@@ -613,16 +617,16 @@ class Streamable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
-            every=every
+            every=every,
         )
         set_cancel_events(self, "stream", cancels)
         return dep
@@ -643,7 +647,7 @@ class Blurrable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
-        every: int | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -662,6 +666,7 @@ class Blurrable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
@@ -670,16 +675,16 @@ class Blurrable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
-            every=every,
             batch=batch,
             max_batch_size=max_batch_size,
+            every=every,
         )
         set_cancel_events(self, "blur", cancels)
 
@@ -699,6 +704,7 @@ class Uploadable(Block):
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: List[Dict[str, Any]] | None = None,
+        every: float | None = None,
         _js: Optional[str] = None,
     ):
         """
@@ -717,6 +723,7 @@ class Uploadable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
+            every: Run this event 'every' number of seconds. Interpreted in seconds.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
@@ -725,14 +732,15 @@ class Uploadable(Block):
             fn,
             inputs,
             outputs,
-            api_name=api_name,
-            scroll_to_output=scroll_to_output,
-            show_progress=show_progress,
-            js=_js,
             preprocess=preprocess,
             postprocess=postprocess,
+            scroll_to_output=scroll_to_output,
+            show_progress=show_progress,
+            api_name=api_name,
+            js=_js,
             queue=queue,
             batch=batch,
             max_batch_size=max_batch_size,
+            every=every,
         )
         set_cancel_events(self, "upload", cancels)
