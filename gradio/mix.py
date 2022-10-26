@@ -117,7 +117,7 @@ class Series(gradio.Interface):
         for interface in interfaces:
             if not (isinstance(interface, gradio.Interface)):
                 warnings.warn(
-                    "Series requires all inputs to be of type Interface. May"
+                    "Series requires all inputs to be of type Interface. May "
                     "not work as expected."
                 )
         connected_fn.__name__ = " => ".join([io.__name__ for io in interfaces])
