@@ -189,19 +189,11 @@
 							class="gallery-item group"
 							on:click={() => (selected_image = can_zoom ? i : selected_image)}
 						>
-							{#if caption}
-								<img
-									alt={caption}
-									class="h-full w-full overflow-hidden object-contain"
-									src={typeof image === "string" ? image : image.data}
-								/>
-							{:else}
-								<img
-									alt=""
-									class="h-full w-full overflow-hidden object-contain"
-									src={typeof image === "string" ? image : image.data}
-								/>
-							{/if}
+							<img
+								alt={caption || ""}
+								class="h-full w-full overflow-hidden object-contain"
+								src={typeof image === "string" ? image : image.data}
+							/>
 							{#if caption}
 								<div class="bottom-0 absolute z-[5] flex justify-end w-full">
 									<div
