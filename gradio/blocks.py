@@ -639,6 +639,9 @@ class Blocks(BlockContext):
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
                 ]
+                # Recreate the cancel function so that it has the latest
+                # dependency fn indices. This is necessary to properly cancel
+                # events in the backend
                 if dependency["cancels"]:
                     updated_cancels = [
                         Context.root_block.dependencies[i]
