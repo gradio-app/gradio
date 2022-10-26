@@ -616,6 +616,8 @@ class Blurrable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
@@ -632,6 +634,8 @@ class Blurrable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
@@ -650,6 +654,8 @@ class Blurrable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            batch=batch,
+            max_batch_size=max_batch_size,
         )
         set_cancel_events(self, "blur", cancels)
 
@@ -664,6 +670,8 @@ class Uploadable(Block):
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: List[Dict[str, Any]] | None = None,
@@ -680,6 +688,8 @@ class Uploadable(Block):
             scroll_to_output: If True, will scroll to output component on completion
             show_progress: If True, will show progress animation while pending
             queue: If True, will place the request on the queue, if the queue exists
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
@@ -698,5 +708,7 @@ class Uploadable(Block):
             preprocess=preprocess,
             postprocess=postprocess,
             queue=queue,
+            batch=batch,
+            max_batch_size=max_batch_size,
         )
         set_cancel_events(self, "upload", cancels)
