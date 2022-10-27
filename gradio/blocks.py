@@ -22,6 +22,7 @@ from typing import (
     Optional,
     Tuple,
 )
+from typing_extensions import Literal
 
 import anyio
 import requests
@@ -45,7 +46,11 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none
+from gradio.utils import (
+    component_or_layout_class,
+    delete_none,
+    check_function_inputs_match,
+)
 
 set_documentation_group("blocks")
 
@@ -120,8 +125,8 @@ class Block:
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | None,
-        outputs: Component | List[Component] | None,
+        inputs: Component | List[Component] | None | Literal["all"],
+        outputs: Component | List[Component] | None | Literal["all"],
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -158,11 +163,19 @@ class Block:
             inputs = []
         if outputs is None:
             outputs = []
-        if not isinstance(inputs, list):
+        if inputs != "all" and not isinstance(inputs, list):
             inputs = [inputs]
+        if inputs == "all" and outputs != []:
+            raise ValueError("Cannot have output components when inputs='all'. Edit the state dictionary in the funciton body instead.")
+        if fn is not None:
+            fn_inputs_error = check_function_inputs_match(fn, inputs)
+            if fn_inputs_error is not None:
+                raise ValueError(fn_inputs_error)
         if not isinstance(outputs, list):
             outputs = [outputs]
-        Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        Context.root_block.fns.append(
+            BlockFunction(fn, preprocess, postprocess, inputs == "all")
+        )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
@@ -175,7 +188,8 @@ class Block:
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
-            "inputs": [block._id for block in inputs],
+            "inputs": [] if inputs == "all" else [block._id for block in inputs],
+            "input_all": inputs == "all",
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
@@ -188,6 +202,10 @@ class Block:
             "cancels": cancels or [],
         }
         if api_name is not None:
+            if inputs == "all":
+                raise ValueError(
+                    "Cannot create a named API endpoint when inputs == 'all'"
+                )
             dependency["documentation"] = [
                 [
                     document_component_api(component.__class__, "input")
@@ -273,12 +291,19 @@ class BlockContext(Block):
 
 
 class BlockFunction:
-    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
+    def __init__(
+        self,
+        fn: Optional[Callable],
+        preprocess: bool,
+        postprocess: bool,
+        expects_all: bool,
+    ):
         self.fn = fn
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
+        self.expects_all = expects_all
 
     def __str__(self):
         return str(
@@ -704,19 +729,36 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
+        wrap_per_component: bool = True,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
         start = time.time()
 
+        if wrap_per_component and iterator is not None:
+                raise ValueError("Iteratative output not yet supported for inputs='all'.")
         if iterator is None:  # If not a generator function that has already run
+            if wrap_per_component:
+                processed_input = [
+                    {
+                        io_block[1]: data
+                        for io_block, data in zip(self.io_blocks, processed_input)
+                    }
+                ]
+                original_values = processed_input[0].copy()
             if inspect.iscoroutinefunction(block_fn.fn):
                 prediction = await block_fn.fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
+            if wrap_per_component:
+                prediction = processed_input[0]
+                for component in prediction:
+                    if original_values[component] == prediction[component]:
+                        prediction[component] = skip()
+
 
         if inspect.isasyncgenfunction(block_fn.fn):
             raise ValueError("Gradio does not support async generators.")
@@ -864,7 +906,9 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None)
+            result = await self.call_function(
+                fn_index, zip(*inputs), None, block_fn.expects_all
+            )
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -873,7 +917,9 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator)
+            result = await self.call_function(
+                fn_index, inputs, iterator, block_fn.expects_all
+            )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
@@ -923,6 +969,7 @@ class Blocks(BlockContext):
 
         config["layout"] = getLayout(self)
 
+        self.io_blocks = []
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -933,7 +980,14 @@ class Blocks(BlockContext):
                     else {},
                 }
             )
+            if isinstance(block, components.IOComponent):
+                self.io_blocks.append((_id, block))
         config["dependencies"] = self.dependencies
+        for dependency in config["dependencies"]:
+            if dependency["input_all"]:
+                dependency["inputs"] = dependency["outputs"] = [
+                    block[0] for block in self.io_blocks
+                ]
         return config
 
     def __enter__(self):
