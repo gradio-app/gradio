@@ -4,8 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
-
+* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
 ## Documentation Changes:
 No changes to highlight.
 
