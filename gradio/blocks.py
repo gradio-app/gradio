@@ -201,7 +201,7 @@ class Block:
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
-            "inputs": [] if inputs == "all" else [block._id for block in inputs],
+            "inputs": [block._id for block in inputs],
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
@@ -752,7 +752,7 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        inputs_as_dict: bool = True,
+        inputs_as_dict: bool = False,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
