@@ -88,6 +88,7 @@
 		if (value && value["type"] == "plotly") {
 			load_plotly_css();
 			let plotObj = JSON.parse(value["plot"]);
+			plotObj.layout.title ? plotObj.layout.margin = {autoexpand: true} : plotObj.layout.margin = {l: 0, r: 0, b: 0, t: 0};
 			Plotly.react(plotDiv, plotObj);
 		} else if (value && value["type"] == "bokeh") {
 			document.getElementById("bokehDiv").innerHTML = "";
