@@ -43,6 +43,7 @@ with gr.Blocks() as demo:
 demo.queue().launch()
 ```
 
+![live_demo](https://user-images.githubusercontent.com/41651716/198357377-633ce460-4e31-47bd-8202-1440cdd6fe19.gif)
 
 
 
