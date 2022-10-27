@@ -47,7 +47,12 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none, get_cancel_function, check_function_inputs_match
+from gradio.utils import (
+    check_function_inputs_match,
+    component_or_layout_class,
+    delete_none,
+    get_cancel_function,
+)
 
 set_documentation_group("blocks")
 
