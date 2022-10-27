@@ -122,11 +122,11 @@ class Queue:
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
 
-            self.active_jobs[self.active_jobs.index(None)] = events
-
-            task = run_coro_in_background(self.process_events, events, batch)
-            run_coro_in_background(self.broadcast_live_estimations)
-            set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
+            if events:
+                self.active_jobs[self.active_jobs.index(None)] = events
+                task = run_coro_in_background(self.process_events, events, batch)
+                run_coro_in_background(self.broadcast_live_estimations)
+                set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
     def push(self, event: Event) -> int | None:
         """
