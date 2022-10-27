@@ -145,6 +145,23 @@ class TestBlocksMethods(unittest.TestCase):
         assert "fn" in str(demo.fns[0])
 
     @pytest.mark.asyncio
+    async def test_dict_inputs_in_config(self):
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            btn = gr.Button()
+            greeting = gr.Textbox()
+
+            def greet(data):
+                return f"Hello {data[first]} {data[last]}"
+
+            btn.click(greet, {first, last}, greeting)
+
+        body = PredictBody(data=["huggy", "face"], fn_index=0)
+        result = await demo.process_api(body)
+        assert result == "Hello huggy face"
+
+    @pytest.mark.asyncio
     async def test_async_function(self):
         async def wait():
             await asyncio.sleep(0.01)

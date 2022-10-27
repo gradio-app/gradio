@@ -3,9 +3,17 @@ from __future__ import annotations
 import asyncio
 import sys
 import warnings
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
-
-from typing_extensions import Literal
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 from gradio.blocks import Block, Context, update
 
@@ -64,7 +72,7 @@ class Changeable(Block):
     def change(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -125,7 +133,7 @@ class Clickable(Block):
     def click(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -186,7 +194,7 @@ class Submittable(Block):
     def submit(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -248,7 +256,7 @@ class Editable(Block):
     def edit(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -309,7 +317,7 @@ class Clearable(Block):
     def clear(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -370,7 +378,7 @@ class Playable(Block):
     def play(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -429,7 +437,7 @@ class Playable(Block):
     def pause(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: Optional[AnyStr] = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -488,7 +496,7 @@ class Playable(Block):
     def stop(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -549,7 +557,7 @@ class Streamable(Block):
     def stream(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         status_tracker: Optional[StatusTracker] = None,
@@ -612,7 +620,7 @@ class Blurrable(Block):
     def blur(
         self,
         fn: Callable,
-        inputs: Component | List[Component] | None | Literal["all"] = None,
+        inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: AnyStr = None,
         scroll_to_output: bool = False,

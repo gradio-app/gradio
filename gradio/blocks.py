@@ -20,13 +20,13 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Set,
     Tuple,
 )
 
 import anyio
 import requests
 from anyio import CapacityLimiter
-from typing_extensions import Literal
 
 from gradio import (
     components,
@@ -125,8 +125,8 @@ class Block:
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | None | Literal["all"],
-        outputs: Component | List[Component] | None | Literal["all"],
+        inputs: Component | List[Component] | Set[Component] | None,
+        outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -159,24 +159,28 @@ class Block:
         Returns: None
         """
         # Support for singular parameter
-        if inputs is None:
-            inputs = []
-        if outputs is None:
-            outputs = []
-        if inputs != "all" and not isinstance(inputs, list):
-            inputs = [inputs]
-        if inputs == "all" and outputs != []:
-            raise ValueError(
-                "Cannot have output components when inputs='all'. Edit the state dictionary in the funciton body instead."
-            )
+        if isinstance(inputs, set):
+            inputs_as_dict = True
+            inputs = sorted(inputs, key=lambda x: x._id)
+        else:
+            inputs_as_dict = False
+            if inputs is None:
+                inputs = []
+            elif not isinstance(inputs, list):
+                inputs = [inputs]
+
+        if isinstance(outputs, set):
+            outputs = sorted(outputs, key=lambda x: x._id)
+        else:
+            if outputs is None:
+                outputs = []
+            elif not isinstance(outputs, list):
+                outputs = [outputs]
+
         if fn is not None:
-            fn_inputs_error = check_function_inputs_match(fn, inputs)
-            if fn_inputs_error is not None:
-                raise ValueError(fn_inputs_error)
-        if not isinstance(outputs, list):
-            outputs = [outputs]
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
         Context.root_block.fns.append(
-            BlockFunction(fn, preprocess, postprocess, inputs == "all")
+            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
         )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
@@ -191,7 +195,6 @@ class Block:
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
             "inputs": [] if inputs == "all" else [block._id for block in inputs],
-            "input_all": inputs == "all",
             "outputs": [block._id for block in outputs],
             "backend_fn": fn is not None,
             "js": js,
@@ -204,10 +207,6 @@ class Block:
             "cancels": cancels or [],
         }
         if api_name is not None:
-            if inputs == "all":
-                raise ValueError(
-                    "Cannot create a named API endpoint when inputs == 'all'"
-                )
             dependency["documentation"] = [
                 [
                     document_component_api(component.__class__, "input")
@@ -296,16 +295,20 @@ class BlockFunction:
     def __init__(
         self,
         fn: Optional[Callable],
+        inputs: List[int],
+        outputs: List[int],
         preprocess: bool,
         postprocess: bool,
-        expects_all: bool,
+        inputs_as_dict: bool,
     ):
         self.fn = fn
+        self.inputs = inputs
+        self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
-        self.expects_all = expects_all
+        self.inputs_as_dict = inputs_as_dict
 
     def __str__(self):
         return str(
@@ -731,35 +734,28 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        wrap_per_component: bool = True,
+        inputs_as_dict: bool = True,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
         start = time.time()
 
-        if wrap_per_component and iterator is not None:
-            raise ValueError("Iteratative output not yet supported for inputs='all'.")
+        if inputs_as_dict:
+            processed_input = [
+                {
+                    input_component: data
+                    for input_component, data in zip(block_fn.inputs, processed_input)
+                }
+            ]
+
         if iterator is None:  # If not a generator function that has already run
-            if wrap_per_component:
-                processed_input = [
-                    {
-                        io_block[1]: data
-                        for io_block, data in zip(self.io_blocks, processed_input)
-                    }
-                ]
-                original_values = processed_input[0].copy()
             if inspect.iscoroutinefunction(block_fn.fn):
                 prediction = await block_fn.fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
-            if wrap_per_component:
-                prediction = processed_input[0]
-                for component in prediction:
-                    if original_values[component] == prediction[component]:
-                        prediction[component] = skip()
 
         if inspect.isasyncgenfunction(block_fn.fn):
             raise ValueError("Gradio does not support async generators.")
@@ -908,7 +904,7 @@ class Blocks(BlockContext):
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
             result = await self.call_function(
-                fn_index, zip(*inputs), None, block_fn.expects_all
+                fn_index, zip(*inputs), None, block_fn.inputs_as_dict
             )
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
@@ -919,7 +915,7 @@ class Blocks(BlockContext):
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
             result = await self.call_function(
-                fn_index, inputs, iterator, block_fn.expects_all
+                fn_index, inputs, iterator, block_fn.inputs_as_dict
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -970,7 +966,6 @@ class Blocks(BlockContext):
 
         config["layout"] = getLayout(self)
 
-        self.io_blocks = []
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -981,14 +976,7 @@ class Blocks(BlockContext):
                     else {},
                 }
             )
-            if isinstance(block, components.IOComponent):
-                self.io_blocks.append((_id, block))
         config["dependencies"] = self.dependencies
-        for dependency in config["dependencies"]:
-            if dependency["input_all"]:
-                dependency["inputs"] = dependency["outputs"] = [
-                    block[0] for block in self.io_blocks
-                ]
         return config
 
     def __enter__(self):

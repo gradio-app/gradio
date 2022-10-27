@@ -32,9 +32,7 @@ import aiohttp
 import fsspec.asyn
 import httpx
 import requests
-import typing_extensions
 from pydantic import BaseModel, Json, parse_obj_as
-from typing_extensions import Literal
 
 import gradio
 
@@ -690,7 +688,7 @@ def is_update(val):
 
 
 def check_function_inputs_match(
-    fn: Callable, inputs: List | Literal["all"]
+    fn: Callable, inputs: List, inputs_as_dict: bool
 ) -> str | None:
     """
     Checks if the input component set matches the function
@@ -710,9 +708,17 @@ def check_function_inputs_match(
         elif param.kind == param.KEYWORD_ONLY:
             if not has_default:
                 return f"Keyword-only args must have default values for function {fn}"
-    arg_count = 1 if inputs == "all" else len(inputs)
+    arg_count = 1 if inputs_as_dict else len(inputs)
+    if min_args == max_args and max_args != arg_count:
+        raise ValueError(
+            f"Expected {max_args} arguments for function {fn}, received {arg_count}."
+        )
     if arg_count < min_args:
-        return f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
+        raise ValueError(
+            f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
+        )
     if arg_count > max_args:
-        return f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
+        raise ValueError(
+            f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
+        )
     return
