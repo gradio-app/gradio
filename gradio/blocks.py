@@ -22,11 +22,11 @@ from typing import (
     Optional,
     Tuple,
 )
-from typing_extensions import Literal
 
 import anyio
 import requests
 from anyio import CapacityLimiter
+from typing_extensions import Literal
 
 from gradio import (
     components,
@@ -47,9 +47,9 @@ from gradio.documentation import (
 )
 from gradio.exceptions import DuplicateBlockError
 from gradio.utils import (
+    check_function_inputs_match,
     component_or_layout_class,
     delete_none,
-    check_function_inputs_match,
 )
 
 set_documentation_group("blocks")
@@ -166,7 +166,9 @@ class Block:
         if inputs != "all" and not isinstance(inputs, list):
             inputs = [inputs]
         if inputs == "all" and outputs != []:
-            raise ValueError("Cannot have output components when inputs='all'. Edit the state dictionary in the funciton body instead.")
+            raise ValueError(
+                "Cannot have output components when inputs='all'. Edit the state dictionary in the funciton body instead."
+            )
         if fn is not None:
             fn_inputs_error = check_function_inputs_match(fn, inputs)
             if fn_inputs_error is not None:
@@ -737,7 +739,7 @@ class Blocks(BlockContext):
         start = time.time()
 
         if wrap_per_component and iterator is not None:
-                raise ValueError("Iteratative output not yet supported for inputs='all'.")
+            raise ValueError("Iteratative output not yet supported for inputs='all'.")
         if iterator is None:  # If not a generator function that has already run
             if wrap_per_component:
                 processed_input = [
@@ -758,7 +760,6 @@ class Blocks(BlockContext):
                 for component in prediction:
                     if original_values[component] == prediction[component]:
                         prediction[component] = skip()
-
 
         if inspect.isasyncgenfunction(block_fn.fn):
             raise ValueError("Gradio does not support async generators.")

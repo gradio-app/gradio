@@ -10,7 +10,6 @@ import json.decoder
 import os
 import pkgutil
 import random
-import typing_extensions
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -28,16 +27,16 @@ from typing import (
     Tuple,
     Type,
 )
-from typing_extensions import Literal
 
 import aiohttp
 import fsspec.asyn
 import httpx
 import requests
+import typing_extensions
 from pydantic import BaseModel, Json, parse_obj_as
+from typing_extensions import Literal
 
 import gradio
-import inspect
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -695,7 +694,7 @@ def check_function_inputs_match(
 ) -> str | None:
     """
     Checks if the input component set matches the function
-    Returns: None if valid, a string error message if mismatch 
+    Returns: None if valid, a string error message if mismatch
     """
     signature = inspect.signature(fn)
     min_args = 0
