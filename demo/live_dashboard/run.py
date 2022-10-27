@@ -3,12 +3,9 @@ import gradio as gr
 import datetime
 import plotly.express as px
 import numpy as np
-import time
 
 
 def get_time():
-    print("called")
-    time.sleep(2)
     return datetime.datetime.now()
 
 
@@ -37,7 +34,7 @@ with gr.Blocks() as demo:
             button = gr.Button(value="Greet")
             button.click(lambda s: f"Hello {s}", name, greeting)
 
-    demo.load(lambda: datetime.datetime.now(), None, c_time2, every=10)
+    demo.load(lambda: datetime.datetime.now(), None, c_time2, every=1)
     dep = demo.load(get_plot, None, plot, every=0.5)
     period.change(get_plot, period, plot, every=0.5, cancels=[dep])
 
