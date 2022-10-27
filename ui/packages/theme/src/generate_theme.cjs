@@ -1,4 +1,5 @@
 const tw_theme = require("tailwindcss/defaultTheme");
+import { text } from "svelte/internal";
 import colors from "tailwindcss/colors";
 
 const { borderRadius, borderWidth, spacing } = tw_theme;
@@ -41,10 +42,21 @@ console.log(tw_theme);
 
 const foundation_light = {};
 const foundation_dark = {
-	colors: {
+	color: {
 		background: {
 			primary: colors.gray[900],
 			secondary: colors.gray[800]
+		},
+		text: {
+			body: colors.gray[300],
+			label: colors.gray[300],
+			blocklabel: colors.gray[500],
+			placeholder: "",
+			subdued: colors.gray[400]
+		},
+		border: {
+			default: colors.gray[200],
+			highlight: colors.orange[500]
 		},
 		accent: {
 			base: "",
@@ -76,7 +88,7 @@ const theme = {
 			style: { hover: "", loaded: "" },
 			color: { hover: "", loaded: "" }
 		},
-		font: {
+		text: {
 			family: "",
 			size: "",
 			style: "",
@@ -93,7 +105,7 @@ const theme = {
 		background: {
 			color: ""
 		},
-		font: {
+		text: {
 			family: "",
 			size: "",
 			style: "",
@@ -115,14 +127,14 @@ const theme = {
 		}
 	},
 	input: {
-		font: {
+		text: {
 			family: "",
 			size: "",
 			style: "",
 			color: ""
 		},
 		label: {
-			font: {
+			text: {
 				family: "",
 				size: "",
 				style: "",
@@ -172,7 +184,7 @@ const theme = {
 		}
 	},
 	accordion: {
-		font: {
+		text: {
 			family: "",
 			size: "",
 			style: "",
@@ -188,7 +200,7 @@ const theme = {
 				style: { base: "", hover: "", focus: "" },
 				color: { base: "", hover: "", focus: "" }
 			},
-			font: {
+			text: {
 				family: "",
 				size: "",
 				style: { base: "", hover: "", focus: "" },
@@ -210,7 +222,7 @@ const theme = {
 				style: { base: "", hover: "", focus: "" },
 				color: { base: "", hover: "", focus: "" }
 			},
-			font: {
+			text: {
 				family: "",
 				size: "",
 				style: { base: "", hover: "", focus: "" },
@@ -265,11 +277,11 @@ const theme = {
 			},
 			user: {
 				background: { color: { base: "", latest: "" } },
-				font: { color: { base: "", latest: "" } }
+				text: { color: { base: "", latest: "" } }
 			},
 			bot: {
 				background: { color: { base: "", latest: "" } },
-				font: { color: { base: "", latest: "" } }
+				text: { color: { base: "", latest: "" } }
 			}
 		}
 	}
