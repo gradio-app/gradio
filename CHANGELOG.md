@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Fix whitespace issue when using plotly
 
 ## Documentation Changes:
 No changes to highlight.
@@ -16,7 +16,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Fix whitespace issue when using plotly
 
 ## Contributors Shoutout:
 No changes to highlight.
