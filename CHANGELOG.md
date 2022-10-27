@@ -1,6 +1,29 @@
 # Upcoming Release 
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.7
+
+## New Features:
 
 ### Batched Functions
 
@@ -48,9 +71,23 @@ In the example above, 16 requests could be processed in parallel (for a total in
 time of 5 seconds), instead of each request being processed separately (for a total
 inference time of 80 seconds).
 
-### Load Event
+### Upload Event
 
-`Video`, `Audio`, `Image`, and `File` components now support a `upload` event that is triggered when a user uploads a file into any of these components.
+`Video`, `Audio`, `Image`, and `File` components now support a `upload()` event that is triggered when a user uploads a file into any of these components.
+
+Example usage:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        input_video = gr.Video()
+        output_video = gr.Video()
+
+     # Clears the output video when an input video is uploaded
+    input_video.upload(lambda : None, None, output_video)  
+```
 
 
 ## Bug Fixes:
@@ -77,6 +114,10 @@ No changes to highlight.
 * Gradio now supports batched functions by [@abidlabs](https://github.com/abidlabs) in [PR 2218](https://github.com/gradio-app/gradio/pull/2218)
 * Add `upload` event for `Video`, `Audio`, `Image`, and `File` components [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2448](https://github.com/gradio-app/gradio/pull/2456)
 * Changes websocket path for Spaces as it is no longer necessary to have a different URL for websocket connections on Spaces by [@abidlabs](https://github.com/abidlabs) in [PR 2528](https://github.com/gradio-app/gradio/pull/2528)
+* Clearer error message when events are defined outside of a Blocks scope, and a warning if you
+try to use `Series` or `Parallel` with `Blocks` by [@abidlabs](https://github.com/abidlabs) in [PR 2543](https://github.com/gradio-app/gradio/pull/2543)
+* Adds support for audio samples that are in `float64`, `float16`, or `uint16` formats by [@abidlabs](https://github.com/abidlabs) in [PR 2545](https://github.com/gradio-app/gradio/pull/2545)
+
 
 ## Contributors Shoutout:
 No changes to highlight.
