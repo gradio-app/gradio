@@ -10,6 +10,7 @@ import sys
 import time
 import warnings
 import webbrowser
+from tkinter import N
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -162,6 +163,10 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if Context.root_block is None:
+            raise AttributeError(
+                f"{event_name}() and other events can only be called within a Blocks context."
+            )
         Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
