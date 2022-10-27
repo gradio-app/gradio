@@ -4,7 +4,8 @@
 No changes to highlight.
 
 ## Bug Fixes:
-* Fix whitespace issue when using plotly
+* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
+
 
 ## Documentation Changes:
 No changes to highlight.
@@ -16,7 +17,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Fix whitespace issue when using plotly
+* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
 
 ## Contributors Shoutout:
 No changes to highlight.
