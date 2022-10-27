@@ -10,7 +10,7 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, cancel_tasks, run_coro_in_background
+from gradio.utils import Request, run_coro_in_background, set_task_name
 
 
 class Estimation(BaseModel):
@@ -122,19 +122,11 @@ class Queue:
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
 
-            if self.blocks_dependencies[events[0].fn_index].get("every", 0):
-                event = events[0]
-                await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
-                await self.reset_iterators(event.session_hash, event.fn_index)
-            else:
-                self.active_jobs[self.active_jobs.index(None)] = events
+            self.active_jobs[self.active_jobs.index(None)] = events
 
             task = run_coro_in_background(self.process_events, events, batch)
             run_coro_in_background(self.broadcast_live_estimations)
-            if sys.version_info >= (3, 8) and not (
-                batch
-            ):  # You shouldn't be able to cancel a task if it's part of a batch
-                task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
+            set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
     def push(self, event: Event) -> int | None:
         """

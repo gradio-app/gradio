@@ -174,6 +174,13 @@ class Block:
             raise AttributeError(
                 f"{event_name}() and other events can only be called within a Blocks context."
             )
+        if every is not None and every <= 0:
+            raise ValueError("Parameter every must be positive or None")
+        if every and batch:
+            raise ValueError(
+                f"Cannot run {event_name} event in a batch and every {every} seconds. "
+                "Either batch is True or every is non-zero but not both."
+            )
 
         if every:
             fn = get_continuous_fn(fn, every)

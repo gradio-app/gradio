@@ -716,6 +716,13 @@ async def cancel_tasks(task_ids: List[str]):
     await asyncio.gather(*matching_tasks, return_exceptions=True)
 
 
+def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
+    if sys.version_info >= (3, 8) and not (
+        batch
+    ):  # You shouldn't be able to cancel a task if it's part of a batch
+        task.set_name(f"{session_hash}_{fn_index}")
+
+
 def get_cancel_function(
     dependencies: List[Dict[str, Any]]
 ) -> Tuple[Callable, List[int]]:
