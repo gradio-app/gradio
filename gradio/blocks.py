@@ -1159,9 +1159,11 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    print("\nSetting up a public link... we've recently upgraded the "
-                          "way public links are generated. But if you encounter any"
-                          "issues, please try with gradio <= 3.7.\n")
+                    print(
+                        "\nSetting up a public link... we've recently upgraded the "
+                        "way public links are generated. But if you encounter any"
+                        "issues, please try with gradio <= 3.7.\n"
+                    )
                     self.share_url = networking.setup_tunnel(
                         self.server_name, self.server_port
                     )
