@@ -689,9 +689,7 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
-def check_function_inputs_match(
-    fn: Callable, inputs: List, inputs_as_dict: bool
-):
+def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
