@@ -10,7 +10,6 @@ import sys
 import time
 import warnings
 import webbrowser
-from tkinter import N
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
