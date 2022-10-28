@@ -10,7 +10,7 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, run_coro_in_background
+from gradio.utils import Request, run_coro_in_background, set_task_name
 
 
 class Estimation(BaseModel):
@@ -118,7 +118,6 @@ class Queue:
             if not (None in self.active_jobs):
                 await asyncio.sleep(self.sleep_when_free)
                 continue
-
             # Using mutex to avoid editing a list in use
             async with self.delete_lock:
                 events, batch = self.get_events_in_batch()
@@ -127,10 +126,7 @@ class Queue:
                 self.active_jobs[self.active_jobs.index(None)] = events
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
-            if sys.version_info >= (3, 8) and not (
-                batch
-            ):  # You shouldn't be able to cancel a task if it's part of a batch
-                task.set_name(f"{events[0].session_hash}_{events[0].fn_index}")
+                set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
     def push(self, event: Event) -> int | None:
         """
@@ -349,14 +345,7 @@ class Queue:
                 # If the job finished successfully, this has no effect
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
-                await Request(
-                    method=Request.Method.POST,
-                    url=f"{self.server_path}reset",
-                    json={
-                        "session_hash": event.session_hash,
-                        "fn_index": event.fn_index,
-                    },
-                )
+                await self.reset_iterators(event.session_hash, event.fn_index)
 
     async def send_message(self, event, data: Dict) -> bool:
         try:
@@ -373,3 +362,13 @@ class Queue:
         except:
             await self.clean_event(event)
             return None
+
+    async def reset_iterators(self, session_hash: str, fn_index: int):
+        await Request(
+            method=Request.Method.POST,
+            url=f"{self.server_path}reset",
+            json={
+                "session_hash": session_hash,
+                "fn_index": fn_index,
+            },
+        )

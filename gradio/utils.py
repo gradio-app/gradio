@@ -11,6 +11,7 @@ import os
 import pkgutil
 import random
 import sys
+import time
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -689,6 +690,55 @@ def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
 
 
+def get_continuous_fn(fn, every):
+    def continuous_fn(*args):
+        while True:
+            output = fn(*args)
+            yield output
+            time.sleep(every)
+
+    return continuous_fn
+
+
+async def cancel_tasks(task_ids: List[str]):
+    if sys.version_info < (3, 8):
+        return None
+
+    matching_tasks = [
+        task for task in asyncio.all_tasks() if task.get_name() in task_ids
+    ]
+    for task in matching_tasks:
+        task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+
+
+def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
+    if sys.version_info >= (3, 8) and not (
+        batch
+    ):  # You shouldn't be able to cancel a task if it's part of a batch
+        task.set_name(f"{session_hash}_{fn_index}")
+
+
+def get_cancel_function(
+    dependencies: List[Dict[str, Any]]
+) -> Tuple[Callable, List[int]]:
+    fn_to_comp = {}
+    for dep in dependencies:
+        fn_index = next(
+            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+        )
+        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+
+    async def cancel(session_hash: str) -> None:
+        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        await cancel_tasks(task_ids)
+
+    return (
+        cancel,
+        list(fn_to_comp.keys()),
+    )
+
+
 def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
@@ -721,32 +771,3 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
-
-
-def get_cancel_function(
-    dependencies: List[Dict[str, Any]]
-) -> Tuple[Callable, List[int]]:
-    fn_to_comp = {}
-    for dep in dependencies:
-        fn_index = next(
-            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
-        )
-        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
-
-    async def cancel(session_hash: str) -> None:
-        if sys.version_info < (3, 8):
-            return None
-
-        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
-
-        matching_tasks = [
-            task for task in asyncio.all_tasks() if task.get_name() in task_ids
-        ]
-        for task in matching_tasks:
-            task.cancel()
-        await asyncio.gather(*matching_tasks, return_exceptions=True)
-
-    return (
-        cancel,
-        list(fn_to_comp.keys()),
-    )

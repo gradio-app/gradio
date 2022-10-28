@@ -51,6 +51,7 @@ from gradio.utils import (
     component_or_layout_class,
     delete_none,
     get_cancel_function,
+    get_continuous_fn,
 )
 
 set_documentation_group("blocks")
@@ -139,6 +140,7 @@ class Block:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
+        every: float | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -178,13 +180,24 @@ class Block:
             elif not isinstance(outputs, list):
                 outputs = [outputs]
 
-        if fn is not None:
+        if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
         if Context.root_block is None:
             raise AttributeError(
                 f"{event_name}() and other events can only be called within a Blocks context."
             )
+        if every is not None and every <= 0:
+            raise ValueError("Parameter every must be positive or None")
+        if every and batch:
+            raise ValueError(
+                f"Cannot run {event_name} event in a batch and every {every} seconds. "
+                "Either batch is True or every is non-zero but not both."
+            )
+
+        if every:
+            fn = get_continuous_fn(fn, every)
+
         Context.root_block.fns.append(
             BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
         )
@@ -197,6 +210,7 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -208,6 +222,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "every": every,
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
@@ -929,7 +944,6 @@ class Blocks(BlockContext):
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
             is_generating, iterator = None, None
-
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
@@ -1027,8 +1041,9 @@ class Blocks(BlockContext):
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
         _js: Optional[str] = None,
+        every: None | int = None,
         **kwargs,
-    ) -> Blocks | None:
+    ) -> Blocks | Dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -1046,6 +1061,7 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -1070,13 +1086,14 @@ class Blocks(BlockContext):
                 kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
-            self_or_cls.set_event_trigger(
+            return self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
-                no_target=True,
                 js=_js,
+                no_target=True,
+                every=every,
             )
 
     def clear(self):

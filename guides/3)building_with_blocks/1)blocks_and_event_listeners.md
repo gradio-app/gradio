@@ -30,6 +30,17 @@ $demo_blocks_hello
 
 Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Commponent supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs) for the event listeners for each Component.
 
+## Running Events Continuously
+
+You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
+`every` number of seconds. Note that this does not take into account the runtime of the event itself. So a function
+with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
+
+Here is an example of a sine curve that updates every second!
+
+$code_sine_curve
+$demo_sine_curve
+
 ## Multiple Data Flows
 
 A Blocks app is not limited to a single data flow the way Interfaces are. Take a look at the demo below:
