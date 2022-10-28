@@ -341,7 +341,7 @@ class TestComponentsInBlocks:
             num2 = gr.Number()
             update = gr.Button(value="update")
 
-            def update_values():
+            def update_values(val):
                 return {num2: gr.Number.update(value=42)}
 
             update.click(update_values, inputs=[num], outputs=[num2])

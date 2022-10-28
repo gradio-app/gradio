@@ -691,7 +691,7 @@ def is_update(val):
 
 def check_function_inputs_match(
     fn: Callable, inputs: List, inputs_as_dict: bool
-) -> str | None:
+):
     """
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
@@ -712,18 +712,17 @@ def check_function_inputs_match(
                 return f"Keyword-only args must have default values for function {fn}"
     arg_count = 1 if inputs_as_dict else len(inputs)
     if min_args == max_args and max_args != arg_count:
-        raise ValueError(
+        warnings.warn(
             f"Expected {max_args} arguments for function {fn}, received {arg_count}."
         )
     if arg_count < min_args:
-        raise ValueError(
+        warnings.warn(
             f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
         )
     if max_args != "infinity" and arg_count > max_args:
-        raise ValueError(
+        warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
-    return
 
 
 def get_cancel_function(
