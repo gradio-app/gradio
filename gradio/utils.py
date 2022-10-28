@@ -692,17 +692,12 @@ def is_update(val):
 
 def get_continuous_fn(fn, every):
     def continuous_fn(*args):
-        called_before = False
         while True:
             output = fn(*args)
-            if called_before:
-                time.sleep(every)
-            else:
-                called_before = True
             yield output
+            time.sleep(every)
 
     return continuous_fn
-
 
 async def cancel_tasks(task_ids: List[str]):
     if sys.version_info < (3, 8):

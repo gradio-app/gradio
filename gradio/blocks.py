@@ -138,7 +138,7 @@ class Block:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
-        every: int | None = None,
+        every: float | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
