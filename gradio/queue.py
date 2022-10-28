@@ -4,7 +4,7 @@ import asyncio
 import copy
 import sys
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
