@@ -719,7 +719,7 @@ def check_function_inputs_match(
         raise ValueError(
             f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
         )
-    if arg_count > max_args:
+    if max_args != "infinity" and arg_count > max_args:
         raise ValueError(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
