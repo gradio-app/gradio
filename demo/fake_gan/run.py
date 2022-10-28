@@ -1,7 +1,6 @@
 # This demo needs to be run from the repo folder.
 # python demo/fake_gan/run.py
 import os
-import time
 import random
 
 import gradio as gr
