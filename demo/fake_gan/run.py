@@ -1,12 +1,14 @@
 # This demo needs to be run from the repo folder.
 # python demo/fake_gan/run.py
 import os
+import time
 import random
 
 import gradio as gr
 
 
 def fake_gan():
+    time.sleep(600)
     images = [
         (random.choice(
             [
@@ -41,5 +43,6 @@ with gr.Blocks() as demo:
 
     btn.click(fake_gan, None, gallery)
 
+demo.queue()
 if __name__ == "__main__":
     demo.launch()
