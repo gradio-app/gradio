@@ -238,8 +238,8 @@
 					!handled_dependencies[i]?.includes(-1) &&
 					trigger === "load" &&
 					// check all input + output elements are on the page
-					outputs.every((v) => instance_map[v].instance) &&
-					inputs.every((v) => instance_map[v].instance)
+					outputs.every((v) => instance_map?.[v].instance) &&
+					inputs.every((v) => instance_map?.[v].instance)
 				) {
 					const req = fn({
 						action: "predict",
@@ -285,8 +285,9 @@
 					handled_dependencies[i] = [-1];
 				}
 
-				target_instances.forEach(
-					([id, { instance }]: [number, ComponentMeta]) => {
+				target_instances
+					.filter((v) => !!v && !!v[1])
+					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
@@ -339,8 +340,7 @@
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
-					}
-				);
+					});
 			}
 		);
 	}
