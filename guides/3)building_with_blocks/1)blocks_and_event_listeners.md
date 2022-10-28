@@ -55,9 +55,33 @@ Here's an example of a "multi-step" demo, where the output of one model (a speec
 $code_blocks_speech_text_sentiment
 $demo_blocks_speech_text_sentiment
 
+## Function Input List vs Dict
+
+The event listeners you've seen so far have a single input component. If you'd like to have multiple input components pass data to the function, you have two options on how the function can accept input component values:
+
+1. as a list of arguments, or
+2. as a single dictionary of values, keyed by the component
+
+Let's see an example of each:
+$code_calculator_list_and_dict
+
+Both `add()` and `sub()` take `a` and `b` as inputs. However, the syntax is different between these listeners. 
+
+1. To the `add_btn` listener, we pass the inputs as a list. The function `add()` takes each of these inputs as arguments. The value of `a` maps to the argument `num1`, and the value of `b` maps to the argument `num2`.
+2. To the `sub_btn` listener, we pass the inputs as a set (note the curly brackets!). The function `sub()` takes a single dictionary argument `data`, where the keys are the input components, and the values are the values of those components.
+
+It is a matter of preference which syntax you prefer! For functions with many input components, option 2 may be easier to manage.
+
+$demo_calculator_list_and_dict
+
 ## Function Return List vs Dict
 
-So far, you have seen event listener functions with multiple outputs return a single value for each output component, in the order listed by the event listener. For example:
+Similarly, you may return values for multiple output components either as:
+
+1. a list of values, or
+2. a dictionary keyed by the component
+
+Let's first see an example of (1), where we set the the values of two output components by returning two values:
 
 ```python
 with gr.Blocks() as demo:

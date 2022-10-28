@@ -20,6 +20,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Set,
     Tuple,
 )
 
@@ -46,6 +47,7 @@ from gradio.documentation import (
 )
 from gradio.exceptions import DuplicateBlockError
 from gradio.utils import (
+    check_function_inputs_match,
     component_or_layout_class,
     delete_none,
     get_cancel_function,
@@ -125,7 +127,7 @@ class Block:
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | None,
+        inputs: Component | List[Component] | Set[Component] | None,
         outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
@@ -160,14 +162,26 @@ class Block:
         Returns: None
         """
         # Support for singular parameter
-        if inputs is None:
-            inputs = []
-        if outputs is None:
-            outputs = []
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
+        if isinstance(inputs, set):
+            inputs_as_dict = True
+            inputs = sorted(inputs, key=lambda x: x._id)
+        else:
+            inputs_as_dict = False
+            if inputs is None:
+                inputs = []
+            elif not isinstance(inputs, list):
+                inputs = [inputs]
+
+        if isinstance(outputs, set):
+            outputs = sorted(outputs, key=lambda x: x._id)
+        else:
+            if outputs is None:
+                outputs = []
+            elif not isinstance(outputs, list):
+                outputs = [outputs]
+
+        if fn is not None:
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
 
         if Context.root_block is None:
             raise AttributeError(
@@ -184,7 +198,9 @@ class Block:
         if every:
             fn = get_continuous_fn(fn, every)
 
-        Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        Context.root_block.fns.append(
+            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
+        )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
@@ -297,12 +313,23 @@ class BlockContext(Block):
 
 
 class BlockFunction:
-    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
+    def __init__(
+        self,
+        fn: Optional[Callable],
+        inputs: List[Component],
+        outputs: List[Component],
+        preprocess: bool,
+        postprocess: bool,
+        inputs_as_dict: bool,
+    ):
         self.fn = fn
+        self.inputs = inputs
+        self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
+        self.inputs_as_dict = inputs_as_dict
 
     def __str__(self):
         return str(
@@ -672,7 +699,12 @@ class Blocks(BlockContext):
                         for i in dependency["cancels"]
                     ]
                     new_fn = BlockFunction(
-                        get_cancel_function(updated_cancels)[0], False, True
+                        get_cancel_function(updated_cancels)[0],
+                        [],
+                        [],
+                        False,
+                        True,
+                        False,
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
@@ -744,6 +776,14 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         is_generating = False
         start = time.time()
+
+        if block_fn.inputs_as_dict:
+            processed_input = [
+                {
+                    input_component: data
+                    for input_component, data in zip(block_fn.inputs, processed_input)
+                }
+            ]
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):

@@ -699,6 +699,7 @@ def get_continuous_fn(fn, every):
 
     return continuous_fn
 
+
 async def cancel_tasks(task_ids: List[str]):
     if sys.version_info < (3, 8):
         return None
@@ -736,3 +737,37 @@ def get_cancel_function(
         cancel,
         list(fn_to_comp.keys()),
     )
+
+
+def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+    """
+    Checks if the input component set matches the function
+    Returns: None if valid, a string error message if mismatch
+    """
+    signature = inspect.signature(fn)
+    min_args = 0
+    max_args = 0
+    for param in signature.parameters.values():
+        has_default = param.default != param.empty
+        if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
+            if not has_default:
+                min_args += 1
+            max_args += 1
+        elif param.kind == param.VAR_POSITIONAL:
+            max_args = "infinity"
+        elif param.kind == param.KEYWORD_ONLY:
+            if not has_default:
+                return f"Keyword-only args must have default values for function {fn}"
+    arg_count = 1 if inputs_as_dict else len(inputs)
+    if min_args == max_args and max_args != arg_count:
+        warnings.warn(
+            f"Expected {max_args} arguments for function {fn}, received {arg_count}."
+        )
+    if arg_count < min_args:
+        warnings.warn(
+            f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
+        )
+    if max_args != "infinity" and arg_count > max_args:
+        warnings.warn(
+            f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
+        )
