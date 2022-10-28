@@ -302,8 +302,8 @@ class BlockFunction:
     def __init__(
         self,
         fn: Optional[Callable],
-        inputs: List[int],
-        outputs: List[int],
+        inputs: List[Component],
+        outputs: List[Component],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -752,14 +752,13 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        inputs_as_dict: bool = False,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
         start = time.time()
 
-        if inputs_as_dict:
+        if block_fn.inputs_as_dict:
             processed_input = [
                 {
                     input_component: data
@@ -921,9 +920,7 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(
-                fn_index, zip(*inputs), None, block_fn.inputs_as_dict
-            )
+            result = await self.call_function(fn_index, zip(*inputs), None)
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -932,9 +929,7 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(
-                fn_index, inputs, iterator, block_fn.inputs_as_dict
-            )
+            result = await self.call_function(fn_index, inputs, iterator)
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
