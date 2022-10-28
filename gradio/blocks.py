@@ -685,7 +685,12 @@ class Blocks(BlockContext):
                         for i in dependency["cancels"]
                     ]
                     new_fn = BlockFunction(
-                        get_cancel_function(updated_cancels)[0], [], [], False, True
+                        get_cancel_function(updated_cancels)[0],
+                        [],
+                        [],
+                        False,
+                        True,
+                        False,
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
