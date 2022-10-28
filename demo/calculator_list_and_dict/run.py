@@ -8,13 +8,14 @@ with gr.Blocks() as demo:
         sub_btn = gr.Button("Subtract")
     c = gr.Number(label="sum")
 
-    def add(data):
-        return {c: data[a] + data[b]}
-    add_btn.click(add, inputs={a, b}, outputs=c)
+    def add(num1, num2):
+        return num1 + num2
+    add_btn.click(add, inputs=[a, b], outputs=c)
 
-    def sub(a, b):
-        return a - b
-    sub_btn.click(sub, inputs=[a, b], outputs=c)
+    def sub(data):
+        return data[a] - data[b]
+    sub_btn.click(sub, inputs={a, b}, outputs=c)
+
 
 if __name__ == "__main__":
     demo.launch()
