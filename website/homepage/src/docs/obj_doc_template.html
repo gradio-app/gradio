@@ -1,4 +1,4 @@
-<div class="obj" id="{{ obj['name'].lower() }}">
+<div class="obj" id="{{ obj['name'].lower() }}{% if version == 'main' %}_main{% endif %}">
   {% if obj['demos'] %}
   <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
     <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
@@ -7,13 +7,13 @@
         <button 
           class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
           name="{{ demo_name }}"
-          onclick="show_demo('{{ obj['name'].lower() }}', '{{ demo_name }}')"
+          onclick="show_demo('{{ obj['name'].lower() }}', '{{ demo_name }}{% if version == 'main' %}_main{% endif %}')"
 
         >{{ demo_name }}</button>
         {% endfor %}
       </div>
       {% for demo_name, demo_code in obj["demos"] %}
-      <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
+      <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}{% if version == 'main' %}_main{% endif %}">
         <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
         {% if version=="main" %}
           <gradio-app space="gradio/{{ demo_name }}_main" />
@@ -26,7 +26,7 @@
   </div>
   {% endif %}
   <div class="flex flex-row items-center justify-between">
-    <h3 id="{{ obj['name'].lower() }}-header"
+    <h3 id="{{ obj['name'].lower() }}-header{% if version == 'main' %}_main{% endif %}"
         class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
     {% if obj['demos'] %}
     <button 

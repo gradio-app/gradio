@@ -10,62 +10,62 @@
              onkeyup="search(this.value);"
              onsearch="search(this.value);"/>
       </div>
-      <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
-      <a class="thin-link px-4 block" href="#something-new">Something New</a>
-      <a class="thin-link px-4 block" href="#interface">Interface</a>
-      <div class="sub-links hidden" hash="#interface">
+      <a class="link current-nav-link px-4 mb-2 block" href="#building_demos{% if version == 'main' %}_main{% endif %}">Building Demos</a>
+      <a class="thin-link px-4 block" href="#something-new{% if version == 'main' %}_main{% endif %}">Something New</a>
+      <a class="thin-link px-4 block" href="#interface{% if version == 'main' %}_main{% endif %}">Interface</a>
+      <div class="sub-links hidden" hash="#interface{% if version == 'main' %}_main{% endif %}">
       {% with obj=find_cls("Interface") %}
         {% if "fns" in obj and obj["fns"]|length %}
           {% for fn in obj["fns"] %}
-            <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+            <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}{% if version == 'main' %}_main{% endif %}">{{ fn["name"] }}</a>
           {% endfor %}
         {% endif %}
       {% endwith %}
       </div>
-      <a class="thin-link px-4 block" href="#flagging">Flagging</a>
-      <div class="sub-links hidden" hash="#flagging">
+      <a class="thin-link px-4 block" href="#flagging{% if version == 'main' %}_main{% endif %}">Flagging</a>
+      <div class="sub-links hidden" hash="#flagging{% if version == 'main' %}_main{% endif %}">
       {% for flagging_callback in docs["flagging"] %}
         {% with obj=flagging_callback %}
-          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}{% if version == 'main' %}_main{% endif %}">{{ obj["name"] }}</a>
         {% endwith %}
       {% endfor %}
       </div>
-      <a class="thin-link px-4 block" href="#combining-interfaces">Combining Interfaces</a>
-      <div class="sub-links hidden" hash="#combining-interfaces">
-          <a class="thinner-link px-4 pl-8 block" href="#tabbedinterface">TabbedInterface</a>
-          <a class="thinner-link px-4 pl-8 block" href="#parallel">Parallel</a>
-          <a class="thinner-link px-4 pl-8 block" href="#series">Series</a>
+      <a class="thin-link px-4 block" href="#combining-interfaces{% if version == 'main' %}_main{% endif %}">Combining Interfaces</a>
+      <div class="sub-links hidden" hash="#combining-interfaces{% if version == 'main' %}_main{% endif %}">
+          <a class="thinner-link px-4 pl-8 block" href="#tabbedinterface{% if version == 'main' %}_main{% endif %}">TabbedInterface</a>
+          <a class="thinner-link px-4 pl-8 block" href="#parallel{% if version == 'main' %}_main{% endif %}">Parallel</a>
+          <a class="thinner-link px-4 pl-8 block" href="#series{% if version == 'main' %}_main{% endif %}">Series</a>
       </div>
-      <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
-      <div class="sub-links hidden" hash="#blocks">
+      <a class="thin-link px-4 block" href="#blocks{% if version == 'main' %}_main{% endif %}">Blocks<sup class="text-orange-500">NEW</sup></a>
+      <div class="sub-links hidden" hash="#blocks{% if version == 'main' %}_main{% endif %}">
           {% with obj=find_cls("Blocks") %}
             {% if "fns" in obj and obj["fns"]|length %}
               {% for fn in obj["fns"] %}
-                <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+                <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}{% if version == 'main' %}_main{% endif %}">{{ fn["name"] }}</a>
               {% endfor %}
             {% endif %}
           {% endwith %}
       </div>
-      <a class="thin-link px-4 block" href="#block-layouts">Block Layouts</a>
-      <div class="sub-links hidden" hash="#block-layouts">
+      <a class="thin-link px-4 block" href="#block-layouts{% if version == 'main' %}_main{% endif %}">Block Layouts</a>
+      <div class="sub-links hidden" hash="#block-layouts{% if version == 'main' %}_main{% endif %}">
           {% for layout in docs["layout"] %}
             {% with obj=layout %}
-              <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+              <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}{% if version == 'main' %}_main{% endif %}">{{ obj["name"] }}</a>
             {% endwith %}
           {% endfor %}
       </div>
-      <a class="link px-4 my-2 block" href="#components">Components</a>
+      <a class="link px-4 my-2 block" href="#components{% if version == 'main' %}_main{% endif %}">Components</a>
       {% for component in docs["component"] %}
-        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}{% if version == 'main' %}_main{% endif %}">{{ component['name'] }}</a>
       {% endfor %}
-      <a class="link px-4 my-2 block" href="#component-helpers">Component Helpers
+      <a class="link px-4 my-2 block" href="#component-helpers{% if version == 'main' %}_main{% endif %}">Component Helpers
       {% for component in docs["component-helpers"] %}
-        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+        <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}{% if version == 'main' %}_main{% endif %}">{{ component['name'] }}</a>
       {% endfor %}
-      <a class="thin-link px-4 block" href="#update">Update</a>
-      <a class="link px-4 my-2 block" href="#routes">Routes
+      <a class="thin-link px-4 block" href="#update{% if version == 'main' %}_main{% endif %}">Update</a>
+      <a class="link px-4 my-2 block" href="#routes{% if version == 'main' %}_main{% endif %}">Routes
         {% for component in docs["routes"] %}
-          <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+          <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}{% if version == 'main' %}_main{% endif %}">{{ component['name'] }}</a>
         {% endfor %}
     </div>
     <div class="flex flex-col">
@@ -77,17 +77,17 @@
           See the <a class="link" href="/changelog">Release History</a>
         </p>
         </div>
-      <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
+      <section id="building_demos{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10 mb-8">
         <section class="pt-2">
-          <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos">Building Demos</h2>
-          <section id="flagging" class="pt-2">
-            <h3 class="text-4xl font-light my-4" id="something-new">Something New</h3>
+          <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos{% if version == 'main' %}_main{% endif %}">Building Demos</h2>
+          <section id="flagging{% if version == 'main' %}_main{% endif %}" class="pt-2">
+            <h3 class="text-4xl font-light my-4" id="something-new{% if version == 'main' %}_main{% endif %}">Something New</h3>
           {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
         </section>
-        <section id="flagging" class="pt-2">
-          <h3 class="text-4xl font-light my-4" id="flagging">Flagging</h3>
+        <section id="flagging{% if version == 'main' %}_main{% endif %}" class="pt-2">
+          <h3 class="text-4xl font-light my-4" id="flagging{% if version == 'main' %}_main{% endif %}">Flagging</h3>
           <p class="mt-8 mb-12 text-lg">
             A Gradio Interface includes a "Flag" button that appears 
             underneath the output. By default, clicking on the Flag button sends the input and output
@@ -108,7 +108,7 @@
           </div>
       </section>
 
-        <section id="combining-interfaces" class="pt-2">
+        <section id="combining-interface{% if version == 'main' %}_main{% endif %}s" class="pt-2">
           <h3 class="text-4xl font-light my-4">Combining Interfaces</h3>
           <p class="mt-8 mb-12 text-lg">
             Once you have created several Interfaces, we provide several classes that let you
@@ -136,7 +136,7 @@
             {% endwith %}
           </div>
         </section>
-        <section id="block-layouts" class="pt-2 mb-8">
+        <section id="block-layouts{% if version == 'main' %}_main{% endif %}" class="pt-2 mb-8">
           <h3 class="text-3xl font-light my-4">Block Layouts</h3>
           <p class="mb-12">Customize the layout of your Blocks UI with the layout classes below.</p>
           <div class="flex flex-col gap-10">
@@ -148,9 +148,9 @@
           </div>
         </section>
       </section>
-      <section id="components" class="pt-2 flex flex-col gap-10">
+      <section id="components{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10">
         <div>
-          <h2 id="components-header"
+          <h2 id="components-header{% if version == 'main' %}_main{% endif %}"
               class="text-4xl font-light mb-2 pt-2 text-orange-500">Components</h2>
           <p class="mt-8 text-lg">
             Gradio includes pre-built components that can be used as
@@ -172,9 +172,9 @@
           {% endwith %}
         {% endfor %}
       </section>
-      <section id="component-helpers" class="pt-2 flex flex-col gap-10">
+      <section id="component-helpers{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10">
         <div>
-          <h2 id="component-helpers-header"
+          <h2 id="component-helpers-header{% if version == 'main' %}_main{% endif %}"
               class="text-4xl font-light mb-2 pt-2 text-orange-500">Components Helpers</h2>
           <p class="mt-8 text-lg">
             Gradio includes helper classes that abstract over existing components. The goal of these classes is to help you
@@ -187,8 +187,8 @@
           {% endwith %}
         {% endfor %}
       </section>
-      <section id="update" class="pt-2 flex flex-col gap-10">
-          <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
+      <section id="update{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10">
+          <h3 class="text-3xl font-light my-4" id="update-section-header{% if version == 'main' %}_main{% endif %}">Update</h3>
           <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
             a Blocks events returns a typical value, it updates the value of the 
             output component. But it is also possible to update the <em>properties</em> 
@@ -203,9 +203,9 @@
             {% endwith %}
           </div>
         </section>
-        <section id="routes" class="pt-2 flex flex-col gap-10">
+        <section id="routes{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10">
           <div>
-            <h2 id="routes-header"
+            <h2 id="routes-header{% if version == 'main' %}_main{% endif %}"
                 class="text-4xl font-light mb-2 pt-2 text-orange-500">Routes</h2>
             <p class="mt-8 text-lg">
               Gradio includes some helper functions for exposing and interacting with the FastAPI app
