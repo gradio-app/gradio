@@ -129,7 +129,9 @@ def _heartbeat(client):
         pass
 
 
-def _client_loop(client, run_id, remote_host, remote_port, local_host, local_port, expiry):
+def _client_loop(
+    client, run_id, remote_host, remote_port, local_host, local_port, expiry
+):
     while True:
         _, type = _read(client)
         if not type or time() > expiry:
@@ -171,8 +173,8 @@ def create_tunnel(
 
     # Send `TypeLogin`
     timestamp, privilege_key = _generate_privilege_key()
-    expiry = timestamp + 60*60*72
-    
+    expiry = timestamp + 60 * 60 * 72
+
     _send(
         frps_client,
         {
@@ -225,7 +227,15 @@ def create_tunnel(
     _start_as_daemon_thread(target=_heartbeat, args=(frps_client,))
     _start_as_daemon_thread(
         target=_client_loop,
-        args=(frps_client, run_id, remote_host, remote_port, local_host, local_port, expiry),
+        args=(
+            frps_client,
+            run_id,
+            remote_host,
+            remote_port,
+            local_host,
+            local_port,
+            expiry,
+        ),
     )
 
     return msg["remote_addr"]
