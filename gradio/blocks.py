@@ -180,7 +180,7 @@ class Block:
             elif not isinstance(outputs, list):
                 outputs = [outputs]
 
-        if fn is not None:
+        if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
         if Context.root_block is None:
