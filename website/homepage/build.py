@@ -19,4 +19,4 @@ docs.build(BUILD_DIR, jinja_env)
 demos.build(BUILD_DIR, jinja_env)
 changelog.build(BUILD_DIR, jinja_env)
 
-# docs.build_pip_template("3.6", jinja_env)
+# docs.build_pip_template("3.7", jinja_env)
