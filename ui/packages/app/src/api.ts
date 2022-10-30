@@ -114,12 +114,19 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
-			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
+			const _host = new URL(api_endpoint).host;
+			var ws_endpoint = is_space
+				? _host
+				: api_endpoint === "api/"
+				? location.href
+				: api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 			var ws_path = location.pathname === "/" ? "/" : location.pathname;
 			var ws_host =
 				BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
 					? BACKEND_URL.replace("http://", "").slice(0, -1)
+					: is_space
+					? _host
 					: location.host;
 			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
 
