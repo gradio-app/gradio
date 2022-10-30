@@ -68,7 +68,12 @@ type Output = {
 
 const ws_map = new Map<number, WebSocket>();
 export const fn =
-	(session_hash: string, api_endpoint: string, is_space: boolean) =>
+	(
+		session_hash: string,
+		api_endpoint: string,
+		is_space: boolean,
+		is_embed: boolean
+	) =>
 	async ({
 		action,
 		payload,
@@ -114,7 +119,7 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
-			var ws_endpoint = is_space
+			var ws_endpoint = is_embed
 				? new URL(api_endpoint).host
 				: api_endpoint === "api/"
 				? location.href
@@ -124,7 +129,7 @@ export const fn =
 			var ws_host =
 				BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
 					? BACKEND_URL.replace("http://", "").slice(0, -1)
-					: is_space
+					: is_embed
 					? new URL(api_endpoint).host
 					: location.host;
 			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
