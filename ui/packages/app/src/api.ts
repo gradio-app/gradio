@@ -125,7 +125,8 @@ export const fn =
 				? location.href
 				: api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
-			var ws_path = location.pathname === "/" ? "/" : location.pathname;
+			var ws_path =
+				is_embed || location.pathname === "/" ? "/" : location.pathname;
 			var ws_host =
 				BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
 					? BACKEND_URL.replace("http://", "").slice(0, -1)
