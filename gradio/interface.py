@@ -94,7 +94,7 @@ class Interface(Blocks):
         Parameters:
             name: the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
             src: the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: optional api key for use with Hugging Face Hub
+            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find here: https://huggingface.co/settings/tokens 
             alias: optional string used as the name of the loaded model instead of the default name
         Returns:
             a Gradio Interface object for the given model
