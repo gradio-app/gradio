@@ -42,6 +42,11 @@ console.log(tw_theme);
 
 const foundation_light = {};
 const foundation_dark = {
+	// radius subset
+	// spacing subset
+	// border-style subset
+	// width subset
+
 	color: {
 		background: {
 			primary: colors.gray[900],
@@ -51,24 +56,32 @@ const foundation_dark = {
 			body: colors.gray[300],
 			label: colors.gray[300],
 			blocklabel: colors.gray[500],
-			placeholder: "",
+			placeholder: colors.gray[500], // don't know how this works
 			subdued: colors.gray[400]
 		},
 		border: {
-			default: colors.gray[200],
-			highlight: colors.orange[500]
+			primary: colors.gray[200],
+			secondary: colors.gray[600],
+			highlight: "color.accent.base"
 		},
 		accent: {
-			base: "",
-			light: "",
-			dark: ""
+			base: colors.orange[500],
+			light: colors.orange[200],
+			dark: colors.orange[800]
 		},
 		button: {
 			default: "",
-			cta: "",
-			warning: ""
-		}
-	}
+			cta: "color.accent.base",
+			warning: "color.functional.error"
+		},
+		functional: {
+			error: "", //red
+			info: "", //yellow
+			success: "" //green
+		},
+		"focus-ring": {}
+	},
+	dimensions: {}
 };
 
 const theme = {
@@ -287,4 +300,4 @@ const theme = {
 	}
 };
 
-console.log(foundation, theme);
+console.log(theme);
