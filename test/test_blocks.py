@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import os
 import random
 import sys
@@ -14,10 +15,10 @@ from unittest.mock import patch
 import mlflow
 import pytest
 import wandb
+import websockets
+from fastapi.testclient import TestClient
 
 import gradio as gr
-import gradio.events
-import gradio.utils
 from gradio.exceptions import DuplicateBlockError
 from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
@@ -144,6 +145,23 @@ class TestBlocksMethods(unittest.TestCase):
 
         assert len(demo.fns) == 1
         assert "fn" in str(demo.fns[0])
+
+    @pytest.mark.asyncio
+    async def test_dict_inputs_in_config(self):
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            btn = gr.Button()
+            greeting = gr.Textbox()
+
+            def greet(data):
+                return f"Hello {data[first]} {data[last]}"
+
+            btn.click(greet, {first, last}, greeting)
+
+        body = PredictBody(data=["huggy", "face"], fn_index=0)
+        result = await demo.process_api(body)
+        assert result == "Hello huggy face"
 
     @pytest.mark.asyncio
     async def test_async_function(self):
@@ -324,7 +342,7 @@ class TestComponentsInBlocks:
             num2 = gr.Number()
             update = gr.Button(value="update")
 
-            def update_values():
+            def update_values(val):
                 return {num2: gr.Number.update(value=42)}
 
             update.click(update_values, inputs=[num], outputs=[num2])
@@ -820,6 +838,56 @@ class TestCancel:
                 cancel = gr.Button(value="Cancel")
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
+
+
+class TestEvery:
+    def test_raise_exception_if_parameters_invalid(self):
+        with pytest.raises(
+            ValueError, match="Cannot run change event in a batch and every 0.5 seconds"
+        ):
+            with gr.Blocks():
+                num = gr.Number()
+                num.change(
+                    lambda s: s + 1, inputs=[num], outputs=[num], every=0.5, batch=True
+                )
+
+        with pytest.raises(
+            ValueError, match="Parameter every must be positive or None"
+        ):
+            with gr.Blocks():
+                num = gr.Number()
+                num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
+
+    @pytest.mark.asyncio
+    async def test_every_does_not_block_queue(self):
+
+        with gr.Blocks() as demo:
+            num = gr.Number(value=0)
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+            name.change(lambda n: n + random.random(), num, num, every=0.5)
+            button.click(lambda s: f"Hello, {s}!", name, greeting)
+        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                    status = client.get("/queue/status")
+                    # If the continuous event got pushed to the queue, the size would be nonzero
+                    # asserting false will terminate the test
+                    if status.json()["queue_size"] != 0:
+                        assert False
+                    else:
+                        break
 
 
 def test_queue_enabled_for_fn():

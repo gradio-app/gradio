@@ -34,6 +34,7 @@ from gradio.dataclasses import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
+from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
@@ -354,14 +355,26 @@ class App(FastAPI):
             event.session_hash = session_hash["session_hash"]
             event.fn_index = session_hash["fn_index"]
 
-            rank = app.blocks._queue.push(event)
+            # Continuous events are not put in the queue  so that they do not
+            # occupy the queue's resource as they are expected to run forever
+            if app.blocks.dependencies[event.fn_index].get("every", 0):
+                await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
+                await app.blocks._queue.reset_iterators(
+                    event.session_hash, event.fn_index
+                )
+                task = run_coro_in_background(
+                    app.blocks._queue.process_events, [event], False
+                )
+                set_task_name(task, event.session_hash, event.fn_index, batch=False)
+            else:
+                rank = app.blocks._queue.push(event)
 
-            if rank is None:
-                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
-                await event.disconnect()
-                return
-            estimation = app.blocks._queue.get_estimation()
-            await app.blocks._queue.send_estimation(event, estimation, rank)
+                if rank is None:
+                    await app.blocks._queue.send_message(event, {"msg": "queue_full"})
+                    await event.disconnect()
+                    return
+                estimation = app.blocks._queue.get_estimation()
+                await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:

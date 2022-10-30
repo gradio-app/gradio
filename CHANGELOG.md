@@ -1,11 +1,58 @@
 # Upcoming Release 
 
+## Bug Fixes:
+
+* Ensure gradio apps embedded via spaces use the correct endpoint for predictions. [@pngwn](https://github.com/pngwn) in [PR 2567](https://github.com/gradio-app/gradio/pull/2567)
+
+
 ## New Features:
-No changes to highlight.
+
+### Running Events Continuously
+Gradio now supports the ability to run an event continuously on a fixed schedule. To use this feature,
+pass `every=# of seconds` to the event definition. This will run the event every given number of seconds!
+
+This can be used to:
+* Create live visualizations that show the most up to date data 
+* Refresh the state of the frontend automatically in response to changes in the backend
+
+Here is an example of a live plot that refreshes every half second:
+```python
+import math
+import gradio as gr
+import plotly.express as px
+import numpy as np
+
+
+plot_end = 2 * math.pi
+
+
+def get_plot(period=1):
+    global plot_end
+    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
+    y = np.sin(2*math.pi*period * x)
+    fig = px.line(x=x, y=y)
+    plot_end += 2 * math.pi
+    return fig
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            gr.Markdown("Change the value of the slider to automatically update the plot")
+            period = gr.Slider(label="Period of plot", value=1, minimum=0, maximum=10, step=1)
+            plot = gr.Plot(label="Plot (updates every half second)")
+
+    dep = demo.load(get_plot, None, plot, every=0.5)
+    period.change(get_plot, period, plot, every=0.5, cancels=[dep])
+
+demo.queue().launch()
+```
+
+![live_demo](https://user-images.githubusercontent.com/41651716/198357377-633ce460-4e31-47bd-8202-1440cdd6fe19.gif)
+
 
 ## Bug Fixes:
-* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
-* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
+No changes to highlight.
 
 ## Documentation Changes:
 No changes to highlight.
@@ -17,6 +64,33 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.8
+
+## New Features:
+* Allows event listeners to accept a single dictionary as its argument, where the keys are the components and the values are the component values. This is set by passing the input components in the event listener as a set instead of a list. [@aliabid94](https://github.com/aliabid94) in [PR 2550](https://github.com/gradio-app/gradio/pull/2550)
+
+## Bug Fixes:
+* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
+* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
+* Removed erroneous tkinter import in gradio.blocks by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2555](https://github.com/gradio-app/gradio/pull/2555)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Added the `every` keyword to event listeners that runs events on a fixed schedule by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2512](https://github.com/gradio-app/gradio/pull/2512)
 * Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
 * Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
 * Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by [XciD](https://github.com/XciD) and [Wauplin](https://github.com/Wauplin) in [PR 2509](https://github.com/gradio-app/gradio/pull/2509)
