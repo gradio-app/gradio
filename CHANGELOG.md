@@ -1,5 +1,10 @@
 # Upcoming Release 
 
+## Bug Fixes:
+
+* Ensure gradio apps embedded via spaces use the correct endpoint for predictions. [@pngwn](https://github.com/pngwn) in [PR 2567](https://github.com/gradio-app/gradio/pull/2567)
+
+
 ## New Features:
 
 ### Running Events Continuously
