@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from typing import TypedDict
 
 
 class PredictBody(BaseModel):
