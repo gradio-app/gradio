@@ -20,4 +20,3 @@ class ResetBody(BaseModel):
 class DataframeData(TypedDict):
     headers: List[str]
     data: List[List[str | int | bool]]
-
