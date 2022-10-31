@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             c_time2 = gr.Textbox(label="Current Time refreshed every second")
-            gr.Markdown("Change the value of the slider to automatically update the plot")
+            gr.Textbox("Change the value of the slider to automatically update the plot", label="")
             period = gr.Slider(label="Period of plot", value=1, minimum=0, maximum=10, step=1)
             plot = gr.Plot(label="Plot (updates every half second)")
         with gr.Column():

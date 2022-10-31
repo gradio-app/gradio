@@ -82,6 +82,10 @@ demos_by_category = [
                 "dir": "dashboard"
             },
             {
+                "name": "Dashboard with Live Updates",
+                "dir": "live_dashboard"
+            },
+            {
                 "name": "Outbreak Forecast", 
                 "dir": "outbreak_forecast", 
             },
