@@ -30,6 +30,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
+from gradio.dataclasses import DataframeData
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
