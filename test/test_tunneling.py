@@ -1,8 +1,6 @@
 import io
-import json
 import os
 import sys
-import threading
 import unittest
 import unittest.mock as mock
 

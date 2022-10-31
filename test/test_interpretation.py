@@ -3,7 +3,6 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-import pytest_asyncio
 
 import gradio.interpretation
 from gradio import Interface, media_data
