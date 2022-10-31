@@ -446,7 +446,7 @@ def use_websocket(config, dependency):
     return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
 
-def get_spaces_blocks(model_name: str, api_key: str | None, config: Dict) -> Blocks:
+def get_spaces_blocks(model_name: str, config: Dict, api_key: str | None) -> Blocks:
     def streamline_config(config: dict) -> dict:
         """Streamlines the blocks config dictionary to fix components that don't render correctly."""
         # TODO(abidlabs): Need a better way to fix relative paths in dataset component

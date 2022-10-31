@@ -1054,10 +1054,10 @@ class Blocks(BlockContext):
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
             api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
