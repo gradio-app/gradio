@@ -6,8 +6,8 @@
         {% for demo_name, _ in obj["demos"] %}
         <button 
           class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
-          name="{{ demo_name }}"
-          onclick="show_demo('{{ obj['name'].lower() }}', '{{ demo_name }}{% if version == 'main' %}_main{% endif %}')"
+          name="{{ demo_name }}{% if version == 'main' %}_main{% endif %}"
+          onclick="show_demo('{{ obj['name'].lower() }}{% if version == 'main' %}_main{% endif %}', '{{ demo_name }}{% if version == 'main' %}_main{% endif %}')"
 
         >{{ demo_name }}</button>
         {% endfor %}
