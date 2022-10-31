@@ -17,7 +17,7 @@ from packaging import version
 from gradio import components, exceptions
 
 if TYPE_CHECKING:
-    from gradio.components import DataframeData
+    from gradio.dataclasses import DataframeData
 
 
 ##################

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, TypedDict
 
 from pydantic import BaseModel
 
@@ -15,3 +15,9 @@ class PredictBody(BaseModel):
 class ResetBody(BaseModel):
     session_hash: str
     fn_index: int
+
+
+class DataframeData(TypedDict):
+    headers: List[str]
+    data: List[List[str | int | bool]]
+
