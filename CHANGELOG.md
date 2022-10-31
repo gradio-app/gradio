@@ -64,7 +64,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Allows loading private Spaces by passing an an `api_key` to `gr.Interface.load()`
+by [@abidlabs](https://github.com/abidlabs) in [PR 2568](https://github.com/gradio-app/gradio/pull/2568)
 
 ## Contributors Shoutout:
 No changes to highlight.
