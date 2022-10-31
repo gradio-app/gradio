@@ -1200,14 +1200,8 @@ class Blocks(BlockContext):
                         )
                     )
                 elif self.is_colab:
-                    with open(
-                        pkg_resources.resource_filename(
-                            "gradio", "templates/colab.html"
-                        )
-                    ) as colab_file:
-                        colab_html = colab_file.read()
-                    colab_html = colab_html.replace("$PORT", str(self.server_port))
-                    display(HTML(colab_html))
+                    from google.colab import output
+                    output.serve_kernel_port_as_iframe(server_port)
                 else:
                     display(
                         HTML(
