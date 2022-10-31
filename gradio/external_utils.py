@@ -17,7 +17,6 @@ from packaging import version
 from gradio import components, exceptions
 from gradio.dataclasses import DataframeData
 
-
 ##################
 # Helper functions for processing tabular data
 ##################
