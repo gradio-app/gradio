@@ -1,5 +1,6 @@
+// @ts-nocheck
 const tw_theme = require("tailwindcss/defaultTheme");
-import { text } from "svelte/internal";
+
 import colors from "tailwindcss/colors";
 
 const { borderRadius, borderWidth, spacing } = tw_theme;
@@ -46,7 +47,30 @@ const foundation_dark = {
 	// spacing subset
 	// border-style subset
 	// width subset
-
+	spacing: {
+		1: spacing[0],
+		2: spacing[2],
+		3: spacing[3],
+		4: spacing[4],
+		5: spacing[5],
+		6: spacing[6],
+		7: spacing[7],
+		8: spacing[8]
+	},
+	border: {
+		radius: {
+			sm: borderRadius.sm,
+			md: borderRadius.md,
+			lg: borderRadius.lg,
+			full: borderRadius.full,
+			none: borderRadius.none
+		},
+		width: {
+			0: borderWidth[0],
+			1: "1px",
+			2: borderWidth[2]
+		}
+	},
 	color: {
 		background: {
 			primary: colors.gray[900],
@@ -287,17 +311,42 @@ const theme = {
 				width: "",
 				style: { base: "", latest: "" },
 				color: { base: "", latest: "" }
-			},
-			user: {
-				background: { color: { base: "", latest: "" } },
-				text: { color: { base: "", latest: "" } }
-			},
-			bot: {
-				background: { color: { base: "", latest: "" } },
-				text: { color: { base: "", latest: "" } }
 			}
+		},
+		user: {
+			background: { color: { base: "", latest: "" } },
+			text: { color: { base: "", latest: "" } }
+		},
+		bot: {
+			background: { color: { base: "", latest: "" } },
+			text: { color: { base: "", latest: "" } }
 		}
 	}
 };
 
-console.log(theme);
+// console.log(theme);
+
+const RE_PATH = /^(([a-z]+|[0-9])+\.)+([a-z]+|[0-9]+)$/;
+
+function get_path(object, paths = [], current_node = object) {
+	let _paths = {};
+
+	for (const key in object) {
+		if (typeof object[key] === "object") {
+			_paths = { ..._paths, ...get_path(object[key], [...paths, key]) };
+		} else {
+			const is_var = RE_PATH.test(object[key]);
+
+			_paths[`--${[...paths, key].join("-")}`] = is_var
+				? `var(--${object[key].replace(/\./g, "-")})`
+				: object[key];
+		}
+	}
+	// }
+
+	return _paths;
+}
+
+console.log(get_path({ ...foundation_dark, ...theme }));
+
+exports.get_path = get_path;
