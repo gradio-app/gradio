@@ -13,8 +13,11 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(SRC_DIR))
 shutil.copytree(
     os.path.join(SRC_DIR, "assets"), os.path.join(BUILD_DIR, "assets")
 )
-index.build(BUILD_DIR, jinja_env)
-guides.build(BUILD_DIR, jinja_env)
-docs.build(BUILD_DIR, jinja_env)
-demos.build(BUILD_DIR, jinja_env)
-changelog.build(BUILD_DIR, jinja_env)
+
+VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
+with open(VERSION_TXT) as f:
+    version = f.read()
+version = version.strip()
+
+
+docs.build_pip_template(version , jinja_env)

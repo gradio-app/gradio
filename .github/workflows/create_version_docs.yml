@@ -1,0 +1,33 @@
+# This workflow will build gradio and create the version's docs file if the version has changed
+
+name: Create Version's Docs
+on:
+  schedule:
+    - cron: '0,15,30,45 * * * *'
+
+jobs:
+  install-gradio:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+    - name: Check new pypi version
+      run: python website/check_version.py
+    - name: Install gradio
+      run: python -m pip install gradio -U
+  build-docs:
+    needs: install-gradio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docs
+        run: python build-version-docs.py
+      - name: Commit files
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: website/homepage/src/*
+          author_name: "GH ACTIONS"
+          author_email: ""
