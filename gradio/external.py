@@ -21,18 +21,13 @@ from packaging import version
 
 import gradio
 from gradio import components, exceptions, utils
+from gradio.exceptions import TooManyRequestsError
 from gradio.processing_utils import to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.components import DataframeData
     from gradio.interface import Interface
-
-
-class TooManyRequestsError(Exception):
-    """Raised when the Hugging Face API returns a 429 status code."""
-
-    pass
 
 
 def load_blocks_from_repo(
@@ -464,7 +459,7 @@ def get_spaces_blocks(model_name: str, api_key: str | None, config: Dict) -> Blo
     api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
-        headers["Authorization"] = f"Bearer {api_key}"    
+        headers["Authorization"] = f"Bearer {api_key}"
     ws_url = "wss://spaces.huggingface.tech/{}/queue/join".format(model_name)
 
     ws_fn = get_ws_fn(ws_url)
