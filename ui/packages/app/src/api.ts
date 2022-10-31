@@ -68,7 +68,12 @@ type Output = {
 
 const ws_map = new Map<number, WebSocket>();
 export const fn =
-	(session_hash: string, api_endpoint: string, is_space: boolean) =>
+	(
+		session_hash: string,
+		api_endpoint: string,
+		is_space: boolean,
+		is_embed: boolean
+	) =>
 	async ({
 		action,
 		payload,
@@ -114,14 +119,22 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
-			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
-			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
-			var ws_path = location.pathname === "/" ? "/" : location.pathname;
-			var ws_host =
-				BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
-					? BACKEND_URL.replace("http://", "").slice(0, -1)
-					: location.host;
-			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
+
+			let WS_ENDPOINT = "";
+
+			if (is_embed) {
+				WS_ENDPOINT = `wss://${new URL(api_endpoint).host}/queue/join`;
+			} else {
+				var ws_endpoint =
+					api_endpoint === "api/" ? location.href : api_endpoint;
+				var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
+				var ws_path = location.pathname === "/" ? "/" : location.pathname;
+				var ws_host =
+					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
+						? BACKEND_URL.replace("http://", "").slice(0, -1)
+						: location.host;
+				WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
+			}
 
 			var websocket = new WebSocket(WS_ENDPOINT);
 			ws_map.set(fn_index, websocket);
