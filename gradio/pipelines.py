@@ -3,10 +3,9 @@ please use the `gr.Interface.from_pipeline()` function."""
 
 from __future__ import annotations
 
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from gradio import components
-
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers

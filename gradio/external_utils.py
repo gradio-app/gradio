@@ -1,25 +1,27 @@
 """Utility function for gradio/external.py"""
 
 import base64
-import operator
+import json
 import math
 import numbers
-import json
+import operator
 import re
 import warnings
-from typing import Any,TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+
 import requests
-import yaml
 import websockets
+import yaml
 from packaging import version
 
-from gradio import exceptions, components
+from gradio import components, exceptions
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
 
 
 ### Helper functions for processing tabular data
+
 
 def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
     readme = requests.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
@@ -75,6 +77,7 @@ def rows_to_cols(
 
 ### Helper functions for processing other kinds of data
 
+
 def postprocess_label(scores):
     sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
     return {
@@ -83,6 +86,7 @@ def postprocess_label(scores):
             {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
         ],
     }
+
 
 def encode_to_base64(r: requests.Response) -> str:
     # Handles the different ways HF API returns the prediction
@@ -110,6 +114,7 @@ def encode_to_base64(r: requests.Response) -> str:
 
 
 ### Helper functions for connecting to websockets
+
 
 async def get_pred_from_ws(
     websocket: websockets.WebSocketClientProtocol, data: str, hash_data: str
@@ -144,7 +149,9 @@ def use_websocket(config, dependency):
     dependency_uses_queue = dependency.get("queue", False) is not False
     return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
+
 ### Helper functions for cleaning up Interfaces/Blocks loaded from HF Spaces
+
 
 def streamline_spaces_interface(config: Dict) -> Dict:
     """Streamlines the interface config dictionary to remove unnecessary keys."""
@@ -176,4 +183,3 @@ def streamline_spaces_blocks(config: dict) -> dict:
         if component["type"] == "dataset":
             config["components"][c]["props"]["visible"] = False
     return config
-

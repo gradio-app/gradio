@@ -14,8 +14,18 @@ import requests
 import gradio
 from gradio import components, utils
 from gradio.exceptions import TooManyRequestsError
+from gradio.external_utils import (
+    cols_to_rows,
+    encode_to_base64,
+    get_tabular_examples,
+    get_ws_fn,
+    postprocess_label,
+    rows_to_cols,
+    streamline_spaces_blocks,
+    streamline_spaces_interface,
+    use_websocket,
+)
 from gradio.processing_utils import to_binary
-from gradio.external_utils import get_tabular_examples, cols_to_rows, rows_to_cols, use_websocket, get_ws_fn, postprocess_label, encode_to_base64, streamline_spaces_interface, streamline_spaces_blocks
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -34,17 +44,17 @@ def load_blocks_from_repo(
         ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
         src = tokens[0]
         name = "/".join(tokens[1:])
-        
+
     factory_methods: Dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
         "huggingface": from_model,
         "models": from_model,
         "spaces": from_spaces,
-    }   
+    }
     assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
         factory_methods.keys()
     )
-    
+
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
 
@@ -55,12 +65,11 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
     print("Fetching model from: {}".format(model_url))
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key is not None else {}
-    
+
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get("pipeline_tag")
-
 
     pipelines = {
         "audio-classification": {
