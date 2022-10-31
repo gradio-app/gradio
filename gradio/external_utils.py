@@ -7,7 +7,7 @@ import numbers
 import operator
 import re
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import requests
 import websockets
@@ -15,9 +15,7 @@ import yaml
 from packaging import version
 
 from gradio import components, exceptions
-
-if TYPE_CHECKING:
-    from gradio.dataclasses import DataframeData
+from gradio.dataclasses import DataframeData
 
 
 ##################

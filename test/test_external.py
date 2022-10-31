@@ -411,7 +411,7 @@ async def test_get_pred_from_ws_raises_if_queue_full():
 def test_respect_queue_when_load_from_config():
     with unittest.mock.patch("websockets.connect"):
         with unittest.mock.patch(
-            "gradio.external.get_pred_from_ws", return_value={"data": ["foo"]}
+            "gradio.external_utils.get_pred_from_ws", return_value={"data": ["foo"]}
         ):
             interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
             assert interface("bob") == "foo"
