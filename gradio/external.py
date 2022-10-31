@@ -393,23 +393,37 @@ def get_models_interface(model_name: str, api_key: str | None, alias: str, **kwa
     return interface
 
 
-def get_spaces(model_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
-    space_url = "https://huggingface.co/spaces/{}".format(model_name)
-    print("Fetching interface from: {}".format(space_url))
-    iframe_url = "https://hf.space/embed/{}/+".format(model_name)
+def get_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
+    space_url = "https://huggingface.co/spaces/{}".format(space_name)
+    print("Fetching Space from: {}".format(space_url))
 
-    r = requests.get(iframe_url)
+    headers = {}
+    if api_key is not None:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    iframe_url = (
+        requests.get(
+            f"https://huggingface.co/api/spaces/{space_name}/host", headers=headers
+        )
+        .json()
+        .get("host")
+    )
+
+    r = requests.get(iframe_url, headers=headers)
+
     result = re.search(
         r"window.gradio_config = (.*?);[\s]*</script>", r.text
     )  # some basic regex to extract the config
     try:
         config = json.loads(result.group(1))
     except AttributeError:
-        raise ValueError("Could not load the Space: {}".format(model_name))
+        raise ValueError("Could not load the Space: {}".format(space_name))
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
-        return get_spaces_interface(model_name, config, alias, api_key, **kwargs)
+        return get_spaces_interface(
+            space_name, config, alias, api_key, iframe_url, **kwargs
+        )
     else:  # Create a Blocks for Gradio 3.x Spaces
-        return get_spaces_blocks(model_name, config, api_key)
+        return get_spaces_blocks(space_name, config, api_key, iframe_url)
 
 
 async def get_pred_from_ws(
@@ -446,7 +460,9 @@ def use_websocket(config, dependency):
     return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
 
-def get_spaces_blocks(model_name: str, config: Dict, api_key: str | None) -> Blocks:
+def get_spaces_blocks(
+    model_name: str, config: Dict, api_key: str | None, iframe_url: str
+) -> Blocks:
     def streamline_config(config: dict) -> dict:
         """Streamlines the blocks config dictionary to fix components that don't render correctly."""
         # TODO(abidlabs): Need a better way to fix relative paths in dataset component
@@ -456,7 +472,7 @@ def get_spaces_blocks(model_name: str, config: Dict, api_key: str | None) -> Blo
         return config
 
     config = streamline_config(config)
-    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
+    api_url = "{}/api/predict/".format(iframe_url)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -506,7 +522,12 @@ def get_spaces_blocks(model_name: str, config: Dict, api_key: str | None) -> Blo
 
 
 def get_spaces_interface(
-    model_name: str, config: Dict, alias: str, api_key: str | None, **kwargs
+    model_name: str,
+    config: Dict,
+    alias: str,
+    api_key: str | None,
+    iframe_url: str,
+    **kwargs,
 ) -> Interface:
     def streamline_config(config: Dict) -> Dict:
         """Streamlines the interface config dictionary to remove unnecessary keys."""
@@ -531,7 +552,7 @@ def get_spaces_interface(
         return config
 
     config = streamline_config(config)
-    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
+    api_url = "{}/api/predict/".format(iframe_url)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
