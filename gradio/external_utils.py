@@ -1,5 +1,7 @@
 """Utility function for gradio/external.py"""
 
+import base64
+import operator
 import math
 import numbers
 import json
@@ -11,7 +13,7 @@ import yaml
 import websockets
 from packaging import version
 
-from gradio import exceptions
+from gradio import exceptions, components
 
 if TYPE_CHECKING:
     from gradio.components import DataframeData
@@ -70,6 +72,43 @@ def rows_to_cols(
         data_column_wise[header] = [str(row[i]) for row in incoming_data["data"]]
     return {"inputs": {"data": data_column_wise}}
 
+
+### Helper functions for processing other kinds of data
+
+def postprocess_label(scores):
+    sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
+    return {
+        "label": sorted_pred[0][0],
+        "confidences": [
+            {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
+        ],
+    }
+
+def encode_to_base64(r: requests.Response) -> str:
+    # Handles the different ways HF API returns the prediction
+    base64_repr = base64.b64encode(r.content).decode("utf-8")
+    data_prefix = ";base64,"
+    # Case 1: base64 representation already includes data prefix
+    if data_prefix in base64_repr:
+        return base64_repr
+    else:
+        content_type = r.headers.get("content-type")
+        # Case 2: the data prefix is a key in the response
+        if content_type == "application/json":
+            try:
+                content_type = r.json()[0]["content-type"]
+                base64_repr = r.json()[0]["blob"]
+            except KeyError:
+                raise ValueError(
+                    "Cannot determine content type returned" "by external API."
+                )
+        # Case 3: the data prefix is included in the response headers
+        else:
+            pass
+        new_base64 = "data:{};base64,".format(content_type) + base64_repr
+        return new_base64
+
+
 ### Helper functions for connecting to websockets
 
 async def get_pred_from_ws(
@@ -104,3 +143,37 @@ def use_websocket(config, dependency):
     ) >= version.Version("3.2")
     dependency_uses_queue = dependency.get("queue", False) is not False
     return queue_enabled and queue_uses_websocket and dependency_uses_queue
+
+### Helper functions for cleaning up Interfaces/Blocks loaded from HF Spaces
+
+def streamline_spaces_interface(config: Dict) -> Dict:
+    """Streamlines the interface config dictionary to remove unnecessary keys."""
+    config["inputs"] = [
+        components.get_component_instance(component)
+        for component in config["input_components"]
+    ]
+    config["outputs"] = [
+        components.get_component_instance(component)
+        for component in config["output_components"]
+    ]
+    parameters = {
+        "article",
+        "description",
+        "flagging_options",
+        "inputs",
+        "outputs",
+        "theme",
+        "title",
+    }
+    config = {k: config[k] for k in parameters}
+    return config
+
+
+def streamline_spaces_blocks(config: dict) -> dict:
+    """Streamlines the blocks config dictionary to fix components that don't render correctly."""
+    # TODO(abidlabs): Need a better way to fix relative paths in dataset component
+    for c, component in enumerate(config["components"]):
+        if component["type"] == "dataset":
+            config["components"][c]["props"]["visible"] = False
+    return config
+

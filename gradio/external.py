@@ -3,9 +3,7 @@ use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 from __future__ import annotations
 
-import base64
 import json
-import operator
 import re
 import uuid
 from copy import deepcopy
@@ -17,7 +15,7 @@ import gradio
 from gradio import components, utils
 from gradio.exceptions import TooManyRequestsError
 from gradio.processing_utils import to_binary
-from gradio.external_utils import get_tabular_examples, cols_to_rows, rows_to_cols, use_websocket, get_ws_fn
+from gradio.external_utils import get_tabular_examples, cols_to_rows, rows_to_cols, use_websocket, get_ws_fn, postprocess_label, encode_to_base64, streamline_spaces_interface, streamline_spaces_blocks
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -27,15 +25,10 @@ if TYPE_CHECKING:
 def load_blocks_from_repo(
     name: str, src: str = None, api_key: str = None, alias: str = None, **kwargs
 ) -> Blocks:
-    """Creates and returns a Blocks instance from several kinds of Hugging Face repos:
-    1) A model repo
-    2) A Spaces repo running Gradio 2.x
-    3) A Spaces repo running Gradio 3.x
-    """
+    """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
     if src is None:
-        tokens = name.split(
-            "/"
-        )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
+        # Separate the repo type (e.g. "model") from repo name (e.g. "google/vit-base-patch16-224")
+        tokens = name.split("/")
         assert (
             len(tokens) > 1
         ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
@@ -44,65 +37,30 @@ def load_blocks_from_repo(
         
     factory_methods: Dict[str, Callable] = {
         # for each repo type, we have a method that returns the Interface given the model name & optionally an api_key
-        "huggingface": get_models_interface,
-        "models": get_models_interface,
-        "spaces": get_spaces,
-    }
-        
+        "huggingface": from_model,
+        "models": from_model,
+        "spaces": from_spaces,
+    }   
     assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
         factory_methods.keys()
     )
+    
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
 
 
-def get_models_interface(model_name: str, api_key: str | None, alias: str, **kwargs):
+def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
     model_url = "https://huggingface.co/{}".format(model_name)
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
     print("Fetching model from: {}".format(model_url))
 
-    if api_key is not None:
-        headers = {"Authorization": f"Bearer {api_key}"}
-    else:
-        headers = {}
-
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key is not None else {}
+    
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get("pipeline_tag")
 
-    def postprocess_label(scores):
-        sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
-        return {
-            "label": sorted_pred[0][0],
-            "confidences": [
-                {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
-            ],
-        }
-
-    def encode_to_base64(r: requests.Response) -> str:
-        # Handles the different ways HF API returns the prediction
-        base64_repr = base64.b64encode(r.content).decode("utf-8")
-        data_prefix = ";base64,"
-        # Case 1: base64 representation already includes data prefix
-        if data_prefix in base64_repr:
-            return base64_repr
-        else:
-            content_type = r.headers.get("content-type")
-            # Case 2: the data prefix is a key in the response
-            if content_type == "application/json":
-                try:
-                    content_type = r.json()[0]["content-type"]
-                    base64_repr = r.json()[0]["blob"]
-                except KeyError:
-                    raise ValueError(
-                        "Cannot determine content type returned" "by external API."
-                    )
-            # Case 3: the data prefix is included in the response headers
-            else:
-                pass
-            new_base64 = "data:{};base64,".format(content_type) + base64_repr
-            return new_base64
 
     pipelines = {
         "audio-classification": {
@@ -343,7 +301,7 @@ def get_models_interface(model_name: str, api_key: str | None, alias: str, **kwa
     return interface
 
 
-def get_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
+def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
     print("Fetching Space from: {}".format(space_url))
 
@@ -369,25 +327,17 @@ def get_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Bl
     except AttributeError:
         raise ValueError("Could not load the Space: {}".format(space_name))
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
-        return get_spaces_interface(
+        return from_spaces_interface(
             space_name, config, alias, api_key, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
-        return get_spaces_blocks(space_name, config, api_key, iframe_url)
+        return from_spaces_blocks(space_name, config, api_key, iframe_url)
 
 
-def get_spaces_blocks(
+def from_spaces_blocks(
     model_name: str, config: Dict, api_key: str | None, iframe_url: str
 ) -> Blocks:
-    def streamline_config(config: dict) -> dict:
-        """Streamlines the blocks config dictionary to fix components that don't render correctly."""
-        # TODO(abidlabs): Need a better way to fix relative paths in dataset component
-        for c, component in enumerate(config["components"]):
-            if component["type"] == "dataset":
-                config["components"][c]["props"]["visible"] = False
-        return config
-
-    config = streamline_config(config)
+    config = streamline_spaces_blocks(config)
     api_url = "{}/api/predict/".format(iframe_url)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
@@ -437,7 +387,7 @@ def get_spaces_blocks(
     return gradio.Blocks.from_config(config, fns)
 
 
-def get_spaces_interface(
+def from_spaces_interface(
     model_name: str,
     config: Dict,
     alias: str,
@@ -445,29 +395,8 @@ def get_spaces_interface(
     iframe_url: str,
     **kwargs,
 ) -> Interface:
-    def streamline_config(config: Dict) -> Dict:
-        """Streamlines the interface config dictionary to remove unnecessary keys."""
-        config["inputs"] = [
-            components.get_component_instance(component)
-            for component in config["input_components"]
-        ]
-        config["outputs"] = [
-            components.get_component_instance(component)
-            for component in config["output_components"]
-        ]
-        parameters = {
-            "article",
-            "description",
-            "flagging_options",
-            "inputs",
-            "outputs",
-            "theme",
-            "title",
-        }
-        config = {k: config[k] for k in parameters}
-        return config
 
-    config = streamline_config(config)
+    config = streamline_spaces_interface(config)
     api_url = "{}/api/predict/".format(iframe_url)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
