@@ -114,7 +114,7 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
-			var ws_endpoint = api_endpoint === "run/" ? location.href : api_endpoint;
+			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
 			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 			if (is_space) {
 				const SPACE_REGEX = /embed\/(.*)\/\+/g;
