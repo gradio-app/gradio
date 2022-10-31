@@ -1,52 +1,13 @@
 // @ts-nocheck
 const tw_theme = require("tailwindcss/defaultTheme");
 
-import colors from "tailwindcss/colors";
-
+const colors = require("tailwindcss/colors");
+const fs = require("fs");
+const path = require("path");
 const { borderRadius, borderWidth, spacing } = tw_theme;
-console.log(tw_theme);
-// const foundation = {
-// 	spacing: {
-// 		sm: 0,
-// 		md: 0,
-// 		lg: 0,
-// 		1: spacing[0],
-// 		2: spacing[2],
-// 		3: spacing[3],
-// 		4: spacing[4],
-// 		5: spacing[5],
-// 		6: spacing[6],
-// 		7: spacing[7],
-// 		8: spacing[8]
-// 	},
-// 	dimensions: {},
-// 	border: {
-// 		radius: {
-// 			sm: borderRadius.sm,
-// 			md: borderRadius.md,
-// 			lg: borderRadius.lg,
-// 			full: borderRadius.full,
-// 			none: borderRadius.none
-// 		},
-// 		width: {
-// 			0: borderWidth[0],
-// 			1: borderWidth[2]
-// 		},
-// 		style: {
-// 			solid: "solid",
-// 			dashed: "dashed",
-// 			dotted: "dotted"
-// 		}
-// 	},
-// 	colors
-// };
 
 const foundation_light = {};
 const foundation_dark = {
-	// radius subset
-	// spacing subset
-	// border-style subset
-	// width subset
 	spacing: {
 		1: spacing[0],
 		2: spacing[2],
@@ -111,41 +72,48 @@ const foundation_dark = {
 const theme = {
 	block: {
 		border: {
-			radius: "",
-			style: "",
-			color: "",
-			width: ""
+			radius: "border.radius.sm",
+			style: "solid",
+			color: "color.border.primary",
+			width: "border.width.1"
 		},
 		background: {
-			color: ""
+			color: "color.background.secondary"
 		}
 	},
 	uploadable: {
 		border: {
-			style: { hover: "", loaded: "" },
-			color: { hover: "", loaded: "" }
+			style: {
+				default: "dashed",
+				hover: "solid",
+				loaded: "solid"
+			},
+			color: {
+				hover: "color.border.primary",
+				loaded: "color.functional.success"
+			}
 		},
 		text: {
-			family: "",
-			size: "",
-			style: "",
-			color: ""
+			family: "text.family.primary",
+			size: "text.size.xl",
+			style: "normal",
+			color: "colors.text.subdued"
 		}
 	},
 	block_label: {
 		border: {
-			radius: "",
-			style: "",
-			color: "",
-			width: ""
+			radius: "border.radius.sm",
+			style: "solid",
+			color: "color.border.primary",
+			width: "border.width.1"
 		},
 		background: {
-			color: ""
+			color: "color.background.primary"
 		},
 		text: {
-			family: "",
-			size: "",
-			style: "",
+			family: "text.family.primary",
+			size: "text.size.xs",
+			style: "normal",
 			color: ""
 		}
 	},
@@ -349,4 +317,19 @@ function get_path(object, paths = [], current_node = object) {
 
 console.log(get_path({ ...foundation_dark, ...theme }));
 
+function generate_theme() {
+	const props = get_path({ ...foundation_dark, ...theme });
+	let css = "";
+	for (const key in props) {
+		css += `\t${key}: ${props[key]};\n`;
+	}
+
+	css = `:root {
+${css}
+}`;
+
+	fs.writeFileSync(path.join(__dirname, "theme.css"), css);
+}
+
 exports.get_path = get_path;
+generate_theme();
