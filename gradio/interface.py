@@ -13,14 +13,13 @@ import re
 import warnings
 import weakref
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
-import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
-from gradio.blocks import Blocks, update
+from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Component,
@@ -28,7 +27,6 @@ from gradio.components import (
     IOComponent,
     Markdown,
     State,
-    StatusTracker,
     get_component_instance,
 )
 from gradio.documentation import document, set_documentation_group
