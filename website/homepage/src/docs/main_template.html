@@ -80,8 +80,8 @@
       <section id="building_demos{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10 mb-8">
         <section class="pt-2">
           <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos{% if version == 'main' %}_main{% endif %}">Building Demos</h2>
-          <section id="flagging{% if version == 'main' %}_main{% endif %}" class="pt-2">
-            <h3 class="text-4xl font-light my-4" id="something-new{% if version == 'main' %}_main{% endif %}">Something New</h3>
+          <section id="something-new{% if version == 'main' %}_main{% endif %}" class="pt-2">
+            <h3 class="text-4xl font-light my-4" id="something-new-header{% if version == 'main' %}_main{% endif %}">Something New</h3>
           {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
@@ -108,7 +108,7 @@
           </div>
       </section>
 
-        <section id="combining-interface{% if version == 'main' %}_main{% endif %}s" class="pt-2">
+        <section id="combining-interfaces{% if version == 'main' %}_main{% endif %}" class="pt-2">
           <h3 class="text-4xl font-light my-4">Combining Interfaces</h3>
           <p class="mt-8 mb-12 text-lg">
             Once you have created several Interfaces, we provide several classes that let you
