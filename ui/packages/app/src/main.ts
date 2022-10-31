@@ -169,7 +169,8 @@ function mount_app(
 	target: HTMLElement | ShadowRoot | false,
 	wrapper: HTMLDivElement,
 	id: number,
-	autoscroll?: boolean
+	autoscroll?: boolean,
+	is_embed = false
 ) {
 	//@ts-ignore
 	if (config.detail === "Not authenticated" || config.auth_required) {
@@ -184,7 +185,12 @@ function mount_app(
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn(session_hash, config.root + "api/", config.is_space);
+		config.fn = fn(
+			session_hash,
+			config.root + "api/",
+			config.is_space,
+			is_embed
+		);
 
 		new Blocks({
 			target: wrapper,
@@ -257,7 +263,11 @@ function create_custom_element() {
 			let autoscroll = this.getAttribute("autoscroll");
 
 			let source = space
-				? `https://hf.space/embed/${space}/+/`
+				? (
+						await (
+							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
+						).json()
+				  ).host
 				: this.getAttribute("src");
 
 			const _autoscroll = autoscroll === "true" ? true : false;
@@ -277,7 +287,8 @@ function create_custom_element() {
 					this.root,
 					this.wrapper,
 					this._id,
-					_autoscroll
+					_autoscroll,
+					!!space
 				);
 			}
 		}
