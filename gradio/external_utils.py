@@ -20,7 +20,9 @@ if TYPE_CHECKING:
     from gradio.components import DataframeData
 
 
-### Helper functions for processing tabular data
+##################
+# Helper functions for processing tabular data
+##################
 
 
 def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
@@ -75,7 +77,9 @@ def rows_to_cols(
     return {"inputs": {"data": data_column_wise}}
 
 
-### Helper functions for processing other kinds of data
+##################
+# Helper functions for processing other kinds of data
+##################
 
 
 def postprocess_label(scores):
@@ -113,7 +117,9 @@ def encode_to_base64(r: requests.Response) -> str:
         return new_base64
 
 
-### Helper functions for connecting to websockets
+##################
+# Helper functions for connecting to websockets
+##################
 
 
 async def get_pred_from_ws(
@@ -150,7 +156,9 @@ def use_websocket(config, dependency):
     return queue_enabled and queue_uses_websocket and dependency_uses_queue
 
 
-### Helper functions for cleaning up Interfaces/Blocks loaded from HF Spaces
+##################
+# Helper functions for cleaning up Interfaces/Blocks loaded from HF Spaces
+##################
 
 
 def streamline_spaces_interface(config: Dict) -> Dict:
