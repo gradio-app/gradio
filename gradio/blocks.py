@@ -1391,9 +1391,9 @@ class Blocks(BlockContext):
                     })""" + '({port}, {path}, {width}, {height}, {cache}, window.element)'.format(
                         port=server_port,
                         path="/",
-                        width=self.width,
-                        height=self.height,
-                        cache="false")
+                        width=json.dumps(self.width),
+                        height=json.dumps(self.height),
+                        cache=json.dumps(False))
                     display(Javascript(code))
                 else:
                     display(
