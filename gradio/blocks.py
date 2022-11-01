@@ -25,7 +25,6 @@ from typing import (
 )
 
 import anyio
-import pkg_resources
 import requests
 from anyio import CapacityLimiter
 
