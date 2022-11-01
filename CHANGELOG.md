@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
 
 ## Documentation Changes:
 No changes to highlight.
@@ -22,7 +22,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# Version 3.8.1de# Version 1
+# Version 3.8.2
 
 ## Bug Fixes:
 
@@ -88,7 +88,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Allows loading private Spaces by passing an an `api_key` to `gr.Interface.load()`
+by [@abidlabs](https://github.com/abidlabs) in [PR 2568](https://github.com/gradio-app/gradio/pull/2568)
 
 ## Contributors Shoutout:
 No changes to highlight.
