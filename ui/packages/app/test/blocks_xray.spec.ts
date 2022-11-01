@@ -12,7 +12,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/api/predict/", (route) => {
+	return page.route("**/run/predict/", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -65,7 +65,7 @@ test("can run an api request and display the data", async ({ page }) => {
 
 	await Promise.all([
 		run_button.click(),
-		page.waitForResponse("**/api/predict/")
+		page.waitForResponse("**/run/predict/")
 	]);
 
 	const json = await page.getByTestId("json").first();

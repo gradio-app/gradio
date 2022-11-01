@@ -187,7 +187,7 @@ function mount_app(
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn(
 			session_hash,
-			config.root + "api/",
+			config.root + "run/",
 			config.is_space,
 			is_embed
 		);
