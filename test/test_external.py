@@ -234,6 +234,17 @@ class TestLoadInterface(unittest.TestCase):
         except TooManyRequestsError:
             pass
 
+    def test_private_space(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.Interface.load(
+            "spaces/gradio-tests/not-actually-private-space", api_key=api_key
+        )
+        try:
+            output = io("abc")
+            self.assertEqual(output, "abc")
+        except TooManyRequestsError:
+            pass
+
 
 class TestLoadFromPipeline(unittest.TestCase):
     def test_text_to_text_model_from_pipeline(self):
