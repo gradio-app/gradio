@@ -48,6 +48,7 @@ from gradio.events import (
     Playable,
     Streamable,
     Submittable,
+    Uploadable,
 )
 from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
@@ -1196,7 +1197,15 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change", "style")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
+class Image(
+    Editable,
+    Clearable,
+    Changeable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    ImgSerializable,
+):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1536,7 +1545,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1640,25 +1649,26 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
                 file_data, file_path=file_name
             )
 
-        file_name = file.name
-        uploaded_format = file_name.split(".")[-1].lower()
+        file_name = Path(file.name)
+        uploaded_format = file_name.suffix.replace(".", "")
 
-        if self.format is not None and uploaded_format != self.format:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-            ff.run()
-            return output_file_name
-        elif self.source == "webcam" and self.mirror_webcam is True:
-            path = Path(file_name)
-            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+        modify_format = self.format is not None and uploaded_format != self.format
+        flip = self.source == "webcam" and self.mirror_webcam
+        if modify_format or flip:
+            format = f".{self.format if modify_format else uploaded_format}"
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
+            flip_suffix = "_flip" if flip else ""
+            output_file_name = str(
+                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+            )
             ff = FFmpeg(
-                inputs={file_name: None},
-                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+                inputs={str(file_name): None},
+                outputs={output_file_name: output_options},
             )
             ff.run()
             return output_file_name
         else:
-            return file_name
+            return str(file_name)
 
     def generate_sample(self):
         """Generates a random video for testing the API."""
@@ -1716,7 +1726,15 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerializable):
+class Audio(
+    Changeable,
+    Clearable,
+    Playable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
@@ -2009,7 +2027,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, IOComponent, FileSerializable):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)

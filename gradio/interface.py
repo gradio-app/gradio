@@ -13,14 +13,13 @@ import re
 import warnings
 import weakref
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
-import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
-from gradio.blocks import Blocks, update
+from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Component,
@@ -28,7 +27,6 @@ from gradio.components import (
     IOComponent,
     Markdown,
     State,
-    StatusTracker,
     get_component_instance,
 )
 from gradio.documentation import document, set_documentation_group
@@ -151,12 +149,14 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
         _api_mode: bool = False,
         **kwargs,
     ):
         """
         Parameters:
-            fn: the function to wrap an interface around. Often a machine learning model's prediction function.
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
@@ -176,6 +176,8 @@ class Interface(Blocks):
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -522,6 +524,8 @@ class Interface(Blocks):
                         api_name="predict",
                         preprocess=not (self.api_mode),
                         postprocess=not (self.api_mode),
+                        batch=batch,
+                        max_batch_size=max_batch_size,
                     )
                 else:
                     for component in self.input_components:
@@ -560,6 +564,8 @@ class Interface(Blocks):
                     scroll_to_output=True,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
+                    batch=batch,
+                    max_batch_size=max_batch_size,
                 )
                 if inspect.isgeneratorfunction(fn):
                     stop_btn.click(
@@ -648,6 +654,7 @@ class Interface(Blocks):
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                     _api_mode=_api_mode,
+                    batch=batch,
                 )
 
             if self.interpretation:
