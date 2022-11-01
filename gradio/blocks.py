@@ -1272,7 +1272,8 @@ class Blocks(BlockContext):
             self.server_app = app
             self.server = server
             self.is_running = True
-            self.protocol = "https" if self.local_url.startswith("https") else "http"
+            self.is_colab = utils.colab_check()
+            self.protocol = "https" if self.local_url.startswith("https") or self.is_colab else "http"
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
@@ -1288,7 +1289,6 @@ class Blocks(BlockContext):
                     )
         utils.launch_counter()
 
-        self.is_colab = utils.colab_check()
         self.share = (
             share
             if share is not None
@@ -1301,12 +1301,12 @@ class Blocks(BlockContext):
         # a shareable link must be created.
 
         if self.is_colab and not quiet:
-            if not self.share:
-                print(strings.en["COLAB_BETA"])
             if debug:
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
+            if not self.share:
+                print(strings.en["COLAB_BETA"])
 
         if self.is_colab and self.enable_queue and not self.share:
             raise ValueError(
@@ -1377,14 +1377,6 @@ class Blocks(BlockContext):
                         }
                         element.appendChild(document.createTextNode(''));
                         const url = await google.colab.kernel.proxyPort(port, {cache});
-
-                        const anchor = document.createElement('a');
-                        anchor.href = new URL(path, url).toString();
-                        anchor.target = '_blank';
-                        anchor.setAttribute('data-href', url + path);
-                        anchor.textContent = "Running on local URL: https://localhost:" + port;
-                        element.appendChild(anchor);
-
                         const iframe = document.createElement('iframe');
                         iframe.src = new URL(path, url).toString();
                         iframe.height = height;
