@@ -2023,7 +2023,7 @@ class Audio(
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear", "style")
@@ -2202,8 +2202,10 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str | List) -> str:
-        if isinstance(input_data, list):
+    def as_example(self, input_data: str | List | None) -> str | List[str]:
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, list):
             return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
@@ -3615,7 +3617,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear")
