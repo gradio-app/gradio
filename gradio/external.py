@@ -326,6 +326,11 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
         .get("host")
     )
 
+    if iframe_url is None:
+        raise ValueError(
+            f"Could not find Space: {space_name}. If it is a private Space, please provide an access token in the `api_key` parameter."
+        )
+
     r = requests.get(iframe_url, headers=headers)
 
     result = re.search(
