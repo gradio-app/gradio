@@ -10,12 +10,14 @@ def get_time():
     return datetime.datetime.now()
 
 
+plot_end = 2 * math.pi
+
+
 def get_plot(period=1):
-    plot_end = time.mktime(datetime.datetime.now().timetuple())
+    global plot_end
     x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
-    dates = [datetime.datetime.fromtimestamp(ut) for ut in x]
     y = np.sin(2 * math.pi * period * x)
-    fig = px.line(x=dates, y=y)
+    fig = px.line(x=x, y=y)
     plot_end += 2 * math.pi
     return fig
 
@@ -31,7 +33,7 @@ with gr.Blocks() as demo:
             period = gr.Slider(
                 label="Period of plot", value=1, minimum=0, maximum=10, step=1
             )
-            plot = gr.Plot(label="Plot (updates every half second)")
+            plot = gr.Plot(label="Plot (updates every second)")
         with gr.Column():
             name = gr.Textbox(label="Enter your name")
             greeting = gr.Textbox(label="Greeting")
@@ -39,8 +41,8 @@ with gr.Blocks() as demo:
             button.click(lambda s: f"Hello {s}", name, greeting)
 
     demo.load(lambda: datetime.datetime.now(), None, c_time2, every=1)
-    dep = demo.load(get_plot, None, plot, every=0.5)
-    period.change(get_plot, period, plot, every=0.5, cancels=[dep])
+    dep = demo.load(get_plot, None, plot, every=1)
+    period.change(get_plot, period, plot, every=1, cancels=[dep])
 
 if __name__ == "__main__":
     demo.queue().launch()
