@@ -21,8 +21,11 @@
 		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
 	{/if}
 
-	<IconButton Icon={Clear} on:click={(event) => {
-		dispatch("clear");
-		event.stopPropagation();
-	}} />
+	<IconButton
+		Icon={Clear}
+		on:click={(event) => {
+			dispatch("clear");
+			event.stopPropagation();
+		}}
+	/>
 </div>
