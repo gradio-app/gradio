@@ -1152,7 +1152,7 @@ class Blocks(BlockContext):
         server_port: Optional[int] = None,
         show_tips: bool = False,
         height: int = 500,
-        width: int = 900,
+        width: int | str = "100%",
         encrypt: bool = False,
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
@@ -1392,7 +1392,8 @@ class Blocks(BlockContext):
                         port=server_port,
                         path="/",
                         width=self.width,
-                        height=self.height,)
+                        height=self.height,
+                        cache="false")
                     display.display(display.Javascript(code))
                 else:
                     display(
