@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import getpass
 import inspect
+import json
 import os
 import pkgutil
 import random
@@ -1374,9 +1375,25 @@ class Blocks(BlockContext):
                         )
                     )
                 elif self.is_colab:
-                    from google.colab import output
-
-                    output.serve_kernel_port_as_iframe(server_port)
+                    code = """(async (port, path, width, height, cache, element) => {
+                        if (!google.colab.kernel.accessAllowed && !cache) {
+                        return;
+                        }
+                        element.appendChild(document.createTextNode(''));
+                        const url = await google.colab.kernel.proxyPort(port, {cache});
+                        const iframe = document.createElement('iframe');
+                        iframe.src = new URL(path, url).toString();
+                        iframe.height = height;
+                        iframe.allow = "autoplay; camera; microphone; clipboard-read; clipboard-write;"
+                        iframe.width = width;
+                        iframe.style.border = 0;
+                        element.appendChild(iframe);
+                    })""" + '({port}, {path}, {width}, {height}, {cache}, window.element)'.format(
+                        port=server_port,
+                        path="/",
+                        width=self.width,
+                        height=self.height,)
+                    display.display(display.Javascript(code))
                 else:
                     display(
                         HTML(
