@@ -353,7 +353,7 @@ def from_spaces_blocks(
         headers["Authorization"] = f"Bearer {api_key}"
     ws_url = "{}/queue/join".format(iframe_url).replace("https", "wss")
 
-    ws_fn = get_ws_fn(ws_url)
+    ws_fn = get_ws_fn(ws_url, headers)
 
     fns = []
     for d, dependency in enumerate(config["dependencies"]):
