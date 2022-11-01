@@ -1299,30 +1299,29 @@ class Blocks(BlockContext):
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-
-        if self.is_colab and not quiet:
-            if debug:
-                print(strings.en["COLAB_DEBUG_TRUE"])
-            else:
-                print(strings.en["COLAB_DEBUG_FALSE"])
-            if not self.share:
-                print(strings.en["COLAB_BETA"])
-
-        if self.is_colab and self.enable_queue and not self.share:
-            raise ValueError(
-                "When using queueing in Colab, a shareable link must be created. Please set share=True."
-            )
         if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True."
             )
-        print(
-            strings.en["RUNNING_LOCALLY_SEPARATED"].format(
-                self.protocol, self.server_name, self.server_port
+
+        if self.is_colab:
+            if not quiet:
+                if debug:
+                    print(strings.en["COLAB_DEBUG_TRUE"])
+                else:
+                    print(strings.en["COLAB_DEBUG_FALSE"])
+                if not self.share:
+                    print(strings.en["COLAB_BETA"].format(self.server_port))
+            if self.enable_queue and not self.share:
+                raise ValueError(
+                    "When using queueing in Colab, a shareable link must be created. Please set share=True."
+                )
+        else:
+            print(
+                strings.en["RUNNING_LOCALLY_SEPARATED"].format(
+                    self.protocol, self.server_name, self.server_port
+                )
             )
-        )
-        if self.is_colab and self.requires_permissions:
-            print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
         if self.share:
             if self.is_space:
