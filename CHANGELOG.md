@@ -22,7 +22,7 @@ No changes to highlight.
 No changes to highlight.
 
 
-# Version 3.8.1de# Version 1
+# Version 3.8.2
 
 ## Bug Fixes:
 
