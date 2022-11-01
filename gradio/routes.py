@@ -315,8 +315,6 @@ class App(FastAPI):
                 )
             return output
 
-        @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
-        @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
