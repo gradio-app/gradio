@@ -3,20 +3,19 @@ import gradio as gr
 import datetime
 import plotly.express as px
 import numpy as np
+import time
 
 
 def get_time():
     return datetime.datetime.now()
 
 
-plot_end = 2 * math.pi
-
-
 def get_plot(period=1):
-    global plot_end
+    plot_end = time.mktime(datetime.datetime.now().timetuple())
     x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
-    y = np.sin(2*math.pi*period * x)
-    fig = px.line(x=x, y=y)
+    dates = [datetime.datetime.fromtimestamp(ut) for ut in x]
+    y = np.sin(2 * math.pi * period * x)
+    fig = px.line(x=dates, y=y)
     plot_end += 2 * math.pi
     return fig
 
@@ -25,8 +24,13 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             c_time2 = gr.Textbox(label="Current Time refreshed every second")
-            gr.Textbox("Change the value of the slider to automatically update the plot", label="")
-            period = gr.Slider(label="Period of plot", value=1, minimum=0, maximum=10, step=1)
+            gr.Textbox(
+                "Change the value of the slider to automatically update the plot",
+                label="",
+            )
+            period = gr.Slider(
+                label="Period of plot", value=1, minimum=0, maximum=10, step=1
+            )
             plot = gr.Plot(label="Plot (updates every half second)")
         with gr.Column():
             name = gr.Textbox(label="Enter your name")
