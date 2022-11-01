@@ -7,7 +7,7 @@ import numbers
 import operator
 import re
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import requests
 import websockets
@@ -139,6 +139,7 @@ def get_ws_fn(ws_url, headers):
             ws_url, open_timeout=10, extra_headers=headers
         ) as websocket:
             return await get_pred_from_ws(websocket, data, hash_data)
+
     return ws_fn
 
 
