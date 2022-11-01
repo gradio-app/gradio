@@ -1380,6 +1380,7 @@ class Blocks(BlockContext):
                         iframe.src = new URL(path, url).toString();
                         iframe.height = height;
                         iframe.allow = "autoplay; camera; microphone; clipboard-read; clipboard-write;"
+                        iframe.sandbox = "allow-downloads";
                         iframe.width = width;
                         iframe.style.border = 0;
                         element.appendChild(iframe);

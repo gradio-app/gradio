@@ -50,8 +50,7 @@
 				<div class="file-size w-3/12 p-2 hover:underline">
 					<a
 						href={download_files(value)}
-						target={window.__is_colab__ ? "_blank" : null}
-						download={window.__is_colab__ ? null : display_file_name(value)}
+						download={display_file_name(value)}
 						class="text-indigo-600 hover:underline dark:text-indigo-300"
 						>Download</a
 					>
