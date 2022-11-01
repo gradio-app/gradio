@@ -351,7 +351,7 @@ def from_spaces_blocks(
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
-    ws_url = "{}/queue/join".format(iframe_url)
+    ws_url = "{}/queue/join".format(iframe_url).replace("https", "wss")
 
     ws_fn = get_ws_fn(ws_url)
 

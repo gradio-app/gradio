@@ -286,7 +286,7 @@ class TestQueueRoutes:
             ),
             (
                 "wss://gradio-titanic-survival.hf.space/queue/join",
-                "https://gradio-titanic-survival.hf.space",
+                "https://gradio-titanic-survival.hf.space/",
             ),
         ],
     )
