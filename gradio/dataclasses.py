@@ -4,9 +4,6 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from pydantic import BaseModel
 
-if TYPE_CHECKING:
-    from typing import TypedDict
-
 
 class PredictBody(BaseModel):
     session_hash: Optional[str]
@@ -20,8 +17,3 @@ class PredictBody(BaseModel):
 class ResetBody(BaseModel):
     session_hash: str
     fn_index: int
-
-
-class DataframeData(TypedDict):
-    headers: List[str]
-    data: List[List[str | int | bool]]

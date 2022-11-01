@@ -16,9 +16,6 @@ from packaging import version
 
 from gradio import components, exceptions
 
-if TYPE_CHECKING:
-    from gradio.dataclasses import DataframeData 
-
 ##################
 # Helper functions for processing tabular data
 ##################
@@ -67,9 +64,7 @@ def cols_to_rows(
     return headers, data
 
 
-def rows_to_cols(
-    incoming_data: DataframeData,
-) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+def rows_to_cols(incoming_data: Dict) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
     data_column_wise = {}
     for i, header in enumerate(incoming_data["headers"]):
         data_column_wise[header] = [str(row[i]) for row in incoming_data["data"]]
@@ -138,11 +133,12 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-def get_ws_fn(ws_url):
+def get_ws_fn(ws_url, headers):
     async def ws_fn(data, hash_data):
-        async with websockets.connect(ws_url, open_timeout=10) as websocket:
+        async with websockets.connect(
+            ws_url, open_timeout=10, extra_headers=headers
+        ) as websocket:
             return await get_pred_from_ws(websocket, data, hash_data)
-
     return ws_fn
 
 

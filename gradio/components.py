@@ -52,7 +52,11 @@ from gradio.serializing import (
 )
 
 if TYPE_CHECKING:
-    from gradio.dataclasses import DataframeData 
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
 
 
 set_documentation_group("component")
