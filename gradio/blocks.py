@@ -1364,7 +1364,7 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import HTML, display  # type: ignore
+                from IPython.display import HTML, display, Javascript  # type: ignore
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
@@ -1394,7 +1394,7 @@ class Blocks(BlockContext):
                         width=self.width,
                         height=self.height,
                         cache="false")
-                    display.display(display.Javascript(code))
+                    display(Javascript(code))
                 else:
                     display(
                         HTML(
