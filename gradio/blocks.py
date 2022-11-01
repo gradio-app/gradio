@@ -184,9 +184,6 @@ class Block:
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
 
-        if queue:
-            Context.root_block.has_any_queue = True
-
         if Context.root_block is None:
             raise AttributeError(
                 f"{event_name}() and other events can only be called within a Blocks context."
@@ -506,7 +503,6 @@ class Blocks(BlockContext):
         self.save_to = None
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
-        self.has_any_queue = False
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -978,7 +974,7 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
-            "is_colab": utils.colab_check()
+            "is_colab": utils.colab_check(),
         }
 
         def getLayout(block):
@@ -1122,8 +1118,6 @@ class Blocks(BlockContext):
             demo.queue(concurrency_count=3)
             demo.launch()
         """
-        if default_enabled:
-            self.has_any_queue = True
         self.enable_queue = default_enabled
         self.api_open = api_open
         self._queue = queue.Queue(
@@ -1299,7 +1293,7 @@ class Blocks(BlockContext):
             share
             if share is not None
             else True
-            if self.is_colab and self.has_any_queue
+            if self.is_colab and self.enable_queue
             else False
         )
 
@@ -1307,14 +1301,14 @@ class Blocks(BlockContext):
         # a shareable link must be created.
 
         if self.is_colab and not quiet:
+            if not self.share:
+                print(strings.en["COLAB_BETA"])
             if debug:
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
-            if not self.share:
-                print(strings.en["COLAB_BETA"])
 
-        if self.is_colab and self.has_any_queue and not self.share:
+        if self.is_colab and self.enable_queue and not self.share:
             raise ValueError(
                 "When using queueing in Colab, a shareable link must be created. Please set share=True."
             )
@@ -1365,7 +1359,7 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import HTML, display, Javascript  # type: ignore
+                from IPython.display import HTML, Javascript, display  # type: ignore
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
@@ -1376,12 +1370,21 @@ class Blocks(BlockContext):
                         )
                     )
                 elif self.is_colab:
+                    # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
                     code = """(async (port, path, width, height, cache, element) => {
                         if (!google.colab.kernel.accessAllowed && !cache) {
                         return;
                         }
                         element.appendChild(document.createTextNode(''));
                         const url = await google.colab.kernel.proxyPort(port, {cache});
+
+                        const anchor = document.createElement('a');
+                        anchor.href = new URL(path, url).toString();
+                        anchor.target = '_blank';
+                        anchor.setAttribute('data-href', url + path);
+                        anchor.textContent = "Running on local URL: https://localhost:" + port;
+                        element.appendChild(anchor);
+
                         const iframe = document.createElement('iframe');
                         iframe.src = new URL(path, url).toString();
                         iframe.height = height;
@@ -1389,12 +1392,14 @@ class Blocks(BlockContext):
                         iframe.width = width;
                         iframe.style.border = 0;
                         element.appendChild(iframe);
-                    })""" + '({port}, {path}, {width}, {height}, {cache}, window.element)'.format(
+                    })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
                         port=json.dumps(server_port),
                         path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
-                        cache=json.dumps(False))
+                        cache=json.dumps(False),
+                    )
+
                     display(Javascript(code))
                 else:
                     display(

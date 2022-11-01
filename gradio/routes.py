@@ -304,6 +304,7 @@ class App(FastAPI):
                 output["data"] = output["data"][0]
             return output
 
+        # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
