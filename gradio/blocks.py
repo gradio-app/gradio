@@ -1309,7 +1309,8 @@ class Blocks(BlockContext):
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
-            print(strings.en["COLAB_BETA"])
+            if not share:
+                print(strings.en["COLAB_BETA"])
 
         if self.is_colab and self.has_any_queue and not self.share:
             raise ValueError(
