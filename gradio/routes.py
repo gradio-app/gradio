@@ -25,12 +25,12 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor, utils
+from gradio.dataclasses import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
@@ -56,33 +56,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
 ###########
-# Data Models
-###########
-
-
-class QueueStatusBody(BaseModel):
-    hash: str
-
-
-class QueuePushBody(BaseModel):
-    fn_index: int
-    action: str
-    session_hash: str
-    data: Any
-
-
-class PredictBody(BaseModel):
-    session_hash: Optional[str]
-    data: Any
-    fn_index: Optional[int]
-
-
-class ResetBody(BaseModel):
-    session_hash: str
-    fn_index: int
-
-
-###########
 # Auth
 ###########
 
@@ -99,6 +72,7 @@ class App(FastAPI):
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
+        self.queue_token = secrets.token_urlsafe(32)
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -112,6 +86,8 @@ class App(FastAPI):
             self.auth = None
 
         self.blocks = blocks
+        if hasattr(self.blocks, "_queue"):
+            self.blocks._queue.set_access_token(self.queue_token)
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
@@ -196,10 +172,16 @@ class App(FastAPI):
                     template, {"request": request, "config": config}
                 )
             except TemplateNotFound:
-                raise ValueError(
-                    "Did you install Gradio from source files? You need to build "
-                    "the frontend by running /scripts/build_frontend.sh"
-                )
+                if app.blocks.share:
+                    raise ValueError(
+                        "Did you install Gradio from source files? Share mode only "
+                        "works when Gradio is installed through the pip package."
+                    )
+                else:
+                    raise ValueError(
+                        "Did you install Gradio from source files? You need to build "
+                        "the frontend by running /scripts/build_frontend.sh"
+                    )
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -294,6 +276,9 @@ class App(FastAPI):
                 iterators = {}
             raw_input = body.data
             fn_index = body.fn_index
+            batch = app.blocks.dependencies[fn_index]["batch"]
+            if not (body.batched) and batch:
+                raw_input = [raw_input]
             try:
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state, iterators
@@ -313,14 +298,18 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+
+            if not (body.batched) and batch:
+                output["data"] = output["data"][0]
             return output
 
-        @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
-        @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
-            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+            api_name: str,
+            body: PredictBody,
+            request: Request,
+            username: str = Depends(get_current_user),
         ):
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
@@ -330,10 +319,19 @@ class App(FastAPI):
                 if body.fn_index is None:
                     return JSONResponse(
                         content={
-                            "error": f"This app has no endpoint /run/{api_name}/."
+                            "error": f"This app has no endpoint /api/{api_name}/."
                         },
                         status_code=500,
                     )
+            if not app.blocks.api_open and app.blocks.queue_enabled_for_fn(
+                body.fn_index
+            ):
+                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not authorized to skip the queue",
+                    )
+
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:
@@ -344,9 +342,7 @@ class App(FastAPI):
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
             if app.blocks._queue.server_path is None:
-                print(f"WS: {str(websocket.url)}")
                 app_url = get_server_url_from_ws_url(str(websocket.url))
-                print(f"Server URL: {app_url}")
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
             event = Event(websocket)
@@ -463,7 +459,8 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
-
+    blocks.dev_mode = False
+    blocks.config = blocks.get_config_file()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")

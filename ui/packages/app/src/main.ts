@@ -184,7 +184,7 @@ function mount_app(
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn(session_hash, config.root + "run/", config.is_space);
+		config.fn = fn(session_hash, config.root + "api/", config.is_space);
 
 		new Blocks({
 			target: wrapper,

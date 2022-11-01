@@ -1124,6 +1124,8 @@ class Blocks(BlockContext):
         self.share = (
             share
             if share is not None
+            else True
+            if self.is_colab and self.has_any_queue
             else False
         )
 
@@ -1135,11 +1137,12 @@ class Blocks(BlockContext):
                 print(strings.en["COLAB_DEBUG_TRUE"])
             else:
                 print(strings.en["COLAB_DEBUG_FALSE"])
+            print(strings.en["COLAB_BETA"])
 
-        # if self.is_colab and self.has_any_queue and not self.share:
-        #     raise ValueError(
-        #         "When using queueing in Colab, a shareable link must be created. Please set share=True."
-        #     )
+        if self.is_colab and self.has_any_queue and not self.share:
+            raise ValueError(
+                "When using queueing in Colab, a shareable link must be created. Please set share=True."
+            )
         if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
             raise ValueError(
                 "When localhost is not accessible, a shareable link must be created. Please set share=True."
@@ -1191,7 +1194,7 @@ class Blocks(BlockContext):
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
-                        time.sleep(0.2)
+                        time.sleep(0.25)
                     display(
                         HTML(
                             f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
