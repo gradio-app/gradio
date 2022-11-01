@@ -978,6 +978,7 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
+            "is_colab": utils.colab_check()
         }
 
         def getLayout(block):

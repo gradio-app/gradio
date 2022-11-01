@@ -19,7 +19,6 @@ const FONTS = "__FONTS_CSS__";
 interface Config {
 	auth_required: boolean | undefined;
 	auth_message: string;
-
 	components: ComponentMeta[];
 	css: string | null;
 	dependencies: Dependency[];
@@ -34,37 +33,8 @@ interface Config {
 	title: string;
 	version: string;
 	is_space: boolean;
+	is_colab: boolean;
 	show_api: boolean;
-	// allow_flagging: string;
-	// allow_interpretation: boolean;
-	// article: string;
-	// cached_examples: boolean;
-
-	// description: string;
-	// examples: Array<unknown>;
-	// examples_per_page: number;
-	// favicon_path: null | string;
-	// flagging_options: null | unknown;
-
-	// function_count: number;
-	// input_components: Array<ComponentMeta>;
-	// output_components: Array<ComponentMeta>;
-	// layout: string;
-	// live: boolean;
-	// mode: "blocks" | "interface" | undefined;
-	// enable_queue: boolean;
-	// root: string;
-	// show_input: boolean;
-	// show_output: boolean;
-	// simpler_description: string;
-	// theme: string;
-	// thumbnail: null | string;
-	// title: string;
-	// version: string;
-	// space?: string;
-	// detail: string;
-	// dark: boolean;
-	// dev_mode: boolean;
 }
 
 let app_id: string | null = null;
@@ -152,6 +122,8 @@ async function handle_config(
 	}
 
 	mount_custom_css(target, config.css);
+	window.__is_colab__ = config.is_colab;
+
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
