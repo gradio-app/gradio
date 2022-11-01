@@ -443,9 +443,11 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-def get_ws_fn(ws_url):
+def get_ws_fn(ws_url, headers):
     async def ws_fn(data, hash_data):
-        async with websockets.connect(ws_url, open_timeout=10) as websocket:
+        async with websockets.connect(
+            ws_url, open_timeout=10, extra_headers=headers
+        ) as websocket:
             return await get_pred_from_ws(websocket, data, hash_data)
 
     return ws_fn
@@ -478,7 +480,7 @@ def get_spaces_blocks(
         headers["Authorization"] = f"Bearer {api_key}"
     ws_url = "{}/queue/join".format(iframe_url).replace("https", "wss")
 
-    ws_fn = get_ws_fn(ws_url)
+    ws_fn = get_ws_fn(ws_url, headers)
 
     fns = []
     for d, dependency in enumerate(config["dependencies"]):
