@@ -110,6 +110,7 @@ class IOComponent(Component, Serializable):
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
+        self.root_dir: str | None = None  # Directory that is prepended to all file paths for this component
 
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
@@ -1382,7 +1383,7 @@ class Image(
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
+            y: image as a numpy array, PIL Image, string/Path filepath, base64 string, or string URL
         Returns:
             base64 url data
         """
@@ -1393,6 +1394,7 @@ class Image(
         elif isinstance(y, PIL.Image.Image):
             return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
+            if 
             return processing_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
