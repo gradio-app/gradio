@@ -18,7 +18,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib.figure
 import numpy as np
@@ -30,7 +30,6 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
-from gradio.dataclasses import DataframeData
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -51,6 +50,10 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+
+if TYPE_CHECKING:
+    from gradio.dataclasses import DataframeData 
+
 
 set_documentation_group("component")
 
