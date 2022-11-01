@@ -20,14 +20,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-if TYPE_CHECKING:
-    from typing import TypedDict
-
-    class DataframeData(TypedDict):
-        headers: List[str]
-        data: List[List[str | int | bool]]
-
-
 import matplotlib.figure
 import numpy as np
 import pandas as pd
@@ -58,6 +50,14 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 set_documentation_group("component")
 
