@@ -1389,8 +1389,8 @@ class Blocks(BlockContext):
                         iframe.style.border = 0;
                         element.appendChild(iframe);
                     })""" + '({port}, {path}, {width}, {height}, {cache}, window.element)'.format(
-                        port=server_port,
-                        path="/",
+                        port=json.dumps(server_port),
+                        path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
                         cache=json.dumps(False))
