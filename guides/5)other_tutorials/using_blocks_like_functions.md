@@ -25,7 +25,7 @@ $code_english_translator
 I already went ahead and hosted it in Hugging Face spaces at [freddyaboulton/english-to-german](https://huggingface.co/spaces/freddyaboulton/english-to-german).
 You can see the demo below as well:
 
-<gradio-app space="freddyaboulton/english-to-german"> </gradio-app>
+<gradio-app space="gradio/english-to-german"> </gradio-app>
 
 Now, let's say you have an app that generates english text, but you wanted to additionally generate german text.
 
@@ -48,13 +48,29 @@ Note that the variable `english_translator` is my english to german app, but its
 
 $code_generate_english_german
 
-<gradio-app space="freddyaboulton/generate-english-german"> </gradio-app>
+<gradio-app space="gradio/generate-english-german"> </gradio-app>
 
 ## How to control which function in the app to use
 
-If the app you are loading defines more than one function, you can specify which function to use with the `fn_index` parameter.
-Imagine my app also defined an english to spanish translation function. In order to use it in our text generation app,
-we would use the following code:
+If the app you are loading defines more than one function, you can specify which function to use
+with the `fn_index` and `api_name` parameters.
+
+In the code for our english to german demo, you'll see the following line:
+
+```python
+translate_btn.click(translate, inputs=english, outputs=german, api_name="translate-to-german")
+```
+
+The `api_name` gives this function a unique name in our app. You can use this name to tell gradio which
+function in the upstream space you want to use:
+
+```python
+english_generator(text, api_name="translate-to-german")[0]["generated_text"]
+```
+
+You can also use the `fn_index` parameter.
+Imagine my app also defined an english to spanish translation function.
+In order to use it in our text generation app, we would use the following code:
 
 ```python
 english_generator(text, fn_index=1)[0]["generated_text"]
