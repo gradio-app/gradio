@@ -510,7 +510,7 @@
 			flex={false}
 			center={false}
 			boundedheight={false}
-			click={false}
+			disable_click={true}
 			on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
 			bind:dragging
 		>
