@@ -128,7 +128,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
-      '@gradio/uploadbutton': link:../test
+      '@gradio/uploadbutton': link:../upload-button
       '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       d3-dsv: 3.0.1
@@ -302,12 +302,6 @@ importers:
   packages/tabs:
     specifiers: {}
 
-  packages/test:
-    specifiers:
-      '@gradio/utils': workspace:^0.0.1
-    dependencies:
-      '@gradio/utils': link:../utils
-
   packages/theme:
     specifiers: {}
 
@@ -324,6 +318,12 @@ importers:
     dependencies:
       '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
+
+  packages/upload-button:
+    specifiers:
+      '@gradio/utils': workspace:^0.0.1
+    dependencies:
+      '@gradio/utils': link:../utils
 
   packages/utils:
     specifiers:
@@ -398,7 +398,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
-      '@gradio/uploadbutton': link:../test
+      '@gradio/uploadbutton': link:../upload-button
       '@gradio/video': link:../video
     devDependencies:
       '@sveltejs/adapter-auto': 1.0.0-next.86

@@ -1,7 +1,25 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### Upload Button
+There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept (ex: `image`, `video`, `audio`, `text`, or generic `file`).
+
+Example of how it can be used:
+
+```python
+import gradio as gr
+
+def update_image(image):
+    return image.name
+
+with gr.Blocks() as demo:
+    image = gr.Image(interactive=False)
+    upload_button = gr.UploadButton()
+    upload_button.upload(fn=update_image, inputs=upload_button, outputs=image)
+
+demo.launch()
+```
 
 ## Bug Fixes:
 * Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
