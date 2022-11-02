@@ -15,6 +15,9 @@ with open(VERSION_TXT) as f:
     gradio_version=f.read()
 gradio_version = gradio_version.strip()
 
+DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_random"}
+
+
 def upload_demo_to_space(
     demo_name: str, space_id: str, hf_token: str, gradio_version: Optional[str]
 ):
@@ -62,7 +65,8 @@ def upload_demo_to_space(
     return f"https://huggingface.co/spaces/{space_id}"
 
 demos = os.listdir(GRADIO_DEMO_DIR)
-demos = [demo for demo in demos if demo != "all_demos" and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
+
+demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
 
 if __name__ == "__main__":
     if AUTH_TOKEN is not None:
