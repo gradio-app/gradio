@@ -9,7 +9,7 @@ if ! grep -q "gradio/version.txt" /tmp/git_changes.txt; then
     echo "NO CHANGES"
 else
     echo "Reloading..."
-    INPUT_NAME=v$(cat ../gradio/version.txt)
+    LATEST_COMMIT=v$(cat ../gradio/version.txt)
     docker-compose build
     docker-compose up -d
 fi
