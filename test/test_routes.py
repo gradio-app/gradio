@@ -285,8 +285,8 @@ class TestQueueRoutes:
                 "http://127.0.0.1:7861/gradio/gradio/gradio/",
             ),
             (
-                "wss://huggingface.co.tech/path/queue/join",
-                "https://huggingface.co.tech/path/",
+                "wss://gradio-titanic-survival.hf.space/queue/join",
+                "https://gradio-titanic-survival.hf.space/",
             ),
         ],
     )

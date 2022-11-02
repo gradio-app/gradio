@@ -45,7 +45,7 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import DuplicateBlockError
+from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
@@ -734,7 +734,7 @@ class Blocks(BlockContext):
 
         return True
 
-    def __call__(self, *inputs, fn_index: int = 0):
+    def __call__(self, *inputs, fn_index: int = 0, api_name: str = None):
         """
         Allows Blocks objects to be called as functions. Supply the parameters to the
         function as positional arguments. To choose which function to call, use the
@@ -743,7 +743,19 @@ class Blocks(BlockContext):
         Parameters:
         *inputs: the parameters to pass to the function
         fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        api_name: The api_name of the dependency to call. Will take precedence over fn_index.
         """
+        if api_name is not None:
+            fn_index = next(
+                (
+                    i
+                    for i, d in enumerate(self.dependencies)
+                    if d.get("api_name") == api_name
+                ),
+                None,
+            )
+            if fn_index is None:
+                raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
         if not (self.is_callable(fn_index)):
             raise ValueError(
                 "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
@@ -1054,10 +1066,10 @@ class Blocks(BlockContext):
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional api key for use with Hugging Face Hub
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
