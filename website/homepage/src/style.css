@@ -96,6 +96,10 @@
 code.language-python {
   @apply !leading-7 !whitespace-pre-wrap !break-all;
 }
+code.language-bash {
+  @apply !leading-7 !whitespace-pre-wrap !break-all;
+}
+
 .group-hover-visible {
   @apply group-hover:visible;
 }

@@ -101,14 +101,14 @@ def find_cls(target_cls):
                 return cls
     raise ValueError("Class not found")
 
-def build(output_dir, jinja_env):
+def build(output_dir, jinja_env, gradio_wheel_url):
     docs_files = os.listdir("src/docs")
     for file in docs_files:
         if file.endswith("_template.html") and file.startswith("v"):
             pip_filename = file
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs, find_cls=find_cls, version="main", pip_filename=pip_filename)
+    output = template.render(docs=docs, find_cls=find_cls, version="main", pip_filename=pip_filename, gradio_wheel_url=gradio_wheel_url)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")

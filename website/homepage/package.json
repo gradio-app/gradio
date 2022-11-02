@@ -1,7 +1,7 @@
 {
   "name": "gradio-website",
   "scripts": {
-    "build:html": "python build.py",
+    "build:html": "python build.py --url $npm_config_url",
     "build:css": "postcss src/style.css -o build/style.css && STYLE_FILE=$(jq -r '.\"style.css\"' build/manifest.json) && perl -i -pe\"s/style.css/${STYLE_FILE}/g\" build/*.html && perl -i -pe\"s/style.css/${STYLE_FILE}/g\" build/**/*.html && rm build/manifest.json",
     "build": "npm run build:html && npm run build:css"
     },
