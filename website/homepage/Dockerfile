@@ -25,9 +25,11 @@ COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
+COPY ./website ./website
+WORKDIR /gradio/website
 RUN python check_version.py
-RUN pip install gradio -U 
 WORKDIR /gradio/website/homepage
+RUN pip install gradio -U 
 RUN build-version-docs.py
 RUN pip uninstall -y gradio 
 RUN pip install .
@@ -42,7 +44,6 @@ ENV AWS_DEFAULT_REGION $AWS_DEFAULT_REGION
 ARG LATEST_COMMIT
 ENV LATEST_COMMIT $LATEST_COMMIT
 RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
-COPY ./website ./website
 WORKDIR /gradio/website/homepage
 RUN pip install -r requirements.txt
 WORKDIR /gradio
