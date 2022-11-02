@@ -49,7 +49,7 @@ ENV LATEST_COMMIT $LATEST_COMMIT
 RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
 WORKDIR /gradio/website/homepage
 RUN npm install
-RUN npm run build
+RUN npm run build --url=https://gradio-main-build.s3.amazonaws.com/$LATEST_COMMIT/
 ARG AUTH_TOKEN
 ENV AUTH_TOKEN $AUTH_TOKEN
 RUN python upload_demos.py --url https://gradio-main-build.s3.amazonaws.com/$LATEST_COMMIT/
