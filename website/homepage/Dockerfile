@@ -30,7 +30,7 @@ WORKDIR /gradio/website
 RUN python check_version.py
 WORKDIR /gradio/website/homepage
 RUN pip install gradio -U 
-RUN build-version-docs.py
+RUN python build-version-docs.py
 RUN pip uninstall -y gradio 
 RUN pip install .
 WORKDIR /gradio
