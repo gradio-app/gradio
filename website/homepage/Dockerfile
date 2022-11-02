@@ -25,6 +25,11 @@ COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./README.md ./README.md
 COPY ./test ./test
+RUN python check_version.py
+RUN pip install gradio -U 
+WORKDIR /gradio/website/homepage
+RUN build-version-docs.py
+RUN pip uninstall -y gradio 
 RUN pip install .
 WORKDIR /gradio
 RUN python -m build -w

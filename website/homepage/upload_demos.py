@@ -7,6 +7,7 @@ import huggingface_hub
 import os
 import json
 import argparse
+import requests
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
@@ -74,9 +75,10 @@ if __name__ == "__main__":
     parser.add_argument("--url", type=str, help="aws link to gradio wheel")
     args = parser.parse_args()
     gradio_wheel_url = args.url + f"gradio-{gradio_version}-py3-none-any.whl"
+    latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
     if AUTH_TOKEN is not None:
         hello_world_version = str(huggingface_hub.space_info("gradio/hello_world").cardData["sdk_version"])
         for demo in demos:
             if hello_world_version != gradio_version:
-                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=gradio_version)
+                upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo, hf_token=AUTH_TOKEN, gradio_version=latest_gradio_stable)
             upload_demo_to_space(demo_name=demo, space_id="gradio/" + demo + "_main", hf_token=AUTH_TOKEN, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
