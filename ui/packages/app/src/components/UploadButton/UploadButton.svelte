@@ -18,12 +18,6 @@
 		dispatch("upload", detail);
 	}
 
-	function handle_clear({ detail }: CustomEvent<null>) {
-		value = null;
-		dispatch("change", value);
-		dispatch("clear");
-	}
-
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
 		clear: undefined;
