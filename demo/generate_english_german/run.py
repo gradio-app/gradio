@@ -2,7 +2,7 @@ import gradio as gr
 
 from transformers import pipeline
 
-english_translator = gr.Blocks.load(name="spaces/freddyaboulton/english-translator")
+english_translator = gr.Blocks.load(name="spaces/gradio/english-translator")
 english_generator = pipeline("text-generation", model="distilgpt2")
 
 
