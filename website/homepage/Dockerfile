@@ -18,7 +18,6 @@ RUN pnpm build
 RUN pnpm build:website
 RUN pip install build awscli requests
 WORKDIR /gradio
-WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
 COPY ./CHANGELOG.md ./CHANGELOG.md 
