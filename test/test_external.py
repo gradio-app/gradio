@@ -427,10 +427,12 @@ def test_raise_value_error_when_api_name_invalid():
 def test_use_api_name_in_call_method():
     # Interface
     demo = gr.Blocks.load(name="spaces/gradio/hello_world")
-    assert isinstance(demo("freddy", api_name="predict"), str)
+    assert demo("freddy", api_name="predict") == "Hello freddy!"
 
-    app = gr.Blocks.load(name="spaces/gradio/queue-benchmark")
-    assert isinstance(app("freddy", api_name="text"), str)
+    # Blocks demo with multiple functions
+    app = gr.Blocks.load(name="spaces/gradio/multiple-api-name-test")
+    assert app(15, api_name="minus_one") == 14
+    assert app(4, api_name="double") == 8
 
 
 if __name__ == "__main__":
