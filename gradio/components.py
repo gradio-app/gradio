@@ -1974,8 +1974,7 @@ class Audio(
         """
         if y is None:
             return None
-
-        if utils.validate_url(y):
+        elif utils.validate_url(y):
             file = processing_utils.download_to_file(y, dir=self.temp_dir)
         elif isinstance(y, tuple):
             sample_rate, data = y
@@ -1983,9 +1982,14 @@ class Audio(
                 suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
+        elif isinstance(y, (str, Path)):
+            if self.root_url:
+                y = urljoin(self.root_url, y)
+                file = processing_utils.download_to_file(y, dir=self.temp_dir)
+            else:
+                file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         else:
-            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
+            raise ValueError("Cannot postprocess audio data of type: " + str(type(y)))
         return {"name": file.name, "data": None, "is_file": True}
 
     def stream(
@@ -2128,7 +2132,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         if x is None:
             return None
 
-        def process_single_file(f):
+        def preprocess_single_file(f):
             file_name, data, is_file = (
                 f["name"],
                 f["data"],
@@ -2158,14 +2162,14 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
 
         if self.file_count == "single":
             if isinstance(x, list):
-                return process_single_file(x[0])
+                return preprocess_single_file(x[0])
             else:
-                return process_single_file(x)
+                return preprocess_single_file(x)
         else:
             if isinstance(x, list):
-                return [process_single_file(f) for f in x]
+                return [preprocess_single_file(f) for f in x]
             else:
-                return process_single_file(x)
+                return preprocess_single_file(x)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
@@ -2177,31 +2181,35 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         Returns:
             JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
-        if y is None:
-            return None
-        if isinstance(y, list):
-            return [
-                {
-                    "orig_name": os.path.basename(file),
-                    "name": processing_utils.create_tmp_copy_of_file(
-                        file, dir=self.temp_dir
-                    ).name,
-                    "size": os.path.getsize(file),
-                    "data": None,
-                    "is_file": True,
-                }
-                for file in y
-            ]
-        else:
+
+        def postprocess_single_file(filepath: str):
+            orig_name = os.path.basename(filepath)
+            if self.root_url and not (utils.validate_url(filepath)):
+                filepath = urljoin(self.root_url, filepath)
+            if utils.validate_url(filepath):
+                file = processing_utils.download_to_file(filepath, dir=self.temp_dir)
+            else:
+                file = processing_utils.create_tmp_copy_of_file(
+                    filepath, dir=self.temp_dir
+                )
             return {
-                "orig_name": os.path.basename(y),
-                "name": processing_utils.create_tmp_copy_of_file(
-                    y, dir=self.temp_dir
-                ).name,
+                "orig_name": orig_name,
+                "name": file.name,
                 "size": os.path.getsize(y),
                 "data": None,
                 "is_file": True,
             }
+
+        if y is None:
+            return None
+        elif isinstance(y, str):
+            return postprocess_single_file(y)
+        if isinstance(y, list):
+            return [postprocess_single_file(file) for file in y]
+        else:
+            raise ValueError(
+                "File component cannot postprocess value of type " + str(type(y))
+            )
 
     def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
         serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
@@ -2219,24 +2227,23 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             self,
             **kwargs,
         )
-        
-    def _as_example_single_file(self, input_data: str | None) -> str:
-        if input_data is None:
-            return ""
-        if self.root_url and not (utils.validate_url(input_data)):
-            input_data = urljoin(self.root_url, input_data)
-        if utils.validate_url(input_data):
-            return input_data
-        return Path(input_data).name
-        
 
     def as_example(self, input_data: str | List | None) -> str | List[str]:
+        def as_example_single_file(input_data: str | None) -> str:
+            if input_data is None:
+                return ""
+            if self.root_url and not (utils.validate_url(input_data)):
+                input_data = urljoin(self.root_url, input_data)
+            if utils.validate_url(input_data):
+                return input_data
+            return Path(input_data).name
+
         if input_data is None:
             return ""
         elif isinstance(input_data, list):
-            return [self._as_example_single_file(file) for file in input_data]
+            return [as_example_single_file(file) for file in input_data]
         else:
-            return self._as_example_single_file(input_data)
+            return as_example_single_file(input_data)
 
 
 @document("change", "style")
@@ -3622,14 +3629,27 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     def postprocess(self, y: str | None) -> Dict[str, str] | None:
         """
         Parameters:
-            y: path to the model
+            y: string path or URL to the model file
         Returns:
-            file name mapped to base64 url data
+            A dictionary with the name of a temporary copy of the file in the 'name' key
         """
         if y is None:
-            return y
+            return None
+        elif utils.validate_url(y):
+            file = processing_utils.download_to_file(y, dir=self.temp_dir)
+        elif isinstance(y, (str, Path)):
+            if self.root_url:
+                y = urljoin(self.root_url, y)
+                file = processing_utils.download_to_file(y, dir=self.temp_dir)
+            else:
+                file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+        else:
+            raise ValueError(
+                "Model3D component cannot postprocess data of type: " + str(type(y))
+            )
+
         data = {
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir).name,
+            "name": file.name,
             "data": None,
             "is_file": True,
         }
@@ -3843,7 +3863,9 @@ class Dataset(Clickable, Component):
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
                 if not isinstance(component, IOComponent):
-                    raise ValueError(f"Dataset does not support component type: {component}")
+                    raise ValueError(
+                        f"Dataset does not support component type: {component}"
+                    )
                 component.root_url = self.root_url
                 example[i] = component.as_example(ex)
         self.type = type
