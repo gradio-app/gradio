@@ -138,7 +138,7 @@ class Interface(Blocks):
         live: bool = False,
         interpretation: Optional[Callable | str] = None,
         num_shap: float = 2.0,
-        title: Optional[str] = "Built using gradio main",
+        title: Optional[str] = None,
         description: Optional[str] = None,
         article: Optional[str] = None,
         thumbnail: Optional[str] = None,

@@ -11,7 +11,6 @@
              onsearch="search(this.value);"/>
       </div>
       <a class="link current-nav-link px-4 mb-2 block" href="#building_demos{% if version == 'main' %}_main{% endif %}">Building Demos</a>
-      <a class="thin-link px-4 block" href="#something-new{% if version == 'main' %}_main{% endif %}">Something New</a>
       <a class="thin-link px-4 block" href="#interface{% if version == 'main' %}_main{% endif %}">Interface</a>
       <div class="sub-links hidden" hash="#interface{% if version == 'main' %}_main{% endif %}">
       {% with obj=find_cls("Interface") %}
@@ -80,8 +79,6 @@
       <section id="building_demos{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10 mb-8">
         <section class="pt-2">
           <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos{% if version == 'main' %}_main{% endif %}">Building Demos</h2>
-          <section id="something-new{% if version == 'main' %}_main{% endif %}" class="pt-2">
-            <h3 class="text-4xl font-light my-4" id="something-new-header{% if version == 'main' %}_main{% endif %}">Something New</h3>
           {% with obj=find_cls("Interface"), is_class=True, parent="gradio" %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
