@@ -66,12 +66,15 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, 
-                 render: bool = True, 
-                 elem_id: str | None = None, 
-                 visible: bool = True,
-                 root_url: str | None = None,  # URL that is prepended to all file paths
-                 **kwargs):
+    def __init__(
+        self,
+        *,
+        render: bool = True,
+        elem_id: str | None = None,
+        visible: bool = True,
+        root_url: str | None = None,  # URL that is prepended to all file paths
+        **kwargs,
+    ):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
@@ -577,10 +580,12 @@ class Blocks(BlockContext):
             self._share = value
 
     @classmethod
-    def from_config(cls, config: dict, fns: List[Callable], root_url: str | None = None) -> Blocks:
+    def from_config(
+        cls, config: dict, fns: List[Callable], root_url: str | None = None
+    ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions.
-        
+
         Parameters:
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.

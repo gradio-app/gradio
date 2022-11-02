@@ -1394,7 +1394,7 @@ class Image(
         elif isinstance(y, PIL.Image.Image):
             return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            if self.root_url and not(utils.validate_url(y)):
+            if self.root_url and not (utils.validate_url(y)):
                 y = urljoin(self.root_url, y)
             return processing_utils.encode_url_or_file_to_base64(y)
         else:
@@ -1549,7 +1549,7 @@ class Image(
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
             return ""
-        if self.root_url and not(utils.validate_url(input_data)):
+        if self.root_url and not (utils.validate_url(input_data)):
             input_data = urljoin(self.root_url, input_data)
         if utils.validate_url(input_data):
             return input_data
@@ -2036,7 +2036,7 @@ class Audio(
 
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
-            return ""            
+            return ""
         if utils.validate_url(input_data):
             print(">>>>>", input_data)
             return input_data

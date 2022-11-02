@@ -312,7 +312,7 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
 def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
     file_url = f"{space_url}/resolve/main/"
-    
+
     print("Fetching Space from: {}".format(space_url))
 
     headers = {}
