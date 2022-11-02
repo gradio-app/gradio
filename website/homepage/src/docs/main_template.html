@@ -76,6 +76,7 @@
         See the <a class="link" href="/changelog">Release History</a>
       </p>
     </div>
+    {% if version == 'main' %}
     <div class="bg-gray-100 border border-gray-200 text-gray-800 px-4 py-1 mr-2 mt-4 rounded-lg">
       <p class="my-2 text-lg">
         To build Gradio from the latest commit to main, run the following command:
@@ -84,6 +85,7 @@
         <pre class="language-bash" style="width: 97%"><code class="language-bash">pip install {{ gradio_wheel_url }}</code></pre>
       </div>
     </div>
+    {% endif %}
     <section id="building_demos{% if version == 'main' %}_main{% endif %}" class="pt-2 flex flex-col gap-10 mb-8">
       <section class="pt-2">
         <h2 class="text-4xl font-light mb-2 pt-2 text-orange-500" id="building-demos{% if version == 'main' %}_main{% endif %}">Building Demos</h2>
