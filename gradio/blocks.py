@@ -606,7 +606,7 @@ class Blocks(BlockContext):
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None:
-                block_config["props"]["root_url"] = root_url
+                block_config["props"]["root_url"] = root_url + "/"
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
