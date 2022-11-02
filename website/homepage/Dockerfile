@@ -34,9 +34,9 @@ WORKDIR /gradio/website/homepage
 RUN pip install -r requirements.txt
 RUN pip install gradio -U 
 RUN python build-version-docs.py
+WORKDIR /gradio
 RUN pip uninstall -y gradio 
 RUN pip install .
-WORKDIR /gradio
 RUN python -m build -w
 ARG AWS_ACCESS_KEY_ID
 ENV AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
