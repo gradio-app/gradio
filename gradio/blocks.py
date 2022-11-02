@@ -594,7 +594,6 @@ class Blocks(BlockContext):
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
-        print("dd", root_url)
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -625,6 +624,9 @@ class Blocks(BlockContext):
                         iterate_over_children(children)
 
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            # ID 0 should be the root Blocks component
+            original_mapping[0] = Context.root_block or blocks
+            
             iterate_over_children(config["layout"]["children"])
 
             # add the event triggers
@@ -640,13 +642,11 @@ class Blocks(BlockContext):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency["_js"] = dependency.pop("js", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    event_method = getattr(original_mapping[target], trigger)
-                    event_method(fn=fn, **dependency)
+                    original_mapping[target].set_event_trigger(event_name=trigger, fn=fn, **dependency)
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
@@ -1095,7 +1095,7 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -1110,14 +1110,8 @@ class Blocks(BlockContext):
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
-                    "Blocks.load() requires passing `name` as a keyword argument"
+                    "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            if fn is not None:
-                kwargs["fn"] = fn
-            if inputs is not None:
-                kwargs["inputs"] = inputs
-            if outputs is not None:
-                kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
             return self_or_cls.set_event_trigger(

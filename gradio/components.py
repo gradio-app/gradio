@@ -1850,6 +1850,7 @@ class Audio(
         """
         if x is None:
             return x
+        print(">>>>>>>x", x)
         file_name, file_data, is_file = (
             x["name"],
             x["data"],
@@ -1980,6 +1981,7 @@ class Audio(
         Returns:
             base64 url data
         """
+        print(">>>>>><<<<<")
         if y is None:
             return None
         elif utils.validate_url(y):
@@ -1998,6 +2000,7 @@ class Audio(
                 file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         else:
             raise ValueError("Cannot postprocess audio data of type: " + str(type(y)))
+        print(">>>>>>>", file.name)
         return {"name": file.name, "data": None, "is_file": True}
 
     def stream(
@@ -2051,8 +2054,6 @@ class Audio(
             return ""
         if self.root_url and not (utils.validate_url(input_data)):
             input_data = urljoin(self.root_url, input_data)
-        if utils.validate_url(input_data):
-            return input_data
         return Path(input_data).name
 
 
@@ -2242,8 +2243,6 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
                 return ""
             if self.root_url and not (utils.validate_url(input_data)):
                 input_data = urljoin(self.root_url, input_data)
-            if utils.validate_url(input_data):
-                return input_data
             return Path(input_data).name
 
         if input_data is None:
@@ -3677,8 +3676,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             return ""
         if self.root_url and not (utils.validate_url(input_data)):
             input_data = urljoin(self.root_url, input_data)
-        if utils.validate_url(input_data):
-            return input_data
         return Path(input_data).name
 
 
