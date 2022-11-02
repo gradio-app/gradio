@@ -1273,7 +1273,11 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
-            self.protocol = "https" if self.local_url.startswith("https") or self.is_colab else "http"
+            self.protocol = (
+                "https"
+                if self.local_url.startswith("https") or self.is_colab
+                else "http"
+            )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
