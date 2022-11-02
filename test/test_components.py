@@ -1921,10 +1921,11 @@ def test_dataframe_as_example_converts_dataframes():
     assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
 
 
-@pytest.mark.parametrize("component", [gr.Model3D, gr.File])
+@pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
 def test_as_example_returns_file_basename(component):
     component = component()
     assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
+    assert component.as_example(None) == ""
 
 
 @patch("gradio.components.IOComponent.as_example")
