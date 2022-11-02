@@ -66,11 +66,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
+    def __init__(self, *, 
+                 render: bool = True, 
+                 elem_id: str | None = None, 
+                 visible: bool = True,
+                 root_url: str | None = None,  # URL that is prepended to all file paths
+                 **kwargs):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.root_url = root_url
         self._style = {}
         if render:
             self.render()
@@ -246,6 +252,7 @@ class Block:
             "visible": self.visible,
             "elem_id": self.elem_id,
             "style": self._style,
+            "root_url": self.root_url,
         }
 
     @classmethod
@@ -594,11 +601,11 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
+            if block_config["props"].get("root_url") is None:
+                block_config["props"]["root_url"] = root_url
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
-            if hasattr(block, "root_url"):
-                block.root_url = root_url
             return block
 
         def iterate_over_children(children_list):

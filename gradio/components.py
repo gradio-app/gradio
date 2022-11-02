@@ -105,14 +105,12 @@ class IOComponent(Component, Serializable):
         requires_permissions: bool = False,
         elem_id: str | None = None,
         load_fn: Callable | None = None,
-        root_url: str | None = None,  # URL that is prepended to all file paths
         **kwargs,
     ):
         self.label = label
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
-        self.root_url = root_url 
 
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
@@ -132,7 +130,6 @@ class IOComponent(Component, Serializable):
             "label": self.label,
             "show_label": self.show_label,
             "interactive": self.interactive,
-            "root_url": self.root_url,
             **super().get_config(),
         }
 
@@ -1549,13 +1546,14 @@ class Image(
             postprocess=postprocess,
         )
 
-    def as_example(self, input_data: str | List) -> str:
-        return input_data
-        # if self.root_url and not(utils.validate_url(y)):
-        #     y = urljoin(self.root_url, y)
-        # if utils.validate_url(y):
-        #     return y
-        # return Path(input_data).name
+    def as_example(self, input_data: str | None) -> str:
+        if input_data is None:
+            return ""
+        if self.root_url and not(utils.validate_url(input_data)):
+            input_data = urljoin(self.root_url, input_data)
+        if utils.validate_url(input_data):
+            return input_data
+        return Path(input_data).name
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -3828,6 +3826,7 @@ class Dataset(Clickable, Component):
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
+                component.root_url = self.root_url
                 example[i] = component.as_example(ex)
         self.type = type
         self.label = label
