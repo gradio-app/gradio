@@ -21,7 +21,9 @@ The `api_name` parameter will take precendence over the `fn_index` parameter.
 * Fixed links in Plotly map guide + demo by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2578](https://github.com/gradio-app/gradio/pull/2578)
 
 ## Documentation Changes:
-No changes to highlight.
+* See docs for the latest gradio commit to main as well the latest pip release:
+
+![main-vs-pip](https://user-images.githubusercontent.com/9021060/199607887-aab1ae4e-a070-4527-966d-024397abe15b.gif)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -31,6 +33,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
 
 ## Contributors Shoutout:
 No changes to highlight.
