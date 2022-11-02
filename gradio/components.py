@@ -20,14 +20,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-if TYPE_CHECKING:
-    from typing import TypedDict
-
-    class DataframeData(TypedDict):
-        headers: List[str]
-        data: List[List[str | int | bool]]
-
-
 import matplotlib.figure
 import numpy as np
 import pandas as pd
@@ -58,6 +50,14 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 set_documentation_group("component")
 
@@ -2023,7 +2023,7 @@ class Audio(
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear", "style")
@@ -2202,8 +2202,10 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str | List) -> str:
-        if isinstance(input_data, list):
+    def as_example(self, input_data: str | List | None) -> str | List[str]:
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, list):
             return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
@@ -3615,7 +3617,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear")
