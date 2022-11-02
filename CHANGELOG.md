@@ -49,7 +49,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593)
+* Add new `UploadButton` component by  [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591) 
 
 ## Contributors Shoutout:
 No changes to highlight.
