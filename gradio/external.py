@@ -21,7 +21,6 @@ from gradio.external_utils import (
     get_ws_fn,
     postprocess_label,
     rows_to_cols,
-    streamline_spaces_blocks,
     streamline_spaces_interface,
     use_websocket,
 )

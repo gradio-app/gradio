@@ -1547,6 +1547,14 @@ class Image(
             postprocess=postprocess,
         )
 
+    def as_example(self, input_data: str | List) -> str:
+        return input_data
+        # if self.root_url and not(utils.validate_url(y)):
+        #     y = urljoin(self.root_url, y)
+        # if utils.validate_url(y):
+        #     return y
+        # return Path(input_data).name
+
 
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
@@ -2027,6 +2035,10 @@ class Audio(
         )
 
     def as_example(self, input_data: str) -> str:
+        if utils.validate_url(input_data):
+            print(">>>>>", input_data)
+            return input_data
+        print("<<<", input_data)
         return Path(input_data).name
 
 

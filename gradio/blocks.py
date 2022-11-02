@@ -582,6 +582,7 @@ class Blocks(BlockContext):
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
+        print("dd", root_url)
 
         def get_block_instance(id: int) -> Block:
             for block_config in components_config:
@@ -596,7 +597,7 @@ class Blocks(BlockContext):
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
-            if isinstance(block, IOComponent):
+            if hasattr(block, "root_url"):
                 block.root_url = root_url
             return block
 
