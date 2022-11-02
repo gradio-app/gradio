@@ -1,9 +1,34 @@
 # Upcoming Release 
 
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
+* Fixed links in Plotly map guide + demo by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2578](https://github.com/gradio-app/gradio/pull/2578)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.8.2
+
 ## Bug Fixes:
 
 * Ensure gradio apps embedded via spaces use the correct endpoint for predictions. [@pngwn](https://github.com/pngwn) in [PR 2567](https://github.com/gradio-app/gradio/pull/2567)
-
+* Ensure gradio apps embedded via spaces use the correct websocket protocol. [@pngwn](https://github.com/pngwn) in [PR 2571](https://github.com/gradio-app/gradio/pull/2571)
 
 ## New Features:
 
@@ -64,7 +89,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Allows loading private Spaces by passing an an `api_key` to `gr.Interface.load()`
+by [@abidlabs](https://github.com/abidlabs) in [PR 2568](https://github.com/gradio-app/gradio/pull/2568)
 
 ## Contributors Shoutout:
 No changes to highlight.
