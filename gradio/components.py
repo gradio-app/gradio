@@ -2701,6 +2701,143 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
         return IOComponent.style(self, **kwargs)
 
+@document("change", "style")
+class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
+    """
+    Used to create an upload button, when cicked allows uploading the specified file type or generic files. The label (value) of the button can be used as an input or set via the output of a function.
+
+    Preprocessing: passes the uploaded file as a {file-object} (or {bytes}} depending on `type`)
+    Postprocessing: expects function to return a {str} path to a file.
+    Examples-format: a {str} path to a local file that populates the component.
+    """
+
+    def __init__(
+        self,
+        value: Optional[str | List[str] | Callable] = None,
+        *,
+        variant: str = "secondary",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        type: str = "file",
+        file_data_type: str = "file",
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
+            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.temp_dir = tempfile.mkdtemp()
+        self.variant = variant
+        self.type = type
+        self.file_data_type = file_data_type
+        IOComponent.__init__(
+            self, 
+            visible=visible, 
+            elem_id=elem_id, 
+            value=value, 
+            **kwargs
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            "variant": self.variant,
+            "file_data_type": self.file_data_type,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = _Keywords.NO_VALUE,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        updated_config = {
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+    
+    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+        """
+        Parameters:
+            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        Returns:
+            File objects in requested format
+        """
+        if x is None:
+            return None
+
+        file_name, data, is_file = (
+            x["name"],
+            x["data"],
+            x.get("is_file", False),
+        )
+        if self.type == "file":
+            if is_file:
+                file = processing_utils.create_tmp_copy_of_file(file_name)
+                file.orig_name = file_name
+            else:
+                file = processing_utils.decode_base64_to_file(
+                    data, file_path=file_name
+                )
+                file.orig_name = file_name
+            return file
+        elif self.type == "bytes":
+            if is_file:
+                with open(file_name, "rb") as file_data:
+                    return file_data.read()
+            return processing_utils.decode_base64_to_binary(data)[0]
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'file', 'bytes'."
+            )
+
+    def generate_sample(self):
+        return deepcopy(media_data.BASE64_FILE)
+
+    def postprocess(self, y: str) -> Dict:
+        """
+        Parameters:
+            y: file path
+        Returns:
+            JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+        """
+        if y is None:
+            return None
+        return {
+            "orig_name": os.path.basename(y),
+            "name": processing_utils.create_tmp_copy_of_file(
+                y, dir=self.temp_dir
+            ).name,
+            "size": os.path.getsize(y),
+            "data": None,
+            "is_file": True,
+        }
+
+    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
+        serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
+        serialized["size"] = os.path.getsize(serialized["name"])
+        return serialized
+
+    def style(self, *, full_width: Optional[bool] = None, **kwargs):
+        """
+        This method can be used to change the appearance of the button component.
+        Parameters:
+            full_width: If True, will expand to fill parent container.
+        """
+        if full_width is not None:
+            self._style["full_width"] = full_width
+
+        return IOComponent.style(self, **kwargs)
 
 @document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):

@@ -11,6 +11,7 @@ from gradio.components import (
     JSON,
     Audio,
     Button,
+    UploadButton,
     Carousel,
     Chatbot,
     Checkbox,
