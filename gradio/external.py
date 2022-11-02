@@ -312,6 +312,8 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
 
 def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
+    file_url = f"{space_url}/resolve/main/"
+    
     print("Fetching Space from: {}".format(space_url))
 
     headers = {}
@@ -345,13 +347,12 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
             space_name, config, alias, api_key, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
-        return from_spaces_blocks(space_name, config, api_key, iframe_url)
+        return from_spaces_blocks(config, api_key, iframe_url, file_url)
 
 
 def from_spaces_blocks(
-    model_name: str, config: Dict, api_key: str | None, iframe_url: str
+    config: Dict, api_key: str | None, iframe_url: str, file_url: str
 ) -> Blocks:
-    config = streamline_spaces_blocks(config)
     api_url = "{}/api/predict/".format(iframe_url)
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
@@ -398,7 +399,7 @@ def from_spaces_blocks(
             fns.append(fn)
         else:
             fns.append(None)
-    return gradio.Blocks.from_config(config, fns)
+    return gradio.Blocks.from_config(config, fns, file_url)
 
 
 def from_spaces_interface(

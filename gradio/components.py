@@ -19,6 +19,7 @@ from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from urllib.parse import urljoin
 
 import matplotlib.figure
 import numpy as np
@@ -110,7 +111,7 @@ class IOComponent(Component, Serializable):
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
-        self.root_dir: str | None = None  # Directory that is prepended to all file paths for this component
+        self.root_url: str | None = None  # URL that is prepended to all file paths
 
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
@@ -1394,7 +1395,8 @@ class Image(
         elif isinstance(y, PIL.Image.Image):
             return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            if 
+            if self.root_url and not(utils.validate_url(y)):
+                y = urljoin(self.root_url, y)
             return processing_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")

@@ -570,8 +570,15 @@ class Blocks(BlockContext):
             self._share = value
 
     @classmethod
-    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
-        """Factory method that creates a Blocks from a config and list of functions."""
+    def from_config(cls, config: dict, fns: List[Callable], root_url: str | None = None) -> Blocks:
+        """
+        Factory method that creates a Blocks from a config and list of functions.
+        
+        Parameters:
+        config: a dictionary containing the configuration of the Blocks.
+        fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
+        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
@@ -589,6 +596,8 @@ class Blocks(BlockContext):
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
+            if isinstance(block, IOComponent):
+                block.root_url = root_url
             return block
 
         def iterate_over_children(children_list):
