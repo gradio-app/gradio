@@ -17,7 +17,7 @@ with gr.Blocks() as demo:
         with gr.Column():
             german = gr.Textbox(label="German Text")
 
-    translate_btn.click(translate, inputs=english, outputs=german)
+    translate_btn.click(translate, inputs=english, outputs=german, api_name="translate-to-german")
     examples = gr.Examples(examples=["I went to the supermarket yesterday.", "Helen is a good swimmer."],
                            inputs=[english])
 

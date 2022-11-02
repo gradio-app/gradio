@@ -98,20 +98,21 @@ class IOComponent(Component, Serializable):
         self,
         *,
         value: Any = None,
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
         requires_permissions: bool = False,
-        elem_id: Optional[str] = None,
-        load_fn: Optional[Callable] = None,
+        elem_id: str | None = None,
+        load_fn: Callable | None = None,
+        root_url: str | None = None,  # URL that is prepended to all file paths
         **kwargs,
     ):
         self.label = label
         self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
-        self.root_url: str | None = None  # URL that is prepended to all file paths
+        self.root_url = root_url 
 
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
@@ -131,6 +132,7 @@ class IOComponent(Component, Serializable):
             "label": self.label,
             "show_label": self.show_label,
             "interactive": self.interactive,
+            "root_url": self.root_url,
             **super().get_config(),
         }
 
@@ -2034,7 +2036,9 @@ class Audio(
             **kwargs,
         )
 
-    def as_example(self, input_data: str) -> str:
+    def as_example(self, input_data: str | None) -> str:
+        if input_data is None:
+            return ""            
         if utils.validate_url(input_data):
             print(">>>>>", input_data)
             return input_data
@@ -2218,8 +2222,10 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str | List) -> str:
-        if isinstance(input_data, list):
+    def as_example(self, input_data: str | List | None) -> str | List[str]:
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, list):
             return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
@@ -3631,7 +3637,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear")
