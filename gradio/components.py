@@ -1697,6 +1697,9 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         if y is None:
             return None
 
+        if self.root_url and isinstance(y, (str, Path)) and not (utils.validate_url(y)):
+            y = urljoin(self.root_url, y)
+
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y, dir=self.temp_dir).name
 
@@ -1733,6 +1736,13 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             self,
             **kwargs,
         )
+
+    def as_example(self, input_data: str | None) -> str:
+        if input_data is None:
+            return ""
+        if self.root_url and not (utils.validate_url(input_data)):
+            input_data = urljoin(self.root_url, input_data)
+        return input_data
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
