@@ -2,6 +2,20 @@
 
 ## New Features:
 
+### Calling functions by api_name in loaded apps
+
+When you load an upstream app with `gr.Blocks.load`, you can now specify which fn
+to call with the `api_name` parameter.
+
+```python
+import gradio as gr
+english_translator = gr.Blocks.load(name="spaces/gradio/english-translator")
+german = english_translator("My name is Freddy", api_name='translate-to-german')
+```
+
+The `api_name` parameter will take precendence over the `fn_index` parameter.
+
+
 ### Upload Button
 There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept (ex: `image`, `video`, `audio`, `text`, or generic `file`).
 
@@ -35,7 +49,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
 
 ## Contributors Shoutout:
 No changes to highlight.
