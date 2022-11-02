@@ -15,6 +15,11 @@ with open(VERSION_TXT) as f:
     gradio_version=f.read()
 gradio_version = gradio_version.strip()
 
+# Reasoning:
+# 1. all_demos includes all demos and is for testing PRs
+# 2. reset_components includes media files that are only present in all_demos (only for PRs)
+# 3. custom_path doesn't have .launch since the point is to show how to launch with uvicorn
+# 4. The same reason as 2 for kitchen_sink_random
 DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_random"}
 
 
