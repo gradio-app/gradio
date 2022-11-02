@@ -11,6 +11,7 @@ import pytest
 import gradio
 import gradio as gr
 from gradio import utils
+from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
     cols_to_rows,
@@ -415,6 +416,21 @@ def test_respect_queue_when_load_from_config():
         ):
             interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
             assert interface("bob") == "foo"
+
+
+def test_raise_value_error_when_api_name_invalid():
+    with pytest.raises(InvalidApiName):
+        demo = gr.Blocks.load(name="spaces/gradio/hello_world")
+        demo("freddy", api_name="route does not exist")
+
+
+def test_use_api_name_in_call_method():
+    # Interface
+    demo = gr.Blocks.load(name="spaces/gradio/hello_world")
+    assert isinstance(demo("freddy", api_name="predict"), str)
+
+    app = gr.Blocks.load(name="spaces/gradio/queue-benchmark")
+    assert isinstance(app("freddy", api_name="text"), str)
 
 
 if __name__ == "__main__":
