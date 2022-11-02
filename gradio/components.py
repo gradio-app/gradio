@@ -2037,10 +2037,10 @@ class Audio(
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
             return ""
+        if self.root_url and not (utils.validate_url(input_data)):
+            input_data = urljoin(self.root_url, input_data)
         if utils.validate_url(input_data):
-            print(">>>>>", input_data)
             return input_data
-        print("<<<", input_data)
         return Path(input_data).name
 
 
@@ -2219,14 +2219,24 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             self,
             **kwargs,
         )
+        
+    def _as_example_single_file(self, input_data: str | None) -> str:
+        if input_data is None:
+            return ""
+        if self.root_url and not (utils.validate_url(input_data)):
+            input_data = urljoin(self.root_url, input_data)
+        if utils.validate_url(input_data):
+            return input_data
+        return Path(input_data).name
+        
 
     def as_example(self, input_data: str | List | None) -> str | List[str]:
         if input_data is None:
             return ""
         elif isinstance(input_data, list):
-            return [Path(file).name for file in input_data]
+            return [self._as_example_single_file(file) for file in input_data]
         else:
-            return Path(input_data).name
+            return self._as_example_single_file(input_data)
 
 
 @document("change", "style")
@@ -3634,8 +3644,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str) -> str:
-        return Path(input_data).name if input_data else ""
+    def as_example(self, input_data: str | None) -> str:
+        if input_data is None:
+            return ""
+        if self.root_url and not (utils.validate_url(input_data)):
+            input_data = urljoin(self.root_url, input_data)
+        if utils.validate_url(input_data):
+            return input_data
+        return Path(input_data).name
 
 
 @document("change", "clear")
@@ -3826,6 +3842,8 @@ class Dataset(Clickable, Component):
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
+                if not isinstance(component, IOComponent):
+                    raise ValueError(f"Dataset does not support component type: {component}")
                 component.root_url = self.root_url
                 example[i] = component.as_example(ex)
         self.type = type
