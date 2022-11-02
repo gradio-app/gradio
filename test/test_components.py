@@ -102,6 +102,7 @@ class TestTextbox(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
         self.assertIsInstance(text_input.generate_sample(), str)
@@ -201,6 +202,7 @@ class TestNumber(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -248,6 +250,7 @@ class TestNumber(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -372,6 +375,7 @@ class TestSlider(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -447,6 +451,7 @@ class TestCheckbox(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -492,6 +497,7 @@ class TestCheckboxGroup(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -535,6 +541,7 @@ class TestRadio(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -593,6 +600,7 @@ class TestImage(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
                 "mirror_webcam": True,
             },
         )
@@ -763,6 +771,7 @@ class TestAudio(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -799,6 +808,7 @@ class TestAudio(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
         self.assertTrue(
@@ -893,6 +903,7 @@ class TestFile(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
         self.assertIsNone(file_input.preprocess(None))
@@ -974,6 +985,7 @@ class TestDataframe(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
                 "wrap": False,
             },
         )
@@ -1008,6 +1020,7 @@ class TestDataframe(unittest.TestCase):
                     "headers": [1, 2, 3],
                 },
                 "interactive": None,
+                "root_url": None,
                 "wrap": False,
             },
         )
@@ -1227,6 +1240,7 @@ class TestVideo(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
                 "mirror_webcam": True,
             },
         )
@@ -1364,6 +1378,7 @@ class TestTimeseries(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
         self.assertIsNone(timeseries_input.preprocess(None))
@@ -1388,6 +1403,7 @@ class TestTimeseries(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
@@ -1532,6 +1548,7 @@ class TestLabel(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -1628,6 +1645,7 @@ class TestHighlightedText(unittest.TestCase):
                 "visible": True,
                 "value": None,
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -1678,6 +1696,7 @@ class TestJSON(unittest.TestCase):
                 "label": None,
                 "name": "json",
                 "interactive": None,
+                "root_url": None,
             },
         )
 
@@ -1728,6 +1747,7 @@ class TestHTML(unittest.TestCase):
                 "label": "HTML Input",
                 "name": "html",
                 "interactive": None,
+                "root_url": None,
             },
             html_component.get_config(),
         )
@@ -1757,6 +1777,7 @@ class TestModel3D(unittest.TestCase):
                 "label": "Model",
                 "show_label": True,
                 "interactive": None,
+                "root_url": None,
                 "name": "model3d",
                 "visible": True,
                 "elem_id": None,
@@ -1801,6 +1822,7 @@ class TestColorPicker(unittest.TestCase):
                 "elem_id": None,
                 "visible": True,
                 "interactive": None,
+                "root_url": None,
                 "name": "colorpicker",
             },
         )
@@ -1929,18 +1951,20 @@ def test_as_example_returns_file_basename(component):
 
 
 @patch("gradio.components.IOComponent.as_example")
+@patch("gradio.components.Image.as_example")
 @patch("gradio.components.File.as_example")
 @patch("gradio.components.Dataframe.as_example")
 @patch("gradio.components.Model3D.as_example")
 def test_dataset_calls_as_example(*mocks):
     gr.Dataset(
-        components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D()],
+        components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
         samples=[
             [
                 pd.DataFrame({"a": np.array([1, 2, 3])}),
                 "foo.png",
                 "bar.jpeg",
                 "duck.obj",
+                "hello",
             ]
         ],
     )

@@ -107,6 +107,8 @@ class IOComponent(Component, Serializable):
         load_fn: Callable | None = None,
         **kwargs,
     ):
+        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
+
         self.label = label
         self.show_label = show_label
         self.requires_permissions = requires_permissions
@@ -122,8 +124,6 @@ class IOComponent(Component, Serializable):
         else:
             self.attach_load_event = False
             self.load_fn = None
-
-        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
     def get_config(self):
         return {
@@ -1551,9 +1551,7 @@ class Image(
             return ""
         if self.root_url and not (utils.validate_url(input_data)):
             input_data = urljoin(self.root_url, input_data)
-        if utils.validate_url(input_data):
-            return input_data
-        return Path(input_data).name
+        return input_data
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
