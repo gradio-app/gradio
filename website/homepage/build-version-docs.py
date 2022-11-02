@@ -2,6 +2,7 @@ import os
 import shutil
 import jinja2
 from src import index, guides, docs, demos, changelog
+import requests
 
 SRC_DIR = "src"
 BUILD_DIR = "build"
@@ -19,5 +20,6 @@ with open(VERSION_TXT) as f:
     version = f.read()
 version = version.strip()
 
-
-docs.build_pip_template(version , jinja_env)
+latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
+if version == latest_gradio_stable:
+    docs.build_pip_template(version , jinja_env)
