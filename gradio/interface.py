@@ -31,9 +31,9 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
+from gradio.pipelines import load_from_pipeline  # type: ignore
 
 set_documentation_group("interface")
 
@@ -92,10 +92,10 @@ class Interface(Blocks):
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
-            name: the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: optional api key for use with Hugging Face Hub
-            alias: optional string used as the name of the loaded model instead of the default name
+            name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
         Example:
