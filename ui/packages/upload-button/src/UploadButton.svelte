@@ -41,10 +41,7 @@
 				if (
 					all_file_data.filter((x) => x !== undefined).length === files.length
 				) {
-					dispatch(
-						"load",
-						all_file_data[0]
-					);
+					dispatch("load", all_file_data[0]);
 				}
 			};
 		});
@@ -59,12 +56,12 @@
 </script>
 
 <input
-		class="hidden-upload hidden"
-		accept={filetype + "/*"}
-		type="file"
-		bind:this={hidden_upload}
-		on:change={loadFilesFromUpload}
-	/>
+	class="hidden-upload hidden"
+	accept={filetype + "/*"}
+	type="file"
+	bind:this={hidden_upload}
+	on:change={loadFilesFromUpload}
+/>
 
 <button
 	on:click={openFileUpload}

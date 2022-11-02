@@ -2703,6 +2703,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
         return IOComponent.style(self, **kwargs)
 
+
 @document("change", "style")
 class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
     """
@@ -2737,11 +2738,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         self.type = type
         self.file_data_type = file_data_type
         IOComponent.__init__(
-            self, 
-            visible=visible, 
-            elem_id=elem_id, 
-            value=value, 
-            **kwargs
+            self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
     def get_config(self):
@@ -2765,7 +2762,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-    
+
     def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
         """
         Parameters:
@@ -2786,9 +2783,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
                 file = processing_utils.create_tmp_copy_of_file(file_name)
                 file.orig_name = file_name
             else:
-                file = processing_utils.decode_base64_to_file(
-                    data, file_path=file_name
-                )
+                file = processing_utils.decode_base64_to_file(data, file_path=file_name)
                 file.orig_name = file_name
             return file
         elif self.type == "bytes":
@@ -2817,9 +2812,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
             return None
         return {
             "orig_name": os.path.basename(y),
-            "name": processing_utils.create_tmp_copy_of_file(
-                y, dir=self.temp_dir
-            ).name,
+            "name": processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir).name,
             "size": os.path.getsize(y),
             "data": None,
             "is_file": True,
@@ -2840,6 +2833,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
             self._style["full_width"] = full_width
 
         return IOComponent.style(self, **kwargs)
+
 
 @document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):

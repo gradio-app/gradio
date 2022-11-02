@@ -26,6 +26,13 @@
 	}>();
 </script>
 
-<UploadButton {variant} {elem_id} {style} {visible} on:click on:load={handle_upload}>
+<UploadButton
+	{variant}
+	{elem_id}
+	{style}
+	{visible}
+	on:click
+	on:load={handle_upload}
+>
 	{"Upload a File"}
 </UploadButton>
