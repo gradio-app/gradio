@@ -155,6 +155,7 @@ class App(FastAPI):
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
         def main(request: Request, user: str = Depends(get_current_user)):
+            return ""
             mimetypes.add_type("application/javascript", ".js")
 
             if app.auth is None or not (user is None):
