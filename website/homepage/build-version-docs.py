@@ -21,5 +21,4 @@ with open(VERSION_TXT) as f:
 version = version.strip()
 
 latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
-if version == latest_gradio_stable:
-    docs.build_pip_template(version , jinja_env)
+docs.build_pip_template(latest_gradio_stable , jinja_env)
