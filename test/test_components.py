@@ -171,7 +171,7 @@ class TestTextbox(unittest.TestCase):
         """
         component = gr.TextArea(value="abc")
         self.assertEqual(component.get_config().get("value"), "abc")
-        self.assertEqual(component.get_config().get("lines"), 7)        
+        self.assertEqual(component.get_config().get("lines"), 7)
         component = gr.TextArea(value="abc", lines=4)
         self.assertEqual(component.get_config().get("value"), "abc")
         self.assertEqual(component.get_config().get("lines"), 4)
