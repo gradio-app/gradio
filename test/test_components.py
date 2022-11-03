@@ -1215,49 +1215,6 @@ class TestDataset:
             "__type__": "update",
         }
 
-    def test_root_url(self):
-        bus_path = "bus.png"
-        root_url = "https://test.com"
-        full_bus_path = "https://test.com/bus.png"
-
-        dataset = gr.Dataset(
-            components=["number", "textbox", "image", "html", "markdown"],
-            type="index",
-            samples=[
-                [5, "hello", bus_path, "<b>Bold</b>", "**Bold**"],
-                [15, "hi", bus_path, "<i>Italics</i>", "*Italics*"],
-            ],
-            root_url=root_url,
-        )
-
-        assert dataset.get_config() == {
-            "components": ["number", "textbox", "image", "html", "markdown"],
-            "headers": [],
-            "samples": [
-                [
-                    5,
-                    "hello",
-                    full_bus_path,
-                    "<b>Bold</b>",
-                    "<p><strong>Bold</strong></p>\n",
-                ],
-                [
-                    15,
-                    "hi",
-                    full_bus_path,
-                    "<i>Italics</i>",
-                    "<p><em>Italics</em></p>\n",
-                ],
-            ],
-            "type": "index",
-            "label": None,
-            "name": "dataset",
-            "visible": True,
-            "elem_id": None,
-            "style": {},
-            "root_url": "https://test.com",
-        }
-
 
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
