@@ -165,6 +165,17 @@ class TestTextbox(unittest.TestCase):
         component = gr.Textbox("abc")
         self.assertEqual(component.get_config().get("value"), "abc")
 
+    def test_override_template(self):
+        """
+        override template
+        """
+        component = gr.TextArea(value="abc")
+        self.assertEqual(component.get_config().get("value"), "abc")
+        self.assertEqual(component.get_config().get("lines"), 7)        
+        component = gr.TextArea(value="abc", lines=4)
+        self.assertEqual(component.get_config().get("value"), "abc")
+        self.assertEqual(component.get_config().get("lines"), 4)
+
 
 class TestNumber(unittest.TestCase):
     def test_component_functions(self):
