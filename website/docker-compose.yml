@@ -11,10 +11,3 @@ services:
     container_name: homepage
     ports:
       - "8080:80"
-  demos:
-    build:
-      context: ../
-      dockerfile: ./website/demos/Dockerfile
-    container_name: demos
-    ports:
-      - "8070:80"

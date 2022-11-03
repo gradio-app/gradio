@@ -1,7 +1,7 @@
 import os
 from gradio.documentation import generate_documentation, document_cls
 import gradio.templates
-from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
+from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable, Blurrable, Uploadable
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -56,6 +56,10 @@ def add_supported_events():
             component["events"].append("edit()")
         if issubclass(component["class"], Submittable):
             component["events"].append("submit()")
+        if issubclass(component["class"], Blurrable):
+                component["events"].append("blur()")
+        if issubclass(component["class"], Uploadable):
+            component["events"].append("upload()")
         if component["events"]:
             component["events"] = ", ".join(component["events"])
 

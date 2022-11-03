@@ -27,11 +27,10 @@ function isTouchDevice() {
 
 if (isTouchDevice()) {
       for (let i = 0; i < headers.length; i++) {
-        let link = '#' + headers[i].id;
-        var parent = headers[i].parentNode;
-        var wrapper = createMobileAnchorTag(link);
-        parent.replaceChild(wrapper, headers[i]);
-        wrapper.appendChild(headers[i]);
+            let link = '#' + headers[i].id;
+            var wrapper = createMobileAnchorTag(link);
+            headers[i].replaceWith(wrapper);
+            wrapper.appendChild(headers[i]);
       }
 } else {
       for (let i = 0; i < headers.length; i++) {

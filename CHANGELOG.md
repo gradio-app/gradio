@@ -1,14 +1,24 @@
-# Upcoming Release
-
-## Bug Fixes:
-
-* Ensure that Gradio does not take control of the HTML page title when embedding a gradio app as a web component, this behaviour flipped by adding `control_page_title="true"` to the webcomponent. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2400)
-* Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
+# Upcoming Release 
 
 ## New Features:
 
-* When an `Image` component is set to `source="upload"`, it is now possible to drag and drop and image to replace a previously uploaded image by [@pngwn](https://github.com/pngwn) in [PR 1711](https://github.com/gradio-app/gradio/issues/1711)
+### Calling functions by api_name in loaded apps
 
+When you load an upstream app with `gr.Blocks.load`, you can now specify which fn
+to call with the `api_name` parameter.
+
+```python
+import gradio as gr
+english_translator = gr.Blocks.load(name="spaces/gradio/english-translator")
+german = english_translator("My name is Freddy", api_name='translate-to-german')
+```
+
+The `api_name` parameter will take precendence over the `fn_index` parameter.
+
+
+## Bug Fixes:
+* Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
+* Fixed links in Plotly map guide + demo by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2578](https://github.com/gradio-app/gradio/pull/2578)
 
 ## Documentation Changes:
 No changes to highlight.
@@ -20,13 +30,353 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
+* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.8.2
+
+## Bug Fixes:
+
+* Ensure gradio apps embedded via spaces use the correct endpoint for predictions. [@pngwn](https://github.com/pngwn) in [PR 2567](https://github.com/gradio-app/gradio/pull/2567)
+* Ensure gradio apps embedded via spaces use the correct websocket protocol. [@pngwn](https://github.com/pngwn) in [PR 2571](https://github.com/gradio-app/gradio/pull/2571)
+
+## New Features:
+
+### Running Events Continuously
+Gradio now supports the ability to run an event continuously on a fixed schedule. To use this feature,
+pass `every=# of seconds` to the event definition. This will run the event every given number of seconds!
+
+This can be used to:
+* Create live visualizations that show the most up to date data 
+* Refresh the state of the frontend automatically in response to changes in the backend
+
+Here is an example of a live plot that refreshes every half second:
+```python
+import math
+import gradio as gr
+import plotly.express as px
+import numpy as np
+
+
+plot_end = 2 * math.pi
+
+
+def get_plot(period=1):
+    global plot_end
+    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
+    y = np.sin(2*math.pi*period * x)
+    fig = px.line(x=x, y=y)
+    plot_end += 2 * math.pi
+    return fig
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            gr.Markdown("Change the value of the slider to automatically update the plot")
+            period = gr.Slider(label="Period of plot", value=1, minimum=0, maximum=10, step=1)
+            plot = gr.Plot(label="Plot (updates every half second)")
+
+    dep = demo.load(get_plot, None, plot, every=0.5)
+    period.change(get_plot, period, plot, every=0.5, cancels=[dep])
+
+demo.queue().launch()
+```
+
+![live_demo](https://user-images.githubusercontent.com/41651716/198357377-633ce460-4e31-47bd-8202-1440cdd6fe19.gif)
+
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Allows loading private Spaces by passing an an `api_key` to `gr.Interface.load()`
+by [@abidlabs](https://github.com/abidlabs) in [PR 2568](https://github.com/gradio-app/gradio/pull/2568)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.8
+
+## New Features:
+* Allows event listeners to accept a single dictionary as its argument, where the keys are the components and the values are the component values. This is set by passing the input components in the event listener as a set instead of a list. [@aliabid94](https://github.com/aliabid94) in [PR 2550](https://github.com/gradio-app/gradio/pull/2550)
+
+## Bug Fixes:
+* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
+* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
+* Removed erroneous tkinter import in gradio.blocks by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2555](https://github.com/gradio-app/gradio/pull/2555)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Added the `every` keyword to event listeners that runs events on a fixed schedule by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2512](https://github.com/gradio-app/gradio/pull/2512)
+* Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
+* Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.7
+
+## New Features:
+
+### Batched Functions
+
+Gradio now supports the ability to pass *batched* functions. Batched functions are just
+functions which take in a list of inputs and return a list of predictions.
+
+For example, here is a batched function that takes in two lists of inputs (a list of 
+words and a list of ints), and returns a list of trimmed words as output:
+
+```py
+import time
+
+def trim_words(words, lens):
+    trimmed_words = []
+    time.sleep(5)
+    for w, l in zip(words, lens):
+        trimmed_words.append(w[:l])        
+    return [trimmed_words]
+```
+
+The advantage of using batched functions is that if you enable queuing, the Gradio
+server can automatically *batch* incoming requests and process them in parallel, 
+potentially speeding up your demo. Here's what the Gradio code looks like (notice
+the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
+into event triggers or into the `Interface` class) 
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        word = gr.Textbox(label="word", value="abc")
+        leng = gr.Number(label="leng", precision=0, value=1)
+        output = gr.Textbox(label="Output")
+    with gr.Row():
+        run = gr.Button()
+
+    event = run.click(trim_words, [word, leng], output, batch=True, max_batch_size=16)
+
+demo.queue()
+demo.launch()
+```
+
+In the example above, 16 requests could be processed in parallel (for a total inference
+time of 5 seconds), instead of each request being processed separately (for a total
+inference time of 80 seconds).
+
+### Upload Event
+
+`Video`, `Audio`, `Image`, and `File` components now support a `upload()` event that is triggered when a user uploads a file into any of these components.
+
+Example usage:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        input_video = gr.Video()
+        output_video = gr.Video()
+
+     # Clears the output video when an input video is uploaded
+    input_video.upload(lambda : None, None, output_video)  
+```
+
+
+## Bug Fixes:
+* Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
+* Prevent requests to the `/api` endpoint from skipping the queue if the queue is enabled for that event by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2493](https://github.com/gradio-app/gradio/pull/2493)
+* Fixes a bug with `cancels` in event triggers so that it works properly if multiple
+Blocks are rendered by [@abidlabs](https://github.com/abidlabs) in [PR 2530](https://github.com/gradio-app/gradio/pull/2530)  
+* Prevent invalid targets of events from crashing the whole application. [@pngwn](https://github.com/pngwn) in [PR 2534](https://github.com/gradio-app/gradio/pull/2534)
+* Properly dequeue cancelled events when multiple apps are rendered by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2540](https://github.com/gradio-app/gradio/pull/2540) 
+
+## Documentation Changes:
+* Added an example interactive dashboard to the "Tabular & Plots" section of the Demos page by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2508](https://github.com/gradio-app/gradio/pull/2508)
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Fixes the error message if a user builds Gradio locally and tries to use `share=True` by [@abidlabs](https://github.com/abidlabs) in [PR 2502](https://github.com/gradio-app/gradio/pull/2502)
+* Allows the render() function to return self by [@Raul9595](https://github.com/Raul9595) in [PR 2514](https://github.com/gradio-app/gradio/pull/2514)
+* Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
+* Gradio now supports batched functions by [@abidlabs](https://github.com/abidlabs) in [PR 2218](https://github.com/gradio-app/gradio/pull/2218)
+* Add `upload` event for `Video`, `Audio`, `Image`, and `File` components [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2448](https://github.com/gradio-app/gradio/pull/2456)
+* Changes websocket path for Spaces as it is no longer necessary to have a different URL for websocket connections on Spaces by [@abidlabs](https://github.com/abidlabs) in [PR 2528](https://github.com/gradio-app/gradio/pull/2528)
+* Clearer error message when events are defined outside of a Blocks scope, and a warning if you
+try to use `Series` or `Parallel` with `Blocks` by [@abidlabs](https://github.com/abidlabs) in [PR 2543](https://github.com/gradio-app/gradio/pull/2543)
+* Adds support for audio samples that are in `float64`, `float16`, or `uint16` formats by [@abidlabs](https://github.com/abidlabs) in [PR 2545](https://github.com/gradio-app/gradio/pull/2545)
+
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.6
+
+## New Features:
+
+### Cancelling Running Events
+Running events can be cancelled when other events are triggered! To test this feature, pass the `cancels` parameter to the event listener.
+For this feature to work, the queue must be enabled.
+
+![cancel_on_change_rl](https://user-images.githubusercontent.com/41651716/195952623-61a606bd-e82b-4e1a-802e-223154cb8727.gif)
+
+Code:
+```python
+import time
+import gradio as gr
+
+def fake_diffusion(steps):
+    for i in range(steps):
+        time.sleep(1)
+        yield str(i)
+
+def long_prediction(*args, **kwargs):
+    time.sleep(10)
+    return 42
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            n = gr.Slider(1, 10, value=9, step=1, label="Number Steps")
+            run = gr.Button()
+            output = gr.Textbox(label="Iterative Output")
+            stop = gr.Button(value="Stop Iterating")
+        with gr.Column():
+            prediction = gr.Number(label="Expensive Calculation")
+            run_pred = gr.Button(value="Run Expensive Calculation")
+        with gr.Column():
+            cancel_on_change = gr.Textbox(label="Cancel Iteration and Expensive Calculation on Change")
+
+    click_event = run.click(fake_diffusion, n, output)
+    stop.click(fn=None, inputs=None, outputs=None, cancels=[click_event])
+    pred_event = run_pred.click(fn=long_prediction, inputs=None, outputs=prediction)
+
+    cancel_on_change.change(None, None, None, cancels=[click_event, pred_event])
+
+
+demo.queue(concurrency_count=1, max_size=20).launch()
+```
+
+For interfaces, a stop button will be added automatically if the function uses a `yield` statement.
+
+```python
+import gradio as gr
+import time
+
+def iteration(steps):
+    for i in range(steps):
+       time.sleep(0.5)
+       yield i
+
+gr.Interface(iteration,
+             inputs=gr.Slider(minimum=1, maximum=10, step=1, value=5),
+             outputs=gr.Number()).queue().launch()
+```
+
+![stop_interface_rl](https://user-images.githubusercontent.com/41651716/195952883-e7ca4235-aae3-4852-8f28-96d01d0c5822.gif)
+
+
+## Bug Fixes:
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2474](https://github.com/gradio-app/gradio/pull/2474)
+* Fixed videos being mirrored in the front-end if source is not webcam by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2475](https://github.com/gradio-app/gradio/pull/2475)
+* Add clear button for timeseries component [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2487](https://github.com/gradio-app/gradio/pull/2487)
+* Removes special characters from temporary filenames so that the files can be served by components [@abidlabs](https://github.com/abidlabs) in [PR 2480](https://github.com/gradio-app/gradio/pull/2480)
+* Fixed infinite reload loop when mounting gradio as a sub application by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2477](https://github.com/gradio-app/gradio/pull/2477)
+
+## Documentation Changes:
+* Adds a demo to show how a sound alert can be played upon completion of a prediction by [@abidlabs](https://github.com/abidlabs) in [PR 2478](https://github.com/gradio-app/gradio/pull/2478)
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Enable running events to be cancelled from other events by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2433](https://github.com/gradio-app/gradio/pull/2433)
+* Small fix for version check before reuploading demos by [@aliabd](https://github.com/aliabd) in [PR 2469](https://github.com/gradio-app/gradio/pull/2469)
+* Add loading status tracker UI to HTML and Markdown components. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2474)
+* Add clear button for timeseries component [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2487](https://github.com/gradio-app/gradio/pull/2487)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.5
+
+## Bug Fixes:
+
+* Ensure that Gradio does not take control of the HTML page title when embedding a gradio app as a web component, this behaviour flipped by adding `control_page_title="true"` to the webcomponent. [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2400)
+* Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
+* Fixed queue getting stuck under very high load by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2374](https://github.com/gradio-app/gradio/pull/2374)
+* Ensure that components always behave as if `interactive=True` were set when the following conditions are true:
+  - no default value is provided, 
+  - they are not set as the input or output of an event,
+  - `interactive` kwarg is not set. 
+
+  [@pngwn](https://github.com/pngwn) in [PR 2459](https://github.com/gradio-app/gradio/pull/2459)
+
+## New Features:
+
+* When an `Image` component is set to `source="upload"`, it is now possible to drag and drop and image to replace a previously uploaded image by [@pngwn](https://github.com/pngwn) in [PR 1711](https://github.com/gradio-app/gradio/issues/1711)
+* The `gr.Dataset` component now accepts `HTML` and `Markdown` components by [@abidlabs](https://github.com/abidlabs) in [PR 2437](https://github.com/gradio-app/gradio/pull/2437)
+
+
+## Documentation Changes:
+* Improved documentation for the `gr.Dataset` component by [@abidlabs](https://github.com/abidlabs) in [PR 2437](https://github.com/gradio-app/gradio/pull/2437)
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+* The `Carousel` component is officially deprecated. Since gradio 3.0, code containing the `Carousel` component would throw warnings. As of the next release, the `Carousel` component will raise an exception.
+
+## Full Changelog:
 * Speeds up Gallery component by using temporary files instead of base64 representation in the front-end by [@proxyphi](https://github.com/proxyphi), [@pngwn](https://github.com/pngwn), and [@abidlabs](https://github.com/abidlabs) in [PR 2265](https://github.com/gradio-app/gradio/pull/2265)
 * Fixed some embedded demos in the guides by not loading the gradio web component in some guides by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2403](https://github.com/gradio-app/gradio/pull/2403) 
 * When an `Image` component is set to `source="upload"`, it is now possible to drag and drop and image to replace a previously uploaded image by [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2410)
 * Improve documentation of the `Blocks.load()` event by [@abidlabs](https://github.com/abidlabs) in [PR 2413](https://github.com/gradio-app/gradio/pull/2413)
 * Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
+* Updated share link message to reference new Spaces Hardware [@abidlabs](https://github.com/abidlabs) in [PR 2423](https://github.com/gradio-app/gradio/pull/2423)
 * Automatically restart spaces if they're down by [@aliabd](https://github.com/aliabd) in [PR 2405](https://github.com/gradio-app/gradio/pull/2405)
-* Update queue with using deque by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
+* Carousel component is now deprecated by [@abidlabs](https://github.com/abidlabs) in [PR 2434](https://github.com/gradio-app/gradio/pull/2434)
+* Build Gradio from source in ui tests by by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2440](https://github.com/gradio-app/gradio/pull/2440) 
+* Change "return ValueError" to "raise ValueError" by [@vzakharov](https://github.com/vzakharov) in [PR 2445](https://github.com/gradio-app/gradio/pull/2445)
+* Add guide on creating a map demo using the `gr.Plot()` component [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2402](https://github.com/gradio-app/gradio/pull/2402)
+* Add blur event for `Textbox` and `Number` components [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2448](https://github.com/gradio-app/gradio/pull/2448)
+* Stops a gradio launch from hogging a port even after it's been killed [@aliabid94](https://github.com/aliabid94) in [PR 2453](https://github.com/gradio-app/gradio/pull/2453) 
+* Fix embedded interfaces on touch screen devices by [@aliabd](https://github.com/aliabd) in [PR 2457](https://github.com/gradio-app/gradio/pull/2457)
+* Upload all demos to spaces by [@aliabd](https://github.com/aliabd) in [PR 2281](https://github.com/gradio-app/gradio/pull/2281)
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -50,6 +400,8 @@ You can now see gradio's release history directly on the website, and also keep 
 4. Fix image_classifier_interface_load demo by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2365](https://github.com/gradio-app/gradio/pull/2365)
 5. Fix combining adjacent components without gaps by introducing `gr.Row(variant="compact")` by [@aliabid94](https://github.com/aliabid94) in [PR 2291](https://github.com/gradio-app/gradio/pull/2291) This comes with deprecation of the following arguments for `Component.style`: `round`, `margin`, `border`.
 6. Fix audio streaming, which was previously choppy in [PR 2351](https://github.com/gradio-app/gradio/pull/2351). Big thanks to [@yannickfunk](https://github.com/yannickfunk) for the proposed solution.
+7. Fix bug where new typeable slider doesn't respect the minimum and maximum values [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2380](https://github.com/gradio-app/gradio/pull/2380)
+
 
 ## Documentation Changes:
 
@@ -89,6 +441,7 @@ No changes to highlight.
 * Lets users provide a `gr.update()` dictionary even if post-processing is diabled [@abidlabs](https://github.com/abidlabs) in [PR 2385](https://github.com/gradio-app/gradio/pull/2385)
 * Fix bug where errors would cause apps run in reload mode to hang forever by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2394](https://github.com/gradio-app/gradio/pull/2394)
 * Fix bug where new typeable slider doesn't respect the minimum and maximum values [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2380](https://github.com/gradio-app/gradio/pull/2380)
+
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -784,6 +1137,7 @@ We've introduced a lot of new components in `3.0`, including `Model3D`, `Dataset
 * Mobile responsive guides by [@aliabd](https://github.com/aliabd) in [PR 1293](https://github.com/gradio-app/gradio/pull/1293)
 * Update readme by [@abidlabs](https://github.com/abidlabs) in [PR 1292](https://github.com/gradio-app/gradio/pull/1292)
 * gif by [@abidlabs](https://github.com/abidlabs) in [PR 1296](https://github.com/gradio-app/gradio/pull/1296)
+* Fixed issue #2476 with upload dialog [@mezotaken](https://github.com/mezotaken) in [PR 2577](https://github.com/gradio-app/gradio/pull/2577)
 
 ## Contributors Shoutout:
 

@@ -220,32 +220,31 @@ def audio_to_file(sample_rate, data, filename):
 
 def convert_to_16_bit_wav(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
-    if data.dtype == np.float32:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+    warning = "Trying to convert audio automatically from {} to 16-bit int format."
+    if data.dtype in [np.float64, np.float32, np.float16]:
+        warnings.warn(warning.format(data.dtype))
         data = data / np.abs(data).max()
         data = data * 32767
         data = data.astype(np.int16)
     elif data.dtype == np.int32:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+        warnings.warn(warning.format(data.dtype))
         data = data / 65538
         data = data.astype(np.int16)
     elif data.dtype == np.int16:
         pass
+    elif data.dtype == np.uint16:
+        warnings.warn(warning.format(data.dtype))
+        data = data - 32768
+        data = data.astype(np.int16)
     elif data.dtype == np.uint8:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+        warnings.warn(warning.format(data.dtype))
         data = data * 257 - 32768
         data = data.astype(np.int16)
     else:
-        raise ValueError("Audio data cannot be converted to " "16-bit int format.")
+        raise ValueError(
+            "Audio data cannot be converted automatically from "
+            f"{data.dtype} to 16-bit int format."
+        )
     return data
 
 
@@ -329,6 +328,7 @@ def create_tmp_copy_of_file(file_path, dir=None):
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
+    prefix = utils.strip_invalid_filename_characters(prefix)
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:

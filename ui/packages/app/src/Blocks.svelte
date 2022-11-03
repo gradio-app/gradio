@@ -100,12 +100,7 @@
 			const is_input = is_dep(id, "inputs", dependencies);
 			const is_output = is_dep(id, "outputs", dependencies);
 
-			if (
-				!is_input &&
-				!is_output &&
-				"value" in props &&
-				has_no_default_value(props?.value)
-			)
+			if (!is_input && !is_output && has_no_default_value(props?.value))
 				acc.add(id); // default dynamic
 			if (is_input) acc.add(id);
 
@@ -227,6 +222,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					cancels,
 					...rest
 				},
 				i
@@ -242,8 +238,8 @@
 					!handled_dependencies[i]?.includes(-1) &&
 					trigger === "load" &&
 					// check all input + output elements are on the page
-					outputs.every((v) => instance_map[v].instance) &&
-					inputs.every((v) => instance_map[v].instance)
+					outputs.every((v) => instance_map?.[v].instance) &&
+					inputs.every((v) => instance_map?.[v].instance)
 				) {
 					const req = fn({
 						action: "predict",
@@ -255,7 +251,8 @@
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
-						loading_status: loading_status
+						loading_status: loading_status,
+						cancels
 					});
 
 					function handle_update(output: any) {
@@ -288,8 +285,9 @@
 					handled_dependencies[i] = [-1];
 				}
 
-				target_instances.forEach(
-					([id, { instance }]: [number, ComponentMeta]) => {
+				target_instances
+					.filter((v) => !!v && !!v[1])
+					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
@@ -308,7 +306,8 @@
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
 								queue_callback: handle_update,
-								loading_status: loading_status
+								loading_status: loading_status,
+								cancels
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {
@@ -341,8 +340,7 @@
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
-					}
-				);
+					});
 			}
 		);
 	}
@@ -452,6 +450,7 @@
 				{dynamic_ids}
 				{instance_map}
 				{root}
+				{target}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

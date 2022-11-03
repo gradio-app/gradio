@@ -1147,6 +1147,62 @@ class TestDataframe(unittest.TestCase):
         }
 
 
+class TestDataset:
+    def test_preprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert dataset.preprocess(1) == [
+            15,
+            "hi",
+            bus,
+            "<i>Italics</i>",
+            "<p><em>Italics</em></p>\n",
+        ]
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"],
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            type="index",
+        )
+
+        assert dataset.preprocess(1) == 1
+
+    def test_postprocessing(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        bus = pathlib.Path(test_file_dir, "bus.png")
+
+        dataset = gr.Dataset(
+            components=["number", "textbox", "image", "html", "markdown"], type="index"
+        )
+
+        output = dataset.postprocess(
+            samples=[
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+        )
+
+        assert output == {
+            "samples": [
+                [5, "hello", bus, "<b>Bold</b>", "**Bold**"],
+                [15, "hi", bus, "<i>Italics</i>", "*Italics*"],
+            ],
+            "__type__": "update",
+        }
+
+
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
         """
@@ -1178,7 +1234,9 @@ class TestVideo(unittest.TestCase):
         x_video["is_example"] = True
         self.assertIsNotNone(video_input.preprocess(x_video))
         video_input = gr.Video(format="avi")
-        self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
+        output_video = video_input.preprocess(x_video)
+        self.assertEqual(output_video[-3:], "avi")
+        assert "flip" not in output_video
 
         assert filecmp.cmp(
             video_input.serialize(x_video["name"])["name"], x_video["name"]
@@ -1234,6 +1292,45 @@ class TestVideo(unittest.TestCase):
                 ".mp4"
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
+
+    @patch("gradio.components.FFmpeg")
+    def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+        x_video = deepcopy(media_data.BASE64_VIDEO)
+        video_input = gr.Video(source="webcam")
+        _ = video_input.preprocess(x_video)
+
+        # Dict mapping filename to FFmpeg options
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        mock_ffmpeg.assert_not_called()
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=True, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert "hflip" in list(output_params.values())[0]
+        assert "flip" in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
+
+        mock_ffmpeg.reset_mock()
+        output_file = gr.Video(
+            source="webcam", mirror_webcam=False, format="avi"
+        ).preprocess(x_video)
+        output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
+        assert list(output_params.values())[0] is None
+        assert "flip" not in list(output_params.keys())[0]
+        assert ".avi" in list(output_params.keys())[0]
+        assert ".avi" in output_file
 
 
 class TestTimeseries(unittest.TestCase):
@@ -1732,6 +1829,23 @@ class TestColorPicker(unittest.TestCase):
         self.assertEqual(component.get_config().get("value"), "#000000")
 
 
+class TestCarousel:
+    def test_deprecation(self):
+        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        with pytest.raises(DeprecationWarning):
+            gr.Carousel([pathlib.Path(test_file_dir, "bus.png")])
+
+    def test_deprecation_in_interface(self):
+        with pytest.raises(DeprecationWarning):
+            gr.Interface(lambda x: ["lion.jpg"], "textbox", "carousel")
+
+    def test_deprecation_in_blocks(self):
+        with pytest.raises(DeprecationWarning):
+            with gr.Blocks():
+                gr.Textbox()
+                gr.Carousel()
+
+
 class TestGallery:
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
@@ -1807,10 +1921,11 @@ def test_dataframe_as_example_converts_dataframes():
     assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
 
 
-@pytest.mark.parametrize("component", [gr.Model3D, gr.File])
+@pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
 def test_as_example_returns_file_basename(component):
     component = component()
     assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
+    assert component.as_example(None) == ""
 
 
 @patch("gradio.components.IOComponent.as_example")

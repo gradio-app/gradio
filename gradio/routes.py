@@ -25,15 +25,16 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocket, WebSocketState
 
 import gradio
 from gradio import encryptor, utils
+from gradio.dataclasses import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
+from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
 
@@ -56,28 +57,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
 ###########
-# Data Models
-###########
-
-
-class QueueStatusBody(BaseModel):
-    hash: str
-
-
-class QueuePushBody(BaseModel):
-    fn_index: int
-    action: str
-    session_hash: str
-    data: Any
-
-
-class PredictBody(BaseModel):
-    session_hash: Optional[str]
-    data: Any
-    fn_index: Optional[int]
-
-
-###########
 # Auth
 ###########
 
@@ -93,7 +72,8 @@ class App(FastAPI):
         self.blocks: Optional[gradio.Blocks] = None
         self.state_holder = {}
         self.iterators = defaultdict(dict)
-
+        self.lock = asyncio.Lock()
+        self.queue_token = secrets.token_urlsafe(32)
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -107,6 +87,8 @@ class App(FastAPI):
             self.auth = None
 
         self.blocks = blocks
+        if hasattr(self.blocks, "_queue"):
+            self.blocks._queue.set_access_token(self.queue_token)
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
@@ -191,10 +173,16 @@ class App(FastAPI):
                     template, {"request": request, "config": config}
                 )
             except TemplateNotFound:
-                raise ValueError(
-                    "Did you install Gradio from source files? You need to build "
-                    "the frontend by running /scripts/build_frontend.sh"
-                )
+                if app.blocks.share:
+                    raise ValueError(
+                        "Did you install Gradio from source files? Share mode only "
+                        "works when Gradio is installed through the pip package."
+                    )
+                else:
+                    raise ValueError(
+                        "Did you install Gradio from source files? You need to build "
+                        "the frontend by running /scripts/build_frontend.sh"
+                    )
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -254,6 +242,16 @@ class App(FastAPI):
         def file_deprecated(path: str):
             return file(path)
 
+        @app.post("/reset/")
+        @app.post("/reset")
+        async def reset_iterator(body: ResetBody):
+            if body.session_hash not in app.iterators:
+                return {"success": False}
+            async with app.lock:
+                app.iterators[body.session_hash][body.fn_index] = None
+                app.iterators[body.session_hash]["should_reset"].add(body.fn_index)
+            return {"success": True}
+
         async def run_predict(
             body: PredictBody, username: str = Depends(get_current_user)
         ):
@@ -266,18 +264,32 @@ class App(FastAPI):
                     }
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
+                # The should_reset set keeps track of the fn_indices
+                # that have been cancelled. When a job is cancelled,
+                # the /reset route will mark the jobs as having been reset.
+                # That way if the cancel job finishes BEFORE the job being cancelled
+                # the job being cancelled will not overwrite the state of the iterator.
+                # In all cases, should_reset will be the empty set the next time
+                # the fn_index is run.
+                app.iterators[body.session_hash]["should_reset"] = set([])
             else:
                 session_state = {}
                 iterators = {}
             raw_input = body.data
             fn_index = body.fn_index
+            batch = app.blocks.dependencies[fn_index]["batch"]
+            if not (body.batched) and batch:
+                raw_input = [raw_input]
             try:
                 output = await app.blocks.process_api(
                     fn_index, raw_input, username, session_state, iterators
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
-                    app.iterators[body.session_hash][fn_index] = iterator
+                    if fn_index in app.iterators[body.session_hash]["should_reset"]:
+                        app.iterators[body.session_hash][fn_index] = None
+                    else:
+                        app.iterators[body.session_hash][fn_index] = iterator
                 if isinstance(output, Error):
                     raise output
             except BaseException as error:
@@ -287,12 +299,18 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+
+            if not (body.batched) and batch:
+                output["data"] = output["data"][0]
             return output
 
         @app.post("/api/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/api/{api_name}/", dependencies=[Depends(login_check)])
         async def predict(
-            api_name: str, body: PredictBody, username: str = Depends(get_current_user)
+            api_name: str,
+            body: PredictBody,
+            request: Request,
+            username: str = Depends(get_current_user),
         ):
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
@@ -306,25 +324,57 @@ class App(FastAPI):
                         },
                         status_code=500,
                     )
-            return await run_predict(body=body, username=username)
+            if not app.blocks.api_open and app.blocks.queue_enabled_for_fn(
+                body.fn_index
+            ):
+                if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not authorized to skip the queue",
+                    )
+
+            # If this fn_index cancels jobs, then the only input we need is the
+            # current session hash
+            if app.blocks.dependencies[body.fn_index]["cancels"]:
+                body.data = [body.session_hash]
+            result = await run_predict(body=body, username=username)
+            return result
 
         @app.websocket("/queue/join")
         async def join_queue(websocket: WebSocket):
             if app.blocks._queue.server_path is None:
-                print(f"WS: {str(websocket.url)}")
                 app_url = get_server_url_from_ws_url(str(websocket.url))
-                print(f"Server URL: {app_url}")
                 app.blocks._queue.set_url(app_url)
-
             await websocket.accept()
             event = Event(websocket)
-            rank = app.blocks._queue.push(event)
-            if rank is None:
-                await app.blocks._queue.send_message(event, {"msg": "queue_full"})
-                await event.disconnect()
-                return
-            estimation = app.blocks._queue.get_estimation()
-            await app.blocks._queue.send_estimation(event, estimation, rank)
+
+            # In order to cancel jobs, we need the session_hash and fn_index
+            # to create a unique id for each job
+            await websocket.send_json({"msg": "send_hash"})
+            session_hash = await websocket.receive_json()
+            event.session_hash = session_hash["session_hash"]
+            event.fn_index = session_hash["fn_index"]
+
+            # Continuous events are not put in the queue  so that they do not
+            # occupy the queue's resource as they are expected to run forever
+            if app.blocks.dependencies[event.fn_index].get("every", 0):
+                await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
+                await app.blocks._queue.reset_iterators(
+                    event.session_hash, event.fn_index
+                )
+                task = run_coro_in_background(
+                    app.blocks._queue.process_events, [event], False
+                )
+                set_task_name(task, event.session_hash, event.fn_index, batch=False)
+            else:
+                rank = app.blocks._queue.push(event)
+
+                if rank is None:
+                    await app.blocks._queue.send_message(event, {"msg": "queue_full"})
+                    await event.disconnect()
+                    return
+                estimation = app.blocks._queue.get_estimation()
+                await app.blocks._queue.send_estimation(event, estimation, rank)
             while True:
                 await asyncio.sleep(60)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
@@ -422,7 +472,8 @@ def mount_gradio_app(
         app = gr.mount_gradio_app(app, io, path="/gradio")
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
-
+    blocks.dev_mode = False
+    blocks.config = blocks.get_config_file()
     gradio_app = App.create_app(blocks)
 
     @app.on_event("startup")
