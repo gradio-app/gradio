@@ -13,7 +13,7 @@
 
 <div
 	id={elem_id}
-	class="output-markdown gr-prose"
+	class="output-markdown gr-prose min-h-[6rem]"
 	class:hidden={!visible}
 	style="max-width: 100%"
 >

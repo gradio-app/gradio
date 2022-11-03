@@ -12,6 +12,7 @@ import requests
 import wandb
 from fastapi.testclient import TestClient
 
+import gradio
 from gradio.blocks import Blocks
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
@@ -266,6 +267,51 @@ class TestInterfaceInterpretation(unittest.TestCase):
         self.assertTrue(response.json()["data"][0]["interpretation"] is not None)
         iface.close()
         close_all()
+
+
+@pytest.mark.parametrize(
+    "interface_type", ["standard", "input_only", "output_only", "unified"]
+)
+@pytest.mark.parametrize("live", [True, False])
+@pytest.mark.parametrize("use_generator", [True, False])
+def test_interface_adds_stop_button(interface_type, live, use_generator):
+    def gen_func(inp):
+        yield inp
+
+    def func(inp):
+        return inp
+
+    if interface_type == "standard":
+        interface = gradio.Interface(
+            gen_func if use_generator else func, "number", "number", live=live
+        )
+    elif interface_type == "input_only":
+        interface = gradio.Interface(
+            gen_func if use_generator else func, "number", None, live=live
+        )
+    elif interface_type == "output_only":
+        interface = gradio.Interface(
+            gen_func if use_generator else func, None, "number", live=live
+        )
+    else:
+        num = gradio.Number()
+        interface = gradio.Interface(
+            gen_func if use_generator else func, num, num, live=live
+        )
+    has_stop = (
+        len(
+            [
+                c
+                for c in interface.config["components"]
+                if c["props"].get("variant", "") == "stop"
+            ]
+        )
+        == 1
+    )
+    if use_generator and not live:
+        assert has_stop
+    else:
+        assert not has_stop
 
 
 if __name__ == "__main__":

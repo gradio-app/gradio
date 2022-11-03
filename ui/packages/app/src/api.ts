@@ -68,7 +68,12 @@ type Output = {
 
 const ws_map = new Map<number, WebSocket>();
 export const fn =
-	(session_hash: string, api_endpoint: string, is_space: boolean) =>
+	(
+		session_hash: string,
+		api_endpoint: string,
+		is_space: boolean,
+		is_embed: boolean
+	) =>
 	async ({
 		action,
 		payload,
@@ -77,7 +82,8 @@ export const fn =
 		frontend_fn,
 		output_data,
 		queue_callback,
-		loading_status
+		loading_status,
+		cancels
 	}: {
 		action: string;
 		payload: Payload;
@@ -87,6 +93,7 @@ export const fn =
 		output_data?: Output["data"];
 		queue_callback: Function;
 		loading_status: LoadingStatusType;
+		cancels: Array<number>;
 	}): Promise<unknown> => {
 		const fn_index = payload.fn_index;
 
@@ -112,22 +119,22 @@ export const fn =
 			function send_message(fn: number, data: any) {
 				ws_map.get(fn)?.send(JSON.stringify(data));
 			}
-			var ws_endpoint = api_endpoint === "api/" ? location.href : api_endpoint;
-			var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
-			if (is_space) {
-				const SPACE_REGEX = /embed\/(.*)\/\+/g;
-				var ws_path = Array.from(
-					ws_endpoint.matchAll(SPACE_REGEX)
-				)[0][1].concat("/");
-				var ws_host = "spaces.huggingface.tech/";
+
+			let WS_ENDPOINT = "";
+
+			if (is_embed) {
+				WS_ENDPOINT = `wss://${new URL(api_endpoint).host}/queue/join`;
 			} else {
+				var ws_endpoint =
+					api_endpoint === "api/" ? location.href : api_endpoint;
+				var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 				var ws_path = location.pathname === "/" ? "/" : location.pathname;
 				var ws_host =
 					BUILD_MODE === "dev" || location.origin === "http://localhost:3000"
 						? BACKEND_URL.replace("http://", "").slice(0, -1)
 						: location.host;
+				WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
 			}
-			const WS_ENDPOINT = `${ws_protocol}//${ws_host}${ws_path}queue/join`;
 
 			var websocket = new WebSocket(WS_ENDPOINT);
 			ws_map.set(fn_index, websocket);
@@ -152,6 +159,14 @@ export const fn =
 				switch (data.msg) {
 					case "send_data":
 						send_message(fn_index, payload);
+						break;
+					case "send_hash":
+						ws_map.get(fn_index)?.send(
+							JSON.stringify({
+								session_hash: session_hash,
+								fn_index: fn_index
+							})
+						);
 						break;
 					case "queue_full":
 						loading_status.update(
@@ -243,6 +258,21 @@ export const fn =
 					output.average_duration as number,
 					null
 				);
+				// Cancelled jobs are set to complete
+				if (cancels.length > 0) {
+					cancels.forEach((fn_index) => {
+						loading_status.update(
+							fn_index,
+							"complete",
+							queue,
+							null,
+							null,
+							null,
+							null
+						);
+						ws_map.get(fn_index)?.close();
+					});
+				}
 			} else {
 				loading_status.update(
 					fn_index,

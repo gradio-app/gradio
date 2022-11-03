@@ -1,0 +1,1 @@
+This demo shows how you can build an interactive dashboard with gradio. Click on a python library on the left hand side and then on the right hand side click on the metric you'd like to see plot over time. Data is pulled from HuggingFace Hub datasets.

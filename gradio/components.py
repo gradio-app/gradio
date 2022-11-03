@@ -20,14 +20,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-if TYPE_CHECKING:
-    from typing import TypedDict
-
-    class DataframeData(TypedDict):
-        headers: List[str]
-        data: List[List[str | int | bool]]
-
-
 import matplotlib.figure
 import numpy as np
 import pandas as pd
@@ -40,6 +32,7 @@ from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
+    Blurrable,
     Changeable,
     Clearable,
     Clickable,
@@ -47,6 +40,7 @@ from gradio.events import (
     Playable,
     Streamable,
     Submittable,
+    Uploadable,
 )
 from gradio.layouts import Column, Form, Row
 from gradio.serializing import (
@@ -56,6 +50,14 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class DataframeData(TypedDict):
+        headers: List[str]
+        data: List[List[str | int | bool]]
+
 
 set_documentation_group("component")
 
@@ -253,8 +255,10 @@ class FormComponent:
     expected_parent = Form
 
 
-@document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
+@document("change", "submit", "blur", "style")
+class Textbox(
+    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -420,7 +424,9 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComp
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
+class Number(
+    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -1191,7 +1197,15 @@ class Dropdown(Radio):
 
 
 @document("edit", "clear", "change", "stream", "change", "style")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
+class Image(
+    Editable,
+    Clearable,
+    Changeable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    ImgSerializable,
+):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
@@ -1531,7 +1545,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1635,25 +1649,26 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
                 file_data, file_path=file_name
             )
 
-        file_name = file.name
-        uploaded_format = file_name.split(".")[-1].lower()
+        file_name = Path(file.name)
+        uploaded_format = file_name.suffix.replace(".", "")
 
-        if self.format is not None and uploaded_format != self.format:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-            ff.run()
-            return output_file_name
-        elif self.source == "webcam" and self.mirror_webcam is True:
-            path = Path(file_name)
-            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+        modify_format = self.format is not None and uploaded_format != self.format
+        flip = self.source == "webcam" and self.mirror_webcam
+        if modify_format or flip:
+            format = f".{self.format if modify_format else uploaded_format}"
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
+            flip_suffix = "_flip" if flip else ""
+            output_file_name = str(
+                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+            )
             ff = FFmpeg(
-                inputs={file_name: None},
-                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+                inputs={str(file_name): None},
+                outputs={output_file_name: output_options},
             )
             ff.run()
             return output_file_name
         else:
-            return file_name
+            return str(file_name)
 
     def generate_sample(self):
         """Generates a random video for testing the API."""
@@ -1711,7 +1726,15 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerializable):
+class Audio(
+    Changeable,
+    Clearable,
+    Playable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
@@ -2000,11 +2023,11 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, IOComponent, FileSerializable):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2179,8 +2202,10 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str | List) -> str:
-        if isinstance(input_data, list):
+    def as_example(self, input_data: str | List | None) -> str | List[str]:
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, list):
             return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
@@ -3362,90 +3387,20 @@ class Gallery(IOComponent):
         return files
 
 
-class Carousel(IOComponent, Changeable):
+class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
-    Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
+    Deprecated Component
     """
 
     def __init__(
         self,
-        *,
-        components: Component | List[Component],
-        label: Optional[str] = None,
-        show_label: bool = True,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
+        *args,
         **kwargs,
     ):
-        """
-        Parameters:
-            components: Classes of component(s) that will be scrolled through.
-            label: component name in interface.
-            show_label: if True, will display label.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        warnings.warn(
-            "The Carousel component is partially deprecated. It may not behave as expected.",
+        raise DeprecationWarning(
+            "The Carousel component is deprecated. Please consider using the Gallery "
+            "component, which can be used to display images (and optional captions).",
         )
-        if not isinstance(components, list):
-            components = [components]
-        self.components = [
-            get_component_instance(component) for component in components
-        ]
-        IOComponent.__init__(
-            self,
-            label=label,
-            show_label=show_label,
-            visible=visible,
-            elem_id=elem_id,
-            **kwargs,
-        )
-
-    def get_config(self):
-        return {
-            "components": [component.get_config() for component in self.components],
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
-    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
-        """
-        Parameters:
-            y: carousel output
-        Returns:
-            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
-        """
-        if y is None:
-            return None
-        if isinstance(y, list):
-            if len(y) != 0 and not isinstance(y[0], list):
-                y = [[z] for z in y]
-            output = []
-            for row in y:
-                output_row = []
-                for i, cell in enumerate(row):
-                    output_row.append(self.components[i].postprocess(cell))
-                output.append(output_row)
-            return output
-        else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
 
 @document("change", "style")
@@ -3662,7 +3617,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         )
 
     def as_example(self, input_data: str) -> str:
-        return Path(input_data).name
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear")
@@ -3809,9 +3764,12 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data: str) -> str:
+        return self.postprocess(input_data)
+
 
 ############################
-# Static Components
+# Special Components
 ############################
 
 
@@ -3820,7 +3778,7 @@ class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
-    Preprocessing: this component does *not* accept input.
+    Preprocessing: passes the selected sample either as a {list} of data (if type="value") or as an {int} index (if type="index")
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
@@ -3829,7 +3787,7 @@ class Dataset(Clickable, Component):
         *,
         label: Optional[str] = None,
         components: List[IOComponent] | List[str],
-        samples: List[List[Any]],
+        samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
@@ -3838,7 +3796,7 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
@@ -3847,7 +3805,8 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
-        for example in samples:
+        self.samples = [[]] if samples is None else samples
+        for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
                 example[i] = component.as_example(ex)
         self.type = type
@@ -3858,7 +3817,6 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
-        self.samples = samples
 
     def get_config(self):
         return {
@@ -3891,6 +3849,12 @@ class Dataset(Clickable, Component):
             return x
         elif self.type == "values":
             return self.samples[x]
+
+    def postprocess(self, samples: List[List[Any]]) -> Dict:
+        return {
+            "samples": samples,
+            "__type__": "update",
+        }
 
     def style(self, **kwargs):
         """

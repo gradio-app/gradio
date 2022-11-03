@@ -22,7 +22,7 @@ concurrency:
 jobs:
   quick-checks:
     name: static checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
@@ -53,12 +53,15 @@ jobs:
           node-version: 16
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
-      - run: pip install -r ../requirements.txt
-      - run: pip install gradio
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - run: cd .. && bash scripts/install_gradio.sh
+      - run: pip install -r ../demo/outbreak_forecast/requirements.txt
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
-      - run: pnpm build
-      - run: pnpm test:browser
+      - run: pnpm test:browser:full
       - name: Upload failed tests screenshots
         if: failure()
         uses: actions/upload-artifact@v3

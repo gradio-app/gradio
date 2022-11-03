@@ -335,17 +335,27 @@
         }
       })
 
-    // Remove built-with-gradio footers and extra space from embedded components
-    window.addEventListener('load', function () {
+    function removeFooters() {
       document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          let shadowroot = g.shadowRoot;
-          let f = shadowroot.querySelector('footer');
-          f.classList.add('hidden');
-          let c = shadowroot.querySelector('.gradio-container');
-          c.style.removeProperty('min-height');
-        }
-      );
-    })
+          if ( g.shadowRoot ) {
+            let shadowroot = g.shadowRoot;
+            let f = shadowroot.querySelector('footer');
+            if (f != null) {
+              f.classList.add('hidden');
+              let c = shadowroot.querySelector('.gradio-container');
+              c.style.removeProperty('min-height');
+            } else {
+              window.setTimeout(removeFooters, 100);
+            }
+          } else {
+            window.setTimeout(removeFooters, 100);
+          }
+          
+        });
+      };
+   
+    window.addEventListener('load', removeFooters());
+
   </script>
   </body>
 </html>

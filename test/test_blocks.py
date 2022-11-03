@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import os
 import random
 import sys
@@ -14,6 +15,8 @@ from unittest.mock import patch
 import mlflow
 import pytest
 import wandb
+import websockets
+from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
@@ -142,6 +145,23 @@ class TestBlocksMethods(unittest.TestCase):
 
         assert len(demo.fns) == 1
         assert "fn" in str(demo.fns[0])
+
+    @pytest.mark.asyncio
+    async def test_dict_inputs_in_config(self):
+        with gr.Blocks() as demo:
+            first = gr.Textbox()
+            last = gr.Textbox()
+            btn = gr.Button()
+            greeting = gr.Textbox()
+
+            def greet(data):
+                return f"Hello {data[first]} {data[last]}"
+
+            btn.click(greet, {first, last}, greeting)
+
+        body = PredictBody(data=["huggy", "face"], fn_index=0)
+        result = await demo.process_api(body)
+        assert result == "Hello huggy face"
 
     @pytest.mark.asyncio
     async def test_async_function(self):
@@ -322,7 +342,7 @@ class TestComponentsInBlocks:
             num2 = gr.Number()
             update = gr.Button(value="update")
 
-            def update_values():
+            def update_values(val):
                 return {num2: gr.Number.update(value=42)}
 
             update.click(update_values, inputs=[num], outputs=[num2])
@@ -385,8 +405,38 @@ class TestCallFunction:
 
         output = await demo.call_function(0, ["World"])
         assert output["prediction"] == "Hello, World"
+        output = demo("World")
+        assert output == "Hello, World"
+
         output = await demo.call_function(0, ["Abubakar"])
         assert output["prediction"] == "Hello, Abubakar"
+
+    @pytest.mark.asyncio
+    async def test_call_multiple_functions(self):
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            text2 = gr.Textbox()
+            btn = gr.Button()
+            btn.click(
+                lambda x: "Hello, " + x,
+                inputs=text,
+                outputs=text,
+            )
+            text.change(
+                lambda x: "Hi, " + x,
+                inputs=text,
+                outputs=text2,
+            )
+
+        output = await demo.call_function(0, ["World"])
+        assert output["prediction"] == "Hello, World"
+        output = demo("World")
+        assert output == "Hello, World"
+
+        output = await demo.call_function(1, ["World"])
+        assert output["prediction"] == "Hi, World"
+        output = demo("World", fn_index=1)  # fn_index must be a keyword argument
+        assert output == "Hi, World"
 
     @pytest.mark.asyncio
     async def test_call_generator(self):
@@ -457,6 +507,168 @@ class TestCallFunction:
         assert output["prediction"] == (0, 3)
 
 
+class TestBatchProcessing:
+    def test_raise_exception_if_batching_an_event_thats_not_queued(self):
+        def trim(words, lens):
+            trimmed_words = []
+            for w, l in zip(words, lens):
+                trimmed_words.append(w[: int(l)])
+            return [trimmed_words]
+
+        msg = "In order to use batching, the queue must be enabled."
+
+        with pytest.raises(ValueError, match=msg):
+            demo = gr.Interface(
+                trim, ["textbox", "number"], ["textbox"], batch=True, max_batch_size=16
+            )
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                with gr.Row():
+                    word = gr.Textbox(label="word")
+                    leng = gr.Number(label="leng")
+                    output = gr.Textbox(label="Output")
+                with gr.Row():
+                    run = gr.Button()
+
+                run.click(trim, [word, leng], output, batch=True, max_batch_size=16)
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                with gr.Row():
+                    word = gr.Textbox(label="word")
+                    leng = gr.Number(label="leng")
+                    output = gr.Textbox(label="Output")
+                with gr.Row():
+                    run = gr.Button()
+
+                run.click(
+                    trim,
+                    [word, leng],
+                    output,
+                    batch=True,
+                    max_batch_size=16,
+                    queue=False,
+                )
+            demo.queue()
+            demo.launch(prevent_thread_lock=True)
+
+    @pytest.mark.asyncio
+    async def test_call_regular_function(self):
+        def batch_fn(x):
+            results = []
+            for word in x:
+                results.append("Hello " + word)
+            return (results,)
+
+        with gr.Blocks() as demo:
+            text = gr.Textbox()
+            btn = gr.Button()
+            btn.click(batch_fn, inputs=text, outputs=text, batch=True)
+
+        output = await demo.call_function(0, [["Adam", "Yahya"]])
+        assert output["prediction"][0] == ["Hello Adam", "Hello Yahya"]
+        output = demo("Abubakar")
+        assert output == "Hello Abubakar"
+
+    @pytest.mark.asyncio
+    async def test_functions_multiple_parameters(self):
+        def regular_fn(word1, word2):
+            return len(word1) > len(word2)
+
+        def batch_fn(words, lengths):
+            comparisons = []
+            trim_words = []
+            for word, length in zip(words, lengths):
+                trim_words.append(word[:length])
+                comparisons.append(len(word) > length)
+            return trim_words, comparisons
+
+        with gr.Blocks() as demo:
+            text1 = gr.Textbox()
+            text2 = gr.Textbox()
+            leng = gr.Number(precision=0)
+            bigger = gr.Checkbox()
+            btn1 = gr.Button("Check")
+            btn2 = gr.Button("Trim")
+            btn1.click(regular_fn, inputs=[text1, text2], outputs=bigger)
+            btn2.click(
+                batch_fn,
+                inputs=[text1, leng],
+                outputs=[text1, bigger],
+                batch=True,
+            )
+
+        output = await demo.call_function(0, ["Adam", "Yahya"])
+        assert output["prediction"] is False
+        output = demo("Abubakar", "Abid")
+        assert output
+
+        output = await demo.call_function(1, [["Adam", "Mary"], [3, 5]])
+        assert output["prediction"] == (
+            ["Ada", "Mary"],
+            [True, False],
+        )
+        output = demo("Abubakar", 3, fn_index=1)
+        assert output == ["Abu", True]
+
+    @pytest.mark.asyncio
+    async def test_invalid_batch_generator(self):
+        with pytest.raises(ValueError):
+
+            def batch_fn(x):
+                results = []
+                for word in x:
+                    results.append("Hello " + word)
+                    yield (results,)
+
+            with gr.Blocks() as demo:
+                text = gr.Textbox()
+                btn = gr.Button()
+                btn.click(batch_fn, inputs=text, outputs=text, batch=True)
+
+            await demo.process_api(0, [["Adam", "Yahya"]])
+
+    @pytest.mark.asyncio
+    async def test_exceeds_max_batch_size(self):
+        with pytest.raises(ValueError):
+
+            def batch_fn(x):
+                results = []
+                for word in x:
+                    results.append("Hello " + word)
+                return (results,)
+
+            with gr.Blocks() as demo:
+                text = gr.Textbox()
+                btn = gr.Button()
+                btn.click(
+                    batch_fn, inputs=text, outputs=text, batch=True, max_batch_size=2
+                )
+
+            await demo.process_api(0, [["A", "B", "C"]])
+
+    @pytest.mark.asyncio
+    async def test_unequal_batch_sizes(self):
+        with pytest.raises(ValueError):
+
+            def batch_fn(x, y):
+                results = []
+                for word1, word2 in zip(x, y):
+                    results.append("Hello " + word1 + word2)
+                return (results,)
+
+            with gr.Blocks() as demo:
+                t1 = gr.Textbox()
+                t2 = gr.Textbox()
+                btn = gr.Button()
+                btn.click(batch_fn, inputs=[t1, t2], outputs=t1, batch=True)
+
+            await demo.process_api(0, [["A", "B", "C"], ["D", "E"]])
+
+
 class TestSpecificUpdate:
     def test_without_update(self):
         with pytest.raises(KeyError):
@@ -492,8 +704,8 @@ class TestSpecificUpdate:
         }
 
 
-class TestDuplicateBlockError:
-    def test_error(self):
+class TestRender:
+    def test_duplicate_error(self):
         with pytest.raises(DuplicateBlockError):
             t = gr.Textbox()
             with gr.Blocks():
@@ -524,7 +736,8 @@ class TestDuplicateBlockError:
         t2 = gr.Textbox()
         with gr.Blocks():
             t.render()
-            t2.render()
+            t3 = t2.render()
+        assert t2 == t3
 
         t = gr.Textbox()
         io = gr.Interface(lambda x: x, t, gr.Textbox())
@@ -536,7 +749,161 @@ class TestDuplicateBlockError:
         io2 = gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox())
         with gr.Blocks():
             io.render()
-            io2.render()
+            io3 = io2.render()
+        assert io2 == io3
+
+
+class TestCancel:
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Tasks dont have names in 3.7",
+    )
+    @pytest.mark.asyncio
+    async def test_cancel_function(self, capsys):
+        async def long_job():
+            await asyncio.sleep(10)
+            print("HELLO FROM LONG JOB")
+
+        with gr.Blocks() as demo:
+            button = gr.Button(value="Start")
+            click = button.click(long_job, None, None)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+
+        cancel_fun = demo.fns[-1].fn
+        task = asyncio.create_task(long_job())
+        task.set_name("foo_0")
+        # If cancel_fun didn't cancel long_job the message would be printed to the console
+        # The test would also take 10 seconds
+        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        captured = capsys.readouterr()
+        assert "HELLO FROM LONG JOB" not in captured.out
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 8),
+        reason="Tasks dont have names in 3.7",
+    )
+    @pytest.mark.asyncio
+    async def test_cancel_function_with_multiple_blocks(self, capsys):
+        async def long_job():
+            await asyncio.sleep(10)
+            print("HELLO FROM LONG JOB")
+
+        with gr.Blocks() as demo1:
+            textbox = gr.Textbox()
+            button1 = gr.Button(value="Start")
+            button1.click(lambda x: x, textbox, textbox)
+        with gr.Blocks() as demo2:
+            button2 = gr.Button(value="Start")
+            click = button2.click(long_job, None, None)
+            cancel = gr.Button(value="Cancel")
+            cancel.click(None, None, None, cancels=[click])
+
+        with gr.Blocks() as demo:
+            with gr.Tab("Demo 1"):
+                demo1.render()
+            with gr.Tab("Demo 2"):
+                demo2.render()
+
+        cancel_fun = demo.fns[-1].fn
+
+        task = asyncio.create_task(long_job())
+        task.set_name("foo_1")
+        await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
+        captured = capsys.readouterr()
+        assert "HELLO FROM LONG JOB" not in captured.out
+
+    def test_raise_exception_if_cancelling_an_event_thats_not_queued(self):
+        def iteration(a):
+            yield a
+
+        msg = "In order to cancel an event, the queue for that event must be enabled!"
+        with pytest.raises(ValueError, match=msg):
+            gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
+                prevent_thread_lock=True
+            )
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Predict")
+                click = button.click(None, None, None)
+                cancel = gr.Button(value="Cancel")
+                cancel.click(None, None, None, cancels=[click])
+            demo.launch(prevent_thread_lock=True)
+
+        with pytest.raises(ValueError, match=msg):
+            with gr.Blocks() as demo:
+                button = gr.Button(value="Predict")
+                click = button.click(None, None, None, queue=False)
+                cancel = gr.Button(value="Cancel")
+                cancel.click(None, None, None, cancels=[click])
+            demo.queue().launch(prevent_thread_lock=True)
+
+
+class TestEvery:
+    def test_raise_exception_if_parameters_invalid(self):
+        with pytest.raises(
+            ValueError, match="Cannot run change event in a batch and every 0.5 seconds"
+        ):
+            with gr.Blocks():
+                num = gr.Number()
+                num.change(
+                    lambda s: s + 1, inputs=[num], outputs=[num], every=0.5, batch=True
+                )
+
+        with pytest.raises(
+            ValueError, match="Parameter every must be positive or None"
+        ):
+            with gr.Blocks():
+                num = gr.Number()
+                num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
+
+    @pytest.mark.asyncio
+    async def test_every_does_not_block_queue(self):
+
+        with gr.Blocks() as demo:
+            num = gr.Number(value=0)
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+            name.change(lambda n: n + random.random(), num, num, every=0.5)
+            button.click(lambda s: f"Hello, {s}!", name, greeting)
+        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                    status = client.get("/queue/status")
+                    # If the continuous event got pushed to the queue, the size would be nonzero
+                    # asserting false will terminate the test
+                    if status.json()["queue_size"] != 0:
+                        assert False
+                    else:
+                        break
+
+
+def test_queue_enabled_for_fn():
+    with gr.Blocks() as demo:
+        input = gr.Textbox()
+        output = gr.Textbox()
+        number = gr.Number()
+        button = gr.Button()
+        button.click(lambda x: f"Hello, {x}!", input, output)
+        button.click(lambda: 42, None, number, queue=True)
+
+    assert not demo.queue_enabled_for_fn(0)
+    assert demo.queue_enabled_for_fn(1)
+    demo.queue()
+    assert demo.queue_enabled_for_fn(0)
+    assert demo.queue_enabled_for_fn(1)
 
 
 if __name__ == "__main__":
