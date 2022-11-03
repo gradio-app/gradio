@@ -1314,8 +1314,6 @@ class Blocks(BlockContext):
                     print(strings.en["COLAB_DEBUG_TRUE"])
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
-                if not self.share:
-                    print(strings.en["COLAB_BETA"].format(self.server_port))
             if self.enable_queue and not self.share:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
@@ -1386,7 +1384,9 @@ class Blocks(BlockContext):
                             <div style="font-family: monospace; margin-bottom: 0.5rem">
                                 Running on <a href=${new URL(path, url).toString()} target="_blank">
                                     https://localhost:${port}${path}
-                                </a>
+                                </a> in Embedded Colab Mode (NEW). If you have an issue, run launch with share=True and
+                                <a href="https://github.com/gradio-app/gradio/issues/new>file an issue</a>. <br>
+                                Note: Chrome inspector may crash Embedded Colab Mode.
                             </div>
                         `;
                         element.appendChild(external_link);
