@@ -10,7 +10,6 @@ import sys
 import time
 import warnings
 import webbrowser
-from tkinter import N
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -21,6 +20,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Set,
     Tuple,
 )
 
@@ -45,8 +45,14 @@ from gradio.documentation import (
     document_component_api,
     set_documentation_group,
 )
-from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none, get_cancel_function
+from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.utils import (
+    check_function_inputs_match,
+    component_or_layout_class,
+    delete_none,
+    get_cancel_function,
+    get_continuous_fn,
+)
 
 set_documentation_group("blocks")
 
@@ -60,11 +66,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        render: bool = True,
+        elem_id: str | None = None,
+        visible: bool = True,
+        root_url: str | None = None,  # URL that is prepended to all file paths
+        **kwargs,
+    ):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.root_url = root_url
         self._style = {}
         if render:
             self.render()
@@ -121,7 +136,7 @@ class Block:
         self,
         event_name: str,
         fn: Callable | None,
-        inputs: Component | List[Component] | None,
+        inputs: Component | List[Component] | Set[Component] | None,
         outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
@@ -134,6 +149,7 @@ class Block:
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
+        every: float | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -155,19 +171,45 @@ class Block:
         Returns: None
         """
         # Support for singular parameter
-        if inputs is None:
-            inputs = []
-        if outputs is None:
-            outputs = []
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
+        if isinstance(inputs, set):
+            inputs_as_dict = True
+            inputs = sorted(inputs, key=lambda x: x._id)
+        else:
+            inputs_as_dict = False
+            if inputs is None:
+                inputs = []
+            elif not isinstance(inputs, list):
+                inputs = [inputs]
+
+        if isinstance(outputs, set):
+            outputs = sorted(outputs, key=lambda x: x._id)
+        else:
+            if outputs is None:
+                outputs = []
+            elif not isinstance(outputs, list):
+                outputs = [outputs]
+
+        if fn is not None and not cancels:
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
+
         if Context.root_block is None:
             raise AttributeError(
                 f"{event_name}() and other events can only be called within a Blocks context."
             )
-        Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if every is not None and every <= 0:
+            raise ValueError("Parameter every must be positive or None")
+        if every and batch:
+            raise ValueError(
+                f"Cannot run {event_name} event in a batch and every {every} seconds. "
+                "Either batch is True or every is non-zero but not both."
+            )
+
+        if every:
+            fn = get_continuous_fn(fn, every)
+
+        Context.root_block.fns.append(
+            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
+        )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
@@ -177,6 +219,7 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -188,6 +231,7 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
+            "every": every,
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
@@ -211,6 +255,7 @@ class Block:
             "visible": self.visible,
             "elem_id": self.elem_id,
             "style": self._style,
+            "root_url": self.root_url,
         }
 
     @classmethod
@@ -278,12 +323,23 @@ class BlockContext(Block):
 
 
 class BlockFunction:
-    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
+    def __init__(
+        self,
+        fn: Optional[Callable],
+        inputs: List[Component],
+        outputs: List[Component],
+        preprocess: bool,
+        postprocess: bool,
+        inputs_as_dict: bool,
+    ):
         self.fn = fn
+        self.inputs = inputs
+        self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
+        self.inputs_as_dict = inputs_as_dict
 
     def __str__(self):
         return str(
@@ -524,8 +580,17 @@ class Blocks(BlockContext):
             self._share = value
 
     @classmethod
-    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
-        """Factory method that creates a Blocks from a config and list of functions."""
+    def from_config(
+        cls, config: dict, fns: List[Callable], root_url: str | None = None
+    ) -> Blocks:
+        """
+        Factory method that creates a Blocks from a config and list of functions.
+
+        Parameters:
+        config: a dictionary containing the configuration of the Blocks.
+        fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
+        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
@@ -540,6 +605,8 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
+            if block_config["props"].get("root_url") is None and root_url:
+                block_config["props"]["root_url"] = root_url + "/"
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
@@ -557,7 +624,12 @@ class Blocks(BlockContext):
                         iterate_over_children(children)
 
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            # ID 0 should be the root Blocks component
+            original_mapping[0] = Context.root_block or blocks
+
             iterate_over_children(config["layout"]["children"])
+
+            first_dependency = None
 
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
@@ -572,19 +644,24 @@ class Blocks(BlockContext):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency["_js"] = dependency.pop("js", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    event_method = getattr(original_mapping[target], trigger)
-                    event_method(fn=fn, **dependency)
+                    dependency = original_mapping[target].set_event_trigger(
+                        event_name=trigger, fn=fn, **dependency
+                    )
+                    if first_dependency is None:
+                        first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
-            dependency = blocks.dependencies[0]
-            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
-            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+            blocks.input_components = [
+                Context.root_block.blocks[i] for i in first_dependency["inputs"]
+            ]
+            blocks.output_components = [
+                Context.root_block.blocks[o] for o in first_dependency["outputs"]
+            ]
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"
@@ -653,7 +730,12 @@ class Blocks(BlockContext):
                         for i in dependency["cancels"]
                     ]
                     new_fn = BlockFunction(
-                        get_cancel_function(updated_cancels)[0], False, True
+                        get_cancel_function(updated_cancels)[0],
+                        [],
+                        [],
+                        False,
+                        True,
+                        False,
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
@@ -683,7 +765,7 @@ class Blocks(BlockContext):
 
         return True
 
-    def __call__(self, *inputs, fn_index: int = 0):
+    def __call__(self, *inputs, fn_index: int = 0, api_name: str = None):
         """
         Allows Blocks objects to be called as functions. Supply the parameters to the
         function as positional arguments. To choose which function to call, use the
@@ -692,7 +774,19 @@ class Blocks(BlockContext):
         Parameters:
         *inputs: the parameters to pass to the function
         fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        api_name: The api_name of the dependency to call. Will take precedence over fn_index.
         """
+        if api_name is not None:
+            fn_index = next(
+                (
+                    i
+                    for i, d in enumerate(self.dependencies)
+                    if d.get("api_name") == api_name
+                ),
+                None,
+            )
+            if fn_index is None:
+                raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
         if not (self.is_callable(fn_index)):
             raise ValueError(
                 "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
@@ -725,6 +819,14 @@ class Blocks(BlockContext):
         block_fn = self.fns[fn_index]
         is_generating = False
         start = time.time()
+
+        if block_fn.inputs_as_dict:
+            processed_input = [
+                {
+                    input_component: data
+                    for input_component, data in zip(block_fn.inputs, processed_input)
+                }
+            ]
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
@@ -885,7 +987,6 @@ class Blocks(BlockContext):
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
             is_generating, iterator = None, None
-
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
@@ -983,8 +1084,9 @@ class Blocks(BlockContext):
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
         _js: Optional[str] = None,
+        every: None | int = None,
         **kwargs,
-    ) -> Blocks | None:
+    ) -> Blocks | Dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -995,13 +1097,14 @@ class Blocks(BlockContext):
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional api key for use with Hugging Face Hub
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+            every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -1016,23 +1119,18 @@ class Blocks(BlockContext):
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
-                    "Blocks.load() requires passing `name` as a keyword argument"
+                    "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            if fn is not None:
-                kwargs["fn"] = fn
-            if inputs is not None:
-                kwargs["inputs"] = inputs
-            if outputs is not None:
-                kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
-            self_or_cls.set_event_trigger(
+            return self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
-                no_target=True,
                 js=_js,
+                no_target=True,
+                every=every,
             )
 
     def clear(self):
