@@ -55,9 +55,7 @@ class Sketchpad(components.Image):
             invert_colors=True,
             interactive=True,
         )
-        super().__init__(
-            **kwargs
-        )
+        super().__init__(**kwargs)
 
 
 class Paint(components.Image):
