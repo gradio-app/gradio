@@ -629,6 +629,8 @@ class Blocks(BlockContext):
 
             iterate_over_children(config["layout"]["children"])
 
+            first_dependency = None
+
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
                 targets = dependency.pop("targets")
@@ -646,15 +648,20 @@ class Blocks(BlockContext):
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    original_mapping[target].set_event_trigger(
+                    dependency = original_mapping[target].set_event_trigger(
                         event_name=trigger, fn=fn, **dependency
                     )
+                    if first_dependency is None:
+                        first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
-            dependency = blocks.dependencies[0]
-            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
-            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+            blocks.input_components = [
+                Context.root_block.blocks[i] for i in first_dependency["inputs"]
+            ]
+            blocks.output_components = [
+                Context.root_block.blocks[o] for o in first_dependency["outputs"]
+            ]
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"
