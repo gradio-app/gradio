@@ -1383,7 +1383,7 @@ class Blocks(BlockContext):
 
                         const external_link = document.createElement('div');
                         external_link.innerHTML = `
-                            <div style="font-family: monochrome !important; margin-bottom: 0.5rem">
+                            <div style="font-family: monospace; margin-bottom: 0.5rem">
                                 Running on <a href=${new URL(path, url).toString()} target="_blank">
                                     https://localhost:${port}${path}
                                 </a>
