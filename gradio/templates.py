@@ -9,7 +9,9 @@ class Text(components.Textbox):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(lines=1, **kwargs)
+        defaults = dict(lines=1)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class TextArea(components.Textbox):
@@ -20,7 +22,9 @@ class TextArea(components.Textbox):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(lines=7, **kwargs)
+        defaults = dict(lines=7)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Webcam(components.Image):
@@ -31,7 +35,9 @@ class Webcam(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="webcam", interactive=True, **kwargs)
+        defaults = dict(source="webcam", interactive=True)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Sketchpad(components.Image):
@@ -42,12 +48,14 @@ class Sketchpad(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(
+        defaults = dict(
             image_mode="L",
             source="canvas",
             shape=(28, 28),
             invert_colors=True,
             interactive=True,
+        )
+        super().__init__(
             **kwargs
         )
 
@@ -73,7 +81,9 @@ class ImageMask(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="upload", tool="sketch", interactive=True, **kwargs)
+        defaults = dict(source="upload", tool="sketch", interactive=True)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class ImagePaint(components.Image):
@@ -97,7 +107,9 @@ class Pil(components.Image):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(type="pil", **kwargs)
+        defaults = dict(type="pil")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class PlayableVideo(components.Video):
@@ -108,7 +120,9 @@ class PlayableVideo(components.Video):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(format="mp4", **kwargs)
+        defaults = dict(format="mp4")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Microphone(components.Audio):
@@ -119,7 +133,9 @@ class Microphone(components.Audio):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="microphone", **kwargs)
+        defaults = dict(source="microphone")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Mic(components.Audio):
@@ -130,7 +146,9 @@ class Mic(components.Audio):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(source="microphone", **kwargs)
+        defaults = dict(source="microphone")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Files(components.File):
@@ -141,7 +159,9 @@ class Files(components.File):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(file_count="multiple", **kwargs)
+        defaults = dict(file_count="multiple")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Numpy(components.Dataframe):
@@ -152,7 +172,9 @@ class Numpy(components.Dataframe):
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(type="numpy", **kwargs)
+        defaults = dict(type="numpy")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Matrix(components.Dataframe):
@@ -167,7 +189,9 @@ class Matrix(components.Dataframe):
         Custom component
         @param kwargs:
         """
-        super().__init__(type="array", **kwargs)
+        defaults = dict(type="array")
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class List(components.Dataframe):
@@ -182,7 +206,9 @@ class List(components.Dataframe):
         Custom component
         @param kwargs:
         """
-        super().__init__(type="array", col_count=1, **kwargs)
+        defaults = dict(type="array", col_count=1)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Highlight(components.HighlightedText):
@@ -193,4 +219,6 @@ class Highlight(components.HighlightedText):
         Custom component
         @param kwargs:
         """
-        super().__init__(**kwargs)
+        defaults = dict(**kwargs)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
