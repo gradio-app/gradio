@@ -22,7 +22,8 @@ The `api_name` parameter will take precendence over the `fn_index` parameter.
 * `gr.Blocks.load()` now correctly loads example files from Spaces [@abidlabs](https://github.com/abidlabs) in [PR 2594](https://github.com/gradio-app/gradio/pull/2594)
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a Guide on how to configure the queue for maximum performance by [@abidlabs](https://github.com/abidlabs) in [PR 2558](https://github.com/gradio-app/gradio/pull/2558)
+
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
