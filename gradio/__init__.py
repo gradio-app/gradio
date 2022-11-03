@@ -23,6 +23,7 @@ from gradio.components import (
     Dropdown,
     File,
     Gallery,
+    Highlight,
     Highlightedtext,
     HighlightedText,
     Image,
@@ -60,7 +61,6 @@ from gradio.mix import Parallel, Series
 from gradio.routes import mount_gradio_app
 from gradio.templates import (
     Files,
-    Highlight,
     ImageMask,
     ImagePaint,
     List,
