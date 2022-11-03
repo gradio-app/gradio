@@ -11,6 +11,7 @@ import pytest
 import gradio
 import gradio as gr
 from gradio import utils
+from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
     cols_to_rows,
@@ -264,6 +265,16 @@ class TestLoadInterfaceWithExamples:
                 cache_examples=True,
             )
 
+    def test_root_url(self):
+        demo = gr.Interface.load("spaces/gradio/test-loading-examples")
+        assert all(
+            [
+                c["props"]["root_url"]
+                == "https://gradio-test-loading-examples.hf.space/"
+                for c in demo.get_config_file()["components"]
+            ]
+        )
+
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
     readme = """
@@ -415,6 +426,23 @@ def test_respect_queue_when_load_from_config():
         ):
             interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
             assert interface("bob") == "foo"
+
+
+def test_raise_value_error_when_api_name_invalid():
+    with pytest.raises(InvalidApiName):
+        demo = gr.Blocks.load(name="spaces/gradio/hello_world")
+        demo("freddy", api_name="route does not exist")
+
+
+def test_use_api_name_in_call_method():
+    # Interface
+    demo = gr.Blocks.load(name="spaces/gradio/hello_world")
+    assert demo("freddy", api_name="predict") == "Hello freddy!"
+
+    # Blocks demo with multiple functions
+    app = gr.Blocks.load(name="spaces/gradio/multiple-api-name-test")
+    assert app(15, api_name="minus_one") == 14
+    assert app(4, api_name="double") == 8
 
 
 if __name__ == "__main__":

@@ -10,6 +10,10 @@ class TooManyRequestsError(Exception):
     pass
 
 
+class InvalidApiName(ValueError):
+    pass
+
+
 class Error(Exception):
     def __init__(self, message: str):
         self.message = message
