@@ -230,8 +230,6 @@ class Examples:
         component to hold the examples"""
 
         async def load_example(example_id):
-            1 / 0
-            print(">>>", self.non_none_processed_examples[example_id])
             if self.cache_examples:
                 processed_example = self.non_none_processed_examples[
                     example_id
