@@ -6,7 +6,6 @@
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight: boolean = true;
-	export let click: boolean = true;
 	export let center: boolean = true;
 	export let flex: boolean = true;
 	export let file_count: string = "single";
@@ -21,8 +20,8 @@
 	};
 
 	const openFileUpload = () => {
-		if (!click) return;
 		if (disable_click) return;
+		hidden_upload.value = "";
 		hidden_upload.click();
 	};
 
