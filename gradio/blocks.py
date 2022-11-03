@@ -1382,13 +1382,13 @@ class Blocks(BlockContext):
                         const url = await google.colab.kernel.proxyPort(port, {cache});
 
                         const external_link = document.createElement('div');
-                        external_link.style.fontFamily = "monochrome";
-                        external_link.innerHTML = `Running on `;
-                        anchor = document.createElement('a');
-                        anchor.href = new URL(path, url).toString();
-                        anchor.target = '_blank';
-                        anchor.setAttribute('data-href', url + path);
-                        external_link.appendChild(anchor);
+                        external_link.innerHTML = `
+                            <div style="font-family: monochrome; margin-bottom: 0.5rem">
+                                Running on <a href=${new URL(path, url).toString()} target="_blank">
+                                    https://localhost:${port}${path}
+                                </a>
+                            </div>
+                        `;
                         element.appendChild(external_link);
 
                         const iframe = document.createElement('iframe');
