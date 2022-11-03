@@ -19,10 +19,8 @@ en = {
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
-    "COLAB_BETA": "\nUsing Embedded Colab Mode, a new feature. Running on port {}."
-    "\nIf you have issues, please use share=True and file a Github issue at https://gradio.dev "
-    "\n\nNote: opening the browser inspector may crash Embedded Colab Mode."
-    "\nTo change the height of this embedded demo, set a `height` (in pixels) in `launch()`",
+    "COLAB_BETA": "\nUsing Embedded Colab Mode (NEW). If you have issues, please use share=True and file a Github issue."
+    "\nNote: opening the browser inspector may crash Embedded Colab Mode.",
     "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades (NEW!), check out Spaces: https://huggingface.co/spaces",
     "PRIVATE_LINK_MESSAGE": "Since this is a private endpoint, this share link will never expire.",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
