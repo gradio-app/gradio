@@ -105,7 +105,7 @@ class Interface(Blocks):
             demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
             demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+        return super().load(name=name, src=src, api_key=api_key, alias=alias)
 
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:

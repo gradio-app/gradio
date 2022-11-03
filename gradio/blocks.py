@@ -66,11 +66,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        render: bool = True,
+        elem_id: str | None = None,
+        visible: bool = True,
+        root_url: str | None = None,  # URL that is prepended to all file paths
+        **kwargs,
+    ):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.root_url = root_url
         self._style = {}
         if render:
             self.render()
@@ -246,6 +255,7 @@ class Block:
             "visible": self.visible,
             "elem_id": self.elem_id,
             "style": self._style,
+            "root_url": self.root_url,
         }
 
     @classmethod
@@ -570,8 +580,17 @@ class Blocks(BlockContext):
             self._share = value
 
     @classmethod
-    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
-        """Factory method that creates a Blocks from a config and list of functions."""
+    def from_config(
+        cls, config: dict, fns: List[Callable], root_url: str | None = None
+    ) -> Blocks:
+        """
+        Factory method that creates a Blocks from a config and list of functions.
+
+        Parameters:
+        config: a dictionary containing the configuration of the Blocks.
+        fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
+        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
@@ -586,6 +605,8 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
+            if block_config["props"].get("root_url") is None and root_url:
+                block_config["props"]["root_url"] = root_url + "/"
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
@@ -603,7 +624,12 @@ class Blocks(BlockContext):
                         iterate_over_children(children)
 
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            # ID 0 should be the root Blocks component
+            original_mapping[0] = Context.root_block or blocks
+
             iterate_over_children(config["layout"]["children"])
+
+            first_dependency = None
 
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
@@ -618,19 +644,24 @@ class Blocks(BlockContext):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency["_js"] = dependency.pop("js", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    event_method = getattr(original_mapping[target], trigger)
-                    event_method(fn=fn, **dependency)
+                    dependency = original_mapping[target].set_event_trigger(
+                        event_name=trigger, fn=fn, **dependency
+                    )
+                    if first_dependency is None:
+                        first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
-            dependency = blocks.dependencies[0]
-            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
-            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+            blocks.input_components = [
+                Context.root_block.blocks[i] for i in first_dependency["inputs"]
+            ]
+            blocks.output_components = [
+                Context.root_block.blocks[o] for o in first_dependency["outputs"]
+            ]
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"
@@ -1073,7 +1104,7 @@ class Blocks(BlockContext):
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -1088,14 +1119,8 @@ class Blocks(BlockContext):
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
-                    "Blocks.load() requires passing `name` as a keyword argument"
+                    "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            if fn is not None:
-                kwargs["fn"] = fn
-            if inputs is not None:
-                kwargs["inputs"] = inputs
-            if outputs is not None:
-                kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
             return self_or_cls.set_event_trigger(

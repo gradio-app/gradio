@@ -2022,7 +2022,7 @@ class Audio(
             **kwargs,
         )
 
-    def as_example(self, input_data: str) -> str:
+    def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
 
 
@@ -2462,8 +2462,10 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data):
-        if isinstance(input_data, pd.DataFrame):
+    def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, pd.DataFrame):
             return input_data.head(n=5).to_dict(orient="split")["data"]
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
@@ -3616,7 +3618,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             **kwargs,
         )
 
-    def as_example(self, input_data: str) -> str:
+    def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""
 
 
