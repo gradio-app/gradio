@@ -31,6 +31,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
 
 ## Contributors Shoutout:
 No changes to highlight.
