@@ -1231,11 +1231,23 @@ class TestDataset:
         )
 
         assert dataset.get_config() == {
-            "components": ['number', 'textbox', 'image', 'html', 'markdown'],
+            "components": ["number", "textbox", "image", "html", "markdown"],
             "headers": [],
             "samples": [
-                [5, "hello", full_bus_path, "<b>Bold</b>", "<p><strong>Bold</strong></p>\n"],
-                [15, "hi", full_bus_path, "<i>Italics</i>", "<p><em>Italics</em></p>\n"],
+                [
+                    5,
+                    "hello",
+                    full_bus_path,
+                    "<b>Bold</b>",
+                    "<p><strong>Bold</strong></p>\n",
+                ],
+                [
+                    15,
+                    "hi",
+                    full_bus_path,
+                    "<i>Italics</i>",
+                    "<p><em>Italics</em></p>\n",
+                ],
             ],
             "type": "index",
             "label": None,

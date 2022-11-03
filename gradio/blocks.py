@@ -626,7 +626,7 @@ class Blocks(BlockContext):
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
-            
+
             iterate_over_children(config["layout"]["children"])
 
             # add the event triggers
@@ -646,7 +646,9 @@ class Blocks(BlockContext):
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    original_mapping[target].set_event_trigger(event_name=trigger, fn=fn, **dependency)
+                    original_mapping[target].set_event_trigger(
+                        event_name=trigger, fn=fn, **dependency
+                    )
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
