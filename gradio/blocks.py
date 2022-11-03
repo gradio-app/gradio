@@ -1376,7 +1376,7 @@ class Blocks(BlockContext):
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
                     code = """(async (port, path, width, height, cache, element) => {
                         if (!google.colab.kernel.accessAllowed && !cache) {
-                        return;
+                            return;
                         }
                         element.appendChild(document.createTextNode(''));
                         const url = await google.colab.kernel.proxyPort(port, {cache});
@@ -1388,7 +1388,7 @@ class Blocks(BlockContext):
                         iframe.style.border = 0;
                         element.appendChild(iframe);
                     })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
-                        port=json.dumps(server_port),
+                        port=json.dumps(self.server_port),
                         path=json.dumps("/"),
                         width=json.dumps(self.width),
                         height=json.dumps(self.height),
