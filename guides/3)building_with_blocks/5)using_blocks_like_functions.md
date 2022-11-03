@@ -1,4 +1,4 @@
-# Using Gradio Blocks Like Functions 
+# Using Gradio Blocks Like Functions
 Tags: TRANSLATION, HUB, SPACES
 
 
