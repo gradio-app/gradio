@@ -1380,6 +1380,17 @@ class Blocks(BlockContext):
                         }
                         element.appendChild(document.createTextNode(''));
                         const url = await google.colab.kernel.proxyPort(port, {cache});
+
+                        const external_link = document.createElement('div');
+                        external_link.style.fontFamily = "monochrome";
+                        external_link.innerHTML = `Running on `;
+                        anchor = document.createElement('a');
+                        anchor.href = new URL(path, url).toString();
+                        anchor.target = '_blank';
+                        anchor.setAttribute('data-href', url + path);
+                        external_link.appendChild(anchor);
+                        element.appendChild(external_link);
+
                         const iframe = document.createElement('iframe');
                         iframe.src = new URL(path, url).toString();
                         iframe.height = height;
