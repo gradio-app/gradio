@@ -29,7 +29,7 @@ class TextArea(components.Textbox):
 
 class Webcam(components.Image):
     """
-    Sets: source="webcam"
+    Sets: source="webcam", interactive=True
     """
 
     is_template = True
@@ -42,7 +42,7 @@ class Webcam(components.Image):
 
 class Sketchpad(components.Image):
     """
-    Sets: image_mode="L", source="canvas", shape=(28, 28), invert_colors=True
+    Sets: image_mode="L", source="canvas", shape=(28, 28), invert_colors=True, interactive=True
     """
 
     is_template = True
@@ -55,25 +55,26 @@ class Sketchpad(components.Image):
             invert_colors=True,
             interactive=True,
         )
-        super().__init__(**kwargs)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Paint(components.Image):
     """
-    Sets: source="canvas", tool="color-sketch"
+    Sets: source="canvas", tool="color-sketch", interactive=True
     """
 
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(
-            source="canvas", tool="color-sketch", interactive=True, **kwargs
-        )
+        defaults = dict(source="canvas", tool="color-sketch", interactive=True)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class ImageMask(components.Image):
     """
-    Sets: source="canvas", tool="sketch"
+    Sets: source="upload", tool="sketch", interactive=True
     """
 
     is_template = True
@@ -86,15 +87,15 @@ class ImageMask(components.Image):
 
 class ImagePaint(components.Image):
     """
-    Sets: source="upload", tool="color-sketch"
+    Sets: source="upload", tool="color-sketch", interactive=True
     """
 
     is_template = True
 
     def __init__(self, **kwargs):
-        super().__init__(
-            source="upload", tool="color-sketch", interactive=True, **kwargs
-        )
+        defaults = dict(source="upload", tool="color-sketch", interactive=True)
+        defaults.update(kwargs)
+        super().__init__(**defaults)
 
 
 class Pil(components.Image):
@@ -185,7 +186,6 @@ class Matrix(components.Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
-        @param kwargs:
         """
         defaults = dict(type="array")
         defaults.update(kwargs)
@@ -202,21 +202,7 @@ class List(components.Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
-        @param kwargs:
         """
         defaults = dict(type="array", col_count=1)
-        defaults.update(kwargs)
-        super().__init__(**defaults)
-
-
-class Highlight(components.HighlightedText):
-    is_template = True
-
-    def __init__(self, **kwargs):
-        """
-        Custom component
-        @param kwargs:
-        """
-        defaults = dict(**kwargs)
         defaults.update(kwargs)
         super().__init__(**defaults)
