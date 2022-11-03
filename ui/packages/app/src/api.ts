@@ -126,7 +126,7 @@ export const fn =
 				WS_ENDPOINT = `wss://${new URL(api_endpoint).host}/queue/join`;
 			} else {
 				var ws_endpoint =
-					api_endpoint === "api/" ? location.href : api_endpoint;
+					api_endpoint === "run/" ? location.href : api_endpoint;
 				var ws_protocol = ws_endpoint.startsWith("https") ? "wss:" : "ws:";
 				var ws_path = location.pathname === "/" ? "/" : location.pathname;
 				var ws_host =

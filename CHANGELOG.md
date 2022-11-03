@@ -1,6 +1,7 @@
 # Upcoming Release 
 
 ## New Features:
+* Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455) 
 
 ### Calling functions by api_name in loaded apps
 
@@ -14,7 +15,6 @@ german = english_translator("My name is Freddy", api_name='translate-to-german')
 ```
 
 The `api_name` parameter will take precendence over the `fn_index` parameter.
-
 
 ## Bug Fixes:
 * Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
