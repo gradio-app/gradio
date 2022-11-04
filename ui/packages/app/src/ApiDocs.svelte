@@ -30,17 +30,17 @@
 						class="bg-gray-50 border border-gray-100 dark:bg-gray-800 dark:border-gray-700 p-6 rounded"
 					>
 						<h3 class="text-3xl text-amber-500 font-semibold mb-2">
-							POST /api/{dependency.api_name}
+							POST /run/{dependency.api_name}
 						</h3>
 						<div class="mb-6">
 							Full URL: <span class="underline"
-								>{root}api/{dependency.api_name}</span
+								>{root}run/{dependency.api_name}</span
 							>
 							<button
 								class="ml-1 px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700"
 								on:click={() => {
 									navigator.clipboard.writeText(
-										root + "api/" + dependency.api_name
+										root + "run/" + dependency.api_name
 									);
 									just_copied = d;
 									setTimeout(() => {
