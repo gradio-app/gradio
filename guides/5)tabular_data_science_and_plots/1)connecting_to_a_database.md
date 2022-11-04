@@ -49,6 +49,10 @@ In order to connect to our database, we will specify the database username, pass
 This will make our app more secure by avoiding storing sensitive information as plain text in our application files.
 
 ```python
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
@@ -114,6 +118,8 @@ Because we have wrapped our function to fetch the data in a `demo.load()` event 
 our demo will fetch the latest data **dynamically** from the database each time the web page loads. 🪄
 
 ```python
+import gradio as gr
+
 with gr.Blocks() as demo:
     with gr.Row():
         bike_type = gr.Plot()
