@@ -4,7 +4,7 @@ import warnings
 import os
 import sys
 
-VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "gradio", "version.txt"))
+VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "gradio", "version.txt"))
 with open(VERSION_TXT) as f:
     version = f.read()
 version = version.strip()

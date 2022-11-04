@@ -23,7 +23,7 @@ jobs:
     - name: Install requirements
       run: python -m pip install -r website/homepage/requirements.txt 
     - name: Check new pypi version
-      run: python website/check_version.py
+      run: cd website && python check_version.py
     - name: Install gradio
       run: python -m pip install gradio -U
   build-docs:
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build Docs
-        run: python website/homepage/build-version-docs.py
+        run: cd website/homepage && python build-version-docs.py
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
