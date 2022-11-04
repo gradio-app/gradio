@@ -38,7 +38,9 @@ configure the queue as described below.
 
 The first parameter we will explore is the `concurrency_count` parameter. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can linearly multiply the capacity of your server to handle requests.
 
-So why not set this parameter infinitely high? 
+So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the 
+
+**Recommendation**: Increase the `concurrency_count` parameter as high as you can until you hit memory limits on your machine. You can read more 
 
 ### The `max_size` parameter
 
