@@ -621,7 +621,7 @@ demo.launch()</code></pre>
               </code>
               <p class="text-gray-500 italic">Optional[str]</p>
               
-              <p class="text-gray-500 font-semibold">default: "testing"</p>
+              <p class="text-gray-500 font-semibold">default: None</p>
               
             </td>
             <td class="p-3 text-gray-700">
@@ -1174,9 +1174,9 @@ demo.launch(share=True, auth=("username", "password"))</code></pre>
               <code class="block">
                 width
               </code>
-              <p class="text-gray-500 italic">int</p>
+              <p class="text-gray-500 italic">int | str</p>
               
-              <p class="text-gray-500 font-semibold">default: 900</p>
+              <p class="text-gray-500 font-semibold">default: "100%"</p>
               
             </td>
             <td class="p-3 text-gray-700">
@@ -1373,7 +1373,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")</p>
+              <p>the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")</p>
             </td>
           </tr>
         
@@ -1390,7 +1390,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)</p>
+              <p>the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)</p>
             </td>
           </tr>
         
@@ -1407,7 +1407,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>optional api key for use with Hugging Face Hub</p>
+              <p>optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens</p>
             </td>
           </tr>
         
@@ -1424,7 +1424,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>optional string used as the name of the loaded model instead of the default name</p>
+              <p>optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)</p>
             </td>
           </tr>
         
@@ -3059,7 +3059,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")</p>
+              <p>Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")</p>
             </td>
           </tr>
         
@@ -3076,7 +3076,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)</p>
+              <p>Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)</p>
             </td>
           </tr>
         
@@ -3093,7 +3093,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>Class Method - optional api key for use with Hugging Face Hub</p>
+              <p>Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens</p>
             </td>
           </tr>
         
@@ -3110,7 +3110,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>Class Method - optional string used as the name of the loaded model instead of the default name</p>
+              <p>Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)</p>
             </td>
           </tr>
         
@@ -3127,7 +3127,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700">
-              <p>Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.</p>
+              <p>Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.</p>
             </td>
           </tr>
         
