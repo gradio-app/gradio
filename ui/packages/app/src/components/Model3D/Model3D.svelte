@@ -13,6 +13,7 @@
 	export let value: null | FileData = null;
 	export let mode: "static" | "dynamic";
 	export let root: string;
+	export let root_url: null | string;
 	export let clearColor: Array<number>;
 
 	export let loading_status: LoadingStatus;
@@ -20,7 +21,7 @@
 	export let show_label: boolean;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root);
+	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging = false;
 </script>

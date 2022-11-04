@@ -54,18 +54,23 @@ class TestBlocksMethods(unittest.TestCase):
             demo.share = True
             self.assertTrue(demo.share)
 
+    @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
-    def test_set_share_in_colab(self, mock_colab_check):
+    def test_set_share_in_colab(self, mock_colab_check, mock_setup_tunnel):
         mock_colab_check.return_value = True
+        mock_setup_tunnel.return_value = "http://localhost:7860/"
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             self.assertFalse(demo.share)
-            # default is True, if share is None and colab_check is true
-            demo.share = None
+            # share default is False, if share is None in colab and no queueing
+            demo.launch(prevent_thread_lock=True)
+            self.assertFalse(demo.share)
+            demo.close()
+            # share becomes true, if share is None in colab with queueing
+            demo.queue()
+            demo.launch(prevent_thread_lock=True)
             self.assertTrue(demo.share)
-            # if set to True, it doesn't change
-            demo.share = True
-            self.assertTrue(demo.share)
+            demo.close()
 
     def test_xray(self):
         def fake_func():
