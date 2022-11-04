@@ -3980,8 +3980,10 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         )
 
 
+Text = Textbox
 DataFrame = Dataframe
 Highlightedtext = HighlightedText
+Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
 Json = JSON
