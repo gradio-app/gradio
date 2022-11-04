@@ -15,10 +15,5 @@ shutil.copytree(
     os.path.join(SRC_DIR, "assets"), os.path.join(BUILD_DIR, "assets")
 )
 
-VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
-with open(VERSION_TXT) as f:
-    version = f.read()
-version = version.strip()
-
 latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
 docs.build_pip_template(latest_gradio_stable , jinja_env)

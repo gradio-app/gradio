@@ -27,14 +27,7 @@ COPY ./test ./test
 COPY ./guides ./guides
 COPY ./demo ./demo
 COPY ./website ./website
-WORKDIR /gradio/website
-RUN python check_version.py
-WORKDIR /gradio/website/homepage
-RUN pip install -r requirements.txt
-RUN pip install gradio -U 
-RUN python build-version-docs.py
 WORKDIR /gradio
-RUN pip uninstall -y gradio 
 RUN pip install .
 RUN python -m build -w
 ARG AWS_ACCESS_KEY_ID
@@ -47,6 +40,7 @@ ARG LATEST_COMMIT
 ENV LATEST_COMMIT $LATEST_COMMIT
 RUN aws s3 cp dist/gradio-*-py3-none-any.whl s3://gradio-main-build/$LATEST_COMMIT/
 WORKDIR /gradio/website/homepage
+RUN pip install -r requirements.txt
 RUN npm install
 RUN npm run build --url=https://gradio-main-build.s3.amazonaws.com/$LATEST_COMMIT/
 ARG AUTH_TOKEN
