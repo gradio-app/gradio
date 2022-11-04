@@ -23,6 +23,7 @@ from gradio.components import (
     Dropdown,
     File,
     Gallery,
+    Highlight,
     Highlightedtext,
     HighlightedText,
     Image,
@@ -37,6 +38,7 @@ from gradio.components import (
     Slider,
     State,
     StatusTracker,
+    Text,
     Textbox,
     TimeSeries,
     Timeseries,
@@ -61,7 +63,6 @@ from gradio.mix import Parallel, Series
 from gradio.routes import mount_gradio_app
 from gradio.templates import (
     Files,
-    Highlight,
     ImageMask,
     ImagePaint,
     List,
@@ -73,7 +74,6 @@ from gradio.templates import (
     Pil,
     PlayableVideo,
     Sketchpad,
-    Text,
     TextArea,
     Webcam,
 )

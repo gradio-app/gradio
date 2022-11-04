@@ -2,20 +2,6 @@
 
 ## New Features:
 
-### Calling functions by api_name in loaded apps
-
-When you load an upstream app with `gr.Blocks.load`, you can now specify which fn
-to call with the `api_name` parameter.
-
-```python
-import gradio as gr
-english_translator = gr.Blocks.load(name="spaces/gradio/english-translator")
-german = english_translator("My name is Freddy", api_name='translate-to-german')
-```
-
-The `api_name` parameter will take precendence over the `fn_index` parameter.
-
-
 ### Upload Button
 There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept (ex: `image`, `video`, `audio`, `text`, or generic `file`).
 
@@ -36,8 +22,47 @@ demo.launch()
 ```
 
 ## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+* Modified the "Connecting To a Database Guide" to use `pd.read_sql` as opposed to low-level postgres connector by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2604](https://github.com/gradio-app/gradio/pull/2604) 
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600)
+* Add new `UploadButton` component by  [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.9
+
+## New Features:
+* Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455) 
+
+### Calling functions by api_name in loaded apps
+
+When you load an upstream app with `gr.Blocks.load`, you can now specify which fn
+to call with the `api_name` parameter.
+
+```python
+import gradio as gr
+english_translator = gr.Blocks.load(name="spaces/gradio/english-translator")
+german = english_translator("My name is Freddy", api_name='translate-to-german')
+```
+
+The `api_name` parameter will take precendence over the `fn_index` parameter.
+
+## Bug Fixes:
 * Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
 * Fixed links in Plotly map guide + demo by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2578](https://github.com/gradio-app/gradio/pull/2578)
+* `gr.Blocks.load()` now correctly loads example files from Spaces [@abidlabs](https://github.com/abidlabs) in [PR 2594](https://github.com/gradio-app/gradio/pull/2594)
 
 ## Documentation Changes:
 No changes to highlight.
@@ -49,8 +74,9 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593)
-* Add new `UploadButton` component by  [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591) 
+* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
+
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -1157,6 +1183,7 @@ We've introduced a lot of new components in `3.0`, including `Model3D`, `Dataset
 * Mobile responsive guides by [@aliabd](https://github.com/aliabd) in [PR 1293](https://github.com/gradio-app/gradio/pull/1293)
 * Update readme by [@abidlabs](https://github.com/abidlabs) in [PR 1292](https://github.com/gradio-app/gradio/pull/1292)
 * gif by [@abidlabs](https://github.com/abidlabs) in [PR 1296](https://github.com/gradio-app/gradio/pull/1296)
+* Fixed issue #2476 with upload dialog [@mezotaken](https://github.com/mezotaken) in [PR 2577](https://github.com/gradio-app/gradio/pull/2577)
 
 ## Contributors Shoutout:
 
