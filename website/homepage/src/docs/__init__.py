@@ -101,18 +101,21 @@ def find_cls(target_cls):
                 return cls
     raise ValueError("Class not found")
 
-def build(output_dir, jinja_env, gradio_wheel_url):
-    docs_files = os.listdir("src/docs")
-    for file in docs_files:
-        if file.endswith("_template.html") and file.startswith("v"):
-            pip_filename = file
+def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs, find_cls=find_cls, version="main", pip_filename=pip_filename, gradio_wheel_url=gradio_wheel_url)
+    output = template.render(docs=docs, find_cls=find_cls, version="main", gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
-    output_file = os.path.join(output_folder, "index.html")
+    output_main = os.path.join(output_folder, "main")
+    os.makedirs(output_main)
+    output_file = os.path.join(output_main, "index.html")
     with open(output_file, "w") as index_html:
+        index_html.write(output)
+    template = jinja_env.get_template(f"docs/v{gradio_version}_template.html")
+    output = template.render()
+    version_docs_file = os.path.join(output_folder, "index.html")
+    with open(version_docs_file, "w") as index_html:
         index_html.write(output)
 
 def build_pip_template(version, jinja_env):
@@ -121,7 +124,7 @@ def build_pip_template(version, jinja_env):
         if file.endswith("_template.html") and file.startswith("v"):
             os.remove(os.path.join("src/docs", file))
             break
-    template = jinja_env.get_template("docs/main_template.html")
-    output = template.render(docs=docs, find_cls=find_cls, version="pip")
+    template = jinja_env.get_template("docs/template.html")
+    output = template.render(docs=docs, find_cls=find_cls, version="pip", gradio_version=version)
     with open(f"src/docs/v{version}_template.html", "w+") as template_file:
         template_file.write(output)
