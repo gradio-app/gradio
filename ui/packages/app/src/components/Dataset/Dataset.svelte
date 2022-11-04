@@ -11,11 +11,12 @@
 	export let visible: boolean = true;
 	export let value: number | null = null;
 	export let root: string;
+	export let root_url: null | string;
 	export let samples_per_page: number = 10;
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
-	let samples_dir: string = root + "file=";
+	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
 	let gallery = headers.length === 1;
 	let paginate = samples.length > samples_per_page;

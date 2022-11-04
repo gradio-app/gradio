@@ -265,6 +265,16 @@ class TestLoadInterfaceWithExamples:
                 cache_examples=True,
             )
 
+    def test_root_url(self):
+        demo = gr.Interface.load("spaces/gradio/test-loading-examples")
+        assert all(
+            [
+                c["props"]["root_url"]
+                == "https://gradio-test-loading-examples.hf.space/"
+                for c in demo.get_config_file()["components"]
+            ]
+        )
+
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
     readme = """
