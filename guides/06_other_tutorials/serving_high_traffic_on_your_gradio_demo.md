@@ -9,7 +9,7 @@ how to set these parametesr in a way that allows you to serve lots of users simu
 minimal latency.
 
 This is an advanced guide, so make sure you know the basics of Gradio already, such as
-[how to launch a Gradio Interface]().
+[how to create and launch a Gradio demo](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
 ## Gradio's Queueing System
 
@@ -31,26 +31,38 @@ simply by adding `.queue()` before launching an Interface or a Blocks. Here's an
 
 ```py
 identity_demo = gr.Interface(lambda x:x, "image", "image")
-identity_demo.queue()
+identity_demo.queue()  # <-- Sets up a queue with default parameters
 identity_demo.launch()
 ```
 
 In the demo `identity_demo` above, predictions will now be sent over a websocket instead.
 Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the
-Gradio server, a **queue** is set up, which adds each request that comes 
+Gradio server, a **queue** is set up, which adds each request that comes to a list. When
+a worker is free, the first available request is passed into the worker for inference. When
+the inference is complete, the queue sends the prediction back through the websocket to
+the particular Gradio user who called that prediction. 
 
-### The `num_workers` parameter
+There are several parameters that can be used to configure the queue and help reduce latency.
+Let's go through them one-by-one.
+
+Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue
+is enabled by default. You can still call the `.queue()` method manually in order to
+configure the queue as described below.
+
+### The `concurrency_count` parameter
 
 d
 
-### The # of replicas on Hugging Face Sapces
+### The `max_size` parameter
 
-### The batch
+### The `batch_size` parameter
 
-## How Gradio's Queueing Works
+### The # of replicas on Hugging Face Spaces
 
-## The Number of Replicas
+
 
 ## Example: Deploying Stable Diffusion with Gradio with a GPU
+
+
 
 
