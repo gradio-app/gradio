@@ -25,7 +25,7 @@ app.queue()  # <-- Sets up a queue with default parameters
 app.launch()
 ```
 
-In the demo `identity_demo` above, predictions will now be sent over a websocket instead.
+In the demo `app` above, predictions will now be sent over a websocket instead.
 Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the Gradio server, a **queue** is set up, which adds each request that comes to a list. When a worker is free, the first available request is passed into the worker for inference. When the inference is complete, the queue sends the prediction back through the websocket tothe particular Gradio user who called that prediction. 
 
 Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue is already **enabled by default**. You can still call the `.queue()` method manually in order to configure the queue parameters described below.
