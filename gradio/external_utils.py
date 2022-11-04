@@ -153,7 +153,7 @@ def use_websocket(config, dependency):
 
 
 ##################
-# Helper functions for cleaning up Interfaces/Blocks loaded from HF Spaces
+# Helper function for cleaning up an Interface loaded from HF Spaces
 ##################
 
 
@@ -177,13 +177,4 @@ def streamline_spaces_interface(config: Dict) -> Dict:
         "title",
     }
     config = {k: config[k] for k in parameters}
-    return config
-
-
-def streamline_spaces_blocks(config: dict) -> dict:
-    """Streamlines the blocks config dictionary to fix components that don't render correctly."""
-    # TODO(abidlabs): Need a better way to fix relative paths in dataset component
-    for c, component in enumerate(config["components"]):
-        if component["type"] == "dataset":
-            config["components"][c]["props"]["visible"] = False
     return config

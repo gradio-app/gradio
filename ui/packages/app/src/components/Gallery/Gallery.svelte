@@ -15,6 +15,7 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let root: string;
+	export let root_url: null | string;
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: Array<string> | Array<FileData> | null = null;
@@ -25,8 +26,8 @@
 			? null
 			: value.map((img) =>
 					Array.isArray(img)
-						? [normalise_file(img[0], root), img[1]]
-						: [normalise_file(img, root), null]
+						? [normalise_file(img[0], root_url ?? root), img[1]]
+						: [normalise_file(img, root_url ?? root), null]
 			  );
 
 	let prevValue: string[] | FileData[] | null = null;
