@@ -8,6 +8,7 @@ declare global {
 		__gradio_loader__: Array<{
 			$set: (args: any) => any;
 		}>;
+		__is_colab__: boolean;
 	}
 }
 

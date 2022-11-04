@@ -21,7 +21,6 @@ from gradio.external_utils import (
     get_ws_fn,
     postprocess_label,
     rows_to_cols,
-    streamline_spaces_blocks,
     streamline_spaces_interface,
     use_websocket,
 )
@@ -312,6 +311,7 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
 
 def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
+
     print("Fetching Space from: {}".format(space_url))
 
     headers = {}
@@ -345,14 +345,12 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
             space_name, config, alias, api_key, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
-        return from_spaces_blocks(space_name, config, api_key, iframe_url)
+        return from_spaces_blocks(config, api_key, iframe_url)
 
 
-def from_spaces_blocks(
-    model_name: str, config: Dict, api_key: str | None, iframe_url: str
-) -> Blocks:
-    config = streamline_spaces_blocks(config)
+def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Blocks:
     api_url = "{}/api/predict/".format(iframe_url)
+
     headers = {"Content-Type": "application/json"}
     if api_key is not None:
         headers["Authorization"] = f"Bearer {api_key}"
@@ -398,7 +396,7 @@ def from_spaces_blocks(
             fns.append(fn)
         else:
             fns.append(None)
-    return gradio.Blocks.from_config(config, fns)
+    return gradio.Blocks.from_config(config, fns, iframe_url)
 
 
 def from_spaces_interface(
