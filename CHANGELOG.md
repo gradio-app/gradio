@@ -1,6 +1,33 @@
 # Upcoming Release 
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+* See docs for the latest gradio commit to main as well the latest pip release:
+
+![main-vs-pip](https://user-images.githubusercontent.com/9021060/199607887-aab1ae4e-a070-4527-966d-024397abe15b.gif)
+
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.9
+
+## New Features:
 * Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455) 
 
 ### Calling functions by api_name in loaded apps
@@ -22,9 +49,7 @@ The `api_name` parameter will take precendence over the `fn_index` parameter.
 * `gr.Blocks.load()` now correctly loads example files from Spaces [@abidlabs](https://github.com/abidlabs) in [PR 2594](https://github.com/gradio-app/gradio/pull/2594)
 
 ## Documentation Changes:
-* See docs for the latest gradio commit to main as well the latest pip release:
-
-![main-vs-pip](https://user-images.githubusercontent.com/9021060/199607887-aab1ae4e-a070-4527-966d-024397abe15b.gif)
+No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -34,7 +59,6 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
-* Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
 
 ## Contributors Shoutout:
 No changes to highlight.
