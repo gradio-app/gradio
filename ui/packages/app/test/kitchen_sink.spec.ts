@@ -13,7 +13,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/api/predict/", (route) => {
+	return page.route("**/run/predict/", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -215,7 +215,7 @@ test("test outputs", async ({ page }) => {
 
 	await Promise.all([
 		submit_button.click(),
-		page.waitForResponse("**/api/predict/")
+		page.waitForResponse("**/run/predict/")
 	]);
 
 	const textbox = await page.getByLabel("Textbox").nth(2);

@@ -96,7 +96,7 @@ class TestInterface(unittest.TestCase):
         mock_colab_check.return_value = True
         interface = Interface(lambda x: x, "textbox", "label")
         _, _, share_url = interface.launch(prevent_thread_lock=True)
-        self.assertIsNotNone(share_url)
+        self.assertIsNone(share_url)
         interface.close()
 
     @mock.patch("gradio.utils.colab_check")
