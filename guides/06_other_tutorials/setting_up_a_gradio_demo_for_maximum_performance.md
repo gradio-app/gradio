@@ -2,14 +2,13 @@
 
 Let's say that your Gradio demo goes *viral* on social media -- you have lots of users trying it out simultaneously, and you want to provide your users with the best possible experience or, in other words, minimize the amount of time that each user has to wait in the queue to see their prediction.
 
-How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configuations, and how to set these parameters in a way that allows you to serve lots of users simultaneously with
-minimal latency.
+How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configuations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously withminimal latency.
 
 This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio demo](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
-## Gradio's Queueing System (with Websockets)
+## Enabling Gradio's Queueing System
 
-By default, a Gradio demo does not use queueing and instead sends prediction requests via a POST request to the server where your Gradio server and Python code are running. However, regular POST requests have a TWO big limitations:
+By default, a Gradio demo does not use queueing and instead sends prediction requests via a POST request to the server where your Gradio server and Python code are running. However, regular POST requests have two big limitations:
 
 (1) They time out -- most browsers raise a timeout error
 if they do not get a response to a POST request after a short period of time (e.g. 1 min).
@@ -21,16 +20,15 @@ if many people are trying out your demo at the same time, resulting in increased
 To address these limitations, any Gradio app can be converted to use **websockets** instead, simply by adding `.queue()` before launching an Interface or a Blocks. Here's an example:
 
 ```py
-identity_demo = gr.Interface(lambda x:x, "image", "image")
-identity_demo.queue()  # <-- Sets up a queue with default parameters
-identity_demo.launch()
+app = gr.Interface(lambda x:x, "image", "image")
+app.queue()  # <-- Sets up a queue with default parameters
+app.launch()
 ```
 
 In the demo `identity_demo` above, predictions will now be sent over a websocket instead.
 Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the Gradio server, a **queue** is set up, which adds each request that comes to a list. When a worker is free, the first available request is passed into the worker for inference. When the inference is complete, the queue sends the prediction back through the websocket tothe particular Gradio user who called that prediction. 
 
-Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue is **enabled by default**. You can still call the `.queue()` method manually in order to
-configure the queue as described below.
+Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue is already **enabled by default**. You can still call the `.queue()` method manually in order to configure the queue parameters described below.
 
 ## Queuing Parameters
 
@@ -52,15 +50,52 @@ Paradoxically, setting a `max_size` can often improve user experience because us
 
 **Recommendation**: For a better user experience, set a `max_size` that is reasonable given your expectations of how long users might be willing to wait for a prediction. 
 
-### The `batch_size` parameter
+### The `max_batch_size` parameter
 
-Another parameter to optimize 
+Another way to increase the parallelism of your Gradio demo is to write your function so that it can accept **batches** of inputs. Most deep learning models can process batches of samples more efficiently than processing individual samples. 
+
+If you write your function to process a batch of samples, Gradio will automatically batch incoming requests together and pass them into your function as a batch of samples. You need to set `batch` to `True` (by default it is `False`) and set a `max_batch_size` (by default it is `4`) based on the maximum number of samples 
+
+While setting a batch is conceptually similar to having workers process requests in parallel, it is often *faster* than setting the `concurrency_count` for deep learning models. The downside is that you might need to adapt your function a little bit to accept batches of samples instead of individual samples. 
+
+Here's an example of a saimple function that does *not* accept a batch of inputs -- it processes a single input at a time:
+
+```py
+import time
+
+def trim_words(word, length):
+    return w[:int(length)]
+
+```
+
+Here's the same function rewritten to take in a batch of samples:
+
+```py
+import time
+
+def trim_words(words, lengths):
+    trimmed_words = []
+    for w, l in zip(words, lengths):
+        trimmed_words.append(w[:int(l)])        
+    return [trimmed_words]
+
+```
+
+The second function can be used with `batch=True` and an appropriate `max_batch_size` parameter.
+
+**Recommendation**: If possible, write your function to accept batches of samples, and then set `batch` to `True` and the `max_batch_size` as high as possible based on your machine's memory limits. If you set `max_batch_size` as high as possible, you will most likely need to set `concurrency_count` back to `1` since you will no longer have the memory to have multiple workers running in parallel. 
 
 ### Upgrading your Hardware (GPUs, TPUs, etc.)
 
-Finally, a very 
+If you have done everything above, and your demo is still not fast enough, you can upgrade the hardware that your model is running on. Changing the model from running on CPUs to running on GPUs will usually provide a 10x-50x increase in inference time for deep learning models.
 
+It is particularly straightforward to upgrade your Hardware on Hugging Face Spaces. Simply click on the "Settings" tab in your tab and choose the Space Hardware you'd like.
 
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/spaces-gpu-settings.png)
 
+While you might need to adapt portions of your code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
 
+## Conclusion
+
+Congratulations! You know how to set up a Gradio demo for maximum performance. Good luck on your next viral demo! 
 
