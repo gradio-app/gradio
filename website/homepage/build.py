@@ -4,6 +4,7 @@ import jinja2
 from src import index, guides, docs, demos, changelog
 import argparse
 import requests
+from utils import get_latest_stable
 
 SRC_DIR = "src"
 BUILD_DIR = "build"
@@ -15,9 +16,6 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(SRC_DIR))
 shutil.copytree(
     os.path.join(SRC_DIR, "assets"), os.path.join(BUILD_DIR, "assets")
 )
-
-def get_latest_stable():
-    return requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
 
 latest_gradio_stable = get_latest_stable()
 

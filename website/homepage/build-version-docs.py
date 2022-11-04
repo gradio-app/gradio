@@ -3,7 +3,7 @@ import shutil
 import jinja2
 from src import index, guides, docs, demos, changelog
 import requests
-from build import get_latest_stable
+from utils import get_latest_stable
 
 SRC_DIR = "src"
 BUILD_DIR = "build"
