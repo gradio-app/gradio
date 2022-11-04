@@ -38,6 +38,7 @@ from gradio.components import (
     Slider,
     State,
     StatusTracker,
+    Text,
     Textbox,
     TimeSeries,
     Timeseries,
@@ -72,7 +73,6 @@ from gradio.templates import (
     Pil,
     PlayableVideo,
     Sketchpad,
-    Text,
     TextArea,
     Webcam,
 )
