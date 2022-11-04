@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Tuple
+import typing
+from typing import Any, Callable, Optional, Tuple
 
 import numpy as np
 import PIL
@@ -392,7 +393,7 @@ class Files(components.File):
 
     def __init__(
         self,
-        value: Optional[str | List[str] | Callable] = None,
+        value: Optional[str | typing.List[str] | Callable] = None,
         *,
         file_count: str = "multiple",
         type: str = "file",
@@ -425,12 +426,12 @@ class Numpy(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]] | Callable] = None,
+        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
         *,
-        headers: Optional[List[str]] = None,
+        headers: Optional[typing.List[str]] = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = None,
-        datatype: str | List[str] = "str",
+        datatype: str | typing.List[str] = "str",
         type: str = "numpy",
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
@@ -472,12 +473,12 @@ class Matrix(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]] | Callable] = None,
+        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
         *,
-        headers: Optional[List[str]] = None,
+        headers: Optional[typing.List[str]] = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = None,
-        datatype: str | List[str] = "str",
+        datatype: str | typing.List[str] = "str",
         type: str = "array",
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
@@ -519,12 +520,12 @@ class List(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[List[List[Any]] | Callable] = None,
+        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
         *,
-        headers: Optional[List[str]] = None,
+        headers: Optional[typing.List[str]] = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = 1,
-        datatype: str | List[str] = "str",
+        datatype: str | typing.List[str] = "str",
         type: str = "array",
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
