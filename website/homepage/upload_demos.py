@@ -8,7 +8,7 @@ import os
 import json
 import argparse
 import requests
-from build import get_latest_stable
+from utils import get_latest_stable
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
