@@ -36,7 +36,7 @@ There are several parameters that can be used to configure the queue and help re
 
 ### The `concurrency_count` parameter
 
-The first parameter we will explore is the `concurrency_count` parameter. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can linearly multiply the capacity of your server to handle requests.
+The first parameter we will explore is the `concurrency_count` parameter of `queue()`. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can linearly multiply the capacity of your server to handle requests.
 
 So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the the `concurrency_count` too high.
 
@@ -44,7 +44,7 @@ So why not set this parameter much higher? Keep in mind that since requests are 
 
 ### The `max_size` parameter
 
-A more blunt way to reduce the wait times is simply to prevent too many people from joining the queue in the first place. You can set the maximum number of requests that the queue processes using the `max_size` parameter. If a request arrives when the queue is already of the maximum size, it will not be allowed to join the queue and instead, the user will receive an error saying that the queue is full and to try again. By default, `max_size=None`, meaning that there is no limit to the number of users that can join the queue.
+A more blunt way to reduce the wait times is simply to prevent too many people from joining the queue in the first place. You can set the maximum number of requests that the queue processes using the `max_size` parameter of `queue()`. If a request arrives when the queue is already of the maximum size, it will not be allowed to join the queue and instead, the user will receive an error saying that the queue is full and to try again. By default, `max_size=None`, meaning that there is no limit to the number of users that can join the queue.
 
 Paradoxically, setting a `max_size` can often improve user experience because users are not dissuaded by very long queue wait times. Users who are more interested and invested in your demo will keep trying to join the queue, and will be able to get their results faster. 
 
@@ -54,7 +54,7 @@ Paradoxically, setting a `max_size` can often improve user experience because us
 
 Another way to increase the parallelism of your Gradio demo is to write your function so that it can accept **batches** of inputs. Most deep learning models can process batches of samples more efficiently than processing individual samples. 
 
-If you write your function to process a batch of samples, Gradio will automatically batch incoming requests together and pass them into your function as a batch of samples. You need to set `batch` to `True` (by default it is `False`) and set a `max_batch_size` (by default it is `4`) based on the maximum number of samples 
+If you write your function to process a batch of samples, Gradio will automatically batch incoming requests together and pass them into your function as a batch of samples. You need to set `batch` to `True` (by default it is `False`) and set a `max_batch_size` (by default it is `4`) based on the maximum number of samples your function is able to handle. These two parameters can be passed into  `gr.Interface()` or to an event in Blocks such as `.click()`. 
 
 While setting a batch is conceptually similar to having workers process requests in parallel, it is often *faster* than setting the `concurrency_count` for deep learning models. The downside is that you might need to adapt your function a little bit to accept batches of samples instead of individual samples. 
 
