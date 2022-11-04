@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import getpass
 import inspect
+import json
 import os
 import pkgutil
 import random
@@ -567,18 +568,6 @@ class Blocks(BlockContext):
             }
             utils.initiated_analytics(data)
 
-    @property
-    def share(self):
-        return self._share
-
-    @share.setter
-    def share(self, value: Optional[bool]):
-        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
-        if value is None:
-            self._share = True if utils.colab_check() else False
-        else:
-            self._share = value
-
     @classmethod
     def from_config(
         cls, config: dict, fns: List[Callable], root_url: str | None = None
@@ -1028,6 +1017,7 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
+            "is_colab": utils.colab_check(),
         }
 
         def getLayout(block):
@@ -1194,7 +1184,7 @@ class Blocks(BlockContext):
         server_port: Optional[int] = None,
         show_tips: bool = False,
         height: int = 500,
-        width: int = 900,
+        width: int | str = "100%",
         encrypt: bool = False,
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
@@ -1289,7 +1279,6 @@ class Blocks(BlockContext):
                 raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
-        self.share = share
         self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
@@ -1320,7 +1309,12 @@ class Blocks(BlockContext):
             self.server_app = app
             self.server = server
             self.is_running = True
-            self.protocol = "https" if self.local_url.startswith("https") else "http"
+            self.is_colab = utils.colab_check()
+            self.protocol = (
+                "https"
+                if self.local_url.startswith("https") or self.is_colab
+                else "http"
+            )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
@@ -1336,27 +1330,39 @@ class Blocks(BlockContext):
                     )
         utils.launch_counter()
 
+        self.share = (
+            share
+            if share is not None
+            else True
+            if self.is_colab and self.enable_queue
+            else False
+        )
+
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        is_colab = utils.colab_check()
-        if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            if not self.share:
-                raise ValueError(
-                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
-                )
-            if is_colab and not quiet:
+        if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+            raise ValueError(
+                "When localhost is not accessible, a shareable link must be created. Please set share=True."
+            )
+
+        if self.is_colab:
+            if not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
+                if not self.share:
+                    print(strings.en["COLAB_BETA"].format(self.server_port))
+            if self.enable_queue and not self.share:
+                raise ValueError(
+                    "When using queueing in Colab, a shareable link must be created. Please set share=True."
+                )
         else:
             print(
                 strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                     self.protocol, self.server_name, self.server_port
                 )
             )
-        if is_colab and self.requires_permissions:
-            print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
         if self.share:
             if self.is_space:
@@ -1393,16 +1399,51 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import HTML, display  # type: ignore
+                from IPython.display import HTML, Javascript, display  # type: ignore
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
-                        time.sleep(1)
+                        time.sleep(0.25)
                     display(
                         HTML(
                             f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
+                elif self.is_colab:
+                    # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
+                    code = """(async (port, path, width, height, cache, element) => {
+                        if (!google.colab.kernel.accessAllowed && !cache) {
+                            return;
+                        }
+                        element.appendChild(document.createTextNode(''));
+                        const url = await google.colab.kernel.proxyPort(port, {cache});
+
+                        const external_link = document.createElement('div');
+                        external_link.innerHTML = `
+                            <div style="font-family: monospace; margin-bottom: 0.5rem">
+                                Running on <a href=${new URL(path, url).toString()} target="_blank">
+                                    https://localhost:${port}${path}
+                                </a>
+                            </div>
+                        `;
+                        element.appendChild(external_link);
+
+                        const iframe = document.createElement('iframe');
+                        iframe.src = new URL(path, url).toString();
+                        iframe.height = height;
+                        iframe.allow = "autoplay; camera; microphone; clipboard-read; clipboard-write;"
+                        iframe.width = width;
+                        iframe.style.border = 0;
+                        element.appendChild(iframe);
+                    })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
+                        port=json.dumps(self.server_port),
+                        path=json.dumps("/"),
+                        width=json.dumps(self.width),
+                        height=json.dumps(self.height),
+                        cache=json.dumps(False),
+                    )
+
+                    display(Javascript(code))
                 else:
                     display(
                         HTML(
@@ -1415,7 +1456,7 @@ class Blocks(BlockContext):
         if getattr(self, "analytics_enabled", False):
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
-                "is_google_colab": is_colab,
+                "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "ip_address": self.ip_address,

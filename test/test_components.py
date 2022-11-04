@@ -33,7 +33,7 @@ class TestComponent(unittest.TestCase):
         """
         component
         """
-        assert isinstance(gr.components.component("text"), gr.templates.Text)
+        assert isinstance(gr.components.component("textarea"), gr.templates.TextArea)
 
 
 def test_raise_warnings():
@@ -164,6 +164,17 @@ class TestTextbox(unittest.TestCase):
         """
         component = gr.Textbox("abc")
         self.assertEqual(component.get_config().get("value"), "abc")
+
+    def test_override_template(self):
+        """
+        override template
+        """
+        component = gr.TextArea(value="abc")
+        self.assertEqual(component.get_config().get("value"), "abc")
+        self.assertEqual(component.get_config().get("lines"), 7)
+        component = gr.TextArea(value="abc", lines=4)
+        self.assertEqual(component.get_config().get("value"), "abc")
+        self.assertEqual(component.get_config().get("lines"), 4)
 
 
 class TestNumber(unittest.TestCase):
