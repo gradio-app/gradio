@@ -16,7 +16,10 @@ shutil.copytree(
     os.path.join(SRC_DIR, "assets"), os.path.join(BUILD_DIR, "assets")
 )
 
-latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
+def get_latest_stable():
+    return requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
+
+latest_gradio_stable = get_latest_stable()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--url", type=str, help="aws link to gradio wheel")

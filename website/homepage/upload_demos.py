@@ -8,6 +8,7 @@ import os
 import json
 import argparse
 import requests
+from build import get_latest_stable
 
 AUTH_TOKEN = os.getenv("AUTH_TOKEN")
 VERSION_TXT = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "gradio", "version.txt"))
@@ -79,7 +80,7 @@ demos = os.listdir(GRADIO_DEMO_DIR)
 
 demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
 
-latest_gradio_stable = requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"]
+latest_gradio_stable = get_latest_stable()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
