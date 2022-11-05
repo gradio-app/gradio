@@ -2,7 +2,7 @@
 
 Let's say that your Gradio demo goes *viral* on social media -- you have lots of users trying it out simultaneously, and you want to provide your users with the best possible experience or, in other words, minimize the amount of time that each user has to wait in the queue to see their prediction.
 
-How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configuations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously withminimal latency.
+How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configurations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously withminimal latency.
 
 This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio demo](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
@@ -26,7 +26,7 @@ app.launch()
 ```
 
 In the demo `app` above, predictions will now be sent over a websocket instead.
-Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the Gradio server, a **queue** is set up, which adds each request that comes to a list. When a worker is free, the first available request is passed into the worker for inference. When the inference is complete, the queue sends the prediction back through the websocket tothe particular Gradio user who called that prediction. 
+Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the Gradio server, a **queue** is set up, which adds each request that comes to a list. When a worker is free, the first available request is passed into the worker for inference. When the inference is complete, the queue sends the prediction back through the websocket to the particular Gradio user who called that prediction. 
 
 Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue is already **enabled by default**. You can still call the `.queue()` method manually in order to configure the queue parameters described below.
 
@@ -46,7 +46,7 @@ So why not set this parameter much higher? Keep in mind that since requests are 
 
 A more blunt way to reduce the wait times is simply to prevent too many people from joining the queue in the first place. You can set the maximum number of requests that the queue processes using the `max_size` parameter of `queue()`. If a request arrives when the queue is already of the maximum size, it will not be allowed to join the queue and instead, the user will receive an error saying that the queue is full and to try again. By default, `max_size=None`, meaning that there is no limit to the number of users that can join the queue.
 
-Paradoxically, setting a `max_size` can often improve user experience because users are not dissuaded by very long queue wait times. Users who are more interested and invested in your demo will keep trying to join the queue, and will be able to get their results faster. 
+Paradoxically, setting a `max_size` can often improve user experience because it prevents users from being dissuaded by very long queue wait times. Users who are more interested and invested in your demo will keep trying to join the queue, and will be able to get their results faster. 
 
 **Recommendation**: For a better user experience, set a `max_size` that is reasonable given your expectations of how long users might be willing to wait for a prediction. 
 
@@ -58,7 +58,7 @@ If you write your function to process a batch of samples, Gradio will automatica
 
 While setting a batch is conceptually similar to having workers process requests in parallel, it is often *faster* than setting the `concurrency_count` for deep learning models. The downside is that you might need to adapt your function a little bit to accept batches of samples instead of individual samples. 
 
-Here's an example of a saimple function that does *not* accept a batch of inputs -- it processes a single input at a time:
+Here's an example of a function that does *not* accept a batch of inputs -- it processes a single input at a time:
 
 ```py
 import time
@@ -85,15 +85,23 @@ The second function can be used with `batch=True` and an appropriate `max_batch_
 
 **Recommendation**: If possible, write your function to accept batches of samples, and then set `batch` to `True` and the `max_batch_size` as high as possible based on your machine's memory limits. If you set `max_batch_size` as high as possible, you will most likely need to set `concurrency_count` back to `1` since you will no longer have the memory to have multiple workers running in parallel. 
 
+### The `api_open` parameter
+
+When creating a Gradio demo, you may want to restrict all traffic to happen through the user interface as opposed to the [programmatic API](/sharing_your_app/#api-page) that is automatically created for your Gradio demo. This is important because when people make requests through the programmatic API, they can potentially bypass users who are waiting in the queue and degrade the experience of these users. 
+
+**Recommendation**: set the `api_open` parameter in `queue()` to `False` in your demo to prevent programmatic requests.
+
+
+
 ### Upgrading your Hardware (GPUs, TPUs, etc.)
 
 If you have done everything above, and your demo is still not fast enough, you can upgrade the hardware that your model is running on. Changing the model from running on CPUs to running on GPUs will usually provide a 10x-50x increase in inference time for deep learning models.
 
-It is particularly straightforward to upgrade your Hardware on Hugging Face Spaces. Simply click on the "Settings" tab in your tab and choose the Space Hardware you'd like.
+It is particularly straightforward to upgrade your Hardware on Hugging Face Spaces. Simply click on the "Settings" tab in your Space and choose the Space Hardware you'd like.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/spaces-gpu-settings.png)
 
-While you might need to adapt portions of your code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
+While you might need to adapt portions of your machine learning inference code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
 
 ## Conclusion
 
