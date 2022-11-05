@@ -31,6 +31,9 @@
               <div class="demo-content px-4 {% if not ((category_loop.index==1) and (loop.index==1)) %}hidden{% endif %} {% if (category_loop.index==1) and (loop.index==1) %}selected-demo-window{% endif %}" name="{{ demo['dir'] }}">
                 <p class="my-4 text-lg text-gray-600">{{ demo['text'] }}</p>
                 <div class="codeblock" id="{{ demo['dir']}}_code">
+                  <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{{demo['dir']}}/run.ipynb" target="_blank" style="right:30px">
+                    <img src="https://colab.research.google.com/assets/colab-badge.svg">
+                  </a>
                   <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo['code'] }}</code></pre>
                 </div>
                 {% if 'external_space' in demo %}
@@ -51,7 +54,7 @@
       window.__gradio_mode__ = "website";
     </script>
     <script type="module" src="/assets/index.js"></script>
-    <!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.3/gradio.js"></script> -->
+    <!-- <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/3.9/gradio.js"></script> -->
 
     <script>{% include 'templates/add_copy.js' %}</script>
 
