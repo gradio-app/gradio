@@ -19,6 +19,8 @@
 	export let label: string = "";
 	export let show_label: boolean;
 	export let file_count: string;
+	export let variant: string = "panel";
+	export let file_type: string = "file";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -46,14 +48,8 @@
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
-{#if value === null && file_count === "single"}
-	<Upload on:load={handle_upload} filetype="file" bind:dragging>
-		{drop_text}
-		<br />- {or_text} -<br />
-		{upload_text}
-	</Upload>
-{:else if value === null}
-	<Upload on:load={handle_upload} filetype="file" {file_count} bind:dragging>
+{#if value === null}
+	<Upload on:load={handle_upload} filetype={file_type} {file_count} bind:dragging>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}

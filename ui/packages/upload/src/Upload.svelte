@@ -95,7 +95,7 @@
 		type="file"
 		bind:this={hidden_upload}
 		on:change={loadFilesFromUpload}
-		accept={filetype}
+		accept={filetype + "/*"}
 		multiple={file_count === "multiple" || undefined}
 		webkitdirectory={file_count === "directory" || undefined}
 		mozdirectory={file_count === "directory" || undefined}

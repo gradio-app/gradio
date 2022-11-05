@@ -2045,6 +2045,8 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
+        variant: str = "panel",
+        file_type: str = "file",
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
@@ -2057,6 +2059,8 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
+            variant:
+            file_data_type:
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -2064,6 +2068,8 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         self.file_count = file_count
         self.type = type
         self.test_input = None
+        self.variant = variant
+        self.file_type = file_type
         IOComponent.__init__(
             self,
             label=label,
@@ -2079,6 +2085,8 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         return {
             "file_count": self.file_count,
             "value": self.value,
+            "variant": self.variant,
+            "file_type": self.file_type,
             **IOComponent.get_config(self),
         }
 
