@@ -7,7 +7,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Modified the "Connecting To a Database Guide" to use `pd.read_sql` as opposed to low-level postgres connector by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2604](https://github.com/gradio-app/gradio/pull/2604) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -57,6 +57,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
 
 
 ## Contributors Shoutout:

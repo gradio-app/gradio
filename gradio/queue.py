@@ -4,7 +4,9 @@ import asyncio
 import copy
 import sys
 import time
-from typing import Dict, List, Optional, Tuple
+from collections import deque
+from itertools import islice
+from typing import Deque, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
@@ -45,7 +47,7 @@ class Queue:
         max_size: Optional[int],
         blocks_dependencies: List,
     ):
-        self.event_queue: List[Event] = []
+        self.event_queue: Deque[Event] = deque()
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
@@ -93,7 +95,7 @@ class Queue:
         if not (self.event_queue):
             return None, False
 
-        first_event = self.event_queue.pop(0)
+        first_event = self.event_queue.popleft()
         events = [first_event]
 
         event_fn_index = first_event.fn_index
@@ -136,10 +138,11 @@ class Queue:
         Returns:
             rank of submitted Event
         """
-        if self.max_size is not None and len(self.event_queue) >= self.max_size:
+        queue_len = len(self.event_queue)
+        if self.max_size is not None and queue_len >= self.max_size:
             return None
         self.event_queue.append(event)
-        return len(self.event_queue) - 1
+        return queue_len
 
     async def clean_event(self, event: Event) -> None:
         if event in self.event_queue:
@@ -161,7 +164,7 @@ class Queue:
         await asyncio.gather(
             *[
                 self.gather_event_data(event)
-                for event in self.event_queue[: self.data_gathering_start]
+                for event in islice(self.event_queue, self.data_gathering_start)
             ]
         )
 
