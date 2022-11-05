@@ -14,7 +14,12 @@
       </div>
       {% for demo_name, demo_code in obj["demos"] %}
       <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
-        <div class="codeblock"><pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre></div>
+        <div class="codeblock">
+          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{{demo_name}}/run.ipynb" target="_blank" style="right:30px">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg">
+          </a>
+          <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre>
+        </div>
         <gradio-app space="gradio/{{ demo_name }}" />
       </div>
       {% endfor %}
