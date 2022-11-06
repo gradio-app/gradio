@@ -4,7 +4,6 @@ import os
 import pathlib
 import shutil
 import tempfile
-import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
 from unittest.mock import patch
@@ -28,7 +27,7 @@ Tests are divided into two
 """
 
 
-class TestComponent(unittest.TestCase):
+class TestComponent:
     def test_component_functions(self):
         """
         component
@@ -44,7 +43,7 @@ def test_raise_warnings():
             component()
 
 
-class TestTextbox(unittest.TestCase):
+class TestTextbox:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
@@ -165,7 +164,7 @@ class TestTextbox(unittest.TestCase):
         assert component.get_config().get("lines") == 4
 
 
-class TestNumber(unittest.TestCase):
+class TestNumber:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
@@ -331,7 +330,7 @@ class TestNumber(unittest.TestCase):
         assert component.get_config().get("value") == 3.0
 
 
-class TestSlider(unittest.TestCase):
+class TestSlider:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
@@ -406,7 +405,7 @@ class TestSlider(unittest.TestCase):
         mock_randint.assert_called()
 
 
-class TestCheckbox(unittest.TestCase):
+class TestCheckbox:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
@@ -445,7 +444,7 @@ class TestCheckbox(unittest.TestCase):
         assert scores == (-1.0, None)
 
 
-class TestCheckboxGroup(unittest.TestCase):
+class TestCheckboxGroup:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
@@ -487,7 +486,7 @@ class TestCheckboxGroup(unittest.TestCase):
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
 
-class TestRadio(unittest.TestCase):
+class TestRadio:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
@@ -533,7 +532,7 @@ class TestRadio(unittest.TestCase):
         assert scores == [-2.0, None, 2.0]
 
 
-class TestImage(unittest.TestCase):
+class TestImage:
     async def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
@@ -666,7 +665,7 @@ class TestImage(unittest.TestCase):
         assert component.get_config().get("value") == None
 
 
-class TestPlot(unittest.TestCase):
+class TestPlot:
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -695,7 +694,7 @@ class TestPlot(unittest.TestCase):
         assert component.get_config().get("value") == None
 
 
-class TestAudio(unittest.TestCase):
+class TestAudio:
     def test_component_functions(self):
         """
         Preprocess, postprocess serialize, generate_sample, get_config, deserialize
@@ -815,7 +814,7 @@ class TestAudio(unittest.TestCase):
         wavfile.read(output)
 
 
-class TestFile(unittest.TestCase):
+class TestFile:
     def test_component_functions(self):
         """
         Preprocess, serialize, generate_sample, get_config, value
@@ -880,7 +879,7 @@ class TestFile(unittest.TestCase):
         }
 
 
-class TestDataframe(unittest.TestCase):
+class TestDataframe:
     def test_component_functions(self):
         """
         Preprocess, serialize, generate_sample, get_config
@@ -1138,7 +1137,7 @@ class TestDataset:
         }
 
 
-class TestVideo(unittest.TestCase):
+class TestVideo:
     def test_component_functions(self):
         """
         Preprocess, serialize, deserialize, generate_sample, get_config
@@ -1264,7 +1263,7 @@ class TestVideo(unittest.TestCase):
         assert ".avi" in output_file
 
 
-class TestTimeseries(unittest.TestCase):
+class TestTimeseries:
     def test_component_functions(self):
         """
         Preprocess, postprocess,  generate_sample, get_config,
@@ -1382,7 +1381,7 @@ class TestTimeseries(unittest.TestCase):
         ]
 
 
-class TestNames(unittest.TestCase):
+class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self):
         subclasses = gr.components.Component.__subclasses__()
@@ -1390,7 +1389,7 @@ class TestNames(unittest.TestCase):
         assert len(subclasses) == len(unique_subclasses_uncased)
 
 
-class TestLabel(unittest.TestCase):
+class TestLabel:
     def test_component_functions(self):
         """
         Process, postprocess, deserialize
@@ -1470,7 +1469,7 @@ class TestLabel(unittest.TestCase):
         }
 
 
-class TestHighlightedText(unittest.TestCase):
+class TestHighlightedText:
     def test_postprocess(self):
         """
         postprocess
@@ -1562,7 +1561,7 @@ class TestHighlightedText(unittest.TestCase):
         ]
 
 
-class TestJSON(unittest.TestCase):
+class TestJSON:
     def test_component_functions(self):
         """
         Postprocess
@@ -1613,7 +1612,7 @@ class TestJSON(unittest.TestCase):
         }
 
 
-class TestHTML(unittest.TestCase):
+class TestHTML:
     def test_component_functions(self):
         """
         get_config
@@ -1643,7 +1642,7 @@ class TestHTML(unittest.TestCase):
         assert (await iface(["test"]))[0] == "<strong>test</strong>"
 
 
-class TestModel3D(unittest.TestCase):
+class TestModel3D:
     def test_component_functions(self):
         """
         get_config
@@ -1674,7 +1673,7 @@ class TestModel3D(unittest.TestCase):
         assert input_data.split(";")[1] == output_data.split(";")[1]
 
 
-class TestColorPicker(unittest.TestCase):
+class TestColorPicker:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
