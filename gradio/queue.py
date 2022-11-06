@@ -32,6 +32,7 @@ class Event:
         self.lost_connection_time: float | None = None
         self.fn_index: int | None = fn_index
         self.session_hash: str = "foo"
+        self.token: str | None = None
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -254,6 +255,7 @@ class Queue:
 
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
+        token = events[0].token
         if batch:
             data.data = list(zip(*[event.data.data for event in events if event.data]))
             data.batched = True
@@ -262,6 +264,7 @@ class Queue:
             url=f"{self.server_path}api/predict",
             json=dict(data),
             headers={"Authorization": f"Bearer {self.access_token}"},
+            cookies={"access-token": token} if token is not None else None,
         )
         return response
 
