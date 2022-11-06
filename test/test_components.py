@@ -28,6 +28,7 @@ from gradio import media_data, processing_utils
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 matplotlib.use("Agg")
 
+
 class TestComponent:
     def test_component_functions(self):
         """
