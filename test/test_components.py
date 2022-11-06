@@ -97,12 +97,13 @@ class TestTextbox:
         }
         assert isinstance(text_input.generate_sample(), str)
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
-        assert await iface(["Hello"]) == ["olleH"]
+        assert iface("Hello") == "olleH"
         iface = gr.Interface(
             lambda sentence: max([len(word) for word in sentence.split()]),
             gr.Textbox(),
@@ -111,8 +112,8 @@ class TestTextbox:
         )
         scores = await iface.interpret(
             ["Return the length of the longest word in this sentence"]
-        )[0]["interpretation"]
-        assert scores == [
+        )
+        assert scores[0]["interpretation"] == [
             ("Return", 0.0),
             (" ", 0),
             ("the", 0.0),
@@ -135,15 +136,15 @@ class TestTextbox:
             (" ", 0),
         ]
 
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
 
         """
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.Textbox())
-        assert await iface(["Hello"]) == ["o"]
+        assert iface("Hello") == "o"
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
-        assert iface([10]) == ["5.0"]
+        assert iface(10) == "5.0"
 
     def test_static(self):
         """
@@ -259,12 +260,13 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) == None
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface([2]) == ["4.0"]
+        assert iface(2) == "4.0"
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -279,12 +281,13 @@ class TestNumber:
             (2.06, 0.24359999999999982),
         ]
 
+    @pytest.mark.asyncio
     async def test_precision_0_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
-        assert iface([2]) == ["4"]
+        assert iface(2) == "4"
         iface = gr.Interface(
             lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
         )
@@ -300,12 +303,13 @@ class TestNumber:
             (2.06, 0.0),
         ]
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
-        assert iface([2]) == [4.0]
+        assert iface(2) == 4.0
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
@@ -359,12 +363,13 @@ class TestSlider:
             "root_url": None,
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """ "
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
-        assert iface([2]) == ["4"]
+        assert iface(2) == "4"
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
@@ -429,12 +434,13 @@ class TestCheckbox:
             "root_url": None,
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
-        assert iface([True]) == [1]
+        assert iface(True) == 1
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
@@ -472,17 +478,16 @@ class TestCheckboxGroup:
             "root_url": None,
         }
         with pytest.raises(ValueError):
-            wrong_type = gr.CheckboxGroup(["a"], type="unknown")
-            wrong_type.preprocess(0)
+            gr.CheckboxGroup(["a"], type="unknown")
 
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
-        assert await iface([["a", "c"]]) == ["a|c"]
-        assert await iface([[]]) == [""]
+        assert iface(["a", "c"]) == "a|c"
+        assert iface([]) == ""
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
 
@@ -513,26 +518,27 @@ class TestRadio:
             "root_url": None,
         }
         with pytest.raises(ValueError):
-            wrong_type = gr.Radio(["a", "b"], type="unknown")
-            wrong_type.preprocess(0)
+            gr.Radio(["a", "b"], type="unknown")
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process, interpret
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
-        assert iface(["c"]) == ["cc"]
+        assert iface("c") == "cc"
         radio_input = gr.Radio(["a", "b", "c"], type="index")
         iface = gr.Interface(
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
-        assert iface(["c"]) == [4]
+        assert iface("c") == 4
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
 
 
 class TestImage:
+    @pytest.mark.asyncio
     async def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
@@ -546,7 +552,7 @@ class TestImage:
         image_input = gr.Image(shape=(30, 10), type="pil")
         assert image_input.preprocess(img).size == (30, 10)
         assert image_input.postprocess("test/test_files/bus.png") == img
-        assert image_input.serialize("test/test_files/bus.png", True) == img
+        assert image_input.serialize("test/test_files/bus.png") == img
 
         assert isinstance(image_input.generate_sample(), str)
         image_input = gr.Image(
@@ -579,19 +585,7 @@ class TestImage:
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
-            wrong_type = gr.Image(type="unknown")
-            wrong_type.preprocess(img)
-        with pytest.raises(ValueError):
-            wrong_type = gr.Image(type="unknown")
-            wrong_type.serialize("test/test_files/bus.png", False)
-        img_pil = PIL.Image.open("test/test_files/bus.png")
-        image_input = gr.Image(type="numpy")
-        assert isinstance(image_input.serialize(img_pil, False), str)
-        image_input = gr.Image(type="pil")
-        assert isinstance(image_input.serialize(img_pil, False), str)
-        image_input = gr.Image(type="file")
-        with open("test/test_files/bus.png") as f:
-            assert image_input.serialize(f, False) == img
+            gr.Image(type="unknown")
         image_input.shape = (30, 10)
         assert image_input._segment_by_slic(img) is not None
 
@@ -611,24 +605,26 @@ class TestImage:
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         type: file
         interpretation: default, shap,
         """
-        img = deepcopy(media_data.BASE64_IMAGE)
+        img = "test/test_files/bus.png"
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
             gr.Image(shape=(30, 10), type="file"),
             "image",
         )
-        output = (await iface([img]))[0]
-        assert gr.processing_utils.decode_base64_to_image(output).size == (10, 30)
+        output = iface(img)
+        assert PIL.Image.open(output).size == (10, 30)
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
+        img = deepcopy(media_data.BASE64_IMAGE)        
         scores = (await iface.interpret([img]))[0]["interpretation"]
         assert scores == deepcopy(media_data.SUM_PIXELS_INTERPRETATION)["scores"][0]
         iface = gr.Interface(
@@ -644,6 +640,7 @@ class TestImage:
         )
         assert await iface.interpret([img]) is not None
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -666,6 +663,7 @@ class TestImage:
 
 
 class TestPlot:
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -733,9 +731,7 @@ class TestAudio:
         audio_input = gr.Audio(type="filepath")
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
-            audio_input = gr.Audio(type="unknown")
-            audio_input.preprocess(x_wav)
-            audio_input.serialize(x_wav)
+            gr.Audio(type="unknown")
         audio_input = gr.Audio(type="numpy")
 
         # Output functionalities
@@ -777,6 +773,7 @@ class TestAudio:
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         assert similarity > 0.9
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
@@ -796,6 +793,7 @@ class TestAudio:
         ).ratio()
         assert similarity > 0.99
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -849,7 +847,7 @@ class TestFile:
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process
         """
@@ -859,8 +857,9 @@ class TestFile:
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        assert await iface([[x_file]]) == [10558]
+        assert iface([x_file]) == 10558
 
+    @pytest.mark.asyncio
     async def test_as_component_as_output(self):
         """
         Interface, process
@@ -926,8 +925,7 @@ class TestDataframe:
         output = dataframe_input.preprocess(x_data)
         assert output["Age"][1] == 24
         with pytest.raises(ValueError):
-            wrong_type = gr.Dataframe(type="unknown")
-            wrong_type.preprocess(x_data)
+            gr.Dataframe(type="unknown")
 
         dataframe_output = gr.Dataframe()
         assert dataframe_output.get_config() == {
@@ -972,8 +970,7 @@ class TestDataframe:
             "data": [[2, True], [3, True], [4, False]],
         }
         with pytest.raises(ValueError):
-            wrong_type = gr.Dataframe(type="unknown")
-            wrong_type.postprocess(0)
+            gr.Dataframe(type="unknown")
 
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
@@ -989,21 +986,22 @@ class TestDataframe:
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
         }
 
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process,
         """
         x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
         iface = gr.Interface(np.max, "numpy", "number")
-        assert await iface([x_data]) == [6]
+        assert iface(x_data) == 6
         x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
 
         def get_last(my_list):
             return my_list[-1][-1]
 
         iface = gr.Interface(get_last, "list", "text")
-        assert await iface([x_data]) == ["Sal"]
+        assert iface(x_data) == "Sal"
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -1186,6 +1184,7 @@ class TestVideo:
             }
         ).endswith(".mp4")
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1330,6 +1329,7 @@ class TestTimeseries:
             "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process
@@ -1340,7 +1340,7 @@ class TestTimeseries:
             "headers": [timeseries_input.x] + timeseries_input.y,
         }
         iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
-        assert await iface([x_timeseries]) == [
+        assert iface([x_timeseries]) == [
             {
                 "headers": ["time", "retail", "food", "other"],
                 "data": [
@@ -1352,7 +1352,7 @@ class TestTimeseries:
             }
         ]
 
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -1368,18 +1368,16 @@ class TestTimeseries:
                 }
             )
         }
-        assert await iface([df]) == [
-            {
-                "headers": ["time", "retail", "food", "other"],
-                "data": [
-                    [1, 1, 1, 1],
-                    [2, 2, 2, 2],
-                    [3, 3, 3, 4],
-                    [4, 2, 2, 2],
-                ],
-            }
-        ]
-
+        assert iface(df) == {
+            "headers": ["time", "retail", "food", "other"],
+            "data": [
+                [1, 1, 1, 1],
+                [2, 2, 2, 2],
+                [3, 3, 3, 4],
+                [4, 2, 2, 2],
+            ],
+        }
+ 
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
@@ -1441,6 +1439,7 @@ class TestLabel:
             "root_url": None,
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1532,6 +1531,7 @@ class TestHighlightedText:
             "root_url": None,
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1580,6 +1580,7 @@ class TestJSON:
             "root_url": None,
         }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1630,6 +1631,7 @@ class TestHTML:
             "root_url": None,
         } == html_component.get_config()
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1661,6 +1663,7 @@ class TestModel3D:
             "style": {},
         } == component.get_config()
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1700,20 +1703,20 @@ class TestColorPicker:
         }
         assert isinstance(color_picker_input.generate_sample(), str)
 
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
-        assert await iface(["#000000"]) == ["#000000"]
+        assert iface("#000000") == "#000000"
 
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
 
         """
         iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
-        assert await iface(["#000000"]) == ["#000000"]
+        assert iface("#000000") == "#000000"
 
     def test_static(self):
         """
