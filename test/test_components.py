@@ -635,7 +635,7 @@ class TestImage:
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        assert iface(10, 20).startswith("data:image/png;base64")
+        assert iface(10, 20).endswith(".png")
 
     def test_static(self):
         """
@@ -648,8 +648,7 @@ class TestImage:
 
 
 class TestPlot:
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -767,7 +766,9 @@ class TestAudio:
         iface = gr.Interface(reverse_audio, "audio", "audio")
         reversed_file = iface("test/test_files/audio_sample.wav")
         reversed_reversed_file = iface(reversed_file)
-        reversed_reversed_data = gr.processing_utils.encode_url_or_file_to_base64(reversed_reversed_file)
+        reversed_reversed_data = gr.processing_utils.encode_url_or_file_to_base64(
+            reversed_reversed_file
+        )
         similarity = SequenceMatcher(
             a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
         ).ratio()
@@ -783,7 +784,7 @@ class TestAudio:
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        assert iface(100).endswith('.wav')
+        assert iface(100).endswith(".wav")
 
     def test_audio_preprocess_can_be_read_by_scipy(self):
         x_wav = deepcopy(media_data.BASE64_MICROPHONE)
@@ -851,11 +852,7 @@ class TestFile:
             return "test.txt"
 
         iface = gr.Interface(write_file, "text", "file")
-        assert iface("hello world") == {
-            "name": "test.txt",
-            "size": 11,
-            "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
-        }
+        assert iface("hello world").endswith(".txt")
 
 
 class TestDataframe:
@@ -964,36 +961,6 @@ class TestDataframe:
         assert output == {
             "headers": ["one", "two", "three", 4],
             "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
-        }
-
-    def test_in_interface_as_input(self):
-        """
-        Interface, process,
-        """
-        x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
-        iface = gr.Interface(np.max, "numpy", "number")
-        assert iface(x_data) == 6
-        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
-
-        def get_last(my_list):
-            return my_list[-1][-1]
-
-        iface = gr.Interface(get_last, "list", "text")
-        assert iface(x_data) == "Sal"
-
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
-        """
-        Interface, process
-        """
-
-        def check_odd(array):
-            return array % 2 == 0
-
-        iface = gr.Interface(check_odd, "numpy", "numpy")
-        assert (await iface([{"data": [[2, 3, 4]]}]))[0] == {
-            "data": [[True, False, True]],
-            "headers": [1, 2, 3],
         }
 
     def test_dataframe_postprocess_all_types(self):
@@ -1309,55 +1276,6 @@ class TestTimeseries:
             "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
         }
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_input(self):
-        """
-        Interface, process
-        """
-        timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        x_timeseries = {
-            "data": [[1] + [2] * len(timeseries_input.y)] * 4,
-            "headers": [timeseries_input.x] + timeseries_input.y,
-        }
-        iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
-        assert iface([x_timeseries]) == [
-            {
-                "headers": ["time", "retail", "food", "other"],
-                "data": [
-                    [1, 2, 2, 2],
-                    [1, 2, 2, 2],
-                    [1, 2, 2, 2],
-                    [1, 2, 2, 2],
-                ],
-            }
-        ]
-
-    def test_in_interface_as_output(self):
-        """
-        Interface, process
-        """
-        timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
-        df = {
-            "data": pd.DataFrame(
-                {
-                    "time": [1, 2, 3, 4],
-                    "retail": [1, 2, 3, 2],
-                    "food": [1, 2, 3, 2],
-                    "other": [1, 2, 4, 2],
-                }
-            )
-        }
-        assert iface(df) == {
-            "headers": ["time", "retail", "food", "other"],
-            "data": [
-                [1, 1, 1, 1],
-                [2, 2, 2, 2],
-                [3, 3, 3, 4],
-                [4, 2, 2, 2],
-            ],
-        }
- 
 
 class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
@@ -1424,7 +1342,7 @@ class TestLabel:
         """
         Interface, process
         """
-        x_img = deepcopy(media_data.BASE64_IMAGE)
+        x_img = "test/test_files/bus.png"
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -1437,15 +1355,16 @@ class TestLabel:
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = (await iface([x_img]))[0]
-        assert output == {
-            "label": "red",
-            "confidences": [
-                {"label": "red", "confidence": 0.44},
-                {"label": "green", "confidence": 0.28},
-                {"label": "blue", "confidence": 0.28},
-            ],
-        }
+        output_filepath = iface(x_img)
+        with open(output_filepath) as fp:
+            assert json.load(fp) == {
+                "label": "red",
+                "confidences": [
+                    {"label": "red", "confidence": 0.44},
+                    {"label": "green", "confidence": 0.28},
+                    {"label": "blue", "confidence": 0.28},
+                ],
+            }
 
 
 class TestHighlightedText:
@@ -1511,8 +1430,7 @@ class TestHighlightedText:
             "root_url": None,
         }
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1533,12 +1451,15 @@ class TestHighlightedText:
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        assert iface("Helloooo") == [
-            ("H", "non"),
-            ("e", "vowel"),
-            ("ll", "non"),
-            ("oooo", "vowel"),
-        ]
+        output_filepath = iface("Helloooo")
+        with open(output_filepath) as fp:
+            output = json.load(fp)
+            assert output == [
+                ["H", "non"],
+                ["e", "vowel"],
+                ["ll", "non"],
+                ["oooo", "vowel"],
+            ]
 
 
 class TestJSON:
@@ -1586,7 +1507,9 @@ class TestJSON:
             ["O", 20],
             ["F", 30],
         ]
-        assert (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0] == {
+        assert (
+            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
+        )["data"][0] == {
             "M": 35,
             "F": 25,
             "O": 20,
@@ -1621,7 +1544,7 @@ class TestHTML:
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        assert (await iface(["test"]))[0] == "<strong>test</strong>"
+        assert iface("test") == "<strong>test</strong>"
 
 
 class TestModel3D:
@@ -1649,11 +1572,9 @@ class TestModel3D:
         Interface, process
         """
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
-        input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[0][
-            "data"
-        ]
-        assert input_data.split(";")[1] == output_data.split(";")[1]
+        input_data = "test/test_files/Box.gltf"
+        output_data = iface(input_data)
+        assert output_data.endswith(".gltf")
 
 
 class TestColorPicker:

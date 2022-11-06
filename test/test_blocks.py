@@ -164,7 +164,7 @@ class TestBlocksMethods:
             btn.click(greet, {first, last}, greeting)
 
         result = await demo.process_api(inputs=["huggy", "face"], fn_index=0)
-        assert result['data'] == ["Hello huggy face"]
+        assert result["data"] == ["Hello huggy face"]
 
     @pytest.mark.asyncio
     async def test_async_function(self):

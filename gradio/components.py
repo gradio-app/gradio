@@ -880,7 +880,9 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self.cleared_value = []
         valid_types = ["value", "index"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")        
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -1041,7 +1043,9 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self.choices = choices or []
         valid_types = ["value", "index"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")                
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1260,13 +1264,17 @@ class Image(
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "file", "filepath"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.shape = shape
         self.image_mode = image_mode
         valid_sources = ["upload", "webcam", "canvas"]
         if source not in valid_sources:
-            raise ValueError(f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}")
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "webcam"
         if tool is None:
@@ -1600,7 +1608,9 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         self.format = format
         valid_sources = ["upload", "webcam"]
         if source not in valid_sources:
-            raise ValueError(f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}")        
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         self.mirror_webcam = mirror_webcam
         IOComponent.__init__(
@@ -1784,16 +1794,20 @@ class Audio(
             visible: If False, component will be hidden.
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """       
+        """
         self.temp_dir = tempfile.mkdtemp()
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
-            raise ValueError(f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}")            
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "microphone"
-        valid_types = ["numpy", "filepath", "file"]        
+        valid_types = ["numpy", "filepath", "file"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
@@ -2085,7 +2099,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         self.file_count = file_count
         valid_types = ["file", "binary"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = None
         IOComponent.__init__(
@@ -2303,7 +2319,9 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         )
         valid_types = ["pandas", "numpy", "array"]
         if type not in valid_types:
-            raise ValueError(f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}")                
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         values = {
             "str": "",
