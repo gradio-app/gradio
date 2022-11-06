@@ -1,6 +1,5 @@
 import io
 import sys
-import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
 from functools import partial
@@ -32,7 +31,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class TestInterface(unittest.TestCase):
+class TestInterface:
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
@@ -206,7 +205,7 @@ class TestInterface(unittest.TestCase):
         mock_post.assert_called_once()
 
 
-class TestTabbedInterface(unittest.TestCase):
+class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
         interface1 = Interface(lambda x: x, "textbox", "textbox")
         interface2 = Interface(lambda x: x, "image", "image")
@@ -227,13 +226,13 @@ class TestTabbedInterface(unittest.TestCase):
         )
 
 
-class TestDeprecatedInterface(unittest.TestCase):
+class TestDeprecatedInterface:
     def test_deprecation_notice(self):
         with pytest.warns(Warning):
             _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
 
 
-class TestInterfaceInterpretation(unittest.TestCase):
+class TestInterfaceInterpretation:
     def test_interpretation_from_interface(self):
         def quadratic(num1: float, num2: float) -> float:
             return 3 * num1**2 + num2

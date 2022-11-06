@@ -2,7 +2,6 @@
 import json
 import os
 import sys
-import unittest
 from unittest.mock import patch
 
 import pytest
@@ -17,7 +16,7 @@ from gradio import Blocks, Button, Interface, Number, Textbox, close_all, routes
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestRoutes(unittest.TestCase):
+class TestRoutes:
     def setUp(self) -> None:
         self.io = Interface(lambda x: x + x, "text", "text")
         self.app, _, _ = self.io.launch(prevent_thread_lock=True)
@@ -227,7 +226,7 @@ class TestApp:
         assert isinstance(app, FastAPI)
 
 
-class TestAuthenticatedRoutes(unittest.TestCase):
+class TestAuthenticatedRoutes:
     def setUp(self) -> None:
         self.io = Interface(lambda x: x, "text", "text")
         self.app, _, _ = self.io.launch(
@@ -382,7 +381,3 @@ def test_show_api_queue_not_enabled():
     io.close()
     io.launch(prevent_thread_lock=True, show_api=False)
     assert not io.show_api
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -2,7 +2,6 @@ import copy
 import ipaddress
 import json
 import os
-import unittest
 import unittest.mock as mock
 import warnings
 
@@ -38,7 +37,7 @@ from gradio.utils import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils:
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get):
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
@@ -101,7 +100,7 @@ class TestUtils(unittest.TestCase):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
 
 
-class TestIPAddress(unittest.TestCase):
+class TestIPAddress:
     def test_get_ip(self):
         ip = get_local_ip_address()
         if ip == "No internet connection":
@@ -118,7 +117,7 @@ class TestIPAddress(unittest.TestCase):
         assert ip == "No internet connection"
 
 
-class TestAssertConfigsEquivalent(unittest.TestCase):
+class TestAssertConfigsEquivalent:
     def test_same_configs(self):
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
 
@@ -208,7 +207,7 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
             assert_configs_are_equivalent_besides_ids(config1, config2)
 
 
-class TestFormatNERList(unittest.TestCase):
+class TestFormatNERList:
     def test_format_ner_list_standard(self):
         string = "Wolfgang lives in Berlin"
         groups = [
@@ -231,7 +230,7 @@ class TestFormatNERList(unittest.TestCase):
         assert format_ner_list(string, groups) == result
 
 
-class TestDeleteNone(unittest.TestCase):
+class TestDeleteNone:
     """Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python"""
 
     def test_delete_none(self):

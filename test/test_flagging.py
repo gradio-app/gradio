@@ -1,6 +1,5 @@
 import os
 import tempfile
-import unittest
 from unittest.mock import MagicMock
 
 import huggingface_hub
@@ -11,7 +10,7 @@ from gradio import flagging
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestDefaultFlagging(unittest.TestCase):
+class TestDefaultFlagging:
     def test_default_flagging_callback(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
@@ -23,7 +22,7 @@ class TestDefaultFlagging(unittest.TestCase):
         io.close()
 
 
-class TestSimpleFlagging(unittest.TestCase):
+class TestSimpleFlagging:
     def test_simple_csv_flagging_callback(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
@@ -41,7 +40,7 @@ class TestSimpleFlagging(unittest.TestCase):
         io.close()
 
 
-class TestHuggingFaceDatasetSaver(unittest.TestCase):
+class TestHuggingFaceDatasetSaver:
     def test_saver_setup(self):
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
@@ -69,7 +68,7 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             assert row_count == 2  # 3 rows written including header
 
 
-class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
+class TestHuggingFaceDatasetJSONSaver:
     def test_saver_setup(self):
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
@@ -104,7 +103,7 @@ class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
             )
 
 
-class TestDisableFlagging(unittest.TestCase):
+class TestDisableFlagging:
     def test_flagging_no_permission_error_with_flagging_disabled(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             os.chmod(tmpdirname, 0o444)  # Make directory read-only

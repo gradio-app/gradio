@@ -2,7 +2,6 @@ import os
 import pathlib
 import shutil
 import tempfile
-import unittest
 from copy import deepcopy
 from unittest.mock import patch
 
@@ -18,7 +17,7 @@ from gradio import media_data
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestImagePreprocessing(unittest.TestCase):
+class TestImagePreprocessing:
     def test_decode_base64_to_image(self):
         output_image = gr.processing_utils.decode_base64_to_image(
             deepcopy(media_data.BASE64_IMAGE)
@@ -84,7 +83,7 @@ class TestImagePreprocessing(unittest.TestCase):
             )
 
 
-class TestAudioPreprocessing(unittest.TestCase):
+class TestAudioPreprocessing:
     def test_audio_from_file(self):
         audio = gr.processing_utils.audio_from_file("gradio/test_data/test_audio.wav")
         assert audio[0] == 22050
@@ -117,7 +116,7 @@ class TestAudioPreprocessing(unittest.TestCase):
         assert audio_.dtype == "int16"
 
 
-class TestOutputPreprocessing(unittest.TestCase):
+class TestOutputPreprocessing:
     def test_decode_base64_to_binary(self):
         binary = gr.processing_utils.decode_base64_to_binary(
             deepcopy(media_data.BASE64_IMAGE)

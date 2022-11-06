@@ -3,7 +3,6 @@ import os
 import pathlib
 import sys
 import textwrap
-import unittest
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -35,7 +34,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 pytestmark = pytest.mark.flaky
 
 
-class TestLoadInterface(unittest.TestCase):
+class TestLoadInterface:
     def test_audio_to_audio(self):
         model_type = "audio-to-audio"
         interface = gr.Interface.load(
