@@ -46,7 +46,9 @@ class TestImagePreprocessing(unittest.TestCase):
     def test_encode_plot_to_base64(self):
         plt.plot([1, 2, 3, 4])
         output_base64 = gr.processing_utils.encode_plot_to_base64(plt)
-        assert output_base64.startswith("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo")
+        assert output_base64.startswith(
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo"
+        )
 
     def test_encode_array_to_base64(self):
         img = Image.open("gradio/test_data/test_image.png")
@@ -77,7 +79,9 @@ class TestImagePreprocessing(unittest.TestCase):
         new_img = gr.processing_utils.resize_and_crop(img, (20, 20))
         assert new_img.size == (20, 20)
         with pytest.raises(ValueError):
-            gr.processing_utils.resize_and_crop(**{"img": img, "size": (20, 20), "crop_type": "test"})
+            gr.processing_utils.resize_and_crop(
+                **{"img": img, "size": (20, 20), "crop_type": "test"}
+            )
 
 
 class TestAudioPreprocessing(unittest.TestCase):

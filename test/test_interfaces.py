@@ -87,7 +87,9 @@ class TestInterface(unittest.TestCase):
                 interface = Interface(lambda x: x, "textbox", "label")
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
-                assert output == "Keyboard interruption in main thread... closing server."
+                assert (
+                    output == "Keyboard interruption in main thread... closing server."
+                )
 
     @mock.patch("gradio.utils.colab_check")
     def test_launch_colab_share(self, mock_colab_check):
@@ -187,8 +189,10 @@ class TestInterface(unittest.TestCase):
             interface.height = 500
             interface.integrate(wandb=wandb)
 
-            assert out.getvalue().strip() == \
-                "The WandB integration requires you to `launch(share=True)` first."
+            assert (
+                out.getvalue().strip()
+                == "The WandB integration requires you to `launch(share=True)` first."
+            )
             interface.share_url = "tmp"
             interface.integrate(wandb=wandb)
             wandb.log.assert_called_once()
@@ -219,8 +223,8 @@ class TestTabbedInterface(unittest.TestCase):
         tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
 
         assert assert_configs_are_equivalent_besides_ids(
-                demo.get_config_file(), tabbed_interface.get_config_file()
-            )
+            demo.get_config_file(), tabbed_interface.get_config_file()
+        )
 
 
 class TestDeprecatedInterface(unittest.TestCase):

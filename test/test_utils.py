@@ -46,7 +46,10 @@ class TestUtils(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             version_check()
-            assert str(w[-1].message) == "unable to parse version details from package URL."
+            assert (
+                str(w[-1].message)
+                == "unable to parse version details from package URL."
+            )
 
     @mock.patch("requests.Response.json")
     def test_should_warn_url_not_having_version(self, mock_json):
@@ -120,7 +123,9 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
 
     def test_equivalent_configs(self):
-        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
+        assert assert_configs_are_equivalent_besides_ids(
+            XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS
+        )
 
     def test_different_configs(self):
         with pytest.raises(AssertionError):

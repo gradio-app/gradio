@@ -61,44 +61,41 @@ class TestTextbox(unittest.TestCase):
         with pytest.warns(Warning):
             _ = gr.Textbox(type="number")
 
-        assert text_input.tokenize("Hello World! Gradio speaking.") == \
-            (
-                ["Hello", "World!", "Gradio", "speaking."],
-                [
-                    "World! Gradio speaking.",
-                    "Hello Gradio speaking.",
-                    "Hello World! speaking.",
-                    "Hello World! Gradio",
-                ],
-                None,
-            )
+        assert text_input.tokenize("Hello World! Gradio speaking.") == (
+            ["Hello", "World!", "Gradio", "speaking."],
+            [
+                "World! Gradio speaking.",
+                "Hello Gradio speaking.",
+                "Hello World! speaking.",
+                "Hello World! Gradio",
+            ],
+            None,
+        )
         text_input.interpretation_replacement = "unknown"
-        assert text_input.tokenize("Hello World! Gradio speaking.") == \
-            (
-                ["Hello", "World!", "Gradio", "speaking."],
-                [
-                    "unknown World! Gradio speaking.",
-                    "Hello unknown Gradio speaking.",
-                    "Hello World! unknown speaking.",
-                    "Hello World! Gradio unknown",
-                ],
-                None,
-            )
-        assert text_input.get_config() == \
-            {
-                "lines": 1,
-                "max_lines": 20,
-                "placeholder": None,
-                "value": "",
-                "name": "textbox",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert text_input.tokenize("Hello World! Gradio speaking.") == (
+            ["Hello", "World!", "Gradio", "speaking."],
+            [
+                "unknown World! Gradio speaking.",
+                "Hello unknown Gradio speaking.",
+                "Hello World! unknown speaking.",
+                "Hello World! Gradio unknown",
+            ],
+            None,
+        )
+        assert text_input.get_config() == {
+            "lines": 1,
+            "max_lines": 20,
+            "placeholder": None,
+            "value": "",
+            "name": "textbox",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
         assert isinstance(text_input.generate_sample(), str)
 
     async def test_in_interface_as_input(self):
@@ -116,29 +113,28 @@ class TestTextbox(unittest.TestCase):
         scores = await iface.interpret(
             ["Return the length of the longest word in this sentence"]
         )[0]["interpretation"]
-        assert scores == \
-            [
-                ("Return", 0.0),
-                (" ", 0),
-                ("the", 0.0),
-                (" ", 0),
-                ("length", 0.0),
-                (" ", 0),
-                ("of", 0.0),
-                (" ", 0),
-                ("the", 0.0),
-                (" ", 0),
-                ("longest", 0.0),
-                (" ", 0),
-                ("word", 0.0),
-                (" ", 0),
-                ("in", 0.0),
-                (" ", 0),
-                ("this", 0.0),
-                (" ", 0),
-                ("sentence", 1.0),
-                (" ", 0),
-            ]
+        assert scores == [
+            ("Return", 0.0),
+            (" ", 0),
+            ("the", 0.0),
+            (" ", 0),
+            ("length", 0.0),
+            (" ", 0),
+            ("of", 0.0),
+            (" ", 0),
+            ("the", 0.0),
+            (" ", 0),
+            ("longest", 0.0),
+            (" ", 0),
+            ("word", 0.0),
+            (" ", 0),
+            ("in", 0.0),
+            (" ", 0),
+            ("this", 0.0),
+            (" ", 0),
+            ("sentence", 1.0),
+            (" ", 0),
+        ]
 
     async def test_in_interface_as_output(self):
         """
@@ -185,23 +181,26 @@ class TestNumber(unittest.TestCase):
         assert numeric_input.serialize(3, True) == 3
         assert isinstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == \
-            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {})
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
+            {},
+        )
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(1) == \
-            ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {})
-        assert numeric_input.get_config() == \
-            {
-                "value": None,
-                "name": "number",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [0.97, 0.98, 0.99, 1.01, 1.02, 1.03],
+            {},
+        )
+        assert numeric_input.get_config() == {
+            "value": None,
+            "name": "number",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     def test_component_functions_integer(self):
         """
@@ -218,11 +217,15 @@ class TestNumber(unittest.TestCase):
         assert numeric_input.serialize(3, True) == 3
         assert isinstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        assert numeric_input.get_interpretation_neighbors(1) == \
-            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {})
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
+            {},
+        )
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        assert numeric_input.get_interpretation_neighbors(100) == \
-            ([97.0, 98.0, 99.0, 101.0, 102.0, 103.0], {})
+        assert numeric_input.get_interpretation_neighbors(100) == (
+            [97.0, 98.0, 99.0, 101.0, 102.0, 103.0],
+            {},
+        )
         with pytest.raises(ValueError) as error:
             numeric_input.get_interpretation_neighbors(1)
             assert error.msg == "Cannot generate valid set of neighbors"
@@ -232,18 +235,17 @@ class TestNumber(unittest.TestCase):
         with pytest.raises(ValueError) as error:
             numeric_input.get_interpretation_neighbors(4)
             assert error.msg == "Cannot generate valid set of neighbors"
-        assert numeric_input.get_config() == \
-            {
-                "value": 42,
-                "name": "number",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert numeric_input.get_config() == {
+            "value": 42,
+            "name": "number",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     def test_component_functions_precision(self):
         """
@@ -268,16 +270,15 @@ class TestNumber(unittest.TestCase):
             lambda x: x**2, "number", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == \
-            [
-                (1.94, -0.23640000000000017),
-                (1.96, -0.15840000000000032),
-                (1.98, -0.07960000000000012),
-                [2, None],
-                (2.02, 0.08040000000000003),
-                (2.04, 0.16159999999999997),
-                (2.06, 0.24359999999999982),
-            ]
+        assert scores == [
+            (1.94, -0.23640000000000017),
+            (1.96, -0.15840000000000032),
+            (1.98, -0.07960000000000012),
+            [2, None],
+            (2.02, 0.08040000000000003),
+            (2.04, 0.16159999999999997),
+            (2.06, 0.24359999999999982),
+        ]
 
     async def test_precision_0_in_interface(self):
         """
@@ -290,16 +291,15 @@ class TestNumber(unittest.TestCase):
         )
         # Output gets rounded to 4 for all input so no change
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == \
-            [
-                (1.94, 0.0),
-                (1.96, 0.0),
-                (1.98, 0.0),
-                [2, None],
-                (2.02, 0.0),
-                (2.04, 0.0),
-                (2.06, 0.0),
-            ]
+        assert scores == [
+            (1.94, 0.0),
+            (1.96, 0.0),
+            (1.98, 0.0),
+            [2, None],
+            (2.02, 0.0),
+            (2.04, 0.0),
+            (2.06, 0.0),
+        ]
 
     async def test_in_interface_as_output(self):
         """
@@ -311,16 +311,15 @@ class TestNumber(unittest.TestCase):
             lambda x: x**2, "number", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == \
-            [
-                (1.94, -0.23640000000000017),
-                (1.96, -0.15840000000000032),
-                (1.98, -0.07960000000000012),
-                [2, None],
-                (2.02, 0.08040000000000003),
-                (2.04, 0.16159999999999997),
-                (2.06, 0.24359999999999982),
-            ]
+        assert scores == [
+            (1.94, -0.23640000000000017),
+            (1.96, -0.15840000000000032),
+            (1.98, -0.07960000000000012),
+            [2, None],
+            (2.02, 0.08040000000000003),
+            (2.04, 0.16159999999999997),
+            (2.06, 0.24359999999999982),
+        ]
 
     def test_static(self):
         """
@@ -346,21 +345,20 @@ class TestSlider(unittest.TestCase):
 
         assert isinstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
-        assert slider_input.get_config() == \
-            {
-                "minimum": 10,
-                "maximum": 20,
-                "step": 1,
-                "value": 15,
-                "name": "slider",
-                "show_label": True,
-                "label": "Slide Your Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert slider_input.get_config() == {
+            "minimum": 10,
+            "maximum": 20,
+            "step": 1,
+            "value": 15,
+            "name": "slider",
+            "show_label": True,
+            "label": "Slide Your Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     async def test_in_interface(self):
         """ "
@@ -372,17 +370,16 @@ class TestSlider(unittest.TestCase):
             lambda x: x**2, "slider", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        assert scores == \
-            [
-                -4.0,
-                200.08163265306123,
-                812.3265306122449,
-                1832.7346938775513,
-                3261.3061224489797,
-                5098.040816326531,
-                7342.938775510205,
-                9996.0,
-            ]
+        assert scores == [
+            -4.0,
+            200.08163265306123,
+            812.3265306122449,
+            1832.7346938775513,
+            3261.3061224489797,
+            5098.040816326531,
+            7342.938775510205,
+            9996.0,
+        ]
 
     def test_static(self):
         """
@@ -421,18 +418,17 @@ class TestCheckbox(unittest.TestCase):
         assert bool_input.serialize(True, True) == True
         assert isinstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
-        assert bool_input.get_config() == \
-            {
-                "value": True,
-                "name": "checkbox",
-                "show_label": True,
-                "label": "Check Your Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert bool_input.get_config() == {
+            "value": True,
+            "name": "checkbox",
+            "show_label": True,
+            "label": "Check Your Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     async def test_in_interface(self):
         """
@@ -464,19 +460,18 @@ class TestCheckboxGroup(unittest.TestCase):
             choices=["a", "b", "c"],
             label="Check Your Inputs",
         )
-        assert checkboxes_input.get_config() == \
-            {
-                "choices": ["a", "b", "c"],
-                "value": ["a", "c"],
-                "name": "checkboxgroup",
-                "show_label": True,
-                "label": "Check Your Inputs",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert checkboxes_input.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": ["a", "c"],
+            "name": "checkboxgroup",
+            "show_label": True,
+            "label": "Check Your Inputs",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
         with pytest.raises(ValueError):
             wrong_type = gr.CheckboxGroup(["a"], type="unknown")
             wrong_type.preprocess(0)
@@ -506,19 +501,18 @@ class TestRadio(unittest.TestCase):
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
-        assert radio_input.get_config() == \
-            {
-                "choices": ["a", "b", "c"],
-                "value": None,
-                "name": "radio",
-                "show_label": True,
-                "label": "Pick Your One Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert radio_input.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": None,
+            "name": "radio",
+            "show_label": True,
+            "label": "Pick Your One Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
         with pytest.raises(ValueError):
             wrong_type = gr.Radio(["a", "b"], type="unknown")
             wrong_type.preprocess(0)
@@ -559,24 +553,23 @@ class TestImage(unittest.TestCase):
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
-        assert image_input.get_config() == \
-            {
-                "image_mode": "RGB",
-                "shape": None,
-                "source": "upload",
-                "tool": "editor",
-                "name": "image",
-                "streaming": False,
-                "show_label": True,
-                "label": "Upload Your Image",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-                "mirror_webcam": True,
-            }
+        assert image_input.get_config() == {
+            "image_mode": "RGB",
+            "shape": None,
+            "source": "upload",
+            "tool": "editor",
+            "name": "image",
+            "streaming": False,
+            "show_label": True,
+            "label": "Upload Your Image",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+            "mirror_webcam": True,
+        }
         assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
         assert image_input.preprocess(img) is not None
@@ -609,11 +602,11 @@ class TestImage(unittest.TestCase):
         )
         image_output = gr.Image()
         assert image_output.postprocess(y_img).startswith(
-                "data:image/png;base64,iVBORw0KGgoAAA"
-            )
+            "data:image/png;base64,iVBORw0KGgoAAA"
+        )
         assert image_output.postprocess(np.array(y_img)).startswith(
-                "data:image/png;base64,iVBORw0KGgoAAA"
-            )
+            "data:image/png;base64,iVBORw0KGgoAAA"
+        )
         with pytest.raises(ValueError):
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
@@ -643,8 +636,9 @@ class TestImage(unittest.TestCase):
             lambda x: np.sum(x), image_input, "label", interpretation="shap"
         )
         scores = (await iface.interpret([img]))[0]["interpretation"]
-        assert len(scores[0]) == \
-            len(deepcopy(media_data.SUM_PIXELS_SHAP_INTERPRETATION)["scores"][0][0])
+        assert len(scores[0]) == len(
+            deepcopy(media_data.SUM_PIXELS_SHAP_INTERPRETATION)["scores"][0][0]
+        )
         image_input = gr.Image(shape=(30, 10))
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
@@ -719,20 +713,19 @@ class TestAudio(unittest.TestCase):
 
         assert isinstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
-        assert audio_input.get_config() == \
-            {
-                "source": "upload",
-                "name": "audio",
-                "streaming": False,
-                "show_label": True,
-                "label": "Upload Your Audio",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert audio_input.get_config() == {
+            "source": "upload",
+            "name": "audio",
+            "streaming": False,
+            "show_label": True,
+            "label": "Upload Your Audio",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
@@ -752,27 +745,26 @@ class TestAudio(unittest.TestCase):
         )
         audio_output = gr.Audio(type="file")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
-        assert audio_output.get_config() == \
-            {
-                "name": "audio",
-                "streaming": False,
-                "show_label": True,
-                "label": None,
-                "source": "upload",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert audio_output.get_config() == {
+            "name": "audio",
+            "streaming": False,
+            "show_label": True,
+            "label": None,
+            "source": "upload",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         assert audio_output.deserialize(
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_AUDIO)["data"],
-                    "is_file": False,
-                }
-            ).endswith(".wav")
+            {
+                "name": None,
+                "data": deepcopy(media_data.BASE64_AUDIO)["data"],
+                "is_file": False,
+            }
+        ).endswith(".wav")
 
     def test_tokenize(self):
         """
@@ -796,8 +788,8 @@ class TestAudio(unittest.TestCase):
         reversed_input = {"name": "fake_name", "data": reversed_data}
         assert reversed_data.startswith("data:audio/wav;base64,UklGRgA/")
         assert (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
-                "data:audio/wav;base64,UklGRgA/"
-            )
+            "data:audio/wav;base64,UklGRgA/"
+        )
         self.maxDiff = None
         reversed_reversed_data = (await iface([reversed_input]))[0]
         similarity = SequenceMatcher(
@@ -842,19 +834,18 @@ class TestFile(unittest.TestCase):
 
         assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
-        assert file_input.get_config() == \
-            {
-                "file_count": "single",
-                "name": "file",
-                "show_label": True,
-                "label": "Upload Your File",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert file_input.get_config() == {
+            "file_count": "single",
+            "name": "file",
+            "show_label": True,
+            "label": "Upload Your File",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
@@ -882,12 +873,11 @@ class TestFile(unittest.TestCase):
             return "test.txt"
 
         iface = gr.Interface(write_file, "text", "file")
-        assert (await iface(["hello world"]))[0] == \
-            {
-                "name": "test.txt",
-                "size": 11,
-                "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
-            }
+        assert (await iface(["hello world"]))[0] == {
+            "name": "test.txt",
+            "size": 11,
+            "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
+        }
 
 
 class TestDataframe(unittest.TestCase):
@@ -909,31 +899,30 @@ class TestDataframe(unittest.TestCase):
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
-        assert dataframe_input.get_config() == \
-            {
+        assert dataframe_input.get_config() == {
+            "headers": ["Name", "Age", "Member"],
+            "datatype": ["str", "str", "str"],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "value": {
+                "data": [
+                    ["", "", ""],
+                ],
                 "headers": ["Name", "Age", "Member"],
-                "datatype": ["str", "str", "str"],
-                "row_count": (1, "dynamic"),
-                "col_count": (3, "dynamic"),
-                "value": {
-                    "data": [
-                        ["", "", ""],
-                    ],
-                    "headers": ["Name", "Age", "Member"],
-                },
-                "name": "dataframe",
-                "show_label": True,
-                "label": "Dataframe Input",
-                "max_rows": 20,
-                "max_cols": None,
-                "overflow_row_behaviour": "paginate",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-                "wrap": False,
-            }
+            },
+            "name": "dataframe",
+            "show_label": True,
+            "label": "Dataframe Input",
+            "max_rows": 20,
+            "max_cols": None,
+            "overflow_row_behaviour": "paginate",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "wrap": False,
+        }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
         assert output["Age"][1] == 24
@@ -942,31 +931,30 @@ class TestDataframe(unittest.TestCase):
             wrong_type.preprocess(x_data)
 
         dataframe_output = gr.Dataframe()
-        assert dataframe_output.get_config() == \
-            {
+        assert dataframe_output.get_config() == {
+            "headers": [1, 2, 3],
+            "max_rows": 20,
+            "max_cols": None,
+            "overflow_row_behaviour": "paginate",
+            "name": "dataframe",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "datatype": ["str", "str", "str"],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "value": {
+                "data": [
+                    ["", "", ""],
+                ],
                 "headers": [1, 2, 3],
-                "max_rows": 20,
-                "max_cols": None,
-                "overflow_row_behaviour": "paginate",
-                "name": "dataframe",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "datatype": ["str", "str", "str"],
-                "row_count": (1, "dynamic"),
-                "col_count": (3, "dynamic"),
-                "value": {
-                    "data": [
-                        ["", "", ""],
-                    ],
-                    "headers": [1, 2, 3],
-                },
-                "interactive": None,
-                "root_url": None,
-                "wrap": False,
-            }
+            },
+            "interactive": None,
+            "root_url": None,
+            "wrap": False,
+        }
 
     def test_postprocess(self):
         """
@@ -980,11 +968,10 @@ class TestDataframe(unittest.TestCase):
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
-        assert output == \
-            {
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]],
-            }
+        assert output == {
+            "headers": ["num", "prime"],
+            "data": [[2, True], [3, True], [4, False]],
+        }
         with pytest.raises(ValueError):
             wrong_type = gr.Dataframe(type="unknown")
             wrong_type.postprocess(0)
@@ -992,18 +979,16 @@ class TestDataframe(unittest.TestCase):
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True], [3, True]])
-        assert output == \
-            {
-                "headers": ["one", "two"],
-                "data": [[2, True], [3, True]],
-            }
+        assert output == {
+            "headers": ["one", "two"],
+            "data": [[2, True], [3, True]],
+        }
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
-        assert output == \
-            {
-                "headers": ["one", "two", "three", 4],
-                "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
-            }
+        assert output == {
+            "headers": ["one", "two", "three", 4],
+            "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+        }
 
     async def test_in_interface_as_input(self):
         """
@@ -1029,8 +1014,10 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        assert (await iface([{"data": [[2, 3, 4]]}]))[0] == \
-            {"data": [[True, False, True]], "headers": [1, 2, 3]}
+        assert (await iface([{"data": [[2, 3, 4]]}]))[0] == {
+            "data": [[True, False, True]],
+            "headers": [1, 2, 3],
+        }
 
     def test_dataframe_postprocess_all_types(self):
         df = pd.DataFrame(
@@ -1163,20 +1150,19 @@ class TestVideo(unittest.TestCase):
 
         assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
-        assert video_input.get_config() == \
-            {
-                "source": "upload",
-                "name": "video",
-                "show_label": True,
-                "label": "Upload Your Video",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-                "mirror_webcam": True,
-            }
+        assert video_input.get_config() == {
+            "source": "upload",
+            "name": "video",
+            "show_label": True,
+            "label": "Upload Your Video",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+            "mirror_webcam": True,
+        }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
         assert video_input.preprocess(x_video) is not None
@@ -1194,12 +1180,12 @@ class TestVideo(unittest.TestCase):
         video_output = gr.Video()
         assert video_output.postprocess(y_vid_path)["name"].endswith("mp4")
         assert video_output.deserialize(
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                    "is_file": False,
-                }
-            ).endswith(".mp4")
+            {
+                "name": None,
+                "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                "is_file": False,
+            }
+        ).endswith(".mp4")
 
     async def test_in_interface(self):
         """
@@ -1295,21 +1281,20 @@ class TestTimeseries(unittest.TestCase):
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
-        assert timeseries_input.get_config() == \
-            {
-                "x": "time",
-                "y": ["retail"],
-                "name": "timeseries",
-                "show_label": True,
-                "label": "Upload Your Timeseries",
-                "colors": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert timeseries_input.get_config() == {
+            "x": "time",
+            "y": ["retail"],
+            "name": "timeseries",
+            "show_label": True,
+            "label": "Upload Your Timeseries",
+            "colors": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         assert timeseries_input.preprocess(None) is None
         x_timeseries["range"] = (0, 1)
         assert timeseries_input.preprocess(x_timeseries) is not None
@@ -1318,36 +1303,33 @@ class TestTimeseries(unittest.TestCase):
 
         timeseries_output = gr.Timeseries(label="Disease")
 
-        assert timeseries_output.get_config() == \
-            {
-                "x": None,
-                "y": None,
-                "name": "timeseries",
-                "show_label": True,
-                "label": "Disease",
-                "colors": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert timeseries_output.get_config() == {
+            "x": None,
+            "y": None,
+            "name": "timeseries",
+            "show_label": True,
+            "label": "Disease",
+            "colors": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
-        assert timeseries_output.postprocess(df) == \
-            {
-                "headers": ["Name", "Age"],
-                "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-            }
+        assert timeseries_output.postprocess(df) == {
+            "headers": ["Name", "Age"],
+            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
+        }
 
         timeseries_output = gr.Timeseries(y="Age", label="Disease")
         output = timeseries_output.postprocess(df)
-        assert output == \
-            {
-                "headers": ["Name", "Age"],
-                "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-            }
+        assert output == {
+            "headers": ["Name", "Age"],
+            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
+        }
 
     async def test_in_interface_as_input(self):
         """
@@ -1359,18 +1341,17 @@ class TestTimeseries(unittest.TestCase):
             "headers": [timeseries_input.x] + timeseries_input.y,
         }
         iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
-        assert await iface([x_timeseries]) == \
-            [
-                {
-                    "headers": ["time", "retail", "food", "other"],
-                    "data": [
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                    ],
-                }
-            ]
+        assert await iface([x_timeseries]) == [
+            {
+                "headers": ["time", "retail", "food", "other"],
+                "data": [
+                    [1, 2, 2, 2],
+                    [1, 2, 2, 2],
+                    [1, 2, 2, 2],
+                    [1, 2, 2, 2],
+                ],
+            }
+        ]
 
     async def test_in_interface_as_output(self):
         """
@@ -1388,18 +1369,17 @@ class TestTimeseries(unittest.TestCase):
                 }
             )
         }
-        assert await iface([df]) == \
-            [
-                {
-                    "headers": ["time", "retail", "food", "other"],
-                    "data": [
-                        [1, 1, 1, 1],
-                        [2, 2, 2, 2],
-                        [3, 3, 3, 4],
-                        [4, 2, 2, 2],
-                    ],
-                }
-            ]
+        assert await iface([df]) == [
+            {
+                "headers": ["time", "retail", "food", "other"],
+                "data": [
+                    [1, 1, 1, 1],
+                    [2, 2, 2, 2],
+                    [3, 3, 3, 4],
+                    [4, 2, 2, 2],
+                ],
+            }
+        ]
 
 
 class TestNames(unittest.TestCase):
@@ -1423,26 +1403,24 @@ class TestLabel(unittest.TestCase):
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
-        assert label == \
-            {
-                "label": 3,
-                "confidences": [
-                    {"label": 3, "confidence": 0.7},
-                    {"label": 1, "confidence": 0.2},
-                    {"label": 0, "confidence": 0.1},
-                ],
-            }
+        assert label == {
+            "label": 3,
+            "confidences": [
+                {"label": 3, "confidence": 0.7},
+                {"label": 1, "confidence": 0.2},
+                {"label": 0, "confidence": 0.1},
+            ],
+        }
         label_output = gr.Label(num_top_classes=2)
         label = label_output.postprocess(y)
 
-        assert label == \
-            {
-                "label": 3,
-                "confidences": [
-                    {"label": 3, "confidence": 0.7},
-                    {"label": 1, "confidence": 0.2},
-                ],
-            }
+        assert label == {
+            "label": 3,
+            "confidences": [
+                {"label": 3, "confidence": 0.7},
+                {"label": 1, "confidence": 0.2},
+            ],
+        }
         with pytest.raises(ValueError):
             label_output.postprocess([1, 2, 3])
 
@@ -1451,19 +1429,18 @@ class TestLabel(unittest.TestCase):
         label = label_output.postprocess(path)
         assert label["label"] == "web site"
 
-        assert label_output.get_config() == \
-            {
-                "name": "label",
-                "show_label": True,
-                "num_top_classes": 2,
-                "value": None,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert label_output.get_config() == {
+            "name": "label",
+            "show_label": True,
+            "num_top_classes": 2,
+            "value": None,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     async def test_in_interface(self):
         """
@@ -1483,15 +1460,14 @@ class TestLabel(unittest.TestCase):
 
         iface = gr.Interface(rgb_distribution, "image", "label")
         output = (await iface([x_img]))[0]
-        assert output == \
-            {
-                "label": "red",
-                "confidences": [
-                    {"label": "red", "confidence": 0.44},
-                    {"label": "green", "confidence": 0.28},
-                    {"label": "blue", "confidence": 0.28},
-                ],
-            }
+        assert output == {
+            "label": "red",
+            "confidences": [
+                {"label": "red", "confidence": 0.44},
+                {"label": "green", "confidence": 0.28},
+                {"label": "blue", "confidence": 0.28},
+            ],
+        }
 
 
 class TestHighlightedText(unittest.TestCase):
@@ -1543,20 +1519,19 @@ class TestHighlightedText(unittest.TestCase):
         get_config
         """
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
-        assert ht_output.get_config() == \
-            {
-                "color_map": {"pos": "green", "neg": "red"},
-                "name": "highlightedtext",
-                "show_label": True,
-                "label": None,
-                "show_legend": False,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            }
+        assert ht_output.get_config() == {
+            "color_map": {"pos": "green", "neg": "red"},
+            "name": "highlightedtext",
+            "show_label": True,
+            "label": None,
+            "show_legend": False,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
 
     async def test_in_interface(self):
         """
@@ -1579,8 +1554,12 @@ class TestHighlightedText(unittest.TestCase):
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        assert (await iface(["Helloooo"]))[0] == \
-            [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")]
+        assert (await iface(["Helloooo"]))[0] == [
+            ("H", "non"),
+            ("e", "vowel"),
+            ("ll", "non"),
+            ("oooo", "vowel"),
+        ]
 
 
 class TestJSON(unittest.TestCase):
@@ -1590,18 +1569,17 @@ class TestJSON(unittest.TestCase):
         """
         js_output = gr.JSON()
         assert js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
-        assert js_output.get_config() == \
-            {
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "show_label": True,
-                "label": None,
-                "name": "json",
-                "interactive": None,
-                "root_url": None,
-            }
+        assert js_output.get_config() == {
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "show_label": True,
+            "label": None,
+            "name": "json",
+            "interactive": None,
+            "root_url": None,
+        }
 
     async def test_in_interface(self):
         """
@@ -1628,8 +1606,11 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        assert (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0] == \
-            {"M": 35, "F": 25, "O": 20}
+        assert (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0] == {
+            "M": 35,
+            "F": 25,
+            "O": 20,
+        }
 
 
 class TestHTML(unittest.TestCase):
@@ -1639,17 +1620,16 @@ class TestHTML(unittest.TestCase):
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
         assert {
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": "#Welcome onboard",
-                "show_label": True,
-                "label": "HTML Input",
-                "name": "html",
-                "interactive": None,
-                "root_url": None,
-            } == \
-            html_component.get_config()
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": "#Welcome onboard",
+            "show_label": True,
+            "label": "HTML Input",
+            "name": "html",
+            "interactive": None,
+            "root_url": None,
+        } == html_component.get_config()
 
     async def test_in_interface(self):
         """
@@ -1670,18 +1650,17 @@ class TestModel3D(unittest.TestCase):
         """
         component = gr.components.Model3D(None, label="Model")
         assert {
-                "clearColor": [0.2, 0.2, 0.2, 1.0],
-                "value": None,
-                "label": "Model",
-                "show_label": True,
-                "interactive": None,
-                "root_url": None,
-                "name": "model3d",
-                "visible": True,
-                "elem_id": None,
-                "style": {},
-            } == \
-            component.get_config()
+            "clearColor": [0.2, 0.2, 0.2, 1.0],
+            "value": None,
+            "label": "Model",
+            "show_label": True,
+            "interactive": None,
+            "root_url": None,
+            "name": "model3d",
+            "visible": True,
+            "elem_id": None,
+            "style": {},
+        } == component.get_config()
 
     async def test_in_interface(self):
         """
@@ -1709,18 +1688,17 @@ class TestColorPicker(unittest.TestCase):
 
         color_picker_input.interpretation_replacement = "unknown"
 
-        assert color_picker_input.get_config() == \
-            {
-                "value": None,
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-                "name": "colorpicker",
-            }
+        assert color_picker_input.get_config() == {
+            "value": None,
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "name": "colorpicker",
+        }
         assert isinstance(color_picker_input.generate_sample(), str)
 
     async def test_in_interface_as_input(self):

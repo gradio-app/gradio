@@ -196,8 +196,10 @@ class TestBlocksMethods(unittest.TestCase):
                 gr.Textbox("Hi there!")
             demo.integrate(wandb=wandb)
 
-            assert out.getvalue().strip() == \
-                "The WandB integration requires you to `launch(share=True)` first."
+            assert (
+                out.getvalue().strip()
+                == "The WandB integration requires you to `launch(share=True)` first."
+            )
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
             wandb.log.assert_called_once()

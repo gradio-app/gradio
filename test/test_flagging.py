@@ -94,12 +94,14 @@ class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
             io.launch(prevent_thread_lock=True)
             row_unique_name = io.flagging_callback.flag(["test", "test"])
             # Test existence of metadata.jsonl file for that example
-            assert os.path.isfile(
+            assert (
+                os.path.isfile(
                     os.path.join(
                         os.path.join(test_dir, row_unique_name), "metadata.jsonl"
                     )
-                ) == \
-                True
+                )
+                == True
+            )
 
 
 class TestDisableFlagging(unittest.TestCase):
