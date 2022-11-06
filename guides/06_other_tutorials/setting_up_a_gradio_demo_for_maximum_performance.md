@@ -103,6 +103,9 @@ It is particularly straightforward to upgrade your Hardware on Hugging Face Spac
 
 While you might need to adapt portions of your machine learning inference code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
 
+Note: your GPU memory is different than your CPU memory, so if you upgrade your hardware,
+you might need to adjust the value of the `concurrency_count` parameter described above.
+
 ## Conclusion
 
 Congratulations! You know how to set up a Gradio demo for maximum performance. Good luck on your next viral demo! 
