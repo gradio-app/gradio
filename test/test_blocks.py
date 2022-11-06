@@ -5,7 +5,6 @@ import os
 import random
 import sys
 import time
-import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
 from functools import partial
@@ -40,7 +39,7 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class TestBlocksMethods(unittest.TestCase):
+class TestBlocksMethods:
     maxDiff = None
 
     def test_set_share(self):
@@ -909,7 +908,3 @@ def test_queue_enabled_for_fn():
     demo.queue()
     assert demo.queue_enabled_for_fn(0)
     assert demo.queue_enabled_for_fn(1)
-
-
-if __name__ == "__main__":
-    unittest.main()
