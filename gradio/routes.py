@@ -19,15 +19,7 @@ from urllib.parse import urlparse
 import fastapi
 import orjson
 import pkg_resources
-from fastapi import (
-    Cookie,
-    Depends,
-    FastAPI,
-    HTTPException,
-    Request,
-    WebSocketDisconnect,
-    status,
-)
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
