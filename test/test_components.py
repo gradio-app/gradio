@@ -8,6 +8,9 @@ from copy import deepcopy
 from difflib import SequenceMatcher
 from unittest.mock import patch
 
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -648,7 +651,8 @@ class TestImage:
 
 
 class TestPlot:
-    def test_in_interface_as_output(self):
+    @pytest.mark.asyncio
+    async def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -659,9 +663,9 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = iface(10)
-        assert output["type"] == "matplotlib"
-        assert output["plot"].startswith("data:image/png;base64")
+        output = await iface.process_api(fn_index=0, inputs=[10])
+        assert output["data"][0]["type"] == "matplotlib"
+        assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
     def test_static(self):
         """
