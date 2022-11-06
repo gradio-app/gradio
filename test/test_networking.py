@@ -20,7 +20,7 @@ class TestPort(unittest.TestCase):
         end = 7960
         try:
             port = networking.get_first_available_port(start, end)
-            self.assertTrue(start <= port <= end)
+            assert start <= port <= end
         except OSError:
             warnings.warn("Unable to test, no ports available")
 
@@ -30,7 +30,7 @@ class TestPort(unittest.TestCase):
         try:
             port1 = networking.get_first_available_port(start, end)
             port2 = networking.get_first_available_port(start, end)
-            self.assertEqual(port1, port2)
+            assert port1 == port2
         except OSError:
             warnings.warn("Unable to test, no ports available")
 
@@ -41,8 +41,8 @@ class TestInterfaceErrors(unittest.TestCase):
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post("/api/predict/", json={"data": [0], "fn_index": 0})
-        self.assertEqual(response.status_code, 500)
-        self.assertTrue("error" in response.json())
+        assert response.status_code == 500
+        assert "error" in response.json()
         io.close()
 
     def test_validation_error(self):
@@ -50,7 +50,7 @@ class TestInterfaceErrors(unittest.TestCase):
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post("/api/predict/", json={"fn_index": [0]})
-        self.assertEqual(response.status_code, 422)
+        assert response.status_code == 422
         io.close()
 
 
@@ -70,8 +70,8 @@ class TestStartServer(unittest.TestCase):
         io.enable_queue = False
         _, _, local_path, _, server = networking.start_server(io, server_port=port)
         url = urllib.parse.urlparse(local_path)
-        self.assertEquals(url.scheme, "http")
-        self.assertEquals(url.port, port)
+        assert url.scheme == "http"
+        assert url.port == port
         server.close()
 
 
@@ -126,11 +126,11 @@ class TestURLs(unittest.TestCase):
     def test_setup_tunnel(self):
         networking.create_tunnel = mock.MagicMock(return_value="test")
         res = networking.setup_tunnel(None, None)
-        self.assertEqual(res, "test")
+        assert res == "test"
 
     def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")
-        self.assertTrue(res)
+        assert res
 
 
 if __name__ == "__main__":

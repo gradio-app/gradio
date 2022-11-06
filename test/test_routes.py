@@ -25,26 +25,26 @@ class TestRoutes(unittest.TestCase):
 
     def test_get_main_route(self):
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
     def test_static_files_served_safely(self):
         # Make sure things outside the static folder are not accessible
         response = self.client.get(r"/static/..%2findex.html")
-        self.assertEqual(response.status_code, 404)
+        assert response.status_code == 404
         response = self.client.get(r"/static/..%2f..%2fapi_docs.html")
-        self.assertEqual(response.status_code, 404)
+        assert response.status_code == 404
 
     def test_get_config_route(self):
         response = self.client.get("/config/")
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
     def test_predict_route(self):
         response = self.client.post(
             "/api/predict/", json={"data": ["test"], "fn_index": 0}
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest"])
+        assert output["data"] == ["testtest"]
 
     def test_named_predict_route(self):
         with Blocks() as demo:
@@ -111,9 +111,9 @@ class TestRoutes(unittest.TestCase):
 
     def test_predict_route_without_fn_index(self):
         response = self.client.post("/api/predict/", json={"data": ["test"]})
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest"])
+        assert output["data"] == ["testtest"]
 
     def test_predict_route_batching(self):
         def batch_fn(x):
@@ -132,7 +132,7 @@ class TestRoutes(unittest.TestCase):
         client = TestClient(app)
         response = client.post("/api/pred/", json={"data": ["test"]})
         output = dict(response.json())
-        self.assertEqual(output["data"], ["Hello test"])
+        assert output["data"] == ["Hello test"]
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -140,7 +140,7 @@ class TestRoutes(unittest.TestCase):
             "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], [["Hello test", "Hello test2"]])
+        assert output["data"] == [["Hello test", "Hello test2"]]
 
     def test_state(self):
         def predict(input, history):
@@ -157,13 +157,13 @@ class TestRoutes(unittest.TestCase):
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], ["test", None])
+        assert output["data"] == ["test", None]
         response = client.post(
             "/api/predict/",
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest", None])
+        assert output["data"] == ["testtest", None]
 
     def tearDown(self) -> None:
         self.io.close()
@@ -241,11 +241,11 @@ class TestAuthenticatedRoutes(unittest.TestCase):
         response = self.client.post(
             "/login", data=dict(username="test", password="correct_password")
         )
-        self.assertEqual(response.status_code, 302)
+        assert response.status_code == 302
         response = self.client.post(
             "/login", data=dict(username="test", password="incorrect_password")
         )
-        self.assertEqual(response.status_code, 400)
+        assert response.status_code == 400
 
     def tearDown(self) -> None:
         self.io.close()

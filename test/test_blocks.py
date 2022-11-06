@@ -46,13 +46,13 @@ class TestBlocksMethods(unittest.TestCase):
     def test_set_share(self):
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
-            self.assertFalse(demo.share)
+            assert not demo.share
             # default is False, if share is None
             demo.share = None
-            self.assertFalse(demo.share)
+            assert not demo.share
             # if set to True, it doesn't change
             demo.share = True
-            self.assertTrue(demo.share)
+            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -61,15 +61,15 @@ class TestBlocksMethods(unittest.TestCase):
         mock_setup_tunnel.return_value = "http://localhost:7860/"
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
-            self.assertFalse(demo.share)
+            assert not demo.share
             # share default is False, if share is None in colab and no queueing
             demo.launch(prevent_thread_lock=True)
-            self.assertFalse(demo.share)
+            assert not demo.share
             demo.close()
             # share becomes true, if share is None in colab with queueing
             demo.queue()
             demo.launch(prevent_thread_lock=True)
-            self.assertTrue(demo.share)
+            assert demo.share
             demo.close()
 
     def test_xray(self):
@@ -116,7 +116,7 @@ class TestBlocksMethods(unittest.TestCase):
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
         assert demo.config["show_api"] is False
@@ -136,7 +136,7 @@ class TestBlocksMethods(unittest.TestCase):
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update])
         config2 = demo2.get_config_file()
-        self.assertTrue(assert_configs_are_equivalent_besides_ids(config1, config2))
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -196,10 +196,8 @@ class TestBlocksMethods(unittest.TestCase):
                 gr.Textbox("Hi there!")
             demo.integrate(wandb=wandb)
 
-            self.assertEqual(
-                out.getvalue().strip(),
-                "The WandB integration requires you to `launch(share=True)` first.",
-            )
+            assert out.getvalue().strip() == \
+                "The WandB integration requires you to `launch(share=True)` first."
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
             wandb.log.assert_called_once()
@@ -220,7 +218,7 @@ class TestBlocksMethods(unittest.TestCase):
         demo.share_url = "tmp"  # used to avoid creating real share links.
         demo.integrate(comet_ml=experiment)
         experiment.log_text.assert_called_with("gradio: " + demo.share_url)
-        self.assertEqual(experiment.log_other.call_count, 2)
+        assert experiment.log_other.call_count == 2
         demo.share_url = None
         demo.close()
 

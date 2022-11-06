@@ -46,9 +46,7 @@ class TestUtils(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             version_check()
-            self.assertEqual(
-                str(w[-1].message), "unable to parse version details from package URL."
-            )
+            assert str(w[-1].message) == "unable to parse version details from package URL."
 
     @mock.patch("requests.Response.json")
     def test_should_warn_url_not_having_version(self, mock_json):
@@ -57,9 +55,7 @@ class TestUtils(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             version_check()
-            self.assertEqual(
-                str(w[-1].message), "package URL does not contain version info."
-            )
+            assert str(w[-1].message) == "package URL does not contain version info."
 
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
@@ -116,22 +112,18 @@ class TestIPAddress(unittest.TestCase):
     def test_get_ip_without_internet(self, mock_get):
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
-        self.assertEqual(ip, "No internet connection")
+        assert ip == "No internet connection"
 
 
 class TestAssertConfigsEquivalent(unittest.TestCase):
     def test_same_configs(self):
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
-        )
+        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
 
     def test_equivalent_configs(self):
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
-        )
+        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
 
     def test_different_configs(self):
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             assert_configs_are_equivalent_besides_ids(
                 XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
             )
@@ -207,7 +199,7 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
 
         config2 = copy.deepcopy(config1)
         config2["dependencies"][0]["documentation"] = None
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             assert_configs_are_equivalent_besides_ids(config1, config2)
 
 
@@ -225,13 +217,13 @@ class TestFormatNERList(unittest.TestCase):
             ("Berlin", "LOC"),
             ("", None),
         ]
-        self.assertEqual(format_ner_list(string, groups), result)
+        assert format_ner_list(string, groups) == result
 
     def test_format_ner_list_empty(self):
         string = "I live in a city"
         groups = []
         result = [("I live in a city", None)]
-        self.assertEqual(format_ner_list(string, groups), result)
+        assert format_ner_list(string, groups) == result
 
 
 class TestDeleteNone(unittest.TestCase):
@@ -250,7 +242,7 @@ class TestDeleteNone(unittest.TestCase):
             },
         }
         truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
-        self.assertEqual(delete_none(input), truth)
+        assert delete_none(input) == truth
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)

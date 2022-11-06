@@ -35,11 +35,11 @@ class TestVerbose(unittest.TestCase):
 
     def test_verbose_debug_true(self):
         tunneling.verbose(self.message, debug_mode=True)
-        self.assertEqual(self.capturedOutput.getvalue().strip(), self.message)
+        assert self.capturedOutput.getvalue().strip() == self.message
 
     def test_verbose_debug_false(self):
         tunneling.verbose(self.message, debug_mode=False)
-        self.assertEqual(self.capturedOutput.getvalue().strip(), "")
+        assert self.capturedOutput.getvalue().strip() == ""
 
     def tearDown(self):
         sys.stdout = sys.__stdout__

@@ -37,9 +37,9 @@ class TestInterface(unittest.TestCase):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
         response = requests.get(local_url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         io.close()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             response = requests.get(local_url)
 
     def test_close_all(self):
@@ -49,7 +49,7 @@ class TestInterface(unittest.TestCase):
         interface.close.assert_called()
 
     def test_no_input_or_output(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Interface(lambda x: x, examples=1234)
 
     def test_partial_functions(self):
@@ -68,7 +68,7 @@ class TestInterface(unittest.TestCase):
         dataset_check = any(
             [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
         )
-        self.assertTrue(dataset_check)
+        assert dataset_check
 
     def test_test_launch(self):
         with captured_output() as (out, err):
@@ -77,26 +77,24 @@ class TestInterface(unittest.TestCase):
             interface = Interface(prediction_fn, "textbox", "label")
             interface.test_launch()
             output = out.getvalue().strip()
-            self.assertEqual(output, "Test launch: prediction_fn()... PASSED")
+            assert output == "Test launch: prediction_fn()... PASSED"
 
     @mock.patch("time.sleep")
     def test_block_thread(self, mock_sleep):
-        with self.assertRaises(KeyboardInterrupt):
+        with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):
                 mock_sleep.side_effect = KeyboardInterrupt()
                 interface = Interface(lambda x: x, "textbox", "label")
                 interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
-                self.assertEqual(
-                    output, "Keyboard interruption in main thread... closing server."
-                )
+                assert output == "Keyboard interruption in main thread... closing server."
 
     @mock.patch("gradio.utils.colab_check")
     def test_launch_colab_share(self, mock_colab_check):
         mock_colab_check.return_value = True
         interface = Interface(lambda x: x, "textbox", "label")
         _, _, share_url = interface.launch(prevent_thread_lock=True)
-        self.assertIsNone(share_url)
+        assert share_url is None
         interface.close()
 
     @mock.patch("gradio.utils.colab_check")
@@ -106,15 +104,15 @@ class TestInterface(unittest.TestCase):
         mock_colab_check.return_value = True
         interface = Interface(lambda x: x, "textbox", "label")
         _, _, share_url = interface.launch(prevent_thread_lock=True)
-        self.assertIsNone(share_url)
+        assert share_url is None
         interface.close()
 
     def test_interface_representation(self):
         prediction_fn = lambda x: x
         prediction_fn.__name__ = "prediction_fn"
         repr = str(Interface(prediction_fn, "textbox", "label")).split("\n")
-        self.assertTrue(prediction_fn.__name__ in repr[0])
-        self.assertEqual(len(repr[0]), len(repr[1]))
+        assert prediction_fn.__name__ in repr[0]
+        assert len(repr[0]) == len(repr[1])
 
     @pytest.mark.asyncio
     async def test_interface_none_interp(self):
@@ -122,7 +120,7 @@ class TestInterface(unittest.TestCase):
         scores = (await interface.interpret(["quickest brown fox"]))[0][
             "interpretation"
         ]
-        self.assertIsNone(scores)
+        assert scores is None
 
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
@@ -135,8 +133,8 @@ class TestInterface(unittest.TestCase):
         examples = ["test1", "test2"]
         interface = Interface(lambda x: x, "textbox", "label", examples=examples)
         interface.launch(prevent_thread_lock=True)
-        self.assertEqual(len(interface.examples_handler.examples), 2)
-        self.assertEqual(len(interface.examples_handler.examples[0]), 1)
+        assert len(interface.examples_handler.examples) == 2
+        assert len(interface.examples_handler.examples[0]) == 1
         interface.close()
 
     @mock.patch("IPython.display.display")
@@ -145,7 +143,7 @@ class TestInterface(unittest.TestCase):
         interface.launch(inline=True, prevent_thread_lock=True)
         mock_display.assert_called_once()
         interface.launch(inline=True, prevent_thread_lock=True)
-        self.assertEqual(mock_display.call_count, 2)
+        assert mock_display.call_count == 2
         interface.close()
 
     @mock.patch("comet_ml.Experiment")
@@ -160,7 +158,7 @@ class TestInterface(unittest.TestCase):
         interface.share_url = "tmp"  # used to avoid creating real share links.
         interface.integrate(comet_ml=experiment)
         experiment.log_text.assert_called_with("gradio: " + interface.share_url)
-        self.assertEqual(experiment.log_other.call_count, 2)
+        assert experiment.log_other.call_count == 2
         interface.share_url = None
         interface.close()
 
@@ -189,10 +187,8 @@ class TestInterface(unittest.TestCase):
             interface.height = 500
             interface.integrate(wandb=wandb)
 
-            self.assertEqual(
-                out.getvalue().strip(),
-                "The WandB integration requires you to `launch(share=True)` first.",
-            )
+            assert out.getvalue().strip() == \
+                "The WandB integration requires you to `launch(share=True)` first."
             interface.share_url = "tmp"
             interface.integrate(wandb=wandb)
             wandb.log.assert_called_once()
@@ -222,16 +218,14 @@ class TestTabbedInterface(unittest.TestCase):
         interface4 = Interface(lambda x: x, "image", "image")
         tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
 
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(
+        assert assert_configs_are_equivalent_besides_ids(
                 demo.get_config_file(), tabbed_interface.get_config_file()
             )
-        )
 
 
 class TestDeprecatedInterface(unittest.TestCase):
     def test_deprecation_notice(self):
-        with self.assertWarns(Warning):
+        with pytest.warns(Warning):
             _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
 
 
@@ -264,7 +258,7 @@ class TestInterfaceInterpretation(unittest.TestCase):
         response = client.post(
             "/api/predict/", json={"fn_index": fn_index, "data": [10, 50, 350]}
         )
-        self.assertTrue(response.json()["data"][0]["interpretation"] is not None)
+        assert response.json()["data"][0]["interpretation"] is not None
         iface.close()
         close_all()
 

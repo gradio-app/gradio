@@ -222,7 +222,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("models/facebook/wav2vec2-base-960h")
         try:
             output = io("gradio/test_data/test_audio.wav")
-            self.assertIsNotNone(output)
+            assert output is not None
         except TooManyRequestsError:
             pass
 
@@ -230,7 +230,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
-            self.assertTrue(filename.endswith(".jpg") or filename.endswith(".jpeg"))
+            assert filename.endswith(".jpg") or filename.endswith(".jpeg")
         except TooManyRequestsError:
             pass
 

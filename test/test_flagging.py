@@ -17,9 +17,9 @@ class TestDefaultFlagging(unittest.TestCase):
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
             io.launch(prevent_thread_lock=True)
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 1)  # 2 rows written including header
+            assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 2)  # 3 rows written including header
+            assert row_count == 2  # 3 rows written including header
         io.close()
 
 
@@ -35,9 +35,9 @@ class TestSimpleFlagging(unittest.TestCase):
             )
             io.launch(prevent_thread_lock=True)
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 0)  # no header in SimpleCSVLogger
+            assert row_count == 0  # no header in SimpleCSVLogger
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 1)  # no header in SimpleCSVLogger
+            assert row_count == 1  # no header in SimpleCSVLogger
         io.close()
 
 
@@ -64,9 +64,9 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             os.mkdir(os.path.join(tmpdirname, "test"))
             io.launch(prevent_thread_lock=True)
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 1)  # 2 rows written including header
+            assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
-            self.assertEqual(row_count, 2)  # 3 rows written including header
+            assert row_count == 2  # 3 rows written including header
 
 
 class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
@@ -94,14 +94,12 @@ class TestHuggingFaceDatasetJSONSaver(unittest.TestCase):
             io.launch(prevent_thread_lock=True)
             row_unique_name = io.flagging_callback.flag(["test", "test"])
             # Test existence of metadata.jsonl file for that example
-            self.assertEqual(
-                os.path.isfile(
+            assert os.path.isfile(
                     os.path.join(
                         os.path.join(test_dir, row_unique_name), "metadata.jsonl"
                     )
-                ),
-                True,
-            )
+                ) == \
+                True
 
 
 class TestDisableFlagging(unittest.TestCase):
