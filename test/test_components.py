@@ -624,21 +624,6 @@ class TestImage:
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
-        img = deepcopy(media_data.BASE64_IMAGE)        
-        scores = (await iface.interpret([img]))[0]["interpretation"]
-        assert scores == deepcopy(media_data.SUM_PIXELS_INTERPRETATION)["scores"][0]
-        iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "label", interpretation="shap"
-        )
-        scores = (await iface.interpret([img]))[0]["interpretation"]
-        assert len(scores[0]) == len(
-            deepcopy(media_data.SUM_PIXELS_SHAP_INTERPRETATION)["scores"][0][0]
-        )
-        image_input = gr.Image(shape=(30, 10))
-        iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "number", interpretation="default"
-        )
-        assert await iface.interpret([img]) is not None
 
     @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
@@ -650,7 +635,7 @@ class TestImage:
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        assert (await iface([10, 20]))[0].startswith("data:image/png;base64")
+        assert iface(10, 20).startswith("data:image/png;base64")
 
     def test_static(self):
         """
@@ -675,7 +660,7 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = (await iface([10]))[0]
+        output = iface(10)
         assert output["type"] == "matplotlib"
         assert output["plot"].startswith("data:image/png;base64")
 
@@ -780,14 +765,9 @@ class TestAudio:
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_data = (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0]
-        reversed_input = {"name": "fake_name", "data": reversed_data}
-        assert reversed_data.startswith("data:audio/wav;base64,UklGRgA/")
-        assert (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
-            "data:audio/wav;base64,UklGRgA/"
-        )
-        self.maxDiff = None
-        reversed_reversed_data = (await iface([reversed_input]))[0]
+        reversed_file = iface("test/test_files/audio_sample.wav")
+        reversed_reversed_file = iface(reversed_file)
+        reversed_reversed_data = gr.processing_utils.encode_url_or_file_to_base64(reversed_reversed_file)
         similarity = SequenceMatcher(
             a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
         ).ratio()
@@ -803,7 +783,7 @@ class TestAudio:
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        assert (await iface([100]))[0].startswith("data:audio/wav;base64")
+        assert iface(100).endswith('.wav')
 
     def test_audio_preprocess_can_be_read_by_scipy(self):
         x_wav = deepcopy(media_data.BASE64_MICROPHONE)
@@ -851,13 +831,13 @@ class TestFile:
         """
         Interface, process
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = media_data.BASE64_FILE["name"]
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        assert iface([x_file]) == 10558
+        assert iface(x_file) == 10558
 
     @pytest.mark.asyncio
     async def test_as_component_as_output(self):
@@ -871,7 +851,7 @@ class TestFile:
             return "test.txt"
 
         iface = gr.Interface(write_file, "text", "file")
-        assert (await iface(["hello world"]))[0] == {
+        assert iface("hello world") == {
             "name": "test.txt",
             "size": 11,
             "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
@@ -1189,9 +1169,9 @@ class TestVideo:
         """
         Interface, process
         """
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        assert (await iface([x_video]))[0]["data"] == x_video["data"]
+        assert iface(x_video).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -1553,7 +1533,7 @@ class TestHighlightedText:
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        assert (await iface(["Helloooo"]))[0] == [
+        assert iface("Helloooo") == [
             ("H", "non"),
             ("e", "vowel"),
             ("ll", "non"),
