@@ -1324,10 +1324,8 @@ class Blocks(BlockContext):
             requests.get(f"{self.local_url}startup-events")
 
             if self.enable_queue:
-                if self.auth is not None or self.encrypt:
-                    raise ValueError(
-                        "Cannot queue with encryption or authentication enabled."
-                    )
+                if self.encrypt:
+                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
         self.share = (
