@@ -4,7 +4,7 @@ Let's say that your Gradio demo goes *viral* on social media -- you have lots of
 
 How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configurations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously withminimal latency.
 
-This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio demo](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
+This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio Interface](https://gradio.app/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
 ## Enabling Gradio's Queueing System
 
@@ -36,7 +36,7 @@ There are several parameters that can be used to configure the queue and help re
 
 ### The `concurrency_count` parameter
 
-The first parameter we will explore is the `concurrency_count` parameter of `queue()`. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can linearly multiply the capacity of your server to handle requests.
+The first parameter we will explore is the `concurrency_count` parameter of `queue()`. This parameter is used to set the number of worker threads in the Gradio server that will be processing your requests in parallel. By default, this parameter is set to `1` but increasing this can **linearly multiply the capacity of your server to handle requests**.
 
 So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the the `concurrency_count` too high.
 
