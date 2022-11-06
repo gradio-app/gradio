@@ -51,7 +51,7 @@ class TestTextbox:
         text_input = gr.Textbox()
         assert text_input.preprocess("Hello World!") == "Hello World!"
         assert text_input.postprocess("Hello World!") == "Hello World!"
-        assert text_input.postprocess(None) == None
+        assert text_input.postprocess(None) is None
         assert text_input.postprocess("Ali") == "Ali"
         assert text_input.postprocess(2) == "2"
         assert text_input.postprocess(2.14) == "2.14"
@@ -173,11 +173,11 @@ class TestNumber:
         """
         numeric_input = gr.Number()
         assert numeric_input.preprocess(3) == 3.0
-        assert numeric_input.preprocess(None) == None
+        assert numeric_input.preprocess(None) is None
         assert numeric_input.postprocess(3) == 3
         assert numeric_input.postprocess(3) == 3.0
         assert numeric_input.postprocess(2.14) == 2.14
-        assert numeric_input.postprocess(None) == None
+        assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
         assert isinstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
@@ -209,11 +209,11 @@ class TestNumber:
         """
         numeric_input = gr.Number(precision=0, value=42)
         assert numeric_input.preprocess(3) == 3
-        assert numeric_input.preprocess(None) == None
+        assert numeric_input.preprocess(None) is None
         assert numeric_input.postprocess(3) == 3
         assert numeric_input.postprocess(3) == 3
         assert numeric_input.postprocess(2.85) == 3
-        assert numeric_input.postprocess(None) == None
+        assert numeric_input.postprocess(None) is None
         assert numeric_input.serialize(3, True) == 3
         assert isinstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
@@ -254,11 +254,11 @@ class TestNumber:
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
         assert numeric_input.preprocess(3.231241) == 3.23
-        assert numeric_input.preprocess(None) == None
+        assert numeric_input.preprocess(None) is None
         assert numeric_input.postprocess(-42.1241) == -42.12
         assert numeric_input.postprocess(5.6784) == 5.68
         assert numeric_input.postprocess(2.1421) == 2.14
-        assert numeric_input.postprocess(None) == None
+        assert numeric_input.postprocess(None) is None
 
     @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
@@ -329,7 +329,7 @@ class TestNumber:
         postprocess
         """
         component = gr.Number()
-        assert component.get_config().get("value") == None
+        assert component.get_config().get("value") is None
         component = gr.Number(3)
         assert component.get_config().get("value") == 3.0
 
@@ -416,10 +416,10 @@ class TestCheckbox:
         Preprocess, postprocess, serialize, generate_sample, get_config
         """
         bool_input = gr.Checkbox()
-        assert bool_input.preprocess(True) == True
-        assert bool_input.postprocess(True) == True
-        assert bool_input.postprocess(True) == True
-        assert bool_input.serialize(True, True) == True
+        assert bool_input.preprocess(True)
+        assert bool_input.postprocess(True)
+        assert bool_input.postprocess(True)
+        assert bool_input.serialize(True, True)
         assert isinstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
         assert bool_input.get_config() == {
@@ -644,7 +644,7 @@ class TestImage:
         component = gr.Image("test/test_files/bus.png")
         assert component.get_config().get("value") == media_data.BASE64_IMAGE
         component = gr.Image(None)
-        assert component.get_config().get("value") == None
+        assert component.get_config().get("value") is None
 
 
 class TestPlot:
@@ -671,9 +671,9 @@ class TestPlot:
         plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
-        assert component.get_config().get("value") != None
+        assert component.get_config().get("value") is not None
         component = gr.Plot(None)
-        assert component.get_config().get("value") == None
+        assert component.get_config().get("value") is None
 
 
 class TestAudio:
@@ -867,7 +867,7 @@ class TestDataframe:
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
         assert output["Age"][1] == 24
-        assert output["Member"][0] == False
+        assert not output["Member"][0]
         assert dataframe_input.postprocess(x_data) == x_data
 
         assert isinstance(dataframe_input.generate_sample(), list)
@@ -1585,7 +1585,7 @@ class TestColorPicker:
         color_picker_input = gr.ColorPicker()
         assert color_picker_input.preprocess("#000000") == "#000000"
         assert color_picker_input.postprocess("#000000") == "#000000"
-        assert color_picker_input.postprocess(None) == None
+        assert color_picker_input.postprocess(None) is None
         assert color_picker_input.postprocess("#FFFFFF") == "#FFFFFF"
         assert color_picker_input.serialize("#000000", True) == "#000000"
 
@@ -1745,7 +1745,3 @@ def test_dataset_calls_as_example(*mocks):
         ],
     )
     assert all([m.called for m in mocks])
-
-
-if __name__ == "__main__":
-    unittest.main()

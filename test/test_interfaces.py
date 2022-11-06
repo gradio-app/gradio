@@ -309,7 +309,3 @@ def test_interface_adds_stop_button(interface_type, live, use_generator):
         assert has_stop
     else:
         assert not has_stop
-
-
-if __name__ == "__main__":
-    unittest.main()

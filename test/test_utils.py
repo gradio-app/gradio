@@ -503,7 +503,3 @@ class TestAppendUniqueSuffix:
         name = "test"
         list_of_names = ["test", "test_1", "test_2", "test_3"]
         assert append_unique_suffix(name, list_of_names) == "test_4"
-
-
-if __name__ == "__main__":
-    unittest.main()

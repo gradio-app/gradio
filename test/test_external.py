@@ -419,8 +419,8 @@ async def test_get_pred_from_ws_raises_if_queue_full():
     reason="Mocks of async context manager don't work for 3.7",
 )
 def test_respect_queue_when_load_from_config():
-    with unittest.mock.patch("websockets.connect"):
-        with unittest.mock.patch(
+    with patch("websockets.connect"):
+        with patch(
             "gradio.external_utils.get_pred_from_ws", return_value={"data": ["foo"]}
         ):
             interface = gr.Interface.load("spaces/freddyaboulton/saymyname")
@@ -442,7 +442,3 @@ def test_use_api_name_in_call_method():
     app = gr.Blocks.load(name="spaces/gradio/multiple-api-name-test")
     assert app(15, api_name="minus_one") == 14
     assert app(4, api_name="double") == 8
-
-
-if __name__ == "__main__":
-    unittest.main()

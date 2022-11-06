@@ -253,7 +253,3 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert pathlib.Path(playable_vid).suffix == ".avi"
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -19,7 +19,6 @@ from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
-from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
