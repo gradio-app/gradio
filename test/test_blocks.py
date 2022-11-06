@@ -897,10 +897,12 @@ class TestEvery:
 
 def test_queue_enabled_for_fn():
     with gr.Blocks() as demo:
-        _input = gr.Textbox()
-        _output = gr.JSON()
+        input = gr.Textbox()
+        output = gr.Textbox()
+        number = gr.Number()
         button = gr.Button()
-        button.click(lambda x: f"Hello {x}!", _input, _output)
+        button.click(lambda x: f"Hello, {x}!", input, output)
+        button.click(lambda: 42, None, number, queue=True)
 
     assert not demo.queue_enabled_for_fn(0)
     assert demo.queue_enabled_for_fn(1)
