@@ -17,6 +17,8 @@ No changes to highlight.
 
 ## Full Changelog:
 * Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
+* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
+* Allow auth with using queue by [@GLGDLY](https://github.com/GLGDLY) in [PR 2611](https://github.com/gradio-app/gradio/pull/2611)
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -57,7 +59,6 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
-* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
 
 
 ## Contributors Shoutout:
