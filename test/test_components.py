@@ -1,3 +1,9 @@
+"""
+Tests for all of the componets defined on components.lpy. They are divided into two types of tests:
+1. test_component_functions() are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
+2. test_in_interface() are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
+"""
+
 import filecmp
 import json
 import os
@@ -9,8 +15,6 @@ from difflib import SequenceMatcher
 from unittest.mock import patch
 
 import matplotlib
-
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,13 +26,7 @@ import gradio as gr
 from gradio import media_data, processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
-"""
-Tests are divided into two
-1. test_component_functions are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
-2. test_in_interface_... are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
-"""
-
+matplotlib.use("Agg")
 
 class TestComponent:
     def test_component_functions(self):
