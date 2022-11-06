@@ -163,24 +163,22 @@ class TestBlocksMethods:
 
             btn.click(greet, {first, last}, greeting)
 
-        body = PredictBody(data=["huggy", "face"], fn_index=0)
-        result = await demo.process_api(body)
-        assert result == "Hello huggy face"
+        result = await demo.process_api(inputs=["huggy", "face"], fn_index=0)
+        assert result['data'] == ["Hello huggy face"]
 
     @pytest.mark.asyncio
     async def test_async_function(self):
-        async def wait():
+        async def wait(x):
             await asyncio.sleep(0.01)
-            return True
+            return x
 
         with gr.Blocks() as demo:
             text = gr.Textbox()
             button = gr.Button()
             button.click(wait, [text], [text])
 
-            body = PredictBody(data=1, fn_index=0)
             start = time.time()
-            result = await demo.process_api(body)
+            result = await demo.process_api(inputs=[1], fn_index=0)
             end = time.time()
             difference = end - start
             assert difference >= 0.01
