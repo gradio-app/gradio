@@ -172,8 +172,6 @@ class TestQueueProcessEvents:
     @pytest.mark.asyncio
     @patch("gradio.queue.Request", new_callable=AsyncMock)
     async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
-        queue.gather_event_data = AsyncMock()
-        queue.gather_event_data.return_value = True
         queue.send_message = AsyncMock()
         queue.send_message.return_value = True
         queue.call_prediction = AsyncMock()
