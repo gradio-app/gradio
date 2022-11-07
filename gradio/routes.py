@@ -403,8 +403,6 @@ class App(FastAPI):
         async def get_queue_status():
             return app.blocks._queue.get_estimation()
 
-        # with enabling to use queue with auth, login_check will block the initializations
-        # a triggered-flag is then used to ensure this endpoint can only be called when launch block
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
