@@ -1382,6 +1382,9 @@ class Blocks(BlockContext):
                         self.server_name, self.server_port
                     )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
+                import datetime
+                with open("shared_url.txt", "w") as f:
+                    f.write(f"[{datetime.datetime.now().isoformat()}] " + strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:

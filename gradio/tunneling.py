@@ -13,6 +13,11 @@ from typing import Callable, Tuple
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
+_threads: set[threading.Thread] = set()
+
+
+def _get_nb_running_threads():
+    return str(len([th for th in _threads if th.is_alive()])) + "/" + str(len(_threads))
 
 
 def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
@@ -44,6 +49,8 @@ def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
         name=f"Thread-{_NB_DAEMON_THREADS}-{target.__name__}",
     )
     thread.start()
+    _threads.add(thread)
+    print(f"Started thread {thread.name} ({_get_nb_running_threads()} running threads)")
 
 
 def handle_req_work_conn(
@@ -71,13 +78,25 @@ def handle_req_work_conn(
         if socket_gradio in r:
             data = socket_gradio.recv(1024)
             if len(data) == 0:
+                print(
+                    f"({threading.current_thread().name}) closing -received 0 data from socket_gradio ({_get_nb_running_threads()} running threads)"
+                )
                 break
+            print(
+                f"({threading.current_thread().name}) sending {len(data)} bytes to worker.  ({_get_nb_running_threads()} running threads)"
+            )
             socket_worker.send(data)
         if socket_worker in r:
             data = socket_worker.recv(1024)
             if len(data) == 0:
+                print(
+                    f"({threading.current_thread().name}) closing -received 0 data from socket_worker  ({_get_nb_running_threads()} running threads)"
+                )
                 break
             socket_gradio.send(data)
+            print(
+                f"({threading.current_thread().name}) sending {len(data)} bytes to gradio.  ({_get_nb_running_threads()} running threads)"
+            )
     socket_gradio.close()
     socket_worker.close()
 
@@ -95,6 +114,9 @@ def _send(client, msg, type):
     json_raw = json.dumps(msg).encode("utf-8")
     binary_message.extend(struct.pack(">q", len(json_raw)))
     binary_message.extend(json_raw)
+    print(
+        f"(_send) sending {len(binary_message)} bytes.  ({_get_nb_running_threads()} running threads)"
+    )
     client.send(binary_message)
 
 
