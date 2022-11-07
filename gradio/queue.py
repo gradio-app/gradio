@@ -126,6 +126,9 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
+                # Covers the case for elements which entered to the just now
+                await self.gather_data_for_events(events)
+
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
@@ -153,6 +156,7 @@ class Queue:
         """
         Runs 2 functions sequentially instead of concurrently. Otherwise dced clients are tried to get deleted twice.
         """
+        await self.gather_data_for_first_ranks()
         if self.live_updates:
             await self.broadcast_estimations()
 
@@ -167,6 +171,10 @@ class Queue:
                 for event in islice(self.event_queue, self.data_gathering_start)
             ]
         )
+
+    async def gather_data_for_events(self, events: List) -> None:
+        # Send all messages concurrently
+        await asyncio.gather(*[self.gather_event_data(event) for event in events])
 
     async def gather_event_data(self, event: Event) -> bool:
         """
@@ -268,15 +276,16 @@ class Queue:
     async def process_events(self, events: List[Event], batch: bool) -> None:
         awake_events: List[Event] = []
         try:
-            for event in events:
-                client_awake = await self.gather_event_data(event)
-                if client_awake:
-                    client_awake = await self.send_message(
-                        event, {"msg": "process_starts"}
-                    )
-                if client_awake:
+            clients_are_awake = await asyncio.gather(
+                *[
+                    self.send_message(event, {"msg": "process_starts"})
+                    for event in events
+                ]
+            )
+            for is_awake, event in zip(clients_are_awake, events):
+                if is_awake:
                     awake_events.append(event)
-            if not (awake_events):
+            if not awake_events:
                 return
             begin_time = time.time()
             response = await self.call_prediction(awake_events, batch)
