@@ -130,7 +130,7 @@ class Queue:
                 await self.gather_data_for_events(events)
 
                 task = run_coro_in_background(self.process_events, events, batch)
-                run_coro_in_background(self.broadcast_live_estimations)
+                await self.broadcast_live_estimations()
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
     def push(self, event: Event) -> int | None:
@@ -158,7 +158,7 @@ class Queue:
         """
         await self.gather_data_for_first_ranks()
         if self.live_updates:
-            await self.broadcast_estimations()
+            run_coro_in_background(self.broadcast_estimations)
 
     async def gather_data_for_first_ranks(self) -> None:
         """
