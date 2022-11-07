@@ -17,6 +17,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
 
 ## Contributors Shoutout:
 No changes to highlight.
