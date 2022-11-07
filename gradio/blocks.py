@@ -1353,7 +1353,7 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
                 if not self.share:
-                    print(strings.en["COLAB_BETA"].format(self.server_port))
+                    print(strings.en["COLAB_WARNING"].format(self.server_port))
             if self.enable_queue and not self.share:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
