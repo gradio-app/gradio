@@ -772,6 +772,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
 
+
 class TupleNoPrint(tuple):
     # To remove printing function return in notebook
     def __repr__(self):
