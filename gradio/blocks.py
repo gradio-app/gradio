@@ -53,6 +53,7 @@ from gradio.utils import (
     delete_none,
     get_cancel_function,
     get_continuous_fn,
+    TupleNoPrint
 )
 
 set_documentation_group("blocks")
@@ -1480,7 +1481,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, self.share_url
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
     def integrate(
         self,
