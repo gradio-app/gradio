@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 
 export interface LoadingStatus {
 	eta: number | null;
-	status: "pending" | "error" | "complete";
+	status: "pending" | "error" | "complete" | "generating";
 	queue: boolean;
 	queue_position: number | null;
 	queue_size: number | null;

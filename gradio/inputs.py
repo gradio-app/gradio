@@ -245,7 +245,7 @@ class Image(components.Image):
         """
         Parameters:
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
-        image_mode (str): "RGB" if color, or "L" if black and white.
+        image_mode (str): How to process the uploaded image. Accepts any of the PIL image modes, e.g. "RGB" for color images, "RGBA" to include the transparency mask, "L" for black-and-white images.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.

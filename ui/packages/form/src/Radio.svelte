@@ -16,11 +16,7 @@
 
 	$: dispatch("change", value);
 
-	$: ({ rounded, border, item_container } = get_styles(style, [
-		"rounded",
-		"border",
-		"item_container"
-	]));
+	$: ({ item_container } = get_styles(style, ["item_container"]));
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>
@@ -36,7 +32,7 @@
 				bind:group={value}
 				type="radio"
 				name="radio-{elem_id}"
-				class="gr-check-radio gr-radio {border} {rounded}"
+				class="gr-check-radio gr-radio"
 				value={choice}
 			/> <span class="ml-2">{choice}</span></label
 		>

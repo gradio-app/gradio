@@ -4,12 +4,13 @@
 
 	const dispatch = createEventDispatcher();
 
+	export let visible: boolean = true;
 	export let elem_id: string = "";
 	export let selected: number | string;
 
 	$: dispatch("prop_change", { selected });
 </script>
 
-<Tabs {elem_id} bind:selected on:change>
+<Tabs {visible} {elem_id} bind:selected on:change>
 	<slot />
 </Tabs>

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { Styles } from "@gradio/utils";
 
-	export let style: Styles = {};
+	export let elem_id: string = "";
+	export let visible: boolean = true;
 </script>
 
-<div>
+<div id={elem_id} class:hidden={!visible}>
 	<slot />
 </div>
 

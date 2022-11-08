@@ -31,7 +31,6 @@
 	<StatusTracker {...loading_status} />
 
 	<TextBox
-		{style}
 		bind:value
 		{label}
 		{show_label}
@@ -40,6 +39,7 @@
 		{placeholder}
 		on:change
 		on:submit
+		on:blur
 		disabled={mode === "static"}
 	/>
 </Block>

@@ -15,9 +15,41 @@ import tempfile
 import uuid
 import warnings
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+import matplotlib.figure
+import numpy as np
+import pandas as pd
+import PIL
+import PIL.ImageOps
+from ffmpy import FFmpeg
+from markdown_it import MarkdownIt
+
+from gradio import media_data, processing_utils, utils
+from gradio.blocks import Block
+from gradio.documentation import document, set_documentation_group
+from gradio.events import (
+    Blurrable,
+    Changeable,
+    Clearable,
+    Clickable,
+    Editable,
+    Playable,
+    Streamable,
+    Submittable,
+    Uploadable,
+)
+from gradio.layouts import Column, Form, Row
+from gradio.serializing import (
+    FileSerializable,
+    ImgSerializable,
+    JSONSerializable,
+    Serializable,
+    SimpleSerializable,
+)
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -27,36 +59,12 @@ if TYPE_CHECKING:
         data: List[List[str | int | bool]]
 
 
-import matplotlib.figure
-import numpy as np
-import pandas as pd
-import PIL
-from ffmpy import FFmpeg
-from markdown_it import MarkdownIt
-
-from gradio import media_data, processing_utils
-from gradio.blocks import Block
-from gradio.documentation import document, set_documentation_group
-from gradio.events import (
-    Changeable,
-    Clearable,
-    Clickable,
-    Editable,
-    Playable,
-    Streamable,
-    Submittable,
-)
-from gradio.layouts import Form
-from gradio.serializing import (
-    FileSerializable,
-    ImgSerializable,
-    JSONSerializable,
-    Serializable,
-    SimpleSerializable,
-)
-from gradio.utils import component_or_layout_class
-
 set_documentation_group("component")
+
+
+class _Keywords(Enum):
+    NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
+    FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
 
 
 class Component(Block):
@@ -176,23 +184,50 @@ class IOComponent(Component, Serializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if border is not None:
-            self._style["border"] = border
+        put_deprecated_params_in_box = False
+        if "rounded" in kwargs:
+            warnings.warn(
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["rounded"], list) or isinstance(
+                kwargs["rounded"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("rounded")
+        if "margin" in kwargs:
+            warnings.warn(
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["margin"], list) or isinstance(
+                kwargs["margin"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("margin")
+        if "border" in kwargs:
+            warnings.warn(
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
+            )
+            kwargs.pop("border")
         if container is not None:
             self._style["container"] = container
+        if len(kwargs):
+            for key in kwargs:
+                warnings.warn(f"Unknown style parameter: {key}")
+        if (
+            put_deprecated_params_in_box
+            and getattr(self, "parent", None).__class__ in [Row, Column]
+            and self.parent.variant == "default"
+        ):
+            self.parent.variant = "compact"
         return self
 
     @staticmethod
@@ -211,13 +246,19 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
+    def as_example(self, input_data):
+        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
+        return input_data
+
 
 class FormComponent:
     expected_parent = Form
 
 
-@document("change", "submit", "style")
-class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
+@document("change", "submit", "blur", "style")
+class Textbox(
+    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.
@@ -282,7 +323,7 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComp
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         lines: Optional[int] = None,
         max_lines: Optional[int] = None,
         placeholder: Optional[str] = None,
@@ -383,7 +424,9 @@ class Textbox(Changeable, Submittable, IOComponent, SimpleSerializable, FormComp
 
 
 @document("change", "submit", "style")
-class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormComponent):
+class Number(
+    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
@@ -461,7 +504,7 @@ class Number(Changeable, Submittable, IOComponent, SimpleSerializable, FormCompo
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -633,7 +676,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[float] = None,
+        value: Optional[float] = _Keywords.NO_VALUE,
         minimum: Optional[float] = None,
         maximum: Optional[float] = None,
         step: Optional[float] = None,
@@ -694,6 +737,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
+        *,
         container: Optional[bool] = None,
     ):
         """
@@ -759,7 +803,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[bool] = None,
+        value: Optional[bool] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -834,6 +878,11 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         """
         self.choices = choices or []
         self.cleared_value = []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -857,7 +906,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = None,
+        value: Optional[List[str]] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -939,25 +988,21 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the CheckboxGroup.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             item_container: If True, will place the items in a container.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            container=container,
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -996,6 +1041,11 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1020,7 +1070,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1083,8 +1133,10 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def style(
         self,
+        *,
         item_container: Optional[bool] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the radio component.
@@ -1095,10 +1147,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(
-            self,
-            container=container,
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1148,29 +1197,28 @@ class Dropdown(Radio):
             **kwargs,
         )
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        container: Optional[bool] = None,
-    ):
+    def style(self, *, container: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the Dropdown.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will add border. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(
-            self, rounded=rounded, border=border, container=container
-        )
+        return IOComponent.style(self, container=container, **kwargs)
 
 
-@document("edit", "clear", "change", "stream", "change")
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSerializable):
+@document("edit", "clear", "change", "stream", "change", "style")
+class Image(
+    Editable,
+    Clearable,
+    Changeable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    ImgSerializable,
+):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch`. In the special case, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type` -- unless `tool` is `sketch` AND source is one of `upload` or `webcam`. In these cases, a {dict} with keys `image` and `mask` is passed, and the format of the corresponding values depends on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} filepath to a local file that contains the image.
     Demos: image_mod, image_mod_default_image
@@ -1185,7 +1233,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
-        tool: str = "editor",
+        tool: str = None,
         type: str = "numpy",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1203,7 +1251,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             image_mode: "RGB" if color, or "L" if black and white.
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-            tool: Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool, "sketch" allows you to create a mask over the image and both the image and mask are passed into the function.
+            tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
@@ -1214,12 +1262,25 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
         self.mirror_webcam = mirror_webcam
+        valid_types = ["numpy", "pil", "file", "filepath"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.shape = shape
         self.image_mode = image_mode
+        valid_sources = ["upload", "webcam", "canvas"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "webcam"
-        self.tool = tool
+        if tool is None:
+            self.tool = "sketch" if source == "canvas" else "editor"
+        else:
+            self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
@@ -1253,7 +1314,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -1270,9 +1331,10 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def _format_image(
-        self, im: Optional[PIL.Image], fmt: str
+        self, im: Optional[PIL.Image]
     ) -> np.array | PIL.Image | str | None:
         """Helper method to format an image based on self.type"""
+        fmt = im.format
         if im is None:
             return im
         if self.type == "pil":
@@ -1305,17 +1367,15 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
     def preprocess(self, x: str | Dict) -> np.array | PIL.Image | str | None:
         """
         Parameters:
-            x: base64 url data, or (if tool == "sketch) a dict of image and mask base64 url data
+            x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
         Returns:
-            image in requested format
+            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
         """
         if x is None:
             return x
-        if self.tool == "sketch":
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             x, mask = x["image"], x["mask"]
-
         im = processing_utils.decode_base64_to_image(x)
-        fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -1323,43 +1383,39 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
-        if self.source == "webcam" and self.mirror_webcam is True:
+        if (
+            self.source == "webcam"
+            and self.mirror_webcam is True
+            and self.tool != "color-sketch"
+        ):
             im = PIL.ImageOps.mirror(im)
 
-        if not (self.tool == "sketch"):
-            return self._format_image(im, fmt)
+        if self.tool == "sketch" and self.source in ["upload", "webcam"]:
+            mask_im = processing_utils.decode_base64_to_image(mask)
+            return {
+                "image": self._format_image(im),
+                "mask": self._format_image(mask_im),
+            }
 
-        mask_im = processing_utils.decode_base64_to_image(mask)
-        mask_fmt = mask_im.format
-        return {
-            "image": self._format_image(im, fmt),
-            "mask": self._format_image(mask_im, mask_fmt),
-        }
+        return self._format_image(im)
 
     def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
         """
         Parameters:
-            y: image as a numpy array, PIL Image, string filepath, or Path filepath
+            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
         Returns:
             base64 url data
         """
         if y is None:
             return None
         if isinstance(y, np.ndarray):
-            dtype = "numpy"
+            return processing_utils.encode_array_to_base64(y)
         elif isinstance(y, PIL.Image.Image):
-            dtype = "pil"
+            return processing_utils.encode_pil_to_base64(y)
         elif isinstance(y, (str, Path)):
-            dtype = "file"
+            return processing_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Cannot process this value as an Image")
-        if dtype in ["numpy", "pil"]:
-            if dtype == "pil":
-                y = np.array(y)
-            out_y = processing_utils.encode_array_to_base64(y)
-        elif dtype == "file":
-            out_y = processing_utils.encode_url_or_file_to_base64(y)
-        return out_y
 
     def set_interpret_parameters(self, segments: int = 16):
         """
@@ -1460,15 +1516,11 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         return output_scores.tolist()
 
     def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the Image component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the image.
             width: Width of the image.
         """
@@ -1476,7 +1528,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         self._style["width"] = width
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
     def stream(
@@ -1486,8 +1538,8 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1507,20 +1559,20 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent, ImgSeriali
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
-    Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
+    Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
     Postprocessing: expects a {str} filepath to a video which is displayed.
     Examples-format: a {str} filepath to a local file that contains the video.
     Demos: video_identity
@@ -1554,6 +1606,11 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         """
         self.temp_dir = tempfile.mkdtemp()
         self.format = format
+        valid_sources = ["upload", "webcam"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         self.mirror_webcam = mirror_webcam
         IOComponent.__init__(
@@ -1577,7 +1634,7 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1617,25 +1674,26 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
                 file_data, file_path=file_name
             )
 
-        file_name = file.name
-        uploaded_format = file_name.split(".")[-1].lower()
+        file_name = Path(file.name)
+        uploaded_format = file_name.suffix.replace(".", "")
 
-        if self.format is not None and uploaded_format != self.format:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
-            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-            ff.run()
-            return output_file_name
-        elif self.source == "webcam" and self.mirror_webcam is True:
-            path = Path(file_name)
-            output_file_name = str(path.with_stem(f"{path.stem}_flip"))
+        modify_format = self.format is not None and uploaded_format != self.format
+        flip = self.source == "webcam" and self.mirror_webcam
+        if modify_format or flip:
+            format = f".{self.format if modify_format else uploaded_format}"
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
+            flip_suffix = "_flip" if flip else ""
+            output_file_name = str(
+                file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
+            )
             ff = FFmpeg(
-                inputs={file_name: None},
-                outputs={output_file_name: ["-vf", "hflip", "-c:a", "copy"]},
+                inputs={str(file_name): None},
+                outputs={output_file_name: output_options},
             )
             ff.run()
             return output_file_name
         else:
-            return file_name
+            return str(file_name)
 
     def generate_sample(self):
         """Generates a random video for testing the API."""
@@ -1646,13 +1704,16 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
         Parameters:
-            y: a path to video file
+            y: a path or URL to the video file
         Returns:
             a dictionary with the following keys: 'name' (containing the file path
             to a temporary copy of the video), 'data' (None), and 'is_file` (True).
         """
         if y is None:
             return None
+
+        if utils.validate_url(y):
+            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
 
         returned_format = y.split(".")[-1].lower()
         if (
@@ -1670,19 +1731,14 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
             y = output_file_name
 
         y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        height: Optional[int] = None,
-        width: Optional[int] = None,
+        self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
     ):
         """
         This method can be used to change the appearance of the video component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             height: Height of the video.
             width: Width of the video.
         """
@@ -1690,16 +1746,24 @@ class Video(Changeable, Clearable, Playable, IOComponent, FileSerializable):
         self._style["width"] = width
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
 @document("change", "clear", "play", "pause", "stop", "stream", "style")
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerializable):
+class Audio(
+    Changeable,
+    Clearable,
+    Playable,
+    Streamable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real_time_speech_recognition
@@ -1732,8 +1796,18 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
+        valid_sources = ["upload", "microphone"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "microphone"
+        valid_types = ["numpy", "filepath", "file"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
@@ -1764,7 +1838,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -1917,23 +1991,25 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
     def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
         """
         Parameters:
-            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string of the path to an audio file, or None.
+            y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
         Returns:
             base64 url data
         """
         if y is None:
             return None
-        if isinstance(y, tuple):
+
+        if utils.validate_url(y):
+            file = processing_utils.download_to_file(y, dir=self.temp_dir)
+        elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
-                prefix="sample", suffix=".wav", delete=False
+                suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
-            y = file.name
+        else:
+            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-
-        return {"name": y.name, "data": None, "is_file": True}
+        return {"name": file.name, "data": None, "is_file": True}
 
     def stream(
         self,
@@ -1942,8 +2018,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
         outputs: List[Component],
         _js: Optional[str] = None,
         api_name: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
+        preprocess: bool = True,
+        postprocess: bool = True,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -1965,33 +2041,34 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent, FileSerial
             outputs,
             _js=_js,
             api_name=api_name,
-            _preprocess=_preprocess,
-            _postprocess=_postprocess,
+            preprocess=preprocess,
+            postprocess=postprocess,
         )
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the audio component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
+
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, IOComponent, FileSerializable):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_two_files
+    Demos: zip_to_json, zip_files
     """
 
     def __init__(
@@ -2020,6 +2097,11 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
         """
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
+        valid_types = ["file", "binary"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = None
         IOComponent.__init__(
@@ -2042,7 +2124,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
@@ -2124,7 +2206,7 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
                 {
                     "orig_name": os.path.basename(file),
                     "name": processing_utils.create_tmp_copy_of_file(
-                        file, self.temp_dir
+                        file, dir=self.temp_dir
                     ).name,
                     "size": os.path.getsize(file),
                     "data": None,
@@ -2150,17 +2232,23 @@ class File(Changeable, Clearable, IOComponent, FileSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the file component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
+
+    def as_example(self, input_data: str | List | None) -> str | List[str]:
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, list):
+            return [Path(file).name for file in input_data]
+        else:
+            return Path(input_data).name
 
 
 @document("change", "style")
@@ -2169,7 +2257,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -2229,6 +2317,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
+        valid_types = ["pandas", "numpy", "array"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         values = {
             "str": "",
@@ -2275,7 +2368,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         max_rows: Optional[int] = None,
         max_cols: Optional[str] = None,
         label: Optional[str] = None,
@@ -2404,17 +2497,24 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the DataFrame component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
+
+    def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
+        if input_data is None:
+            return ""
+        elif isinstance(input_data, pd.DataFrame):
+            return input_data.head(n=5).to_dict(orient="split")["data"]
+        elif isinstance(input_data, np.ndarray):
+            return input_data.tolist()
+        return input_data
 
 
 @document("change", "style")
@@ -2480,7 +2580,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         colors: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -2537,16 +2637,14 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the TimeSeries component.
-        Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -2630,7 +2728,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         variant: Optional[str] = None,
         visible: Optional[bool] = None,
     ):
@@ -2641,30 +2739,16 @@ class Button(Clickable, IOComponent, SimpleSerializable):
             "__type__": "update",
         }
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        full_width: Optional[str] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def style(self, *, full_width: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the button component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
-            full_width: If True, the button will span the full width of the container.
-            border: If True, will include a border. If a tuple, will add borders according to values in the tuple, where the elements correspond to top, right, bottom, left edge.
+            full_width: If True, will expand to fill parent container.
         """
         if full_width is not None:
             self._style["full_width"] = full_width
-        if margin is not None:
-            self._style["margin"] = margin
 
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document("change", "submit", "style")
@@ -2718,7 +2802,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[str] = None,
+        value: Optional[str] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2853,7 +2937,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Dict[str, float] | str | float] = None,
+        value: Optional[Dict[str, float] | str | float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -2869,6 +2953,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
+        *,
         container: Optional[bool] = None,
     ):
         """
@@ -2884,7 +2969,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends).
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named_entity_recognition
@@ -2943,7 +3028,9 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[List[Tuple[str, str | float | None]] | Dict] = None,
+        value: Optional[
+            List[Tuple[str, str | float | None]] | Dict
+        ] = _Keywords.NO_VALUE,
         color_map: Optional[Dict[str, str]] = None,
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
@@ -2973,13 +3060,19 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, dict):
-            text = y["text"]
-            entities = y["entities"]
+            try:
+                text = y["text"]
+                entities = y["entities"]
+            except KeyError:
+                raise ValueError(
+                    "Expected a dictionary with keys 'text' and 'entities' for the value of the HighlightedText component."
+                )
             if len(entities) == 0:
                 y = [(text, None)]
             else:
                 list_format = []
                 index = 0
+                entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
                     list_format.append((text[index : entity["start"]], None))
                     list_format.append(
@@ -3009,21 +3102,21 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        *,
         color_map: Optional[Dict[str, str]] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the HighlightedText component.
         Parameters:
-            rounded: If True, will round the corners of the text. If a tuple, will round the corners according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: Map between category and respective colors.
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return IOComponent.style(self, rounded=rounded, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -3072,7 +3165,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3101,13 +3194,13 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         else:
             return y
 
-    def style(self, container: Optional[bool] = None):
+    def style(self, *, container: Optional[bool] = None, **kwargs):
         """
         This method can be used to change the appearance of the JSON component.
         Parameters:
             container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(self, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
 
 @document("change")
@@ -3157,7 +3250,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3180,7 +3273,7 @@ class Gallery(IOComponent):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
     """
@@ -3203,6 +3296,7 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
+        self.temp_dir = tempfile.mkdtemp()
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3214,7 +3308,7 @@ class Gallery(IOComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3234,42 +3328,60 @@ class Gallery(IOComponent):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: List[np.ndarray | PIL.Image | str] | None) -> List[str]:
+    def postprocess(
+        self,
+        y: List[np.ndarray | PIL.Image | str]
+        | List[Tuple[np.ndarray | PIL.Image | str, str]]
+        | None,
+    ) -> List[str]:
         """
         Parameters:
-            y: list of images
+            y: list of images, or list of (image, caption) tuples
         Returns:
-            list of base64 url data for images
+            list of string file paths to images in temp directory
         """
         if y is None:
             return []
         output = []
         for img in y:
+            caption = None
+            if isinstance(img, tuple) or isinstance(img, list):
+                img, caption = img
             if isinstance(img, np.ndarray):
-                img = processing_utils.encode_array_to_base64(img)
+                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
             elif isinstance(img, PIL.Image.Image):
-                img = np.array(img)
-                img = processing_utils.encode_array_to_base64(img)
+                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
             elif isinstance(img, str):
-                img = processing_utils.encode_url_or_file_to_base64(img)
+                if utils.validate_url(img):
+                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
+                else:
+                    file = processing_utils.create_tmp_copy_of_file(
+                        img, dir=self.temp_dir
+                    )
             else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
+                raise ValueError(f"Cannot process type as image: {type(img)}")
+
+            if caption is not None:
+                output.append(
+                    [{"name": file.name, "data": None, "is_file": True}, caption]
                 )
-            output.append(img)
+            else:
+                output.append({"name": file.name, "data": None, "is_file": True})
+
         return output
 
     def style(
         self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        grid: Optional[int | Tuple[int, int, int, int, int, int]] = None,
+        *,
+        grid: Optional[int | Tuple] = None,
         height: Optional[str] = None,
         container: Optional[bool] = None,
+        **kwargs,
     ):
         """
         This method can be used to change the appearance of the gallery component.
         Parameters:
-            rounded: If True, will round the corners. If a tuple, will round corners according to the values in the tuple, starting from top left and proceeding clock-wise.
+            grid: Represents the number of images that should be shown in one row, for each of the six standard screen sizes (<576px, <768px, <992px, <1200px, <1400px, >1400px). if fewer that 6 are given then the last will be used for all subsequent breakpoints
             height: Height of the gallery.
             container: If True, will place gallery in a container - providing some extra padding around the border.
         """
@@ -3278,7 +3390,7 @@ class Gallery(IOComponent):
         if height is not None:
             self._style["height"] = height
 
-        return IOComponent.style(self, rounded=rounded, container=container)
+        return IOComponent.style(self, container=container, **kwargs)
 
     def deserialize(
         self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
@@ -3286,103 +3398,56 @@ class Gallery(IOComponent):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        captions = {}
         for img_data in x:
-            ImgSerializable.deserialize(self, img_data, gallery_path)
+            if isinstance(img_data, list) or isinstance(img_data, tuple):
+                img_data, caption = img_data
+            else:
+                caption = None
+            name = FileSerializable.deserialize(self, img_data, gallery_path)
+            if caption is not None:
+                captions[name] = caption
+        if len(captions):
+            captions_file = os.path.join(gallery_path, "captions.json")
+            with open(captions_file, "w") as captions_json:
+                json.dump(captions, captions_json)
         return os.path.abspath(gallery_path)
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
+        captions_file = os.path.join(x, "captions.json")
         for file in os.listdir(x):
             file_path = os.path.join(x, file)
-            img = ImgSerializable.serialize(self, file_path)
-            files.append(img)
+            if file_path == captions_file:
+                continue
+            if os.path.exists(captions_file):
+                with open(captions_file) as captions_json:
+                    captions = json.load(captions_json)
+                caption = captions.get(file_path)
+            else:
+                caption = None
+            img = FileSerializable.serialize(self, file_path)
+            if caption:
+                files.append([img, caption])
+            else:
+                files.append(img)
         return files
 
 
-class Carousel(IOComponent, Changeable):
+class Carousel(IOComponent, Changeable, SimpleSerializable):
     """
-    Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
+    Deprecated Component
     """
 
     def __init__(
         self,
-        *,
-        components: Component | List[Component],
-        label: Optional[str] = None,
-        show_label: bool = True,
-        visible: bool = True,
-        elem_id: Optional[str] = None,
+        *args,
         **kwargs,
     ):
-        """
-        Parameters:
-            components: Classes of component(s) that will be scrolled through.
-            label: component name in interface.
-            show_label: if True, will display label.
-            visible: If False, component will be hidden.
-            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-        """
-        warnings.warn(
-            "The Carousel component is partially deprecated. It may not behave as expected.",
+        raise DeprecationWarning(
+            "The Carousel component is deprecated. Please consider using the Gallery "
+            "component, which can be used to display images (and optional captions).",
         )
-        if not isinstance(components, list):
-            components = [components]
-        self.components = [
-            get_component_instance(component) for component in components
-        ]
-        IOComponent.__init__(
-            self,
-            label=label,
-            show_label=show_label,
-            visible=visible,
-            elem_id=elem_id,
-            **kwargs,
-        )
-
-    def get_config(self):
-        return {
-            "components": [component.get_config() for component in self.components],
-            **IOComponent.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Optional[Any] = None,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        visible: Optional[bool] = None,
-    ):
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-        return updated_config
-
-    def postprocess(self, y: List[List[Any]]) -> List[List[Any]]:
-        """
-        Parameters:
-            y: carousel output
-        Returns:
-            2D array, where each sublist represents one set of outputs or 'slide' in the carousel
-        """
-        if y is None:
-            return None
-        if isinstance(y, list):
-            if len(y) != 0 and not isinstance(y[0], list):
-                y = [[z] for z in y]
-            output = []
-            for row in y:
-                output_row = []
-                for i, cell in enumerate(row):
-                    output_row.append(self.components[i].postprocess(cell))
-                output.append(output_row)
-            return output
-        else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
 
 @document("change", "style")
@@ -3439,7 +3504,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -3464,15 +3529,10 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         return [] if y is None else y
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        color_map: Optional[List[str, str]] = None,
-    ):
+    def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
         This method can be used to change the appearance of the Chatbot component.
         Parameters:
-            rounded: If True, whether the chat bubbles should be rounded. If a tuple, will round the corners of the bubble according to the values in the tuple, starting from top left and proceeding clock-wise.
             color_map: List containing colors to apply to chat bubbles.
         Returns:
 
@@ -3482,7 +3542,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
 
 
@@ -3538,7 +3598,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3594,19 +3654,17 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         }
         return data
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Model3D component.
-        Args:
-            rounded: If True, will round the corners of the Model3D component. If a tuple, will round the corners of the Model3D according to the values in the tuple, starting from top left and proceeding clock-wise.
         """
         return IOComponent.style(
             self,
-            rounded=rounded,
+            **kwargs,
         )
+
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
 
 
 @document("change", "clear")
@@ -3652,7 +3710,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3740,7 +3798,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -3753,9 +3811,12 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
+    def as_example(self, input_data: str) -> str:
+        return self.postprocess(input_data)
+
 
 ############################
-# Static Components
+# Special Components
 ############################
 
 
@@ -3764,7 +3825,7 @@ class Dataset(Clickable, Component):
     """
     Used to create an output widget for showing datasets. Used to render the examples
     box.
-    Preprocessing: this component does *not* accept input.
+    Preprocessing: passes the selected sample either as a {list} of data (if type="value") or as an {int} index (if type="index")
     Postprocessing: expects a {list} of {lists} corresponding to the dataset data.
     """
 
@@ -3772,8 +3833,8 @@ class Dataset(Clickable, Component):
         self,
         *,
         label: Optional[str] = None,
-        components: List[Component] | List[str],
-        samples: List[List[Any]],
+        components: List[IOComponent] | List[str],
+        samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
         visible: bool = True,
@@ -3782,7 +3843,7 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances
+            components: Which component types to show in this dataset widget, can be passed in as a list of string names or Components instances. The following components are supported in a Dataset: Audio, Checkbox, CheckboxGroup, ColorPicker, Dataframe, Dropdown, File, HTML, Image, Markdown, Model3D, Number, Radio, Slider, Textbox, TimeSeries, Video
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
@@ -3791,6 +3852,10 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        self.samples = [[]] if samples is None else samples
+        for example in self.samples:
+            for i, (component, ex) in enumerate(zip(self.components, example)):
+                example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
@@ -3799,7 +3864,6 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
-        self.samples = samples
 
     def get_config(self):
         return {
@@ -3813,7 +3877,7 @@ class Dataset(Clickable, Component):
 
     @staticmethod
     def update(
-        samples: Optional[Any] = None,
+        samples: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
         label: Optional[str] = None,
     ):
@@ -3833,22 +3897,17 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
+    def postprocess(self, samples: List[List[Any]]) -> Dict:
+        return {
+            "samples": samples,
+            "__type__": "update",
+        }
+
+    def style(self, **kwargs):
         """
         This method can be used to change the appearance of the Dataset component.
-        Parameters:
-            rounded: If True, will round the all corners of the dataset. If a tuple, will round the corners of the dataset according to the values in the tuple, starting from top left and proceeding clock-wise.
-            border: If True, will include a border for all edges of the dataset. If a tuple, will add edges according to the values in the tuple, starting from top and proceeding clock-wise.
         """
-        return IOComponent.style(
-            self,
-            rounded=rounded,
-            border=border,
-        )
+        return IOComponent.style(self, **kwargs)
 
 
 @document()
@@ -3886,7 +3945,7 @@ class Interpretation(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {
@@ -3930,7 +3989,7 @@ class StatusTracker(Component):
 
     @staticmethod
     def update(
-        value: Optional[Any] = None,
+        value: Optional[Any] = _Keywords.NO_VALUE,
         visible: Optional[bool] = None,
     ):
         return {
@@ -3941,7 +4000,7 @@ class StatusTracker(Component):
 
 
 def component(cls_name: str) -> Component:
-    obj = component_or_layout_class(cls_name)()
+    obj = utils.component_or_layout_class(cls_name)()
     return obj
 
 
@@ -3953,7 +4012,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         return component_obj
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component_or_layout_class(name)
+        component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if not (render):
             component_obj.unrender()
@@ -3966,8 +4025,10 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         )
 
 
+Text = Textbox
 DataFrame = Dataframe
 Highlightedtext = HighlightedText
+Highlight = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
 Json = JSON

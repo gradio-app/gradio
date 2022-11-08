@@ -5,7 +5,7 @@
     <img src="/assets/gradio.svg" >
   </a>
   <svg
-    class="h-8 w-8 md:hidden"
+    class="h-8 w-8 lg:hidden"
     viewBox="-10 -10 20 20"
     onclick='document.querySelector("nav").classList.toggle("hidden"),document.querySelector("nav").classList.toggle("flex")'
   >
@@ -14,17 +14,20 @@
     <rect x="-7" y="4" width="14" height="2"></rect>
   </svg>
   <nav
-    class="hidden w-full flex-col gap-3 md:flex md:w-auto md:flex-row md:gap-6"
+    class="hidden w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:gap-8"
   >
     <a class="thin-link flex items-center gap-3" href="/getting_started"
       ><span>⚡</span> <span>Quickstart</span>
     </a>
-    <a class="thin-link flex items-center gap-3" href="/guides"
-      ><span>💡</span> <span>Guides</span></a
-    >
     <a class="thin-link flex items-center gap-3" href="/docs"
       ><span>✍️</span> <span>Docs</span>
     </a>
+    <a class="thin-link flex items-center gap-3" href="/guides"
+      ><span>💡</span> <span>Guides</span></a
+    >
+    <a class="thin-link flex items-center gap-3" href="/demos"
+      ><span>🎢</span> <span>Demos</span></a
+    >
     <div
       class="group relative flex cursor-pointer items-center gap-3"
       onclick='document.querySelector(".help-menu").classList.toggle("flex"),document.querySelector(".help-menu").classList.toggle("hidden")'
@@ -70,7 +73,7 @@
     </div>
     <a class="thin-link flex items-center gap-3" href="https://github.com/gradio-app/gradio"
       >
-    <img src="/assets/img/github-black.svg" class="w-6"> Github
+    <img src="/assets/img/github-black.svg" class="w-6">
     </a>
   </nav>
 </div>

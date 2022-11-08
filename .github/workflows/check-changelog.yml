@@ -1,0 +1,20 @@
+name: check-changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
+
+jobs:
+  check-changelog-updated:
+    name: Check CHANGELOG file
+    runs-on: ubuntu-latest
+    if: ${{ !contains( github.event.pull_request.labels.*.name, 'no-changelog-update') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Release notes added
+        run: |
+          cat CHANGELOG.md | grep -w "https://github.com/gradio-app/gradio/pull/${{ github.event.number }}"

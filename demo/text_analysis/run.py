@@ -1,10 +1,10 @@
+import gradio as gr
+import os
+os.system('python -m spacy download en_core_web_sm')
 import spacy
 from spacy import displacy
 
-import gradio as gr
-
 nlp = spacy.load("en_core_web_sm")
-
 
 def text_analysis(text):
     doc = nlp(text)
@@ -25,7 +25,6 @@ def text_analysis(text):
 
     return pos_tokens, pos_count, html
 
-
 demo = gr.Interface(
     text_analysis,
     gr.Textbox(placeholder="Enter sentence here..."),
@@ -36,5 +35,4 @@ demo = gr.Interface(
     ],
 )
 
-if __name__ == "__main__":
-    demo.launch()
+demo.launch()

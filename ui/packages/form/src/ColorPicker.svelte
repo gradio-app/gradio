@@ -21,17 +21,10 @@
 	function handle_change(val: string) {
 		dispatch("change", val);
 	}
-
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
 	<BlockTitle {show_label}>{label}</BlockTitle>
-	<input
-		type="color"
-		class="gr-box-unrounded {classes}"
-		bind:value
-		{disabled}
-	/>
+	<input type="color" class="gr-box-unrounded" bind:value {disabled} />
 </label>

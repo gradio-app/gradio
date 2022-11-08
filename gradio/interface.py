@@ -13,9 +13,8 @@ import re
 import warnings
 import weakref
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
-import anyio
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
@@ -28,14 +27,13 @@ from gradio.components import (
     IOComponent,
     Markdown,
     State,
-    StatusTracker,
     get_component_instance,
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.external import load_from_pipeline  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
+from gradio.pipelines import load_from_pipeline  # type: ignore
 
 set_documentation_group("interface")
 
@@ -61,7 +59,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
-    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features
+    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features, setting_up_a_gradio_demo_for_maximum_performance
     """
 
     # stores references to all currently existing Interface instances
@@ -94,10 +92,10 @@ class Interface(Blocks):
         model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
-            name: the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: optional api key for use with Hugging Face Hub
-            alias: optional string used as the name of the loaded model instead of the default name
+            name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+            api_key: optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            alias: optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
         Returns:
             a Gradio Interface object for the given model
         Example:
@@ -107,7 +105,7 @@ class Interface(Blocks):
             demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
             demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
+        return super().load(name=name, src=src, api_key=api_key, alias=alias)
 
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
@@ -151,12 +149,14 @@ class Interface(Blocks):
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
         analytics_enabled: Optional[bool] = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
         _api_mode: bool = False,
         **kwargs,
     ):
         """
         Parameters:
-            fn: the function to wrap an interface around. Often a machine learning model's prediction function.
+            fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
@@ -176,6 +176,8 @@ class Interface(Blocks):
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -288,7 +290,7 @@ class Interface(Blocks):
         self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
-        self.__name__ = fn.__name__
+        self.__name__ = getattr(fn, "__name__", "fn")
         self.live = live
         self.title = title
 
@@ -383,23 +385,22 @@ class Interface(Blocks):
 
         self.favicon_path = None
 
-        data = {
-            "mode": self.mode,
-            "fn": fn,
-            "inputs": inputs,
-            "outputs": outputs,
-            "live": live,
-            "ip_address": self.ip_address,
-            "interpretation": interpretation,
-            "allow_flagging": allow_flagging,
-            "custom_css": self.css is not None,
-            "theme": self.theme,
-            "version": pkgutil.get_data(__name__, "version.txt")
-            .decode("ascii")
-            .strip(),
-        }
-
         if self.analytics_enabled:
+            data = {
+                "mode": self.mode,
+                "fn": fn,
+                "inputs": inputs,
+                "outputs": outputs,
+                "live": live,
+                "ip_address": self.ip_address,
+                "interpretation": interpretation,
+                "allow_flagging": allow_flagging,
+                "custom_css": self.css is not None,
+                "theme": self.theme,
+                "version": pkgutil.get_data(__name__, "version.txt")
+                .decode("ascii")
+                .strip(),
+            }
             utils.initiated_analytics(data)
 
         utils.version_check()
@@ -456,11 +457,6 @@ class Interface(Blocks):
                 ]:
                     with Column(variant="panel"):
                         input_component_column = Column()
-                        if self.interface_type in [
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
-                        ]:
-                            status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
                                 component.render()
@@ -478,9 +474,19 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear")
                                 if not self.live:
                                     submit_btn = Button("Submit", variant="primary")
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    if inspect.isgeneratorfunction(fn):
+                                        stop_btn = Button("Stop", variant="stop")
+
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Submit", variant="primary")
+                                if inspect.isgeneratorfunction(fn) and not self.live:
+                                    stop_btn = Button("Stop", variant="stop")
                                 if self.allow_flagging == "manual":
                                     flag_btns = render_flag_btns(self.flagging_options)
 
@@ -490,13 +496,20 @@ class Interface(Blocks):
                 ]:
 
                     with Column(variant="panel"):
-                        status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
-                            component.render()
+                            if not (isinstance(component, State)):
+                                component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
                                 clear_btn = Button("Clear")
                                 submit_btn = Button("Generate", variant="primary")
+                                if inspect.isgeneratorfunction(fn) and not self.live:
+                                    # Stopping jobs only works if the queue is enabled
+                                    # We don't know if the queue is enabled when the interface
+                                    # is created. We use whether a generator function is provided
+                                    # as a proxy of whether the queue will be enabled.
+                                    # Using a generator function without the queue will raise an error.
+                                    stop_btn = Button("Stop", variant="stop")
                             if self.allow_flagging == "manual":
                                 flag_btns = render_flag_btns(self.flagging_options)
                             if self.interpretation:
@@ -509,9 +522,10 @@ class Interface(Blocks):
                         None,
                         self.output_components,
                         api_name="predict",
-                        status_tracker=status_tracker,
-                        _preprocess=not (self.api_mode),
-                        _postprocess=not (self.api_mode),
+                        preprocess=not (self.api_mode),
+                        postprocess=not (self.api_mode),
+                        batch=batch,
+                        max_batch_size=max_batch_size,
                     )
                 else:
                     for component in self.input_components:
@@ -522,8 +536,8 @@ class Interface(Blocks):
                                     self.input_components,
                                     self.output_components,
                                     api_name="predict",
-                                    _preprocess=not (self.api_mode),
-                                    _postprocess=not (self.api_mode),
+                                    preprocess=not (self.api_mode),
+                                    postprocess=not (self.api_mode),
                                 )
                                 continue
                             else:
@@ -538,20 +552,29 @@ class Interface(Blocks):
                                 self.input_components,
                                 self.output_components,
                                 api_name="predict",
-                                _preprocess=not (self.api_mode),
-                                _postprocess=not (self.api_mode),
+                                preprocess=not (self.api_mode),
+                                postprocess=not (self.api_mode),
                             )
             else:
-                submit_btn.click(
+                pred = submit_btn.click(
                     self.fn,
                     self.input_components,
                     self.output_components,
                     api_name="predict",
                     scroll_to_output=True,
-                    status_tracker=status_tracker,
-                    _preprocess=not (self.api_mode),
-                    _postprocess=not (self.api_mode),
+                    preprocess=not (self.api_mode),
+                    postprocess=not (self.api_mode),
+                    batch=batch,
+                    max_batch_size=max_batch_size,
                 )
+                if inspect.isgeneratorfunction(fn):
+                    stop_btn.click(
+                        None,
+                        inputs=None,
+                        outputs=None,
+                        cancels=[pred],
+                    )
+
             clear_btn.click(
                 None,
                 [],
@@ -612,7 +635,7 @@ class Interface(Blocks):
                             flag_method,
                             inputs=flag_components,
                             outputs=[],
-                            _preprocess=False,
+                            preprocess=False,
                             queue=False,
                         )
 
@@ -631,6 +654,7 @@ class Interface(Blocks):
                     cache_examples=self.cache_examples,
                     examples_per_page=examples_per_page,
                     _api_mode=_api_mode,
+                    batch=batch,
                 )
 
             if self.interpretation:
@@ -639,8 +663,7 @@ class Interface(Blocks):
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
-                    status_tracker=status_tracker,
-                    _preprocess=False,
+                    preprocess=False,
                 )
 
             if self.article:
@@ -699,7 +722,7 @@ class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets
     rendered in a separate tab.
-    Demos: sst_or_tts
+    Demos: stt_or_tts
     """
 
     def __init__(

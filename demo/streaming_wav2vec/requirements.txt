@@ -1,1 +1,2 @@
-deepspeech==0.8.2
+torch
+transformers

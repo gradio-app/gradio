@@ -30,22 +30,13 @@
 	$: _parent = parent === "column" || parent == "row" ? parent : "column";
 
 	$: ({ classes } = explicit_call
-		? get_styles(style, ["rounded", "border"])
+		? get_styles(style, [])
 		: disable
 		? get_styles({ container: false }, ["container"])
 		: { classes: "" });
-
-	$: rounded =
-		typeof style.rounded !== "boolean" ||
-		(typeof style.rounded === "boolean" && style.rounded);
-
-	$: rounded_style =
-		typeof style.rounded === "boolean"
-			? get_styles({ rounded: rounded }, ["rounded"]).classes
-			: "";
 	$: size_style =
 		"" +
-		(typeof style.width === "number" ? `height: ${style.width}px; ` : "") +
+		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
 		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
@@ -54,11 +45,10 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:!hidden={visible === false}
-	class="gr-block relative w-full overflow-hidden {styles[variant]} {rounded
-		? styles[color]
-		: ''} {classes} {rounded_style}"
-	class:gr-panel={padding}
-	class:gr-box-unrounded={!rounded}
+	class="gr-block gr-box relative w-full overflow-hidden {styles[
+		variant
+	]} {styles[color]} {classes}"
+	class:gr-padded={padding}
 	style={size_style || null}
 >
 	<slot />

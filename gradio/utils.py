@@ -10,9 +10,10 @@ import json.decoder
 import os
 import pkgutil
 import random
+import sys
+import time
 import warnings
 from contextlib import contextmanager
-from copy import deepcopy
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
@@ -30,22 +31,20 @@ from typing import (
 )
 
 import aiohttp
-import analytics
 import fsspec.asyn
 import httpx
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
+from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Blocks, Interface
     from gradio.blocks import BlockContext
     from gradio.components import Component
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
-analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
@@ -255,10 +254,6 @@ def assert_configs_are_equivalent_besides_ids(
         for o1, o2 in zip(d1.pop("outputs"), d2.pop("outputs")):
             assert_same_components(o1, o2)
 
-        # status tracker is popped since we allow it to have different ids
-        d1.pop("status_tracker", None)
-        d2.pop("status_tracker", None)
-
         assert d1 == d2, f"{d1} does not match {d2}"
 
     return True
@@ -281,14 +276,14 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
     return output
 
 
-def delete_none(_dict):
+def delete_none(_dict, skip_value=False):
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
     Credit: https://stackoverflow.com/a/66127889/5209347
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
-            if key == "value":
+            if skip_value and key == "value":
                 continue
             if isinstance(value, (list, dict, tuple, set)):
                 _dict[key] = delete_none(value)
@@ -390,6 +385,14 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     """
     event_loop = asyncio.get_event_loop()
     return event_loop.create_task(func(*args, **kwargs))
+
+
+def async_iteration(iterator):
+    try:
+        return next(iterator)
+    except StopIteration:
+        # raise a ValueError here because co-routines can't raise StopIteration themselves
+        raise StopAsyncIteration()
 
 
 class Request:
@@ -620,8 +623,10 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str) -> str:
-    return "".join([char for char in filename if char.isalnum() or char in "._- "])
+def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
+    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
+        :max_size
+    ]
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -656,3 +661,113 @@ def sanitize_list_for_csv(
             sanitized_value = sanitize_value_for_csv(value)
             sanitized_values.append(sanitized_value)
     return sanitized_values
+
+
+def append_unique_suffix(name: str, list_of_names: List[str]):
+    """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
+    list_of_names = set(list_of_names)  # for O(1) lookup
+    if name not in list_of_names:
+        return name
+    else:
+        suffix_counter = 1
+        new_name = name + f"_{suffix_counter}"
+        while new_name in list_of_names:
+            suffix_counter += 1
+            new_name = name + f"_{suffix_counter}"
+        return new_name
+
+
+def validate_url(possible_url: str) -> bool:
+    try:
+        if requests.get(possible_url).status_code == 200:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def is_update(val):
+    return type(val) is dict and "update" in val.get("__type__", "")
+
+
+def get_continuous_fn(fn, every):
+    def continuous_fn(*args):
+        while True:
+            output = fn(*args)
+            yield output
+            time.sleep(every)
+
+    return continuous_fn
+
+
+async def cancel_tasks(task_ids: List[str]):
+    if sys.version_info < (3, 8):
+        return None
+
+    matching_tasks = [
+        task for task in asyncio.all_tasks() if task.get_name() in task_ids
+    ]
+    for task in matching_tasks:
+        task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+
+
+def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
+    if sys.version_info >= (3, 8) and not (
+        batch
+    ):  # You shouldn't be able to cancel a task if it's part of a batch
+        task.set_name(f"{session_hash}_{fn_index}")
+
+
+def get_cancel_function(
+    dependencies: List[Dict[str, Any]]
+) -> Tuple[Callable, List[int]]:
+    fn_to_comp = {}
+    for dep in dependencies:
+        fn_index = next(
+            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+        )
+        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+
+    async def cancel(session_hash: str) -> None:
+        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        await cancel_tasks(task_ids)
+
+    return (
+        cancel,
+        list(fn_to_comp.keys()),
+    )
+
+
+def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+    """
+    Checks if the input component set matches the function
+    Returns: None if valid, a string error message if mismatch
+    """
+    signature = inspect.signature(fn)
+    min_args = 0
+    max_args = 0
+    for param in signature.parameters.values():
+        has_default = param.default != param.empty
+        if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
+            if not has_default:
+                min_args += 1
+            max_args += 1
+        elif param.kind == param.VAR_POSITIONAL:
+            max_args = "infinity"
+        elif param.kind == param.KEYWORD_ONLY:
+            if not has_default:
+                return f"Keyword-only args must have default values for function {fn}"
+    arg_count = 1 if inputs_as_dict else len(inputs)
+    if min_args == max_args and max_args != arg_count:
+        warnings.warn(
+            f"Expected {max_args} arguments for function {fn}, received {arg_count}."
+        )
+    if arg_count < min_args:
+        warnings.warn(
+            f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
+        )
+    if max_args != "infinity" and arg_count > max_args:
+        warnings.warn(
+            f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
+        )

@@ -1,0 +1,1 @@
+neon-tts-plugin-coqui==0.4.1a9

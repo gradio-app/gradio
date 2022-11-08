@@ -1,0 +1,4 @@
+prophet==1.1
+pandas
+pypistats
+plotly

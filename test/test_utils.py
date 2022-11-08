@@ -2,7 +2,6 @@ import copy
 import ipaddress
 import json
 import os
-import unittest
 import unittest.mock as mock
 import warnings
 
@@ -20,6 +19,7 @@ from gradio.test_data.blocks_configs import (
 )
 from gradio.utils import (
     Request,
+    append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
     delete_none,
@@ -37,7 +37,7 @@ from gradio.utils import (
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils:
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get):
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
@@ -45,8 +45,9 @@ class TestUtils(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             version_check()
-            self.assertEqual(
-                str(w[-1].message), "unable to parse version details from package URL."
+            assert (
+                str(w[-1].message)
+                == "unable to parse version details from package URL."
             )
 
     @mock.patch("requests.Response.json")
@@ -56,9 +57,7 @@ class TestUtils(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             version_check()
-            self.assertEqual(
-                str(w[-1].message), "package URL does not contain version info."
-            )
+            assert str(w[-1].message) == "package URL does not contain version info."
 
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
@@ -101,10 +100,11 @@ class TestUtils(unittest.TestCase):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
 
 
-class TestIPAddress(unittest.TestCase):
-    @pytest.mark.flaky
+class TestIPAddress:
     def test_get_ip(self):
         ip = get_local_ip_address()
+        if ip == "No internet connection":
+            return
         try:  # check whether ip is valid
             ipaddress.ip_address(ip)
         except ValueError:
@@ -114,22 +114,20 @@ class TestIPAddress(unittest.TestCase):
     def test_get_ip_without_internet(self, mock_get):
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
-        self.assertEqual(ip, "No internet connection")
+        assert ip == "No internet connection"
 
 
-class TestAssertConfigsEquivalent(unittest.TestCase):
+class TestAssertConfigsEquivalent:
     def test_same_configs(self):
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
-        )
+        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
 
     def test_equivalent_configs(self):
-        self.assertTrue(
-            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
+        assert assert_configs_are_equivalent_besides_ids(
+            XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS
         )
 
     def test_different_configs(self):
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             assert_configs_are_equivalent_besides_ids(
                 XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
             )
@@ -194,7 +192,6 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
                     "outputs": [2],
                     "backend_fn": True,
                     "js": None,
-                    "status_tracker": None,
                     "queue": None,
                     "api_name": "greet",
                     "scroll_to_output": False,
@@ -206,11 +203,11 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
 
         config2 = copy.deepcopy(config1)
         config2["dependencies"][0]["documentation"] = None
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             assert_configs_are_equivalent_besides_ids(config1, config2)
 
 
-class TestFormatNERList(unittest.TestCase):
+class TestFormatNERList:
     def test_format_ner_list_standard(self):
         string = "Wolfgang lives in Berlin"
         groups = [
@@ -224,16 +221,16 @@ class TestFormatNERList(unittest.TestCase):
             ("Berlin", "LOC"),
             ("", None),
         ]
-        self.assertEqual(format_ner_list(string, groups), result)
+        assert format_ner_list(string, groups) == result
 
     def test_format_ner_list_empty(self):
         string = "I live in a city"
         groups = []
         result = [("I live in a city", None)]
-        self.assertEqual(format_ner_list(string, groups), result)
+        assert format_ner_list(string, groups) == result
 
 
-class TestDeleteNone(unittest.TestCase):
+class TestDeleteNone:
     """Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python"""
 
     def test_delete_none(self):
@@ -249,7 +246,7 @@ class TestDeleteNone(unittest.TestCase):
             },
         }
         truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
-        self.assertEqual(delete_none(input), truth)
+        assert delete_none(input) == truth
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -491,5 +488,18 @@ class TestSanitizeForCSV:
         assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestAppendUniqueSuffix:
+    def test_no_suffix(self):
+        name = "test"
+        list_of_names = ["test_1", "test_2"]
+        assert append_unique_suffix(name, list_of_names) == name
+
+    def test_first_suffix(self):
+        name = "test"
+        list_of_names = ["test", "test_-1"]
+        assert append_unique_suffix(name, list_of_names) == "test_1"
+
+    def test_later_suffix(self):
+        name = "test"
+        list_of_names = ["test", "test_1", "test_2", "test_3"]
+        assert append_unique_suffix(name, list_of_names) == "test_4"

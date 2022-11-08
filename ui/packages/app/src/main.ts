@@ -19,7 +19,6 @@ const FONTS = "__FONTS_CSS__";
 interface Config {
 	auth_required: boolean | undefined;
 	auth_message: string;
-
 	components: ComponentMeta[];
 	css: string | null;
 	dependencies: Dependency[];
@@ -34,36 +33,8 @@ interface Config {
 	title: string;
 	version: string;
 	is_space: boolean;
-	// allow_flagging: string;
-	// allow_interpretation: boolean;
-	// article: string;
-	// cached_examples: boolean;
-
-	// description: string;
-	// examples: Array<unknown>;
-	// examples_per_page: number;
-	// favicon_path: null | string;
-	// flagging_options: null | unknown;
-
-	// function_count: number;
-	// input_components: Array<ComponentMeta>;
-	// output_components: Array<ComponentMeta>;
-	// layout: string;
-	// live: boolean;
-	// mode: "blocks" | "interface" | undefined;
-	// enable_queue: boolean;
-	// root: string;
-	// show_input: boolean;
-	// show_output: boolean;
-	// simpler_description: string;
-	// theme: string;
-	// thumbnail: null | string;
-	// title: string;
-	// version: string;
-	// space?: string;
-	// detail: string;
-	// dark: boolean;
-	// dev_mode: boolean;
+	is_colab: boolean;
+	show_api: boolean;
 }
 
 let app_id: string | null = null;
@@ -142,7 +113,7 @@ async function handle_config(
 	try {
 		let [_config] = await Promise.all([
 			get_config(source),
-			mount_css(ENTRY_CSS, target)
+			BUILD_MODE === "dev" ? Promise.resolve : mount_css(ENTRY_CSS, target)
 		]);
 		config = _config;
 	} catch (e) {
@@ -151,6 +122,8 @@ async function handle_config(
 	}
 
 	mount_custom_css(target, config.css);
+	window.__is_colab__ = config.is_colab;
+
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
@@ -168,7 +141,8 @@ function mount_app(
 	target: HTMLElement | ShadowRoot | false,
 	wrapper: HTMLDivElement,
 	id: number,
-	autoscroll?: boolean
+	autoscroll?: boolean,
+	is_embed = false
 ) {
 	//@ts-ignore
 	if (config.detail === "Not authenticated" || config.auth_required) {
@@ -183,7 +157,12 @@ function mount_app(
 		});
 	} else {
 		let session_hash = Math.random().toString(36).substring(2);
-		config.fn = fn(session_hash, config.root + "api/", config.is_space);
+		config.fn = fn(
+			session_hash,
+			config.root + "run/",
+			config.is_space,
+			is_embed
+		);
 
 		new Blocks({
 			target: wrapper,
@@ -251,11 +230,17 @@ function create_custom_element() {
 			observer.observe(this.root, { childList: true });
 
 			const space = this.getAttribute("space");
-			let source = space
-				? `https://hf.space/embed/${space}/+/`
-				: this.getAttribute("src");
+			const control_page_title = this.getAttribute("control_page_title");
 			const initial_height = this.getAttribute("initial_height");
 			let autoscroll = this.getAttribute("autoscroll");
+
+			let source = space
+				? (
+						await (
+							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
+						).json()
+				  ).host
+				: this.getAttribute("src");
 
 			const _autoscroll = autoscroll === "true" ? true : false;
 
@@ -265,7 +250,18 @@ function create_custom_element() {
 			if (config === null) {
 				this.wrapper.remove();
 			} else {
-				mount_app(config, this.root, this.wrapper, this._id, _autoscroll);
+				mount_app(
+					{
+						...config,
+						control_page_title:
+							control_page_title && control_page_title === "true" ? true : false
+					},
+					this.root,
+					this.wrapper,
+					this._id,
+					_autoscroll,
+					!!space
+				);
 			}
 		}
 	}
@@ -288,7 +284,7 @@ async function unscoped_mount() {
 	});
 
 	const config = await handle_config(target, null);
-	mount_app(config, false, target, 0);
+	mount_app({ ...config, control_page_title: true }, false, target, 0);
 }
 
 // dev mode or if inside an iframe

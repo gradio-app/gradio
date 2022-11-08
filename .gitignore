@@ -26,6 +26,7 @@ gradio_cached_examples/
 .coverage
 coverage.xml
 test.txt
+**/snapshots/**/*.png
 
 # Demos
 demo/tmp.zip
@@ -33,6 +34,7 @@ demo/files/*.avi
 demo/files/*.mp4
 demo/all_demos/demos/*
 demo/all_demos/requirements.txt
+demo/*/config.json
 
 # Etc
 .idea/*

@@ -26,10 +26,13 @@
 		pause: undefined;
 		ended: undefined;
 		drag: boolean;
+		error: string;
+		upload: FileData;
 	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
 		dispatch("change", detail);
+		dispatch("upload", detail!);
 		value = detail;
 	}
 
@@ -61,6 +64,7 @@
 		<Webcam
 			{mirror_webcam}
 			mode="video"
+			on:error
 			on:capture={({ detail }) => dispatch("change", detail)}
 		/>
 	{/if}
@@ -68,7 +72,13 @@
 	<ModifyUpload on:clear={handle_clear} />
 	{#if playable()}
 		<!-- svelte-ignore a11y-media-has-caption -->
-		<Player src={value.data} on:play on:pause on:ended mirror={mirror_webcam} />
+		<Player
+			src={value.data}
+			on:play
+			on:pause
+			on:ended
+			mirror={mirror_webcam && source === "webcam"}
+		/>
 	{:else if value.size}
 		<div class="file-name text-4xl p-6 break-all">{value.name}</div>
 		<div class="file-size text-2xl p-2">

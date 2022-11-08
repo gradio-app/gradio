@@ -1,0 +1,35 @@
+name: Delete Stale Spaces
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      daysStale:
+        description: 'How stale a space needs to be to be deleted (days)'
+        required: true
+        default: '7'
+
+
+jobs:
+  delete-old-spaces:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+    - name: Install pip
+      run: python -m pip install pip wheel requests
+    - name: Install Hub Client Library
+      run: pip install huggingface-hub==0.9.1
+    - name: Set daysStale
+      env:
+        DEFAULT_DAYS_STALE: '7'
+      run: echo "DAYS_STALE=${{ github.event.inputs.daysStale || env.DEFAULT_DAYS_STALE }}" >> $GITHUB_ENV
+    - name: Find and delete stale spaces
+      run: |
+        python scripts/delete_old_spaces.py $DAYS_STALE \
+        gradio-pr-deploys \
+        ${{ secrets.SPACES_DEPLOY_TOKEN }}

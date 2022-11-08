@@ -21,5 +21,5 @@
 >
 	<StatusTracker {...loading_status} />
 
-	<Checkbox {label} {style} bind:value on:change disabled={mode === "static"} />
+	<Checkbox {label} bind:value on:change disabled={mode === "static"} />
 </Block>

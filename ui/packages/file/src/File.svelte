@@ -29,10 +29,11 @@
 					<div class="file-size  p-2">
 						{display_file_size(file)}
 					</div>
-					<div class="file-size p-2 hover:underline">
+					<div class="file-size w-3/12 p-2 hover:underline">
 						<a
 							href={download_files(file)}
-							download
+							target={window.__is_colab__ ? "_blank" : null}
+							download={window.__is_colab__ ? null : display_file_name(file)}
 							class="text-indigo-600 hover:underline dark:text-indigo-300"
 							>Download</a
 						>
@@ -50,7 +51,8 @@
 				<div class="file-size w-3/12 p-2 hover:underline">
 					<a
 						href={download_files(value)}
-						download={display_file_name(value)}
+						target={window.__is_colab__ ? "_blank" : null}
+						download={window.__is_colab__ ? null : display_file_name(value)}
 						class="text-indigo-600 hover:underline dark:text-indigo-300"
 						>Download</a
 					>
