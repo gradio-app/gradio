@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 
 import pytest
 
@@ -65,7 +64,3 @@ class TestParallel:
             assert "hallo" in hello_de.lower()
         except TooManyRequestsError:
             pass
-
-
-if __name__ == "__main__":
-    unittest.main()
