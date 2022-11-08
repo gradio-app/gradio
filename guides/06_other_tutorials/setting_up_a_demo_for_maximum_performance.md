@@ -1,4 +1,4 @@
-# Setting Up a Gradio Demo for Maximum Performance
+# Setting Up a Demo for Maximum Performance
 
 Let's say that your Gradio demo goes *viral* on social media -- you have lots of users trying it out simultaneously, and you want to provide your users with the best possible experience or, in other words, minimize the amount of time that each user has to wait in the queue to see their prediction.
 
