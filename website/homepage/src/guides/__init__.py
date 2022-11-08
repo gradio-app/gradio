@@ -153,6 +153,17 @@ def build_guides(output_dir, jinja_env):
             category_file = os.path.join(output_folder, "index.html")
             with open(category_file, "w") as index_html:
                 index_html.write(output)
+        if guide["name"] == "01_quickstart":
+            output_folder = os.path.join(output_dir, "getting_started")
+            os.makedirs(output_folder)
+            index_file = os.path.join(output_folder, "index.html")
+            with open(index_file, "w") as index_html:
+                index_html.write(output)
+            output_folder = os.path.join(output_dir, "quickstart")
+            os.makedirs(output_folder)
+            index_file = os.path.join(output_folder, "index.html")
+            with open(index_file, "w") as index_html:
+                index_html.write(output)
 
 
 def build_gallery(output_dir, jinja_env):
