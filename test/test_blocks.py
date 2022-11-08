@@ -905,3 +905,74 @@ def test_queue_enabled_for_fn():
     demo.queue()
     assert demo.queue_enabled_for_fn(0)
     assert demo.queue_enabled_for_fn(1)
+
+
+@pytest.mark.asyncio
+async def test_queue_when_using_auth():
+    sleep_time = 1
+
+    async def say_hello(name):
+        await asyncio.sleep(sleep_time)
+        return f"Hello {name}!"
+
+    with gr.Blocks() as demo:
+        _input = gr.Textbox()
+        _output = gr.Textbox()
+        button = gr.Button()
+        button.click(say_hello, _input, _output)
+    demo.queue()
+    app, _, _ = demo.launch(auth=("abc", "123"), prevent_thread_lock=True)
+    client = TestClient(app)
+
+    resp = client.post(
+        f"{demo.local_url}login", data={"username": "abc", "password": "123"}
+    )
+    assert resp.ok
+    token = resp.cookies.get("access-token")
+    assert token
+
+    with pytest.raises(Exception) as e:
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join",
+        ) as ws:
+            await ws.recv()
+    assert e.type == websockets.InvalidStatusCode
+
+    async def run_ws(_loop, _time, i):
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join",
+            extra_headers={"Cookie": f"access-token={token}"},
+        ) as ws:
+            while True:
+                try:
+                    msg = json.loads(await ws.recv())
+                except websockets.ConnectionClosedOK:
+                    break
+                if msg["msg"] == "send_hash":
+                    await ws.send(
+                        json.dumps({"fn_index": 0, "session_hash": "enwpitpex2q"})
+                    )
+                if msg["msg"] == "send_data":
+                    await ws.send(
+                        json.dumps(
+                            {
+                                "data": [str(i)],
+                                "fn_index": 0,
+                                "session_hash": "enwpitpex2q",
+                            }
+                        )
+                    )
+                    msg = json.loads(await ws.recv())
+                    assert msg["msg"] == "process_starts"
+                if msg["msg"] == "process_completed":
+                    assert msg["success"]
+                    assert msg["output"]["data"] == [f"Hello {i}!"]
+                    assert _loop.time() > _time
+                    break
+
+    loop = asyncio.get_event_loop()
+    tm = loop.time()
+    group = asyncio.gather(
+        *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
+    )
+    await group
