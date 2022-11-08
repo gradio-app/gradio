@@ -96,11 +96,21 @@
 code.language-python {
   @apply !leading-7 !whitespace-pre-wrap !break-all;
 }
+code.language-bash {
+  @apply !leading-7 !whitespace-pre-wrap !break-all;
+}
+
 .group-hover-visible {
   @apply group-hover:visible;
 }
 .anchor-img {
   @apply w-7 max-w-full inline-block m-0 ml-2;
+}
+.selected-version {
+  @apply font-semibold text-orange-500;
+}
+.selected-version:before {
+  content:"• ";
 }
 
 /* copy button */
@@ -142,5 +152,4 @@ code.language-python {
 .selected-demo-window {
   @apply rounded-b-md border-2  border-gray-100 -mt-0.5;
 }
-
 
