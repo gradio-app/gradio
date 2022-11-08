@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
@@ -25,15 +25,27 @@ class Row(BlockContext):
     Guides: controlling_layout
     """
 
-    def __init__(self, *, elem_id: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        *,
+        variant: str = "default",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
+            variant: row type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
+            visible: If False, row will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(elem_id=elem_id)
+        self.variant = variant
+        if variant == "compact":
+            self.allow_expected_parents = False
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
-        return {"type": "row", **super().get_config()}
+        return {"type": "row", "variant": self.variant, **super().get_config()}
 
     @staticmethod
     def update(
@@ -46,8 +58,10 @@ class Row(BlockContext):
 
     def style(
         self,
+        *,
         equal_height: Optional[bool] = None,
         mobile_collapse: Optional[bool] = None,
+        **kwargs,
     ):
         """
         Styles the Row.
@@ -58,7 +72,7 @@ class Row(BlockContext):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
         if mobile_collapse is not None:
-            warnings.warn("mobile_collapse is no longer supported.", DeprecationWarning)
+            warnings.warn("mobile_collapse is no longer supported.")
         return self
 
 
@@ -66,6 +80,7 @@ class Row(BlockContext):
 class Column(BlockContext):
     """
     Column is a layout element within Blocks that renders all children vertically. The widths of columns can be set through the `scale` and `min_width` parameters.
+    If a certain scale results in a column narrower than min_width, the min_width parameter will win.
     Example:
         with gradio.Blocks() as demo:
             with gradio.Row():
@@ -83,22 +98,25 @@ class Column(BlockContext):
         *,
         scale: int = 1,
         min_width: int = 320,
-        visible: bool = True,
         variant: str = "default",
+        visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
             scale: relative width compared to adjacent Columns. For example, if Column A has scale=2, and Column B has scale=1, A will be twice as wide as B.
-            min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value.
+            min_width: minimum pixel width of Column, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in a column narrower than min_width, the min_width parameter will be respected first.
+            variant: column type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, column will be hidden.
-            variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.scale = scale
         self.min_width = min_width
         self.variant = variant
-        super().__init__(visible=visible, elem_id=elem_id)
+        if variant == "compact":
+            self.allow_expected_parents = False
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {
@@ -128,15 +146,19 @@ class Tabs(BlockContext):
 
     def __init__(
         self,
+        *,
         selected: Optional[int | str] = None,
+        visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
             selected: The currently selected tab. Must correspond to an id passed to the one of the child TabItems. Defaults to the first TabItem.
+            visible: If False, Tabs will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(**kwargs)
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
         self.selected = selected
 
     def get_config(self):
@@ -167,15 +189,18 @@ class TabItem(BlockContext):
     def __init__(
         self,
         label: str,
+        *,
         id: Optional[int | str] = None,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
             label: The visual label for the tab
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        super().__init__(**kwargs)
+        super().__init__(elem_id=elem_id, **kwargs)
         self.label = label
         self.id = id
 
@@ -218,7 +243,6 @@ class Tab(TabItem):
 Tab = TabItem  # noqa: F811
 
 
-@document()
 class Group(BlockContext):
     """
     Group is a layout element within Blocks which groups together children so that
@@ -228,6 +252,20 @@ class Group(BlockContext):
             gr.Textbox(label="First")
             gr.Textbox(label="Last")
     """
+
+    def __init__(
+        self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            visible: If False, group will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {"type": "group", **super().get_config()}
@@ -241,19 +279,6 @@ class Group(BlockContext):
             "__type__": "update",
         }
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if margin is not None:
-            self._style["margin"] = margin
-
-        return self
-
 
 @document()
 class Box(BlockContext):
@@ -265,6 +290,20 @@ class Box(BlockContext):
             gr.Textbox(label="First")
             gr.Textbox(label="Last")
     """
+
+    def __init__(
+        self,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            visible: If False, box will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
 
     def get_config(self):
         return {"type": "box", **super().get_config()}
@@ -278,21 +317,58 @@ class Box(BlockContext):
             "__type__": "update",
         }
 
-    def style(
-        self,
-        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-    ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if margin is not None:
-            self._style["margin"] = margin
-        if border is not None:
-            self._style["border"] = border
+    def style(self, **kwargs):
         return self
 
 
 class Form(BlockContext):
     def get_config(self):
         return {"type": "form", **super().get_config()}
+
+
+@document()
+class Accordion(BlockContext):
+    """
+    Accordion is a layout element which can be toggled to show/hide the contained content.
+    Example:
+        with gradio.Accordion("See Details"):
+            gr.Markdown("lorem ipsum")
+    """
+
+    def __init__(
+        self,
+        label,
+        *,
+        open: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            label: name of accordion section.
+            open: if True, accordion is open by default.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.label = label
+        self.open = open
+        super().__init__(visible=visible, elem_id=elem_id, **kwargs)
+
+    def get_config(self):
+        return {
+            "type": "accordion",
+            "open": self.open,
+            "label": self.label,
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        open: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "open": open,
+            "__type__": "update",
+        }

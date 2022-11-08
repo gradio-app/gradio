@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { get_styles } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
-	export let style: Styles = {};
 	export let disabled: boolean = false;
 	export let label: string;
 	export let show_label: boolean;
@@ -13,6 +11,7 @@
 	const dispatch = createEventDispatcher<{
 		change: number;
 		submit: undefined;
+		blur: undefined;
 	}>();
 
 	function handle_change(n: number) {
@@ -32,7 +31,9 @@
 
 	$: handle_change(value);
 
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
+	function handle_blur(e: FocusEvent) {
+		dispatch("blur");
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -40,9 +41,10 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="number"
-		class="gr-box gr-input w-full gr-text-input {classes}"
+		class="gr-box gr-input w-full gr-text-input"
 		bind:value
 		on:keypress={handle_keypress}
+		on:blur={handle_blur}
 		{disabled}
 	/>
 </label>

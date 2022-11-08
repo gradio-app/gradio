@@ -35,6 +35,9 @@
 	export let target: HTMLElement;
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
+	export let show_api: boolean = true;
+	export let control_page_title = false;
+
 	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
@@ -66,7 +69,6 @@
 			}
 		}
 	});
-	let show_api_docs = dependencies.some((d) => "documentation" in d);
 	let api_docs_visible = false;
 
 	function is_dep(
@@ -98,12 +100,7 @@
 			const is_input = is_dep(id, "inputs", dependencies);
 			const is_output = is_dep(id, "outputs", dependencies);
 
-			if (
-				!is_input &&
-				!is_output &&
-				"value" in props &&
-				has_no_default_value(props?.value)
-			)
+			if (!is_input && !is_output && has_no_default_value(props?.value))
 				acc.add(id); // default dynamic
 			if (is_input) acc.add(id);
 
@@ -225,6 +222,7 @@
 					queue,
 					backend_fn,
 					frontend_fn,
+					cancels,
 					...rest
 				},
 				i
@@ -240,8 +238,8 @@
 					!handled_dependencies[i]?.includes(-1) &&
 					trigger === "load" &&
 					// check all input + output elements are on the page
-					outputs.every((v) => instance_map[v].instance) &&
-					inputs.every((v) => instance_map[v].instance)
+					outputs.every((v) => instance_map?.[v].instance) &&
+					inputs.every((v) => instance_map?.[v].instance)
 				) {
 					const req = fn({
 						action: "predict",
@@ -253,7 +251,8 @@
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
-						loading_status: loading_status
+						loading_status: loading_status,
+						cancels
 					});
 
 					function handle_update(output: any) {
@@ -286,8 +285,9 @@
 					handled_dependencies[i] = [-1];
 				}
 
-				target_instances.forEach(
-					([id, { instance }]: [number, ComponentMeta]) => {
+				target_instances
+					.filter((v) => !!v && !!v[1])
+					.forEach(([id, { instance }]: [number, ComponentMeta]) => {
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
@@ -306,7 +306,8 @@
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
 								queue_callback: handle_update,
-								loading_status: loading_status
+								loading_status: loading_status,
+								cancels
 							});
 
 							if (!(queue === null ? enable_queue : queue)) {
@@ -339,8 +340,7 @@
 
 						if (!handled_dependencies[i]) handled_dependencies[i] = [];
 						handled_dependencies[i].push(id);
-					}
-				);
+					});
 			}
 		);
 	}
@@ -422,7 +422,9 @@
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+	{#if control_page_title}
+		<title>{title}</title>
+	{/if}
 	{#if analytics_enabled}
 		<script
 			async
@@ -448,6 +450,7 @@
 				{dynamic_ids}
 				{instance_map}
 				{root}
+				{target}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
@@ -456,7 +459,7 @@
 	<footer
 		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
 	>
-		{#if show_api_docs}
+		{#if show_api}
 			<div
 				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 				on:click={() => {

@@ -16,6 +16,7 @@
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
 		stream: typeof value;
+		error: string;
 	}>();
 
 	export let elem_id: string = "";
@@ -29,11 +30,12 @@
 	export let show_label: boolean;
 	export let pending: boolean;
 	export let streaming: boolean;
+	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root);
+	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging: boolean;
 </script>
@@ -46,7 +48,6 @@
 	padding={false}
 	{elem_id}
 	{visible}
-	style={{ rounded: style.rounded }}
 >
 	<StatusTracker {...loading_status} />
 
@@ -72,6 +73,12 @@
 			on:play
 			on:pause
 			on:ended
+			on:upload
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				loading_status.message = detail;
+			}}
 			drop_text={$_("interface.drop_audio")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}

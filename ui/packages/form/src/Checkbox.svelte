@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { get_styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: boolean;
-	export let style: Styles = {};
 	export let disabled: boolean = false;
 	export let label: string;
 	// export let show_label: boolean;
@@ -19,8 +16,6 @@
 		value = evt.currentTarget.checked;
 		dispatch("change", value);
 	}
-
-	$: ({ rounded, border } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -34,7 +29,7 @@
 		checked={value}
 		type="checkbox"
 		name="test"
-		class="gr-check-radio gr-checkbox {rounded} {border}"
+		class="gr-check-radio gr-checkbox"
 	/>
 	<span class="ml-2">{label}</span></label
 >

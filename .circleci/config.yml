@@ -25,9 +25,13 @@ jobs:
             sudo apt update
             sudo apt install ffmpeg -y
       - run:
+          name: Upgrade virtual environment tools
+          command: |
+            python -m pip install --upgrade pip virtualenv
+      - run:
           name: Install Python deps in a venv
           command: |
-            python -m venv venv
+            python -m virtualenv venv
             . venv/bin/activate
             bash scripts/install_gradio.sh
             bash scripts/install_test_requirements.sh
@@ -50,15 +54,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            python -m black --check gradio test
-      - run:
-          command: |
-            . venv/bin/activate
-            python -m isort --profile=black --check-only gradio test
-      - run:
-          command: |
-            . venv/bin/activate
-            python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203,F403,F541 gradio test
+            bash scripts/lint_backend.sh
       - run:
           command: |
             . venv/bin/activate

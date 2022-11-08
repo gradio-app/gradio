@@ -29,7 +29,6 @@
 		{choices}
 		{label}
 		{show_label}
-		{style}
 		on:change
 		disabled={mode === "static"}
 	/>

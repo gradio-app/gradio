@@ -13,8 +13,11 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_layout",
         "blocks_mask",
         "blocks_multiple_event_triggers",
+        "blocks_update",
         "calculator",
+        "cancel_events",
         "fake_gan",
+        "fake_diffusion_with_gif",
         "gender_sentence_default_interpretation",
         "image_mod_default_image",
         "interface_parallel_load",
@@ -26,10 +29,10 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "model3D",
         "reset_components",
         "reverse_audio",
-        "sst_or_tts",
+        "stt_or_tts",
         "stream_audio",
         "stream_frames",
-        "zip_two_files",
+        "zip_files",
     ]
     for demo in demos_to_copy:
         shutil.copytree(

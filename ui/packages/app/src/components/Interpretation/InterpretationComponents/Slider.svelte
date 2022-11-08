@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { getSaliencyColor } from "../utils";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let original: number;
 	export let interpretation: Array<number>;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
+	export let label: string = "";
 </script>
 
 <div class="input-slider text-center">
+	<BlockTitle>{label}</BlockTitle>
 	<input
 		type="range"
 		class="range w-full appearance-none transition rounded h-4 bg-blue-400"

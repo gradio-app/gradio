@@ -6,6 +6,7 @@ MESSAGING_API_ENDPOINT = "https://api.gradio.app/gradio-messaging/en"
 
 en = {
     "RUNNING_LOCALLY": "Running on local URL:  {}",
+    "RUNNING_LOCALLY_SEPARATED": "Running on local URL:  {}://{}:{}",
     "SHARE_LINK_DISPLAY": "Running on public URL: {}",
     "COULD_NOT_GET_SHARE_LINK": "\nCould not create share link, please check your internet connection.",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
@@ -18,10 +19,11 @@ en = {
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
-    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting, check out Spaces: https://www.huggingface.co/spaces",
+    "COLAB_BETA": "\nUsing Embedded Colab Mode (NEW). If you have issues, please use share=True and file an issue at https://github.com/gradio-app/gradio/"
+    "\nNote: opening the browser inspector may crash Embedded Colab Mode.",
+    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades (NEW!), check out Spaces: https://huggingface.co/spaces",
     "PRIVATE_LINK_MESSAGE": "Since this is a private endpoint, this share link will never expire.",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
-    "MEDIA_PERMISSIONS_IN_COLAB": "Your interface requires microphone or webcam permissions - this may cause issues in Colab. Use the External URL in case of issues.",
     "TIPS": [
         "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
         "Let users specify why they flagged input with the `flagging_options=` kwarg; for example: `gr.Interface(..., flagging_options=['too slow', 'incorrect output', 'other'])`",

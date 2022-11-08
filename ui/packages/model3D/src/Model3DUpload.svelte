@@ -60,7 +60,7 @@
 	let engine: BABYLON.Engine;
 
 	function addNewModel() {
-		if (scene && engine) {
+		if (scene && !scene.isDisposed && engine) {
 			scene.dispose();
 			engine.dispose();
 		}

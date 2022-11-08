@@ -44,7 +44,7 @@ class Server(uvicorn.Server):
         self.thread.join()
 
 
-def get_first_available_port(initial: int, final: int, reuse_port: bool = False) -> int:
+def get_first_available_port(initial: int, final: int) -> int:
     """
     Gets the first open port in a specified range of port numbers
     Parameters:
@@ -56,8 +56,7 @@ def get_first_available_port(initial: int, final: int, reuse_port: bool = False)
     for port in range(initial, final):
         try:
             s = socket.socket()  # create a socket object
-            if reuse_port:
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((LOCALHOST_NAME, port))  # Bind to the port
             s.close()
             return port
@@ -154,7 +153,7 @@ def start_server(
     )
     server = Server(config=config)
     server.run_in_thread()
-    return port, path_to_local_server, app, server
+    return server_name, port, path_to_local_server, app, server
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:

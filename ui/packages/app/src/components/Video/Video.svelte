@@ -15,6 +15,7 @@
 	export let label: string;
 	export let source: string;
 	export let root: string;
+	export let root_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let style: Styles = {};
@@ -23,7 +24,7 @@
 	export let mode: "static" | "dynamic";
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root);
+	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging = false;
 </script>
@@ -36,7 +37,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 	{elem_id}
-	style={{ rounded: style.rounded, height: style.height, width: style.width }}
+	style={{ height: style.height, width: style.width }}
 >
 	<StatusTracker {...loading_status} />
 
@@ -47,6 +48,11 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				loading_status.message = detail;
+			}}
 			{label}
 			{show_label}
 			{source}
@@ -58,6 +64,7 @@
 			on:clear
 			on:play
 			on:pause
+			on:upload
 		/>
 	{/if}
 </Block>

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import json
 import mimetypes
@@ -8,13 +10,14 @@ import subprocess
 import tempfile
 import warnings
 from io import BytesIO
+from typing import Dict
 
 import numpy as np
 import requests
 from ffmpy import FFmpeg, FFprobe, FFRuntimeError
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, PngImagePlugin
 
-from gradio import encryptor
+from gradio import encryptor, utils
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -22,8 +25,22 @@ with warnings.catch_warnings():
 
 
 #########################
+# GENERAL
+#########################
+
+
+def to_binary(x: str | Dict) -> bytes:
+    """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
+    if isinstance(x, dict):
+        x = encode_url_or_file_to_base64(x["name"])
+    return base64.b64decode(x.split(",")[1])
+
+
+#########################
 # IMAGE PRE-PROCESSING
 #########################
+
+
 def decode_base64_to_image(encoding):
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
@@ -31,10 +48,9 @@ def decode_base64_to_image(encoding):
 
 
 def encode_url_or_file_to_base64(path, encryption_key=None):
-    try:
-        requests.get(path)
+    if utils.validate_url(path):
         return encode_url_to_base64(path, encryption_key=encryption_key)
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
+    else:
         return encode_file_to_base64(path, encryption_key=encryption_key)
 
 
@@ -90,6 +106,15 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
+def download_to_file(url, dir=None):
+    file_suffix = os.path.splitext(url)[1]
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix, dir=dir)
+    with requests.get(url, stream=True) as r:
+        with open(file_obj.name, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return file_obj
+
+
 def save_array_to_file(image_array, dir=None):
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
@@ -101,6 +126,25 @@ def save_pil_to_file(pil_image, dir=None):
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
     pil_image.save(file_obj)
     return file_obj
+
+
+def encode_pil_to_base64(pil_image):
+    with BytesIO() as output_bytes:
+
+        # Copy any text-only metadata
+        use_metadata = False
+        metadata = PngImagePlugin.PngInfo()
+        for key, value in pil_image.info.items():
+            if isinstance(key, str) and isinstance(value, str):
+                metadata.add_text(key, value)
+                use_metadata = True
+
+        pil_image.save(
+            output_bytes, "PNG", pnginfo=(metadata if use_metadata else None)
+        )
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), "utf-8")
+    return "data:image/png;base64," + base64_str
 
 
 def encode_array_to_base64(image_array):
@@ -176,32 +220,31 @@ def audio_to_file(sample_rate, data, filename):
 
 def convert_to_16_bit_wav(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
-    if data.dtype == np.float32:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+    warning = "Trying to convert audio automatically from {} to 16-bit int format."
+    if data.dtype in [np.float64, np.float32, np.float16]:
+        warnings.warn(warning.format(data.dtype))
         data = data / np.abs(data).max()
         data = data * 32767
         data = data.astype(np.int16)
     elif data.dtype == np.int32:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+        warnings.warn(warning.format(data.dtype))
         data = data / 65538
         data = data.astype(np.int16)
     elif data.dtype == np.int16:
         pass
+    elif data.dtype == np.uint16:
+        warnings.warn(warning.format(data.dtype))
+        data = data - 32768
+        data = data.astype(np.int16)
     elif data.dtype == np.uint8:
-        warnings.warn(
-            "Audio data is not in 16-bit integer format."
-            "Trying to convert to 16-bit int format."
-        )
+        warnings.warn(warning.format(data.dtype))
         data = data * 257 - 32768
         data = data.astype(np.int16)
     else:
-        raise ValueError("Audio data cannot be converted to " "16-bit int format.")
+        raise ValueError(
+            "Audio data cannot be converted automatically from "
+            f"{data.dtype} to 16-bit int format."
+        )
     return data
 
 
@@ -216,12 +259,13 @@ def decode_base64_to_binary(encoding):
     return base64.b64decode(data), extension
 
 
-def decode_base64_to_file(encoding, encryption_key=None, file_path=None, dir=None):
+def decode_base64_to_file(
+    encoding, encryption_key=None, file_path=None, dir=None, prefix=None
+):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
-    prefix = None
-    if file_path is not None:
+    if file_path is not None and prefix is None:
         filename = os.path.basename(file_path)
         prefix = filename
         if "." in filename:
@@ -284,6 +328,7 @@ def create_tmp_copy_of_file(file_path, dir=None):
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
+    prefix = utils.strip_invalid_filename_characters(prefix)
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
