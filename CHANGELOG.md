@@ -22,6 +22,8 @@ No changes to highlight.
 ## Full Changelog:
 * Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
 * Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
+* Components now throw a `ValueError()` if constructed with invalid parameters for `type` or `source` (for components that take those parameters) in [PR 2610](https://github.com/gradio-app/gradio/pull/2610) 
+
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -51,7 +53,8 @@ The `api_name` parameter will take precendence over the `fn_index` parameter.
 * `gr.Blocks.load()` now correctly loads example files from Spaces [@abidlabs](https://github.com/abidlabs) in [PR 2594](https://github.com/gradio-app/gradio/pull/2594)
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a Guide on how to configure the queue for maximum performance by [@abidlabs](https://github.com/abidlabs) in [PR 2558](https://github.com/gradio-app/gradio/pull/2558)
+
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
