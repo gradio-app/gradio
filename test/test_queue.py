@@ -218,7 +218,8 @@ class TestQueueProcessEvents:
         self, queue: Queue, mock_event: Event
     ):
         mock_event.websocket.send_json = AsyncMock()
-        mock_event.websocket.send_json.side_effect = ["2", ValueError("Can't connect")]
+        # Simulate not being able to get data
+        mock_event.websocket.send_json.side_effect = [ValueError("Can't connect")]
         queue.call_prediction = AsyncMock()
         mock_event.disconnect = AsyncMock()
         queue.clean_event = AsyncMock()
