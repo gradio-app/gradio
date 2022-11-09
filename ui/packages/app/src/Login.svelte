@@ -22,7 +22,7 @@
 			username = "";
 			password = "";
 		} else if (res.status == 200) {
-			location.reload();
+			// location.reload();
 		}
 		console.log(res.status);
 	};
