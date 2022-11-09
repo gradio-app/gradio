@@ -23,7 +23,7 @@
 			password = "";
 		} else if (res.status == 200) {
 			var res_json = await res.json();
-			// document.cookie = "access-token:" + res_json["token"];
+			document.cookie = "access-token=" + res_json["token"];
 			window.setTimeout(() => location.reload(), 10000)
 		}
 		console.log(res.status);
