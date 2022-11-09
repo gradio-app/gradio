@@ -37,6 +37,7 @@ from gradio.queue import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
+is_spaces = os.getenv("SYSTEM") == "spaces"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -100,9 +101,9 @@ class App(FastAPI):
 
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
-            allow_headers=["*"],
+            allow_origins=["https://huggingface.co", "https://hf.space"] if is_spaces else ["*"],
+            allow_methods=["GET", "POST"],
+            allow_headers=["access-token"],
         )
 
         @app.get("/user")
@@ -143,7 +144,7 @@ class App(FastAPI):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
-                response.set_cookie(key="access-token", value=token, httponly=True)
+                response.set_cookie(key="access-token", value=token, httponly=True, samesite="none", secure=True)
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")

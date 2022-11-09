@@ -15,7 +15,7 @@
 
 		var res = await fetch(root + "login", {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 		if (res.status == 400) {
 			incorrect_credentials = true;
