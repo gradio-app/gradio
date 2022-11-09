@@ -5,7 +5,6 @@ import os
 import random
 import sys
 import time
-import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
 from functools import partial
@@ -20,7 +19,6 @@ from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
-from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
@@ -40,19 +38,19 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 
-class TestBlocksMethods(unittest.TestCase):
+class TestBlocksMethods:
     maxDiff = None
 
     def test_set_share(self):
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
-            self.assertFalse(demo.share)
+            assert not demo.share
             # default is False, if share is None
             demo.share = None
-            self.assertFalse(demo.share)
+            assert not demo.share
             # if set to True, it doesn't change
             demo.share = True
-            self.assertTrue(demo.share)
+            assert demo.share
 
     @patch("gradio.networking.setup_tunnel")
     @patch("gradio.utils.colab_check")
@@ -61,15 +59,15 @@ class TestBlocksMethods(unittest.TestCase):
         mock_setup_tunnel.return_value = "http://localhost:7860/"
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
-            self.assertFalse(demo.share)
+            assert not demo.share
             # share default is False, if share is None in colab and no queueing
             demo.launch(prevent_thread_lock=True)
-            self.assertFalse(demo.share)
+            assert not demo.share
             demo.close()
             # share becomes true, if share is None in colab with queueing
             demo.queue()
             demo.launch(prevent_thread_lock=True)
-            self.assertTrue(demo.share)
+            assert demo.share
             demo.close()
 
     def test_xray(self):
@@ -116,7 +114,7 @@ class TestBlocksMethods(unittest.TestCase):
             demo.load(fake_func, [], [textbox])
 
         config = demo.get_config_file()
-        self.assertTrue(assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config))
+        assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
         assert demo.config["show_api"] is False
@@ -136,7 +134,7 @@ class TestBlocksMethods(unittest.TestCase):
         config1 = demo1.get_config_file()
         demo2 = gr.Blocks.from_config(config1, [update])
         config2 = demo2.get_config_file()
-        self.assertTrue(assert_configs_are_equivalent_besides_ids(config1, config2))
+        assert assert_configs_are_equivalent_besides_ids(config1, config2)
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -164,24 +162,22 @@ class TestBlocksMethods(unittest.TestCase):
 
             btn.click(greet, {first, last}, greeting)
 
-        body = PredictBody(data=["huggy", "face"], fn_index=0)
-        result = await demo.process_api(body)
-        assert result == "Hello huggy face"
+        result = await demo.process_api(inputs=["huggy", "face"], fn_index=0)
+        assert result["data"] == ["Hello huggy face"]
 
     @pytest.mark.asyncio
     async def test_async_function(self):
-        async def wait():
+        async def wait(x):
             await asyncio.sleep(0.01)
-            return True
+            return x
 
         with gr.Blocks() as demo:
             text = gr.Textbox()
             button = gr.Button()
             button.click(wait, [text], [text])
 
-            body = PredictBody(data=1, fn_index=0)
             start = time.time()
-            result = await demo.process_api(body)
+            result = await demo.process_api(inputs=[1], fn_index=0)
             end = time.time()
             difference = end - start
             assert difference >= 0.01
@@ -196,9 +192,9 @@ class TestBlocksMethods(unittest.TestCase):
                 gr.Textbox("Hi there!")
             demo.integrate(wandb=wandb)
 
-            self.assertEqual(
-                out.getvalue().strip(),
-                "The WandB integration requires you to `launch(share=True)` first.",
+            assert (
+                out.getvalue().strip()
+                == "The WandB integration requires you to `launch(share=True)` first."
             )
             demo.share_url = "tmp"
             demo.integrate(wandb=wandb)
@@ -220,7 +216,7 @@ class TestBlocksMethods(unittest.TestCase):
         demo.share_url = "tmp"  # used to avoid creating real share links.
         demo.integrate(comet_ml=experiment)
         experiment.log_text.assert_called_with("gradio: " + demo.share_url)
-        self.assertEqual(experiment.log_other.call_count, 2)
+        assert experiment.log_other.call_count == 2
         demo.share_url = None
         demo.close()
 
@@ -911,5 +907,72 @@ def test_queue_enabled_for_fn():
     assert demo.queue_enabled_for_fn(1)
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.asyncio
+async def test_queue_when_using_auth():
+    sleep_time = 1
+
+    async def say_hello(name):
+        await asyncio.sleep(sleep_time)
+        return f"Hello {name}!"
+
+    with gr.Blocks() as demo:
+        _input = gr.Textbox()
+        _output = gr.Textbox()
+        button = gr.Button()
+        button.click(say_hello, _input, _output)
+    demo.queue()
+    app, _, _ = demo.launch(auth=("abc", "123"), prevent_thread_lock=True)
+    client = TestClient(app)
+
+    resp = client.post(
+        f"{demo.local_url}login", data={"username": "abc", "password": "123"}
+    )
+    assert resp.ok
+    token = resp.cookies.get("access-token")
+    assert token
+
+    with pytest.raises(Exception) as e:
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join",
+        ) as ws:
+            await ws.recv()
+    assert e.type == websockets.InvalidStatusCode
+
+    async def run_ws(_loop, _time, i):
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join",
+            extra_headers={"Cookie": f"access-token={token}"},
+        ) as ws:
+            while True:
+                try:
+                    msg = json.loads(await ws.recv())
+                except websockets.ConnectionClosedOK:
+                    break
+                if msg["msg"] == "send_hash":
+                    await ws.send(
+                        json.dumps({"fn_index": 0, "session_hash": "enwpitpex2q"})
+                    )
+                if msg["msg"] == "send_data":
+                    await ws.send(
+                        json.dumps(
+                            {
+                                "data": [str(i)],
+                                "fn_index": 0,
+                                "session_hash": "enwpitpex2q",
+                            }
+                        )
+                    )
+                    msg = json.loads(await ws.recv())
+                    assert msg["msg"] == "process_starts"
+                if msg["msg"] == "process_completed":
+                    assert msg["success"]
+                    assert msg["output"]["data"] == [f"Hello {i}!"]
+                    assert _loop.time() > _time
+                    break
+
+    loop = asyncio.get_event_loop()
+    tm = loop.time()
+    group = asyncio.gather(
+        *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
+    )
+    await group
