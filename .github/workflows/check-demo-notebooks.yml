@@ -5,8 +5,9 @@ name: Check Demos Match Notebooks
 on:
   pull_request:
     types: [opened, synchronize, labeled, unlabeled]
-  paths:
-      - 'demo/**'
+    paths:
+        - 'demo/**'
+
 jobs:
   check-notebooks:
     name: Generate Notebooks and Check 
