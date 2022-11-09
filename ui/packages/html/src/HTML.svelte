@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class:min-h-[4rem]={min_height}
+	class:min-h-[6rem]={min_height}
 	class="output-html"
 	id={elem_id}
 	class:!hidden={!visible}

@@ -14,7 +14,7 @@
 
 <div
 	id={elem_id}
-	class:min-h-[4rem]={min_height}
+	class:min-h-[6rem]={min_height}
 	class="output-markdown gr-prose"
 	class:hidden={!visible}
 	style="max-width: 100%"
