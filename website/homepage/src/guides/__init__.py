@@ -27,9 +27,9 @@ for demo_folder in os.listdir(DEMOS_DIR):
 
 def format_name(guide_name):
     index = None
-    if re.match("^[0-9]+\)", guide_name):
-        index = int(guide_name[: guide_name.index(")")])
-        guide_name = guide_name[guide_name.index(")") + 1 :]
+    if re.match("^[0-9]+_", guide_name):
+        index = int(guide_name[: guide_name.index("_")])
+        guide_name = guide_name[guide_name.index("_") + 1 :]
     if guide_name.lower().endswith(".md"):
         guide_name = guide_name[:-3]
     pretty_guide_name = " ".join([word[0].upper() + word[1:] for word in guide_name.split("_")])
