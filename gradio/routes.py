@@ -144,7 +144,7 @@ class App(FastAPI):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"token": token})
-                response.set_cookie(key="access-token", value=token, samesite="none", secure=True)
+                response.set_cookie(key="access-token", value=token, httponly=True, samesite="none", secure=True)
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
