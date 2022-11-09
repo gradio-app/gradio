@@ -1,8 +1,8 @@
 import gradio as gr
 import os
 
-# save your HF API token from https:/hf.co/settings/tokens as an env v
-ariable to avoid rate limiting
+#test
+# save your HF API token from https:/hf.co/settings/tokens as an env variable to avoid rate limiting
 auth_token = os.getenv("auth_token")
 
 # load a model from https://hf.co/models as an interface, then use it as an api 
