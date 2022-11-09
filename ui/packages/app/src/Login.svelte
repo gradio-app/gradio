@@ -22,11 +22,7 @@
 			username = "";
 			password = "";
 		} else if (res.status == 200) {
-			var res_json = await res.json();
-			console.log(">", res_json["token"])
-			document.cookie = "access-token=" + res_json["token"];
-			console.log(">>", document.cookie)
-			window.setTimeout(() => location.reload(), 10000)
+			location.reload();
 		}
 		console.log(res.status);
 	};
