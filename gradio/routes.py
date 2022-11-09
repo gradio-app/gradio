@@ -101,7 +101,7 @@ class App(FastAPI):
 
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=["https://huggingface.co", "https://hf.space"] if is_spaces else ["*"],
+            allow_origins=["*"],
             allow_methods=["GET", "POST"],
             allow_headers=["access-token"],
         )
