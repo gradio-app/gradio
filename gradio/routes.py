@@ -74,6 +74,7 @@ class App(FastAPI):
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
+        self.startup_events_triggered = False
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -119,6 +120,10 @@ class App(FastAPI):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
+
+        async def ws_login_check(websocket: WebSocket) -> str:
+            token = websocket.cookies.get("access-token")
+            return token  # token is returned to allow request in queue
 
         @app.get("/token")
         @app.get("/token/")
@@ -344,12 +349,19 @@ class App(FastAPI):
             return result
 
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket):
+        async def join_queue(
+            websocket: WebSocket, token: str = Depends(ws_login_check)
+        ):
+            if app.auth is not None and token is None:
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                return
             if app.blocks._queue.server_path is None:
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
             event = Event(websocket)
+            # set the token into Event to allow using the same token for call_prediction
+            event.token = token
 
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
@@ -391,13 +403,13 @@ class App(FastAPI):
         async def get_queue_status():
             return app.blocks._queue.get_estimation()
 
-        @app.get(
-            "/startup-events",
-            dependencies=[Depends(login_check)],
-        )
+        @app.get("/startup-events")
         async def startup_events():
-            app.blocks.startup_events()
-            return True
+            if not app.startup_events_triggered:
+                app.blocks.startup_events()
+                app.startup_events_triggered = True
+                return True
+            return False
 
         return app
 
