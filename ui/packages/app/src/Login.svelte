@@ -23,7 +23,6 @@
 			password = "";
 		} else if (res.status == 200) {
 			window.setTimeout(() => location.reload(), 10000)
-			location.reload();
 		}
 		console.log(res.status);
 	};
