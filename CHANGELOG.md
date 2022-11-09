@@ -4,8 +4,8 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
-
+* Only set a min height on md and html when loading by [@pngwn](https://github.com/pngwn) in [PR 2623](https://github.com/gradio-app/gradio/pull/2623)
+ 
 ## Documentation Changes:
 * See docs for the latest gradio commit to main as well the latest pip release:
 

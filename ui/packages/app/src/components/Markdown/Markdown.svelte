@@ -22,6 +22,12 @@
 		class="transition"
 		class:opacity-20={loading_status?.status === "pending"}
 	>
-		<Markdown {value} {elem_id} {visible} on:change />
+		<Markdown
+			min_height={loading_status && loading_status.status !== "complete"}
+			{value}
+			{elem_id}
+			{visible}
+			on:change
+		/>
 	</div>
 </Block>
