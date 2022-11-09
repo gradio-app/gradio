@@ -8,6 +8,7 @@ export const component_map = {
 	chatbot: () => import("./Chatbot"),
 	checkbox: () => import("./Checkbox"),
 	checkboxgroup: () => import("./CheckboxGroup"),
+	code: () => import("./Code"),
 	colorpicker: () => import("./ColorPicker"),
 	column: () => import("./Column"),
 	dataframe: () => import("./DataFrame"),

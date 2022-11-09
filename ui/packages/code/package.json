@@ -1,0 +1,22 @@
+{
+	"name": "@gradio/code",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@codemirror/autocomplete": "^6.3.0",
+		"@codemirror/commands": "^6.1.2",
+		"@codemirror/lang-python": "^6.0.4",
+		"@codemirror/language": "^6.3.0",
+		"@codemirror/lint": "^6.0.0",
+		"@codemirror/search": "^6.2.2",
+		"@codemirror/state": "^6.1.2",
+		"@codemirror/view": "^6.4.1",
+		"cm6-theme-basic-dark": "^0.2.0",
+		"codemirror": "^6.0.1"
+	}
+}

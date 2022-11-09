@@ -3815,6 +3815,71 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
         return self.postprocess(input_data)
 
 
+@document("change")
+class Code(Changeable, IOComponent, JSONSerializable):
+    """
+    Used to display arbitrary HTML output.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid HTML {str}.
+
+    Demos: text_analysis
+    Guides: key_features
+    """
+
+    def __init__(
+        self,
+        value: Optional[Dict[str]] = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = _Keywords.NO_VALUE,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return updated_config
+
+    def style(self):
+        return self
+
+
 ############################
 # Special Components
 ############################
