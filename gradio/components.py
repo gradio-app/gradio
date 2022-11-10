@@ -330,7 +330,7 @@ class Textbox(
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "lines": lines,
