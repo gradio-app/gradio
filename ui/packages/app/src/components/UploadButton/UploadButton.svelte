@@ -9,7 +9,7 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: null | FileData | Array<FileData>;
-	export let variant: "primary" | "secondary" = "primary";
+	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -27,10 +27,10 @@
 </script>
 
 <UploadButton
-	{variant}
 	{elem_id}
 	{style}
 	{visible}
+	{file_type}
 	on:click
 	on:load={handle_upload}
 >

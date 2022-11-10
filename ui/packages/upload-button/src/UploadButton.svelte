@@ -8,7 +8,7 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let size: "sm" | "lg" = "lg";
-	export let filetype: "image" | "video" | "audio" | "text" | "file" = "file";
+	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
 	export let include_file_metadata = true;
 
 	$: ({ classes } = get_styles(style, ["full_width"]));
@@ -57,7 +57,7 @@
 
 <input
 	class="hidden-upload hidden"
-	accept={filetype + "/*"}
+	accept={file_type + "/*"}
 	type="file"
 	bind:this={hidden_upload}
 	on:change={loadFilesFromUpload}

@@ -2060,7 +2060,6 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             variant:
-            file_data_type:
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -2732,7 +2731,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         visible: bool = True,
         elem_id: Optional[str] = None,
         type: str = "file",
-        file_data_type: str = "file",
+        file_type: str = "file",
         **kwargs,
     ):
         """
@@ -2746,7 +2745,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         self.temp_dir = tempfile.mkdtemp()
         self.variant = variant
         self.type = type
-        self.file_data_type = file_data_type
+        self.file_type = file_type
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2755,7 +2754,7 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "variant": self.variant,
-            "file_data_type": self.file_data_type,
+            "file_type": self.file_type,
             **Component.get_config(self),
         }
 
