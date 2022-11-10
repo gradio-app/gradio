@@ -388,6 +388,8 @@ class TestComponentsInBlocks:
         output = await demo.process_api(0, ["test"])
         assert output["data"][0] == {
             "__type__": "update",
+            "interactive": True,
+            "mode": "dynamic",
             "value": gr.media_data.BASE64_IMAGE,
         }
 
@@ -688,6 +690,7 @@ class TestSpecificUpdate:
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
+            "mode": "dynamic",
         }
 
     def test_with_generic_update(self):
@@ -698,10 +701,11 @@ class TestSpecificUpdate:
             "source": None,
             "label": None,
             "show_label": None,
-            "interactive": None,
+            "interactive": True,
             "visible": True,
             "value": "test.mp4",
             "__type__": "update",
+            "mode": "dynamic",
         }
 
 

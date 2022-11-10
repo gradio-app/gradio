@@ -262,7 +262,11 @@ class Block:
     @classmethod
     def get_specific_update(cls, generic_update):
         del generic_update["__type__"]
+        mode = generic_update.get("mode", None)
+        generic_update.pop("mode", None)
         generic_update = cls.update(**generic_update)
+        if mode:
+            generic_update["mode"] = mode
         return generic_update
 
 
