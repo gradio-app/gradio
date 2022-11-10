@@ -351,7 +351,7 @@ class Textbox(
         """
         Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
-            x: sample input to preprocess.
+            x: text
         Returns:
             text
         """

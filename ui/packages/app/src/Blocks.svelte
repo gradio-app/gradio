@@ -12,7 +12,8 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
+		Documentation
 	} from "./components/types";
 	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
@@ -69,7 +70,19 @@
 			}
 		}
 	});
-	let api_docs_visible = false;
+
+	let params = new URLSearchParams(window.location.search);
+	let api_docs_visible = params.get("view") === "api";
+	const set_api_docs_visible = (visible: boolean) => {
+		api_docs_visible = visible;
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "api");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+	};
 
 	function is_dep(
 		id: number,
@@ -126,6 +139,7 @@
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
 		modes?: Array<string>;
+		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
 	function load_component<T extends ComponentMeta["type"]>(
@@ -139,7 +153,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent
+					component: c as LoadedComponent,
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -161,6 +175,9 @@
 		let instance = instance_map[node.id];
 		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
+		if (_component.document) {
+			instance.documentation = _component.document(instance.props)
+		}
 		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
 		}
@@ -429,7 +446,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
@@ -439,7 +457,7 @@
 		class:flex-grow={app_mode}
 	>
 		{#if api_docs_visible}
-			<ApiDocs {components} {dependencies} {root} />
+			<ApiDocs {instance_map} {dependencies} {root} />
 		{:else if ready}
 			<Render
 				has_modes={rootNode.has_modes}
@@ -463,7 +481,7 @@
 			<div
 				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 				on:click={() => {
-					api_docs_visible = !api_docs_visible;
+					set_api_docs_visible(!api_docs_visible);
 				}}
 			>
 				{#if api_docs_visible}hide{:else}view{/if} api
