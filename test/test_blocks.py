@@ -679,7 +679,7 @@ class TestSpecificUpdate:
 
     def test_with_update(self):
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update"}
+            {"lines": 4, "__type__": "update", "interactive": False}
         )
         assert specific_update == {
             "lines": 4,
@@ -690,7 +690,7 @@ class TestSpecificUpdate:
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
-            "mode": "dynamic",
+            "mode": "static",
         }
 
     def test_with_generic_update(self):
