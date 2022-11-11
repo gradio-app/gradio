@@ -297,6 +297,7 @@ class Examples:
                     output = [value[0] for value in output]
                 cache_logger.flag(output)
             Context.root_block.dependencies.remove(dependency)
+            Context.root_block.fns.pop(fn_index)
 
     async def load_from_cache(self, example_id: int) -> List[Any]:
         """Loads a particular cached example for the interface.
