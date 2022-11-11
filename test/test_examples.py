@@ -154,8 +154,6 @@ class TestProcessExamples:
         assert prediction[0] == {
             "visible": False,
             "__type__": "update",
-            "mode": "dynamic",
-            "interactive": True,
         }
 
     @pytest.mark.asyncio
@@ -172,7 +170,6 @@ class TestProcessExamples:
             "lines": 4,
             "value": "hello",
             "__type__": "update",
-            "mode": "dynamic",
         }
 
     @pytest.mark.asyncio
@@ -181,7 +178,7 @@ class TestProcessExamples:
         out = gr.Label()
 
         io = gr.Interface(
-            lambda _: {text: gr.update(lines=4), out: "lion"},
+            lambda _: {text: gr.update(lines=4, interactive=False), out: "lion"},
             "textbox",
             [text, out],
             examples=["abc"],
@@ -190,7 +187,7 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(0)
         assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
         assert prediction == [
-            {"lines": 4, "__type__": "update", "mode": "dynamic"},
+            {"lines": 4, "__type__": "update", "mode": "static"},
             {"label": "lion"},
         ]
 

@@ -388,8 +388,6 @@ class TestComponentsInBlocks:
         output = await demo.process_api(0, ["test"])
         assert output["data"][0] == {
             "__type__": "update",
-            "interactive": True,
-            "mode": "dynamic",
             "value": gr.media_data.BASE64_IMAGE,
         }
 
@@ -679,7 +677,7 @@ class TestSpecificUpdate:
 
     def test_with_update(self):
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update", "interactive": False}
+            {"lines": 4, "__type__": "update", "mode": "static"}
         )
         assert specific_update == {
             "lines": 4,
@@ -693,19 +691,39 @@ class TestSpecificUpdate:
             "mode": "static",
         }
 
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update", "mode": "dynamic"}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+            "mode": "dynamic",
+        }
+
     def test_with_generic_update(self):
         specific_update = gr.Video.get_specific_update(
-            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+            {
+                "visible": True,
+                "value": "test.mp4",
+                "__type__": "generic_update",
+                "mode": "static",
+            }
         )
         assert specific_update == {
             "source": None,
             "label": None,
             "show_label": None,
-            "interactive": True,
             "visible": True,
             "value": "test.mp4",
+            "interactive": None,
+            "mode": "static",
             "__type__": "update",
-            "mode": "dynamic",
         }
 
 

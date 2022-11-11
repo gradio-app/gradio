@@ -330,7 +330,7 @@ class Textbox(
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "lines": lines,
@@ -507,7 +507,7 @@ class Number(
         value: Optional[float] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -806,7 +806,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
         value: Optional[bool] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -910,7 +910,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -1074,7 +1074,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -1317,7 +1317,7 @@ class Image(
         value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -1638,7 +1638,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -1842,7 +1842,7 @@ class Audio(
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -2127,7 +2127,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         value: Optional[Any] = _Keywords.NO_VALUE,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -2373,7 +2373,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         max_cols: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -2584,7 +2584,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         colors: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
         updated_config = {
@@ -2806,7 +2806,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
     ):
         updated_config = {
             "value": value,
