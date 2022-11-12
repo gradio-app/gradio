@@ -23,11 +23,13 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    get_type_hints,
 )
 
 import anyio
 import requests
 from anyio import CapacityLimiter
+from fastapi import Request
 
 from gradio import (
     components,
@@ -455,6 +457,15 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
     return predictions
 
 
+def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
+    param_names = inspect.getfullargspec(fn)[0]    
+    parameter_types = get_type_hints(fn)
+    for idx, param_name in enumerate(param_names):
+        if parameter_types[param_name] == Request:
+            inputs.insert(idx, request)
+    return inputs
+
+
 @document("load")
 class Blocks(BlockContext):
     """
@@ -787,7 +798,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
+        outputs = utils.synchronize_async(self.process_api, {'fn_index': fn_index, 'processed_inputs': processed_inputs, 'request': None})
         outputs = outputs["data"]
 
         if batch:
@@ -803,11 +814,11 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
+        request: Request | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
-        start = time.time()
 
         if block_fn.inputs_as_dict:
             processed_input = [
@@ -816,6 +827,10 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
+            
+        processed_input = add_request_to_inputs(block_fn.fn, processed_input, request)
+        
+        start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
@@ -935,6 +950,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
+        request: Request | None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
@@ -971,7 +987,7 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None)
+            result = await self.call_function(fn_index, zip(*inputs), None, )
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
