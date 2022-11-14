@@ -706,7 +706,7 @@ class TestSpecificUpdate:
 
     def test_with_update(self):
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update", "mode": "static"}
+            {"lines": 4, "__type__": "update", "interactive": False}
         )
         assert specific_update == {
             "lines": 4,
@@ -721,7 +721,7 @@ class TestSpecificUpdate:
         }
 
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update", "mode": "dynamic"}
+            {"lines": 4, "__type__": "update", "interactive": True}
         )
         assert specific_update == {
             "lines": 4,
@@ -741,7 +741,7 @@ class TestSpecificUpdate:
                 "visible": True,
                 "value": "test.mp4",
                 "__type__": "generic_update",
-                "mode": "static",
+                "interactive": True,
             }
         )
         assert specific_update == {
@@ -750,8 +750,8 @@ class TestSpecificUpdate:
             "show_label": None,
             "visible": True,
             "value": "test.mp4",
-            "interactive": None,
-            "mode": "static",
+            "mode": "dynamic",
+            "interactive": True,
             "__type__": "update",
         }
 
