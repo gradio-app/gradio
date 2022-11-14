@@ -274,6 +274,10 @@ class TestLoadInterfaceWithExamples:
             ]
         )
 
+    def test_interface_with_examples(self):
+        demo = gr.Interface.load("spaces/freddyaboulton/calculator")
+        assert demo(2, "add", 3) == 5
+
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
     readme = """
