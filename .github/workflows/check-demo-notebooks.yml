@@ -21,5 +21,7 @@ jobs:
       - name: Generate Notebooks
         run: |
           pip install nbformat && cd demo && python generate_notebooks.py
+      - name: Generate Diff
+        run: cd scripts && git diff --unified=0 > diff.txt
       - name: Assert Notebooks Match 
-        run: git status | grep "nothing to commit, working tree clean"
+        run: python check_notebook_diff.py
