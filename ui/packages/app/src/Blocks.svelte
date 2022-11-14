@@ -153,7 +153,7 @@
 				const c = await component_map[name]();
 				res({
 					name,
-					component: c as LoadedComponent,
+					component: c as LoadedComponent
 				});
 			} catch (e) {
 				console.error("failed to load: " + name);
@@ -176,7 +176,7 @@
 		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
 		if (_component.document) {
-			instance.documentation = _component.document(instance.props)
+			instance.documentation = _component.document(instance.props);
 		}
 		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
@@ -456,9 +456,7 @@
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={app_mode}
 	>
-		{#if api_docs_visible}
-			<ApiDocs {instance_map} {dependencies} {root} />
-		{:else if ready}
+		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
 				component={rootNode.component}
@@ -475,7 +473,7 @@
 		{/if}
 	</div>
 	<footer
-		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
+		class="flex justify-center pb-6 text-gray-400 font-semibold space-x-2"
 	>
 		{#if show_api}
 			<div
@@ -484,9 +482,9 @@
 					set_api_docs_visible(!api_docs_visible);
 				}}
 			>
-				{#if api_docs_visible}hide{:else}view{/if} api
+				Use with API
 			</div>
-			&nbsp; &bull; &nbsp;
+			<div>·</div>
 		{/if}
 		<a
 			href="https://gradio.app"
@@ -503,3 +501,19 @@
 		</a>
 	</footer>
 </div>
+
+{#if api_docs_visible}
+	<div class="h-screen w-screen fixed z-50 bg-black/50 flex">
+		<div
+			class="flex-1 backdrop-blur-sm"
+			on:click={() => {
+				set_api_docs_visible(false);
+			}}
+		/>
+		<div
+			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
+		>
+			<ApiDocs {instance_map} {dependencies} {root} />
+		</div>
+	</div>
+{/if}
