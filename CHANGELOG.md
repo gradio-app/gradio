@@ -4,6 +4,30 @@
 No changes to highlight.
 
 ## Bug Fixes:
+* Pinned the version of FastApi used in tests to version 0.86 [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.9.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
 * Only set a min height on md and html when loading by [@pngwn](https://github.com/pngwn) in [PR 2623](https://github.com/gradio-app/gradio/pull/2623)
  
 ## Documentation Changes:
