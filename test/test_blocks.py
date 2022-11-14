@@ -925,9 +925,11 @@ async def test_queue_when_using_auth():
     client = TestClient(app)
 
     resp = client.post(
-        f"{demo.local_url}login", data={"username": "abc", "password": "123"}
+        f"{demo.local_url}login",
+        data={"username": "abc", "password": "123"},
+        follow_redirects=False,
     )
-    assert resp.ok
+    assert resp.status_code == 302
     token = resp.cookies.get("access-token")
     assert token
 
