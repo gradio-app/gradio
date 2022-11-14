@@ -19,4 +19,4 @@ flake8
 httpx
 pydantic
 respx
-fastapi==0.86.0
+fastapi>=0.87.0

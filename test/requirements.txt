@@ -64,7 +64,7 @@ entrypoints==0.4
     # via mlflow
 everett[ini]==3.0.0
     # via comet-ml
-fastapi==0.86.0
+fastapi==0.87.0
     # via -r requirements.in
 filelock==3.7.1
     # via
@@ -319,7 +319,7 @@ sqlalchemy==1.4.39
     #   mlflow
 sqlparse==0.4.2
     # via mlflow
-starlette==0.20.4
+starlette==0.21.0
     # via fastapi
 tabulate==0.8.10
     # via databricks-cli

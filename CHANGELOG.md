@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-* Pinned the version of FastApi used in tests to version 0.86 [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
+* Updated the minimum FastApi used in tests to version 0.87 [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
 
 ## Documentation Changes:
 No changes to highlight.
