@@ -24,4 +24,4 @@ jobs:
       - name: Generate Diff
         run: cd scripts && git diff --unified=0 > diff.txt
       - name: Assert Notebooks Match 
-        run: python check_notebooks_diff.py
+        run: cd scripts && python check_notebooks_diff.py
