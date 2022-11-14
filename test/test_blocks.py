@@ -395,22 +395,30 @@ class TestComponentsInBlocks:
     async def test_blocks_update_interactive(
         self,
     ):
-        def infer():
+        def specific_update():
+            return [
+                gr.Image.update(interactive=True),
+                gr.Textbox.update(interactive=True),
+            ]
+
+        def generic_update():
             return [gr.update(interactive=True), gr.update(interactive=True)]
 
         with gr.Blocks() as demo:
             run = gr.Button(value="Make interactive")
             image = gr.Image()
             textbox = gr.Text()
-            run.click(infer, None, [image, textbox])
+            run.click(specific_update, None, [image, textbox])
+            run.click(generic_update, None, [image, textbox])
 
-        output = await demo.process_api(0, [])
-        assert output["data"][0] == {
-            "interactive": True,
-            "__type__": "update",
-            "mode": "dynamic",
-        }
-        assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+        for fn_index in range(2):
+            output = await demo.process_api(fn_index, [])
+            assert output["data"][0] == {
+                "interactive": True,
+                "__type__": "update",
+                "mode": "dynamic",
+            }
+            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
 
 
 class TestCallFunction:
