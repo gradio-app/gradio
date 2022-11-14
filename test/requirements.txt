@@ -92,7 +92,7 @@ httpx==0.23.0
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.10.1
+huggingface-hub==0.8.1
     # via
     #   -r requirements.in
     #   transformers
@@ -327,7 +327,7 @@ threadpoolctl==3.1.0
     # via scikit-learn
 tifffile==2021.11.2
     # via scikit-image
-tokenizers==0.13.2
+tokenizers==0.12.1
     # via transformers
 tomli==2.0.1
     # via
@@ -345,7 +345,7 @@ traitlets==5.3.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.24.0
+transformers==4.20.1
     # via -r requirements.in
 typing-extensions==4.3.0
     # via
