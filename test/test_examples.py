@@ -179,6 +179,7 @@ class TestProcessExamples:
         )
         prediction = await io.examples_handler.load_from_cache(0)
         assert prediction == [{"lines": 4, "__type__": "update"}, {"label": "lion"}]
+        assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
 
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
         def foo(a, b):
