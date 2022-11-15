@@ -297,6 +297,10 @@ class Textbox(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
         """
+        if not type in ["text", "password", "email"]:
+            raise ValueError('`type` must be one of "text", "password", or "email".')
+
+        #
         self.lines = lines
         self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
