@@ -836,7 +836,9 @@ class Blocks(BlockContext):
                 }
             ]
 
-        processed_input = add_request_to_inputs(block_fn.fn, processed_input, request)
+        processed_input = add_request_to_inputs(
+            block_fn.fn, list(processed_input), request
+        )
 
         start = time.time()
 
@@ -958,7 +960,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
-        request: Request | None,
+        request: Request | None = None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
