@@ -281,6 +281,7 @@ class Textbox(
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        type: str = "text",
         **kwargs,
     ):
         """
@@ -294,9 +295,10 @@ class Textbox(
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
         """
         self.lines = lines
-        self.max_lines = max_lines
+        self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
         self.interpret_by_tokens = True
         IOComponent.__init__(
@@ -311,6 +313,7 @@ class Textbox(
         )
         self.cleared_value = ""
         self.test_input = value
+        self.type = type
 
     def get_config(self):
         return {
@@ -318,6 +321,7 @@ class Textbox(
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "value": self.value,
+            "type": self.type,
             **IOComponent.get_config(self),
         }
 
@@ -331,6 +335,7 @@ class Textbox(
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
+        type: Optional[str] = None,
     ):
         updated_config = {
             "lines": lines,
@@ -340,6 +345,7 @@ class Textbox(
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "type": type,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
