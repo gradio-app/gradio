@@ -305,8 +305,8 @@ class TestDevMode:
             route for route in app.routes if isinstance(route, starlette.routing.Mount)
         )
         assert not gradio_fast_api.app.blocks.dev_mode
-      
-        
+
+
 class TestPassingRequest:
     def test_request_included_with_regular_function():
         pass
