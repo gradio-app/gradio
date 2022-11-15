@@ -286,6 +286,7 @@ class App(FastAPI):
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
+                print("request", request)
                 output = await app.blocks.process_api(
                     fn_index=fn_index, inputs=raw_input, request=request, username=username, state=session_state, iterators=iterators
                 )
@@ -345,7 +346,8 @@ class App(FastAPI):
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
-            result = await run_predict(body=body, username=username)
+            print("request", request)
+            result = await run_predict(body=body, username=username, request=request)
             return result
 
         @app.websocket("/queue/join")

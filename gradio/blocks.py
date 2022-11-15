@@ -12,6 +12,7 @@ import time
 import warnings
 import webbrowser
 from types import ModuleType
+import typing
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -23,7 +24,6 @@ from typing import (
     Optional,
     Set,
     Tuple,
-    get_type_hints,
 )
 
 import anyio
@@ -458,10 +458,13 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
 
 
 def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
+    """
+    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
+    """
     param_names = inspect.getfullargspec(fn)[0]    
-    parameter_types = get_type_hints(fn)
+    parameter_types = typing.get_type_hints(fn)
     for idx, param_name in enumerate(param_names):
-        if parameter_types[param_name] == Request:
+        if parameter_types.get(param_name, "") == Request:
             inputs.insert(idx, request)
     return inputs
 
@@ -798,7 +801,7 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(self.process_api, {'fn_index': fn_index, 'processed_inputs': processed_inputs, 'request': None})
+        outputs = utils.synchronize_async(self.process_api, {'fn_index': fn_index, 'inputs': processed_inputs, 'request': None})
         outputs = outputs["data"]
 
         if batch:
@@ -987,7 +990,7 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None, )
+            result = await self.call_function(fn_index, zip(*inputs), None, request)
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -995,7 +998,7 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator)
+            result = await self.call_function(fn_index, inputs, iterator, request)
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
