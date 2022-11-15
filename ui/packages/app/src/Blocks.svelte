@@ -21,7 +21,7 @@
 	import ApiDocs from "./ApiDocs.svelte";
 
 	import logo from "./images/logo.svg";
-	import api_logo from "../public/static/img/api-logo.svg";
+	import api_logo from "/static/img/api-logo.svg";
 
 	setupi18n();
 
