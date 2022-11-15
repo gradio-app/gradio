@@ -1,7 +1,7 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+* You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641) 
 
 ## Bug Fixes:
 * Only set a min height on md and html when loading by [@pngwn](https://github.com/pngwn) in [PR 2623](https://github.com/gradio-app/gradio/pull/2623)
