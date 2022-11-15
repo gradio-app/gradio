@@ -622,6 +622,13 @@ class Blocks(BlockContext):
 
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
+                # We used to add a "fake_event" to the config to cache examples
+                # without removing it. This was causing bugs in calling gr.Interface.load
+                # We fixed the issue by removing "fake_event" from the config in examples.py
+                # but we still need to skip these events when loading the config to support
+                # older demos
+                if dependency["trigger"] == "fake_event":
+                    continue
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
