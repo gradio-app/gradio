@@ -462,10 +462,13 @@ def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
     Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
     """
     param_names = inspect.getfullargspec(fn)[0]
-    parameter_types = typing.get_type_hints(fn)
-    for idx, param_name in enumerate(param_names):
-        if parameter_types.get(param_name, "") == Request:
-            inputs.insert(idx, request)
+    try:
+        parameter_types = typing.get_type_hints(fn)
+        for idx, param_name in enumerate(param_names):
+            if parameter_types.get(param_name, "") == Request:
+                inputs.insert(idx, request)
+    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
+        pass
     return inputs
 
 
