@@ -21,6 +21,7 @@
 	import ApiDocs from "./ApiDocs.svelte";
 
 	import logo from "./images/logo.svg";
+	import api_logo from "../public/static/img/api-logo.svg";
 
 	setupi18n();
 
@@ -473,31 +474,29 @@
 		{/if}
 	</div>
 	<footer
-		class="flex justify-center pb-6 text-gray-400 font-semibold space-x-2"
+		class="flex justify-center pb-6 text-gray-400 space-x-2 text-sm md:text-base"
 	>
 		{#if show_api}
-			<div
-				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+			<button
 				on:click={() => {
 					set_api_docs_visible(!api_docs_visible);
 				}}
+				class="flex items-center hover:text-gray-500"
 			>
-				Use with API
-			</div>
+				View <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />API
+				documentation
+			</button>
 			<div>·</div>
 		{/if}
 		<a
 			href="https://gradio.app"
+			class="flex items-center hover:text-gray-500"
 			target="_blank"
 			rel="noreferrer"
-			class="group hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 		>
-			{$_("interface.built_with_Gradio")}
-			<img
-				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
-				src={logo}
-				alt="logo"
-			/>
+			Build with
+			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
+			Gradio
 		</a>
 	</footer>
 </div>
@@ -513,7 +512,14 @@
 		<div
 			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
 		>
-			<ApiDocs {instance_map} {dependencies} {root} />
+			<ApiDocs
+				on:close={() => {
+					set_api_docs_visible(false);
+				}}
+				{instance_map}
+				{dependencies}
+				{root}
+			/>
 		</div>
 	</div>
 {/if}

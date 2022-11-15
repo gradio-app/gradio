@@ -1,9 +1,23 @@
 <script lang="ts">
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "./components/types";
 	import { post_data } from "./api";
-	import Tabs from "./components/Tabs/Tabs.svelte";
 	import Loader from "./components/StatusTracker/Loader.svelte";
-	import TabItem from "./components/TabItem/Tabs.svelte";
+	import logo from "./images/logo.svg";
+	import api_logo from "../public/static/img/api-logo.svg";
+	import clear from "../public/static/img/clear.svg";
+	import python from "../public/static/img/python.svg";
+	import javascript from "../public/static/img/javascript.svg";
+	import { json } from "svelte-i18n";
+
+	const dispatch = createEventDispatcher();
+
+	onMount(() => {
+		document.body.style.overflow = "hidden";
+		return () => {
+			document.body.style.overflow = "auto";
+		};
+	});
 
 	export let instance_map: {
 		[id: number]: ComponentMeta;
@@ -18,6 +32,7 @@
 		root += "/";
 	}
 
+	let current_language = "python";
 	let just_copied = -1;
 	let isRunning = false;
 
@@ -53,27 +68,35 @@
 </script>
 
 {#if dependencies.some((d) => d.api_name)}
-	<h2 class="text-2xl px-6 py-4 border-b">
-		API Docs for
-		<span class="italic text-orange-500">
+	<h2
+		class="text-sm md:text-lg px-6 py-4 border-b border-gray-100 dark:border-gray-900 font-semibold flex flex-wrap items-center relative"
+	>
+		<img src={api_logo} alt="" class="w-3.5 md:w-4 mr-1 md:mr-2" />
+		API documentation for&nbsp;
+		<div class=" text-orange-500">
 			{root}
-		</span>
+		</div>
+		<button
+			class="absolute right-6 top-5 md:top-6"
+			on:click={() => dispatch("close")}
+			><img src={clear} alt="" class="w-3" /></button
+		>
 	</h2>
 	<div class="flex flex-col gap-6">
 		{#each dependencies as dependency, dependency_index}
 			{#if dependency.api_name}
 				<div
-					class="bg-gradient-to-b from-orange-200/10 via-white to-white p-6 rounded"
+					class="bg-gradient-to-b from-orange-200/5 via-transparent to-transparent p-6 rounded"
 				>
-					<h3 class="text-xl text-orange-500 font-bold">
+					<h3 class="text-lg text-black font-bold mb-1.5">
 						<span
-							class="bg-orange-100 px-1 rounded text-lg border-orange-200 border mr-1 font-semibold"
+							class="bg-orange-100 px-1 rounded text-sm border border-orange-200 mr-2 font-semibold text-orange-600 dark:bg-orange-400 dark:text-orange-900 dark:border-orange-600"
 							>POST</span
 						>
 						/run/{dependency.api_name}
 					</h3>
-					<div class="mb-6">
-						Endpoint URL: <span class="underline"
+					<div class="text-sm md:text-base mb-6 text-gray-500">
+						Endpoint: <span class="underline"
 							>{root}run/{dependency.api_name}</span
 						>
 						<button
@@ -91,15 +114,24 @@
 							{#if just_copied === dependency_index}copied!{:else}copy{/if}
 						</button>
 					</div>
-					<h4 class="text-lg font-bold mt-6 mb-4">Input Payload</h4>
+					<h4 class="font-bold mt-6 mb-3 flex items-center">
+						<div
+							class="flex items-center h-1 w-3 bg-gray-300 dark:bg-gray-500 rounded-full mr-2"
+						>
+							<div
+								class="rounded-full h-1.5 w-1.5 bg-gray-700 dark:bg-gray-400"
+							/>
+						</div>
+						Input Payload
+					</h4>
 					<div
-						class="block bg-white border dark:bg-gray-700 p-4 font-mono text-sm rounded-lg"
+						class="block bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg"
 					>
 						&#123;<br />
 						&nbsp;&nbsp;"data": [<br />
 						{#each dependency.inputs as component_id, component_index}
 							&nbsp;&nbsp;&nbsp;&nbsp;<input
-								class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300"
+								class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
 								type="text"
 								bind:value={dependency_inputs[dependency_index][
 									component_index
@@ -129,9 +161,18 @@
 						class="gr-button gr-button-lg gr-button-primary w-full mt-4"
 						>Run</button
 					>
-					<h4 class="text-lg font-bold mt-6 mb-4">Response Object</h4>
+					<h4 class="font-bold mt-6 mb-3 flex items-center">
+						<div
+							class="flex items-center h-1 w-3 bg-gray-300 dark:bg-gray-500 rounded-full mr-2"
+						>
+							<div
+								class="rounded-full h-1.5 w-1.5 bg-gray-700 dark:bg-gray-400 ml-auto"
+							/>
+						</div>
+						Response Object
+					</h4>
 					<div
-						class="bg-white border dark:bg-gray-700 p-4 font-mono text-sm rounded-lg flex flex-col"
+						class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
 					>
 						<div class={isRunning ? "hidden" : ""}>
 							"data": [<br />
@@ -174,34 +215,54 @@
 							</div>
 						{/if}
 					</div>
-					<h4 class="text-lg font-bold mt-6 mb-4">Code examples</h4>
-					<Tabs selected={0}>
-						<TabItem label="Python" id={0}>
-							<code class="text-sm"
-								><pre>import requests
+					<h4 class="font-bold mt-8 mb-3 flex items-center">
+						<svg width="1em" height="1em" viewBox="0 0 24 24" class="mr-1.5"
+							><path
+								fill="currentColor"
+								d="m8 18l-6-6l6-6l1.425 1.425l-4.6 4.6L9.4 16.6Zm8 0l-1.425-1.425l4.6-4.6L14.6 7.4L16 6l6 6Z"
+							/></svg
+						>
+						Code examples
+					</h4>
+					<div class="flex space-x-2 items-center mb-3">
+						{#each [["python", python], ["javascript", javascript], ["gradio client", logo]] as [language, img]}
+							<li
+								class="flex items-center border rounded-lg px-1.5 py-1 leading-none select-none text-smd capitalize
+						{current_language === language
+									? 'border-gray-400 text-gray-800 dark:bg-gray-700'
+									: 'text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 hover:shadow-sm'}"
+								on:click={() => (current_language = language)}
+							>
+								<img src={img} class="mr-1.5 w-3" alt="" />
+								{language}
+							</li>
+						{/each}
+					</div>
+					<code
+						class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
+					>
+						{#if current_language === "python"}
+							<pre>import requests
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
     data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
-										{instance_map[
-											dependencies[dependency_index].inputs[component_index]
-										].documentation?.input_type?.includes("string")
-											? `"${component_value}"`
-											: component_value},{/each}
+									{instance_map[
+										dependencies[dependency_index].inputs[component_index]
+									].documentation?.input_type?.includes("string")
+										? `"${component_value}"`
+										: component_value},{/each}
 	]
 &rbrace;).json()
-data = response["data"]</pre></code
-							>
-						</TabItem>
-						<TabItem label="JS" id={1}>
-							<code class="text-sm"
-								><pre>fetch("{root + "run/" + dependency.api_name}", &lbrace;
+data = response["data"]</pre>
+						{:else if current_language === "javascript"}
+							<pre>fetch("{root + "run/" + dependency.api_name}", &lbrace;
 	method: "POST",
 	body: JSON.stringify([{#each dependency_inputs[dependency_index] as component_value, component_index}
-										{instance_map[
-											dependencies[dependency_index].inputs[component_index]
-										].documentation?.input_type?.includes("string")
-											? `"${component_value}"`
-											: component_value},{/each}
+									{instance_map[
+										dependencies[dependency_index].inputs[component_index]
+									].documentation?.input_type?.includes("string")
+										? `"${component_value}"`
+										: component_value},{/each}
 	]),
 	headers: &lbrace; "Content-Type": "application/json" &rbrace;&rbrace;
 ).then(
@@ -210,39 +271,43 @@ data = response["data"]</pre></code
 	r => &lbrace;
 		let data = r.data;
 	&rbrace;
-)</pre></code
-							>
-						</TabItem>
-						<TabItem label="Gradio Client" id={2}>
-							<code class="text-sm"> Hello World </code>
-						</TabItem>
-					</Tabs>
+)</pre>
+						{:else if current_language === "gradio client"}
+							<pre>Hello World</pre>
+						{/if}
+					</code>
 				</div>
 			{/if}
 		{/each}
 	</div>
 {:else}
-	<h2 class="text-3xl text-center mb-6">
-		There are no named API Routes for
-		<span class="italic text-orange-500">
-			{root}
-		</span>
-	</h2>
-	<div>
-		To expose an API endpoint of your app in these API docs, set the <span
-			class="italic text-orange-500"
-		>
-			api_name
-		</span>
-		parameter of the event listener. For more information, see the "API Page"
-		<a
-			href="https://gradio.app/sharing_your_app/#api-page"
-			class="text-orange-500"
-		>
-			section</a
-		>
-		in the guides. To hide this API page, set
-		<span class="italic text-orange-500"> show_api=False </span>
-		in the <span class="italic text-orange-500"> Blocks.launch()</span> method.
+	<div class="p-6">
+		<h2 class="text-lg mb-4 font-semibold">
+			No named API Routes found for
+			<span class="italic text-orange-500">
+				{root}
+			</span>
+		</h2>
+		<div>
+			To expose an API endpoint of your app in this page, set the <span
+				class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono"
+			>
+				api_name
+			</span>
+			parameter of the event listener.<br /> For more information, visit the
+			<a
+				href="https://gradio.app/sharing_your_app/#api-page"
+				target="_blank"
+				class="text-orange-500 hover:text-orange-600 underline"
+				>API Page guide</a
+			>. To hide the API documentation button and this page, set
+			<span class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono">
+				show_api=False
+			</span>
+			in the
+			<span class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono">
+				Blocks.launch()</span
+			> method.
+		</div>
 	</div>
 {/if}
