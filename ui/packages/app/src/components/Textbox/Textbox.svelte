@@ -15,6 +15,7 @@
 	export let placeholder: string = "";
 	export let show_label: boolean;
 	export let max_lines: number | false;
+	export let type: "text" | "password" | "email" = "text";
 
 	export let style: Styles = {};
 
@@ -35,6 +36,7 @@
 		{label}
 		{show_label}
 		{lines}
+		{type}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		on:change

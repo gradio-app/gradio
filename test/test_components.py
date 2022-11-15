@@ -1,5 +1,5 @@
 """
-Tests for all of the componets defined in components.py. Tests are divided into two types:
+Tests for all of the components defined in components.py. Tests are divided into two types:
 1. test_component_functions() are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
 2. test_in_interface() are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
 """
@@ -59,9 +59,6 @@ class TestTextbox:
         assert text_input.postprocess(2.14) == "2.14"
         assert text_input.serialize("Hello World!", True) == "Hello World!"
 
-        with pytest.warns(Warning):
-            _ = gr.Textbox(type="number")
-
         assert text_input.tokenize("Hello World! Gradio speaking.") == (
             ["Hello", "World!", "Gradio", "speaking."],
             [
@@ -90,6 +87,7 @@ class TestTextbox:
             "value": "",
             "name": "textbox",
             "show_label": True,
+            "type": "text",
             "label": None,
             "style": {},
             "elem_id": None,
@@ -165,6 +163,18 @@ class TestTextbox:
         component = gr.TextArea(value="abc", lines=4)
         assert component.get_config().get("value") == "abc"
         assert component.get_config().get("lines") == 4
+
+    def test_faulty_type(self):
+        with pytest.raises(
+            ValueError, match='`type` must be one of "text", "password", or "email".'
+        ):
+            gr.Textbox(type="boo")
+
+    def test_max_lines(self):
+        assert gr.Textbox(type="password").get_config().get("max_lines") == 1
+        assert gr.Textbox(type="email").get_config().get("max_lines") == 1
+        assert gr.Textbox(type="text").get_config().get("max_lines") == 20
+        assert gr.Textbox().get_config().get("max_lines") == 20
 
 
 class TestNumber:
