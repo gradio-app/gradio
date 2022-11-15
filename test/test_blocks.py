@@ -391,6 +391,35 @@ class TestComponentsInBlocks:
             "value": gr.media_data.BASE64_IMAGE,
         }
 
+    @pytest.mark.asyncio
+    async def test_blocks_update_interactive(
+        self,
+    ):
+        def specific_update():
+            return [
+                gr.Image.update(interactive=True),
+                gr.Textbox.update(interactive=True),
+            ]
+
+        def generic_update():
+            return [gr.update(interactive=True), gr.update(interactive=True)]
+
+        with gr.Blocks() as demo:
+            run = gr.Button(value="Make interactive")
+            image = gr.Image()
+            textbox = gr.Text()
+            run.click(specific_update, None, [image, textbox])
+            run.click(generic_update, None, [image, textbox])
+
+        for fn_index in range(2):
+            output = await demo.process_api(fn_index, [])
+            assert output["data"][0] == {
+                "interactive": True,
+                "__type__": "update",
+                "mode": "dynamic",
+            }
+            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
 
 class TestCallFunction:
     @pytest.mark.asyncio
@@ -677,7 +706,7 @@ class TestSpecificUpdate:
 
     def test_with_update(self):
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update"}
+            {"lines": 4, "__type__": "update", "interactive": False}
         )
         assert specific_update == {
             "lines": 4,
@@ -688,19 +717,41 @@ class TestSpecificUpdate:
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
+            "mode": "static",
+        }
+
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update", "interactive": True}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+            "mode": "dynamic",
         }
 
     def test_with_generic_update(self):
         specific_update = gr.Video.get_specific_update(
-            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+            {
+                "visible": True,
+                "value": "test.mp4",
+                "__type__": "generic_update",
+                "interactive": True,
+            }
         )
         assert specific_update == {
             "source": None,
             "label": None,
             "show_label": None,
-            "interactive": None,
             "visible": True,
             "value": "test.mp4",
+            "mode": "dynamic",
+            "interactive": True,
             "__type__": "update",
         }
 

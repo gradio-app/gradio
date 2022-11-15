@@ -421,10 +421,11 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    prediction_value = block.get_specific_update(update_dict)
-    if prediction_value.get("value") is components._Keywords.NO_VALUE:
-        prediction_value.pop("value")
-    prediction_value = delete_none(prediction_value, skip_value=True)
+    if update_dict.get("__type__", "") == "generic_update":
+        update_dict = block.get_specific_update(update_dict)
+    if update_dict.get("value") is components._Keywords.NO_VALUE:
+        update_dict.pop("value")
+    prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
