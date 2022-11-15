@@ -59,9 +59,6 @@ class TestTextbox:
         assert text_input.postprocess(2.14) == "2.14"
         assert text_input.serialize("Hello World!", True) == "Hello World!"
 
-        with pytest.warns(Warning):
-            _ = gr.Textbox(type="number")
-
         assert text_input.tokenize("Hello World! Gradio speaking.") == (
             ["Hello", "World!", "Gradio", "speaking."],
             [
