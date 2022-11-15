@@ -9,10 +9,10 @@ import pkgutil
 import random
 import sys
 import time
+import typing
 import warnings
 import webbrowser
 from types import ModuleType
-import typing
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -461,7 +461,7 @@ def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
     """
     Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
     """
-    param_names = inspect.getfullargspec(fn)[0]    
+    param_names = inspect.getfullargspec(fn)[0]
     parameter_types = typing.get_type_hints(fn)
     for idx, param_name in enumerate(param_names):
         if parameter_types.get(param_name, "") == Request:
@@ -801,7 +801,10 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(self.process_api, {'fn_index': fn_index, 'inputs': processed_inputs, 'request': None})
+        outputs = utils.synchronize_async(
+            self.process_api,
+            {"fn_index": fn_index, "inputs": processed_inputs, "request": None},
+        )
         outputs = outputs["data"]
 
         if batch:
@@ -830,9 +833,9 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-            
+
         processed_input = add_request_to_inputs(block_fn.fn, processed_input, request)
-        
+
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run

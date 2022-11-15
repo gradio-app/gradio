@@ -12,13 +12,13 @@ import pkgutil
 import random
 import sys
 import time
+import typing
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
 from enum import Enum
 from numbers import Number
 from pathlib import Path
-import typing
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -746,10 +746,11 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
     """
+
     def is_special_typed_parameter(name):
         """Checks if parameter has a type hint designating it as a fastapi.Request"""
         return parameter_types.get(name, "") == fastapi.Request
-    
+
     signature = inspect.signature(fn)
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
     min_args = 0
@@ -757,7 +758,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not(is_special_typed_parameter(name)):
+            if not (is_special_typed_parameter(name)):
                 if not has_default:
                     min_args += 1
                 max_args += 1

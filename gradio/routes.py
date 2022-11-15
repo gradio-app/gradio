@@ -258,7 +258,9 @@ class App(FastAPI):
             return {"success": True}
 
         async def run_predict(
-            body: PredictBody, request: Request, username: str = Depends(get_current_user)
+            body: PredictBody,
+            request: Request,
+            username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
@@ -288,7 +290,12 @@ class App(FastAPI):
             try:
                 print("request", request)
                 output = await app.blocks.process_api(
-                    fn_index=fn_index, inputs=raw_input, request=request, username=username, state=session_state, iterators=iterators
+                    fn_index=fn_index,
+                    inputs=raw_input,
+                    request=request,
+                    username=username,
+                    state=session_state,
+                    iterators=iterators,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
