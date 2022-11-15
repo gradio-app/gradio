@@ -106,6 +106,24 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
+## Accessing the Network Request Directly
+
+When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `fastapi.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+
+```python
+import gradio as gr
+import fastapi
+
+def echo(name, request: fastapi.Request):
+    print("Request headers dictionary:", request.headers)
+    print("IP address:", request.client.host)
+    return name
+
+io = gr.Interface(echo, "textbox", "textbox").launch()
+
+```
+
+
 ## Mounting Within Another FastAPI App
 
 In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.
