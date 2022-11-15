@@ -802,8 +802,10 @@ class Blocks(BlockContext):
             processed_inputs = [[inp] for inp in processed_inputs]
 
         outputs = utils.synchronize_async(
-            self.process_api,
-            {"fn_index": fn_index, "inputs": processed_inputs, "request": None},
+            self.process_api, 
+            fn_index=fn_index,
+            inputs=processed_inputs,
+            request=None,
         )
         outputs = outputs["data"]
 
