@@ -80,8 +80,8 @@ def segment(input):
 
 import gradio as gr
 
-i = gr.inputs.Image(shape=(112, 112), label="Echocardiogram")
-o = gr.outputs.Image(label="Segmentation Mask")
+i = gr.Image(shape=(112, 112), label="Echocardiogram")
+o = gr.Image(label="Segmentation Mask")
 
 examples = [["img1.jpg"], ["img2.jpg"]]
 title = None #"Left Ventricle Segmentation"
