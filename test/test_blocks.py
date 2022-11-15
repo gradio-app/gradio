@@ -714,6 +714,7 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
+            "type": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
