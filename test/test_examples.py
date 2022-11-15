@@ -151,7 +151,10 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(1)
-        assert prediction[0] == {"visible": False, "__type__": "update"}
+        assert prediction[0] == {
+            "visible": False,
+            "__type__": "update",
+        }
 
     @pytest.mark.asyncio
     async def test_caching_with_mix_update(self):
@@ -163,7 +166,11 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(1)
-        assert prediction[0] == {"lines": 4, "value": "hello", "__type__": "update"}
+        assert prediction[0] == {
+            "lines": 4,
+            "value": "hello",
+            "__type__": "update",
+        }
 
     @pytest.mark.asyncio
     async def test_caching_with_dict(self):
@@ -171,15 +178,18 @@ class TestProcessExamples:
         out = gr.Label()
 
         io = gr.Interface(
-            lambda _: {text: gr.update(lines=4), out: "lion"},
+            lambda _: {text: gr.update(lines=4, interactive=False), out: "lion"},
             "textbox",
             [text, out],
             examples=["abc"],
             cache_examples=True,
         )
         prediction = await io.examples_handler.load_from_cache(0)
-        assert prediction == [{"lines": 4, "__type__": "update"}, {"label": "lion"}]
         assert not any(d["trigger"] == "fake_event" for d in io.config["dependencies"])
+        assert prediction == [
+            {"lines": 4, "__type__": "update", "mode": "static"},
+            {"label": "lion"},
+        ]
 
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
         def foo(a, b):
