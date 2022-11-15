@@ -191,7 +191,6 @@ class TestProcessExamples:
             {"label": "lion"},
         ]
 
-
     def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
         def foo(a, b):
             return a + b
