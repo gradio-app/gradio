@@ -328,7 +328,6 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            print("api_name", api_name)
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
                     if fn["api_name"] == api_name:
