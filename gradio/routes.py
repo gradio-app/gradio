@@ -108,7 +108,7 @@ class App(FastAPI):
 
         @app.get("/user")
         @app.get("/user/")
-        def get_current_user(request: Request) -> Optional[str]:
+        def get_current_user(request: fastapi.Request) -> Optional[str]:
             token = request.cookies.get("access-token")
             return app.tokens.get(token)
 
@@ -127,7 +127,7 @@ class App(FastAPI):
 
         @app.get("/token")
         @app.get("/token/")
-        def get_token(request: Request) -> dict:
+        def get_token(request: fastapi.Request) -> dict:
             token = request.cookies.get("access-token")
             return {"token": token, "user": app.tokens.get(token)}
 
@@ -159,7 +159,7 @@ class App(FastAPI):
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: Request, user: str = Depends(get_current_user)):
+        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
 
             if app.auth is None or not (user is None):
@@ -259,7 +259,7 @@ class App(FastAPI):
 
         async def run_predict(
             body: PredictBody,
-            request: Request,
+            request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
@@ -324,7 +324,7 @@ class App(FastAPI):
         async def predict(
             api_name: str,
             body: PredictBody,
-            request: Request,
+            request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
             if body.fn_index is None:
@@ -489,7 +489,7 @@ class Request:
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
 
-    def __init__(self, request_or_websocket: Request | WebSocket):
+    def __init__(self, request_or_websocket: fastapi.Request | WebSocket):
         self.request = request_or_websocket
 
     def __getattr__(self, name):

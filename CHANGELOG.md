@@ -4,13 +4,12 @@
 
 ### Accessing the Requests Object Directly
 
-You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `fastapi.Request`. Here's a simple example:
+You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `gr.Request`. Here's a simple example:
 
 ```py
 import gradio as gr
-import fastapi
 
-def echo(name, request: fastapi.Request):
+def echo(name, request: gr.Request):
     print("Request headers dictionary:", request.headers)
     print("IP address:", request.client.host)
     return name
