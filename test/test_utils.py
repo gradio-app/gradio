@@ -490,6 +490,7 @@ class TestSanitizeForCSV:
 
 
 class TestValidateURL:
+    @pytest.mark.flaky
     def test_valid_urls(self):
         assert validate_url("https://www.gradio.app")
         assert validate_url("http://gradio.dev")
