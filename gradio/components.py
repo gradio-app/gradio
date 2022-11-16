@@ -2771,36 +2771,37 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 @document("change", "style")
 class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
     """
-    Used to create an upload button, when cicked allows uploading the specified file type or generic files. The label (value) of the button can be used as an input or set via the output of a function.
-
-    Preprocessing: passes the uploaded file as a {file-object} (or {bytes}} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file.
+    Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set). The label is the text shown on the button, defaults to "Upload a File".
+    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
+    Demos:
     """
 
     def __init__(
         self,
         value: Optional[str | List[str] | Callable] = None,
         *,
-        variant: str = "secondary",
         visible: bool = True,
         elem_id: Optional[str] = None,
         type: str = "file",
         file_type: str = "file",
+        label: str = None,
         **kwargs,
     ):
         """
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
-            variant: 'primary' for main call-to-action, 'secondary' for a more subdued style
+            file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            label: Text to display on the button. Defaults to "Upload a File".
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
-        self.variant = variant
         self.type = type
         self.file_type = file_type
+        self.label = label
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2808,8 +2809,8 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
     def get_config(self):
         return {
             "value": self.value,
-            "variant": self.variant,
             "file_type": self.file_type,
+            "label": self.label,
             **Component.get_config(self),
         }
 

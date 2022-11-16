@@ -10,6 +10,7 @@
 	export let visible: boolean = true;
 	export let value: null | FileData | Array<FileData>;
 	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
+	export let label: string = "Upload a File";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -34,5 +35,5 @@
 	on:click
 	on:load={handle_upload}
 >
-	{"Upload a File"}
+	{$_(label)}
 </UploadButton>
