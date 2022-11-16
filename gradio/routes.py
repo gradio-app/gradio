@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 import fastapi
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -327,6 +327,7 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            print("api_name", api_name)
             if body.fn_index is None:
                 for i, fn in enumerate(app.blocks.dependencies):
                     if fn["api_name"] == api_name:

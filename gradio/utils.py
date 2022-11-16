@@ -32,7 +32,6 @@ from typing import (
 )
 
 import aiohttp
-import fastapi
 import fsspec.asyn
 import httpx
 import requests

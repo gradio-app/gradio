@@ -5,7 +5,6 @@ import copy
 import sys
 import time
 from collections import deque
-from itertools import islice
 from typing import Deque, Dict, List, Optional, Tuple
 
 import fastapi
@@ -249,14 +248,13 @@ class Queue:
         data = events[0].data
         token = events[0].token
         data.websocket = events[0].websocket
+        print("call_prediction")
 
         if batch:
-            for event in events:
-                if event.data:
-                    event.data.websocket = event.websocket
             data.data = list(zip(*[event.data.data for event in events if event.data]))
             data.batched = True
 
+        print(data)
         response = await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",

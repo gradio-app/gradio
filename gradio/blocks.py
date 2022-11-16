@@ -457,7 +457,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
     return predictions
 
 
-def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
+def add_request_to_inputs(fn: Callable, inputs: List[Any], request: routes.Request):
     """
     Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
     """
