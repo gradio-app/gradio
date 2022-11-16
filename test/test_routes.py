@@ -9,7 +9,6 @@ import starlette.routing
 import websockets
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.datastructures import Headers
 
 import gradio as gr
 from gradio import Blocks, Button, Interface, Number, Textbox, close_all, routes
