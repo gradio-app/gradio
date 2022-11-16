@@ -492,7 +492,7 @@ class TestSanitizeForCSV:
 class TestValidateURL:
     def test_valid_urls(self):
         assert validate_url("https://www.gradio.app")
-        assert validate_url("www.gradio.dev")
+        assert validate_url("http://gradio.dev")
         assert validate_url(
             "https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"
         )
