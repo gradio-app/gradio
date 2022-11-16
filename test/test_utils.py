@@ -488,16 +488,20 @@ class TestSanitizeForCSV:
         ) == [["'=abc", "def", "'gh,+ij"], ["abc", "'=def", "'+ghij"]]
         assert sanitize_list_for_csv([1, ["ab", "=de"]]) == [1, ["ab", "'=de"]]
 
+
 class TestValidateURL:
     def test_valid_urls(self):
         assert validate_url("https://www.gradio.app")
         assert validate_url("www.gradio.dev")
-        assert validate_url("https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg")
+        assert validate_url(
+            "https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"
+        )
 
     def test_invalid_urls(self):
-        assert not(validate_url("C:/Users/"))
-        assert not(validate_url("C:\\Users\\"))
-        assert not(validate_url("/home/user"))
+        assert not (validate_url("C:/Users/"))
+        assert not (validate_url("C:\\Users\\"))
+        assert not (validate_url("/home/user"))
+
 
 class TestAppendUniqueSuffix:
     def test_no_suffix(self):
