@@ -133,7 +133,7 @@ class App(FastAPI):
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: Request) -> int:
+        def app_id(request: fastapi.Request) -> int:
             return {"app_id": app.blocks.app_id}
 
         @app.post("/login")
