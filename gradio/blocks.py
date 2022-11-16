@@ -58,6 +58,7 @@ from gradio.utils import (
 
 set_documentation_group("blocks")
 
+
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
     import mlflow
@@ -457,7 +458,9 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
     return predictions
 
 
-def add_request_to_inputs(fn: Callable, inputs: List[Any], request: routes.Request):
+def add_request_to_inputs(
+    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
+):
     """
     Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
     """
@@ -832,7 +835,7 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        request: routes.Request | None = None,
+        request: routes.Request | List[routes.Request] | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
@@ -970,7 +973,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
-        request: routes.Request | None = None,
+        request: routes.Request | List[routes.Request] | None = None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,

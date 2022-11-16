@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import io
+import json
 import mimetypes
 import os
 import posixpath
@@ -259,7 +260,7 @@ class App(FastAPI):
 
         async def run_predict(
             body: PredictBody,
-            request: fastapi.Request,
+            request: Request,
             username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
@@ -353,9 +354,14 @@ class App(FastAPI):
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
-            result = await run_predict(
-                body=body, username=username, request=body.websocket or request
-            )
+            if body.request:
+                if body.batched:
+                    request = [Request(**req) for req in body.request]
+                else:
+                    request = Request(**body.request)
+            else:
+                request = Request(request)
+            result = await run_predict(body=body, username=username, request=request)
             return result
 
         @app.websocket("/queue/join")
@@ -473,13 +479,28 @@ def get_server_url_from_ws_url(ws_url: str):
 set_documentation_group("routes")
 
 
+class Obj:
+    """
+    Using a class to convert dictionaries into objects. Used by the `Request` class.
+    Credit: https://www.geeksforgeeks.org/convert-nested-python-dictionary-to-object/
+    """
+
+    def __init__(self, dict1):
+        self.__dict__.update(dict1)
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return str(self.__dict__)
+
+
 @document()
 class Request:
     """
-    A Gradio request object that can be used to access the request headers, cookies, and
-    other information about the request from within the prediction function. The class
-    is a thin wrapper around the fastapi.WebSocket or fastapi.Request classes, depending
-    on whether queueing is enabled or not.
+    A Gradio request object that can be used to access the request headers, cookies,
+    query parameters and other information about the request from within the prediction
+    function. The class is a thin wrapper around the fastapi.Request class.
 
     Example:
         import gradio as gr
@@ -490,11 +511,25 @@ class Request:
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
 
-    def __init__(self, request_or_websocket: fastapi.Request | WebSocket):
-        self.request = request_or_websocket
+    def __init__(self, request: fastapi.Request | None = None, **kwargs):
+        """
+        Can be instantiated with either a fastapi.Request or by manually passing in
+        attributes (needed for queueing).
+        """
+        self.request = request
+        self.kwargs = kwargs
+
+    def dict_to_obj(self, d):
+        if isinstance(d, dict):
+            return json.loads(json.dumps(d), object_hook=Obj)
+        else:
+            return d
 
     def __getattr__(self, name):
-        return getattr(self.request, name)
+        if self.request:
+            return self.dict_to_obj(getattr(self.request, name))
+        else:
+            return self.dict_to_obj(self.kwargs.get(name, None))
 
 
 @document()

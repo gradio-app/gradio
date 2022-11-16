@@ -5,7 +5,7 @@ import copy
 import sys
 import time
 from collections import deque
-from typing import Deque, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
@@ -244,17 +244,32 @@ class Queue:
             queue_eta=self.queue_duration,
         )
 
+    def get_request_params(self, websocket: fastapi.WebSocket) -> Dict[str, Any]:
+        return {
+            "url": str(websocket.url),
+            "headers": dict(websocket.headers),
+            "query_params": dict(websocket.query_params),
+            "path_params": dict(websocket.path_params),
+            "client": dict(host=websocket.client.host, port=websocket.client.port),
+        }
+
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
-        data.websocket = events[0].websocket
-        print("call_prediction")
+        try:
+            data.request = self.get_request_params(events[0].websocket)
+        except ValueError:
+            pass
 
         if batch:
             data.data = list(zip(*[event.data.data for event in events if event.data]))
+            data.request = [
+                self.get_request_params(event.websocket)
+                for event in events
+                if event.data
+            ]
             data.batched = True
 
-        print(data)
         response = await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",

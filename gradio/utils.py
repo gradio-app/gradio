@@ -399,16 +399,16 @@ def async_iteration(iterator):
 class AsyncRequest:
     """
     The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
-    Compared to making calls by using httpx directly, Request offers more flexibility and control over:
+    Compared to making calls by using httpx directly, AsyncRequest offers more flexibility and control over:
         (1) Includes response validation functionality both using validation models and functions.
         (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
         (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
         individually in the case of multiple asynchronous request calls and some of them failing.
-        (4) Provides HTTP request types with Request.Method Enum class for ease of usage
-    Request also offers some util functions such as has_exception, is_valid and status to inspect get detailed
+        (4) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
+    AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
     information about executed request call.
 
-    The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
+    The basic usage of AsyncRequest is as follows: create a AsyncRequest object with inputs(method, url etc.). Then use it
     with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
     Finally, call the get_validated_data function to get the response data.
 
