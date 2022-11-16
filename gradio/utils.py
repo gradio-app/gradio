@@ -488,7 +488,9 @@ class AsyncRequest:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await AsyncRequest.client.send(self._request)
+            self._response: httpx.Response = await AsyncRequest.client.send(
+                self._request
+            )
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -749,6 +751,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
 
     def is_special_typed_parameter(name):
         from gradio.routes import Request
+
         """Checks if parameter has a type hint designating it as a gr.Request"""
         return parameter_types.get(name, "") == Request
 

@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 import fastapi
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, status, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -471,6 +471,7 @@ def get_server_url_from_ws_url(ws_url: str):
 
 set_documentation_group("routes")
 
+
 @document()
 class Request:
     """
@@ -478,7 +479,7 @@ class Request:
     other information about the request from within the prediction function. The class
     is a thin wrapper around the fastapi.WebSocket or fastapi.Request classes, depending
     on whether queueing is enabled or not.
-    
+
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -487,9 +488,10 @@ class Request:
             return name
         io = gr.Interface(echo, "textbox", "textbox").launch()
     """
+
     def __init__(self, request_or_websocket: Request | WebSocket):
         self.request = request_or_websocket
-    
+
     def __getattr__(self, name):
         return getattr(self.request, name)
 
