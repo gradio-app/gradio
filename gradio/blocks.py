@@ -29,7 +29,6 @@ from typing import (
 import anyio
 import requests
 from anyio import CapacityLimiter
-from fastapi import Request
 
 from gradio import (
     components,
@@ -466,7 +465,7 @@ def add_request_to_inputs(fn: Callable, inputs: List[Any], request: Request):
     try:
         parameter_types = typing.get_type_hints(fn)
         for idx, param_name in enumerate(param_names):
-            if parameter_types.get(param_name, "") == Request:
+            if parameter_types.get(param_name, "") == routes.Request:
                 inputs.insert(idx, request)
     except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
         pass
@@ -833,7 +832,7 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        request: Request | None = None,
+        request: routes.Request | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
@@ -971,7 +970,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
-        request: Request | None = None,
+        request: routes.Request | None = None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,

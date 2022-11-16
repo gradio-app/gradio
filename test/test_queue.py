@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from gradio.queue import Event, Queue
-from gradio.utils import Request
+from gradio.utils import AsyncRequest
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -164,7 +164,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect.assert_called_once()
         queue.clean_event.assert_called_once()
         mock_request.assert_called_with(
-            method=Request.Method.POST,
+            method=AsyncRequest.Method.POST,
             url=f"{queue.server_path}reset",
             json={
                 "session_hash": mock_event.session_hash,
@@ -269,7 +269,7 @@ class TestQueueProcessEvents:
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
         mock_request.assert_called_with(
-            method=Request.Method.POST,
+            method=AsyncRequest.Method.POST,
             url=f"{queue.server_path}reset",
             json={
                 "session_hash": mock_event.session_hash,

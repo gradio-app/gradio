@@ -12,7 +12,7 @@ import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, run_coro_in_background, set_task_name
+from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
 
 class Estimation(BaseModel):
@@ -29,7 +29,6 @@ class Event:
     def __init__(
         self,
         websocket: fastapi.WebSocket,
-        request: fastapi.Request | None = None,
         fn_index: int | None = None,
     ):
         self.websocket = websocket
@@ -38,7 +37,6 @@ class Event:
         self.fn_index: int | None = fn_index
         self.session_hash: str = "foo"
         self.token: str | None = None
-        self.request = request
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -250,17 +248,17 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
-        data.original_request = events[0].request
+        data.websocket = events[0].websocket
 
         if batch:
             for event in events:
                 if event.data:
-                    event.data.original_request = event.request
+                    event.data.websocket = event.websocket
             data.data = list(zip(*[event.data.data for event in events if event.data]))
             data.batched = True
 
-        response = await Request(
-            method=Request.Method.POST,
+        response = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",
             json=dict(data),
             headers={"Authorization": f"Bearer {self.access_token}"},
@@ -370,8 +368,8 @@ class Queue:
             return None
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
-        await Request(
-            method=Request.Method.POST,
+        await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url=f"{self.server_path}reset",
             json={
                 "session_hash": session_hash,

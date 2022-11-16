@@ -397,9 +397,9 @@ def async_iteration(iterator):
         raise StopAsyncIteration()
 
 
-class Request:
+class AsyncRequest:
     """
-    The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
+    The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
     Compared to making calls by using httpx directly, Request offers more flexibility and control over:
         (1) Includes response validation functionality both using validation models and functions.
         (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
@@ -468,13 +468,13 @@ class Request:
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
-    def __await__(self) -> Generator[None, Any, "Request"]:
+    def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """
         return self.__run().__await__()
 
-    async def __run(self) -> Request:
+    async def __run(self) -> AsyncRequest:
         """
         Manage the request call lifecycle.
         Execute the request by sending it through the client, then check its status.
@@ -488,7 +488,7 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await Request.client.send(self._request)
+            self._response: httpx.Response = await AsyncRequest.client.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -505,7 +505,7 @@ class Request:
         return self
 
     @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> Request:
+    def _create_request(method: Method, url: str, **kwargs) -> AsyncRequest:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -748,8 +748,9 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     """
 
     def is_special_typed_parameter(name):
-        """Checks if parameter has a type hint designating it as a fastapi.Request"""
-        return parameter_types.get(name, "") == fastapi.Request
+        from gradio.routes import Request
+        """Checks if parameter has a type hint designating it as a gr.Request"""
+        return parameter_types.get(name, "") == Request
 
     signature = inspect.signature(fn)
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}

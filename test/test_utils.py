@@ -18,7 +18,7 @@ from gradio.test_data.blocks_configs import (
     XRAY_CONFIG_WITH_MISTAKE,
 )
 from gradio.utils import (
-    Request,
+    AsyncRequest,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
@@ -262,8 +262,8 @@ async def client():
 class TestRequest:
     @pytest.mark.asyncio
     async def test_get(self):
-        client_response: Request = await Request(
-            method=Request.Method.GET,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.GET,
             url="http://headers.jsontest.com/",
         )
         validated_data = client_response.get_validated_data()
@@ -272,8 +272,8 @@ class TestRequest:
 
     @pytest.mark.asyncio
     async def test_post(self):
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
         )
@@ -290,8 +290,8 @@ class TestRequest:
             id: str
             createdAt: str
 
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
             validation_model=TestModel,
@@ -304,8 +304,8 @@ class TestRequest:
             name: Literal["John"] = "John"
             job: str
 
-        client_response: Request = await Request(
-            method=Request.Method.POST,
+        client_response: AsyncRequest = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url="https://reqres.in/api/users",
             json={"name": "morpheus", "job": "leader"},
             validation_model=TestModel,
@@ -329,8 +329,8 @@ async def test_get(respx_mock):
         make_mock_response({"Host": "headers.jsontest.com"})
     )
 
-    client_response: Request = await Request(
-        method=Request.Method.GET,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
     )
     validated_data = client_response.get_validated_data()
@@ -344,8 +344,8 @@ async def test_post(respx_mock):
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json=payload,
     )
@@ -374,8 +374,8 @@ async def test_validate_with_model(respx_mock):
         id: str
         createdAt: str
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_model=TestModel,
@@ -392,8 +392,8 @@ async def test_validate_and_fail_with_model(respx_mock):
     payload = {"name": "morpheus", "job": "leader"}
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response(payload))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json=payload,
         validation_model=TestModel,
@@ -404,7 +404,7 @@ async def test_validate_and_fail_with_model(respx_mock):
     assert isinstance(client_response.exception, Exception)
 
 
-@mock.patch("gradio.utils.Request._validate_response_data")
+@mock.patch("gradio.utils.AsyncRequest._validate_response_data")
 @pytest.mark.asyncio
 async def test_exception_type(validate_response_data, respx_mock):
     class ResponseValidationException(Exception):
@@ -414,8 +414,8 @@ async def test_exception_type(validate_response_data, respx_mock):
 
     respx_mock.get(MOCK_REQUEST_URL).mock(Response(201))
 
-    client_response: Request = await Request(
-        method=Request.Method.GET,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.GET,
         url=MOCK_REQUEST_URL,
         exception_type=ResponseValidationException,
     )
@@ -434,8 +434,8 @@ async def test_validate_with_function(respx_mock):
             return response
         raise Exception
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_function=has_name,
@@ -456,8 +456,8 @@ async def test_validate_and_fail_with_function(respx_mock):
 
     respx_mock.post(MOCK_REQUEST_URL).mock(make_mock_response({"name": "morpheus"}))
 
-    client_response: Request = await Request(
-        method=Request.Method.POST,
+    client_response: AsyncRequest = await AsyncRequest(
+        method=AsyncRequest.Method.POST,
         url=MOCK_REQUEST_URL,
         json={"name": "morpheus", "job": "leader"},
         validation_function=has_name,

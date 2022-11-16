@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 import fastapi
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -353,14 +353,13 @@ class App(FastAPI):
             if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
             result = await run_predict(
-                body=body, username=username, request=body.original_request or request
+                body=body, username=username, request=body.websocket or request
             )
             return result
 
         @app.websocket("/queue/join")
         async def join_queue(
             websocket: WebSocket,
-            request: Request,
             token: str = Depends(ws_login_check),
         ):
             if app.auth is not None and token is None:
@@ -370,7 +369,7 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket, request)
+            event = Event(websocket)
             # set the token into Event to allow using the same token for call_prediction
             event.token = token
 
@@ -471,6 +470,28 @@ def get_server_url_from_ws_url(ws_url: str):
 
 
 set_documentation_group("routes")
+
+@document()
+class Request:
+    """
+    A Gradio request object that can be used to access the request headers, cookies, and
+    other information about the request from within the prediction function. The class
+    is a thin wrapper around the fastapi.WebSocket or fastapi.Request classes, depending
+    on whether queueing is enabled or not.
+    
+    Example:
+        import gradio as gr
+        def echo(name, request: gr.Request):
+            print("Request headers dictionary:", request.headers)
+            print("IP address:", request.client.host)
+            return name
+        io = gr.Interface(echo, "textbox", "textbox").launch()
+    """
+    def __init__(self, request_or_websocket: Request | WebSocket):
+        self.request = request_or_websocket
+    
+    def __getattr__(self, name):
+        return getattr(self.request, name)
 
 
 @document()
