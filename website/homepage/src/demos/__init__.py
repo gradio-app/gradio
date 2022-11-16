@@ -86,6 +86,10 @@ demos_by_category = [
                 "dir": "live_dashboard"
             },
             {
+                "name": "Interactive Map of AirBnB Locations",
+                "dir": "map_airbnb"
+            },
+            {
                 "name": "Outbreak Forecast", 
                 "dir": "outbreak_forecast", 
             },
