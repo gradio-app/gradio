@@ -18,8 +18,6 @@
 	export let show_label: boolean;
 	export let file_count: string;
 	export let root_url: null | string;
-	export let variant: string = "panel";
-	export let file_type: string = "file";
 
 	export let loading_status: LoadingStatus;
 
@@ -44,8 +42,6 @@
 			{show_label}
 			value={_value}
 			{file_count}
-			{variant}
-			{file_type}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change
