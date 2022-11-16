@@ -20,7 +20,6 @@
 	export let root_url: null | string;
 	export let variant: string = "panel";
 	export let file_type: string = "file";
-	
 
 	export let loading_status: LoadingStatus;
 
@@ -57,6 +56,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {label} {show_label}/>
+		<File value={_value} {label} {show_label} />
 	{/if}
 </Block>
