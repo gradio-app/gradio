@@ -2086,6 +2086,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
+        file_type: str = "file",
         type: str = "file",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2098,6 +2099,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
@@ -2107,6 +2109,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         """
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
+        self.file_type = file_type
         valid_types = ["file", "binary"]
         if type not in valid_types:
             raise ValueError(
@@ -2128,6 +2131,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     def get_config(self):
         return {
             "file_count": self.file_count,
+            "file_type": self.file_type,
             "value": self.value,
             **IOComponent.get_config(self),
         }
@@ -2761,10 +2765,10 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         return IOComponent.style(self, **kwargs)
 
 
-@document("change", "style")
-class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
+@document("click", "style")
+class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
     """
-    Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set). The label is the text shown on the button, defaults to "Upload a File".
+    Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
     Examples-format: a {str} path to a local file that populates the component.
@@ -2773,18 +2777,17 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
 
     def __init__(
         self,
-        value: Optional[str | List[str] | Callable] = None,
+        value: str = "Upload a File",
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
         type: str = "file",
         file_type: str = "file",
-        label: str = None,
         **kwargs,
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default text for the button to display.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             label: Text to display on the button. Defaults to "Upload a File".
@@ -2794,7 +2797,6 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         self.temp_dir = tempfile.mkdtemp()
         self.type = type
         self.file_type = file_type
-        self.label = label
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2803,13 +2805,12 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
         return {
             "value": self.value,
             "file_type": self.file_type,
-            "label": self.label,
             **Component.get_config(self),
         }
 
     @staticmethod
     def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
+        value: Optional[str] = _Keywords.NO_VALUE,
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
@@ -2858,23 +2859,6 @@ class UploadButton(Changeable, Uploadable, IOComponent, SimpleSerializable):
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
-
-    def postprocess(self, y: str) -> Dict:
-        """
-        Parameters:
-            y: file path
-        Returns:
-            JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
-        """
-        if y is None:
-            return None
-        return {
-            "orig_name": os.path.basename(y),
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir).name,
-            "size": os.path.getsize(y),
-            "data": None,
-            "is_file": True,
-        }
 
     def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
         serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
