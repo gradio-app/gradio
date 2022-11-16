@@ -45,17 +45,6 @@ class TestQueueMethods:
         assert queue.get_active_worker_count() == 0
 
     @pytest.mark.asyncio
-    async def test_dont_gather_data_while_broadcasting(self, queue: Queue):
-        queue.broadcast_live_estimations = AsyncMock()
-        queue.gather_data_for_first_ranks = AsyncMock()
-        await queue.broadcast_live_estimations()
-
-        # Should not gather data while broadcasting estimations
-        # Have seen weird race conditions come up in very viral
-        # spaces
-        queue.gather_data_for_first_ranks.assert_not_called()
-
-    @pytest.mark.asyncio
     async def test_stop_resume(self, queue: Queue):
         await queue.start()
         queue.close()
@@ -106,21 +95,6 @@ class TestQueueMethods:
         queue.send_message.called = False
         assert await queue.gather_event_data(mock_event)
         assert not (queue.send_message.called)
-
-    @pytest.mark.asyncio
-    async def test_gather_data_for_first_ranks(self, queue: Queue, mock_event: Event):
-        websocket = MagicMock()
-        mock_event2 = Event(websocket=websocket, fn_index=0)
-        queue.send_message = AsyncMock()
-        queue.get_message = AsyncMock()
-        queue.send_message.return_value = True
-        queue.get_message.return_value = {"data": ["test"], "fn": 0}
-
-        queue.push(mock_event)
-        queue.push(mock_event2)
-        await queue.gather_data_for_first_ranks()
-        assert mock_event.data is not None
-        assert mock_event2.data is None
 
 
 class TestQueueEstimation:

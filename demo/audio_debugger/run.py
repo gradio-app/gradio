@@ -21,4 +21,5 @@ with gr.Blocks() as demo:
     demo.load(get_ip, None, ip)
         
 if __name__ == "__main__":
+    demo.queue()
     demo.launch()

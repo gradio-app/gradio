@@ -26,13 +26,19 @@ class Estimation(BaseModel):
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, fn_index: int | None = None):
+    def __init__(
+        self,
+        websocket: fastapi.WebSocket,
+        request: fastapi.Request | None = None,
+        fn_index: int | None = None,
+    ):
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
         self.fn_index: int | None = fn_index
         self.session_hash: str = "foo"
         self.token: str | None = None
+        self.request = request
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -157,18 +163,6 @@ class Queue:
         if self.live_updates:
             await self.broadcast_estimations()
 
-    async def gather_data_for_first_ranks(self) -> None:
-        """
-        Gather data for the first x events.
-        """
-        # Send all messages concurrently
-        await asyncio.gather(
-            *[
-                self.gather_event_data(event)
-                for event in islice(self.event_queue, self.data_gathering_start)
-            ]
-        )
-
     async def gather_event_data(self, event: Event) -> bool:
         """
         Gather data for the event
@@ -256,9 +250,15 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
+        data.original_request = events[0].request
+
         if batch:
+            for event in events:
+                if event.data:
+                    event.data.original_request = event.request
             data.data = list(zip(*[event.data.data for event in events if event.data]))
             data.batched = True
+
         response = await Request(
             method=Request.Method.POST,
             url=f"{self.server_path}api/predict",

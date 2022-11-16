@@ -26,7 +26,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from starlette.responses import RedirectResponse
-from starlette.websockets import WebSocket, WebSocketState
+from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
@@ -352,12 +352,16 @@ class App(FastAPI):
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
-            result = await run_predict(body=body, username=username, request=request)
+            result = await run_predict(
+                body=body, username=username, request=body.original_request or request
+            )
             return result
 
         @app.websocket("/queue/join")
         async def join_queue(
-            websocket: WebSocket, token: str = Depends(ws_login_check)
+            websocket: WebSocket,
+            request: Request,
+            token: str = Depends(ws_login_check),
         ):
             if app.auth is not None and token is None:
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
@@ -366,7 +370,7 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket)
+            event = Event(websocket, request)
             # set the token into Event to allow using the same token for call_prediction
             event.token = token
 
