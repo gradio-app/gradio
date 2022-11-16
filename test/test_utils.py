@@ -386,7 +386,7 @@ async def test_validate_with_model(respx_mock):
 @pytest.mark.asyncio
 async def test_validate_and_fail_with_model(respx_mock):
     class TestModel(BaseModel):
-        name: Literal[str] = "John"
+        name: Literal["John"]
         job: str
 
     payload = {"name": "morpheus", "job": "leader"}

@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 import starlette.routing
 import websockets
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.datastructures import Headers
 
@@ -314,8 +314,8 @@ class TestDevMode:
 
 class TestPassingRequest:
     def test_request_included_with_regular_function(self):
-        def identity(name, request: Request):
-            assert isinstance(request.headers, Headers)
+        def identity(name, request: gr.Request):
+            assert isinstance(request.client.host, str)
             return name
 
         app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
@@ -327,28 +327,6 @@ class TestPassingRequest:
         assert response.status_code == 200
         output = dict(response.json())
         assert output["data"] == ["test"]
-
-    def test_request_included_with_batch_function(self):
-        def batch_fn(request: Request, x):
-            assert isinstance(request.headers, Headers)
-            results = []
-            for word in x:
-                results.append("Hello " + word)
-            return (results,)
-
-        with gr.Blocks() as demo:
-            text = gr.Textbox()
-            btn = gr.Button()
-            btn.click(batch_fn, inputs=text, outputs=text, batch=True, api_name="pred")
-
-        demo.queue()
-        app, _, _ = demo.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        response = client.post(
-            "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
-        )
-        output = dict(response.json())
-        assert output["data"] == [["Hello test", "Hello test2"]]
 
 
 def test_predict_route_is_blocked_if_api_open_false():
