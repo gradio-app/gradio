@@ -15,7 +15,7 @@ from gradio import components
 class Textbox(components.Textbox):
     def __init__(
         self,
-        type: str = "auto",
+        type: str = "text",
         label: Optional[str] = None,
     ):
         warnings.warn(
