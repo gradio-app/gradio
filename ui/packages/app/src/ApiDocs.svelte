@@ -317,13 +317,13 @@
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
   "data": [{#each dependency_inputs[dependency_index] as component_value, component_index}
-									{represent_value(
-										component_value,
-										instance_map[
-											dependencies[dependency_index].inputs[component_index]
-										].documentation?.type,
-										"py"
-									)},{/each}
+	{represent_value(
+		component_value,
+		instance_map[
+			dependencies[dependency_index].inputs[component_index]
+		].documentation?.type,
+		"py"
+	)},{/each}
 ]&rbrace;).json()
 
 data = response["data"]</pre>
@@ -333,13 +333,13 @@ data = response["data"]</pre>
   headers: &lbrace; "Content-Type": "application/json" &rbrace;,
   body: JSON.stringify(&lbrace;
     data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
-									{represent_value(
-										component_value,
-										instance_map[
-											dependencies[dependency_index].inputs[component_index]
-										].documentation?.type,
-										"js"
-									)},{/each}
+  	  {represent_value(
+		component_value,
+		instance_map[
+			dependencies[dependency_index].inputs[component_index]
+		].documentation?.type,
+		"js"
+	  )},{/each}
 	]
   &rbrace;)&rbrace;)
 .then(r => r.json())
