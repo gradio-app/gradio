@@ -346,9 +346,9 @@ data = response["data"]</pre>
 									)},{/each}
 	]
   &rbrace;)&rbrace;)
-.then(r => r.json())
+.then(r =&gt; r.json())
 .then(
-  r => &lbrace;
+  r =&gt; &lbrace;
     let data = r.data;
   &rbrace;
 )</pre>
