@@ -22,10 +22,11 @@ Let's say we have the following demo that translates english text to german text
 
 $code_english_translator
 
-I already went ahead and hosted it in Hugging Face spaces at [freddyaboulton/english-to-german](https://huggingface.co/spaces/freddyaboulton/english-to-german).
+I already went ahead and hosted it in Hugging Face spaces at [gradio/english_translator](https://huggingface.co/spaces/gradio/english_translator).
+
 You can see the demo below as well:
 
-<gradio-app space="gradio/english-to-german"> </gradio-app>
+$demo_english_translator
 
 Now, let's say you have an app that generates english text, but you wanted to additionally generate german text.
 
@@ -48,7 +49,7 @@ Note that the variable `english_translator` is my english to german app, but its
 
 $code_generate_english_german
 
-<gradio-app space="gradio/generate-english-german"> </gradio-app>
+$demo_generate_english_german
 
 ## How to control which function in the app to use
 
