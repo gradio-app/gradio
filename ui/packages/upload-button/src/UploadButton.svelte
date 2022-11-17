@@ -8,6 +8,7 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let size: "sm" | "lg" = "lg";
+	export let file_count: string;
 	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
 	export let include_file_metadata = true;
 
@@ -25,7 +26,9 @@
 		if (!files.length || !window.FileReader) {
 			return;
 		}
-		_files = [files[0]];
+		if (file_count === "single") {
+			_files = [files[0]];
+		}
 		var all_file_data: Array<FileData | string> = [];
 		_files.forEach((f, i) => {
 			let ReaderObj = new FileReader();
@@ -41,7 +44,10 @@
 				if (
 					all_file_data.filter((x) => x !== undefined).length === files.length
 				) {
-					dispatch("load", all_file_data[0]);
+					dispatch(
+						"load",
+						file_count == "single" ? all_file_data[0] : all_file_data
+					);
 				}
 			};
 		});
@@ -58,6 +64,7 @@
 <input
 	class="hidden-upload hidden"
 	accept={file_type + "/*"}
+	multiple={file_count === "multiple" || undefined}
 	type="file"
 	bind:this={hidden_upload}
 	on:change={loadFilesFromUpload}

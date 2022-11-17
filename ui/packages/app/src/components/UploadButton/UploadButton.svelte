@@ -8,12 +8,15 @@
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: string;
+	export let value: null | FileData | Array<FileData>;
+	export let file_count: string;
 	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
+	export let button_label: string = "Upload a File";
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
+		value = detail;
 		await tick();
-		dispatch("change");
+		dispatch("change", value);
 		dispatch("upload", detail);
 	}
 
@@ -29,9 +32,10 @@
 	{elem_id}
 	{style}
 	{visible}
+	{file_count}
 	{file_type}
 	on:click
 	on:load={handle_upload}
 >
-	{$_(value)}
+	{$_(button_label)}
 </UploadButton>

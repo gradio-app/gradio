@@ -2765,7 +2765,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         return IOComponent.style(self, **kwargs)
 
 
-@document("click", "style")
+@document("click", "upload", "style")
 class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
@@ -2777,26 +2777,31 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
 
     def __init__(
         self,
-        value: str = "Upload a File",
+        value: Optional[str | List[str] | Callable] = None,
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
         type: str = "file",
+        file_count: str = "single",
         file_type: str = "file",
+        button_label: str = "Upload a File",
         **kwargs,
     ):
         """
         Parameters:
             value: Default text for the button to display.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
-            label: Text to display on the button. Defaults to "Upload a File".
+            button_label: Text to display on the button. Defaults to "Upload a File".
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
         self.type = type
+        self.file_count = file_count
         self.file_type = file_type
+        self.button_label = button_label
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2804,7 +2809,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "file_count": self.file_count,
             "file_type": self.file_type,
+            "button_label": self.button_label,
             **Component.get_config(self),
         }
 
@@ -2832,30 +2839,44 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
         if x is None:
             return None
 
-        file_name, data, is_file = (
-            x["name"],
-            x["data"],
-            x.get("is_file", False),
-        )
-        if self.type == "file":
-            if is_file:
-                file = processing_utils.create_tmp_copy_of_file(file_name)
-                file.orig_name = file_name
-            else:
-                file = processing_utils.decode_base64_to_file(data, file_path=file_name)
-                file.orig_name = file_name
-            return file
-        elif self.type == "bytes":
-            if is_file:
-                with open(file_name, "rb") as file_data:
-                    return file_data.read()
-            return processing_utils.decode_base64_to_binary(data)[0]
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'file', 'bytes'."
+        def process_single_file(f):
+            file_name, data, is_file = (
+                f["name"],
+                f["data"],
+                f.get("is_file", False),
             )
+            if self.type == "file":
+                if is_file:
+                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file.orig_name = file_name
+                else:
+                    file = processing_utils.decode_base64_to_file(
+                        data, file_path=file_name
+                    )
+                    file.orig_name = file_name
+                return file
+            elif self.type == "bytes":
+                if is_file:
+                    with open(file_name, "rb") as file_data:
+                        return file_data.read()
+                return processing_utils.decode_base64_to_binary(data)[0]
+            else:
+                raise ValueError(
+                    "Unknown type: "
+                    + str(self.type)
+                    + ". Please choose from: 'file', 'bytes'."
+                )
+
+        if self.file_count == "single":
+            if isinstance(x, list):
+                return process_single_file(x[0])
+            else:
+                return process_single_file(x)
+        else:
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
