@@ -3,12 +3,10 @@
 	import type { ComponentMeta, Dependency } from "./components/types";
 	import { post_data } from "./api";
 	import Loader from "./components/StatusTracker/Loader.svelte";
-	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
 	import clear from "/static/img/clear.svg";
 	import python from "/static/img/python.svg";
 	import javascript from "/static/img/javascript.svg";
-	import { json } from "svelte-i18n";
 
 	const dispatch = createEventDispatcher();
 
@@ -94,6 +92,8 @@
 					);
 				}
 			);
+		} else {
+			dependency_failures[index] = new Array(dependency_failures[index].length).fill(true);
 		}
 	};
 
