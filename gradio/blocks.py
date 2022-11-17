@@ -41,10 +41,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import (
-    document,
-    set_documentation_group,
-)
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.utils import (
     check_function_inputs_match,

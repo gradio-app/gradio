@@ -36,8 +36,7 @@ export interface Dependency {
 export interface Documentation {
 	type?: string;
 	description?: string;
-	example_data?: string,
-
+	example_data?: string;
 }
 
 export interface LayoutNode {

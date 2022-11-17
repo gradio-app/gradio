@@ -50,8 +50,8 @@
 	let dependency_outputs: any[][] = dependencies.map(
 		(dependency) => new Array(dependency.outputs.length)
 	);
-	let dependency_failures: boolean[][] = dependencies.map(
-		(dependency) => new Array(dependency.inputs.length).fill(false)
+	let dependency_failures: boolean[][] = dependencies.map((dependency) =>
+		new Array(dependency.inputs.length).fill(false)
 	);
 
 	const run = async (index: number) => {
@@ -71,20 +71,37 @@
 			isRunning = false;
 			return;
 		}
-		let [response, status_code] = await post_data(`${root}run/${dependency.api_name}`, {
-			data: inputs
-		});
+		let [response, status_code] = await post_data(
+			`${root}run/${dependency.api_name}`,
+			{
+				data: inputs
+			}
+		);
 		isRunning = false;
 		if (status_code == 200) {
-			dependency_outputs[index] = response.data.map((output_val: any, i: number) => {
-				let component = instance_map[dependency.outputs[i]];
-				console.log(component.documentation?.type, output_val, represent_value(output_val, component.documentation?.type, "js"))
-				return represent_value(output_val, component.documentation?.type, "js")
-			});
+			dependency_outputs[index] = response.data.map(
+				(output_val: any, i: number) => {
+					let component = instance_map[dependency.outputs[i]];
+					console.log(
+						component.documentation?.type,
+						output_val,
+						represent_value(output_val, component.documentation?.type, "js")
+					);
+					return represent_value(
+						output_val,
+						component.documentation?.type,
+						"js"
+					);
+				}
+			);
 		}
 	};
 
-	const represent_value = (value: string, type: string | undefined, lang : "js" | "py" | null = null) => {
+	const represent_value = (
+		value: string,
+		type: string | undefined,
+		lang: "js" | "py" | null = null
+	) => {
 		if (type === undefined) {
 			return lang === "py" ? "None" : null;
 		}
@@ -94,13 +111,14 @@
 			return lang === null ? parseFloat(value) : value;
 		} else if (type === "boolean") {
 			if (lang === "py") {
-				return value === "true" ? "True" : "False"; 
+				return value === "true" ? "True" : "False";
 			} else if (lang === "js") {
 				return value;
 			} else {
 				return value === "true";
 			}
-		} else { // assume object type
+		} else {
+			// assume object type
 			if (lang === null) {
 				return value === "" ? null : JSON.parse(value);
 			} else if (typeof value === "string") {
@@ -112,7 +130,7 @@
 				return JSON.stringify(value);
 			}
 		}
-	}
+	};
 </script>
 
 {#if dependencies.some((d) => d.api_name)}
@@ -186,7 +204,7 @@
 								]}
 							/>
 							{#if dependency_failures[dependency_index][component_index]}
-									<span class="text-red-600">ERROR</span>
+								<span class="text-red-600">ERROR</span>
 							{/if}
 							<span class="text-gray-500">
 								: {instance_map[component_id].documentation?.type},</span
@@ -229,7 +247,7 @@
 							&#123;<br />
 							&nbsp;&nbsp;"data": [<br />
 							{#each dependency.outputs as component_id, component_index}
-							    &nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+								&nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
 									<input
 										disabled
 										class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
@@ -299,9 +317,13 @@
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
   "data": [{#each dependency_inputs[dependency_index] as component_value, component_index}
-    {represent_value(component_value, instance_map[
-			dependencies[dependency_index].inputs[component_index]
-		].documentation?.type, "py")},{/each}
+									{represent_value(
+										component_value,
+										instance_map[
+											dependencies[dependency_index].inputs[component_index]
+										].documentation?.type,
+										"py"
+									)},{/each}
 ]&rbrace;).json()
 
 data = response["data"]</pre>
@@ -311,9 +333,13 @@ data = response["data"]</pre>
   headers: &lbrace; "Content-Type": "application/json" &rbrace;,
   body: JSON.stringify(&lbrace;
     data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
-	  {represent_value(component_value, instance_map[
-		dependencies[dependency_index].inputs[component_index]
-	].documentation?.type, "js")},{/each}
+									{represent_value(
+										component_value,
+										instance_map[
+											dependencies[dependency_index].inputs[component_index]
+										].documentation?.type,
+										"js"
+									)},{/each}
 	]
   &rbrace;)&rbrace;)
 .then(r => r.json())
@@ -343,7 +369,6 @@ data = response["data"]</pre>
 			>
 				<img src={clear} alt="" class="w-3 dark:invert" />
 			</button>
-
 		</h2>
 		<div>
 			To expose an API endpoint of your app in this page, set the <span
@@ -358,11 +383,15 @@ data = response["data"]</pre>
 				class="text-orange-500 hover:text-orange-600 underline"
 				>API Page guide</a
 			>. To hide the API documentation button and this page, set
-			<span class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono">
+			<span
+				class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono"
+			>
 				show_api=False
 			</span>
 			in the
-			<span class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono">
+			<span
+				class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono"
+			>
 				Blocks.launch()</span
 			> method.
 		</div>
