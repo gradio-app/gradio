@@ -274,6 +274,15 @@ class TestLoadInterfaceWithExamples:
             ]
         )
 
+    def test_interface_with_examples(self):
+        # This demo has the "fake_event" correctly removed
+        demo = gr.Interface.load("spaces/freddyaboulton/calculator")
+        assert demo(2, "add", 3) == 5
+
+        # This demo still has the "fake_event". both should work
+        demo = gr.Interface.load("spaces/abidlabs/test-calculator-2")
+        assert demo(2, "add", 4) == 6
+
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
     readme = """
