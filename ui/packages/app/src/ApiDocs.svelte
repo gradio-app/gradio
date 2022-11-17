@@ -38,9 +38,11 @@
 
 	let dependency_inputs = dependencies.map((dependency) =>
 		dependency.inputs.map((_id) => {
-			let default_data = instance_map[_id].documentation?.example_input_data;
+			let default_data = instance_map[_id].documentation?.example_data;
 			if (default_data === undefined) {
 				default_data = "";
+			} else if (typeof default_data === "object") {
+				default_data = JSON.stringify(default_data);
 			}
 			return default_data;
 		})
@@ -48,23 +50,69 @@
 	let dependency_outputs: any[][] = dependencies.map(
 		(dependency) => new Array(dependency.outputs.length)
 	);
+	let dependency_failures: boolean[][] = dependencies.map(
+		(dependency) => new Array(dependency.inputs.length).fill(false)
+	);
+
 	const run = async (index: number) => {
 		isRunning = true;
 		let dependency = dependencies[index];
-		let inputs = dependency_inputs[index].map((input_val, i) => {
-			let component = instance_map[dependency.inputs[i]];
-			if (component.documentation?.entered_input_preprocess) {
-				input_val =
-					component.documentation?.entered_input_preprocess(input_val);
-			}
-			return input_val;
-		});
-		let response = await post_data(`${root}run/${dependency.api_name}`, {
+		let attempted_component_index = 0;
+		try {
+			var inputs = dependency_inputs[index].map((input_val, i) => {
+				attempted_component_index = i;
+				let component = instance_map[dependency.inputs[i]];
+				input_val = represent_value(input_val, component.documentation?.type);
+				dependency_failures[index][attempted_component_index] = false;
+				return input_val;
+			});
+		} catch (err) {
+			dependency_failures[index][attempted_component_index] = true;
+			isRunning = false;
+			return;
+		}
+		let [response, status_code] = await post_data(`${root}run/${dependency.api_name}`, {
 			data: inputs
 		});
 		isRunning = false;
-		dependency_outputs[index] = response[0].data;
+		if (status_code == 200) {
+			dependency_outputs[index] = response.data.map((output_val: any, i: number) => {
+				let component = instance_map[dependency.outputs[i]];
+				console.log(component.documentation?.type, output_val, represent_value(output_val, component.documentation?.type, "js"))
+				return represent_value(output_val, component.documentation?.type, "js")
+			});
+		}
 	};
+
+	const represent_value = (value: string, type: string | undefined, lang : "js" | "py" | null = null) => {
+		if (type === undefined) {
+			return lang === "py" ? "None" : null;
+		}
+		if (type === "string") {
+			return lang === null ? value : '"' + value + '"';
+		} else if (type === "number") {
+			return lang === null ? parseFloat(value) : value;
+		} else if (type === "boolean") {
+			if (lang === "py") {
+				return value === "true" ? "True" : "False"; 
+			} else if (lang === "js") {
+				return value;
+			} else {
+				return value === "true";
+			}
+		} else { // assume object type
+			if (lang === null) {
+				return value === "" ? null : JSON.parse(value);
+			} else if (typeof value === "string") {
+				if (value === "") {
+					return lang === "py" ? "None" : "null";
+				}
+				return value;
+			} else {
+				return JSON.stringify(value);
+			}
+		}
+	}
 </script>
 
 {#if dependencies.some((d) => d.api_name)}
@@ -73,13 +121,13 @@
 	>
 		<img src={api_logo} alt="" class="w-3.5 md:w-4 mr-1 md:mr-2" />
 		API documentation for&nbsp;
-		<div class=" text-orange-500">
+		<div class="text-orange-500">
 			{root}
 		</div>
 		<button
 			class="absolute right-6 top-5 md:top-6"
 			on:click={() => dispatch("close")}
-			><img src={clear} alt="" class="w-3" /></button
+			><img src={clear} alt="" class="w-3 dark:invert" /></button
 		>
 	</h2>
 	<div class="flex flex-col gap-6">
@@ -88,7 +136,7 @@
 				<div
 					class="bg-gradient-to-b from-orange-200/5 via-transparent to-transparent p-6 rounded"
 				>
-					<h3 class="text-lg text-black font-bold mb-1.5">
+					<h3 class="text-lg font-bold mb-1.5">
 						<span
 							class="bg-orange-100 px-1 rounded text-sm border border-orange-200 mr-2 font-semibold text-orange-600 dark:bg-orange-400 dark:text-orange-900 dark:border-orange-600"
 							>POST</span
@@ -137,12 +185,15 @@
 									component_index
 								]}
 							/>
+							{#if dependency_failures[dependency_index][component_index]}
+									<span class="text-red-600">ERROR</span>
+							{/if}
 							<span class="text-gray-500">
-								: {instance_map[component_id].documentation?.input_type},</span
+								: {instance_map[component_id].documentation?.type},</span
 							>
 							<span class="text-gray-400"
 								>// represents {instance_map[component_id].documentation
-									?.input_description} of
+									?.description} of
 								{((label) => {
 									return label ? "'" + label + "'" : "the";
 								})(instance_map[component_id].props.label)}
@@ -175,12 +226,13 @@
 						class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
 					>
 						<div class={isRunning ? "hidden" : ""}>
-							"data": [<br />
+							&#123;<br />
+							&nbsp;&nbsp;"data": [<br />
 							{#each dependency.outputs as component_id, component_index}
-								&nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+							    &nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
 									<input
 										disabled
-										class="text-inherit bg-inherit bg-gray-50 dark:bg-gray-600 border-none w-64 px-1 py-0.5 my-0.5 text-sm"
+										class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
 										type="text"
 										bind:value={dependency_outputs[dependency_index][
 											component_index
@@ -188,11 +240,11 @@
 									/> :
 								{/if}
 								<span class="text-gray-500">
-									{instance_map[component_id].documentation?.input_type},
+									{instance_map[component_id].documentation?.type},
 								</span>
 								<span class="text-gray-400"
 									>// represents {instance_map[component_id].documentation
-										?.input_description} of
+										?.description} of
 									{((label) => {
 										return label ? "'" + label + "'" : "the";
 									})(instance_map[component_id].props.label)}
@@ -203,11 +255,12 @@
 								</span>
 								<br />
 							{/each}
-							],<br />
-							"duration": (float)
+							&nbsp;&nbsp;&nbsp;&nbsp;],<br />
+							&nbsp;&nbsp;&nbsp;&nbsp;"duration": (float)
 							<span class="text-gray-400">
 								// number of seconds to run function call</span
-							>
+							><br />
+							&#125;
 						</div>
 						{#if isRunning}
 							<div class="self-center justify-self-center">
@@ -225,7 +278,7 @@
 						Code examples
 					</h4>
 					<div class="flex space-x-2 items-center mb-3">
-						{#each [["python", python], ["javascript", javascript], ["gradio client", logo]] as [language, img]}
+						{#each [["python", python], ["javascript", javascript]] as [language, img]}
 							<li
 								class="flex items-center border rounded-lg px-1.5 py-1 leading-none select-none text-smd capitalize
 						{current_language === language
@@ -239,41 +292,38 @@
 						{/each}
 					</div>
 					<code
-						class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
+						class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col overflow-x-auto"
 					>
 						{#if current_language === "python"}
 							<pre>import requests
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
-    data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
-									{instance_map[
-										dependencies[dependency_index].inputs[component_index]
-									].documentation?.input_type?.includes("string")
-										? `"${component_value}"`
-										: component_value},{/each}
-	]
-&rbrace;).json()
+  "data": [{#each dependency_inputs[dependency_index] as component_value, component_index}
+    {represent_value(component_value, instance_map[
+			dependencies[dependency_index].inputs[component_index]
+		].documentation?.type, "py")},{/each}
+]&rbrace;).json()
+
 data = response["data"]</pre>
 						{:else if current_language === "javascript"}
 							<pre>fetch("{root + "run/" + dependency.api_name}", &lbrace;
-	method: "POST",
-	body: JSON.stringify([{#each dependency_inputs[dependency_index] as component_value, component_index}
-									{instance_map[
-										dependencies[dependency_index].inputs[component_index]
-									].documentation?.input_type?.includes("string")
-										? `"${component_value}"`
-										: component_value},{/each}
-	]),
-	headers: &lbrace; "Content-Type": "application/json" &rbrace;&rbrace;
-).then(
-	r => r.json()
-).then(
-	r => &lbrace;
-		let data = r.data;
-	&rbrace;
+  method: "POST",
+  headers: &lbrace; "Content-Type": "application/json" &rbrace;,
+  body: JSON.stringify(&lbrace;
+    data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
+	  {represent_value(component_value, instance_map[
+		dependencies[dependency_index].inputs[component_index]
+	].documentation?.type, "js")},{/each}
+	]
+  &rbrace;)&rbrace;)
+.then(r => r.json())
+.then(
+  r => &lbrace;
+    let data = r.data;
+  &rbrace;
 )</pre>
 						{:else if current_language === "gradio client"}
-							<pre>Hello World</pre>
+							<pre class="break-words whitespace-pre-wrap">Hello World</pre>
 						{/if}
 					</code>
 				</div>
@@ -287,10 +337,17 @@ data = response["data"]</pre>
 			<span class="italic text-orange-500">
 				{root}
 			</span>
+			<button
+				class="absolute right-6 top-5 md:top-6"
+				on:click={() => dispatch("close")}
+			>
+				<img src={clear} alt="" class="w-3 dark:invert" />
+			</button>
+
 		</h2>
 		<div>
 			To expose an API endpoint of your app in this page, set the <span
-				class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono"
+				class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono"
 			>
 				api_name
 			</span>
@@ -301,11 +358,11 @@ data = response["data"]</pre>
 				class="text-orange-500 hover:text-orange-600 underline"
 				>API Page guide</a
 			>. To hide the API documentation button and this page, set
-			<span class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono">
+			<span class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono">
 				show_api=False
 			</span>
 			in the
-			<span class="text-gray-800 text-sm bg-gray-200/80 px-1 rounded font-mono">
+			<span class="text-gray-800 text-sm bg-gray-200/80 dark:bg-gray-600 px-1 rounded font-mono">
 				Blocks.launch()</span
 			> method.
 		</div>

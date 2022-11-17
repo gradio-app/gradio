@@ -483,8 +483,7 @@
 				}}
 				class="flex items-center hover:text-gray-500"
 			>
-				View <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />API
-				documentation
+				Use via API <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />
 			</button>
 			<div>·</div>
 		{/if}
@@ -494,14 +493,13 @@
 			target="_blank"
 			rel="noreferrer"
 		>
-			Build with
+			Built with Gradio
 			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
-			Gradio
 		</a>
 	</footer>
 </div>
 
-{#if api_docs_visible}
+{#if api_docs_visible && ready}
 	<div class="h-screen w-screen fixed z-50 bg-black/50 flex">
 		<div
 			class="flex-1 backdrop-blur-sm"

@@ -34,12 +34,10 @@ export interface Dependency {
 }
 
 export interface Documentation {
-	input_type?: string,
-	input_description?: string,
-	example_input_data?: string,
-	output_type?: string,
-	output_description?: string,
-	entered_input_preprocess: (arg0: string) => any
+	type?: string;
+	description?: string;
+	example_data?: string,
+
 }
 
 export interface LayoutNode {
