@@ -1,7 +1,7 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+* Revamped API documentation page, with in-browser playground and updated aesthetics. [@gary149](https://github.com/gary149) in [PR 2652](https://github.com/gradio-app/gradio/pull/2652)
 
 ## Bug Fixes:
 No changes to highlight.

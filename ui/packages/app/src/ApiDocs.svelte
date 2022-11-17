@@ -93,7 +93,9 @@
 				}
 			);
 		} else {
-			dependency_failures[index] = new Array(dependency_failures[index].length).fill(true);
+			dependency_failures[index] = new Array(
+				dependency_failures[index].length
+			).fill(true);
 		}
 	};
 
@@ -316,14 +318,15 @@
 							<pre>import requests
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
-  "data": [{#each dependency_inputs[dependency_index] as component_value, component_index}
-	{represent_value(
-		component_value,
-		instance_map[
-			dependencies[dependency_index].inputs[component_index]
-		].documentation?.type,
-		"py"
-	)},{/each}
+  "data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
+									/><!--
+									-->    {represent_value(
+										component_value,
+										instance_map[
+											dependencies[dependency_index].inputs[component_index]
+										].documentation?.type,
+										"py"
+									)},{/each}
 ]&rbrace;).json()
 
 data = response["data"]</pre>
@@ -332,14 +335,15 @@ data = response["data"]</pre>
   method: "POST",
   headers: &lbrace; "Content-Type": "application/json" &rbrace;,
   body: JSON.stringify(&lbrace;
-    data: [{#each dependency_inputs[dependency_index] as component_value, component_index}
-  	  {represent_value(
-		component_value,
-		instance_map[
-			dependencies[dependency_index].inputs[component_index]
-		].documentation?.type,
-		"js"
-	  )},{/each}
+    data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
+									/><!--
+	-->      {represent_value(
+										component_value,
+										instance_map[
+											dependencies[dependency_index].inputs[component_index]
+										].documentation?.type,
+										"js"
+									)},{/each}
 	]
   &rbrace;)&rbrace;)
 .then(r => r.json())
