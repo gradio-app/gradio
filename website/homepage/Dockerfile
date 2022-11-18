@@ -25,6 +25,7 @@ WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
+RUN pnpm build:website
 RUN pip install build awscli requests
 WORKDIR /gradio
 RUN pip install .
