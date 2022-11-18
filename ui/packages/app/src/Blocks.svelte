@@ -499,7 +499,7 @@
 </div>
 
 {#if api_docs_visible && ready}
-	<div class="h-screen w-screen fixed z-50 bg-black/50 flex">
+	<div class="h-screen w-screen fixed z-50 bg-black/50 flex top-0">
 		<div
 			class="flex-1 backdrop-blur-sm"
 			on:click={() => {
