@@ -499,7 +499,8 @@ class Request:
     """
     A Gradio request object that can be used to access the request headers, cookies,
     query parameters and other information about the request from within the prediction
-    function. The class is a thin wrapper around the fastapi.Request class.
+    function. The class is a thin wrapper around the fastapi.Request class. Attributes
+    of this class include: `headers`, `client`, `query_params`, and `path_params`,
 
     Example:
         import gradio as gr

@@ -114,14 +114,18 @@ When a user makes a prediction to your app, you may need the underlying network 
 import gradio as gr
 
 def echo(name, request: gr.Request):
-    print("Request headers dictionary:", request.headers)
-    print("IP address:", request.client.host)
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
     return name
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
-
 ```
 
+Note: if your function is called directly instead of through the UI (this happens, for 
+example, when examples are cached), then `request` will be `None`. You should handle
+this case explicitly to ensure that your app does not throw any errors. That is why
+we have the explicit check `if request`.
 
 ## Mounting Within Another FastAPI App
 
