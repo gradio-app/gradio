@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
+No changes to highlight.
 
 ## Documentation Changes:
 No changes to highlight.
@@ -17,6 +17,29 @@ No changes to highlight.
 
 ## Full Changelog:
 No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# 3.10.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -76,7 +99,6 @@ No changes to highlight.
 ## Full Changelog:
 * Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
 * Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
-* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
 * Components now throw a `ValueError()` if constructed with invalid parameters for `type` or `source` (for components that take those parameters) in [PR 2610](https://github.com/gradio-app/gradio/pull/2610)
 * Allow auth with using queue by [@GLGDLY](https://github.com/GLGDLY) in [PR 2611](https://github.com/gradio-app/gradio/pull/2611)
 
