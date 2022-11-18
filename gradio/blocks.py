@@ -44,6 +44,7 @@ from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.utils import (
+    TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     delete_none,
@@ -1343,7 +1344,7 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
                 if not self.share:
-                    print(strings.en["COLAB_BETA"].format(self.server_port))
+                    print(strings.en["COLAB_WARNING"].format(self.server_port))
             if self.enable_queue and not self.share:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
@@ -1471,7 +1472,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, self.share_url
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
     def integrate(
         self,
