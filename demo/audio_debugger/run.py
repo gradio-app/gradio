@@ -1,7 +1,6 @@
 import gradio as gr
 import subprocess
 import os
-import fastapi
 
 audio_file = os.path.join(os.path.dirname(__file__), "cantina.wav")
 

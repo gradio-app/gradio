@@ -14,7 +14,7 @@ import traceback
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
@@ -513,10 +513,10 @@ class Request:
     def __init__(self, request: fastapi.Request | None = None, **kwargs):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
-        attributes (needed for queueing).
+        attributes (needed for websocket-based queueing).
         """
-        self.request = request
-        self.kwargs = kwargs
+        self.request: fastapi.Request = request
+        self.kwargs: Dict = kwargs
 
     def dict_to_obj(self, d):
         if isinstance(d, dict):
@@ -528,7 +528,11 @@ class Request:
         if self.request:
             return self.dict_to_obj(getattr(self.request, name))
         else:
-            return self.dict_to_obj(self.kwargs.get(name, None))
+            try:
+                obj = self.kwargs[name]
+            except KeyError:
+                raise AttributeError(f"'Request' object has no attribute '{name}'")
+            return self.dict_to_obj(obj)
 
 
 @document()

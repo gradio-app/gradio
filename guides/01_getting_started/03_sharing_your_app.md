@@ -112,7 +112,6 @@ When a user makes a prediction to your app, you may need the underlying network 
 
 ```python
 import gradio as gr
-import fastapi
 
 def echo(name, request: gr.Request):
     print("Request headers dictionary:", request.headers)
