@@ -1,4 +1,4 @@
-# Upcoming Release 
+# Upcoming Release
 
 ## New Features:
 
@@ -10,8 +10,9 @@ You can now access the Request object directly in your Python function by [@abid
 import gradio as gr
 
 def echo(name, request: gr.Request):
-    print("Request headers dictionary:", request.headers)
-    print("IP address:", request.client.host)
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
     return name
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
@@ -19,12 +20,38 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 
 
 ## Bug Fixes:
-* Updated the minimum FastApi used in tests to version 0.87 [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
-* Fixed bug where interfaces with examples could not be loaded with `gr.Interface.load` by [@freddyaboulton](https://github.com/freddyaboulton) [PR 2640](https://github.com/gradio-app/gradio/pull/2640)
-* Fixed bug where the `interactive` property of a component could not be updated by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2639](https://github.com/gradio-app/gradio/pull/2639)
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
 
 ## Documentation Changes:
 No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# 3.10.0
+* Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
+* `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
+
+## Bug Fixes:
+* Updated the minimum FastApi used in tests to version 0.87 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
+* Fixed bug where interfaces with examples could not be loaded with `gr.Interface.load` by [@freddyaboulton](https://github.com/freddyaboulton) [PR 2640](https://github.com/gradio-app/gradio/pull/2640)
+* Fixed bug where the `interactive` property of a component could not be updated by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2639](https://github.com/gradio-app/gradio/pull/2639)
+* Fixed bug where some URLs were not being recognized as valid URLs and thus were not
+loading correctly in various components by [@abidlabs](https://github.com/abidlabs) in [PR 2659](https://github.com/gradio-app/gradio/pull/2659)
+
+
+## Documentation Changes:
+* Fix some typos in the embedded demo names in "05_using_blocks_like_functions.md" by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2656](https://github.com/gradio-app/gradio/pull/2656)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
