@@ -281,6 +281,7 @@ class Textbox(
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        type: str = "text",
         **kwargs,
     ):
         """
@@ -294,9 +295,14 @@ class Textbox(
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
         """
+        if type not in ["text", "password", "email"]:
+            raise ValueError('`type` must be one of "text", "password", or "email".')
+
+        #
         self.lines = lines
-        self.max_lines = max_lines
+        self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
         self.interpret_by_tokens = True
         IOComponent.__init__(
@@ -311,6 +317,7 @@ class Textbox(
         )
         self.cleared_value = ""
         self.test_input = value
+        self.type = type
 
     def get_config(self):
         return {
@@ -318,6 +325,7 @@ class Textbox(
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "value": self.value,
+            "type": self.type,
             **IOComponent.get_config(self),
         }
 
@@ -331,6 +339,7 @@ class Textbox(
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
+        type: Optional[str] = None,
     ):
         updated_config = {
             "lines": lines,
@@ -340,6 +349,7 @@ class Textbox(
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "type": type,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
@@ -878,6 +888,11 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         """
         self.choices = choices or []
         self.cleared_value = []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -1036,6 +1051,11 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1252,9 +1272,19 @@ class Image(
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
         self.mirror_webcam = mirror_webcam
+        valid_types = ["numpy", "pil", "file", "filepath"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.shape = shape
         self.image_mode = image_mode
+        valid_sources = ["upload", "webcam", "canvas"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "webcam"
         if tool is None:
@@ -1586,6 +1616,11 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         """
         self.temp_dir = tempfile.mkdtemp()
         self.format = format
+        valid_sources = ["upload", "webcam"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         self.mirror_webcam = mirror_webcam
         IOComponent.__init__(
@@ -1771,8 +1806,18 @@ class Audio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
+        valid_sources = ["upload", "microphone"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "microphone"
+        valid_types = ["numpy", "filepath", "file"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
@@ -2062,6 +2107,11 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         """
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
+        valid_types = ["file", "binary"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = None
         IOComponent.__init__(
@@ -2277,6 +2327,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
+        valid_types = ["pandas", "numpy", "array"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         values = {
             "str": "",
@@ -3629,7 +3684,8 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
+    Demos: outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Guides: plot_component_for_maps
     """
 
     def __init__(

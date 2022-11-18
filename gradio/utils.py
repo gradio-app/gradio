@@ -678,12 +678,11 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
 
 
 def validate_url(possible_url: str) -> bool:
+    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        if requests.get(possible_url).status_code == 200:
-            return True
+        return requests.get(possible_url, headers=headers).ok
     except Exception:
-        pass
-    return False
+        return False
 
 
 def is_update(val):
