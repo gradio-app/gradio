@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
 
 ## Documentation Changes:
 No changes to highlight.

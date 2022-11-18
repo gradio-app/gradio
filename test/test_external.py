@@ -49,7 +49,9 @@ class TestLoadInterface:
     def test_question_answering(self):
         model_type = "image-classification"
         interface = gr.Blocks.load(
-            name="lysandre/tiny-vit-random", src="models", alias=model_type
+            name="lysandre/tiny-vit-random",
+            src="models",
+            alias=model_type,
         )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.components.Image)
@@ -57,10 +59,16 @@ class TestLoadInterface:
 
     def test_text_generation(self):
         model_type = "text_generation"
-        interface = gr.Interface.load("models/gpt2", alias=model_type)
+        interface = gr.Interface.load(
+            "models/gpt2", alias=model_type, description="This is a test description"
+        )
         assert interface.__name__ == model_type
         assert isinstance(interface.input_components[0], gr.components.Textbox)
         assert isinstance(interface.output_components[0], gr.components.Textbox)
+        assert any(
+            "This is a test description" in d["props"].get("value", "")
+            for d in interface.get_config_file()["components"]
+        )
 
     def test_summarization(self):
         model_type = "summarization"
