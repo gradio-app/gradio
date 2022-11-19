@@ -1,4 +1,4 @@
-# Upcoming Release 
+# Upcoming Release
 
 ## New Features:
 
@@ -15,11 +15,71 @@ def update_image(image):
 
 with gr.Blocks() as demo:
     image = gr.Image(interactive=False)
-    upload_button = gr.UploadButton()
+    upload_button = gr.UploadButton(file_type=["image", "video"], file_count="multiple")
     upload_button.upload(fn=update_image, inputs=upload_button, outputs=image)
 
 demo.launch()
 ```
+### Accessing the Requests Object Directly
+
+You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `gr.Request`. Here's a simple example:
+
+```py
+import gradio as gr
+
+def echo(name, request: gr.Request):
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
+    return name
+
+io = gr.Interface(echo, "textbox", "textbox").launch()
+```
+
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# 3.10.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# 3.10.0
 * Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 * `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
 
@@ -41,7 +101,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 
 ## Contributors Shoutout:
 No changes to highlight.

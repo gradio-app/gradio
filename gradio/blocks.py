@@ -9,6 +9,7 @@ import pkgutil
 import random
 import sys
 import time
+import typing
 import warnings
 import webbrowser
 from types import ModuleType
@@ -48,6 +49,7 @@ from gradio.documentation import (
 )
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.utils import (
+    TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     delete_none,
@@ -56,6 +58,7 @@ from gradio.utils import (
 )
 
 set_documentation_group("blocks")
+
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -456,6 +459,23 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
     return predictions
 
 
+def add_request_to_inputs(
+    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
+):
+    """
+    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
+    """
+    param_names = inspect.getfullargspec(fn)[0]
+    try:
+        parameter_types = typing.get_type_hints(fn)
+        for idx, param_name in enumerate(param_names):
+            if parameter_types.get(param_name, "") == routes.Request:
+                inputs.insert(idx, request)
+    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
+        pass
+    return inputs
+
+
 @document("load")
 class Blocks(BlockContext):
     """
@@ -795,7 +815,12 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
+        outputs = utils.synchronize_async(
+            self.process_api,
+            fn_index=fn_index,
+            inputs=processed_inputs,
+            request=None,
+        )
         outputs = outputs["data"]
 
         if batch:
@@ -811,11 +836,11 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
+        request: routes.Request | List[routes.Request] | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
-        start = time.time()
 
         if block_fn.inputs_as_dict:
             processed_input = [
@@ -824,6 +849,12 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
+
+        processed_input = add_request_to_inputs(
+            block_fn.fn, list(processed_input), request
+        )
+
+        start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
@@ -943,6 +974,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
+        request: routes.Request | List[routes.Request] | None = None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
@@ -979,7 +1011,7 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None)
+            result = await self.call_function(fn_index, zip(*inputs), None, request)
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -987,7 +1019,7 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator)
+            result = await self.call_function(fn_index, inputs, iterator, request)
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
@@ -1358,7 +1390,7 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
                 if not self.share:
-                    print(strings.en["COLAB_BETA"].format(self.server_port))
+                    print(strings.en["COLAB_WARNING"].format(self.server_port))
             if self.enable_queue and not self.share:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
@@ -1486,7 +1518,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, self.share_url
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
     def integrate(
         self,
