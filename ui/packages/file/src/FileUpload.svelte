@@ -19,7 +19,10 @@
 	export let label: string = "";
 	export let show_label: boolean;
 	export let file_count: string;
-	export let file_type: string;
+	export let file_type: Array<string> = ["file"];
+
+	let accept_file_types = "";
+	file_type.forEach((type) => (accept_file_types += type + "/*, "));
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -48,13 +51,18 @@
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value === null && file_count === "single"}
-	<Upload on:load={handle_upload} filetype={file_type + "/*"} bind:dragging>
+	<Upload on:load={handle_upload} filetype={accept_file_types} bind:dragging>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
 	</Upload>
 {:else if value === null}
-	<Upload on:load={handle_upload} filetype={file_type + "/*"} {file_count} bind:dragging>
+	<Upload
+		on:load={handle_upload}
+		filetype={accept_file_types}
+		{file_count}
+		bind:dragging
+	>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}

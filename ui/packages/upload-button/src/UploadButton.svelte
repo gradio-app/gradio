@@ -9,10 +9,13 @@
 	export let visible: boolean = true;
 	export let size: "sm" | "lg" = "lg";
 	export let file_count: string;
-	export let file_type: "image" | "video" | "audio" | "text" | "file" = "file";
+	export let file_type: Array<string> = ["file"];
 	export let include_file_metadata = true;
 
 	$: ({ classes } = get_styles(style, ["full_width"]));
+
+	let accept_file_types = "";
+	file_type.forEach((type) => (accept_file_types += type + "/*, "));
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -63,7 +66,7 @@
 
 <input
 	class="hidden-upload hidden"
-	accept={file_type + "/*"}
+	accept={accept_file_types}
 	multiple={file_count === "multiple" || undefined}
 	type="file"
 	bind:this={hidden_upload}

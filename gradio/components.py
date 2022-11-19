@@ -2086,7 +2086,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
-        file_type: str = "file",
+        file_type: List[str] = ["file"],
         type: str = "file",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2099,7 +2099,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            file_type: Type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
@@ -2777,14 +2777,14 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
 
     def __init__(
         self,
+        label: str = "Upload a File",
         value: Optional[str | List[str] | Callable] = None,
         *,
         visible: bool = True,
         elem_id: Optional[str] = None,
         type: str = "file",
         file_count: str = "single",
-        file_type: str = "file",
-        button_label: str = "Upload a File",
+        file_type: List[str] = ["file"],
         **kwargs,
     ):
         """
@@ -2792,8 +2792,8 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             value: Default text for the button to display.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            file_type: Type of file to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
-            button_label: Text to display on the button. Defaults to "Upload a File".
+            file_type: Type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            label: Text to display on the button. Defaults to "Upload a File".
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -2801,17 +2801,17 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
         self.type = type
         self.file_count = file_count
         self.file_type = file_type
-        self.button_label = button_label
+        self.label = label
         IOComponent.__init__(
-            self, visible=visible, elem_id=elem_id, value=value, **kwargs
+            self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
     def get_config(self):
         return {
+            "label": self.label,
             "value": self.value,
             "file_count": self.file_count,
             "file_type": self.file_type,
-            "button_label": self.button_label,
             **Component.get_config(self),
         }
 
