@@ -5,14 +5,13 @@ import copy
 import sys
 import time
 from collections import deque
-from itertools import islice
-from typing import Deque, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
 
 from gradio.dataclasses import PredictBody
-from gradio.utils import Request, run_coro_in_background, set_task_name
+from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
 
 class Estimation(BaseModel):
@@ -26,7 +25,11 @@ class Estimation(BaseModel):
 
 
 class Event:
-    def __init__(self, websocket: fastapi.WebSocket, fn_index: int | None = None):
+    def __init__(
+        self,
+        websocket: fastapi.WebSocket,
+        fn_index: int | None = None,
+    ):
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
@@ -157,18 +160,6 @@ class Queue:
         if self.live_updates:
             await self.broadcast_estimations()
 
-    async def gather_data_for_first_ranks(self) -> None:
-        """
-        Gather data for the first x events.
-        """
-        # Send all messages concurrently
-        await asyncio.gather(
-            *[
-                self.gather_event_data(event)
-                for event in islice(self.event_queue, self.data_gathering_start)
-            ]
-        )
-
     async def gather_event_data(self, event: Event) -> bool:
         """
         Gather data for the event
@@ -253,14 +244,34 @@ class Queue:
             queue_eta=self.queue_duration,
         )
 
+    def get_request_params(self, websocket: fastapi.WebSocket) -> Dict[str, Any]:
+        return {
+            "url": str(websocket.url),
+            "headers": dict(websocket.headers),
+            "query_params": dict(websocket.query_params),
+            "path_params": dict(websocket.path_params),
+            "client": dict(host=websocket.client.host, port=websocket.client.port),
+        }
+
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
+        try:
+            data.request = self.get_request_params(events[0].websocket)
+        except ValueError:
+            pass
+
         if batch:
             data.data = list(zip(*[event.data.data for event in events if event.data]))
+            data.request = [
+                self.get_request_params(event.websocket)
+                for event in events
+                if event.data
+            ]
             data.batched = True
-        response = await Request(
-            method=Request.Method.POST,
+
+        response = await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",
             json=dict(data),
             headers={"Authorization": f"Bearer {self.access_token}"},
@@ -370,8 +381,8 @@ class Queue:
             return None
 
     async def reset_iterators(self, session_hash: str, fn_index: int):
-        await Request(
-            method=Request.Method.POST,
+        await AsyncRequest(
+            method=AsyncRequest.Method.POST,
             url=f"{self.server_path}reset",
             json={
                 "session_hash": session_hash,
