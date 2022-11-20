@@ -21,6 +21,29 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
+# 3.10.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
 
 # 3.10.0
 
