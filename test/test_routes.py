@@ -238,11 +238,15 @@ class TestAuthenticatedRoutes:
         client = TestClient(app)
 
         response = client.post(
-            "/login", data=dict(username="test", password="correct_password")
+            "/login",
+            data=dict(username="test", password="correct_password"),
+            follow_redirects=False,
         )
         assert response.status_code == 302
         response = client.post(
-            "/login", data=dict(username="test", password="incorrect_password")
+            "/login",
+            data=dict(username="test", password="incorrect_password"),
+            follow_redirects=False,
         )
         assert response.status_code == 400
 
@@ -305,6 +309,23 @@ class TestDevMode:
             route for route in app.routes if isinstance(route, starlette.routing.Mount)
         )
         assert not gradio_fast_api.app.blocks.dev_mode
+
+
+class TestPassingRequest:
+    def test_request_included_with_regular_function(self):
+        def identity(name, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
 
 
 def test_predict_route_is_blocked_if_api_open_false():

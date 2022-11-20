@@ -13,6 +13,8 @@ def get_plot(period=1):
     y = np.sin(2*math.pi*period * x)
     fig = px.line(x=x, y=y)
     plot_end += 2 * math.pi
+    if plot_end > 1000:
+        plot_end = 2 * math.pi
     return fig
 
 
