@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import io
 import json
 import os
@@ -391,6 +392,35 @@ class TestComponentsInBlocks:
             "value": gr.media_data.BASE64_IMAGE,
         }
 
+    @pytest.mark.asyncio
+    async def test_blocks_update_interactive(
+        self,
+    ):
+        def specific_update():
+            return [
+                gr.Image.update(interactive=True),
+                gr.Textbox.update(interactive=True),
+            ]
+
+        def generic_update():
+            return [gr.update(interactive=True), gr.update(interactive=True)]
+
+        with gr.Blocks() as demo:
+            run = gr.Button(value="Make interactive")
+            image = gr.Image()
+            textbox = gr.Text()
+            run.click(specific_update, None, [image, textbox])
+            run.click(generic_update, None, [image, textbox])
+
+        for fn_index in range(2):
+            output = await demo.process_api(fn_index, [])
+            assert output["data"][0] == {
+                "interactive": True,
+                "__type__": "update",
+                "mode": "dynamic",
+            }
+            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+
 
 class TestCallFunction:
     @pytest.mark.asyncio
@@ -677,7 +707,7 @@ class TestSpecificUpdate:
 
     def test_with_update(self):
         specific_update = gr.Textbox.get_specific_update(
-            {"lines": 4, "__type__": "update"}
+            {"lines": 4, "__type__": "update", "interactive": False}
         )
         assert specific_update == {
             "lines": 4,
@@ -685,22 +715,47 @@ class TestSpecificUpdate:
             "placeholder": None,
             "label": None,
             "show_label": None,
+            "type": None,
+            "type": None,
             "visible": None,
             "value": gr.components._Keywords.NO_VALUE,
             "__type__": "update",
+            "mode": "static",
+        }
+
+        specific_update = gr.Textbox.get_specific_update(
+            {"lines": 4, "__type__": "update", "interactive": True}
+        )
+        assert specific_update == {
+            "lines": 4,
+            "max_lines": None,
+            "placeholder": None,
+            "label": None,
+            "show_label": None,
+            "type": None,
+            "visible": None,
+            "value": gr.components._Keywords.NO_VALUE,
+            "__type__": "update",
+            "mode": "dynamic",
         }
 
     def test_with_generic_update(self):
         specific_update = gr.Video.get_specific_update(
-            {"visible": True, "value": "test.mp4", "__type__": "generic_update"}
+            {
+                "visible": True,
+                "value": "test.mp4",
+                "__type__": "generic_update",
+                "interactive": True,
+            }
         )
         assert specific_update == {
             "source": None,
             "label": None,
             "show_label": None,
-            "interactive": None,
             "visible": True,
             "value": "test.mp4",
+            "mode": "dynamic",
+            "interactive": True,
             "__type__": "update",
         }
 
@@ -891,6 +946,70 @@ class TestEvery:
                         break
 
 
+class TestAddRequests:
+    def test_no_type_hints(self):
+        def moo(a, b):
+            return a + b
+
+        inputs = [1, 2]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs
+
+        boo = partial(moo, a=1)
+        inputs = [2]
+        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs
+
+    def test_no_type_hints_with_request(self):
+        def moo(a: str, b: int):
+            return a + str(b)
+
+        inputs = ["abc", 2]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs
+
+        boo = partial(moo, a="def")
+        inputs = [2]
+        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs
+
+    def test_type_hints_with_request(self):
+        def moo(a: str, b: gr.Request):
+            return a
+
+        inputs = ["abc"]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs + [request]
+
+        def moo(a: gr.Request, b, c: int):
+            return c
+
+        inputs = ["abc", 5]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == [request] + inputs
+
+    def test_type_hints_with_multiple_requests(self):
+        def moo(a: str, b: gr.Request, c: gr.Request):
+            return a
+
+        inputs = ["abc"]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == inputs + [request, request]
+
+        def moo(a: gr.Request, b, c: int, d: gr.Request):
+            return c
+
+        inputs = ["abc", 5]
+        request = gr.Request()
+        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        assert inputs_ == [request] + inputs + [request]
+
+
 def test_queue_enabled_for_fn():
     with gr.Blocks() as demo:
         input = gr.Textbox()
@@ -925,9 +1044,11 @@ async def test_queue_when_using_auth():
     client = TestClient(app)
 
     resp = client.post(
-        f"{demo.local_url}login", data={"username": "abc", "password": "123"}
+        f"{demo.local_url}login",
+        data={"username": "abc", "password": "123"},
+        follow_redirects=False,
     )
-    assert resp.ok
+    assert resp.status_code == 302
     token = resp.cookies.get("access-token")
     assert token
 
