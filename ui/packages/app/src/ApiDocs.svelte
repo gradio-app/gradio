@@ -137,25 +137,27 @@
 </script>
 
 {#if active_api_count}
-	<h2
-		class="text-sm md:text-lg px-6 py-2 border-b border-gray-100 dark:border-gray-900 font-semibold flex flex-wrap items-center relative"
+	<div
+		class="px-6 py-4 border-b border-gray-100 dark:border-gray-900 relative text-sm md:text-lg"
 	>
-		<img src={api_logo} alt="" class="w-3.5 md:w-4 mr-1 md:mr-2" />
-		API documentation for&nbsp;
-		<div class="text-orange-500">
-			{root}
-		</div>
-		<button
-			class="absolute right-6 top-5 md:top-6"
-			on:click={() => dispatch("close")}
-			><img src={clear} alt="" class="w-3 dark:invert" /></button
-		>
-	</h2>
-	{#if active_api_count > 1}
-		<div class="px-6 py-2 text-lg">
-			{active_api_count} API endpoints:
-		</div>
-	{/if}
+		<h2 class="font-semibold flex">
+			<img src={api_logo} alt="" class="w-3.5 md:w-4 mr-1 md:mr-2" />
+			API documentation for&nbsp;
+			<div class="text-orange-500">
+				{root}
+			</div>
+			<button
+				class="absolute right-6 top-5 md:top-6"
+				on:click={() => dispatch("close")}
+				><img src={clear} alt="" class="w-3 dark:invert" /></button
+			>
+		</h2>
+		{#if active_api_count > 1}
+			<div>
+				{active_api_count} API endpoints:
+			</div>
+		{/if}
+	</div>
 	<div class="flex flex-col gap-6">
 		{#each dependencies as dependency, dependency_index}
 			{#if dependency.api_name}
