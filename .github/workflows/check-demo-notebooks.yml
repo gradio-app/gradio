@@ -18,6 +18,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Print Git Status 1
+        run: echo $(git status)
       - name: Generate Notebooks
         run: |
           pip install nbformat && cd demo && python generate_notebooks.py
