@@ -31,7 +31,7 @@ test("renders the correct elements", async ({ page }) => {
 	await page.goto("http://localhost:3000");
 
 	await Promise.all([
-		page.click("button"),
+		page.click("button:has-text('Run')"),
 		page.waitForResponse("**/run/predict/")
 	]);
 });
