@@ -1,5 +1,7 @@
 import nbformat as nbf
 import os 
+import json
+import random
 
 GRADIO_DEMO_DIR = os.getcwd()
 DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_random"}
@@ -55,3 +57,14 @@ for demo in demos:
 
     with open(output_notebook, 'w') as f:
         nbf.write(nb, f)
+
+    with open(output_notebook, "r") as f:
+        content = f.read()
+    
+    content = json.loads(content)
+    for i, cell in enumerate(content["cells"]):
+        random.seed(i)
+        cell["id"] = random.getrandbits(128)
+
+    with open(output_notebook, "w") as f:
+        f.write(json.dumps(content))
