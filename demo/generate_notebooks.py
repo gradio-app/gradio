@@ -21,12 +21,15 @@ for demo in demos:
 
     files = os.listdir(os.path.join(GRADIO_DEMO_DIR, demo))
     files = [file for file in files if file not in ["run.py", "run.ipynb", "setup.sh", ".gitignore", "requirements.txt", "DESCRIPTION.md", "screenshot.png", "screenshot.gif", ".DS_Store", "flagged", "__pycache__"]]
+    files.sort()
     if files: 
         get_files = "# Downloading files from the demo repo\nimport os"
         for file in files:
             if os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo, file)):
                 get_files += f"\nos.mkdir('{file}')"
-                for sub_file in os.listdir(os.path.join(GRADIO_DEMO_DIR, demo, file)):
+                sub_files = os.listdir(os.path.join(GRADIO_DEMO_DIR, demo, file))
+                sub_files.sort()
+                for sub_file in sub_files:
                     get_files += f"\n!wget -q -O {file}/{sub_file} https://github.com/gradio-app/gradio/raw/main/demo/{demo}/{file}/{sub_file}"
             else:
                 get_files += f"\n!wget -q https://github.com/gradio-app/gradio/raw/main/demo/{demo}/{file}"

@@ -25,4 +25,3 @@ jobs:
         run: echo $(git status) && echo $(git diff)
       - name: Assert Notebooks Match 
         run: git status | grep "nothing to commit, working tree clean"
-
