@@ -7,16 +7,9 @@ RUN npm install -g npm@latest
 RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
 WORKDIR /gradio
-COPY ./ui ./ui
 RUN mkdir gradio
 COPY ./gradio/version.txt ./gradio/version.txt
 RUN npm i pnpm@6 -g
-WORKDIR /gradio/ui
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-RUN pnpm i
-RUN pnpm build
-RUN pnpm build:website
-RUN pip install build awscli requests
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./requirements.txt ./requirements.txt
@@ -27,6 +20,13 @@ COPY ./test ./test
 COPY ./guides ./guides
 COPY ./demo ./demo
 COPY ./website ./website
+COPY ./ui ./ui
+WORKDIR /gradio/ui
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN pnpm i
+RUN pnpm build
+RUN pnpm build:website
+RUN pip install build awscli requests
 WORKDIR /gradio
 RUN pip install .
 RUN python -m build -w
