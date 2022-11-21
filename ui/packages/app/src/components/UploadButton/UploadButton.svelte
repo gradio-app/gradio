@@ -11,7 +11,7 @@
 	export let label: string;
 	export let value: null | FileData | Array<FileData>;
 	export let file_count: string;
-	export let file_type: Array<string> = ["file"];
+	export let file_types: Array<string> = ["file"];
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -31,7 +31,7 @@
 	{style}
 	{visible}
 	{file_count}
-	{file_type}
+	{file_types}
 	on:click
 	on:load={handle_upload}
 >

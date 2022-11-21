@@ -827,7 +827,7 @@ class TestFile:
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
             "file_count": "single",
-            'file_type': ['file'],
+            "file_types": ["file"],
             "name": "file",
             "show_label": True,
             "label": "Upload Your File",

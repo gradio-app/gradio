@@ -9,16 +9,23 @@
 	export let visible: boolean = true;
 	export let size: "sm" | "lg" = "lg";
 	export let file_count: string;
-	export let file_type: Array<string> = ["file"];
+	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
 
 	$: ({ classes } = get_styles(style, ["full_width"]));
 
-	let accept_file_types = "";
-	file_type.forEach((type) => (accept_file_types += type + "/*, "));
-
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
+	let accept_file_types = "";
+	try {
+		file_types.forEach((type) => (accept_file_types += type + "/*, "));
+	} catch (err) {
+		if (err instanceof TypeError) {
+			dispatch("error", "Please set file_types to a list.");
+		} else {
+			throw err;
+		}
+	}
 
 	const openFileUpload = () => {
 		hidden_upload.click();
@@ -67,10 +74,12 @@
 <input
 	class="hidden-upload hidden"
 	accept={accept_file_types}
-	multiple={file_count === "multiple" || undefined}
 	type="file"
 	bind:this={hidden_upload}
 	on:change={loadFilesFromUpload}
+	multiple={file_count === "multiple" || undefined}
+	webkitdirectory={file_count === "directory" || undefined}
+	mozdirectory={file_count === "directory" || undefined}
 />
 
 <button
