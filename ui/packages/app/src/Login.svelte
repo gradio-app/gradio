@@ -1,29 +1,72 @@
 <script lang="ts">
+	import { Component as Form } from "./components/Form";
+	import { Component as Textbox } from "./components/Textbox";
 	export let root: string;
 	export let id: number;
 	export let auth_message: string | null;
+	export let app_mode: boolean;
 
 	window.__gradio_loader__[id].$set({ status: "complete" });
+	let username = "";
+	let password = "";
+	let incorrect_credentials = false;
+
+	const submit = async () => {
+		const formData = new FormData();
+		formData.append("username", username);
+		formData.append("password", password);
+
+		let response = await fetch(root + "login", {
+			method: "POST",
+			body: formData
+		});
+		if (response.status === 400) {
+			incorrect_credentials = true;
+			username = "";
+			password = "";
+		} else {
+			location.reload();
+		}
+	};
 </script>
 
-<div class="login container mt-8">
-	<form
-		class="mx-auto p-4 bg-gray-50 shadow-md w-1/2"
-		id="login"
-		method="POST"
-		action={root + "login"}
-	>
-		<h2 class="text-2xl font-semibold my-2">login</h2>
+<div
+	class="dark:bg-gray-950 w-full flex flex-col items-center justify-center"
+	class:min-h-screen={app_mode}
+>
+	<div class="gr-panel !p-8">
+		<h2 class="text-2xl font-semibold mb-6">login</h2>
 		{#if auth_message}
 			<p class="my-4">{auth_message}</p>
 		{/if}
-		<label class="block uppercase mt-4" for="username">username</label>
-		<input class="p-2 block" type="text" name="username" />
-		<label class="block uppercase mt-4" for="password">password</label>
-		<input class="p-2 block" type="password" name="password" />
-		<input
-			type="submit"
-			class="block bg-amber-500 hover:bg-amber-400 dark:hover:bg-amber-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
-		/>
-	</form>
+		{#if incorrect_credentials}
+			<p class="my-4 text-red-600 font-semibold">Incorrect Credentials</p>
+		{/if}
+		<Form>
+			<Textbox
+				label="username"
+				lines={1}
+				show_label={true}
+				max_lines={1}
+				mode="dynamic"
+				on:submit={submit}
+				bind:value={username}
+			/>
+			<Textbox
+				label="password"
+				lines={1}
+				show_label={true}
+				max_lines={1}
+				mode="dynamic"
+				type="password"
+				on:submit={submit}
+				bind:value={password}
+			/>
+		</Form>
+
+		<button
+			class="gr-button gr-button-lg gr-button-primary w-full mt-4"
+			on:click={submit}>Login</button
+		>
+	</div>
 </div>

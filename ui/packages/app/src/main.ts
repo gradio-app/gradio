@@ -38,6 +38,7 @@ interface Config {
 }
 
 let app_id: string | null = null;
+let app_mode = window.__gradio_mode__ === "app";
 
 async function reload_check(root: string) {
 	const result = await (await fetch(root + "app_id")).text();
@@ -152,7 +153,8 @@ function mount_app(
 			props: {
 				auth_message: config.auth_message,
 				root: config.root,
-				id
+				id,
+				app_mode
 			}
 		});
 	} else {
@@ -167,7 +169,13 @@ function mount_app(
 		new Blocks({
 			target: wrapper,
 			//@ts-ignore
-			props: { ...config, target: wrapper, id, autoscroll: autoscroll }
+			props: {
+				...config,
+				target: wrapper,
+				id,
+				autoscroll: autoscroll,
+				app_mode
+			}
 		});
 	}
 
@@ -214,6 +222,9 @@ function create_custom_element() {
 			});
 
 			this.root.append(this.wrapper);
+			if (window.__gradio_mode__ !== "website") {
+				handle_darkmode(this.wrapper);
+			}
 		}
 
 		async connectedCallback() {
@@ -272,6 +283,9 @@ function create_custom_element() {
 async function unscoped_mount() {
 	const target = document.querySelector("#root")! as HTMLDivElement;
 	target.classList.add("gradio-container");
+	if (window.__gradio_mode__ !== "website") {
+		handle_darkmode(target);
+	}
 
 	window.__gradio_loader__[0] = new Loader({
 		target: target,
@@ -285,6 +299,50 @@ async function unscoped_mount() {
 
 	const config = await handle_config(target, null);
 	mount_app({ ...config, control_page_title: true }, false, target, 0);
+}
+
+function handle_darkmode(target: HTMLDivElement) {
+	let url = new URL(window.location.toString());
+
+	const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
+		"__theme"
+	) as "light" | "dark" | "system" | null;
+
+	if (color_mode !== null) {
+		if (color_mode === "dark") {
+			darkmode(target);
+		} else if (color_mode === "system") {
+			use_system_theme(target);
+		}
+		// light is default, so we don't need to do anything else
+	} else if (url.searchParams.get("__dark-theme") === "true") {
+		darkmode(target);
+	} else {
+		use_system_theme(target);
+	}
+}
+
+function use_system_theme(target: HTMLDivElement) {
+	update_scheme();
+	window
+		?.matchMedia("(prefers-color-scheme: dark)")
+		?.addEventListener("change", update_scheme);
+
+	function update_scheme() {
+		const is_dark =
+			window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
+
+		if (is_dark) {
+			darkmode(target);
+		}
+	}
+}
+
+function darkmode(target: HTMLDivElement) {
+	target.classList.add("dark");
+	if (app_mode) {
+		document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
+	}
 }
 
 // dev mode or if inside an iframe
