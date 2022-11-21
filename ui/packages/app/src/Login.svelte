@@ -35,7 +35,7 @@
 	class:min-h-screen={app_mode}
 >
 	<div class="gr-panel !p-8">
-		<h2 class="text-2xl font-semibold mb-6">login</h2>
+		<h2 class="text-2xl font-semibold mb-6">Login</h2>
 		{#if auth_message}
 			<p class="my-4">{auth_message}</p>
 		{/if}
