@@ -30,8 +30,6 @@ export interface Dependency {
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;
-	documentation?: Array<Array<Array<string>>>;
-	behavior_when_pending: "block" | "wait" | "run";
 	pending_request: boolean;
 	cancels: Array<number>;
 }
