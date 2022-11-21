@@ -3,23 +3,28 @@
 ## New Features:
 
 ### Upload Button
-There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
+There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
 
 Example of how it can be used:
 
 ```python
 import gradio as gr
 
-def update_image(image):
-    return image.name
+def upload_file(files):
+    file_paths = [file.name for file in files]
+    return file_paths
 
 with gr.Blocks() as demo:
-    image = gr.Image(interactive=False)
-    upload_button = gr.UploadButton(file_type=["image", "video"], file_count="multiple")
-    upload_button.upload(fn=update_image, inputs=upload_button, outputs=image)
+    file_output = gr.File()
+    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
+    upload_button.upload(upload_file, upload_button, file_output)
 
 demo.launch()
 ```
+### Revamped API documentation page
+
+New API Docs page with in-browser playground and updated aesthetics. [@gary149](https://github.com/gary149) in [PR 2652](https://github.com/gradio-app/gradio/pull/2652)
+
 ### Accessing the Requests Object Directly
 
 You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `gr.Request`. Here's a simple example:
