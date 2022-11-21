@@ -311,6 +311,23 @@ class TestDevMode:
         assert not gradio_fast_api.app.blocks.dev_mode
 
 
+class TestPassingRequest:
+    def test_request_included_with_regular_function(self):
+        def identity(name, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
+
+
 def test_predict_route_is_blocked_if_api_open_false():
     io = Interface(lambda x: x, "text", "text", examples=[["freddy"]]).queue(
         api_open=False

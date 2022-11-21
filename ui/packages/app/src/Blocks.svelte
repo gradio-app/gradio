@@ -12,7 +12,8 @@
 	import type {
 		ComponentMeta,
 		Dependency,
-		LayoutNode
+		LayoutNode,
+		Documentation
 	} from "./components/types";
 	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
@@ -20,6 +21,7 @@
 	import ApiDocs from "./ApiDocs.svelte";
 
 	import logo from "./images/logo.svg";
+	import api_logo from "/static/img/api-logo.svg";
 
 	setupi18n();
 
@@ -69,7 +71,19 @@
 			}
 		}
 	});
-	let api_docs_visible = false;
+
+	let params = new URLSearchParams(window.location.search);
+	let api_docs_visible = params.get("view") === "api";
+	const set_api_docs_visible = (visible: boolean) => {
+		api_docs_visible = visible;
+		let params = new URLSearchParams(window.location.search);
+		if (visible) {
+			params.set("view", "api");
+		} else {
+			params.delete("view");
+		}
+		history.replaceState(null, "", "?" + params.toString());
+	};
 
 	function is_dep(
 		id: number,
@@ -126,6 +140,7 @@
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
 		modes?: Array<string>;
+		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
 	function load_component<T extends ComponentMeta["type"]>(
@@ -161,6 +176,9 @@
 		let instance = instance_map[node.id];
 		const _component = (await _component_map.get(instance.type))!.component;
 		instance.component = _component.Component;
+		if (_component.document) {
+			instance.documentation = _component.document(instance.props);
+		}
 		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
 		}
@@ -438,9 +456,7 @@
 		class="mx-auto container px-4 py-6 dark:bg-gray-950"
 		class:flex-grow={app_mode}
 	>
-		{#if api_docs_visible}
-			<ApiDocs {components} {dependencies} {root} />
-		{:else if ready}
+		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
 				component={rootNode.component}
@@ -457,31 +473,50 @@
 		{/if}
 	</div>
 	<footer
-		class="flex justify-center pb-6 text-gray-300 dark:text-gray-500 font-semibold"
+		class="flex justify-center pb-6 text-gray-400 space-x-2 text-sm md:text-base"
 	>
 		{#if show_api}
-			<div
-				class="cursor-pointer hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+			<button
 				on:click={() => {
-					api_docs_visible = !api_docs_visible;
+					set_api_docs_visible(!api_docs_visible);
 				}}
+				class="flex items-center hover:text-gray-500"
 			>
-				{#if api_docs_visible}hide{:else}view{/if} api
-			</div>
-			&nbsp; &bull; &nbsp;
+				Use via API <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />
+			</button>
+			<div>·</div>
 		{/if}
 		<a
 			href="https://gradio.app"
+			class="flex items-center hover:text-gray-500"
 			target="_blank"
 			rel="noreferrer"
-			class="group hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
 		>
-			{$_("interface.built_with_Gradio")}
-			<img
-				class="h-[22px] ml-0.5 inline-block pb-0.5 filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition"
-				src={logo}
-				alt="logo"
-			/>
+			Built with Gradio
+			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
 		</a>
 	</footer>
 </div>
+
+{#if api_docs_visible && ready}
+	<div class="h-screen w-screen fixed z-50 bg-black/50 flex top-0">
+		<div
+			class="flex-1 backdrop-blur-sm"
+			on:click={() => {
+				set_api_docs_visible(false);
+			}}
+		/>
+		<div
+			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
+		>
+			<ApiDocs
+				on:close={() => {
+					set_api_docs_visible(false);
+				}}
+				{instance_map}
+				{dependencies}
+				{root}
+			/>
+		</div>
+	</div>
+{/if}
