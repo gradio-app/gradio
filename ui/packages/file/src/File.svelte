@@ -11,7 +11,6 @@
 	export let value: FileData | null;
 	export let label: string;
 	export let show_label: boolean;
-	export let file_count: string;
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
