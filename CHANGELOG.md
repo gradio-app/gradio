@@ -47,7 +47,7 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Change default behavior of event triggers so events will trigger when pending request is complete. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2436](https://github.com/gradio-app/gradio/pull/2436)
 
 ## Documentation Changes:
 No changes to highlight.

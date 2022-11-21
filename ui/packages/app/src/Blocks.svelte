@@ -338,17 +338,21 @@
 										frontend_fn,
 										payload: {
 											fn_index: i,
-											data: dependencies[i].inputs.map((id) => instance_map[id].props.value)
+											data: dependencies[i].inputs.map(
+												(id) => instance_map[id].props.value
+											)
 										},
-										output_data: outputs.map((id) => instance_map[id].props.value),
+										output_data: outputs.map(
+											(id) => instance_map[id].props.value
+										),
 										queue: queue === null ? enable_queue : queue,
 										queue_callback: handle_update,
 										loading_status: loading_status,
 										cancels
 									});
 									const output = await req;
-									handle_update(output)
-								} while (dependencies[i].pending_request)
+									handle_update(output);
+								} while (dependencies[i].pending_request);
 							}
 						});
 
