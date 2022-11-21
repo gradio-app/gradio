@@ -42,6 +42,7 @@ from gradio.components import (
     Textbox,
     TimeSeries,
     Timeseries,
+    UploadButton,
     Variable,
     Video,
     component,
