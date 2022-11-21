@@ -5,10 +5,8 @@
 	export let visible: boolean = true;
 	export let open: boolean = true;
 
-	let _open = open;
-
 	const toggle = () => {
-		_open = !_open;
+		open = !open;
 	};
 </script>
 
@@ -19,9 +17,9 @@
 >
 	<div on:click={toggle} class="w-full flex justify-between cursor-pointer">
 		<span>{label}</span>
-		<span class:rotate-90={!_open} class="transition">▼</span>
+		<span class:rotate-90={!open} class="transition">▼</span>
 	</div>
-	<Column visible={_open}>
+	<Column visible={open}>
 		<slot />
 	</Column>
 </div>
