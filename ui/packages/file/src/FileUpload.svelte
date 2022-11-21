@@ -19,6 +19,7 @@
 	export let label: string = "";
 	export let show_label: boolean;
 	export let file_count: string;
+	export let file_types: Array<string> = ["file"];
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -38,7 +39,19 @@
 		clear: undefined;
 		drag: boolean;
 		upload: FileData;
+		error: string;
 	}>();
+
+	let accept_file_types = "";
+	try {
+		file_types.forEach((type) => (accept_file_types += type + "/*, "));
+	} catch (err) {
+		if (err instanceof TypeError) {
+			dispatch("error", "Please set file_types to a list.");
+		} else {
+			throw err;
+		}
+	}
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
@@ -47,13 +60,18 @@
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value === null && file_count === "single"}
-	<Upload on:load={handle_upload} filetype="file" bind:dragging>
+	<Upload on:load={handle_upload} filetype={accept_file_types} bind:dragging>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
 	</Upload>
 {:else if value === null}
-	<Upload on:load={handle_upload} filetype="file" {file_count} bind:dragging>
+	<Upload
+		on:load={handle_upload}
+		filetype={accept_file_types}
+		{file_count}
+		bind:dragging
+	>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
