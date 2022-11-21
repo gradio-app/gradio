@@ -46,7 +46,6 @@ class Changeable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "wait"
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
@@ -64,7 +63,6 @@ class Changeable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -85,7 +83,6 @@ class Changeable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -112,7 +109,6 @@ class Clickable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
@@ -130,7 +126,6 @@ class Clickable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -147,7 +142,6 @@ class Clickable(Block):
             outputs,
             preprocess=preprocess,
             postprocess=postprocess,
-            behavior_when_pending=behavior_when_pending,
             scroll_to_output=scroll_to_output,
             show_progress=show_progress,
             api_name=api_name,
@@ -179,7 +173,6 @@ class Submittable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -198,7 +191,6 @@ class Submittable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -220,7 +212,6 @@ class Submittable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -247,7 +238,6 @@ class Editable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
@@ -265,7 +255,6 @@ class Editable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -287,7 +276,6 @@ class Editable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -314,7 +302,6 @@ class Clearable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
@@ -332,7 +319,6 @@ class Clearable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -354,7 +340,6 @@ class Clearable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -381,7 +366,6 @@ class Playable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user plays the component (e.g. audio or video).
@@ -399,7 +383,6 @@ class Playable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -421,7 +404,6 @@ class Playable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -446,7 +428,6 @@ class Playable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user pauses the component (e.g. audio or video).
@@ -464,7 +445,6 @@ class Playable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -486,7 +466,6 @@ class Playable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -511,7 +490,6 @@ class Playable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "block"
     ):
         """
         This event is triggered when the user stops the component (e.g. audio or video).
@@ -529,7 +507,6 @@ class Playable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -551,7 +528,6 @@ class Playable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,
@@ -578,7 +554,6 @@ class Streamable(Block):
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
         _js: Optional[str] = None,
-        behavior_when_pending: str = "wait"
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -596,7 +571,6 @@ class Streamable(Block):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
-            behavior_when_pending: if set to "block", event will not trigger when there is existing pending request. If set to "wait", event will trigger when pending request is complete. If set to "run", event will trigger despite pending request.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
             every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         """
@@ -620,7 +594,6 @@ class Streamable(Block):
             api_name=api_name,
             js=_js,
             queue=queue,
-            behavior_when_pending=behavior_when_pending,
             batch=batch,
             max_batch_size=max_batch_size,
             every=every,

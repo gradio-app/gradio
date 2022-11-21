@@ -240,7 +240,6 @@
 					queue,
 					backend_fn,
 					frontend_fn,
-					behavior_when_pending,
 					cancels,
 					...rest
 				},
@@ -310,12 +309,8 @@
 						if (handled_dependencies[i]?.includes(id) || !instance) return;
 						instance?.$on(trigger, async () => {
 							if (loading_status.get_status_for_fn(i) === "pending") {
-								if (behavior_when_pending === "block") {
-									return;
-								} else if (behavior_when_pending === "wait") {
-									dependencies[i].pending_request = true;
-									return;
-								}
+								dependencies[i].pending_request = true;
+								return;
 							}
 
 							// page events
@@ -348,7 +343,8 @@
 										output_data: outputs.map((id) => instance_map[id].props.value),
 										queue: queue === null ? enable_queue : queue,
 										queue_callback: handle_update,
-										loading_status: loading_status
+										loading_status: loading_status,
+										cancels
 									});
 									const output = await req;
 									handle_update(output)
