@@ -4,7 +4,7 @@ name: Check Demos Match Notebooks
 
 on:
   pull_request:
-    types: [opened, synchronize, labeled, unlabeled]
+    types: [opened, synchronize, reopened]
     paths:
         - 'demo/**'
 
