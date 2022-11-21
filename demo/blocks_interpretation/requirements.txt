@@ -1,1 +1,4 @@
 shap
+matplotlib
+transformers
+torch

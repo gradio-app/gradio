@@ -2,6 +2,7 @@
 Ways to transform interfaces to produce new interfaces
 """
 import asyncio
+import warnings
 from typing import TYPE_CHECKING, List
 
 import gradio
@@ -34,6 +35,11 @@ class Parallel(gradio.Interface):
         outputs: List[IOComponent] = []
 
         for interface in interfaces:
+            if not (isinstance(interface, gradio.Interface)):
+                warnings.warn(
+                    "Parallel requires all inputs to be of type Interface. "
+                    "May not work as expected."
+                )
             outputs.extend(interface.output_components)
 
         async def parallel_fn(*args):
@@ -108,6 +114,12 @@ class Series(gradio.Interface):
                 return data[0]
             return data
 
+        for interface in interfaces:
+            if not (isinstance(interface, gradio.Interface)):
+                warnings.warn(
+                    "Series requires all inputs to be of type Interface. May "
+                    "not work as expected."
+                )
         connected_fn.__name__ = " => ".join([io.__name__ for io in interfaces])
 
         kwargs = {

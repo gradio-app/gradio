@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -10,6 +9,7 @@
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
+	export let type: "text" | "password" | "email" = "text";
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
 
@@ -19,10 +19,15 @@
 	const dispatch = createEventDispatcher<{
 		change: string;
 		submit: undefined;
+		blur: undefined;
 	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);
+	}
+
+	function handle_blur(e: FocusEvent) {
+		dispatch("blur");
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
@@ -89,16 +94,45 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
 	{#if lines === 1 && max_lines === 1}
-		<input
-			data-testid="textbox"
-			type="text"
-			class="scroll-hide block gr-box gr-input w-full gr-text-input"
-			bind:value
-			bind:this={el}
-			{placeholder}
-			{disabled}
-			on:keypress={handle_keypress}
-		/>
+		{#if type === "text"}
+			<input
+				data-testid="textbox"
+				type="text"
+				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+			/>
+		{:else if type === "password"}
+			<input
+				data-testid="password"
+				type="password"
+				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				autocomplete=""
+			/>
+		{:else if type === "email"}
+			<input
+				data-testid="textbox"
+				type="email"
+				class="scroll-hide block gr-box gr-input w-full gr-text-input"
+				bind:value
+				bind:this={el}
+				{placeholder}
+				{disabled}
+				on:keypress={handle_keypress}
+				on:blur={handle_blur}
+				autocomplete="email"
+			/>
+		{/if}
 	{:else}
 		<textarea
 			data-testid="textbox"
@@ -110,6 +144,7 @@
 			rows={lines}
 			{disabled}
 			on:keypress={handle_keypress}
+			on:blur={handle_blur}
 		/>
 	{/if}
 </label>

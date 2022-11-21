@@ -10,6 +10,9 @@ import json.decoder
 import os
 import pkgutil
 import random
+import sys
+import time
+import typing
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
@@ -35,6 +38,7 @@ import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
+from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -392,19 +396,19 @@ def async_iteration(iterator):
         raise StopAsyncIteration()
 
 
-class Request:
+class AsyncRequest:
     """
-    The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
-    Compared to making calls by using httpx directly, Request offers more flexibility and control over:
+    The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
+    Compared to making calls by using httpx directly, AsyncRequest offers more flexibility and control over:
         (1) Includes response validation functionality both using validation models and functions.
         (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
         (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
         individually in the case of multiple asynchronous request calls and some of them failing.
-        (4) Provides HTTP request types with Request.Method Enum class for ease of usage
-    Request also offers some util functions such as has_exception, is_valid and status to inspect get detailed
+        (4) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
+    AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
     information about executed request call.
 
-    The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
+    The basic usage of AsyncRequest is as follows: create a AsyncRequest object with inputs(method, url etc.). Then use it
     with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
     Finally, call the get_validated_data function to get the response data.
 
@@ -463,13 +467,13 @@ class Request:
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
-    def __await__(self) -> Generator[None, Any, "Request"]:
+    def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """
         return self.__run().__await__()
 
-    async def __run(self) -> Request:
+    async def __run(self) -> AsyncRequest:
         """
         Manage the request call lifecycle.
         Execute the request by sending it through the client, then check its status.
@@ -483,7 +487,9 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await Request.client.send(self._request)
+            self._response: httpx.Response = await AsyncRequest.client.send(
+                self._request
+            )
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -500,7 +506,7 @@ class Request:
         return self
 
     @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> Request:
+    def _create_request(method: Method, url: str, **kwargs) -> AsyncRequest:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -675,13 +681,113 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
 
 
 def validate_url(possible_url: str) -> bool:
+    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        if requests.get(possible_url).status_code == 200:
-            return True
+        return requests.get(possible_url, headers=headers).ok
     except Exception:
-        pass
-    return False
+        return False
 
 
 def is_update(val):
     return type(val) is dict and "update" in val.get("__type__", "")
+
+
+def get_continuous_fn(fn, every):
+    def continuous_fn(*args):
+        while True:
+            output = fn(*args)
+            yield output
+            time.sleep(every)
+
+    return continuous_fn
+
+
+async def cancel_tasks(task_ids: List[str]):
+    if sys.version_info < (3, 8):
+        return None
+
+    matching_tasks = [
+        task for task in asyncio.all_tasks() if task.get_name() in task_ids
+    ]
+    for task in matching_tasks:
+        task.cancel()
+    await asyncio.gather(*matching_tasks, return_exceptions=True)
+
+
+def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
+    if sys.version_info >= (3, 8) and not (
+        batch
+    ):  # You shouldn't be able to cancel a task if it's part of a batch
+        task.set_name(f"{session_hash}_{fn_index}")
+
+
+def get_cancel_function(
+    dependencies: List[Dict[str, Any]]
+) -> Tuple[Callable, List[int]]:
+    fn_to_comp = {}
+    for dep in dependencies:
+        fn_index = next(
+            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+        )
+        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+
+    async def cancel(session_hash: str) -> None:
+        task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
+        await cancel_tasks(task_ids)
+
+    return (
+        cancel,
+        list(fn_to_comp.keys()),
+    )
+
+
+def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool):
+    """
+    Checks if the input component set matches the function
+    Returns: None if valid, a string error message if mismatch
+    """
+
+    def is_special_typed_parameter(name):
+        from gradio.routes import Request
+
+        """Checks if parameter has a type hint designating it as a gr.Request"""
+        return parameter_types.get(name, "") == Request
+
+    signature = inspect.signature(fn)
+    parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
+    min_args = 0
+    max_args = 0
+    for name, param in signature.parameters.items():
+        has_default = param.default != param.empty
+        if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
+            if not (is_special_typed_parameter(name)):
+                if not has_default:
+                    min_args += 1
+                max_args += 1
+        elif param.kind == param.VAR_POSITIONAL:
+            max_args = "infinity"
+        elif param.kind == param.KEYWORD_ONLY:
+            if not has_default:
+                return f"Keyword-only args must have default values for function {fn}"
+    arg_count = 1 if inputs_as_dict else len(inputs)
+    if min_args == max_args and max_args != arg_count:
+        warnings.warn(
+            f"Expected {max_args} arguments for function {fn}, received {arg_count}."
+        )
+    if arg_count < min_args:
+        warnings.warn(
+            f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
+        )
+    if max_args != "infinity" and arg_count > max_args:
+        warnings.warn(
+            f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
+        )
+
+
+class TupleNoPrint(tuple):
+    # To remove printing function return in notebook
+    def __repr__(self):
+        return ""
+
+    def __str__(self):
+        return ""

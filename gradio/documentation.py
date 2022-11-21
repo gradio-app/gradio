@@ -187,25 +187,3 @@ def generate_documentation():
                 )
             documentation[mode].append(cls_documentation)
     return documentation
-
-
-def document_component_api(component_cls, target):
-    """
-    Used for the view API page in the app itself. Generates documentation based on the pre/postprocess methods of the Component.
-    Parameters:
-        component_cls: The IOComponent in the app to document
-        target: Either "input" or "output", which sets whether to return input or output Component documentation
-    Returns:
-        doc: Description of value expected / returned by Component
-        annotation: Type expected / returned by Component
-    """
-    if target == "input":
-        _, parameter_docs, _, _ = document_fn(component_cls.preprocess)
-        if len(parameter_docs) > 1:
-            return parameter_docs[1]["doc"], str(parameter_docs[1]["annotation"])
-        return None, None
-    elif target == "output":
-        _, _, return_docs, _ = document_fn(component_cls.postprocess)
-        return return_docs.get("doc"), str(return_docs.get("annotation"))
-    else:
-        raise ValueError("Invalid doumentation target.")

@@ -17,11 +17,13 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let file_count: string;
+	export let file_types: Array<string> = ["file"];
+	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root);
+	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging = false;
 </script>
@@ -41,15 +43,17 @@
 			{show_label}
 			value={_value}
 			{file_count}
+			{file_types}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change
 			on:clear
+			on:upload
 			drop_text={$_("interface.drop_file")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {label} {show_label} {file_count} />
+		<File value={_value} {label} {show_label} />
 	{/if}
 </Block>
