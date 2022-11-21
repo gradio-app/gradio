@@ -12,7 +12,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/api/predict/", (route) => {
+	return page.route("**/run/predict/", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -30,6 +30,8 @@ test("renders the correct elements", async ({ page }) => {
 	await mock_api(page, [[25, 45]]);
 	await page.goto("http://localhost:3000");
 
-	const button = await page.locator("button");
-	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
+	await Promise.all([
+		page.click("button:has-text('Run')"),
+		page.waitForResponse("**/run/predict/")
+	]);
 });

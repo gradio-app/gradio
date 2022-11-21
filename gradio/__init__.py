@@ -23,6 +23,7 @@ from gradio.components import (
     Dropdown,
     File,
     Gallery,
+    Highlight,
     Highlightedtext,
     HighlightedText,
     Image,
@@ -37,9 +38,11 @@ from gradio.components import (
     Slider,
     State,
     StatusTracker,
+    Text,
     Textbox,
     TimeSeries,
     Timeseries,
+    UploadButton,
     Variable,
     Video,
     component,
@@ -57,10 +60,9 @@ from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.mix import Parallel, Series
-from gradio.routes import mount_gradio_app
+from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
-    Highlight,
     ImageMask,
     ImagePaint,
     List,
@@ -72,7 +74,6 @@ from gradio.templates import (
     Pil,
     PlayableVideo,
     Sketchpad,
-    Text,
     TextArea,
     Webcam,
 )

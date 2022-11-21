@@ -13,7 +13,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("**/api/predict/", (route) => {
+	return page.route("**/run/predict/", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -30,18 +30,14 @@ test("matplotlib", async ({ page }) => {
 	await mock_demo(page, "outbreak_forecast");
 	await mock_api(page, [[{ type: "matplotlib", plot: BASE64_PLOT_IMG }]]);
 	await page.goto("http://localhost:3000");
-	await page
-		.locator("text=Plot Type MatplotlibPlotlyBokeh >> select")
-		.selectOption("Matplotlib");
-	await page
-		.locator("text=Month JanuaryFebruaryMarchAprilMay >> select")
-		.selectOption("January");
-	await page.locator('label:has-text("Social Distancing?")').click();
 
-	const submit_button = await page.locator("text=Submit");
+	await page.getByLabel("Plot Type").selectOption("Matplotlib");
+	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Social Distancing?").check();
+
 	await Promise.all([
-		submit_button.click(),
-		page.waitForResponse("**/api/predict/")
+		page.click("text=Submit"),
+		page.waitForResponse("**/run/predict/")
 	]);
 
 	const matplotlib_img = await page.locator("img").nth(0);
@@ -60,18 +56,14 @@ test("plotly", async ({ page }) => {
 		]
 	]);
 	await page.goto("http://localhost:3000");
-	await page
-		.locator("text=Plot Type MatplotlibPlotlyBokeh >> select")
-		.selectOption("Plotly");
-	await page
-		.locator("text=Month JanuaryFebruaryMarchAprilMay >> select")
-		.selectOption("January");
-	await page.locator('label:has-text("Social Distancing?")').click();
 
-	const submit_button = await page.locator("text=Submit");
+	await page.getByLabel("Plot Type").selectOption("Plotly");
+	await page.getByLabel("Month").selectOption("January");
+	await page.getByLabel("Social Distancing?").check();
+
 	await Promise.all([
-		submit_button.click(),
-		page.waitForResponse("**/api/predict/")
+		page.click("text=Submit"),
+		page.waitForResponse("**/run/predict/")
 	]);
 	await expect(page.locator(".js-plotly-plot")).toHaveCount(1);
 });

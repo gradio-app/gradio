@@ -19,10 +19,10 @@ en = {
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
-    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting, check out Spaces: https://www.huggingface.co/spaces",
+    "COLAB_WARNING": "Note: opening Chrome Inspector may crash demo inside Colab notebooks.",
+    "SHARE_LINK_MESSAGE": "\nThis share link expires in 72 hours. For free permanent hosting and GPU upgrades (NEW!), check out Spaces: https://huggingface.co/spaces",
     "PRIVATE_LINK_MESSAGE": "Since this is a private endpoint, this share link will never expire.",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
-    "MEDIA_PERMISSIONS_IN_COLAB": "Your interface requires microphone or webcam permissions - this may cause issues in Colab. Use the External URL in case of issues.",
     "TIPS": [
         "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
         "Let users specify why they flagged input with the `flagging_options=` kwarg; for example: `gr.Interface(..., flagging_options=['too slow', 'incorrect output', 'other'])`",

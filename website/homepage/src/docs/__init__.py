@@ -1,7 +1,7 @@
 import os
 from gradio.documentation import generate_documentation, document_cls
 import gradio.templates
-from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
+from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable, Blurrable, Uploadable
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -56,6 +56,10 @@ def add_supported_events():
             component["events"].append("edit()")
         if issubclass(component["class"], Submittable):
             component["events"].append("submit()")
+        if issubclass(component["class"], Blurrable):
+                component["events"].append("blur()")
+        if issubclass(component["class"], Uploadable):
+            component["events"].append("upload()")
         if component["events"]:
             component["events"] = ", ".join(component["events"])
 
@@ -97,12 +101,26 @@ def find_cls(target_cls):
                 return cls
     raise ValueError("Class not found")
 
-def build(output_dir, jinja_env):
+def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
-    output = template.render(docs=docs, find_cls=find_cls)
+    output = template.render(docs=docs, find_cls=find_cls, version="main", gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url)
     output_folder = os.path.join(output_dir, "docs")
     os.makedirs(output_folder)
-    output_file = os.path.join(output_folder, "index.html")
+    output_main = os.path.join(output_folder, "main")
+    os.makedirs(output_main)
+    output_file = os.path.join(output_main, "index.html")
     with open(output_file, "w") as index_html:
         index_html.write(output)
+    template = jinja_env.get_template(f"docs/v{gradio_version}_template.html")
+    output = template.render()
+    version_docs_file = os.path.join(output_folder, "index.html")
+    with open(version_docs_file, "w") as index_html:
+        index_html.write(output)
+
+def build_pip_template(version, jinja_env):
+    docs_files = os.listdir("src/docs")
+    template = jinja_env.get_template("docs/template.html")
+    output = template.render(docs=docs, find_cls=find_cls, version="pip", gradio_version=version)
+    with open(f"src/docs/v{version}_template.html", "w+") as template_file:
+        template_file.write(output)

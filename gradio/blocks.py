@@ -3,15 +3,28 @@ from __future__ import annotations
 import copy
 import getpass
 import inspect
+import json
 import os
 import pkgutil
 import random
 import sys
 import time
+import typing
 import warnings
 import webbrowser
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 import anyio
 import requests
@@ -29,15 +42,19 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import (
-    document,
-    document_component_api,
-    set_documentation_group,
+from gradio.documentation import document, set_documentation_group
+from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.utils import (
+    TupleNoPrint,
+    check_function_inputs_match,
+    component_or_layout_class,
+    delete_none,
+    get_cancel_function,
+    get_continuous_fn,
 )
-from gradio.exceptions import DuplicateBlockError
-from gradio.utils import component_or_layout_class, delete_none
 
 set_documentation_group("blocks")
+
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -49,11 +66,20 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        render: bool = True,
+        elem_id: str | None = None,
+        visible: bool = True,
+        root_url: str | None = None,  # URL that is prepended to all file paths
+        **kwargs,
+    ):
         self._id = Context.id
         Context.id += 1
         self.visible = visible
         self.elem_id = elem_id
+        self.root_url = root_url
         self._style = {}
         if render:
             self.render()
@@ -73,6 +99,7 @@ class Block:
             Context.root_block.blocks[self._id] = self
             if hasattr(self, "temp_dir"):
                 Context.root_block.temp_dirs.add(self.temp_dir)
+        return self
 
     def unrender(self):
         """
@@ -108,19 +135,23 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: Optional[Callable],
-        inputs: Optional[Component | List[Component]],
-        outputs: Optional[Component | List[Component]],
+        fn: Callable | None,
+        inputs: Component | List[Component] | Set[Component] | None,
+        outputs: Component | List[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        api_name: Optional[AnyStr] = None,
-        js: Optional[str] = None,
+        api_name: AnyStr | None = None,
+        js: str | None = None,
         no_target: bool = False,
-        queue: Optional[bool] = None,
-        behavior_when_pending: str = "block"
-    ) -> None:
+        behavior_when_pending: str = "block",
+        queue: bool | None = None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        cancels: List[int] | None = None,
+        every: float | None = None,
+    ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -135,18 +166,51 @@ class Block:
             api_name: Defining this parameter exposes the endpoint in the api docs
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            batch: whether this function takes in a batch of inputs
+            max_batch_size: the maximum batch size to send to the function
+            cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
         Returns: None
         """
         # Support for singular parameter
-        if inputs is None:
-            inputs = []
-        if outputs is None:
-            outputs = []
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
+        if isinstance(inputs, set):
+            inputs_as_dict = True
+            inputs = sorted(inputs, key=lambda x: x._id)
+        else:
+            inputs_as_dict = False
+            if inputs is None:
+                inputs = []
+            elif not isinstance(inputs, list):
+                inputs = [inputs]
+
+        if isinstance(outputs, set):
+            outputs = sorted(outputs, key=lambda x: x._id)
+        else:
+            if outputs is None:
+                outputs = []
+            elif not isinstance(outputs, list):
+                outputs = [outputs]
+
+        if fn is not None and not cancels:
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
+
+        if Context.root_block is None:
+            raise AttributeError(
+                f"{event_name}() and other events can only be called within a Blocks context."
+            )
+        if every is not None and every <= 0:
+            raise ValueError("Parameter every must be positive or None")
+        if every and batch:
+            raise ValueError(
+                f"Cannot run {event_name} event in a batch and every {every} seconds. "
+                "Either batch is True or every is non-zero but not both."
+            )
+
+        if every:
+            fn = get_continuous_fn(fn, every)
+
+        Context.root_block.fns.append(
+            BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
+        )
         if api_name is not None:
             api_name_ = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in Context.root_block.dependencies]
@@ -156,6 +220,7 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -167,26 +232,21 @@ class Block:
             "api_name": api_name,
             "scroll_to_output": scroll_to_output,
             "show_progress": show_progress,
-            "behavior_when_pending": behavior_when_pending
+            "behavior_when_pending": behavior_when_pending,
+            "every": every,
+            "batch": batch,
+            "max_batch_size": max_batch_size,
+            "cancels": cancels or [],
         }
-        if api_name is not None:
-            dependency["documentation"] = [
-                [
-                    document_component_api(component.__class__, "input")
-                    for component in inputs
-                ],
-                [
-                    document_component_api(component.__class__, "output")
-                    for component in outputs
-                ],
-            ]
         Context.root_block.dependencies.append(dependency)
+        return dependency
 
     def get_config(self):
         return {
             "visible": self.visible,
             "elem_id": self.elem_id,
             "style": self._style,
+            "root_url": self.root_url,
         }
 
     @classmethod
@@ -254,12 +314,23 @@ class BlockContext(Block):
 
 
 class BlockFunction:
-    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
+    def __init__(
+        self,
+        fn: Optional[Callable],
+        inputs: List[Component],
+        outputs: List[Component],
+        preprocess: bool,
+        postprocess: bool,
+        inputs_as_dict: bool,
+    ):
         self.fn = fn
+        self.inputs = inputs
+        self.outputs = outputs
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
+        self.inputs_as_dict = inputs_as_dict
 
     def __str__(self):
         return str(
@@ -340,10 +411,11 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    prediction_value = block.get_specific_update(update_dict)
-    if prediction_value.get("value") is components._Keywords.NO_VALUE:
-        prediction_value.pop("value")
-    prediction_value = delete_none(prediction_value, skip_value=True)
+    if update_dict.get("__type__", "") == "generic_update":
+        update_dict = block.get_specific_update(update_dict)
+    if update_dict.get("value") is components._Keywords.NO_VALUE:
+        update_dict.pop("value")
+    prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
@@ -361,7 +433,7 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
         reordered_predictions = [skip() for _ in outputs_ids]
         for component, value in predictions.items():
             if component._id not in outputs_ids:
-                return ValueError(
+                raise ValueError(
                     f"Returned component {component} not specified as output of function."
                 )
             output_index = outputs_ids.index(component._id)
@@ -372,6 +444,23 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
+
+
+def add_request_to_inputs(
+    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
+):
+    """
+    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
+    """
+    param_names = inspect.getfullargspec(fn)[0]
+    try:
+        parameter_types = typing.get_type_hints(fn)
+        for idx, param_name in enumerate(param_names):
+            if parameter_types.get(param_name, "") == routes.Request:
+                inputs.insert(idx, request)
+    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
+        pass
+    return inputs
 
 
 @document("load")
@@ -406,7 +495,7 @@ class Blocks(BlockContext):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german, sound_alert
     Guides: blocks_and_event_listeners, controlling_layout, state_in_blocks, custom_CSS_and_JS, custom_interpretations_with_blocks, using_blocks_like_functions
     """
 
@@ -462,6 +551,7 @@ class Blocks(BlockContext):
         self.share_url = None
         self.width = None
         self.height = None
+        self.api_open = True
 
         self.ip_address = None
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
@@ -486,21 +576,18 @@ class Blocks(BlockContext):
             }
             utils.initiated_analytics(data)
 
-    @property
-    def share(self):
-        return self._share
-
-    @share.setter
-    def share(self, value: Optional[bool]):
-        # If share is not provided, it is set to True when running in Google Colab, or False otherwise
-        if value is None:
-            self._share = True if utils.colab_check() else False
-        else:
-            self._share = value
-
     @classmethod
-    def from_config(cls, config: dict, fns: List[Callable]) -> Blocks:
-        """Factory method that creates a Blocks from a config and list of functions."""
+    def from_config(
+        cls, config: dict, fns: List[Callable], root_url: str | None = None
+    ) -> Blocks:
+        """
+        Factory method that creates a Blocks from a config and list of functions.
+
+        Parameters:
+        config: a dictionary containing the configuration of the Blocks.
+        fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
+        root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        """
         config = copy.deepcopy(config)
         components_config = config["components"]
         original_mapping: Dict[int, Block] = {}
@@ -515,6 +602,8 @@ class Blocks(BlockContext):
             block_config["props"].pop("type", None)
             block_config["props"].pop("name", None)
             style = block_config["props"].pop("style", None)
+            if block_config["props"].get("root_url") is None and root_url:
+                block_config["props"]["root_url"] = root_url + "/"
             block = cls(**block_config["props"])
             if style:
                 block.style(**style)
@@ -532,10 +621,22 @@ class Blocks(BlockContext):
                         iterate_over_children(children)
 
         with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+            # ID 0 should be the root Blocks component
+            original_mapping[0] = Context.root_block or blocks
+
             iterate_over_children(config["layout"]["children"])
+
+            first_dependency = None
 
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
+                # We used to add a "fake_event" to the config to cache examples
+                # without removing it. This was causing bugs in calling gr.Interface.load
+                # We fixed the issue by removing "fake_event" from the config in examples.py
+                # but we still need to skip these events when loading the config to support
+                # older demos
+                if dependency["trigger"] == "fake_event":
+                    continue
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
@@ -547,19 +648,24 @@ class Blocks(BlockContext):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency["_js"] = dependency.pop("js", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
 
                 for target in targets:
-                    event_method = getattr(original_mapping[target], trigger)
-                    event_method(fn=fn, **dependency)
+                    dependency = original_mapping[target].set_event_trigger(
+                        event_name=trigger, fn=fn, **dependency
+                    )
+                    if first_dependency is None:
+                        first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
             blocks.predict = [fns[0]]
-            dependency = blocks.dependencies[0]
-            blocks.input_components = [blocks.blocks[i] for i in dependency["inputs"]]
-            blocks.output_components = [blocks.blocks[o] for o in dependency["outputs"]]
+            blocks.input_components = [
+                Context.root_block.blocks[i] for i in first_dependency["inputs"]
+            ]
+            blocks.output_components = [
+                Context.root_block.blocks[o] for o in first_dependency["outputs"]
+            ]
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"
@@ -567,52 +673,6 @@ class Blocks(BlockContext):
             blocks.api_mode = True
 
         return blocks
-
-    def __call__(self, *params, fn_index=0):
-        """
-        Allows Blocks objects to be called as functions
-        Parameters:
-        *params: the parameters to pass to the function
-        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
-        """
-        dependency = self.dependencies[fn_index]
-        block_fn = self.fns[fn_index]
-
-        processed_input = []
-        for i, input_id in enumerate(dependency["inputs"]):
-            block = self.blocks[input_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the inputs are stateful."
-                )
-            else:
-                serialized_input = block.serialize(params[i])
-                processed_input.append(serialized_input)
-
-        processed_input = self.preprocess_data(fn_index, processed_input, None)
-
-        if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
-        else:
-            predictions = block_fn.fn(*processed_input)
-
-        predictions = self.postprocess_data(fn_index, predictions, None)
-
-        output_copy = copy.deepcopy(predictions)
-        predictions = []
-        for o, output_id in enumerate(dependency["outputs"]):
-            block = self.blocks[output_id]
-            if getattr(block, "stateful", False):
-                raise ValueError(
-                    "Cannot call Blocks object as a function if any of"
-                    " the outputs are stateful."
-                )
-            else:
-                deserialized = block.deserialize(output_copy[o])
-                predictions.append(deserialized)
-
-        return utils.resolve_singleton(predictions)
 
     def __str__(self):
         return self.__repr__()
@@ -647,7 +707,8 @@ class Blocks(BlockContext):
 
             Context.root_block.blocks.update(self.blocks)
             Context.root_block.fns.extend(self.fns)
-            for dependency in self.dependencies:
+            dependency_offset = len(Context.root_block.dependencies)
+            for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
                 if api_name is not None:
                     api_name_ = utils.append_unique_suffix(
@@ -661,32 +722,125 @@ class Blocks(BlockContext):
                             )
                         )
                         dependency["api_name"] = api_name_
+                dependency["cancels"] = [
+                    c + dependency_offset for c in dependency["cancels"]
+                ]
+                # Recreate the cancel function so that it has the latest
+                # dependency fn indices. This is necessary to properly cancel
+                # events in the backend
+                if dependency["cancels"]:
+                    updated_cancels = [
+                        Context.root_block.dependencies[i]
+                        for i in dependency["cancels"]
+                    ]
+                    new_fn = BlockFunction(
+                        get_cancel_function(updated_cancels)[0],
+                        [],
+                        [],
+                        False,
+                        True,
+                        False,
+                    )
+                    Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
             Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
+        return self
 
-    def preprocess_data(self, fn_index, raw_input, state):
+    def is_callable(self, fn_index: int = 0) -> bool:
+        """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        if block_fn.preprocess:
-            processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                block = self.blocks[input_id]
-                if getattr(block, "stateful", False):
-                    processed_input.append(state.get(input_id))
-                else:
-                    processed_input.append(block.preprocess(raw_input[i]))
-        else:
-            processed_input = raw_input
-        return processed_input
+        if inspect.isasyncgenfunction(block_fn.fn):
+            return False
+        if inspect.isgeneratorfunction(block_fn.fn):
+            raise False
+        for input_id in dependency["inputs"]:
+            block = self.blocks[input_id]
+            if getattr(block, "stateful", False):
+                return False
+        for output_id in dependency["outputs"]:
+            block = self.blocks[output_id]
+            if getattr(block, "stateful", False):
+                return False
 
-    async def call_function(self, fn_index, processed_input, iterator=None):
+        return True
+
+    def __call__(self, *inputs, fn_index: int = 0, api_name: str = None):
+        """
+        Allows Blocks objects to be called as functions. Supply the parameters to the
+        function as positional arguments. To choose which function to call, use the
+        fn_index parameter, which must be a keyword argument.
+
+        Parameters:
+        *inputs: the parameters to pass to the function
+        fn_index: the index of the function to call (defaults to 0, which for Interfaces, is the default prediction function)
+        api_name: The api_name of the dependency to call. Will take precedence over fn_index.
+        """
+        if api_name is not None:
+            fn_index = next(
+                (
+                    i
+                    for i, d in enumerate(self.dependencies)
+                    if d.get("api_name") == api_name
+                ),
+                None,
+            )
+            if fn_index is None:
+                raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
+        if not (self.is_callable(fn_index)):
+            raise ValueError(
+                "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
+            )
+
+        inputs = list(inputs)
+        processed_inputs = self.serialize_data(fn_index, inputs)
+        batch = self.dependencies[fn_index]["batch"]
+        if batch:
+            processed_inputs = [[inp] for inp in processed_inputs]
+
+        outputs = utils.synchronize_async(
+            self.process_api,
+            fn_index=fn_index,
+            inputs=processed_inputs,
+            request=None,
+        )
+        outputs = outputs["data"]
+
+        if batch:
+            outputs = [out[0] for out in outputs]
+
+        processed_outputs = self.deserialize_data(fn_index, outputs)
+        processed_outputs = utils.resolve_singleton(processed_outputs)
+
+        return processed_outputs
+
+    async def call_function(
+        self,
+        fn_index: int,
+        processed_input: List[Any],
+        iterator: Iterator[Any] | None = None,
+        request: routes.Request | List[routes.Request] | None = None,
+    ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
+
+        if block_fn.inputs_as_dict:
+            processed_input = [
+                {
+                    input_component: data
+                    for input_component, data in zip(block_fn.inputs, processed_input)
+                }
+            ]
+
+        processed_input = add_request_to_inputs(
+            block_fn.fn, list(processed_input), request
+        )
+
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
@@ -727,16 +881,57 @@ class Blocks(BlockContext):
             "iterator": iterator,
         }
 
-    def postprocess_data(self, fn_index, predictions, state):
+    def serialize_data(self, fn_index: int, inputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        processed_input = []
+
+        for i, input_id in enumerate(dependency["inputs"]):
+            block: IOComponent = self.blocks[input_id]
+            serialized_input = block.serialize(inputs[i])
+            processed_input.append(serialized_input)
+
+        return processed_input
+
+    def deserialize_data(self, fn_index: int, outputs: List[Any]) -> List[Any]:
+        dependency = self.dependencies[fn_index]
+        predictions = []
+
+        for o, output_id in enumerate(dependency["outputs"]):
+            block: IOComponent = self.blocks[output_id]
+            deserialized = block.deserialize(outputs[o])
+            predictions.append(deserialized)
+
+        return predictions
+
+    def preprocess_data(self, fn_index: int, inputs: List[Any], state: Dict[int, Any]):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
+
+        if block_fn.preprocess:
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block: IOComponent = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(inputs[i]))
+        else:
+            processed_input = inputs
+        return processed_input
+
+    def postprocess_data(
+        self, fn_index: int, predictions: List[Any], state: Dict[int, Any]
+    ):
+        block_fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
+        batch = dependency["batch"]
 
         if type(predictions) is dict and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
 
-        if len(dependency["outputs"]) == 1:
+        if len(dependency["outputs"]) == 1 and not (batch):
             predictions = (predictions,)
 
         output = []
@@ -766,35 +961,62 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
+        request: routes.Request | List[routes.Request] | None = None,
         username: str = None,
-        state: Dict[int, Any] | None = None,
+        state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
         then runs the relevant function, then postprocesses the output.
         Parameters:
-            data: data recieved from the frontend
-            inputs: the list of raw inputs to pass to the function
+            fn_index: Index of function to run.
+            inputs: input data received from the frontend
             username: name of user if authentication is set up (not used)
             state: data stored from stateful components for session (key is input block id)
             iterators: the in-progress iterators for each generator function (key is function index)
         Returns: None
         """
         block_fn = self.fns[fn_index]
+        batch = self.dependencies[fn_index]["batch"]
 
-        inputs = self.preprocess_data(fn_index, inputs, state)
-        iterator = iterators.get(fn_index, None) if iterators else None
+        if batch:
+            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
+            batch_sizes = [len(inp) for inp in inputs]
+            batch_size = batch_sizes[0]
+            if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+                block_fn.fn
+            ):
+                raise ValueError("Gradio does not support generators in batch mode.")
+            if not all(x == batch_size for x in batch_sizes):
+                raise ValueError(
+                    f"All inputs to a batch function must have the same length but instead have sizes: {batch_sizes}."
+                )
+            if batch_size > max_batch_size:
+                raise ValueError(
+                    f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
+                )
 
-        result = await self.call_function(fn_index, inputs, iterator)
+            inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
+            result = await self.call_function(fn_index, zip(*inputs), None, request)
+            preds = result["prediction"]
+            data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
+            data = list(zip(*data))
+            is_generating, iterator = None, None
+        else:
+            inputs = self.preprocess_data(fn_index, inputs, state)
+            iterator = iterators.get(fn_index, None) if iterators else None
+            result = await self.call_function(fn_index, inputs, iterator, request)
+            data = self.postprocess_data(fn_index, result["prediction"], state)
+            is_generating, iterator = result["is_generating"], result["iterator"]
+
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
 
-        predictions = self.postprocess_data(fn_index, result["prediction"], state)
         return {
-            "data": predictions,
-            "is_generating": result["is_generating"],
-            "iterator": result["iterator"],
+            "data": data,
+            "is_generating": is_generating,
+            "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
@@ -822,6 +1044,7 @@ class Blocks(BlockContext):
             "enable_queue": getattr(self, "enable_queue", False),  # launch attributes
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
+            "is_colab": utils.colab_check(),
         }
 
         def getLayout(block):
@@ -878,8 +1101,9 @@ class Blocks(BlockContext):
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
         _js: Optional[str] = None,
+        every: None | int = None,
         **kwargs,
-    ) -> Blocks | None:
+    ) -> Blocks | Dict[str, Any] | None:
         """
         For reverse compatibility reasons, this is both a class method and an instance
         method, the two of which, confusingly, do two completely different things.
@@ -890,13 +1114,14 @@ class Blocks(BlockContext):
 
         Instance method: adds event that runs as soon as the demo loads in the browser. Example usage below.
         Parameters:
-            name: Class Method - the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-            src: Class Method - the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-            api_key: Class Method - optional api key for use with Hugging Face Hub
-            alias: Class Method - optional string used as the name of the loaded model instead of the default name
+            name: Class Method - the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
+            src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
+            api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
+            alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
             fn: Instance Method - Callable function
             inputs: Instance Method - input list
             outputs: Instance Method - output list
+            every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
             import datetime
@@ -911,23 +1136,18 @@ class Blocks(BlockContext):
         if isinstance(self_or_cls, type):
             if name is None:
                 raise ValueError(
-                    "Blocks.load() requires passing `name` as a keyword argument"
+                    "Blocks.load() requires passing parameters as keyword arguments"
                 )
-            if fn is not None:
-                kwargs["fn"] = fn
-            if inputs is not None:
-                kwargs["inputs"] = inputs
-            if outputs is not None:
-                kwargs["outputs"] = outputs
             return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
         else:
-            self_or_cls.set_event_trigger(
+            return self_or_cls.set_event_trigger(
                 event_name="load",
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
-                no_target=True,
                 js=_js,
+                no_target=True,
+                every=every,
             )
 
     def clear(self):
@@ -945,6 +1165,7 @@ class Blocks(BlockContext):
         status_update_rate: float | str = "auto",
         client_position_to_load_data: int = 30,
         default_enabled: bool = True,
+        api_open: bool = True,
         max_size: Optional[int] = None,
     ):
         """
@@ -954,18 +1175,22 @@ class Blocks(BlockContext):
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
             default_enabled: If True, all event listeners will use queueing by default.
+            api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
+            max_size: The maximum number of events the queue will store at any given moment.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
             demo.launch()
         """
         self.enable_queue = default_enabled
+        self.api_open = api_open
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
+            blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
         return self
@@ -986,7 +1211,7 @@ class Blocks(BlockContext):
         server_port: Optional[int] = None,
         show_tips: bool = False,
         height: int = 500,
-        width: int = 900,
+        width: int | str = "100%",
         encrypt: bool = False,
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
@@ -1022,7 +1247,7 @@ class Blocks(BlockContext):
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
-            show_api: If True, shows the api docs in the footer of the app. Default True.
+            show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1049,7 +1274,6 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        self.show_api = show_api
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1063,9 +1287,25 @@ class Blocks(BlockContext):
             self.enable_queue = self.enable_queue is True
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
+        self.show_api = self.api_open if self.enable_queue else show_api
+
+        for dep in self.dependencies:
+            for i in dep["cancels"]:
+                if not self.queue_enabled_for_fn(i):
+                    raise ValueError(
+                        "In order to cancel an event, the queue for that event must be enabled! "
+                        "You may get this error by either 1) passing a function that uses the yield keyword "
+                        "into an interface without enabling the queue or 2) defining an event that cancels "
+                        "another event without enabling the queue. Both can be solved by calling .queue() "
+                        "before .launch()"
+                    )
+            if dep["batch"] and (
+                dep["queue"] is False
+                or (dep["queue"] is None and not self.enable_queue)
+            ):
+                raise ValueError("In order to use batching, the queue must be enabled.")
 
         self.config = self.get_config_file()
-        self.share = share
         self.encrypt = encrypt
         self.max_threads = max(
             self._queue.max_thread_count if self.enable_queue else 0, max_threads
@@ -1096,7 +1336,12 @@ class Blocks(BlockContext):
             self.server_app = app
             self.server = server
             self.is_running = True
-            self.protocol = "https" if self.local_url.startswith("https") else "http"
+            self.is_colab = utils.colab_check()
+            self.protocol = (
+                "https"
+                if self.local_url.startswith("https") or self.is_colab
+                else "http"
+            )
 
             if self.enable_queue:
                 self._queue.set_url(self.local_url)
@@ -1106,33 +1351,43 @@ class Blocks(BlockContext):
             requests.get(f"{self.local_url}startup-events")
 
             if self.enable_queue:
-                if self.auth is not None or self.encrypt:
-                    raise ValueError(
-                        "Cannot queue with encryption or authentication enabled."
-                    )
+                if self.encrypt:
+                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
+
+        self.share = (
+            share
+            if share is not None
+            else True
+            if self.is_colab and self.enable_queue
+            else False
+        )
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
-        is_colab = utils.colab_check()
-        if is_colab or (_frontend and not networking.url_ok(self.local_url)):
-            if not self.share:
-                raise ValueError(
-                    "When running in Google Colab or when localhost is not accessible, a shareable link must be created. Please set share=True."
-                )
-            if is_colab and not quiet:
+        if _frontend and (not networking.url_ok(self.local_url)) and (not self.share):
+            raise ValueError(
+                "When localhost is not accessible, a shareable link must be created. Please set share=True."
+            )
+
+        if self.is_colab:
+            if not quiet:
                 if debug:
                     print(strings.en["COLAB_DEBUG_TRUE"])
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
+                if not self.share:
+                    print(strings.en["COLAB_WARNING"].format(self.server_port))
+            if self.enable_queue and not self.share:
+                raise ValueError(
+                    "When using queueing in Colab, a shareable link must be created. Please set share=True."
+                )
         else:
             print(
                 strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                     self.protocol, self.server_name, self.server_port
                 )
             )
-        if is_colab and self.requires_permissions:
-            print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
         if self.share:
             if self.is_space:
@@ -1169,16 +1424,51 @@ class Blocks(BlockContext):
                     "click the link to access the interface in a new tab."
                 )
             try:
-                from IPython.display import HTML, display  # type: ignore
+                from IPython.display import HTML, Javascript, display  # type: ignore
 
                 if self.share:
                     while not networking.url_ok(self.share_url):
-                        time.sleep(1)
+                        time.sleep(0.25)
                     display(
                         HTML(
                             f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
                         )
                     )
+                elif self.is_colab:
+                    # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
+                    code = """(async (port, path, width, height, cache, element) => {
+                        if (!google.colab.kernel.accessAllowed && !cache) {
+                            return;
+                        }
+                        element.appendChild(document.createTextNode(''));
+                        const url = await google.colab.kernel.proxyPort(port, {cache});
+
+                        const external_link = document.createElement('div');
+                        external_link.innerHTML = `
+                            <div style="font-family: monospace; margin-bottom: 0.5rem">
+                                Running on <a href=${new URL(path, url).toString()} target="_blank">
+                                    https://localhost:${port}${path}
+                                </a>
+                            </div>
+                        `;
+                        element.appendChild(external_link);
+
+                        const iframe = document.createElement('iframe');
+                        iframe.src = new URL(path, url).toString();
+                        iframe.height = height;
+                        iframe.allow = "autoplay; camera; microphone; clipboard-read; clipboard-write;"
+                        iframe.width = width;
+                        iframe.style.border = 0;
+                        element.appendChild(iframe);
+                    })""" + "({port}, {path}, {width}, {height}, {cache}, window.element)".format(
+                        port=json.dumps(self.server_port),
+                        path=json.dumps("/"),
+                        width=json.dumps(self.width),
+                        height=json.dumps(self.height),
+                        cache=json.dumps(False),
+                    )
+
+                    display(Javascript(code))
                 else:
                     display(
                         HTML(
@@ -1191,7 +1481,7 @@ class Blocks(BlockContext):
         if getattr(self, "analytics_enabled", False):
             data = {
                 "launch_method": "browser" if inbrowser else "inline",
-                "is_google_colab": is_colab,
+                "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
                 "ip_address": self.ip_address,
@@ -1215,7 +1505,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, self.share_url
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
     def integrate(
         self,
@@ -1319,3 +1609,8 @@ class Blocks(BlockContext):
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start)
         utils.run_coro_in_background(self.create_limiter)
+
+    def queue_enabled_for_fn(self, fn_index: int):
+        if self.dependencies[fn_index]["queue"] is None:
+            return self.enable_queue
+        return self.dependencies[fn_index]["queue"]

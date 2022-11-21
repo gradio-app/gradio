@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 from gradio import utils
-from gradio.components import Label, Number, Textbox
+from gradio.components import Label, Number
 
 
 async def run_interpret(interface, raw_input):

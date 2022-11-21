@@ -13,6 +13,7 @@
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean | undefined;
 	export let parent: string | null = null;
+	export let target: HTMLElement;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -53,6 +54,7 @@
 	bind:value={instance_map[id].props.value}
 	elem_id={("elem_id" in props && props.elem_id) || `component-${id}`}
 	on:prop_change={handle_prop_change}
+	{target}
 	{...props}
 	{root}
 >
@@ -60,6 +62,7 @@
 		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}
 			<svelte:self
 				{component}
+				{target}
 				id={each_id}
 				{props}
 				{root}

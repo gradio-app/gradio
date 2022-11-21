@@ -30,11 +30,12 @@
 	export let show_label: boolean;
 	export let pending: boolean;
 	export let streaming: boolean;
+	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root);
+	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging: boolean;
 </script>
@@ -72,6 +73,7 @@
 			on:play
 			on:pause
 			on:ended
+			on:upload
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
 				loading_status.status = "error";

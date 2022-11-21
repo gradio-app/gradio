@@ -11,6 +11,7 @@
 	const dispatch = createEventDispatcher<{
 		change: number;
 		submit: undefined;
+		blur: undefined;
 	}>();
 
 	function handle_change(n: number) {
@@ -29,6 +30,10 @@
 	}
 
 	$: handle_change(value);
+
+	function handle_blur(e: FocusEvent) {
+		dispatch("blur");
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -39,6 +44,7 @@
 		class="gr-box gr-input w-full gr-text-input"
 		bind:value
 		on:keypress={handle_keypress}
+		on:blur={handle_blur}
 		{disabled}
 	/>
 </label>

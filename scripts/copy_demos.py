@@ -15,6 +15,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_multiple_event_triggers",
         "blocks_update",
         "calculator",
+        "cancel_events",
         "fake_gan",
         "fake_diffusion_with_gif",
         "gender_sentence_default_interpretation",
