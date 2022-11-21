@@ -51,6 +51,9 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
+![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
+
+
 ## Bug Fixes:
 No changes to highlight.
 
