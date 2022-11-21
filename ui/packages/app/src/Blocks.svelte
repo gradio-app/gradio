@@ -39,8 +39,8 @@
 	export let autoscroll: boolean = false;
 	export let show_api: boolean = true;
 	export let control_page_title = false;
+	export let app_mode: boolean;
 
-	let app_mode = window.__gradio_mode__ === "app";
 	let loading_status = create_loading_status_store();
 
 	$: app_state.update((s) => ({ ...s, autoscroll }));
@@ -388,54 +388,6 @@
 		for (const [id, pending_status] of inputs_to_update) {
 			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
-	}
-
-	function handle_darkmode() {
-		let url = new URL(window.location.toString());
-
-		const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
-			"__theme"
-		) as "light" | "dark" | "system" | null;
-
-		if (color_mode !== null) {
-			if (color_mode === "dark") {
-				darkmode();
-			} else if (color_mode === "system") {
-				use_system_theme();
-			}
-			// light is default, so we don't need to do anything else
-		} else if (url.searchParams.get("__dark-theme") === "true") {
-			darkmode();
-		} else {
-			use_system_theme();
-		}
-	}
-
-	function use_system_theme() {
-		update_scheme();
-		window
-			?.matchMedia("(prefers-color-scheme: dark)")
-			?.addEventListener("change", update_scheme);
-
-		function update_scheme() {
-			const is_dark =
-				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
-
-			if (is_dark) {
-				darkmode();
-			}
-		}
-	}
-
-	function darkmode() {
-		target.classList.add("dark");
-		if (app_mode) {
-			document.body.style.backgroundColor = "rgb(11, 15, 25)"; // bg-gray-950 for scrolling outside the body
-		}
-	}
-
-	if (window.__gradio_mode__ !== "website") {
-		handle_darkmode();
 	}
 </script>
 
