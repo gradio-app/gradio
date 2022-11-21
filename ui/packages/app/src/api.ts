@@ -34,12 +34,12 @@ declare let BACKEND_URL: string;
 
 interface PostResponse {
 	error?: string;
-	[x: string]: unknown;
+	[x: string]: any;
 }
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
-async function post_data(
+export async function post_data(
 	url: string,
 	body: unknown
 ): Promise<[PostResponse, number]> {

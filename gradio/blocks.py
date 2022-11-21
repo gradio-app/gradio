@@ -42,11 +42,7 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import (
-    document,
-    document_component_api,
-    set_documentation_group,
-)
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.utils import (
     TupleNoPrint,
@@ -240,17 +236,6 @@ class Block:
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
         }
-        if api_name is not None:
-            dependency["documentation"] = [
-                [
-                    document_component_api(component.__class__, "input")
-                    for component in inputs
-                ],
-                [
-                    document_component_api(component.__class__, "output")
-                    for component in outputs
-                ],
-            ]
         Context.root_block.dependencies.append(dependency)
         return dependency
 

@@ -16,8 +16,3 @@ class TestDocumentation:
     def test_website_documentation(self):
         documentation = gr.documentation.generate_documentation()
         assert len(documentation) > 0
-
-    def test_component_api_documentation(self):
-        for cls in gr.components.IOComponent.__subclasses__():
-            gr.documentation.document_component_api(cls, "input")
-            gr.documentation.document_component_api(cls, "output")
