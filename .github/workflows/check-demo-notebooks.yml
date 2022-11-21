@@ -26,14 +26,13 @@ jobs:
       - name: Assert Notebooks Match 
         id: assertNotebooksMatch
         run: git status | grep "nothing to commit, working tree clean"
-  comment-on-pr: 
-    name: Comment On PR
-    uses: thollander/actions-comment-pull-request@v1
-    if: always() && (steps.assertNotebooksMatch.outcome == 'failure')
-    with:
-      message: |
-        The demo notebooks don't match the run.py files. Please run this command from the root of the repo and then commit the changes:
-        ```bash
-        pip install nbformat && cd demo && python generate_notebooks.py
-        ```
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Comment On PR
+        uses: thollander/actions-comment-pull-request@v1
+        if: always() && (steps.assertNotebooksMatch.outcome == 'failure')
+        with:
+          message: |
+            The demo notebooks don't match the run.py files. Please run this command from the root of the repo and then commit the changes:
+            ```bash
+            pip install nbformat && cd demo && python generate_notebooks.py
+            ```
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
