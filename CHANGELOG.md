@@ -1,7 +1,27 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### Revamped API documentation page
+
+New API Docs page with in-browser playground and updated aesthetics. [@gary149](https://github.com/gary149) in [PR 2652](https://github.com/gradio-app/gradio/pull/2652)
+
+### Accessing the Requests Object Directly
+
+You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `gr.Request`. Here's a simple example:
+
+```py
+import gradio as gr
+
+def echo(name, request: gr.Request):
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
+    return name
+
+io = gr.Interface(echo, "textbox", "textbox").launch()
+```
+
 
 ## Bug Fixes:
 No changes to highlight.
@@ -46,8 +66,6 @@ No changes to highlight.
 
 
 # 3.10.0
-
-## New Features:
 * Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 * `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
 
@@ -69,7 +87,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 
 ## Contributors Shoutout:
 No changes to highlight.
