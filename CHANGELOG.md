@@ -47,7 +47,7 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes flagging when `allow_flagging="auto"` in `gr.Interface()` by [@abidlabs](https://github.com/abidlabs) in [PR 2695](https://github.com/gradio-app/gradio/pull/2695)
 
 ## Documentation Changes:
 No changes to highlight.
