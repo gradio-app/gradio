@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
@@ -309,6 +310,7 @@ class Interface(Blocks):
                     "html": True,
                 },
             )
+            .use(dollarmath_plugin)
             .use(footnote_plugin)
             .enable("table")
         )

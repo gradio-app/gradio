@@ -27,6 +27,7 @@ import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -2500,7 +2501,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = MarkdownIt().enable("table")
+            cls.markdown_parser = MarkdownIt().use(dollarmath_plugin).enable("table")
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -3921,7 +3922,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt().enable("table")
+        self.md = MarkdownIt().use(dollarmath_plugin).enable("table")
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
