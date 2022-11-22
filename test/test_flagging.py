@@ -1,9 +1,9 @@
 import os
-import pytest
 import tempfile
 from unittest.mock import MagicMock
 
 import huggingface_hub
+import pytest
 
 import gradio as gr
 from gradio import flagging
@@ -128,9 +128,9 @@ class TestInterfaceConstructsFlagMethod:
             ("auto", True),
             ("never", False),
         ],
-    )    
+    )
     def test_flag_method_init_called(self, allow_flagging, called):
         flagging.FlagMethod.__init__ = MagicMock()
         flagging.FlagMethod.__init__.return_value = None
-        gr.Interface(lambda x:x, "text", "text", allow_flagging=allow_flagging)
-        assert (flagging.FlagMethod.__init__.called == called)
+        gr.Interface(lambda x: x, "text", "text", allow_flagging=allow_flagging)
+        assert flagging.FlagMethod.__init__.called == called
