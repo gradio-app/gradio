@@ -6,9 +6,9 @@ from __future__ import annotations
 import json
 import re
 import uuid
+import warnings
 from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Dict
-import warnings
 
 import requests
 
@@ -68,7 +68,9 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
 
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
-    assert response.status_code == 200, f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
+    assert (
+        response.status_code == 200
+    ), f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
     p = response.json().get("pipeline_tag")
 
     pipelines = {
