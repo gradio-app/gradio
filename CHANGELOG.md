@@ -52,7 +52,7 @@ No changes to highlight.
 ## Documentation Changes:
 * Updated documentation for embedding Gradio demos on Spaces as web components by 
 [@julien-c](https://github.com/julien-c) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
-* Replaced code to embed Gradio demos using the new "src=" syntax by 
+* Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by  
 [@julien-c](https://github.com/julien-c) in [PR 2692](https://github.com/gradio-app/gradio/pull/2692)
  
 
