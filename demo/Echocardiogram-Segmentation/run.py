@@ -8,6 +8,7 @@ import torchvision
 import wget 
 
 
+
 destination_folder = "output"
 destination_for_weights = "weights"
 
