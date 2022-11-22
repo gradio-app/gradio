@@ -19,7 +19,7 @@
 
 	export let style: Styles = {};
 
-	export let loading_status: LoadingStatus;
+	export let loading_status: LoadingStatus | undefined = undefined;
 
 	export let mode: "static" | "dynamic";
 </script>
@@ -29,7 +29,9 @@
 	{elem_id}
 	disable={typeof style.container === "boolean" && !style.container}
 >
-	<StatusTracker {...loading_status} />
+	{#if loading_status}
+		<StatusTracker {...loading_status} />
+	{/if}
 
 	<TextBox
 		bind:value
