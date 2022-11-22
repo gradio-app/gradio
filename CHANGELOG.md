@@ -50,7 +50,9 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Updated documentation for embedding Gradio demos on Spaces as web components by 
+[@abidlabs](https://github.com/abidlabs) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
+ 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
