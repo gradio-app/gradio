@@ -66,6 +66,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
+* [TEST PR FORK] Fake demo change without notebook change #2702  [PR 2702](https://github.com/gradio-app/gradio/pull/2702)
 
 ## Contributors Shoutout:
 No changes to highlight.
