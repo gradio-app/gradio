@@ -5,9 +5,9 @@ def welcome(name):
 
 with gr.Blocks() as demo:
     gr.Markdown(
-    """
+    r"""
     # Hello World!
-    $\\frac{\sqrt{x + y}}{4}$
+    $\frac{\sqrt{x + y}}{4}$
     Start typing below to see the output.
     """)
     inp = gr.Textbox(placeholder="What is your name?")
