@@ -16,8 +16,8 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from markdown_it import MarkdownIt
-from mdit_py_plugins.footnote import footnote_plugin
 from mdit_py_plugins.dollarmath import dollarmath_plugin
+from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
