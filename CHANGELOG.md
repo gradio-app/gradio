@@ -2,9 +2,32 @@
 
 ## New Features:
 
+### Upload Button
+There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
+
+Example of how it can be used:
+
+```python
+import gradio as gr
+
+def upload_file(files):
+    file_paths = [file.name for file in files]
+    return file_paths
+
+with gr.Blocks() as demo:
+    file_output = gr.File()
+    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
+    upload_button.upload(upload_file, upload_button, file_output)
+
+demo.launch()
+```
 ### Revamped API documentation page
 
 New API Docs page with in-browser playground and updated aesthetics. [@gary149](https://github.com/gary149) in [PR 2652](https://github.com/gradio-app/gradio/pull/2652)
+
+### Revamped Login page
+
+Previously our login page had its own CSS, had no dark mode, and had an ugly json message on the wrong credentials. Made the page more aesthetically consistent, added dark mode support, and a nicer error message. [@aliabid94](https://github.com/aliabid94) in [PR 2684](https://github.com/gradio-app/gradio/pull/2684)
 
 ### Accessing the Requests Object Directly
 
@@ -27,7 +50,13 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Colab buttons on every demo in the website! Just click open in colab, and run the demo there. 
+
+
+
+https://user-images.githubusercontent.com/9021060/202878400-cb16ed47-f4dd-4cb0-b2f0-102a9ff64135.mov
+
+
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -36,7 +65,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
 
 ## Contributors Shoutout:
 No changes to highlight.
