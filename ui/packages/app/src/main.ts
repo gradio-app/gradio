@@ -242,13 +242,15 @@ function create_custom_element() {
 
 			const host = this.getAttribute("host");
 			const space = this.getAttribute("space");
-			
+
 			const source = host
 				? `https://${host}`
 				: space
-				? (await (
-					await fetch(`https://huggingface.co/api/spaces/${space}/host`)
-				).json()).host
+				? (
+						await (
+							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
+						).json()
+				  ).host
 				: this.getAttribute("src");
 
 			const control_page_title = this.getAttribute("control_page_title");
