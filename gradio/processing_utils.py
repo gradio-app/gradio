@@ -273,18 +273,7 @@ def decode_base64_to_file(
             extension = filename[filename.index(".") + 1 :]
 
     if prefix is not None:
-        filename_max = 250
-        filename_len = len(prefix.encode()) + 8
-        if extension is not None:
-            filename_len += len(extension.encode()) + 1
-        if filename_len > filename_max:
-            warnings.warn(f"The filename is too long: {prefix}")
-            d_len = 0
-            while d_len < filename_len - filename_max:
-                if len(prefix) == 0:
-                    break
-                d_len += len(prefix[-1].encode())
-                prefix = prefix[:-1]
+        prefix = utils.strip_invalid_filename_characters(prefix)
 
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
@@ -344,20 +333,6 @@ def create_tmp_copy_of_file(file_path, dir=None):
         prefix = file_name[0 : file_name.index(".")]
         extension = file_name[file_name.index(".") + 1 :]
     prefix = utils.strip_invalid_filename_characters(prefix)
-
-    filename_max = 250
-    filename_len = len(prefix.encode()) + 8
-    if extension is not None:
-        filename_len += len(extension.encode()) + 1
-    if filename_len > filename_max:
-        warnings.warn(f"The filename is too long: {prefix}")
-        d_len = 0
-        while d_len < filename_len - filename_max:
-            if len(prefix) == 0:
-                break
-            d_len += len(prefix[-1].encode())
-            prefix = prefix[:-1]
-
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:
