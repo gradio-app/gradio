@@ -548,3 +548,16 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
     def dump_json(self, thing: dict, file_path: str) -> None:
         with open(file_path, "w+", encoding="utf8") as f:
             json.dump(thing, f)
+
+
+class FlagMethod:
+    """
+    Helper class that contains the flagging button option and callback
+    """
+    def __init__(self, flagging_callback, flag_option=None):
+        self.flagging_callback = flagging_callback
+        self.flag_option = flag_option
+        self.__name__ = "Flag"
+
+    def __call__(self, *flag_data):
+        self.flagging_callback.flag(flag_data, flag_option=self.flag_option)

@@ -31,9 +31,9 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
+from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, TabItem, Tabs
-from gradio.pipelines import load_from_pipeline  # type: ignore
+from gradio.pipelines import load_from_pipeline
 
 set_documentation_group("interface")
 
@@ -610,21 +610,14 @@ class Interface(Blocks):
                 """,
             )
 
-            class FlagMethod:
-                def __init__(self, flagging_callback, flag_option=None):
-                    self.flagging_callback = flagging_callback
-                    self.flag_option = flag_option
-                    self.__name__ = "Flag"
-
-                def __call__(self, *flag_data):
-                    self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
-
-            if self.allow_flagging == "manual":
+            if self.allow_flagging in ["manual", "auto"]:
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.OUTPUT_ONLY,
                     self.InterfaceTypes.UNIFIED,
                 ]:
+                    if self.allow_flagging == "auto":
+                        flag_btns = [(submit_btn, None)]
                     if self.interface_type == self.InterfaceTypes.UNIFIED:
                         flag_components = self.input_components
                     else:
