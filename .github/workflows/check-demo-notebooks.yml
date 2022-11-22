@@ -3,7 +3,7 @@
 name: Check Demos Match Notebooks
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
         - 'demo/**'
