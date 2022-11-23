@@ -54,7 +54,11 @@ No changes to highlight.
 [@julien-c](https://github.com/julien-c) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
 * Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by  
 [@julien-c](https://github.com/julien-c) in [PR 2692](https://github.com/gradio-app/gradio/pull/2692)
- 
+ * Colab buttons on every demo in the website! Just click open in colab, and run the demo there. 
+
+
+
+https://user-images.githubusercontent.com/9021060/202878400-cb16ed47-f4dd-4cb0-b2f0-102a9ff64135.mov
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -63,6 +67,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
+* Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
 * Apply different formatting for the types in component docstrings by [@aliabd](https://github.com/aliabd) in [PR 2707](https://github.com/gradio-app/gradio/pull/2707)
 
 ## Contributors Shoutout:
