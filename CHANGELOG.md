@@ -47,7 +47,8 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed bug that limited files from being sent over websockets to 16MB. The new limit
+is now 1GB  by [@abidlabs](https://github.com/abidlabs) in [PR 2709](https://github.com/gradio-app/gradio/pull/2709)
 
 ## Documentation Changes:
 * Updated documentation for embedding Gradio demos on Spaces as web components by 
