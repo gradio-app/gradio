@@ -1,4 +1,9 @@
+{% if parent != "gradio" %}
+<div class="obj" id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}">
+{% else %}
 <div class="obj" id="{{ obj['name'].lower() }}">
+{% endif %}
+
   {% if obj['demos'] %}
   <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
     <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
@@ -31,8 +36,14 @@
   </div>
   {% endif %}
   <div class="flex flex-row items-center justify-between">
-    <h3 id="{{ obj['name'].lower() }}-header"
-        class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
+    {% if parent != "gradio"%}
+      <h3 id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}-header"
+      class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
+    {% else %}
+      <h3 id="{{ obj['name'].lower() }}-header"
+      class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
+    {% endif %}
+
     {% if obj['demos'] %}
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
