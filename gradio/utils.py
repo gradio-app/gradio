@@ -36,6 +36,8 @@ import fsspec.asyn
 import httpx
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
+from ffmpy import FFmpeg
+import tempfile
 
 import gradio
 from gradio.context import Context
@@ -791,3 +793,12 @@ class TupleNoPrint(tuple):
 
     def __str__(self):
         return ""
+
+def audio_to_video(audio: str, image: str):
+    tempFile = tempfile.mkstemp(suffix=".mov")
+    ff = FFmpeg(
+    inputs={audio: None, image: None},
+    outputs={tempFile[1]: "-y -filter_complex '[0:a]showwaves=s=1280x720:mode=line:colors=white|white,format=rgba[sw];[sw][1:v]scale2ref[sw][1];[sw]scale=iw:ih/4[sw];[1][sw]overlay=(W-w)/2:(H-h):format=auto,format=yuv420p[v]' -map '[v]' -map 0:a -movflags +faststart"}
+    )
+    ff.run()
+    return tempFile[1]
