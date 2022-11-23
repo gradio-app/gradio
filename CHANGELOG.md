@@ -68,6 +68,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
+* Apply different formatting for the types in component docstrings by [@aliabd](https://github.com/aliabd) in [PR 2707](https://github.com/gradio-app/gradio/pull/2707)
 
 ## Contributors Shoutout:
 No changes to highlight.
