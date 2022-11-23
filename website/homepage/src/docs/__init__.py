@@ -85,7 +85,7 @@ def style_types():
             for tag in ["preprocessing", "postprocessing", "examples-format", "examples-format", "events"]:
                 if tag not in cls["tags"]:
                     continue
-                cls["tags"][tag] = cls["tags"][tag].replace("{", "<span class='text-orange-500 italic bold'>").replace("}", "</span>")
+                cls["tags"][tag] = cls["tags"][tag].replace("{", "<span class='text-orange-500' style='font-family: monospace; font-size: large;' >").replace("}", "</span>")
 
 style_types()
 
