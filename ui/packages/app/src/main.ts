@@ -240,18 +240,22 @@ function create_custom_element() {
 
 			observer.observe(this.root, { childList: true });
 
+			const host = this.getAttribute("host");
 			const space = this.getAttribute("space");
-			const control_page_title = this.getAttribute("control_page_title");
-			const initial_height = this.getAttribute("initial_height");
-			let autoscroll = this.getAttribute("autoscroll");
 
-			let source = space
+			const source = host
+				? `https://${host}`
+				: space
 				? (
 						await (
 							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
 						).json()
 				  ).host
 				: this.getAttribute("src");
+
+			const control_page_title = this.getAttribute("control_page_title");
+			const initial_height = this.getAttribute("initial_height");
+			let autoscroll = this.getAttribute("autoscroll");
 
 			const _autoscroll = autoscroll === "true" ? true : false;
 

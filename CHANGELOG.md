@@ -1,6 +1,30 @@
 # Upcoming Release
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# 3.11.0
+
+## New Features:
 
 ### Upload Button
 There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
@@ -47,10 +71,19 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed bug that limited files from being sent over websockets to 16MB. The new limit
+is now 1GB  by [@abidlabs](https://github.com/abidlabs) in [PR 2709](https://github.com/gradio-app/gradio/pull/2709)
 
 ## Documentation Changes:
-No changes to highlight.
+* Updated documentation for embedding Gradio demos on Spaces as web components by 
+[@julien-c](https://github.com/julien-c) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
+* Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by  
+[@julien-c](https://github.com/julien-c) in [PR 2692](https://github.com/gradio-app/gradio/pull/2692)
+ * Colab buttons on every demo in the website! Just click open in colab, and run the demo there. 
+
+
+
+https://user-images.githubusercontent.com/9021060/202878400-cb16ed47-f4dd-4cb0-b2f0-102a9ff64135.mov
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -59,7 +92,9 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Better warnings and error messages for `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2694](https://github.com/gradio-app/gradio/pull/2694) 
+* Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
+* Apply different formatting for the types in component docstrings by [@aliabd](https://github.com/aliabd) in [PR 2707](https://github.com/gradio-app/gradio/pull/2707)
 
 ## Contributors Shoutout:
 No changes to highlight.
