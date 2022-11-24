@@ -293,11 +293,30 @@
       window.__gradio_mode__ = "website";
     </script>
     
-    {% if version=='main' %}
-    <script type="module" src="/assets/index.js"></script>
-    {% else %}
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js"></script>
-    {% endif %}
+    <script>
+      let isMobile = window.matchMedia("only screen and (max-width: 480px)").matches;
+
+      function loadJS(FILE_URL) {
+        let scriptEle = document.createElement("script");
+        scriptEle.setAttribute("src", FILE_URL);
+        scriptEle.setAttribute("type", "module");
+        document.body.appendChild(scriptEle);
+      }
+
+      {% if version=='main' %}
+
+      if (!isMobile) {
+        loadJS('/assets/index.js');
+      }
+
+      {% else %}
+      
+      if (!isMobile) {
+        loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
+      }
+
+      {% endif %}
+    </script>
 
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/guide-color.js' %}</script>
