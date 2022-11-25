@@ -21,7 +21,7 @@ No changes to highlight.
 * Fix typos in guide docs by [@andridns](https://github.com/andridns) in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)
 
 ## Contributors Shoutout:
-No changes to highlight.
+* [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!
 
 
 # 3.11.0
