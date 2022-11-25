@@ -7,7 +7,7 @@ Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 
 
 ## Introduction
 
-The Hugging Face Hub is a central platform that has over 30,000 [models](https://huggingface.co/models), 3,000 [datasets](https://huggingface.co/datasets) and 2,000 [demos](https://huggingface.co/spaces), also known as Spaces. From Natural Language Processing to Computer Vision and Speech, the Hub supports multiple domains. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others.
+The Hugging Face Hub is a central platform that has over 90,000 [models](https://huggingface.co/models), 14,000 [datasets](https://huggingface.co/datasets) and 14,000 [demos](https://huggingface.co/spaces), also known as Spaces. From Natural Language Processing to Computer Vision and Speech, the Hub supports multiple domains. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others.
 
 Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
 
