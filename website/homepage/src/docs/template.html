@@ -56,24 +56,6 @@
         </a>
       </nav>
     </div>
-
-    <!-- <script>
-      document.getElementById("toggle").onchange = changeListener;
-      
-      function changeListener(){
-      
-      var value = this.value  
-      console.log(value);      
-      if (value == "main") {
-        
-      } else if (value == "v{{ gradio_version }}" ) {
-        document.querySelector('#main-docs').classList.add('hidden'); 
-        document.querySelector('#pip-docs').classList.remove('hidden');
-      }
-        
-    };
-    
-    </script> -->
   
   <main class="container mx-auto px-4 flex gap-4">
     <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
@@ -93,7 +75,7 @@
       {% with obj=find_cls("Interface") %}
         {% if "fns" in obj and obj["fns"]|length %}
           {% for fn in obj["fns"] %}
-            <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+            <a class="thinner-link px-4 pl-8 block" href="#interface-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
           {% endfor %}
         {% endif %}
       {% endwith %}
@@ -117,7 +99,7 @@
           {% with obj=find_cls("Blocks") %}
             {% if "fns" in obj and obj["fns"]|length %}
               {% for fn in obj["fns"] %}
-                <a class="thinner-link px-4 pl-8 block" href="#{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+                <a class="thinner-link px-4 pl-8 block" href="#blocks-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
               {% endfor %}
             {% endif %}
           {% endwith %}
