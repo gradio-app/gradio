@@ -6,7 +6,7 @@
 
 ## Why Auto-Reloading?
 
-When you are building a Gradio demo, particularly out of Blocks, you may find it cumbersome to keep re-running your code to test your changes. 
+When you are building a Gradio demo, particularly out of Blocks, you may find it cumbersome to keep re-running your code to test your changes.
 
 To make it faster and more convenient to write your code, we've made it easier to "reload" your Gradio apps instantly when you are developing in a **Python IDE** (like VS Code, Sublime Text, PyCharm, or so on) or generally running your Python code from the terminal. We've also developed an analogous "magic command" that allows you to re-run cells faster if you use **Jupyter Notebooks** (or any similar environment like Colab).
 
@@ -14,7 +14,7 @@ This short Guide will cover both of these methods, so no matter how you write Py
 
 ## Python IDE Reload 🔥
 
-If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `app.py`) might looks something like this: 
+If you are building Gradio Blocks using a Python IDE, your file of code (let's name it `app.py`) might look something like this: 
 
 ```python
 import gradio as gr
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     demo.launch()    
 ```
 
-The problem is that anytime that you want to make a change to your layout, events, or components, you have to close and  rerun your app by writing `python app.py`.
+The problem is that anytime that you want to make a change to your layout, events, or components, you have to close and rerun your app by writing `python app.py`.
 
 Instead of doing this, you can run your code in **reload mode** by changing 1 word: `python` to `gradio`:
 
@@ -50,7 +50,7 @@ WARNING:  The --reload flag should not be used in production on Windows.
 
 The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `app.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
 
-⚠️ Now, there is one important thing to keep in mind when use the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo`
+⚠️ Now, there is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you can pass that as the 2nd parameter in your code, like this: `gradio app.py my_demo`
 
 As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
