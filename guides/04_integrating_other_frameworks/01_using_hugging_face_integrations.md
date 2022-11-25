@@ -45,7 +45,7 @@ This demo requires installing four libraries: gradio, torch, transformers, and s
 
 ## Using Hugging Face Inference API
 
-Hugging Face has a service called the [Inference API](https://huggingface.co/inference-api) which allows you to send HTTP requests to models in the Hub. For transformers or diffusers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API is free (rate limited), and you can switch to dedicated [Inference Endpoints](https://huggingface.co/pricing) when you want to use it in production.
+Hugging Face has a free service called the [Inference API](https://huggingface.co/inference-api), which allows you to send HTTP requests to models in the Hub. For transformers or diffusers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API is free (rate limited), and you can switch to dedicated [Inference Endpoints](https://huggingface.co/pricing) when you want to use it in production.
 
 Let's try the same demo as above but using the Inference API instead of loading the model yourself. Given a Hugging Face model supported in the Inference API, Gradio can automatically infer the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. Here is what the code would look like!
 
