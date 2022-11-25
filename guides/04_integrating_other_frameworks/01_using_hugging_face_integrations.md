@@ -7,7 +7,7 @@ Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 
 
 ## Introduction
 
-The Hugging Face Hub is a central platform that has over 30,000 [models](https://huggingface.co/models), 3,000 [datasets](https://huggingface.co/datasets) and 2,000 [demos](https://huggingface.co/spaces), also known as Spaces. From Natural Language Processing to Computer Vision and Speech, the Hub supports multiple domains. Although Hugging Face is famous for its 🤗 transformers library, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others.
+The Hugging Face Hub is a central platform that has over 30,000 [models](https://huggingface.co/models), 3,000 [datasets](https://huggingface.co/datasets) and 2,000 [demos](https://huggingface.co/spaces), also known as Spaces. From Natural Language Processing to Computer Vision and Speech, the Hub supports multiple domains. Although Hugging Face is famous for its 🤗 transformers and diffusers libraries, the Hub also supports dozens of ML libraries, such as PyTorch, TensorFlow, spaCy, and many others.
 
 Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
 
@@ -45,7 +45,7 @@ This demo requires installing four libraries: gradio, torch, transformers, and s
 
 ## Using Hugging Face Inference API
 
-Hugging Face has a service called the [Inference API](https://huggingface.co/inference-api) which allows you to send HTTP requests to models in the Hub. For transformers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API has a friendly [free tier](https://huggingface.co/pricing).
+Hugging Face has a service called the [Inference API](https://huggingface.co/inference-api) which allows you to send HTTP requests to models in the Hub. For transformers or diffusers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API is free (rate limited), and you can switch to dedicated [Inference Endpoints](https://huggingface.co/pricing) when you want to use it in production.
 
 Let's try the same demo as above but using the Inference API instead of loading the model yourself. Given a Hugging Face model supported in the Inference API, Gradio can automatically infer the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. Here is what the code would look like!
 
