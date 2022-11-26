@@ -14,6 +14,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let mirror_webcam: boolean;
+	export let include_audio: boolean;
 
 	export let drop_text: string = "Drop a video file";
 	export let or_text: string = "or";
@@ -63,6 +64,7 @@
 	{:else if source === "webcam"}
 		<Webcam
 			{mirror_webcam}
+			{include_audio}
 			mode="video"
 			on:error
 			on:capture={({ detail }) => dispatch("change", detail)}

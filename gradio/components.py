@@ -1600,6 +1600,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         visible: bool = True,
         elem_id: Optional[str] = None,
         mirror_webcam: bool = True,
+        include_audio: bool = True,
         **kwargs,
     ):
         """
@@ -1612,7 +1613,8 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            mirror_webcam: If True webcma will be mirrored. Default is True.
+            mirror_webcam: If True webcam will be mirrored. Default is True.
+            include_audio: If False, component will only record/keep muted video.
         """
         self.temp_dir = tempfile.mkdtemp()
         self.format = format
@@ -1623,6 +1625,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             )
         self.source = source
         self.mirror_webcam = mirror_webcam
+        self.include_audio = include_audio
         IOComponent.__init__(
             self,
             label=label,
@@ -1639,6 +1642,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             "source": self.source,
             "value": self.value,
             "mirror_webcam": self.mirror_webcam,
+            "include_audio": self.include_audio,
             **IOComponent.get_config(self),
         }
 
@@ -1691,7 +1695,8 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         flip = self.source == "webcam" and self.mirror_webcam
         if modify_format or flip:
             format = f".{self.format if modify_format else uploaded_format}"
-            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else None
+            output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
+            output_options += ["-an"] if not self.include_audio else []
             flip_suffix = "_flip" if flip else ""
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
@@ -1699,6 +1704,14 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
+            )
+            ff.run()
+            return output_file_name
+        elif not self.include_audio:
+            output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
+            ff = FFmpeg(
+                inputs={str(file_name): None},
+                outputs={output_file_name: ["-an"]},
             )
             ff.run()
             return output_file_name
