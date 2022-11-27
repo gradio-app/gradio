@@ -2180,7 +2180,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
                     )
                     file.orig_name = file_name
                 return file
-            elif self.type == "bytes":
+            elif self.type == "binary":
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
