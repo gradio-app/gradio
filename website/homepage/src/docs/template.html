@@ -59,7 +59,7 @@
   
   <main class="container mx-auto px-4 flex gap-4">
     <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-          style="min-width: 20%">
+          style="width: 20%; min-width: 20%">
       <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
       <input id="search"
              type="search"
@@ -126,7 +126,7 @@
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
     </div>
-    <div class="flex flex-col">
+    <div class="flex flex-col" style="width: 80%; min-width: 80%">
       <div>
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left">
                     New to Gradio? Start here: <a class="link" href="/getting_started">Getting Started</a>
