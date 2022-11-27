@@ -4,6 +4,13 @@
 <div class="obj" id="{{ obj['name'].lower() }}">
 {% endif %}
 
+{% if version == "main" %}
+{% set gradio_js = '/assets/index.js' %}
+{% else %}
+{% set gradio_js = 'https://gradio.s3-us-west-2.amazonaws.com/' + gradio_version + '/gradio.js' %}
+{% endif %}
+
+
   {% if obj['demos'] %}
   <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
     <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
@@ -47,7 +54,7 @@
     {% if obj['demos'] %}
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden')"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
     >
       Try Examples
     </button>
@@ -94,7 +101,7 @@
     {% if obj["demos"] %}
       <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden')"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
     >
       More Examples →
     </button>
@@ -108,7 +115,7 @@
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden')"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
         >
           Try Examples
         </button>
@@ -205,3 +212,16 @@
       {% endif %}
   {% endif %}
 </div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>

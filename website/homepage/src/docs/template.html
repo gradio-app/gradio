@@ -287,11 +287,48 @@
     </div>
   </main>
 
-    {% if version=='main' %}
-    <script type="module" src="/assets/index.js"></script>
-    {% else %}
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js"></script>
-    {% endif %}
+    <script>
+      let isMobile = window.matchMedia("only screen and (max-width: 480px)").matches;
+
+      function loadJS(FILE_URL) {
+        let scriptEle = document.createElement("script");
+        scriptEle.setAttribute("src", FILE_URL);
+        scriptEle.setAttribute("type", "module");
+        document.body.appendChild(scriptEle);
+      }
+
+      function removeFooters() {
+      window.setTimeout(function() {
+      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
+          if ( g.shadowRoot ) {
+            let shadowroot = g.shadowRoot;
+            let f = shadowroot.querySelector('footer');
+            if (f != null) {
+              f.classList.add('hidden');
+              let c = shadowroot.querySelector('.gradio-container');
+              c.style.removeProperty('min-height');
+            }
+          };
+        });
+      }, 1000);
+      };
+
+      {% if version=='main' %}
+
+      if (!isMobile) {
+        loadJS('/assets/index.js');
+        window.addEventListener('load', removeFooters());
+      }
+
+      {% else %}
+
+      if (!isMobile) {
+        loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
+        window.addEventListener('load', removeFooters());
+      }
+
+      {% endif %}
+    </script>
 
     <script src="/assets/prism.js"></script>
     <script>
@@ -401,27 +438,7 @@
         }
       })
 
-   
-
-  </script>
-
-  <script> 
-    function removeFooters() {
-      window.setTimeout(function() {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          if ( g.shadowRoot ) {
-            let shadowroot = g.shadowRoot;
-            let f = shadowroot.querySelector('footer');
-            if (f != null) {
-              f.classList.add('hidden');
-              let c = shadowroot.querySelector('.gradio-container');
-              c.style.removeProperty('min-height');
-            }
-          };
-        });
-      }, 1000);
-      };
-    window.addEventListener('load', removeFooters());
   </script>  
+
   </body>
 </html>
