@@ -54,7 +54,7 @@ def version_check():
         current_pkg_version = (
             pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
         )
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 "IMPORTANT: You are using gradio version {}, "
