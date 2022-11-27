@@ -287,7 +287,6 @@
     </div>
   </main>
 
-
     <script src="/assets/prism.js"></script>
     <script>
       window.__gradio_mode__ = "website";
@@ -395,7 +394,13 @@
         }
       })
 
+   
+
+  </script>
+
+  <script> 
     function removeFooters() {
+      window.setTimeout(function() {
       document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
           if ( g.shadowRoot ) {
             let shadowroot = g.shadowRoot;
@@ -404,18 +409,12 @@
               f.classList.add('hidden');
               let c = shadowroot.querySelector('.gradio-container');
               c.style.removeProperty('min-height');
-            } else {
-              window.setTimeout(removeFooters, 100);
             }
-          } else {
-            window.setTimeout(removeFooters, 100);
-          }
-          
+          };
         });
+      }, 1000);
       };
-   
     window.addEventListener('load', removeFooters());
-
-  </script>
+  </script>  
   </body>
 </html>
