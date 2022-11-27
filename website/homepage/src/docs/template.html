@@ -292,12 +292,6 @@
     <script>
       window.__gradio_mode__ = "website";
     </script>
-    
-    {% if version=='main' %}
-    <script type="module" src="/assets/index.js"></script>
-    {% else %}
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js"></script>
-    {% endif %}
 
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/guide-color.js' %}</script>
