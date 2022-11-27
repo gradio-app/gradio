@@ -287,6 +287,12 @@
     </div>
   </main>
 
+    {% if version=='main' %}
+    <script type="module" src="/assets/index.js"></script>
+    {% else %}
+    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js"></script>
+    {% endif %}
+
     <script src="/assets/prism.js"></script>
     <script>
       window.__gradio_mode__ = "website";
@@ -296,6 +302,7 @@
     <script>{% include 'templates/guide-color.js' %}</script>
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    
 
     <script>
     const show_demo = (component, demo) => {
