@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-* Fixed bug where requests timeout is missing for utils.version_check() [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
+* Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
 
 ## Documentation Changes:
 No changes to highlight.
