@@ -1,7 +1,28 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### The `Chatbot` component now supports Markdown/HTML
+
+You can now pass in Markdown or HTML to the Chatbot component and it will show up, 
+meaning that you can pass in images, videos, or audio files as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
+
+Here's a simple example that references a local image `lion.jpg` that is in the same
+folder as the Python script:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.Chatbot([("hi", "hello **abubakar**"), ("![](/file=lion.jpg)", "cool pic")])
+    
+demo.launch()
+```
+
+![Alt text](https://user-images.githubusercontent.com/1778297/204357455-5c1a4002-eee7-479d-9a1e-ba2c12522723.png)
+
+To see a more realistic example, see the new demo `/demo/chatbot_multimodal/run.py`.
+
 
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
