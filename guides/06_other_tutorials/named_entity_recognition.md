@@ -29,7 +29,7 @@ This tutorial will show how to take a pretrained NER model and deploy it with a 
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained named-entity recognition model. You can use your own, or this in this tutorial, we will use one from the `transformers` library.
+Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained named-entity recognition model. You can use your own, while in this tutorial, we will use one from the `transformers` library.
 
 ### Approach 1: List of Entity Dictionaries
 
