@@ -5,7 +5,7 @@
 	};
 
 	export let show_label: boolean;
-	export let color: string;
+	export let color: string | undefined;
 </script>
 
 <div class="output-label">

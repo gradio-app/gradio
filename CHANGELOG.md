@@ -86,6 +86,35 @@ demo.launch()
 
 ![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
 
+
+### Set the color of a Label component with a function
+
+The `Label` component now accepts a `color` keyword argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736) 
+The value of this argument should be a function that maps its value to the label's background color.
+
+This lets you create Alert and Warning boxes with the `Label` component. See below:
+
+```python
+import gradio as gr
+import random
+
+def update_color(value):
+    if value < 0:
+        # This is bad so use red
+        return "#FF0000"
+    elif 0 <= value <= 20:
+        # Ok but pay attention (use orange)
+        return "#ff9966"
+    else:
+        # Nothing to worry about
+        return None
+
+with gr.Blocks() as demo:
+    label = gr.Label(value=-10, color=update_color)
+    demo.load(lambda: random.randrange(-20, 60), inputs=None, outputs=[label], every=1)
+demo.queue().launch()
+```
+
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
 * Fixed bug where so that the `File` component can properly preprocess files to "binary" byte-string format by [CoffeeVampir3](https://github.com/CoffeeVampir3) in [PR 2727](https://github.com/gradio-app/gradio/pull/2727)
