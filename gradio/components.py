@@ -2110,10 +2110,18 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
         self.file_types = file_types
-        valid_types = ["file", "binary"]
+        valid_types = [
+            "file",
+            "binary",
+            "bytes",
+        ]  # "bytes" is included for backwards compatibility
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
+        if type == "bytes":
+            warnings.warn(
+                "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
         self.type = type
         self.test_input = None
@@ -2180,7 +2188,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
                     )
                     file.orig_name = file_name
                 return file
-            elif self.type == "binary":
+            elif (
+                self.type == "binary" or self.type == "bytes"
+            ):  # "bytes" is included for backwards compatibility
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
