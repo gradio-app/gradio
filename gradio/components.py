@@ -3922,7 +3922,9 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt().use(dollarmath_plugin).enable("table")
+        self.md = (
+            MarkdownIt().use(dollarmath_plugin, renderer=utils.tex2svg).enable("table")
+        )
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
