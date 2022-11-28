@@ -12,14 +12,14 @@
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
-		color: string;
+		color?: string;
 	};
 	export let label: string = "Label";
 	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
-	$: color = value.color;
+	$: color = value !== undefined ? value.color : undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
