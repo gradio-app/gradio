@@ -842,6 +842,10 @@ class TestFile:
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
+        file_input = gr.File(type="binary")
+        output = file_input.preprocess(x_file)
+        assert type(output) == bytes
+
     def test_in_interface_as_input(self):
         """
         Interface, process
@@ -854,8 +858,7 @@ class TestFile:
         iface = gr.Interface(get_size_of_file, "file", "number")
         assert iface(x_file) == 10558
 
-    @pytest.mark.asyncio
-    async def test_as_component_as_output(self):
+    def test_as_component_as_output(self):
         """
         Interface, process
         """

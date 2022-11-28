@@ -54,7 +54,9 @@ def version_check():
         current_pkg_version = (
             pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
         )
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
+            "version"
+        ]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 "IMPORTANT: You are using gradio version {}, "
@@ -626,10 +628,17 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
-    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
-        :max_size
-    ]
+def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
+    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
+    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
+    filename_len = len(filename.encode())
+    if filename_len > max_bytes:
+        while filename_len > max_bytes:
+            if len(filename) == 0:
+                break
+            filename = filename[:-1]
+            filename_len = len(filename.encode())
+    return filename
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
