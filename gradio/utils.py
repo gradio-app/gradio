@@ -825,4 +825,5 @@ def tex2svg(formula, *args):
     xml_code = output.read().decode("utf-8")
     svg_start = xml_code.index("<svg ")
     svg_code = xml_code[svg_start:]
-    return svg_code
+    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+    return f"{copy_code}{svg_code}"
