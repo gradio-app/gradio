@@ -3038,6 +3038,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        color: Optional[Callable[[Any], str]] = None,
         **kwargs,
     ):
         """
@@ -3050,6 +3051,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.num_top_classes = num_top_classes
+        self.color_fn = color
         IOComponent.__init__(
             self,
             label=label,
@@ -3079,7 +3081,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         if isinstance(y, str) and y.endswith(".json") and os.path.exists(y):
             return self.serialize(y)
         if isinstance(y, (str, numbers.Number)):
-            return {"label": str(y)}
+            return {"label": str(y), "color": self.color_fn(y)}
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
                 y = y["confidences"]
@@ -3105,12 +3107,14 @@ class Label(Changeable, IOComponent, JSONSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        color: Optional[str] = None,
     ):
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "color": color,
             "__type__": "update",
         }
         return updated_config

@@ -5,16 +5,28 @@
 	};
 
 	export let show_label: boolean;
+	export let color: string;
 </script>
 
 <div class="output-label">
-	<div
-		class:sr-only={!show_label}
-		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center dark:text-slate-200"
-		class:no-confidence={!("confidences" in value)}
-	>
-		{value.label}
-	</div>
+	{#if color !== null}
+		<div
+			class:sr-only={!show_label}
+			class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center dark:text-slate-200"
+			class:no-confidence={!("confidences" in value)}
+			style:background-color={color}
+		>
+			{value.label}
+		</div>
+	{:else}
+		<div
+			class:sr-only={!show_label}
+			class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center dark:text-slate-200"
+			class:no-confidence={!("confidences" in value)}
+		>
+			{value.label}
+		</div>
+	{/if}
 	{#if typeof value === "object" && value.confidences}
 		{#each value.confidences as confidence_set}
 			<div

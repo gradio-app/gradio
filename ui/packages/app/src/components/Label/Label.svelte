@@ -12,12 +12,14 @@
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
+		color: string;
 	};
 	export let label: string = "Label";
 	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
+	$: color = value.color;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -39,7 +41,7 @@
 		/>
 	{/if}
 	{#if typeof value === "object" && value !== undefined && value !== null}
-		<Label {value} {show_label} />
+		<Label {value} {show_label} {color} />
 	{:else}
 		<div class="h-full min-h-[6rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><LabelIcon /></div>
