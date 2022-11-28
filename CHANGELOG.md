@@ -73,6 +73,33 @@ def echo(name, request: gr.Request):
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
 
+### Update Accordion properties from the backend
+
+You can now update the Accordion `label` and `open` status with `gr.Accordion.update` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2690](https://github.com/gradio-app/gradio/pull/2690)
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Accordion(label="Open for greeting", open=False) as accordion:
+        gr.Textbox("Hello!")
+    open_btn = gr.Button(value="Open Accordion")
+    close_btn = gr.Button(value="Close Accordion")
+    open_btn.click(
+        lambda: gr.Accordion.update(open=True, label="Open Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+    close_btn.click(
+        lambda: gr.Accordion.update(open=False, label="Closed Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+demo.launch()
+```
+
+![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
+
 
 ## Bug Fixes:
 * Fixed bug that limited files from being sent over websockets to 16MB. The new limit

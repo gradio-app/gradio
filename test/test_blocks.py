@@ -759,6 +759,36 @@ class TestSpecificUpdate:
             "__type__": "update",
         }
 
+    @pytest.mark.asyncio
+    async def test_accordion_update(self):
+        with gr.Blocks() as demo:
+            with gr.Accordion(label="Open for greeting", open=False) as accordion:
+                gr.Textbox("Hello!")
+            open_btn = gr.Button(label="Open Accordion")
+            close_btn = gr.Button(label="Close Accordion")
+            open_btn.click(
+                lambda: gr.Accordion.update(open=True, label="Open Accordion"),
+                inputs=None,
+                outputs=[accordion],
+            )
+            close_btn.click(
+                lambda: gr.Accordion.update(open=False, label="Closed Accordion"),
+                inputs=None,
+                outputs=[accordion],
+            )
+        result = await demo.process_api(fn_index=0, inputs=[None], request=None)
+        assert result["data"][0] == {
+            "open": True,
+            "label": "Open Accordion",
+            "__type__": "update",
+        }
+        result = await demo.process_api(fn_index=1, inputs=[None], request=None)
+        assert result["data"][0] == {
+            "open": False,
+            "label": "Closed Accordion",
+            "__type__": "update",
+        }
+
 
 class TestRender:
     def test_duplicate_error(self):
