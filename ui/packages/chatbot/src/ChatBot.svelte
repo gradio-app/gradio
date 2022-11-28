@@ -49,14 +49,14 @@
 				class="px-3 py-2 rounded-[22px] rounded-br-none text-white text-sm"
 				style={"background-color:" + _colors[0]}
 			>
-				{message[0]}
+				{@html message[0]}
 			</div>
 			<div
 				data-testid="bot"
 				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white text-sm"
 				style={"background-color:" + _colors[1]}
 			>
-				{message[1]}
+				{@html message[1]}
 			</div>
 		{/each}
 	</div>
