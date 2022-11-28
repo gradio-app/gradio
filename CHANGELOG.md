@@ -3,7 +3,7 @@
 ## New Features:
 
 ### Latex support
-Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) and [@aliabid94](https://github.com/aliabid94) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
 
 
 ## Bug Fixes:
