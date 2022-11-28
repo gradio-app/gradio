@@ -3910,7 +3910,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
-    Used to render arbitrary Markdown output.
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
