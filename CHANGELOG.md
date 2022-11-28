@@ -9,7 +9,7 @@ No changes to highlight.
 * Fixed bug to ensure that filenames are less than 200 characters even for non-English languages by [@SkyTNT](https://github.com/SkyTNT) in [PR 2685](https://github.com/gradio-app/gradio/pull/2685) 
 
 ## Documentation Changes:
-No changes to highlight.
+* Performance improvements to docs on mobile by  [@aliabd](https://github.com/aliabd) in [PR 2730](https://github.com/gradio-app/gradio/pull/2730)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
