@@ -924,7 +924,7 @@ class Blocks(BlockContext):
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
 
-        if type(predictions) is dict and len(predictions) > 0:
+        if type(predictions) is dict:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
