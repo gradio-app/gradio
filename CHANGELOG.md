@@ -2,6 +2,9 @@
 
 ## New Features:
 
+### Latex support
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+
 ### Upload Button
 There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
 
