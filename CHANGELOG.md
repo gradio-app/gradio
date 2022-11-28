@@ -1,7 +1,10 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### Latex support
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+
 
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
@@ -29,9 +32,6 @@ No changes to highlight.
 # 3.11.0
 
 ## New Features:
-
-### Latex support
-Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
 
 ### Upload Button
 There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
