@@ -31,6 +31,7 @@ from gradio.utils import (
     readme_to_html,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
+    strip_invalid_filename_characters,
     validate_url,
     version_check,
 )
@@ -519,3 +520,21 @@ class TestAppendUniqueSuffix:
         name = "test"
         list_of_names = ["test", "test_1", "test_2", "test_3"]
         assert append_unique_suffix(name, list_of_names) == "test_4"
+
+
+@pytest.mark.parametrize(
+    "orig_filename, new_filename",
+    [
+        ("abc", "abc"),
+        ("$$AAabc&3", "AAabc3"),
+        ("$$AAabc&3", "AAabc3"),
+        ("$$AAa..b-c&3_", "AAa..b-c3_"),
+        ("$$AAa..b-c&3_", "AAa..b-c3_"),
+        (
+            "ゆかりです｡私､こんなかわいい服は初めて着ました…｡なんだかうれしくって､楽しいです｡歌いたくなる気分って､初めてです｡これがｱｲﾄﾞﾙってことなのかもしれませんね",
+            "ゆかりです私こんなかわいい服は初めて着ましたなんだかうれしくって楽しいです歌いたくなる気分って初めてですこれがｱｲﾄﾞﾙってことなの",
+        ),
+    ],
+)
+def test_strip_invalid_filename_characters(orig_filename, new_filename):
+    assert strip_invalid_filename_characters(orig_filename) == new_filename
