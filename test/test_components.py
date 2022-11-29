@@ -1567,14 +1567,7 @@ class TestHTML:
 class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
-        assert {
-            "value": '<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625 \nL 11.6 19.35625 \nL 11.6 0 \nL 0 0 \nL 0 19.35625 \nz\n" style="fill: none"/>\n  </g>\n  <g id="text_1">\n   <!-- $x$ -->\n   <g transform="translate(0 15.196875)scale(0.2 -0.2)">\n    <defs>\n     <path id="Cmmi10-78" d="M 500 184 \nQ 613 97 819 97 \nQ 1019 97 1172 289 \nQ 1325 481 1381 709 \nL 1672 1844 \nQ 1741 2153 1741 2266 \nQ 1741 2425 1652 2544 \nQ 1563 2663 1403 2663 \nQ 1200 2663 1022 2536 \nQ 844 2409 722 2214 \nQ 600 2019 550 1819 \nQ 538 1778 500 1778 \nL 422 1778 \nQ 372 1778 372 1838 \nL 372 1856 \nQ 434 2094 584 2320 \nQ 734 2547 951 2687 \nQ 1169 2828 1416 2828 \nQ 1650 2828 1839 2703 \nQ 2028 2578 2106 2363 \nQ 2216 2559 2386 2693 \nQ 2556 2828 2759 2828 \nQ 2897 2828 3040 2779 \nQ 3184 2731 3275 2631 \nQ 3366 2531 3366 2381 \nQ 3366 2219 3261 2101 \nQ 3156 1984 2994 1984 \nQ 2891 1984 2822 2050 \nQ 2753 2116 2753 2216 \nQ 2753 2350 2845 2451 \nQ 2938 2553 3066 2572 \nQ 2950 2663 2747 2663 \nQ 2541 2663 2389 2472 \nQ 2238 2281 2175 2047 \nL 1894 916 \nQ 1825 659 1825 494 \nQ 1825 331 1917 214 \nQ 2009 97 2163 97 \nQ 2463 97 2698 361 \nQ 2934 625 3009 941 \nQ 3022 978 3059 978 \nL 3138 978 \nQ 3163 978 3178 961 \nQ 3194 944 3194 922 \nQ 3194 916 3188 903 \nQ 3097 522 2806 225 \nQ 2516 -72 2150 -72 \nQ 1916 -72 1727 54 \nQ 1538 181 1459 397 \nQ 1359 209 1182 68 \nQ 1006 -72 806 -72 \nQ 669 -72 523 -23 \nQ 378 25 287 125 \nQ 197 225 197 378 \nQ 197 528 301 651 \nQ 406 775 563 775 \nQ 669 775 741 711 \nQ 813 647 813 544 \nQ 813 409 723 309 \nQ 634 209 500 184 \nz\n" transform="scale(0.015625)"/>\n    </defs>\n    <use xlink:href="#Cmmi10-78" transform="translate(0 0.8125)"/>\n   </g>\n  </g>\n </g>\n</svg>\n</span></h1>\n',
-            "name": "markdown",
-            "visible": True,
-            "elem_id": None,
-            "style": {},
-            "root_url": None,
-        } == markdown_component.get_config()
+        assert markdown_component.get_config()["value"].startswith("""<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625""")
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
