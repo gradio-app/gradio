@@ -24,13 +24,41 @@ demo.launch()
 To see a more realistic example, see the new demo `/demo/chatbot_multimodal/run.py`.
 
 
+### Update Accordion properties from the backend
+
+You can now update the Accordion `label` and `open` status with `gr.Accordion.update` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2690](https://github.com/gradio-app/gradio/pull/2690)
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Accordion(label="Open for greeting", open=False) as accordion:
+        gr.Textbox("Hello!")
+    open_btn = gr.Button(value="Open Accordion")
+    close_btn = gr.Button(value="Close Accordion")
+    open_btn.click(
+        lambda: gr.Accordion.update(open=True, label="Open Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+    close_btn.click(
+        lambda: gr.Accordion.update(open=False, label="Closed Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+demo.launch()
+```
+
+![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
+
+
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
 * Fixed bug where so that the `File` component can properly preprocess files to "binary" byte-string format by [CoffeeVampir3](https://github.com/CoffeeVampir3) in [PR 2727](https://github.com/gradio-app/gradio/pull/2727)
 * Fixed bug to ensure that filenames are less than 200 characters even for non-English languages by [@SkyTNT](https://github.com/SkyTNT) in [PR 2685](https://github.com/gradio-app/gradio/pull/2685) 
 
 ## Documentation Changes:
-No changes to highlight.
+* Performance improvements to docs on mobile by  [@aliabd](https://github.com/aliabd) in [PR 2730](https://github.com/gradio-app/gradio/pull/2730)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -93,7 +121,6 @@ def echo(name, request: gr.Request):
 
 io = gr.Interface(echo, "textbox", "textbox").launch()
 ```
-
 
 ## Bug Fixes:
 * Fixed bug that limited files from being sent over websockets to 16MB. The new limit
