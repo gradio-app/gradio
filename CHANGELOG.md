@@ -89,8 +89,10 @@ demo.launch()
 
 ### Set the color of a Label component with a function
 
-The `Label` component now accepts a `color` keyword argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736) 
-The value of this argument should be a function that maps its value to the label's background color.
+The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
+The `color` argument should be a function that takes a value of the label (either a float or string) and maps it to a color (either a valid css color name or hexadecimal string).
+Whenever the value of the Label is updated, this function will be applied to the value to determine the color.
+This does not apply if the value of the `Label` includes confidences.
 
 This lets you create Alert and Warning boxes with the `Label` component. See below:
 

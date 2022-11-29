@@ -1354,6 +1354,39 @@ class TestLabel:
             "root_url": None,
         }
 
+    def test_color_argument(self):
+        def update_color(value):
+            if value == "bad":
+                # This is bad so use red
+                return "brown"
+            elif value == "so-so":
+                # Ok but pay attention (use orange)
+                return "#ff9966"
+            else:
+                # Nothing to worry about
+                return None
+
+        label = gr.Label(value=-10, color=update_color)
+        assert label.postprocess("bad") == {"color": "brown", "label": "bad"}
+        assert label.postprocess("so-so") == {"color": "#ff9966", "label": "so-so"}
+
+        def update_color_dict(value):
+            if value["label"] == "bad":
+                return "red"
+            return None
+
+        label_dict = gr.Label(color=update_color_dict)
+
+        assert label_dict.postprocess({"bad": 0.9, "good": 0.09, "so-so": 0.01}) == {
+            "confidences": [
+                {"confidence": 0.9, "label": "bad"},
+                {"confidence": 0.09, "label": "good"},
+                {"confidence": 0.01, "label": "so-so"},
+            ],
+            "label": "bad",
+            "color": "red",
+        }
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         """

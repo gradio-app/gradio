@@ -3038,7 +3038,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        color: Optional[Callable[[Any], str]] = None,
+        color: Optional[Callable[[float | str], str]] = None,
         **kwargs,
     ):
         """
@@ -3049,6 +3049,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            color: A function that takes a value of the label (either a float or string) and maps it to a color (either a valid css color name or hexadecimal string). Whenever the value of the Label is updated, this function will be applied to the value to determine the color. This does not apply if the value of the `Label` includes confidences.
         """
         self.num_top_classes = num_top_classes
         self.color_fn = color
@@ -3092,12 +3093,15 @@ class Label(Changeable, IOComponent, JSONSerializable):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
-            return {
+            value = {
                 "label": sorted_pred[0][0],
                 "confidences": [
                     {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
                 ],
             }
+            if self.color_fn is not None:
+                value["color"] = self.color_fn(value)
+            return value
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
