@@ -92,6 +92,9 @@ def handle_req_work_conn(
             try:
                 socket_worker.send(data)
             except:
+                print(
+                    f"\n\nFailed !!! {threading.current_thread().name} {len(data)}\n\n"
+                )
                 break
         if socket_worker in r:
             data = socket_worker.recv(1024)
