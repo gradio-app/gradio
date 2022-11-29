@@ -819,7 +819,6 @@ def tex2svg(formula, *args):
         format="svg",
         bbox_inches="tight",
         pad_inches=0.0,
-        frameon=False,
     )
     plt.close(fig)
     output.seek(0)
