@@ -2,8 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-
-	import type { Styles } from "@gradio/utils";
+	import VirtualList from "@sveltejs/svelte-virtual-list";
 
 	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
@@ -574,11 +573,11 @@
 				</thead>
 
 				<tbody class="overflow-y-scroll">
-					{#each data as row, i (row)}
+					<VirtualList items={data} let:item>
 						<tr
 							class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 						>
-							{#each row as { value, id }, j (id)}
+							{#each item as [i, { value, id }], j (id)}
 								<td
 									tabindex="0"
 									bind:this={els[id].cell}
@@ -604,7 +603,7 @@
 								</td>
 							{/each}
 						</tr>
-					{/each}
+					</VirtualList>
 				</tbody>
 			</table>
 		</Upload>
