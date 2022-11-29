@@ -70,6 +70,11 @@ demo.queue().launch()
 
 ![label_bg_color_update](https://user-images.githubusercontent.com/41651716/204400372-80e53857-f26f-4a38-a1ae-1acadff75e89.gif)
 
+=======
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+>>>>>>> d457c6c1 (CHANGELOG)
 
 ## Bug Fixes:
 * Fixed issue where image thumbnails were not showing when an example directory was provided
