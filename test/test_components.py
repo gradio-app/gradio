@@ -1587,6 +1587,25 @@ class TestHTML:
         assert iface("test") == "<strong>test</strong>"
 
 
+class TestMarkdown:
+    def test_component_functions(self):
+        markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
+        assert markdown_component.get_config()["value"].startswith("""<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625""")
+
+    @pytest.mark.asyncio
+    async def test_in_interface(self):
+        """
+        Interface, process
+        """
+        iface = gr.Interface(lambda x: x, "text", "markdown")
+        input_data = "Here's an [image](https://gradio.app/images/gradio_logo.png)"
+        output_data = iface(input_data)
+        assert (
+            output_data
+            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+        )
+
+
 class TestModel3D:
     def test_component_functions(self):
         """

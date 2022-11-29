@@ -2,10 +2,10 @@
 
 ## New Features:
 
-### The `Chatbot` component now supports Markdown/HTML
+### The `Chatbot` component now supports a subset of Markdown (including bold, italics, code, images)
 
-You can now pass in Markdown or HTML to the Chatbot component and it will show up, 
-meaning that you can pass in images, videos, or audio files as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
+You can now pass in some Markdown to the Chatbot component and it will show up, 
+meaning that you can pass in images as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
 
 Here's a simple example that references a local image `lion.jpg` that is in the same
 folder as the Python script:
@@ -23,6 +23,18 @@ demo.launch()
 
 To see a more realistic example, see the new demo `/demo/chatbot_multimodal/run.py`.
 
+
+### Latex support
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) and [@aliabid94](https://github.com/aliabid94) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+
+Example of how it can be used:
+
+```python
+gr.Markdown(
+    r"""
+    # Hello World! $\frac{\sqrt{x + y}}{4}$ is today's lesson.
+    """)
+```
 
 ### Update Accordion properties from the backend
 
@@ -50,7 +62,6 @@ demo.launch()
 ```
 
 ![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
-
 
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
