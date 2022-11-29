@@ -7,6 +7,7 @@ import socket
 import struct
 import sys
 import threading
+from collections import defaultdict
 from queue import Queue
 from time import sleep, time
 from typing import Callable, Tuple
@@ -14,6 +15,7 @@ from typing import Callable, Tuple
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
 _threads: set[threading.Thread] = set()
+_data_per_thread: dict[str, int] = defaultdict(int)
 
 
 def _get_nb_running_threads():
@@ -82,8 +84,9 @@ def handle_req_work_conn(
                     f"({threading.current_thread().name}) closing -received 0 data from socket_gradio ({_get_nb_running_threads()} running threads)"
                 )
                 break
+            _data_per_thread[threading.current_thread().name] += len(data)
             print(
-                f"({threading.current_thread().name}) sending {len(data)} bytes to worker.  ({_get_nb_running_threads()} running threads)"
+                f"({threading.current_thread().name}) sending {len(data)} bytes to worker (total={_data_per_thread[threading.current_thread().name]}).  ({_get_nb_running_threads()} running threads)"
             )
             socket_worker.send(data)
         if socket_worker in r:
