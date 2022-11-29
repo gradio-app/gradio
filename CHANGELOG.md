@@ -2,6 +2,18 @@
 
 ## New Features:
 
+### Latex support
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) and [@aliabid94](https://github.com/aliabid94) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+
+Example of how it can be used:
+
+```python
+gr.Markdown(
+    r"""
+    # Hello World! $\frac{\sqrt{x + y}}{4}$ is today's lesson.
+    """)
+```
+
 ### Update Accordion properties from the backend
 
 You can now update the Accordion `label` and `open` status with `gr.Accordion.update` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2690](https://github.com/gradio-app/gradio/pull/2690)
@@ -28,7 +40,6 @@ demo.launch()
 ```
 
 ![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
-
 
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)

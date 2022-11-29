@@ -10,6 +10,7 @@ import json.decoder
 import os
 import pkgutil
 import random
+import re
 import sys
 import time
 import typing
@@ -17,6 +18,7 @@ import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
 from enum import Enum
+from io import BytesIO
 from numbers import Number
 from pathlib import Path
 from typing import (
@@ -34,6 +36,7 @@ from typing import (
 import aiohttp
 import fsspec.asyn
 import httpx
+import matplotlib.pyplot as plt
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
@@ -800,3 +803,28 @@ class TupleNoPrint(tuple):
 
     def __str__(self):
         return ""
+
+
+def tex2svg(formula, *args):
+    FONTSIZE = 20
+    DPI = 300
+    plt.rc("mathtext", fontset="cm")
+    fig = plt.figure(figsize=(0.01, 0.01))
+    fig.text(0, 0, r"${}$".format(formula), fontsize=FONTSIZE)
+    output = BytesIO()
+    fig.savefig(
+        output,
+        dpi=DPI,
+        transparent=True,
+        format="svg",
+        bbox_inches="tight",
+        pad_inches=0.0,
+    )
+    plt.close(fig)
+    output.seek(0)
+    xml_code = output.read().decode("utf-8")
+    svg_start = xml_code.index("<svg ")
+    svg_code = xml_code[svg_start:]
+    svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+    return f"{copy_code}{svg_code}"
