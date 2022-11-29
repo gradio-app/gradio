@@ -14,12 +14,13 @@ from typing import Callable, Tuple
 
 BACKGROUND_TUNNEL_EXCEPTIONS = Queue(maxsize=1)  # To propagate exception to main thread
 _NB_DAEMON_THREADS = 0  # (optional) For better thread naming
-_threads: set[threading.Thread] = set()
+# _threads: set[threading.Thread] = set()
 _data_per_thread: dict[str, int] = defaultdict(int)
 
 
 def _get_nb_running_threads():
-    return str(len([th for th in _threads if th.is_alive()])) + "/" + str(len(_threads))
+    return "???"
+    # return str(len([th for th in _threads if th.is_alive()])) + "/" + str(len(_threads))
 
 
 def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
@@ -51,7 +52,7 @@ def _start_as_daemon_thread(target: Callable, args: Tuple) -> None:
         name=f"Thread-{_NB_DAEMON_THREADS}-{target.__name__}",
     )
     thread.start()
-    _threads.add(thread)
+    # _threads.add(thread)
     print(f"Started thread {thread.name} ({_get_nb_running_threads()} running threads)")
 
 
