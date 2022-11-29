@@ -1,7 +1,5 @@
 # Upcoming Release
 
-# 3.12.0
-
 ## New Features:
 No changes to highlight.
 
@@ -23,6 +21,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
+# 3.12.0
 
 ## New Features:
 
