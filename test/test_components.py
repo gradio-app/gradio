@@ -1479,6 +1479,29 @@ class TestHighlightedText:
             ]
 
 
+class TestChatbot:
+    def test_component_functions(self):
+        """
+        Postprocess, get_config
+        """
+        chatbot = gr.Chatbot()
+        assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
+            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+        ]
+        assert chatbot.get_config() == {
+            "value": [],
+            "color_map": None,
+            "label": None,
+            "show_label": True,
+            "interactive": None,
+            "name": "chatbot",
+            "visible": True,
+            "elem_id": None,
+            "style": {},
+            "root_url": None,
+        }
+
+
 class TestJSON:
     def test_component_functions(self):
         """
