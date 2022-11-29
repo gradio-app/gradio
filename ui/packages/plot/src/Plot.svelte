@@ -2,14 +2,21 @@
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
+	import { Vega } from "svelte-vega";
 
 	import { afterUpdate, onDestroy } from "svelte";
 
 	export let value;
 	export let target;
+	let spec = null;
+
+	$: if(value && value['type'] == "altair") {
+		spec = JSON.parse(value['plot'])
+	}
+
 
 	// Plotly
-	let plotDiv;
+	let plotDiv;	
 	let plotlyGlobalStyle;
 
 	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
@@ -109,6 +116,8 @@
 	<div bind:this={plotDiv} />
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
+{:else if value && value['type'] == "altair"}
+	<Vega spec={spec} />
 {:else if value && value["type"] == "matplotlib"}
 	<div class="output-image w-full flex justify-center items-center relative">
 		<!-- svelte-ignore a11y-missing-attribute -->
