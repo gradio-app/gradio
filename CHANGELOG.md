@@ -29,6 +29,8 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
+<img width="1366" alt="image" src="https://user-images.githubusercontent.com/41651716/204660697-f994316f-5ca7-4e8a-93bc-eb5e0d556c91.png">
+
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
 
 ### Set the color of a Label component with a function
