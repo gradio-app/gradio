@@ -43,6 +43,8 @@ jobs:
         cd ..
         python3 -m build -w
         aws s3 cp dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ github.sha  }}/
+      env:
+        NODE_OPTIONS: --max_old_space_size=8192
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: Set up Demos
