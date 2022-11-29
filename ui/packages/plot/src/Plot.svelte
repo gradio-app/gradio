@@ -117,7 +117,9 @@
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
 {:else if value && value['type'] == "altair"}
+	<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
 	<Vega spec={spec} />
+	</div>
 {:else if value && value["type"] == "matplotlib"}
 	<div class="output-image w-full flex justify-center items-center relative">
 		<!-- svelte-ignore a11y-missing-attribute -->
