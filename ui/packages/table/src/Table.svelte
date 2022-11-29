@@ -2,7 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { dsvFormat } from "d3-dsv";
 	import { dequal } from "dequal/lite";
-	import VirtualList from "@sveltejs/svelte-virtual-list";
+	import VirtualList from '@sveltejs/svelte-virtual-list';
 
 	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
@@ -573,7 +573,7 @@
 				</thead>
 
 				<tbody class="overflow-y-scroll">
-					<VirtualList items={data} let:item>
+					<VirtualList items={[...Array(data.length).keys()].map((i) => [i, data[i]])} let:item>
 						<tr
 							class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 						>
