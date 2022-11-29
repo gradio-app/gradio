@@ -3862,7 +3862,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot_component_for_maps
     """
 
@@ -3878,7 +3878,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.

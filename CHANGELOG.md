@@ -2,6 +2,35 @@
 
 ## New Features:
 
+### Support for altair plots
+
+The `Plot` component can now accept altair plots as values! 
+Simply return an altair plot from your event listener and gradio will display it in the front-end.
+See the example below:
+
+```python
+import gradio as gr
+import altair as alt
+from vega_datasets import data
+
+cars = data.cars()
+chart = (
+    alt.Chart(cars)
+    .mark_point()
+    .encode(
+        x="Horsepower",
+        y="Miles_per_Gallon",
+        color="Origin",
+    )
+)
+
+with gr.Blocks() as demo:
+    gr.Plot(value=chart)
+demo.launch()
+```
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+
 ### Set the color of a Label component with a function
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
