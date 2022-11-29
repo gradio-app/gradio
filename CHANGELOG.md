@@ -2,6 +2,28 @@
 
 ## New Features:
 
+### The `Chatbot` component now supports a subset of Markdown (including bold, italics, code, images)
+
+You can now pass in some Markdown to the Chatbot component and it will show up, 
+meaning that you can pass in images as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
+
+Here's a simple example that references a local image `lion.jpg` that is in the same
+folder as the Python script:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.Chatbot([("hi", "hello **abubakar**"), ("![](/file=lion.jpg)", "cool pic")])
+    
+demo.launch()
+```
+
+![Alt text](https://user-images.githubusercontent.com/1778297/204357455-5c1a4002-eee7-479d-9a1e-ba2c12522723.png)
+
+To see a more realistic example, see the new demo `/demo/chatbot_multimodal/run.py`.
+
+
 ### Latex support
 Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) and [@aliabid94](https://github.com/aliabid94) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
 

@@ -2862,11 +2862,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file = processing_utils.create_tmp_copy_of_file(
+                        file_name, dir=self.temp_dir
+                    )
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name
+                        data, file_path=file_name, dir=self.temp_dir
                     )
                     file.orig_name = file_name
                 return file
@@ -3615,9 +3617,9 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 @document("change", "style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
-    Displays a chatbot output showing both user submitted messages and responses
+    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
 
     Demos: chatbot_demo
     """
@@ -3646,6 +3648,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
+        self.md = MarkdownIt()
 
         IOComponent.__init__(
             self,
@@ -3685,11 +3688,15 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Parameters:
-            y: List of tuples representing the message and response
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
         Returns:
-            List of tuples representing the message and response
+            List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        for i, (message, response) in enumerate(y):
+            y[i] = (self.md.render(message), self.md.render(response))
+        return y
 
     def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
