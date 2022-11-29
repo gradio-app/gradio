@@ -297,14 +297,12 @@ importers:
     specifiers:
       '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
-      '@sveltejs/svelte-virtual-list': ^3.0.1
       '@types/d3-dsv': ^3.0.0
       d3-dsv: ^3.0.1
       dequal: ^2.0.2
     dependencies:
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
-      '@sveltejs/svelte-virtual-list': 3.0.1
       '@types/d3-dsv': 3.0.0
       d3-dsv: 3.0.1
       dequal: 2.0.2
@@ -612,10 +610,6 @@ packages:
       - stylus
       - supports-color
     dev: true
-
-  /@sveltejs/svelte-virtual-list/3.0.1:
-    resolution: {integrity: sha512-aF9TptS7NKKS7/TqpsxQBSDJ9Q0XBYzBehCeIC5DzdMEgrJZpIYao9LRLnyyo6SVodpapm2B7FE/Lj+FSA5/SQ==}
-    dev: false
 
   /@sveltejs/vite-plugin-svelte/1.0.0-next.44_svelte@3.49.0+vite@2.9.5:
     resolution: {integrity: sha512-n+sssEWbzykPS447FmnNyU5GxEhrBPDVd0lxNZnxRGz9P6651LjjwAnISKr3CKgT9v8IybP8VD0n2i5XzbqExg==}
