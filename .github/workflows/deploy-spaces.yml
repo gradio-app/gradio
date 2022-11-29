@@ -33,7 +33,7 @@ jobs:
         export AWS_DEFAULT_REGION=us-east-1
         echo ${{ env.GRADIO_VERSION }} > gradio/version.txt
         cd ui
-        pnpm i
+        pnpm i --frozen-lockfile
         pnpm build
         cd ..
         python3 -m build -w
