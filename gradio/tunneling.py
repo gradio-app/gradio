@@ -88,7 +88,10 @@ def handle_req_work_conn(
             print(
                 f"({threading.current_thread().name}) sending {len(data)} bytes to worker (total={_data_per_thread[threading.current_thread().name]}).  ({_get_nb_running_threads()} running threads)"
             )
-            socket_worker.send(data)
+            try:
+                socket_worker.send(data)
+            except:
+                break
         if socket_worker in r:
             data = socket_worker.recv(1024)
             if len(data) == 0:
