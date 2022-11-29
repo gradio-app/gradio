@@ -5,7 +5,7 @@
 	export let visible: boolean = true;
 	export let open: boolean = true;
 
-	let _open = open;
+	$: _open = open;
 
 	const toggle = () => {
 		_open = !_open;
