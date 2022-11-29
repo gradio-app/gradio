@@ -3612,9 +3612,9 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 @document("change", "style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
-    Displays a chatbot output showing both user submitted messages and responses. Supports Markdown formatting.
+    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings, which support Markdown formatting.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
 
     Demos: chatbot_demo
     """
@@ -3685,7 +3685,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
         Returns:
-            List of tuples representing the message and response. Each message and response will be a string, rendered as HTML.
+            List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
         if y is None:
             return []
