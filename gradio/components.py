@@ -3929,7 +3929,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             dtype = "bokeh"
             out_y = json.dumps(y)
         else:
-            dtype = "plotly"
+            is_altair = "altair" in y.__module__
+            if is_altair:
+                dtype = "altair"
+            else:
+                dtype = "plotly"
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
