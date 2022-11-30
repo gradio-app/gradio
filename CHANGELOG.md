@@ -16,7 +16,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Resized 
 
 ## Contributors Shoutout:
 No changes to highlight.
