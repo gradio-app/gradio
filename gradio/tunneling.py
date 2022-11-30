@@ -39,8 +39,10 @@ async def handle_req_work_conn(
 
 async def pipe(reader, writer):
     while not reader.at_eof():
+        await asyncio.sleep(0)
         read_ = await reader.read(1024)
         writer.write(read_)
+        await writer.drain()
     writer.close()
 
 
@@ -85,13 +87,13 @@ async def _client_loop(
         session, _stream, run_id , local_host, local_port, expiry,
 ):
     while True:
+        await asyncio.sleep(0)
         _, type = await _read(_stream)
         if not type or time() > expiry:
             break
         # TypeReqWorkConn
         if type == 114:
             asyncio.create_task(handle_req_work_conn(run_id, local_host, local_port, session))
-            continue
     _stream.close()
 
 
@@ -177,7 +179,7 @@ async def _create_tunnel(
 
 def create_tunnel(
         remote_host, remote_port, local_host, local_port
-) -> tuple[Any, AbstractEventLoop]:
+) -> tuple[str, AbstractEventLoop]:
     loop = asyncio.new_event_loop()
     address = loop.run_until_complete(_create_tunnel(remote_host, remote_port, local_host, local_port))
     return address, loop

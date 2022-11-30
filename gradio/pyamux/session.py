@@ -6,6 +6,7 @@ import asyncio
 from . import stream
 from . import consts
 from . import header
+from typing import NewType
 
 
 class Session:
@@ -17,7 +18,6 @@ class Session:
         self.pings = {}
         self.pingID = 0
         self.streams = {}  # int-> stream
-        self.inflight = {}  # int->object
         self.shutdown = False
         self.acceptCh = []
         self.conn = conn
@@ -32,8 +32,6 @@ class Session:
             consts.typePing: self.handlePing,
             consts.typeGoAway: self.handleGoAway,
         }
-        # asyncio.ensure_future(self.recv())
-        # asyncio.ensure_future(self.send())
 
     async def init(self):
         tasks = [self.recv(), self.send()]
@@ -69,25 +67,11 @@ class Session:
         self.nextStreamID += 2
         _stream = stream.Stream(self, sid, stream.streamInit)
         self.streams[sid] = _stream
-        self.inflight[sid] = {}
         try:
             _stream.sendWindowUpdate()
         except Exception as e:
             return None, e
         return _stream, None
-
-    async def accept(self) -> (stream.Stream, Exception):
-        return await self.acceptStream()
-
-    async def acceptStream(self) -> (stream.Stream, Exception):
-        while True:
-            await asyncio.sleep(0)
-            if len(self.acceptCh) > 0:
-                _stream = self.acceptCh.pop(0)
-                _stream.sendWindowUpdate()
-                return _stream, None
-            elif self.shutdown:
-                return None, IOError("shutdownErr")
 
     async def close(self):
         if self.shutdown:
@@ -95,15 +79,13 @@ class Session:
         self.shutdown = True
         self.conn.close()
         for _, s in self.streams.items():
-            await s.forceClose()
+            await s.close()
 
     def goAway(self, reason: int):
         self.localGoAway = 1
         hdr = header.Header()
         hdr.encode(consts.typeGoAway, 0, 0, reason)
         return hdr
-
-    # def waitForSend(self,
 
     async def send(self):
         while True:
@@ -173,16 +155,15 @@ class Session:
     async def handleStreamMessage(self, hdr: header.Header):
         sid = hdr.streamID()
         flags = hdr.flags()
-        if flags & consts.flagSYN == consts.flagSYN:
-            self.incomingStream(sid)
+
+        if flags & consts.flagRST == consts.flagRST:
+            self.closeStream(sid)
+            return
+
         _stream = self.streams.get(sid, None)
         if _stream is None:
             if hdr.msgType() == consts.typeData and hdr.length() > 0:
-                # if len(self.buf) < hdr.length():
-                #     raise IOError("[ERR] yamux: Failed to discard data")
-                # discard data
                 await self.readBuf(hdr.length())
-                # self.buf = self.buf[hdr.length() :]
             return
         if hdr.msgType() == consts.typeWindowUpdate:
             try:
@@ -194,26 +175,7 @@ class Session:
             await _stream.readData(hdr, flags, self.conn)
         except Exception as e:
             self.sendNoWait(self.goAway(consts.goAwayProtoErr))
-
-    def incomingStream(self, sid):
-        if self.localGoAway == 1:
-            hdr = header.Header()
-            hdr.encode(consts.typeWindowUpdate, consts.flagRST, sid, 0)
-            return self.sendNoWait(hdr)
-        _stream = stream.Stream(self, sid, stream.streamSYNReceived)
-        if self.streams.get(sid, None) is not None:
-            self.sendNoWait(self.goAway(consts.goAwayProtoErr))
-
-        if len(self.acceptCh) < self.config.acceptBacklog:
-            self.streams[sid] = _stream
-            self.acceptCh.append(_stream)
-        else:
-            _stream.sendHdr.encode(consts.typeWindowUpdate, consts.flagRST, sid, 0)
-            self.sendNoWait(_stream.sendHdr)
-
-    def establishStream(self, sid):
-        if self.inflight.get(sid, None) is not None:
-            del self.inflight[sid]
+            raise e
 
     def closeStream(self, sid):
         if self.streams.get(sid, None) is not None:

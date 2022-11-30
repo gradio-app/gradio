@@ -1,6 +1,7 @@
 # coding:utf-8
+import time
 import asyncio
-from asyncio import StreamReader
+from asyncio import StreamReader, StreamWriter
 
 from . import consts
 from . import header
@@ -32,7 +33,6 @@ class Stream:
         self.session = session
         self.sid = sid
         self.state = state
-        self.buf = b""
         self.recvWindow = consts.initialStreamWindow
         self.sendWindow = consts.initialStreamWindow
         self.writeDeadline = 0
@@ -56,8 +56,7 @@ class Stream:
 
     def sendWindowUpdate(self):
         _max = self.session.config.maxStreamWindowSize
-        bufLen = len(self.buf)
-        delta = (_max - bufLen) - self.recvWindow
+        delta = _max - self.recvWindow
         flags = self.sendFlags()
         if delta < (_max / 2) and flags == 0:
             return
@@ -73,7 +72,6 @@ class Stream:
         if flags & consts.flagACK == consts.flagACK:
             if self.state == streamSYNSent:
                 self.state = streamEstablished
-            self.session.establishStream(self.sid)
         if flags & consts.flagFIN == consts.flagFIN:
             if self.state in (streamEstablished, streamSYNSent, streamSYNReceived):
                 self.state = streamRemoteClose
@@ -96,7 +94,6 @@ class Stream:
     async def readData(self, hdr: header.Header, flags: int, conn: Conn):
         await self.processFlags(flags)
         recv_data = await conn.reader.read(hdr.length())
-        self.buf += recv_data
         self.recvWindow -= hdr.length()
         self.reader.feed_data(recv_data)
 
@@ -113,6 +110,9 @@ class Stream:
         self.session.waitForSendErr(self.sendHdr, body)
         self.sendWindow -= _max
         return _max
+
+    async def drain(self):
+        pass
 
     def reset_reader(self):
         self.reader = StreamReader()
