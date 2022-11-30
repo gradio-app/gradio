@@ -15,6 +15,7 @@ import fastapi
 import requests
 import uvicorn
 
+from gradio.code_pyamux.tunneling import create_tunnel_pyamux
 from gradio.routes import App
 from gradio.tunneling import create_tunnel
 
@@ -162,7 +163,9 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
         try:
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-            return create_tunnel(remote_host, remote_port, local_host, local_port)
+            return create_tunnel_pyamux(
+                remote_host, remote_port, local_host, local_port
+            )
         except Exception as e:
             raise RuntimeError(str(e))
     else:
