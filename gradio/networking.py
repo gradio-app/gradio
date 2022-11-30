@@ -162,7 +162,9 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
         try:
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-            return create_tunnel(remote_host, remote_port, local_host, local_port)
+            address, loop = create_tunnel(remote_host, remote_port, local_host, local_port)
+            loop.run_forever()
+            return address
         except Exception as e:
             raise RuntimeError(str(e))
     else:
