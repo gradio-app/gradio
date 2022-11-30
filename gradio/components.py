@@ -1573,6 +1573,10 @@ class Image(
             preprocess=preprocess,
             postprocess=postprocess,
         )
+        
+    def as_example(self, input_data: str | None) -> str:
+        p = print(Path(input_data).resolve())
+        return p
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
