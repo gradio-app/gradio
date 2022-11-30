@@ -1575,8 +1575,7 @@ class Image(
         )
         
     def as_example(self, input_data: str | None) -> str:
-        p = print(Path(input_data).resolve())
-        return p
+        return os.path.abspath(input_data)
 
 
 @document("change", "clear", "play", "pause", "stop", "style")

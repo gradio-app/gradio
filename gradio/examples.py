@@ -212,13 +212,14 @@ class Examples:
                     )
                     break
 
-        self.dataset = Dataset(
-            components=inputs_with_examples,
-            samples=non_none_examples,
-            type="index",
-            label=label,
-            elem_id=elem_id,
-        )
+        with utils.set_directory(working_directory):
+            self.dataset = Dataset(
+                components=inputs_with_examples,
+                samples=non_none_examples,
+                type="index",
+                label=label,
+                elem_id=elem_id,
+            )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
