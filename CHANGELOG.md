@@ -16,7 +16,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Resized 
+* Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748) 
 
 ## Contributors Shoutout:
 No changes to highlight.
