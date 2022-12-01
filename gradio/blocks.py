@@ -1093,13 +1093,21 @@ class Blocks(BlockContext):
         fn: Optional[Callable] = None,
         inputs: Optional[List[Component]] = None,
         outputs: Optional[List[Component]] = None,
+        api_name: AnyStr = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
+        queue=None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        preprocess: bool = True,
+        postprocess: bool = True,
+        every: float | None = None,
+        _js: Optional[str] = None,
         *,
         name: Optional[str] = None,
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
-        _js: Optional[str] = None,
-        every: None | int = None,
         **kwargs,
     ) -> Blocks | Dict[str, Any] | None:
         """
@@ -1116,9 +1124,17 @@ class Blocks(BlockContext):
             src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
             api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
             alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-            fn: Instance Method - Callable function
-            inputs: Instance Method - input list
-            outputs: Instance Method - output list
+            fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            api_name: Instance Method - Defining this parameter exposes the endpoint in the api docs
+            scroll_to_output: Instance Method - If True, will scroll to output component on completion
+            show_progress: Instance Method - If True, will show progress animation while pending
+            queue: Instance Method - If True, will place the request on the queue, if the queue exists
+            batch: Instance Method - If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Instance Method - Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            preprocess: Instance Method - If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: Instance Method - If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
@@ -1143,8 +1159,15 @@ class Blocks(BlockContext):
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
+                api_name=api_name,
+                preprocess=preprocess,
+                postprocess=postprocess,
+                scroll_to_output=scroll_to_output,
+                show_progress=show_progress,
                 js=_js,
-                no_target=True,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
                 every=every,
             )
 
