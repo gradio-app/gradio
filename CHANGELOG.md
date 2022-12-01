@@ -1,7 +1,44 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### Set the color of a Label component with a function
+
+The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
+The `color` argument should either be a valid css color name or hexadecimal string.
+You can update the color with `gr.Label.update`! 
+
+This lets you create Alert and Warning boxes with the `Label` component. See below:
+
+```python
+import gradio as gr
+import random
+
+def update_color(value):
+    if value < 0:
+        # This is bad so use red
+        return "#FF0000"
+    elif 0 <= value <= 20:
+        # Ok but pay attention (use orange)
+        return "#ff9966"
+    else:
+        # Nothing to worry about
+        return None
+
+def update_value():
+    choice = random.choice(['good', 'bad', 'so-so'])
+    color = update_color(choice)
+    return gr.Label.update(value=choice, color=color)
+    
+    
+with gr.Blocks() as demo:
+    label = gr.Label(value=-10)
+    demo.load(lambda: update_value(), inputs=None, outputs=[label], every=1)
+demo.queue().launch()
+```
+
+![label_bg_color_update](https://user-images.githubusercontent.com/41651716/204400372-80e53857-f26f-4a38-a1ae-1acadff75e89.gif)
+
 
 ## Bug Fixes:
 No changes to highlight.
