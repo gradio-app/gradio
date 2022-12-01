@@ -92,7 +92,7 @@ class Examples:
     ):
         """
         Parameters:
-            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
+            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
@@ -212,13 +212,14 @@ class Examples:
                     )
                     break
 
-        self.dataset = Dataset(
-            components=inputs_with_examples,
-            samples=non_none_examples,
-            type="index",
-            label=label,
-            elem_id=elem_id,
-        )
+        with utils.set_directory(working_directory):
+            self.dataset = Dataset(
+                components=inputs_with_examples,
+                samples=non_none_examples,
+                type="index",
+                label=label,
+                elem_id=elem_id,
+            )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
