@@ -1046,7 +1046,7 @@ class TestDataframe:
 class TestDataset:
     def test_preprocessing(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = pathlib.Path(test_file_dir, "bus.png")
+        bus = str(pathlib.Path(test_file_dir, "bus.png").resolve())
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
