@@ -1,3 +1,6 @@
+"""Contains all of the events that can be triggered in a gr.Blocks() app, with the exception
+of the on-page-load event, which is defined in gr.Blocks().load()."""
+
 from __future__ import annotations
 
 import warnings
