@@ -19,7 +19,6 @@
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
-	//$: color = value !== undefined ? value.color : undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
