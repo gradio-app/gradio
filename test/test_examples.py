@@ -42,6 +42,8 @@ class TestExamples:
             [gr.media_data.BASE64_IMAGE, "hello"],
             [gr.media_data.BASE64_IMAGE, "hi"],
         ]
+        for sample in examples.dataset.samples:
+            assert os.path.isabs(sample[0])
 
     @pytest.mark.asyncio
     async def test_no_preprocessing(self):
