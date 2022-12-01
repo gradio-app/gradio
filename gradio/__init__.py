@@ -34,6 +34,7 @@ from gradio.components import (
     Model3D,
     Number,
     Plot,
+    ProgressBar,
     Radio,
     Slider,
     State,
