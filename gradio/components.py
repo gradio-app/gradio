@@ -3111,9 +3111,14 @@ class Label(Changeable, IOComponent, JSONSerializable):
         visible: Optional[bool] = None,
         color: Optional[str] = _Keywords.NO_VALUE,
     ):
-        # If color is None
+        # If color is not specified (NO_VALUE) map it to None so that
+        # it gets filtered out in postprocess. This will mean the color
+        # will not be updated in the front-end
         if color is _Keywords.NO_VALUE:
             color = None
+        # If the color was specified by the developer as None
+        # Map is so that the color is updated to be transparent,
+        # e.g. no background default state.
         elif color is None:
             color = "transparent"
         updated_config = {
