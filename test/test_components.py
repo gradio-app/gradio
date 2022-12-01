@@ -1352,7 +1352,30 @@ class TestLabel:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "color": None,
         }
+
+    def test_color_argument(self):
+
+        label = gr.Label(value=-10, color="red")
+        assert label.get_config()["color"] == "red"
+        update_1 = gr.Label.update(value="bad", color="brown")
+        assert update_1["color"] == "brown"
+        update_2 = gr.Label.update(value="bad", color="#ff9966")
+        assert update_2["color"] == "#ff9966"
+
+        update_3 = gr.Label.update(
+            value={"bad": 0.9, "good": 0.09, "so-so": 0.01}, color="green"
+        )
+        assert update_3["color"] == "green"
+
+        update_4 = gr.Label.update(value={"bad": 0.8, "good": 0.18, "so-so": 0.02})
+        assert update_4["color"] is None
+
+        update_5 = gr.Label.update(
+            value={"bad": 0.8, "good": 0.18, "so-so": 0.02}, color=None
+        )
+        assert update_5["color"] == "transparent"
 
     @pytest.mark.asyncio
     async def test_in_interface(self):

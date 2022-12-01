@@ -65,5 +65,6 @@
 <style>
 	.chat-message :global(img) {
 		border-radius: 13px;
+		max-width: 30vw;
 	}
 </style>
