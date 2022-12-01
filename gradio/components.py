@@ -2915,6 +2915,51 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
         return IOComponent.style(self, **kwargs)
 
 
+@document()
+class ProgressBar(IOComponent, SimpleSerializable):
+    """
+    Used to create a progress bar, with a value between 0 and 1 representing progress level, or None indicating unknown progress duration.
+
+    Preprocessing: passes the progress value as a {float} into the function
+    Postprocessing: expects a {float} between 0 and 1 to be returned from a function, which is set as the progress level.
+    Demos: blocks_xray
+    """
+
+    def __init__(
+        self,
+        value: float | None = 0,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        IOComponent.__init__(
+            self, visible=visible, elem_id=elem_id, value=value, **kwargs
+        )
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[str] = _Keywords.NO_VALUE,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
 @document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     """

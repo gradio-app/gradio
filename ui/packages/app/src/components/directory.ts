@@ -27,6 +27,7 @@ export const component_map = {
 	model3d: () => import("./Model3D"),
 	number: () => import("./Number"),
 	plot: () => import("./Plot"),
+	progressbar: () => import("./ProgressBar"),
 	radio: () => import("./Radio"),
 	row: () => import("./Row"),
 	slider: () => import("./Slider"),
