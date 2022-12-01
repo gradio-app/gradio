@@ -1169,6 +1169,7 @@ class Blocks(BlockContext):
                 batch=batch,
                 max_batch_size=max_batch_size,
                 every=every,
+                no_target=True,
             )
 
     def clear(self):
