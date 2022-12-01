@@ -4,37 +4,34 @@ import hashlib
 import json
 import struct
 import sys
-from asyncio import AbstractEventLoop
-
 from time import time
-from typing import Tuple, Any
-from pyamux import stream
-from pyamux import Client
+from typing import Tuple
+
+from gradio.tunneling.pyyamux import Conn, Session, Stream
 
 
 async def handle_req_work_conn(
-        run_id: int, local_host: str, local_port: int, session
+        run_id: int, local_host: str, local_port: int, session: Session
 ):
-    _stream, err = session.Open()
-    if err is not None:
-        raise err
+    stream = session.open()
+
     # Send the run id (TypeNewWorkConn)
-    await _send(_stream, {"run_id": run_id}, 119)
+    await _send(stream, {"run_id": run_id}, 119)
 
     # Wait for the server to ask to connect
     # We don't use the message as we don't need his content
     # Useful if the client implement multiple proxy
     # In our use case only one that we know
-    await _read(_stream)
+    await _read(stream)
 
     # Cleanup the reader that contains previous data
-    _stream.reset_reader()
+    stream.reset_reader()
 
     # Connect to the running app
     reader, writer = await asyncio.open_connection(local_host, local_port)
-    pipe2 = pipe(reader, _stream)
-    pipe1 = pipe(_stream.reader, writer)
-    await asyncio.gather(pipe1, pipe2)
+    pipe2 = pipe(reader, stream)
+    pipe1 = pipe(stream.reader, writer)
+    await asyncio.gather(pipe1, pipe2, return_exceptions=True)
 
 
 async def pipe(reader, writer):
@@ -46,7 +43,7 @@ async def pipe(reader, writer):
     writer.close()
 
 
-async def _send(stream, msg, type):
+async def _send(stream: Stream, msg: dict, type: int):
     """Send a message to frps.
 
     First byte is the message type
@@ -62,7 +59,7 @@ async def _send(stream, msg, type):
     return stream.write(binary_message)
 
 
-async def _read(stream):
+async def _read(stream: Stream):
     """Read message from frps
 
     First byte is the message type
@@ -84,7 +81,7 @@ async def _read(stream):
 
 
 async def _client_loop(
-        session, _stream, run_id , local_host, local_port, expiry,
+        session: Session, _stream: Stream, run_id: str, local_host: str, local_port: int, expiry: int,
 ):
     while True:
         await asyncio.sleep(0)
@@ -108,30 +105,27 @@ def _generate_privilege_key() -> Tuple[int, str]:
 
 
 async def _create_tunnel(
-        remote_host, remote_port, local_host, local_port
+        remote_host: str, remote_port: int, local_host: str, local_port: int
 ) -> str:
     """
     Creates a tunnel between a local server/port and a remote server/port. Returns
     the URL of the share link that is connected to the local server/port.
     """
-
+    # Connect to frps
     # Connect to remote frps
     reader, writer = await asyncio.open_connection(remote_host, remote_port)
-    conn = stream.Conn(reader, writer)
-    session = Client(conn, None)
+    conn = Conn(reader, writer)
+    session = Session(conn)
 
     asyncio.create_task(session.init())
-
-    _stream, err = session.Open()
-    if err is not None:
-        raise err
+    stream = session.open()
 
     # Send `TypeLogin`
     timestamp, privilege_key = _generate_privilege_key()
     expiry = timestamp + 60 * 60 * 72
 
     await _send(
-        _stream,
+        stream,
         {
             "version": "0.44.0",
             "pool_count": 1,
@@ -142,7 +136,7 @@ async def _create_tunnel(
     )
 
     # Wait for response `TypeLoginResp`
-    login_response, _ = await _read(_stream)
+    login_response, _ = await _read(stream)
 
     if not login_response:
         # TODO Handle this correctly
@@ -157,35 +151,21 @@ async def _create_tunnel(
     run_id = login_response["run_id"]
 
     # Server will ask to warm connection
-    msg, msg_type = await _read(_stream)
+    msg, msg_type = await _read(stream)
 
     if msg_type != 114:
         # TODO Handle this correctly
         sys.exit(1)
 
     # Sending proxy information `TypeNewProxy`
-    await _send(_stream, {"proxy_type": "http"}, 112)
-    msg, msg_type = await _read(_stream)
+    await _send(stream, {"proxy_type": "http"}, 112)
+    msg, msg_type = await _read(stream)
 
     if msg_type != 50:
         # TODO Handle this correctly
         print("error during proxy registration")
         sys.exit(1)
 
-    asyncio.create_task(_client_loop(session, _stream, run_id, local_host, local_port, expiry))
+    asyncio.create_task(_client_loop(session, stream, run_id, local_host, local_port, expiry))
 
     return msg["remote_addr"]
-
-
-def create_tunnel(
-        remote_host, remote_port, local_host, local_port
-) -> tuple[str, AbstractEventLoop]:
-    loop = asyncio.new_event_loop()
-    address = loop.run_until_complete(_create_tunnel(remote_host, remote_port, local_host, local_port))
-    return address, loop
-
-
-if __name__ == '__main__':
-    address, loop = create_tunnel("localhost", 7000, "localhost", 8001)
-    print(address)
-    loop.run_forever()
