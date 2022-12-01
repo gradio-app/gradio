@@ -9,17 +9,17 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
+	export let color: undefined | string = undefined;
 	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
-		color?: string;
 	};
 	export let label: string = "Label";
 	export let style: Styles = {};
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
-	$: color = value !== undefined ? value.color : undefined;
+	//$: color = value !== undefined ? value.color : undefined;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 

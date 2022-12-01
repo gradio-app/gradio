@@ -1352,40 +1352,30 @@ class TestLabel:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "color": None,
         }
 
     def test_color_argument(self):
-        def update_color(value):
-            if value == "bad":
-                # This is bad so use red
-                return "brown"
-            elif value == "so-so":
-                # Ok but pay attention (use orange)
-                return "#ff9966"
-            else:
-                # Nothing to worry about
-                return None
 
-        label = gr.Label(value=-10, color=update_color)
-        assert label.postprocess("bad") == {"color": "brown", "label": "bad"}
-        assert label.postprocess("so-so") == {"color": "#ff9966", "label": "so-so"}
+        label = gr.Label(value=-10, color="red")
+        assert label.get_config()["color"] == "red"
+        update_1 = gr.Label.update(value="bad", color="brown")
+        assert update_1["color"] == "brown"
+        update_2 = gr.Label.update(value="bad", color="#ff9966")
+        assert update_2["color"] == "#ff9966"
 
-        def update_color_dict(value):
-            if value["label"] == "bad":
-                return "red"
-            return None
+        update_3 = gr.Label.update(
+            value={"bad": 0.9, "good": 0.09, "so-so": 0.01}, color="green"
+        )
+        assert update_3["color"] == "green"
 
-        label_dict = gr.Label(color=update_color_dict)
+        update_4 = gr.Label.update(value={"bad": 0.8, "good": 0.18, "so-so": 0.02})
+        assert update_4["color"] is None
 
-        assert label_dict.postprocess({"bad": 0.9, "good": 0.09, "so-so": 0.01}) == {
-            "confidences": [
-                {"confidence": 0.9, "label": "bad"},
-                {"confidence": 0.09, "label": "good"},
-                {"confidence": 0.01, "label": "so-so"},
-            ],
-            "label": "bad",
-            "color": "red",
-        }
+        update_5 = gr.Label.update(
+            value={"bad": 0.8, "good": 0.18, "so-so": 0.02}, color=None
+        )
+        assert update_5["color"] == "transparent"
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
@@ -1623,7 +1613,9 @@ class TestHTML:
 class TestMarkdown:
     def test_component_functions(self):
         markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
-        assert markdown_component.get_config()["value"].startswith("""<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625""")
+        assert markdown_component.get_config()["value"].startswith(
+            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
+        )
 
     @pytest.mark.asyncio
     async def test_in_interface(self):

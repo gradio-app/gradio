@@ -3038,7 +3038,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        color: Optional[Callable[[float | str], str]] = None,
+        color: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3049,10 +3049,10 @@ class Label(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            color: A function that takes a value of the label (either a float or string) and maps it to a color (either a valid css color name or hexadecimal string). Whenever the value of the Label is updated, this function will be applied to the value to determine the color. This does not apply if the value of the `Label` includes confidences.
+            color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
-        self.color_fn = color
+        self.color = color
         IOComponent.__init__(
             self,
             label=label,
@@ -3067,6 +3067,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         return {
             "num_top_classes": self.num_top_classes,
             "value": self.value,
+            "color": self.color,
             **IOComponent.get_config(self),
         }
 
@@ -3082,10 +3083,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         if isinstance(y, str) and y.endswith(".json") and os.path.exists(y):
             return self.serialize(y)
         if isinstance(y, (str, numbers.Number)):
-            value = {"label": str(y)}
-            if self.color_fn is not None:
-                value["color"] = self.color_fn(y)
-            return value
+            return {"label": str(y)}
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
                 y = y["confidences"]
@@ -3093,15 +3091,12 @@ class Label(Changeable, IOComponent, JSONSerializable):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
-            value = {
+            return {
                 "label": sorted_pred[0][0],
                 "confidences": [
                     {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
                 ],
             }
-            if self.color_fn is not None:
-                value["color"] = self.color_fn(value)
-            return value
         raise ValueError(
             "The `Label` output interface expects one of: a string label, or an int label, a "
             "float label, or a dictionary whose keys are labels and values are confidences. "
@@ -3114,8 +3109,13 @@ class Label(Changeable, IOComponent, JSONSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
-        color: Optional[str] = None,
+        color: Optional[str] = _Keywords.NO_VALUE,
     ):
+        # If color is None
+        if color is _Keywords.NO_VALUE:
+            color = None
+        elif color is None:
+            color = "transparent"
         updated_config = {
             "label": label,
             "show_label": show_label,
