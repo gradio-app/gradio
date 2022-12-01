@@ -46,6 +46,7 @@ from gradio.components import (
     Variable,
     Video,
     component,
+    ScatterPlot
 )
 from gradio.examples import create_examples as Examples
 from gradio.exceptions import Error

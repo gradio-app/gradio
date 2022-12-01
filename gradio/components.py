@@ -3941,6 +3941,48 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return self
 
 
+@document("change", "clear")
+class ScatterPlot(Plot):
+
+    def __init__(self, value: pd.DataFrame,
+                 x: str,
+                 y: str,
+                 color: Optional[str] = None,
+                 label: Optional[str] = None,
+                 show_label: bool = True,
+                 visible: bool = True,
+                 elem_id: Optional[str] = None,):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.value = self.postprocess(value)
+        super().__init__(value, label=label, show_label=show_label, visible=visible, elem_id=elem_id)
+
+    def get_block_name(self) -> str:
+        return "plot"
+
+    def postprocess(self, y: pd.DataFrame | None) -> Dict[str, str] | None:
+        import altair as alt
+
+        encodings = dict(x=self.x, y=self.y)
+        if self.color:
+            domain = y[self.color].unique().tolist()
+            encodings['color'] = {
+                'field': self.color,
+                "type": "nominal",
+                "scale": {
+                    "domain": domain,
+                    "range": list(range(len(domain)))
+                }
+            }
+
+        chart = alt.Chart(y).mark_point().\
+            encode(**encodings).\
+            properties(background='transparent')
+
+        return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+
+
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """

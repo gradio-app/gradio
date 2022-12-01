@@ -1,17 +1,59 @@
-<script>
+<script lang='ts'>
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { Vega } from "svelte-vega";
+	import tw_colors from "tailwindcss/colors";
+	import { get_next_color } from "@gradio/utils";
 
+	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { afterUpdate, onDestroy } from "svelte";
 
 	export let value;
 	export let target;
 	let spec = null;
+	export let colors: Array<string> = [];
+	
+	function get_color(index: number) {
+		let current_color = colors[index % colors.length];
+
+		if (current_color && current_color in color_palette) {
+			return color_palette[current_color as keyof typeof color_palette]
+				?.primary;
+		} else if (!current_color) {
+			return color_palette[get_next_color(index) as keyof typeof color_palette]
+				.primary;
+		} else {
+			return current_color;
+		}
+	}
+
+	$: darkmode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 
 	$: if(value && value['type'] == "altair") {
 		spec = JSON.parse(value['plot'])
+		switch (value['chart'] || 'foo') {
+			case "scatter":
+				const config = {
+					"axis": {
+    					"labelFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
+						"titleFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
+						"tickColor": "#aaa",
+						"gridColor": "#aaa"
+					}
+				}
+				if (spec['encoding']['color']) {
+					console.log(spec);
+					spec['encoding']['color']['scale']['range'] = spec['encoding']['color']['scale']['range'].map((e, i) => get_color(i));
+				}
+				spec['config'] = config;
+				console.log(spec);
+				break;
+			default:
+				break;
+		}
 	}
 
 
