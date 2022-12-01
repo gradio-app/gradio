@@ -41,8 +41,9 @@ demo.queue().launch()
 
 
 ## Bug Fixes:
-No changes to highlight.
- 
+* Fixed issue where image thumbnails were not showing when an example directory was provided
+by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745) 
+
 ## Documentation Changes:
 No changes to highlight.
 
