@@ -3937,28 +3937,41 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
-    def style(self):
-        return self
+    def style(self, container: Optional[bool] = None):
+        return IOComponent.style(
+            self,
+            container=container,
+        )
 
 
 @document("change", "clear")
 class ScatterPlot(Plot):
-
-    def __init__(self, value: pd.DataFrame,
-                 x: str,
-                 y: str,
-                 color: Optional[str] = None,
-                 tooltip: Optional[str] = None,
-                 label: Optional[str] = None,
-                 show_label: bool = True,
-                 visible: bool = True,
-                 elem_id: Optional[str] = None,):
+    def __init__(
+        self,
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+    ):
         self.x = x
         self.y = y
         self.color = color
         self.tooltip = tooltip
+        self.title = title
+        self.x_title = x_title
+        self.y_title = y_title
         self.value = self.postprocess(value)
-        super().__init__(value, label=label, show_label=show_label, visible=visible, elem_id=elem_id)
+        super().__init__(
+            value, label=label, show_label=show_label, visible=visible, elem_id=elem_id
+        )
 
     def get_block_name(self) -> str:
         return "plot"
@@ -3966,24 +3979,30 @@ class ScatterPlot(Plot):
     def postprocess(self, y: pd.DataFrame | None) -> Dict[str, str] | None:
         import altair as alt
 
-        encodings = dict(x=self.x, y=self.y)
+        encodings = dict(
+            x=alt.X(self.x, title=self.x_title or self.x),
+            y=alt.Y(self.y, title=self.y_title or self.y),
+        )
+        properties = {}
+        if self.title:
+            properties["title"] = self.title
         if self.color:
             domain = y[self.color].unique().tolist()
-            encodings['color'] = {
-                'field': self.color,
+            encodings["color"] = {
+                "field": self.color,
                 "type": "nominal",
-                "scale": {
-                    "domain": domain,
-                    "range": list(range(len(domain)))
-                }
+                "scale": {"domain": domain, "range": list(range(len(domain)))},
             }
         if self.tooltip:
-            encodings['tooltip'] = self.tooltip
+            encodings["tooltip"] = self.tooltip
 
-        chart = alt.Chart(y).mark_point().\
-            encode(**encodings).\
-            properties(background='transparent').\
-            interactive()
+        chart = (
+            alt.Chart(y)
+            .mark_point()
+            .encode(**encodings)
+            .properties(background="transparent", **properties)
+            .interactive()
+        )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 

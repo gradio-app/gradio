@@ -35,6 +35,7 @@ from gradio.components import (
     Number,
     Plot,
     Radio,
+    ScatterPlot,
     Slider,
     State,
     StatusTracker,
@@ -46,7 +47,6 @@ from gradio.components import (
     Variable,
     Video,
     component,
-    ScatterPlot
 )
 from gradio.examples import create_examples as Examples
 from gradio.exceptions import Error

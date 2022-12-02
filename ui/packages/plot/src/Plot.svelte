@@ -4,10 +4,8 @@
 	import { Plot as PlotIcon } from "@gradio/icons";
 	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
-
 	import { Vega } from "svelte-vega";
 	import tw_colors from "tailwindcss/colors";
-
 	import { afterUpdate, onDestroy } from "svelte";
 
 	export let value;
@@ -49,6 +47,10 @@
 						"labelFont": "monospace",
 						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
 						"titleFont": 'monospace',
+					},
+					"title": {
+						"color": darkmode ? tw_colors.slate['200'] : "black",
+						"titleFont": "monospace"
 					}
 				}
 				if (spec['encoding']['color']) {
