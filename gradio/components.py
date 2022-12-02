@@ -3982,7 +3982,8 @@ class ScatterPlot(Plot):
 
         chart = alt.Chart(y).mark_point().\
             encode(**encodings).\
-            properties(background='transparent').interactive()
+            properties(background='transparent').\
+            interactive()
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 

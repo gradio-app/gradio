@@ -37,18 +37,18 @@
 			case "scatter":
 				const config = {
 					"axis": {
-    					"labelFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+    					"labelFont": 'monospace',
 						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
-						"titleFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+						"titleFont": 'monospace',
 						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
 						"tickColor": "#aaa",
 						"gridColor": "#aaa"
 					},
 					"legend": {
 						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
-						"labelFont": "mono",
+						"labelFont": "monospace",
 						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
-						"titleFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+						"titleFont": 'monospace',
 					}
 				}
 				if (spec['encoding']['color']) {
