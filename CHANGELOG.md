@@ -2,7 +2,38 @@
 
 ## New Features:
 
-### Set the color of a Label component with a function
+### Support for altair plots
+
+The `Plot` component can now accept altair plots as values! 
+Simply return an altair plot from your event listener and gradio will display it in the front-end.
+See the example below:
+
+```python
+import gradio as gr
+import altair as alt
+from vega_datasets import data
+
+cars = data.cars()
+chart = (
+    alt.Chart(cars)
+    .mark_point()
+    .encode(
+        x="Horsepower",
+        y="Miles_per_Gallon",
+        color="Origin",
+    )
+)
+
+with gr.Blocks() as demo:
+    gr.Plot(value=chart)
+demo.launch()
+```
+
+<img width="1366" alt="image" src="https://user-images.githubusercontent.com/41651716/204660697-f994316f-5ca7-4e8a-93bc-eb5e0d556c91.png">
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+
+### Set the background color of a Label component 
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
 The `color` argument should either be a valid css color name or hexadecimal string.
