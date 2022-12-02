@@ -33,7 +33,7 @@ demo.launch()
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
 
-### Set the color of a Label component with a function
+### Set the background color of a Label component 
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
 The `color` argument should either be a valid css color name or hexadecimal string.
