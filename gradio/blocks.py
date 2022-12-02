@@ -48,7 +48,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS
+# from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS
 
 from gradio.utils import (
     check_function_inputs_match,
@@ -1569,7 +1569,7 @@ class Blocks(BlockContext):
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             try:
-                _ = BACKGROUND_TUNNEL_EXCEPTIONS.get_nowait()
+                # _ = BACKGROUND_TUNNEL_EXCEPTIONS.get_nowait()
                 print("Exception occurred in tunnel connection... closing server.")
             except EmptyQueueException:
                 print("Keyboard interruption in main thread... closing server.")

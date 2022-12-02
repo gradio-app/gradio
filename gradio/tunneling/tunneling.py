@@ -95,9 +95,7 @@ async def _client_loop(
             break
         # TypeReqWorkConn
         if type == 114:
-            asyncio.create_task(
-                handle_req_work_conn(run_id, local_host, local_port, session)
-            )
+            _create_task(handle_req_work_conn(run_id, local_host, local_port, session))
     _stream.close()
 
 
@@ -124,7 +122,7 @@ async def _create_tunnel(
     conn = Conn(reader, writer)
     session = Session(conn)
 
-    asyncio.create_task(session.init())
+    _create_task(session.init())
     stream = session.open()
 
     # Send `TypeLogin`
@@ -173,8 +171,18 @@ async def _create_tunnel(
         print("error during proxy registration")
         sys.exit(1)
 
-    asyncio.create_task(
-        _client_loop(session, stream, run_id, local_host, local_port, expiry)
-    )
+    _create_task(_client_loop(session, stream, run_id, local_host, local_port, expiry))
 
     return msg["remote_addr"]
+
+
+def _create_task(coroutine):
+    async def _inner_coroutine():
+        try:
+            await coroutine
+        except Exception as e:
+            print("\n\n\nEEEERRRROOOO\n\n\n")
+            print(e)
+            raise
+
+    asyncio.create_task(_inner_coroutine())

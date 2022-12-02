@@ -165,7 +165,14 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
             address, loop = create_tunnel(
                 remote_host, remote_port, local_host, local_port
             )
-            threading.Thread(target=loop.run_forever, daemon=True).start()
+
+            def _inner_target():
+                try:
+                    loop.run_forever()
+                except Exception as e:
+                    print(e)
+
+            threading.Thread(target=_inner_target, daemon=True).start()
             return address
         except Exception as e:
             raise RuntimeError(str(e))
