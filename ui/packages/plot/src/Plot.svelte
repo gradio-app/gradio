@@ -117,7 +117,7 @@
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
 {:else if value && value['type'] == "altair"}
-	<div style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+	<div class="flex justify-center items-center w-full h-full">
 	<Vega spec={spec} />
 	</div>
 {:else if value && value["type"] == "matplotlib"}
