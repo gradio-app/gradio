@@ -11,7 +11,7 @@ from gradio.tunneling.pyyamux import Conn, Session, Stream
 
 
 async def handle_req_work_conn(
-        run_id: int, local_host: str, local_port: int, session: Session
+    run_id: int, local_host: str, local_port: int, session: Session
 ):
     stream = session.open()
 
@@ -81,7 +81,12 @@ async def _read(stream: Stream):
 
 
 async def _client_loop(
-        session: Session, _stream: Stream, run_id: str, local_host: str, local_port: int, expiry: int,
+    session: Session,
+    _stream: Stream,
+    run_id: str,
+    local_host: str,
+    local_port: int,
+    expiry: int,
 ):
     while True:
         await asyncio.sleep(0)
@@ -90,7 +95,9 @@ async def _client_loop(
             break
         # TypeReqWorkConn
         if type == 114:
-            asyncio.create_task(handle_req_work_conn(run_id, local_host, local_port, session))
+            asyncio.create_task(
+                handle_req_work_conn(run_id, local_host, local_port, session)
+            )
     _stream.close()
 
 
@@ -105,7 +112,7 @@ def _generate_privilege_key() -> Tuple[int, str]:
 
 
 async def _create_tunnel(
-        remote_host: str, remote_port: int, local_host: str, local_port: int
+    remote_host: str, remote_port: int, local_host: str, local_port: int
 ) -> str:
     """
     Creates a tunnel between a local server/port and a remote server/port. Returns
@@ -166,6 +173,8 @@ async def _create_tunnel(
         print("error during proxy registration")
         sys.exit(1)
 
-    asyncio.create_task(_client_loop(session, stream, run_id, local_host, local_port, expiry))
+    asyncio.create_task(
+        _client_loop(session, stream, run_id, local_host, local_port, expiry)
+    )
 
     return msg["remote_addr"]

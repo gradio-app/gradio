@@ -1,6 +1,6 @@
+import asyncio
 import struct
 import time
-import asyncio
 from asyncio import StreamReader
 from typing import Optional
 
@@ -84,7 +84,7 @@ class Session:
         self.next_stream_id = 0
         self.pings = {}
         self.ping_id = 0
-        self.streams: dict[int, 'Stream'] = {}
+        self.streams: dict[int, "Stream"] = {}
         self.conn = conn
         self.send_channel: list[Message] = []
         self.next_stream_id = 1
@@ -96,9 +96,11 @@ class Session:
         }
 
     async def init(self):
-        await asyncio.gather(self._recv(), self._send(), self.keepalive(), return_exceptions=True)
+        await asyncio.gather(
+            self._recv(), self._send(), self.keepalive(), return_exceptions=True
+        )
 
-    def open(self) -> 'Stream':
+    def open(self) -> "Stream":
         if self.shutdown:
             raise IOError("ErrSessionShutdown")
         if self.remote_go_away == 1:
@@ -148,7 +150,9 @@ class Session:
 
             header.h = data
             if header.version() != PROTO_VERSION:
-                raise IOError("[ERR] yamux: Invalid protocol version: %d" % header.version())
+                raise IOError(
+                    "[ERR] yamux: Invalid protocol version: %d" % header.version()
+                )
             message_type = header.msg_type()
             if message_type < TYPE_DATA or message_type > TYPE_GO_AWAY:
                 raise IOError("[ERR] yamux: Invalid message type: %d" % message_type)
@@ -165,7 +169,9 @@ class Session:
         self.write(header)
         now = int(time.time())
         try:
-            await asyncio.wait_for(self.conn.writer.drain(), timeout=CONNECTION_WRITE_TIMEOUT)
+            await asyncio.wait_for(
+                self.conn.writer.drain(), timeout=CONNECTION_WRITE_TIMEOUT
+            )
         except asyncio.TimeoutError:
             del self.pings[pid]
         return time.time() - now
@@ -289,7 +295,9 @@ class Stream:
                 self.state = STREAM_CLOSED
                 close_stream = True
             else:
-                raise IOError("[ERR] yamux: unexpected FIN flag in state %d" % self.state)
+                raise IOError(
+                    "[ERR] yamux: unexpected FIN flag in state %d" % self.state
+                )
         if flags & FLAG_RST == FLAG_RST:
             self.state = STREAM_RESET
             close_stream = True
