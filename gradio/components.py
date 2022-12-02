@@ -1574,6 +1574,9 @@ class Image(
             postprocess=postprocess,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return os.path.abspath(input_data)
+
 
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
@@ -3038,6 +3041,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        color: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3048,8 +3052,10 @@ class Label(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
+        self.color = color
         IOComponent.__init__(
             self,
             label=label,
@@ -3064,6 +3070,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         return {
             "num_top_classes": self.num_top_classes,
             "value": self.value,
+            "color": self.color,
             **IOComponent.get_config(self),
         }
 
@@ -3105,12 +3112,24 @@ class Label(Changeable, IOComponent, JSONSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        color: Optional[str] = _Keywords.NO_VALUE,
     ):
+        # If color is not specified (NO_VALUE) map it to None so that
+        # it gets filtered out in postprocess. This will mean the color
+        # will not be updated in the front-end
+        if color is _Keywords.NO_VALUE:
+            color = None
+        # If the color was specified by the developer as None
+        # Map is so that the color is updated to be transparent,
+        # e.g. no background default state.
+        elif color is None:
+            color = "transparent"
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "color": color,
             "__type__": "update",
         }
         return updated_config
