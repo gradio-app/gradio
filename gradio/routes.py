@@ -240,8 +240,7 @@ class App(FastAPI):
                 )
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}, perhaps because "
-                    f"it is not in any of {app.blocks.temp_dirs}"
+                    f"File cannot be fetched: {path}. All files must contained within the directory containing the Gradio python script, or in a valid temp directory, one of: {app.blocks.temp_dirs}"
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
