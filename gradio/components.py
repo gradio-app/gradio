@@ -3948,6 +3948,7 @@ class ScatterPlot(Plot):
                  x: str,
                  y: str,
                  color: Optional[str] = None,
+                 tooltip: Optional[str] = None,
                  label: Optional[str] = None,
                  show_label: bool = True,
                  visible: bool = True,
@@ -3955,6 +3956,7 @@ class ScatterPlot(Plot):
         self.x = x
         self.y = y
         self.color = color
+        self.tooltip = tooltip
         self.value = self.postprocess(value)
         super().__init__(value, label=label, show_label=show_label, visible=visible, elem_id=elem_id)
 
@@ -3975,10 +3977,12 @@ class ScatterPlot(Plot):
                     "range": list(range(len(domain)))
                 }
             }
+        if self.tooltip:
+            encodings['tooltip'] = self.tooltip
 
         chart = alt.Chart(y).mark_point().\
             encode(**encodings).\
-            properties(background='transparent')
+            properties(background='transparent').interactive()
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 

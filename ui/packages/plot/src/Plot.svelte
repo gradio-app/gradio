@@ -2,11 +2,12 @@
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
-	import { Vega } from "svelte-vega";
-	import tw_colors from "tailwindcss/colors";
+	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 
-	import { colors as color_palette, ordered_colors } from "@gradio/theme";
+	import { Vega } from "svelte-vega";
+	import tw_colors from "tailwindcss/colors";
+
 	import { afterUpdate, onDestroy } from "svelte";
 
 	export let value;
@@ -42,6 +43,12 @@
 						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
 						"tickColor": "#aaa",
 						"gridColor": "#aaa"
+					},
+					"legend": {
+						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
+						"labelFont": "mono",
+						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
+						"titleFont": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
 					}
 				}
 				if (spec['encoding']['color']) {
