@@ -1743,7 +1743,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
-        
+
         y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         return {"name": y.name, "data": None, "is_file": True}
 
@@ -2223,7 +2223,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     def postprocess(self, y: str | List[str]) -> Dict[str | Any] | List[Dict[str | Any]]:
         """
         Parameters:
-            y: file path, or list of file paths
+            y: file path
         Returns:
             JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
@@ -2233,7 +2233,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             return [
                 {
                     "orig_name": os.path.basename(file),
-                    "name": file,
+                    "name": processing_utils.create_tmp_copy_of_file(
+                        file, dir=self.temp_dir
+                    ).name,
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
@@ -2243,7 +2245,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         else:
             return {
                 "orig_name": os.path.basename(y),
-                "name": y,
+                "name": processing_utils.create_tmp_copy_of_file(
+                    y, dir=self.temp_dir
+                ).name,
                 "size": os.path.getsize(y),
                 "data": None,
                 "is_file": True,
