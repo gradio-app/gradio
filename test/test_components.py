@@ -688,6 +688,24 @@ class TestPlot:
         component = gr.Plot(None)
         assert component.get_config().get("value") is None
 
+    def test_postprocess_altair(self):
+        import altair as alt
+        from vega_datasets import data
+
+        cars = data.cars()
+        chart = (
+            alt.Chart(cars)
+            .mark_point()
+            .encode(
+                x="Horsepower",
+                y="Miles_per_Gallon",
+                color="Origin",
+            )
+        )
+        out = gr.Plot().postprocess(chart)
+        assert isinstance(out["plot"], str)
+        assert out["plot"] == chart.to_json()
+
 
 class TestAudio:
     def test_component_functions(self):
