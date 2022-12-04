@@ -92,7 +92,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.12.0
+# Version 3.12.0
 
 ## New Features:
 
@@ -180,7 +180,7 @@ No changes to highlight.
 * [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!
 
 
-# 3.11.0
+# Version 3.11.0
 
 ## New Features:
 
@@ -256,7 +256,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.10.1
+# Version 3.10.1
 
 ## New Features:
 No changes to highlight.
@@ -280,7 +280,8 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.10.0
+# Version 3.10.0
+
 * Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 * `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
 
