@@ -1,5 +1,47 @@
 # Upcoming Release
 
+### Handles invalid values for slider
+
+* Added handling of invalid values in the Slider, Radio and Checkgroupbox components by [@thehimalayanleo](https://github.com/thehimalayanleo) in `[PR 2760](https://github.com/gradio-app/gradio/pull/2760)`".
+
+* As described in issue #1071, values in certain components can be manipulated to go beyond the set limits.
+The preprocess function adds checks to prevent such behavior(s).
+If the input value is beyond bounds we raise a value error. Similarly, if the input value is 
+None we use the minimum value by default (for slider) and raise value errors for other components.
+
+```python
+# For Slider
+import gradio as gr
+slider = gr.Slider(minimum=20, maximum=30)
+
+slider.preprocess(10) # raises ValueError
+slider.preprocess(None) # returns 20
+slider.preprocess(40) # raises ValueError
+slider.preprocess(25) # returns 25
+
+# For Radio
+radio_input = gr.Radio(["a", "b", "c"], type="index")
+radio_input.preprocess("c") # returns 2
+radio_input.preprocess(None) # raises ValueError
+radio_input.preprocess("d") # raises ValueError
+
+radio_input = gr.Radio(["a", "b", "c"], type="value")
+radio_input.preprocess("c") # returns "c"
+radio_input.preprocess(None) # raises ValueError
+radio_input.preprocess("d") # raises ValueError
+
+# For Check Box group
+checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="index")
+checkboxes_input.preprocess(["c"]) # returns [2]
+checkboxes_input.preprocess(None) # raises ValueError
+checkboxes_input.preprocess(["a", "b", "d"]) # raises ValueError
+
+checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="value")
+checkboxes_input.preprocess(["c"]) # returns ["c"]
+checkboxes_input.preprocess(None) # raises ValueError
+checkboxes_input.preprocess(["a", "b", "d"]) # raises ValueError
+```
+
 ## New Features:
 
 ### Support for altair plots

@@ -377,7 +377,7 @@ class TestSlider:
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
-        """ "
+        """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
@@ -396,6 +396,17 @@ class TestSlider:
             7342.938775510205,
             9996.0,
         ]
+
+    def test_slider_invalid_values(self):
+        """
+        Preprocesses invalid values for slider
+        """
+        slider = gr.Slider(minimum=20, maximum=30)
+        assert slider.preprocess(None) == 20.0
+        assert slider.preprocess(25) == 25.0
+        with pytest.raises(ValueError):
+            slider.preprocess(10)
+            slider.preprocess(40)
 
     def test_static(self):
         """
@@ -502,6 +513,26 @@ class TestCheckboxGroup:
         assert iface([]) == ""
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
+    def test_checkboxgroup_invalid_values(self):
+        """
+        tests handling of invalid checkbox group inputs
+        """
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="index")
+        assert checkboxes_input.preprocess(["c"]) == [2]
+        assert checkboxes_input.preprocess(["a", "c"]) == [0, 2]
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(None)
+            checkboxes_input.preprocess(["d"])
+            checkboxes_input.preprocess(["a", "b", "d"])
+
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="value")
+        assert checkboxes_input.preprocess(["c"]) == ["c"]
+        assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(None)
+            checkboxes_input.preprocess(["d"])
+            checkboxes_input.preprocess(["a", "b", "d"])
+
 
 class TestRadio:
     def test_component_functions(self):
@@ -547,6 +578,22 @@ class TestRadio:
         assert iface("c") == 4
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
+
+    def test_radio_invalid_values(self):
+        """
+        tests handling of invalid radio inputs
+        """
+        radio_input = gr.Radio(["a", "b", "c"], type="index")
+        assert radio_input.preprocess("c") == 2
+        with pytest.raises(ValueError):
+            radio_input.preprocess(None)
+            radio_input.preprocess("d")
+
+        radio_input = gr.Radio(["a", "b", "c"], type="value")
+        assert radio_input.preprocess("c") == "c"
+        with pytest.raises(ValueError):
+            radio_input.preprocess(None)
+            radio_input.preprocess("d")
 
 
 class TestImage:

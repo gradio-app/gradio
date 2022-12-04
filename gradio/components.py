@@ -712,6 +712,25 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
+    def preprocess(self, x: float | None) -> float | None:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+            x: numeric input
+        Returns:
+            - if None returns minimum
+            - else if greater than maximum or less than minimum raises ValueError
+            - else returns the numeric input
+        """
+        if x is None:
+            return self.minimum
+        elif x > self.maximum or x < self.minimum:
+            raise ValueError(
+                f"Slider value {x} is out of range. Minimum is {self.minimum} and maximum is {self.maximum}."
+            )
+
+        return x
+
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -943,8 +962,18 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            list of selected choices as strings or indices within choice list
+            ValuError if x is None or one of the choice in x is not in the choices list
+            otherwise list of selected choices as strings or indices within choice list
         """
+
+        if x is None:
+            raise ValueError("Check box value(s) cannot be None")
+        for choice in x:
+            if choice not in self.choices:
+                raise ValueError(
+                    "Invalid choice: {choice}. Select from: {self.choices}."
+                )
+
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -1107,15 +1136,21 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: selected choice
         Returns:
-            selected choice as string or index within choice list
+            - if type is "value" and x is not in "choices" list raise ValueError otherwise return x. Note if x is None we return the element at the first index in the "choices" list.
+            - if type is "index" and x is not in "choices" list raise ValueError otherwise return choices.index(x). If x is None we return 0 (first index of the list).
         """
+
+        if x is None:
+            raise ValueError("Radio button value cannot be None.")
+        elif x not in self.choices:
+            raise ValueError(
+                f"Invalid value for value: {x}. Please choose from: {self.choices}."
+            )
+
         if self.type == "value":
             return x
         elif self.type == "index":
-            if x is None:
-                return None
-            else:
-                return self.choices.index(x)
+            return self.choices.index(x)
         else:
             raise ValueError(
                 "Unknown type: "
