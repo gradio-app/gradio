@@ -11,7 +11,6 @@ import sys
 import time
 import warnings
 import webbrowser
-from queue import Empty as EmptyQueueException  # not to be confused with gradio.queue
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -48,8 +47,7 @@ from gradio.documentation import (
     set_documentation_group,
 )
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-# from gradio.tunneling import BACKGROUND_TUNNEL_EXCEPTIONS
-
+from gradio.tunneling import CURRENT_TUNNEL
 from gradio.utils import (
     check_function_inputs_match,
     component_or_layout_class,
@@ -1568,12 +1566,10 @@ class Blocks(BlockContext):
             while True:
                 time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
-            try:
-                # _ = BACKGROUND_TUNNEL_EXCEPTIONS.get_nowait()
-                print("Exception occurred in tunnel connection... closing server.")
-            except EmptyQueueException:
-                print("Keyboard interruption in main thread... closing server.")
+            print("Keyboard interruption in main thread... closing server.")
             self.server.close()
+            if CURRENT_TUNNEL is not None:
+                CURRENT_TUNNEL.kill()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
