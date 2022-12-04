@@ -231,7 +231,9 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
-            elif Path(app.cwd).resolve() in Path(path).resolve().parents or Path(path).resolve() in set().union(*app.blocks.temp_file_sets):
+            if Path(app.cwd).resolve() in Path(path).resolve().parents or Path(
+                path
+            ).resolve() in set().union(*app.blocks.temp_file_sets):
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )

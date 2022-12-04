@@ -309,10 +309,38 @@ def file_to_json(file_path):
     return json.load(open(file_path))
 
 
-def create_tmp_copy_of_file(file_path, dir=None):
+
+class TempFileManager:
+    """
+    A class that should be inherited by any Component that needs to manage temporary files.
+    It should be instantiated in the __init__ method of the component.
+    """
+    def __init__(self) -> None:
+        self.temp_files = set()
+        
+    def hash_file(self, file_path: str) -> str:
+        pass
+    
+    def get_temp_file_path(self, file_path: str) -> str:
+        pass
+    
+    def make_temp_copy_if_needed(self, file_path: str) -> str:
+        """
+        """
+        f = tempfile.NamedTemporaryFile()
+        temp_file_path = self.get_temp_file_path(file_path)
+        f.name = temp_file_path
+        
+        if not os.path.exists(temp_file_path):
+            shutil.copy2(file_path, f.name)
+            self.temp_files.add(os.path.abspath(f.name))
+        
+        return temp_file_path
+        
+
+def create_tmp_copy_of_file(file_path, hashed_filename=True, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:
