@@ -291,20 +291,6 @@ def decode_base64_to_file(
     return file_obj
 
 
-def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
-    try:
-        response = requests.get(file_path_or_url, stream=True)
-        if file_path_or_url.find("/"):
-            new_file_path = file_path_or_url.rsplit("/", 1)[1]
-        else:
-            new_file_path = "file.txt"
-        with open(new_file_path, "wb") as out_file:
-            shutil.copyfileobj(response.raw, out_file)
-        del response
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return create_tmp_copy_of_file(file_path_or_url, dir)
-
-
 def dict_or_str_to_json_file(jsn, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)

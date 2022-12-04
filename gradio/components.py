@@ -256,6 +256,11 @@ class FormComponent:
     expected_parent = Form
 
 
+class TempFileMaker:
+    def __init__(self) -> None:
+        self.temp_files = set()
+
+
 @document("change", "submit", "blur", "style")
 class Textbox(
     Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
@@ -1579,7 +1584,7 @@ class Image(
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable, TempFileMaker):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1637,6 +1642,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             value=value,
             **kwargs,
         )
+        TempFileMaker.__init__(self)
 
     def get_config(self):
         return {
@@ -2076,7 +2082,7 @@ class Audio(
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileMaker):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2111,7 +2117,6 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
         self.file_types = file_types
         valid_types = [
@@ -2139,6 +2144,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             value=value,
             **kwargs,
         )
+        TempFileMaker.__init__(self)
 
     def get_config(self):
         return {
