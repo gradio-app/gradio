@@ -256,7 +256,11 @@ class FormComponent:
     expected_parent = Form
 
 
-class TempFileMaker:
+class TempFileManager:
+    """
+    A class that should be inherited by any Component that needs to manage temporary files.
+    It should be instantiated in the __init__ method of the component.
+    """
     def __init__(self) -> None:
         self.temp_files = set()
 
@@ -1584,7 +1588,7 @@ class Image(
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable, TempFileMaker):
+class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable, TempFileManager):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1642,7 +1646,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             value=value,
             **kwargs,
         )
-        TempFileMaker.__init__(self)
+        TempFileManager.__init__(self)
 
     def get_config(self):
         return {
@@ -2082,7 +2086,7 @@ class Audio(
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileMaker):
+class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileManager):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2144,7 +2148,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable, Tem
             value=value,
             **kwargs,
         )
-        TempFileMaker.__init__(self)
+        TempFileManager.__init__(self)
 
     def get_config(self):
         return {

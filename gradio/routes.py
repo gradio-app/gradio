@@ -231,16 +231,13 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
-            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
-                Path(temp_dir).resolve() in Path(path).resolve().parents
-                for temp_dir in app.blocks.temp_dirs
-            ):
+            elif Path(app.cwd).resolve() in Path(path).resolve().parents or Path(path).resolve() in set().union(*app.blocks.temp_file_sets):
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}. All files must contained within the directory containing the Gradio python script, or in a valid temp directory, one of: {app.blocks.temp_dirs}"
+                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
