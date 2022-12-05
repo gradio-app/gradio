@@ -3950,9 +3950,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 class ScatterPlot(Plot):
     def __init__(
         self,
-        value: pd.DataFrame,
         x: str,
         y: str,
+        value: Optional[pd.DataFrame] = None,
         color: Optional[str] = None,
         title: Optional[str] = None,
         tooltip: Optional[str] = None,
@@ -3972,7 +3972,9 @@ class ScatterPlot(Plot):
         self.x_title = x_title
         self.y_title = y_title
         self.legend_title = legend_title
-        self.value = self.postprocess(value)
+        self.value = None
+        if value is not None:
+            self.value = self.postprocess(value)
         super().__init__(
             value, label=label, show_label=show_label, visible=visible, elem_id=elem_id
         )
@@ -3981,6 +3983,8 @@ class ScatterPlot(Plot):
         return "plot"
 
     def postprocess(self, y: pd.DataFrame | None) -> Dict[str, str] | None:
+        if y is None:
+            return y
         encodings = dict(
             x=alt.X(self.x, title=self.x_title or self.x),
             y=alt.Y(self.y, title=self.y_title or self.y),
