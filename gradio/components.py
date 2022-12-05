@@ -20,6 +20,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
+import altair as alt
 import matplotlib.figure
 import numpy as np
 import pandas as pd
@@ -28,6 +29,7 @@ import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
+from pandas.api.types import is_numeric_dtype
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -3956,6 +3958,7 @@ class ScatterPlot(Plot):
         tooltip: Optional[str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
+        legend_title: Optional[str] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3968,6 +3971,7 @@ class ScatterPlot(Plot):
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
+        self.legend_title = legend_title
         self.value = self.postprocess(value)
         super().__init__(
             value, label=label, show_label=show_label, visible=visible, elem_id=elem_id
@@ -3977,8 +3981,6 @@ class ScatterPlot(Plot):
         return "plot"
 
     def postprocess(self, y: pd.DataFrame | None) -> Dict[str, str] | None:
-        import altair as alt
-
         encodings = dict(
             x=alt.X(self.x, title=self.x_title or self.x),
             y=alt.Y(self.y, title=self.y_title or self.y),
@@ -3987,11 +3989,20 @@ class ScatterPlot(Plot):
         if self.title:
             properties["title"] = self.title
         if self.color:
-            domain = y[self.color].unique().tolist()
+            if is_numeric_dtype(y[self.color]):
+                domain = [y[self.color].min(), y[self.color].max()]
+                range_ = [0, 1]
+                type_ = "quantitative"
+            else:
+                domain = y[self.color].unique().tolist()
+                range_ = list(range(len(domain)))
+                type_ = "nominal"
+
             encodings["color"] = {
                 "field": self.color,
-                "type": "nominal",
-                "scale": {"domain": domain, "range": list(range(len(domain)))},
+                "type": type_,
+                "legend": {"title": self.legend_title or self.color},
+                "scale": {"domain": domain, "range": range_},
             }
         if self.tooltip:
             encodings["tooltip"] = self.tooltip

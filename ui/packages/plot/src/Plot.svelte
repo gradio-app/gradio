@@ -5,8 +5,8 @@
 	import { colors as color_palette, ordered_colors } from "@gradio/theme";
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
-	import tw_colors from "tailwindcss/colors";
 	import { afterUpdate, onDestroy } from "svelte";
+	import {create_config} from "./utils"
 
 	export let value;
 	export let target;
@@ -31,34 +31,18 @@
 
 	$: if(value && value['type'] == "altair") {
 		spec = JSON.parse(value['plot'])
-		switch (value['chart'] || 'foo') {
+		const config = create_config(darkmode);
+		spec['config'] = config;
+		switch (value['chart'] || '') {
 			case "scatter":
-				const config = {
-					"axis": {
-    					"labelFont": 'monospace',
-						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
-						"titleFont": 'monospace',
-						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
-						"tickColor": "#aaa",
-						"gridColor": "#aaa"
-					},
-					"legend": {
-						"labelColor": darkmode ? tw_colors.slate['200'] : "black",
-						"labelFont": "monospace",
-						"titleColor": darkmode ? tw_colors.slate['200'] : "black",
-						"titleFont": 'monospace',
-					},
-					"title": {
-						"color": darkmode ? tw_colors.slate['200'] : "black",
-						"titleFont": "monospace"
-					}
-				}
-				if (spec['encoding']['color']) {
-					console.log(spec);
+				if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'nominal') {
 					spec['encoding']['color']['scale']['range'] = spec['encoding']['color']['scale']['range'].map((e, i) => get_color(i));
 				}
-				spec['config'] = config;
-				console.log(spec);
+				else if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'quantitative') {
+					spec['encoding']['color']['scale']['range'] = ['#eff6ff', '#1e3a8a'];
+					spec['encoding']['color']['scale']['interpolate'] = "hsv";
+
+				}
 				break;
 			default:
 				break;
