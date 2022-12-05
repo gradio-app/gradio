@@ -27,6 +27,8 @@ class Tunnel:
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
         binary_path = f"{os.path.dirname(__file__)}/{binary_name}"
+        
+        extension = ".exe" if os.name == 'nt' else ""
 
         if not os.path.exists(binary_path):
             import stat
@@ -35,7 +37,7 @@ class Tunnel:
 
             print(f"Downloading tunnel binary {binary_name}")
             binary_url = (
-                f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}"
+                f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}{extension}"
             )
             resp = requests.get(binary_url)
 
