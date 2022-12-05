@@ -25,7 +25,7 @@ class Tunnel:
             machine = "amd64"
 
         # Check if the file exist
-        binary_name = f"frpc_{platform.system().lower()}_{machine}"
+        binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
         binary_path = f"{os.path.dirname(__file__)}/{binary_name}"
 
         if not os.path.exists(binary_path):
@@ -37,11 +37,16 @@ class Tunnel:
             binary_url = (
                 f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}"
             )
-            data = requests.get(binary_url)
+            resp = requests.get(binary_url)
+
+            if resp.status_code == 403:
+                raise OSError(f"Incompatible platform, please contact us {platform.uname()}")
+
+            resp.raise_for_status()
 
             # Save file data to local copy
             with open(binary_path, "wb") as file:
-                file.write(data.content)
+                file.write(resp.content)
             st = os.stat(binary_path)
             os.chmod(binary_path, st.st_mode | stat.S_IEXEC)
 
@@ -87,6 +92,8 @@ class Tunnel:
             "--disable_log_color",
         ]
 
+        print(" ".join(command))
+
         self.proc = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
@@ -94,6 +101,7 @@ class Tunnel:
         while url == "":
             line = await self.proc.stdout.readline()
             line = line.decode("utf-8")
+            print(line)
             if "start proxy success" in line:
                 url = re.search("start proxy success: (.+)\n", line).group(1)
         return url
