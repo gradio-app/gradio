@@ -3954,11 +3954,15 @@ class ScatterPlot(Plot):
         y: str,
         value: Optional[pd.DataFrame] = None,
         color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
         title: Optional[str] = None,
         tooltip: Optional[str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
-        legend_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3967,11 +3971,15 @@ class ScatterPlot(Plot):
         self.x = x
         self.y = y
         self.color = color
+        self.size = size
+        self.shape = shape
         self.tooltip = tooltip
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
-        self.legend_title = legend_title
+        self.color_legend_title = color_legend_title
+        self.size_legend_title = size_legend_title
+        self.shape_legend_title = shape_legend_title
         self.value = None
         if value is not None:
             self.value = self.postprocess(value)
@@ -4005,11 +4013,25 @@ class ScatterPlot(Plot):
             encodings["color"] = {
                 "field": self.color,
                 "type": type_,
-                "legend": {"title": self.legend_title or self.color},
+                "legend": {"title": self.color_legend_title or self.color},
                 "scale": {"domain": domain, "range": range_},
             }
         if self.tooltip:
             encodings["tooltip"] = self.tooltip
+        if self.size:
+            encodings["size"] = {
+                "field": self.size,
+                "type": "quantitative" if is_numeric_dtype(y[self.size]) else "nominal",
+                "legend": {"title": self.size_legend_title or self.size},
+            }
+        if self.shape:
+            encodings["shape"] = {
+                "field": self.shape,
+                "type": "quantitative"
+                if is_numeric_dtype(y[self.shape])
+                else "nominal",
+                "legend": {"title": self.shape_legend_title or self.shape},
+            }
 
         chart = (
             alt.Chart(y)
