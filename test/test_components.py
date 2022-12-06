@@ -841,6 +841,11 @@ class TestFile:
         assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
+        x_file["is_file"] = True
+        input1 = file_input.preprocess(x_file)
+        input2 = file_input.preprocess(x_file)
+        assert input1.name == input2.name
+
         assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -901,12 +906,14 @@ class TestUploadButton:
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         upload_input = gr.UploadButton()
-        output = upload_input.preprocess(x_file)
-        assert isinstance(output, tempfile._TemporaryFileWrapper)
+        input = upload_input.preprocess(x_file)
+        assert isinstance(input, tempfile._TemporaryFileWrapper)
         
-        input1 = upload_input.preprocess("test/test_files/sample_file.pdf")
-        input2 = upload_input.preprocess("test/test_files/sample_file.pdf")
+        x_file["is_file"] = True
+        input1 = upload_input.preprocess(x_file)
+        input2 = upload_input.preprocess(x_file)
         assert input1.name == input2.name
+
 
 class TestDataframe:
     def test_component_functions(self):

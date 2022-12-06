@@ -2192,7 +2192,7 @@ class File(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+    def preprocess(self, x: List[Dict[str, str]] | None) -> tempfile._TemporaryFileWrapper | List[tempfile._TemporaryFileWrapper] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2211,8 +2211,8 @@ class File(
             if self.type == "file":
                 if is_file:
                     temp_file_path = self.make_temp_copy_if_needed(file_name)
-                    f = tempfile.NamedTemporaryFile(delete=False)
-                    f.name = temp_file_path
+                    file = tempfile.NamedTemporaryFile(delete=False)
+                    file.name = temp_file_path
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
@@ -2845,6 +2845,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempF
         self.file_count = file_count
         self.file_types = file_types
         self.label = label
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2872,7 +2873,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempF
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+    def preprocess(self, x: List[Dict[str, str]] | None) -> tempfile._TemporaryFileWrapper | List[tempfile._TemporaryFileWrapper] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2896,7 +2897,7 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempF
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name, dir=self.temp_dir
+                        data, file_path=file_name
                     )
                     file.orig_name = file_name
                 return file
