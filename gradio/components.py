@@ -3773,7 +3773,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
 
 @document("change", "edit", "clear", "style")
-class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
+class Model3D(
+    Changeable, Editable, Clearable, IOComponent, FileSerializable, TempFileManager
+):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str} filepath.
@@ -3803,8 +3805,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -3843,7 +3845,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         Parameters:
             x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-            file path to 3D image model
+            string file path to temporary file with the 3D image model
         """
         if x is None:
             return x
@@ -3853,13 +3855,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             x.get("is_file", False),
         )
         if is_file:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
+            temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            file = processing_utils.decode_base64_to_file(
+            temp_file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
-        file_name = file.name
-        return file_name
+            temp_file_path = temp_file.name
+
+        return temp_file_path
 
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
@@ -3874,7 +3877,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         if y is None:
             return y
         data = {
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir).name,
+            "name": self.make_temp_copy_if_needed(y),
             "data": None,
             "is_file": True,
         }

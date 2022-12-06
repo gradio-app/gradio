@@ -1706,6 +1706,11 @@ class TestModel3D:
             "style": {},
         } == component.get_config()
 
+        file = "test/test_files/Box.gltf"
+        output1 = component.postprocess(file)
+        output2 = component.postprocess(file)
+        assert output1 == output2
+
     @pytest.mark.asyncio
     async def test_in_interface(self):
         """
