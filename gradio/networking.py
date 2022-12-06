@@ -16,7 +16,7 @@ import requests
 import uvicorn
 
 from gradio.routes import App
-from gradio.tunneling import create_tunnel
+from gradio.tunneling import Tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
@@ -162,7 +162,9 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
         try:
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-            return create_tunnel(remote_host, remote_port, local_host, local_port)
+            tunnel = Tunnel(remote_host, remote_port, local_host, local_port)
+            address = tunnel.start_tunnel()
+            return address
         except Exception as e:
             raise RuntimeError(str(e))
     else:
