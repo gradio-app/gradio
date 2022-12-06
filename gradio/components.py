@@ -2211,7 +2211,7 @@ class File(
             if self.type == "file":
                 if is_file:
                     temp_file_path = self.make_temp_copy_if_needed(file_name)
-                    f = tempfile.NamedTemporaryFile()
+                    f = tempfile.NamedTemporaryFile(delete=False)
                     f.name = temp_file_path
                     file.orig_name = file_name
                 else:
@@ -2810,7 +2810,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 
 @document("click", "upload", "style")
-class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
+class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempFileManager):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2841,7 +2841,6 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.type = type
         self.file_count = file_count
         self.file_types = file_types
@@ -2891,9 +2890,9 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(
-                        file_name, dir=self.temp_dir
-                    )
+                    temp_file_path = self.make_temp_copy_if_needed(file_name)
+                    file = tempfile.NamedTemporaryFile(delete=False)
+                    file.name = temp_file_path
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(

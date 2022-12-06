@@ -894,6 +894,20 @@ class TestFile:
         assert iface("hello world").endswith(".txt")
 
 
+class TestUploadButton:
+    def test_component_functions(self):
+        """
+        preprocess
+        """
+        x_file = deepcopy(media_data.BASE64_FILE)
+        upload_input = gr.UploadButton()
+        output = upload_input.preprocess(x_file)
+        assert isinstance(output, tempfile._TemporaryFileWrapper)
+        
+        input1 = upload_input.preprocess("test/test_files/sample_file.pdf")
+        input2 = upload_input.preprocess("test/test_files/sample_file.pdf")
+        assert input1.name == input2.name
+
 class TestDataframe:
     def test_component_functions(self):
         """
