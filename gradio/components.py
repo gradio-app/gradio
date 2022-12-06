@@ -1627,7 +1627,6 @@ class Video(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcma will be mirrored. Default is True.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.format = format
         valid_sources = ["upload", "webcam"]
         if source not in valid_sources:
@@ -1636,6 +1635,7 @@ class Video(
             )
         self.source = source
         self.mirror_webcam = mirror_webcam
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -1646,7 +1646,6 @@ class Video(
             value=value,
             **kwargs,
         )
-        TempFileManager.__init__(self)
 
     def get_config(self):
         return {
@@ -1692,13 +1691,13 @@ class Video(
             x.get("is_file", False),
         )
         if is_file:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
+            file = self.make_temp_copy_if_needed(file_name)
         else:
             file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
 
-        file_name = Path(file.name)
+        file_name = Path(file)
         uploaded_format = file_name.suffix.replace(".", "")
 
         modify_format = self.format is not None and uploaded_format != self.format
@@ -1736,10 +1735,23 @@ class Video(
         if y is None:
             return None
 
-        if utils.validate_url(y):
-            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
-
         returned_format = y.split(".")[-1].lower()
+        
+        if self.format is None or returned_format == self.format:
+            conversion_needed = False
+        else:
+            conversion_needed = True
+        
+        ### For cases where the video does not need to be converted to another format
+        if utils.validate_url(y) and not(conversion_needed):
+            return {"name": y, "data": None, "is_file": True}
+        elif not(conversion_needed):
+            temp_file_path = self.make_temp_copy_if_needed(y)
+            return {"name": temp_file_path, "data": None, "is_file": True}
+        
+        ### For cases where the video needs to be converted to another format
+        if utils.validate_url(y):
+            y = processing_utils.download_to_file(y).name
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(y)
@@ -1754,7 +1766,7 @@ class Video(
             ff.run()
             y = output_file_name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+        y = self.make_temp_copy_if_needed(y)
         return {"name": y.name, "data": None, "is_file": True}
 
     def style(

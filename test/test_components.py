@@ -1124,8 +1124,10 @@ class TestVideo:
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
-        output = video_input.preprocess(x_video)
-        assert isinstance(output, str)
+        output1 = video_input.preprocess(x_video)
+        assert isinstance(output1, str)
+        output2 = video_input.preprocess(x_video)
+        assert output1 == output2
 
         assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
@@ -1157,7 +1159,11 @@ class TestVideo:
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
-        assert video_output.postprocess(y_vid_path)["name"].endswith("mp4")
+        output1 = video_output.postprocess(y_vid_path)["name"]
+        assert output1.endswith("mp4")
+        output2 = video_output.postprocess(y_vid_path)["name"]
+        assert output1 == output2
+        
         assert video_output.deserialize(
             {
                 "name": None,
