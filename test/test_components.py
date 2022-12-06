@@ -776,6 +776,10 @@ class TestAudio:
             }
         ).endswith(".wav")
 
+        output1 = audio_output.postprocess(y_audio.name)
+        output2 = audio_output.postprocess(y_audio.name)
+        assert output1 == output2
+
     def test_tokenize(self):
         """
         Tokenize, get_masked_inputs

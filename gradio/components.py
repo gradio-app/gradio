@@ -1797,6 +1797,7 @@ class Audio(
     Uploadable,
     IOComponent,
     FileSerializable,
+    TempFileManager,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -1833,7 +1834,6 @@ class Audio(
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
             raise ValueError(
@@ -1854,6 +1854,7 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -1910,7 +1911,7 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            file_obj = processing_utils.create_tmp_copy_of_file(file_name)
+            file_obj = self.make_temp_copy_if_needed(file_name)
         else:
             file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
@@ -2037,17 +2038,18 @@ class Audio(
             return None
 
         if utils.validate_url(y):
-            file = processing_utils.download_to_file(y, dir=self.temp_dir)
-        elif isinstance(y, tuple):
-            sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(
-                suffix=".wav", dir=self.temp_dir, delete=False
-            )
-            processing_utils.audio_to_file(sample_rate, data, file.name)
-        else:
-            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+            return {"name": y, "data": None, "is_file": True}
 
-        return {"name": file.name, "data": None, "is_file": True}
+        if isinstance(y, tuple):
+            sample_rate, data = y
+            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            processing_utils.audio_to_file(sample_rate, data, file.name)
+            file_path = file.name
+            self.temp_files.add(file_path)
+        else:
+            file_path = self.make_temp_copy_if_needed(y)
+
+        return {"name": file_path, "data": None, "is_file": True}
 
     def stream(
         self,
