@@ -1692,14 +1692,14 @@ class Video(
         )
         if is_file:
             file = self.make_temp_copy_if_needed(file_name)
+            file_name = Path(file)
         else:
             file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
+            file_name = Path(file.name)
 
-        file_name = Path(file)
         uploaded_format = file_name.suffix.replace(".", "")
-
         modify_format = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
         if modify_format or flip:
@@ -1709,6 +1709,8 @@ class Video(
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
+            if os.path.exists(output_file_name):
+                return output_file_name
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -2208,7 +2210,9 @@ class File(
             )
             if self.type == "file":
                 if is_file:
-                    file = self.make_temp_copy_if_needed(file_name)
+                    temp_file_path = self.make_temp_copy_if_needed(file_name)
+                    f = tempfile.NamedTemporaryFile()
+                    f.name = temp_file_path
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
