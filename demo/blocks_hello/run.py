@@ -14,4 +14,4 @@ with gr.Blocks() as demo:
     inp.change(welcome, inp, out)
 
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch()
