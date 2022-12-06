@@ -320,14 +320,14 @@ class TempFileManager:
         # Set stores all the temporary files created by this component.
         self.temp_files = set() 
 
-    def _hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
+    def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
                 sha1.update(chunk)
-        return sha1.digest()
+        return sha1.hexdigest()
 
-    def _get_temp_file_path(self, file_path: str) -> str:
+    def get_temp_file_path(self, file_path: str) -> str:
         file_name = os.path.basename(file_path)
         prefix, extension = file_name, None
         if "." in file_name:
@@ -336,21 +336,24 @@ class TempFileManager:
         else:
             extension = ""
         prefix = utils.strip_invalid_filename_characters(prefix)
-        file_hash = self._hash_file(file_path)
+        file_hash = self.hash_file(file_path)
         return prefix + file_hash + extension
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
         """Main method of the class. It returns a temporary file path for the given file 
         path if it does not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_file_path = self._get_temp_file_path(file_path)
-        f.name = temp_file_path
+        temp_dir, _ = os.path.split(f.name)
+        
+        temp_file_path = self.get_temp_file_path(file_path)
+        f.name = os.path.join(temp_dir, temp_file_path)
+        full_temp_file_path = os.path.abspath(f.name)
+        
+        if not os.path.exists(full_temp_file_path):
+            shutil.copy2(file_path, full_temp_file_path)
+            self.temp_files.add(full_temp_file_path)
 
-        if not os.path.exists(temp_file_path):
-            shutil.copy2(file_path, f.name)
-            self.temp_files.add(os.path.abspath(f.name))
-
-        return temp_file_path
+        return full_temp_file_path
 
 
 def create_tmp_copy_of_file(file_path, hashed_filename=True, dir=None):
