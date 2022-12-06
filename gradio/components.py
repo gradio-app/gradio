@@ -1264,7 +1264,7 @@ class Image(
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
             tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
+            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -1274,7 +1274,7 @@ class Image(
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
         self.mirror_webcam = mirror_webcam
-        valid_types = ["numpy", "pil", "file", "filepath"]
+        valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
@@ -1353,19 +1353,13 @@ class Image(
             return im
         elif self.type == "numpy":
             return np.array(im)
-        elif self.type == "file" or self.type == "filepath":
+        elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
-            if self.type == "file":
-                warnings.warn(
-                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                )
-                return file_obj
-            else:
-                return file_obj.name
+            return file_obj.name
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1841,7 +1835,7 @@ class Audio(
             )
         self.source = source
         requires_permissions = source == "microphone"
-        valid_types = ["numpy", "filepath", "file"]
+        valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
@@ -1911,25 +1905,22 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            file_obj = self.make_temp_copy_if_needed(file_name)
+            temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            file_obj = processing_utils.decode_base64_to_file(
+            temp_file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
+            temp_file_path = temp_file_obj.name
+
         sample_rate, data = processing_utils.audio_from_file(
-            file_obj.name, crop_min=crop_min, crop_max=crop_max
+            temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
+
         if self.type == "numpy":
             return sample_rate, data
-        elif self.type in ["file", "filepath"]:
-            processing_utils.audio_to_file(sample_rate, data, file_obj.name)
-            if self.type == "file":
-                warnings.warn(
-                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                )
-                return file_obj
-            else:
-                return file_obj.name
+        elif self.type == "filepath":
+            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
+            return temp_file_path
         else:
             raise ValueError(
                 "Unknown type: "
