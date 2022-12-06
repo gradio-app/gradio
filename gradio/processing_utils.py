@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -309,34 +310,46 @@ def file_to_json(file_path):
     return json.load(open(file_path))
 
 
-
 class TempFileManager:
     """
     A class that should be inherited by any Component that needs to manage temporary files.
     It should be instantiated in the __init__ method of the component.
     """
+
     def __init__(self) -> None:
         self.temp_files = set()
-        
-    def hash_file(self, file_path: str) -> str:
-        pass
-    
+
+    def hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+                sha1.update(chunk)
+        return sha1.digest()
+
     def get_temp_file_path(self, file_path: str) -> str:
-        pass
-    
+        file_name = os.path.basename(file_path)
+        prefix, extension = file_name, None
+        if "." in file_name:
+            prefix = file_name[0 : file_name.index(".")]
+            extension = "." + file_name[file_name.index(".") + 1 :]
+        else:
+            extension = ""
+        prefix = utils.strip_invalid_filename_characters(prefix)
+        file_hash = self.hash_file(file_path)
+        return prefix + file_hash + extension
+
     def make_temp_copy_if_needed(self, file_path: str) -> str:
-        """
-        """
+        """ """
         f = tempfile.NamedTemporaryFile()
         temp_file_path = self.get_temp_file_path(file_path)
         f.name = temp_file_path
-        
+
         if not os.path.exists(temp_file_path):
             shutil.copy2(file_path, f.name)
             self.temp_files.add(os.path.abspath(f.name))
-        
+
         return temp_file_path
-        
+
 
 def create_tmp_copy_of_file(file_path, hashed_filename=True, dir=None):
     if dir is not None:
