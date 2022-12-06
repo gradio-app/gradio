@@ -27,8 +27,8 @@ class Tunnel:
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
         binary_path = f"{os.path.dirname(__file__)}/{binary_name}"
-        
-        extension = ".exe" if os.name == 'nt' else ""
+
+        extension = ".exe" if os.name == "nt" else ""
 
         if not os.path.exists(binary_path):
             import stat
@@ -36,13 +36,13 @@ class Tunnel:
             import requests
 
             print(f"Downloading tunnel binary {binary_name}")
-            binary_url = (
-                f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}{extension}"
-            )
+            binary_url = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}{extension}"
             resp = requests.get(binary_url)
 
             if resp.status_code == 403:
-                raise OSError(f"Incompatible platform, please contact us {platform.uname()}")
+                raise OSError(
+                    f"Incompatible platform, please contact us {platform.uname()}"
+                )
 
             resp.raise_for_status()
 
