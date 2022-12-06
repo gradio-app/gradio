@@ -16,6 +16,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import Examples, interpretation, utils
@@ -59,7 +60,7 @@ class Interface(Blocks):
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
     Demos: hello_world, hello_world_3, gpt_j
-    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features
+    Guides: quickstart, key_features, sharing_your_app, interface_state, reactive_interfaces, advanced_interface_features, setting_up_a_gradio_demo_for_maximum_performance
     """
 
     # stores references to all currently existing Interface instances
@@ -105,7 +106,7 @@ class Interface(Blocks):
             demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
             demo.launch()
         """
-        return super().load(name=name, src=src, api_key=api_key, alias=alias)
+        return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
@@ -159,7 +160,7 @@ class Interface(Blocks):
             fn: the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
             inputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
-            examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
+            examples: sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: whether the interface should automatically rerun if any of the inputs change.
@@ -309,6 +310,7 @@ class Interface(Blocks):
                     "html": True,
                 },
             )
+            .use(dollarmath_plugin)
             .use(footnote_plugin)
             .enable("table")
         )

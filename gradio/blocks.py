@@ -9,6 +9,7 @@ import pkgutil
 import random
 import sys
 import time
+import typing
 import warnings
 import webbrowser
 from types import ModuleType
@@ -41,14 +42,11 @@ from gradio import (
 )
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
-from gradio.documentation import (
-    document,
-    document_component_api,
-    set_documentation_group,
-)
+from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.tunneling import CURRENT_TUNNEL
 from gradio.utils import (
+    TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
     delete_none,
@@ -57,6 +55,7 @@ from gradio.utils import (
 )
 
 set_documentation_group("blocks")
+
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import comet_ml
@@ -238,17 +237,6 @@ class Block:
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
         }
-        if api_name is not None:
-            dependency["documentation"] = [
-                [
-                    document_component_api(component.__class__, "input")
-                    for component in inputs
-                ],
-                [
-                    document_component_api(component.__class__, "output")
-                    for component in outputs
-                ],
-            ]
         Context.root_block.dependencies.append(dependency)
         return dependency
 
@@ -422,10 +410,11 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict: The original update dictionary
         postprocess: Whether to postprocess the "value" key of the update dictionary.
     """
-    prediction_value = block.get_specific_update(update_dict)
-    if prediction_value.get("value") is components._Keywords.NO_VALUE:
-        prediction_value.pop("value")
-    prediction_value = delete_none(prediction_value, skip_value=True)
+    if update_dict.get("__type__", "") == "generic_update":
+        update_dict = block.get_specific_update(update_dict)
+    if update_dict.get("value") is components._Keywords.NO_VALUE:
+        update_dict.pop("value")
+    prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
@@ -454,6 +443,23 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
+
+
+def add_request_to_inputs(
+    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
+):
+    """
+    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
+    """
+    param_names = inspect.getfullargspec(fn)[0]
+    try:
+        parameter_types = typing.get_type_hints(fn)
+        for idx, param_name in enumerate(param_names):
+            if parameter_types.get(param_name, "") == routes.Request:
+                inputs.insert(idx, request)
+    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
+        pass
+    return inputs
 
 
 @document("load")
@@ -623,6 +629,13 @@ class Blocks(BlockContext):
 
             # add the event triggers
             for dependency, fn in zip(config["dependencies"], fns):
+                # We used to add a "fake_event" to the config to cache examples
+                # without removing it. This was causing bugs in calling gr.Interface.load
+                # We fixed the issue by removing "fake_event" from the config in examples.py
+                # but we still need to skip these events when loading the config to support
+                # older demos
+                if dependency["trigger"] == "fake_event":
+                    continue
                 targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger")
                 dependency.pop("backend_fn")
@@ -788,7 +801,12 @@ class Blocks(BlockContext):
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
-        outputs = utils.synchronize_async(self.process_api, fn_index, processed_inputs)
+        outputs = utils.synchronize_async(
+            self.process_api,
+            fn_index=fn_index,
+            inputs=processed_inputs,
+            request=None,
+        )
         outputs = outputs["data"]
 
         if batch:
@@ -804,11 +822,11 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
+        request: routes.Request | List[routes.Request] | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
         is_generating = False
-        start = time.time()
 
         if block_fn.inputs_as_dict:
             processed_input = [
@@ -817,6 +835,12 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
+
+        processed_input = add_request_to_inputs(
+            block_fn.fn, list(processed_input), request
+        )
+
+        start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
             if inspect.iscoroutinefunction(block_fn.fn):
@@ -936,6 +960,7 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
+        request: routes.Request | List[routes.Request] | None = None,
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
@@ -972,7 +997,7 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None)
+            result = await self.call_function(fn_index, zip(*inputs), None, request)
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -980,7 +1005,7 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator)
+            result = await self.call_function(fn_index, inputs, iterator, request)
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
@@ -1069,13 +1094,21 @@ class Blocks(BlockContext):
         fn: Optional[Callable] = None,
         inputs: Optional[List[Component]] = None,
         outputs: Optional[List[Component]] = None,
+        api_name: AnyStr = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
+        queue=None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        preprocess: bool = True,
+        postprocess: bool = True,
+        every: float | None = None,
+        _js: Optional[str] = None,
         *,
         name: Optional[str] = None,
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
-        _js: Optional[str] = None,
-        every: None | int = None,
         **kwargs,
     ) -> Blocks | Dict[str, Any] | None:
         """
@@ -1092,9 +1125,17 @@ class Blocks(BlockContext):
             src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
             api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
             alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-            fn: Instance Method - Callable function
-            inputs: Instance Method - input list
-            outputs: Instance Method - output list
+            fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            api_name: Instance Method - Defining this parameter exposes the endpoint in the api docs
+            scroll_to_output: Instance Method - If True, will scroll to output component on completion
+            show_progress: Instance Method - If True, will show progress animation while pending
+            queue: Instance Method - If True, will place the request on the queue, if the queue exists
+            batch: Instance Method - If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Instance Method - Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            preprocess: Instance Method - If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: Instance Method - If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
@@ -1119,9 +1160,17 @@ class Blocks(BlockContext):
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
+                api_name=api_name,
+                preprocess=preprocess,
+                postprocess=postprocess,
+                scroll_to_output=scroll_to_output,
+                show_progress=show_progress,
                 js=_js,
-                no_target=True,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
                 every=every,
+                no_target=True,
             )
 
     def clear(self):
@@ -1325,10 +1374,8 @@ class Blocks(BlockContext):
             requests.get(f"{self.local_url}startup-events")
 
             if self.enable_queue:
-                if self.auth is not None or self.encrypt:
-                    raise ValueError(
-                        "Cannot queue with encryption or authentication enabled."
-                    )
+                if self.encrypt:
+                    raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
         self.share = (
@@ -1353,7 +1400,7 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
                 if not self.share:
-                    print(strings.en["COLAB_BETA"].format(self.server_port))
+                    print(strings.en["COLAB_WARNING"].format(self.server_port))
             if self.enable_queue and not self.share:
                 raise ValueError(
                     "When using queueing in Colab, a shareable link must be created. Please set share=True."
@@ -1488,7 +1535,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, self.share_url
+        return TupleNoPrint((self.server_app, self.local_url, self.share_url))
 
     def integrate(
         self,

@@ -1,11 +1,12 @@
 import os
 import sys
+from collections import deque
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from gradio.queue import Event, Queue
-from gradio.utils import Request
+from gradio.utils import AsyncRequest
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -42,17 +43,6 @@ class TestQueueMethods:
         await queue.start()
         assert queue.stopped is False
         assert queue.get_active_worker_count() == 0
-
-    @pytest.mark.asyncio
-    async def test_dont_gather_data_while_broadcasting(self, queue: Queue):
-        queue.broadcast_live_estimations = AsyncMock()
-        queue.gather_data_for_first_ranks = AsyncMock()
-        await queue.broadcast_live_estimations()
-
-        # Should not gather data while broadcasting estimations
-        # Have seen weird race conditions come up in very viral
-        # spaces
-        queue.gather_data_for_first_ranks.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_stop_resume(self, queue: Queue):
@@ -106,21 +96,6 @@ class TestQueueMethods:
         assert await queue.gather_event_data(mock_event)
         assert not (queue.send_message.called)
 
-    @pytest.mark.asyncio
-    async def test_gather_data_for_first_ranks(self, queue: Queue, mock_event: Event):
-        websocket = MagicMock()
-        mock_event2 = Event(websocket=websocket, fn_index=0)
-        queue.send_message = AsyncMock()
-        queue.get_message = AsyncMock()
-        queue.send_message.return_value = True
-        queue.get_message.return_value = {"data": ["test"], "fn": 0}
-
-        queue.push(mock_event)
-        queue.push(mock_event2)
-        await queue.gather_data_for_first_ranks()
-        assert mock_event.data is not None
-        assert mock_event2.data is None
-
 
 class TestQueueEstimation:
     def test_get_update_estimation(self, queue: Queue):
@@ -169,7 +144,7 @@ class TestQueueProcessEvents:
         reason="Mocks of async context manager don't work for 3.7",
     )
     @pytest.mark.asyncio
-    @patch("gradio.queue.Request", new_callable=AsyncMock)
+    @patch("gradio.queue.AsyncRequest", new_callable=AsyncMock)
     async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
         queue.gather_event_data = AsyncMock()
         queue.gather_event_data.return_value = True
@@ -189,7 +164,7 @@ class TestQueueProcessEvents:
         mock_event.disconnect.assert_called_once()
         queue.clean_event.assert_called_once()
         mock_request.assert_called_with(
-            method=Request.Method.POST,
+            method=AsyncRequest.Method.POST,
             url=f"{queue.server_path}reset",
             json={
                 "session_hash": mock_event.session_hash,
@@ -279,7 +254,7 @@ class TestQueueProcessEvents:
         reason="Mocks of async context manager don't work for 3.7",
     )
     @pytest.mark.asyncio
-    @patch("gradio.queue.Request", new_callable=AsyncMock)
+    @patch("gradio.queue.AsyncRequest", new_callable=AsyncMock)
     async def test_process_event_handles_exception_during_disconnect(
         self, mock_request, queue: Queue, mock_event: Event
     ):
@@ -294,7 +269,7 @@ class TestQueueProcessEvents:
         queue.active_jobs = [[mock_event]]
         await queue.process_events([mock_event], batch=False)
         mock_request.assert_called_with(
-            method=Request.Method.POST,
+            method=AsyncRequest.Method.POST,
             url=f"{queue.server_path}reset",
             json={
                 "session_hash": mock_event.session_hash,
@@ -336,18 +311,21 @@ class TestQueueBatch:
 
 class TestGetEventsInBatch:
     def test_empty_event_queue(self, queue: Queue):
-        queue.event_queue = []
+        queue.event_queue = deque()
         events, _ = queue.get_events_in_batch()
         assert events is None
 
     def test_single_type_of_event(self, queue: Queue):
         queue.blocks_dependencies = [{"batch": True, "max_batch_size": 3}]
-        queue.event_queue = [
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=0),
-        ]
+        queue.event_queue = deque()
+        queue.event_queue.extend(
+            [
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=0),
+            ]
+        )
         events, batch = queue.get_events_in_batch()
         assert batch
         assert [e.fn_index for e in events] == [0, 0, 0]
@@ -361,14 +339,17 @@ class TestGetEventsInBatch:
             {"batch": True, "max_batch_size": 3},
             {"batch": True, "max_batch_size": 2},
         ]
-        queue.event_queue = [
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=1),
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=1),
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=0),
-        ]
+        queue.event_queue = deque()
+        queue.event_queue.extend(
+            [
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=1),
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=1),
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=0),
+            ]
+        )
         events, batch = queue.get_events_in_batch()
         assert batch
         assert [e.fn_index for e in events] == [0, 0, 0]
@@ -386,13 +367,16 @@ class TestGetEventsInBatch:
             {"batch": True, "max_batch_size": 3},
             {"batch": False},
         ]
-        queue.event_queue = [
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=1),
-            Event(websocket=MagicMock(), fn_index=0),
-            Event(websocket=MagicMock(), fn_index=1),
-            Event(websocket=MagicMock(), fn_index=1),
-        ]
+        queue.event_queue = deque()
+        queue.event_queue.extend(
+            [
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=1),
+                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), fn_index=1),
+                Event(websocket=MagicMock(), fn_index=1),
+            ]
+        )
         events, batch = queue.get_events_in_batch()
         assert batch
         assert [e.fn_index for e in events] == [0, 0]

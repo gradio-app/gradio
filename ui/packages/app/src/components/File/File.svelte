@@ -17,6 +17,7 @@
 	export let label: string;
 	export let show_label: boolean;
 	export let file_count: string;
+	export let file_types: Array<string> = ["file"];
 	export let root_url: null | string;
 
 	export let loading_status: LoadingStatus;
@@ -42,6 +43,7 @@
 			{show_label}
 			value={_value}
 			{file_count}
+			{file_types}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change
@@ -52,6 +54,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {label} {show_label} {file_count} />
+		<File value={_value} {label} {show_label} />
 	{/if}
 </Block>

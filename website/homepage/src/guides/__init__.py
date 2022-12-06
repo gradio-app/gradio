@@ -27,9 +27,9 @@ for demo_folder in os.listdir(DEMOS_DIR):
 
 def format_name(guide_name):
     index = None
-    if re.match("^[0-9]+\)", guide_name):
-        index = int(guide_name[: guide_name.index(")")])
-        guide_name = guide_name[guide_name.index(")") + 1 :]
+    if re.match("^[0-9]+_", guide_name):
+        index = int(guide_name[: guide_name.index("_")])
+        guide_name = guide_name[guide_name.index("_") + 1 :]
     if guide_name.lower().endswith(".md"):
         guide_name = guide_name[:-3]
     pretty_guide_name = " ".join([word[0].upper() + word[1:] for word in guide_name.split("_")])
@@ -152,6 +152,17 @@ def build_guides(output_dir, jinja_env):
             os.makedirs(output_folder)
             category_file = os.path.join(output_folder, "index.html")
             with open(category_file, "w") as index_html:
+                index_html.write(output)
+        if guide["name"] == "01_quickstart":
+            output_folder = os.path.join(output_dir, "getting_started")
+            os.makedirs(output_folder)
+            index_file = os.path.join(output_folder, "index.html")
+            with open(index_file, "w") as index_html:
+                index_html.write(output)
+            output_folder = os.path.join(output_dir, "quickstart")
+            os.makedirs(output_folder)
+            index_file = os.path.join(output_folder, "index.html")
+            with open(index_file, "w") as index_html:
                 index_html.write(output)
 
 

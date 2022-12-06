@@ -1,10 +1,79 @@
-# Upcoming Release 
+# Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### Support for altair plots
+
+The `Plot` component can now accept altair plots as values! 
+Simply return an altair plot from your event listener and gradio will display it in the front-end.
+See the example below:
+
+```python
+import gradio as gr
+import altair as alt
+from vega_datasets import data
+
+cars = data.cars()
+chart = (
+    alt.Chart(cars)
+    .mark_point()
+    .encode(
+        x="Horsepower",
+        y="Miles_per_Gallon",
+        color="Origin",
+    )
+)
+
+with gr.Blocks() as demo:
+    gr.Plot(value=chart)
+demo.launch()
+```
+
+<img width="1366" alt="image" src="https://user-images.githubusercontent.com/41651716/204660697-f994316f-5ca7-4e8a-93bc-eb5e0d556c91.png">
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+
+### Set the background color of a Label component 
+
+The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
+The `color` argument should either be a valid css color name or hexadecimal string.
+You can update the color with `gr.Label.update`! 
+
+This lets you create Alert and Warning boxes with the `Label` component. See below:
+
+```python
+import gradio as gr
+import random
+
+def update_color(value):
+    if value < 0:
+        # This is bad so use red
+        return "#FF0000"
+    elif 0 <= value <= 20:
+        # Ok but pay attention (use orange)
+        return "#ff9966"
+    else:
+        # Nothing to worry about
+        return None
+
+def update_value():
+    choice = random.choice(['good', 'bad', 'so-so'])
+    color = update_color(choice)
+    return gr.Label.update(value=choice, color=color)
+    
+    
+with gr.Blocks() as demo:
+    label = gr.Label(value=-10)
+    demo.load(lambda: update_value(), inputs=None, outputs=[label], every=1)
+demo.queue().launch()
+```
+
+![label_bg_color_update](https://user-images.githubusercontent.com/41651716/204400372-80e53857-f26f-4a38-a1ae-1acadff75e89.gif)
+
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed issue where image thumbnails were not showing when an example directory was provided
+by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745) 
 
 ## Documentation Changes:
 No changes to highlight.
@@ -16,7 +85,256 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
+* Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748) 
+* Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755) 
+
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# Version 3.12.0
+
+## New Features:
+
+### The `Chatbot` component now supports a subset of Markdown (including bold, italics, code, images)
+
+You can now pass in some Markdown to the Chatbot component and it will show up, 
+meaning that you can pass in images as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
+
+Here's a simple example that references a local image `lion.jpg` that is in the same
+folder as the Python script:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    gr.Chatbot([("hi", "hello **abubakar**"), ("![](/file=lion.jpg)", "cool pic")])
+    
+demo.launch()
+```
+
+![Alt text](https://user-images.githubusercontent.com/1778297/204357455-5c1a4002-eee7-479d-9a1e-ba2c12522723.png)
+
+To see a more realistic example, see the new demo `/demo/chatbot_multimodal/run.py`.
+
+
+### Latex support
+Added mathtext (a subset of latex) support to gr.Markdown. Added by [@kashif](https://github.com/kashif) and [@aliabid94](https://github.com/aliabid94) in [PR 2696](https://github.com/gradio-app/gradio/pull/2696).
+
+Example of how it can be used:
+
+```python
+gr.Markdown(
+    r"""
+    # Hello World! $\frac{\sqrt{x + y}}{4}$ is today's lesson.
+    """)
+```
+
+### Update Accordion properties from the backend
+
+You can now update the Accordion `label` and `open` status with `gr.Accordion.update` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2690](https://github.com/gradio-app/gradio/pull/2690)
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    with gr.Accordion(label="Open for greeting", open=False) as accordion:
+        gr.Textbox("Hello!")
+    open_btn = gr.Button(value="Open Accordion")
+    close_btn = gr.Button(value="Close Accordion")
+    open_btn.click(
+        lambda: gr.Accordion.update(open=True, label="Open Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+    close_btn.click(
+        lambda: gr.Accordion.update(open=False, label="Closed Accordion"),
+        inputs=None,
+        outputs=[accordion],
+    )
+demo.launch()
+```
+
+![update_accordion](https://user-images.githubusercontent.com/41651716/203164176-b102eae3-babe-4986-ae30-3ab4f400cedc.gif)
+
+## Bug Fixes:
+* Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
+* Fixed bug where so that the `File` component can properly preprocess files to "binary" byte-string format by [CoffeeVampir3](https://github.com/CoffeeVampir3) in [PR 2727](https://github.com/gradio-app/gradio/pull/2727)
+* Fixed bug to ensure that filenames are less than 200 characters even for non-English languages by [@SkyTNT](https://github.com/SkyTNT) in [PR 2685](https://github.com/gradio-app/gradio/pull/2685) 
+
+## Documentation Changes:
+* Performance improvements to docs on mobile by  [@aliabd](https://github.com/aliabd) in [PR 2730](https://github.com/gradio-app/gradio/pull/2730)
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Make try examples button more prominent by [@aliabd](https://github.com/aliabd) in [PR 2705](https://github.com/gradio-app/gradio/pull/2705)
+* Fix id clashes in docs by [@aliabd](https://github.com/aliabd) in [PR 2713](https://github.com/gradio-app/gradio/pull/2713)
+* Fix typos in guide docs by [@andridns](https://github.com/andridns) in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)
+
+## Contributors Shoutout:
+* [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!
+
+
+# Version 3.11.0
+
+## New Features:
+
+### Upload Button
+There is now a new component called the `UploadButton` which is a file upload component but in button form! You can also specify what file types it should accept in the form of a list (ex: `image`, `video`, `audio`, `text`, or generic `file`). Added by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2591](https://github.com/gradio-app/gradio/pull/2591).
+
+Example of how it can be used:
+
+```python
+import gradio as gr
+
+def upload_file(files):
+    file_paths = [file.name for file in files]
+    return file_paths
+
+with gr.Blocks() as demo:
+    file_output = gr.File()
+    upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
+    upload_button.upload(upload_file, upload_button, file_output)
+
+demo.launch()
+```
+### Revamped API documentation page
+
+New API Docs page with in-browser playground and updated aesthetics. [@gary149](https://github.com/gary149) in [PR 2652](https://github.com/gradio-app/gradio/pull/2652)
+
+### Revamped Login page
+
+Previously our login page had its own CSS, had no dark mode, and had an ugly json message on the wrong credentials. Made the page more aesthetically consistent, added dark mode support, and a nicer error message. [@aliabid94](https://github.com/aliabid94) in [PR 2684](https://github.com/gradio-app/gradio/pull/2684)
+
+### Accessing the Requests Object Directly
+
+You can now access the Request object directly in your Python function by [@abidlabs](https://github.com/abidlabs) in [PR 2641](https://github.com/gradio-app/gradio/pull/2641). This means that you can access request headers, the client IP address, and so on. In order to use it, add a parameter to your function and set its type hint to be `gr.Request`. Here's a simple example:
+
+```py
+import gradio as gr
+
+def echo(name, request: gr.Request):
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
+    return name
+
+io = gr.Interface(echo, "textbox", "textbox").launch()
+```
+
+## Bug Fixes:
+* Fixed bug that limited files from being sent over websockets to 16MB. The new limit
+is now 1GB  by [@abidlabs](https://github.com/abidlabs) in [PR 2709](https://github.com/gradio-app/gradio/pull/2709)
+
+## Documentation Changes:
+* Updated documentation for embedding Gradio demos on Spaces as web components by 
+[@julien-c](https://github.com/julien-c) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
+* Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by  
+[@julien-c](https://github.com/julien-c) in [PR 2692](https://github.com/gradio-app/gradio/pull/2692)
+ * Colab buttons on every demo in the website! Just click open in colab, and run the demo there. 
+
+
+
+https://user-images.githubusercontent.com/9021060/202878400-cb16ed47-f4dd-4cb0-b2f0-102a9ff64135.mov
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Better warnings and error messages for `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2694](https://github.com/gradio-app/gradio/pull/2694) 
+* Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
+* Apply different formatting for the types in component docstrings by [@aliabd](https://github.com/aliabd) in [PR 2707](https://github.com/gradio-app/gradio/pull/2707)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# Version 3.10.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Passes kwargs into `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2669](https://github.com/gradio-app/gradio/pull/2669)
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.10.0
+
+* Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
+* `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
+
+## Bug Fixes:
+* Updated the minimum FastApi used in tests to version 0.87 by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2647](https://github.com/gradio-app/gradio/pull/2647)
+* Fixed bug where interfaces with examples could not be loaded with `gr.Interface.load` by [@freddyaboulton](https://github.com/freddyaboulton) [PR 2640](https://github.com/gradio-app/gradio/pull/2640)
+* Fixed bug where the `interactive` property of a component could not be updated by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2639](https://github.com/gradio-app/gradio/pull/2639)
+* Fixed bug where some URLs were not being recognized as valid URLs and thus were not
+loading correctly in various components by [@abidlabs](https://github.com/abidlabs) in [PR 2659](https://github.com/gradio-app/gradio/pull/2659)
+
+
+## Documentation Changes:
+* Fix some typos in the embedded demo names in "05_using_blocks_like_functions.md" by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2656](https://github.com/gradio-app/gradio/pull/2656)
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.9.1
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+* Only set a min height on md and html when loading by [@pngwn](https://github.com/pngwn) in [PR 2623](https://github.com/gradio-app/gradio/pull/2623)
+ 
+## Documentation Changes:
+* See docs for the latest gradio commit to main as well the latest pip release:
+
+![main-vs-pip](https://user-images.githubusercontent.com/9021060/199607887-aab1ae4e-a070-4527-966d-024397abe15b.gif)
+
+* Modified the "Connecting To a Database Guide" to use `pd.read_sql` as opposed to low-level postgres connector by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2604](https://github.com/gradio-app/gradio/pull/2604) 
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
 * Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
+* Components now throw a `ValueError()` if constructed with invalid parameters for `type` or `source` (for components that take those parameters) in [PR 2610](https://github.com/gradio-app/gradio/pull/2610)
+* Allow auth with using queue by [@GLGDLY](https://github.com/GLGDLY) in [PR 2611](https://github.com/gradio-app/gradio/pull/2611)
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -44,9 +362,11 @@ The `api_name` parameter will take precendence over the `fn_index` parameter.
 * Fixed bug where None could not be used for File,Model3D, and Audio examples by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2588](https://github.com/gradio-app/gradio/pull/2588)
 * Fixed links in Plotly map guide + demo by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2578](https://github.com/gradio-app/gradio/pull/2578)
 * `gr.Blocks.load()` now correctly loads example files from Spaces [@abidlabs](https://github.com/abidlabs) in [PR 2594](https://github.com/gradio-app/gradio/pull/2594)
+* Fixed bug when image clear started upload dialog [@mezotaken](https://github.com/mezotaken) in [PR 2577](https://github.com/gradio-app/gradio/pull/2577)
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a Guide on how to configure the queue for maximum performance by [@abidlabs](https://github.com/abidlabs) in [PR 2558](https://github.com/gradio-app/gradio/pull/2558)
+
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -56,6 +376,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
 
 
 ## Contributors Shoutout:
@@ -1163,7 +1484,6 @@ We've introduced a lot of new components in `3.0`, including `Model3D`, `Dataset
 * Mobile responsive guides by [@aliabd](https://github.com/aliabd) in [PR 1293](https://github.com/gradio-app/gradio/pull/1293)
 * Update readme by [@abidlabs](https://github.com/abidlabs) in [PR 1292](https://github.com/gradio-app/gradio/pull/1292)
 * gif by [@abidlabs](https://github.com/abidlabs) in [PR 1296](https://github.com/gradio-app/gradio/pull/1296)
-* Fixed issue #2476 with upload dialog [@mezotaken](https://github.com/mezotaken) in [PR 2577](https://github.com/gradio-app/gradio/pull/2577)
 
 ## Contributors Shoutout:
 

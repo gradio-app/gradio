@@ -271,6 +271,10 @@ def decode_base64_to_file(
         if "." in filename:
             prefix = filename[0 : filename.index(".")]
             extension = filename[filename.index(".") + 1 :]
+
+    if prefix is not None:
+        prefix = utils.strip_invalid_filename_characters(prefix)
+
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
     else:

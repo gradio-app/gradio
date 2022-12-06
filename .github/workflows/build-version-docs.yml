@@ -1,0 +1,46 @@
+# This workflow will build gradio and create the version's docs file when a new stable version has been released 
+
+name: Create Version's Docs
+on:
+  workflow_dispatch:
+  pull_request:
+    types: closed
+    branches:
+      - main
+    paths:
+      - 'gradio/version.txt'
+
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+    - name: Install requirements
+      run: python -m pip install -r website/homepage/requirements.txt 
+    - name: Check new pypi version
+      run: cd website && python check_version.py
+  build-docs:
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install requirements
+        run: python -m pip install -r website/homepage/requirements.txt 
+      - name: Pin httpx, httpcore, and h11
+        run: pip install h11==0.12.0 httpcore==0.15.0 httpx==0.23.0
+      - name: Install gradio
+        run: python -m pip install gradio -U
+      - name: Build Docs
+        run: cd website/homepage && python build-version-docs.py
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          add: website/homepage/src/*
+          author_name: "GH ACTIONS"
+          author_email: ""
+          title: "New Version Docs"

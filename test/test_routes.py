@@ -2,7 +2,6 @@
 import json
 import os
 import sys
-import unittest
 from unittest.mock import patch
 
 import pytest
@@ -17,34 +16,39 @@ from gradio import Blocks, Button, Interface, Number, Textbox, close_all, routes
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class TestRoutes(unittest.TestCase):
-    def setUp(self) -> None:
-        self.io = Interface(lambda x: x + x, "text", "text")
-        self.app, _, _ = self.io.launch(prevent_thread_lock=True)
-        self.client = TestClient(self.app)
+@pytest.fixture()
+def test_client():
+    io = Interface(lambda x: x + x, "text", "text")
+    app, _, _ = io.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+    yield test_client
+    io.close()
+    close_all()
 
-    def test_get_main_route(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
 
-    def test_static_files_served_safely(self):
+class TestRoutes:
+    def test_get_main_route(self, test_client):
+        response = test_client.get("/")
+        assert response.status_code == 200
+
+    def test_static_files_served_safely(self, test_client):
         # Make sure things outside the static folder are not accessible
-        response = self.client.get(r"/static/..%2findex.html")
-        self.assertEqual(response.status_code, 404)
-        response = self.client.get(r"/static/..%2f..%2fapi_docs.html")
-        self.assertEqual(response.status_code, 404)
+        response = test_client.get(r"/static/..%2findex.html")
+        assert response.status_code == 404
+        response = test_client.get(r"/static/..%2f..%2fapi_docs.html")
+        assert response.status_code == 404
 
-    def test_get_config_route(self):
-        response = self.client.get("/config/")
-        self.assertEqual(response.status_code, 200)
+    def test_get_config_route(self, test_client):
+        response = test_client.get("/config/")
+        assert response.status_code == 200
 
-    def test_predict_route(self):
-        response = self.client.post(
+    def test_predict_route(self, test_client):
+        response = test_client.post(
             "/api/predict/", json={"data": ["test"], "fn_index": 0}
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest"])
+        assert output["data"] == ["testtest"]
 
     def test_named_predict_route(self):
         with Blocks() as demo:
@@ -109,11 +113,11 @@ class TestRoutes(unittest.TestCase):
         output = dict(response.json())
         assert output["data"] == ["test2"]
 
-    def test_predict_route_without_fn_index(self):
-        response = self.client.post("/api/predict/", json={"data": ["test"]})
-        self.assertEqual(response.status_code, 200)
+    def test_predict_route_without_fn_index(self, test_client):
+        response = test_client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest"])
+        assert output["data"] == ["testtest"]
 
     def test_predict_route_batching(self):
         def batch_fn(x):
@@ -132,7 +136,7 @@ class TestRoutes(unittest.TestCase):
         client = TestClient(app)
         response = client.post("/api/pred/", json={"data": ["test"]})
         output = dict(response.json())
-        self.assertEqual(output["data"], ["Hello test"])
+        assert output["data"] == ["Hello test"]
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
@@ -140,7 +144,7 @@ class TestRoutes(unittest.TestCase):
             "/api/pred/", json={"data": [["test", "test2"]], "batched": True}
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], [["Hello test", "Hello test2"]])
+        assert output["data"] == [["Hello test", "Hello test2"]]
 
     def test_state(self):
         def predict(input, history):
@@ -157,17 +161,13 @@ class TestRoutes(unittest.TestCase):
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], ["test", None])
+        assert output["data"] == ["test", None]
         response = client.post(
             "/api/predict/",
             json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
         )
         output = dict(response.json())
-        self.assertEqual(output["data"], ["testtest", None])
-
-    def tearDown(self) -> None:
-        self.io.close()
-        close_all()
+        assert output["data"] == ["testtest", None]
 
 
 class TestGeneratorRoutes:
@@ -227,29 +227,28 @@ class TestApp:
         assert isinstance(app, FastAPI)
 
 
-class TestAuthenticatedRoutes(unittest.TestCase):
-    def setUp(self) -> None:
-        self.io = Interface(lambda x: x, "text", "text")
-        self.app, _, _ = self.io.launch(
+class TestAuthenticatedRoutes:
+    def test_post_login(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
             auth=("test", "correct_password"),
             prevent_thread_lock=True,
             enable_queue=False,
         )
-        self.client = TestClient(self.app)
+        client = TestClient(app)
 
-    def test_post_login(self):
-        response = self.client.post(
-            "/login", data=dict(username="test", password="correct_password")
+        response = client.post(
+            "/login",
+            data=dict(username="test", password="correct_password"),
+            follow_redirects=False,
         )
-        self.assertEqual(response.status_code, 302)
-        response = self.client.post(
-            "/login", data=dict(username="test", password="incorrect_password")
+        assert response.status_code == 302
+        response = client.post(
+            "/login",
+            data=dict(username="test", password="incorrect_password"),
+            follow_redirects=False,
         )
-        self.assertEqual(response.status_code, 400)
-
-    def tearDown(self) -> None:
-        self.io.close()
-        close_all()
+        assert response.status_code == 400
 
 
 class TestQueueRoutes:
@@ -310,6 +309,23 @@ class TestDevMode:
             route for route in app.routes if isinstance(route, starlette.routing.Mount)
         )
         assert not gradio_fast_api.app.blocks.dev_mode
+
+
+class TestPassingRequest:
+    def test_request_included_with_regular_function(self):
+        def identity(name, request: gr.Request):
+            assert isinstance(request.client.host, str)
+            return name
+
+        app, _, _ = gr.Interface(identity, "textbox", "textbox").launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"data": ["test"]})
+        assert response.status_code == 200
+        output = dict(response.json())
+        assert output["data"] == ["test"]
 
 
 def test_predict_route_is_blocked_if_api_open_false():
@@ -382,7 +398,3 @@ def test_show_api_queue_not_enabled():
     io.close()
     io.launch(prevent_thread_lock=True, show_api=False)
     assert not io.show_api
-
-
-if __name__ == "__main__":
-    unittest.main()

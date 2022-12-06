@@ -5,12 +5,11 @@ export PATH="/usr/local/bin:/usr/bin:/bin"
 
 git pull > /tmp/git_changes.txt
 
-if ! grep -q "gradio/version.txt" /tmp/git_changes.txt; then
+if grep -q "Already up to date." /tmp/git_changes.txt; then
     echo "NO CHANGES"
 else
-    echo "Checking gradio version.."
-    python check_version.py
     echo "Reloading..."
+    export LATEST_COMMIT=$(git log -1 --format="%H")
     docker-compose build
     docker-compose up -d
 fi

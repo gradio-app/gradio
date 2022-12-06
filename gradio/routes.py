@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import io
+import json
 import mimetypes
 import os
 import posixpath
@@ -13,20 +14,20 @@ import traceback
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from starlette.responses import RedirectResponse
-from starlette.websockets import WebSocket, WebSocketState
+from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
@@ -74,6 +75,7 @@ class App(FastAPI):
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
         self.queue_token = secrets.token_urlsafe(32)
+        self.startup_events_triggered = False
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -107,7 +109,7 @@ class App(FastAPI):
 
         @app.get("/user")
         @app.get("/user/")
-        def get_current_user(request: Request) -> Optional[str]:
+        def get_current_user(request: fastapi.Request) -> Optional[str]:
             token = request.cookies.get("access-token")
             return app.tokens.get(token)
 
@@ -120,15 +122,19 @@ class App(FastAPI):
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
+        async def ws_login_check(websocket: WebSocket) -> str:
+            token = websocket.cookies.get("access-token")
+            return token  # token is returned to allow request in queue
+
         @app.get("/token")
         @app.get("/token/")
-        def get_token(request: Request) -> dict:
+        def get_token(request: fastapi.Request) -> dict:
             token = request.cookies.get("access-token")
             return {"token": token, "user": app.tokens.get(token)}
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: Request) -> int:
+        def app_id(request: fastapi.Request) -> int:
             return {"app_id": app.blocks.app_id}
 
         @app.post("/login")
@@ -154,7 +160,7 @@ class App(FastAPI):
 
         @app.head("/", response_class=HTMLResponse)
         @app.get("/", response_class=HTMLResponse)
-        def main(request: Request, user: str = Depends(get_current_user)):
+        def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
 
             if app.auth is None or not (user is None):
@@ -253,7 +259,9 @@ class App(FastAPI):
             return {"success": True}
 
         async def run_predict(
-            body: PredictBody, username: str = Depends(get_current_user)
+            body: PredictBody,
+            request: Request,
+            username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
@@ -282,7 +290,12 @@ class App(FastAPI):
                 raw_input = [raw_input]
             try:
                 output = await app.blocks.process_api(
-                    fn_index, raw_input, username, session_state, iterators
+                    fn_index=fn_index,
+                    inputs=raw_input,
+                    request=request,
+                    username=username,
+                    state=session_state,
+                    iterators=iterators,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
@@ -312,7 +325,7 @@ class App(FastAPI):
         async def predict(
             api_name: str,
             body: PredictBody,
-            request: Request,
+            request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
             if body.fn_index is None:
@@ -340,16 +353,31 @@ class App(FastAPI):
             # current session hash
             if app.blocks.dependencies[body.fn_index]["cancels"]:
                 body.data = [body.session_hash]
-            result = await run_predict(body=body, username=username)
+            if body.request:
+                if body.batched:
+                    request = [Request(**req) for req in body.request]
+                else:
+                    request = Request(**body.request)
+            else:
+                request = Request(request)
+            result = await run_predict(body=body, username=username, request=request)
             return result
 
         @app.websocket("/queue/join")
-        async def join_queue(websocket: WebSocket):
+        async def join_queue(
+            websocket: WebSocket,
+            token: str = Depends(ws_login_check),
+        ):
+            if app.auth is not None and token is None:
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                return
             if app.blocks._queue.server_path is None:
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
             event = Event(websocket)
+            # set the token into Event to allow using the same token for call_prediction
+            event.token = token
 
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
@@ -391,13 +419,13 @@ class App(FastAPI):
         async def get_queue_status():
             return app.blocks._queue.get_estimation()
 
-        @app.get(
-            "/startup-events",
-            dependencies=[Depends(login_check)],
-        )
+        @app.get("/startup-events")
         async def startup_events():
-            app.blocks.startup_events()
-            return True
+            if not app.startup_events_triggered:
+                app.blocks.startup_events()
+                app.startup_events_triggered = True
+                return True
+            return False
 
         return app
 
@@ -448,6 +476,64 @@ def get_server_url_from_ws_url(ws_url: str):
 
 
 set_documentation_group("routes")
+
+
+class Obj:
+    """
+    Using a class to convert dictionaries into objects. Used by the `Request` class.
+    Credit: https://www.geeksforgeeks.org/convert-nested-python-dictionary-to-object/
+    """
+
+    def __init__(self, dict1):
+        self.__dict__.update(dict1)
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return str(self.__dict__)
+
+
+@document()
+class Request:
+    """
+    A Gradio request object that can be used to access the request headers, cookies,
+    query parameters and other information about the request from within the prediction
+    function. The class is a thin wrapper around the fastapi.Request class. Attributes
+    of this class include: `headers`, `client`, `query_params`, and `path_params`,
+
+    Example:
+        import gradio as gr
+        def echo(name, request: gr.Request):
+            print("Request headers dictionary:", request.headers)
+            print("IP address:", request.client.host)
+            return name
+        io = gr.Interface(echo, "textbox", "textbox").launch()
+    """
+
+    def __init__(self, request: fastapi.Request | None = None, **kwargs):
+        """
+        Can be instantiated with either a fastapi.Request or by manually passing in
+        attributes (needed for websocket-based queueing).
+        """
+        self.request: fastapi.Request = request
+        self.kwargs: Dict = kwargs
+
+    def dict_to_obj(self, d):
+        if isinstance(d, dict):
+            return json.loads(json.dumps(d), object_hook=Obj)
+        else:
+            return d
+
+    def __getattr__(self, name):
+        if self.request:
+            return self.dict_to_obj(getattr(self.request, name))
+        else:
+            try:
+                obj = self.kwargs[name]
+            except KeyError:
+                raise AttributeError(f"'Request' object has no attribute '{name}'")
+            return self.dict_to_obj(obj)
 
 
 @document()

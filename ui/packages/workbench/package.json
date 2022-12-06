@@ -42,6 +42,8 @@
 		"@gradio/tabs": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
-		"@gradio/video": "workspace:^0.0.1"
+		"@gradio/uploadbutton": "workspace:^0.0.1",
+		"@gradio/video": "workspace:^0.0.1",
+		"svelte": ">=3.44.0 <4.0.0"
 	}
 }
