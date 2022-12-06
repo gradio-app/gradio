@@ -351,12 +351,12 @@ class TempFileManager:
 
         if not os.path.exists(full_temp_file_path):
             shutil.copy2(file_path, full_temp_file_path)
-            self.temp_files.add(full_temp_file_path)
-
+            
+        self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
 
-def create_tmp_copy_of_file(file_path, hashed_filename=True, dir=None):
+def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     file_name = os.path.basename(file_path)

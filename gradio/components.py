@@ -2140,6 +2140,7 @@ class File(
             )
         self.type = type
         self.test_input = None
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -2150,7 +2151,6 @@ class File(
             value=value,
             **kwargs,
         )
-        TempFileManager.__init__(self)
 
     def get_config(self):
         return {
@@ -2196,7 +2196,7 @@ class File(
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file = self.make_temp_copy_if_needed(file_name)
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
