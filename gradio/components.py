@@ -1738,19 +1738,19 @@ class Video(
             return None
 
         returned_format = y.split(".")[-1].lower()
-        
+
         if self.format is None or returned_format == self.format:
             conversion_needed = False
         else:
             conversion_needed = True
-        
+
         ### For cases where the video does not need to be converted to another format
-        if utils.validate_url(y) and not(conversion_needed):
+        if utils.validate_url(y) and not (conversion_needed):
             return {"name": y, "data": None, "is_file": True}
-        elif not(conversion_needed):
+        elif not (conversion_needed):
             temp_file_path = self.make_temp_copy_if_needed(y)
             return {"name": temp_file_path, "data": None, "is_file": True}
-        
+
         ### For cases where the video needs to be converted to another format
         if utils.validate_url(y):
             y = processing_utils.download_to_file(y).name

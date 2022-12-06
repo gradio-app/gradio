@@ -12,7 +12,7 @@ import shutil
 import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -863,7 +863,7 @@ class TestFile:
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
         assert type(output) == bytes
-                
+
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
@@ -1167,7 +1167,7 @@ class TestVideo:
         assert output1.endswith("mp4")
         output2 = video_output.postprocess(y_vid_path)["name"]
         assert output1 == output2
-        
+
         assert video_output.deserialize(
             {
                 "name": None,
@@ -1216,9 +1216,9 @@ class TestVideo:
 
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
-          # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
+        # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         os.path.exists = MagicMock(return_value=False)
-        
+
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)

@@ -351,7 +351,7 @@ class TempFileManager:
 
         if not os.path.exists(full_temp_file_path):
             shutil.copy2(file_path, full_temp_file_path)
-            
+
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path
 
