@@ -3490,7 +3490,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent):
+class Gallery(IOComponent, TempFileManager):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3517,7 +3517,7 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        TempFileManager.__init__(self)
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3569,25 +3569,27 @@ class Gallery(IOComponent):
             if isinstance(img, tuple) or isinstance(img, list):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
+                file = processing_utils.save_array_to_file(img)
+                file_path = os.path.abspath(file.name)
+                self.temp_files.add(file_path)                
             elif isinstance(img, PIL.Image.Image):
-                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
+                file = processing_utils.save_pil_to_file(img)
+                file_path = os.path.abspath(file.name)
+                self.temp_files.add(file_path)
             elif isinstance(img, str):
                 if utils.validate_url(img):
-                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
+                    file_path = img
                 else:
-                    file = processing_utils.create_tmp_copy_of_file(
-                        img, dir=self.temp_dir
-                    )
+                    file_path= self.make_temp_copy_if_needed(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
             if caption is not None:
                 output.append(
-                    [{"name": file.name, "data": None, "is_file": True}, caption]
+                    [{"name": file_path, "data": None, "is_file": True}, caption]
                 )
             else:
-                output.append({"name": file.name, "data": None, "is_file": True})
+                output.append({"name": file_path, "data": None, "is_file": True})
 
         return output
 
