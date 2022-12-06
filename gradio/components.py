@@ -2247,9 +2247,7 @@ class File(
             return [
                 {
                     "orig_name": os.path.basename(file),
-                    "name": processing_utils.create_tmp_copy_of_file(
-                        file, dir=self.temp_dir
-                    ).name,
+                    "name": self.make_temp_copy_if_needed(file),
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
@@ -2259,9 +2257,7 @@ class File(
         else:
             return {
                 "orig_name": os.path.basename(y),
-                "name": processing_utils.create_tmp_copy_of_file(
-                    y, dir=self.temp_dir
-                ).name,
+                "name": self.make_temp_copy_if_needed(y),
                 "size": os.path.getsize(y),
                 "data": None,
                 "is_file": True,

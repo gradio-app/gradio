@@ -3,7 +3,7 @@ import pathlib
 import shutil
 import tempfile
 from copy import deepcopy
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import ffmpy
 import matplotlib.pyplot as plt
@@ -119,7 +119,7 @@ class TestTempFileManager:
     def test_get_temp_file_path(self):
         temp_file_manager = processing_utils.TempFileManager()
         temp_file_manager.hash_file = MagicMock(return_value="")
-        
+
         filepath = "C:/gradio/test_image.png"
         temp_filepath = temp_file_manager.get_temp_file_path(filepath)
         assert "test_image" in temp_filepath
@@ -144,7 +144,7 @@ class TestTempFileManager:
         temp_filepath = temp_file_manager.get_temp_file_path(filepath)
         assert "lion--_1" in temp_filepath
         assert temp_filepath.endswith(".txt")
-        
+
     def test_hash_file(self):
         temp_file_manager = processing_utils.TempFileManager()
         h1 = temp_file_manager.hash_file("gradio/test_data/cheetah1.jpg")
@@ -152,27 +152,29 @@ class TestTempFileManager:
         h3 = temp_file_manager.hash_file("gradio/test_data/cheetah2.jpg")
         assert h1 == h2
         assert h1 != h3
-        
+
     def test_make_temp_copy_if_needed(self):
         shutil.copy2 = MagicMock()
         temp_file_manager = processing_utils.TempFileManager()
-        
+
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         try:  # Delete if already exists from before this test
             os.remove(f)
         except OSError:
             pass
-        
+
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert shutil.copy2.called
         assert len(temp_file_manager.temp_files) == 1
-      
+
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
         assert len(temp_file_manager.temp_files) == 1
 
-        f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1-copy.jpg")
+        f = temp_file_manager.make_temp_copy_if_needed(
+            "gradio/test_data/cheetah1-copy.jpg"
+        )
         assert len(temp_file_manager.temp_files) == 2
-                  
+
 
 class TestOutputPreprocessing:
     def test_decode_base64_to_binary(self):
