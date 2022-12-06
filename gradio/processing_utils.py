@@ -317,16 +317,17 @@ class TempFileManager:
     """
 
     def __init__(self) -> None:
-        self.temp_files = set()
+        # Set stores all the temporary files created by this component.
+        self.temp_files = set() 
 
-    def hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
+    def _hash_file(file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
                 sha1.update(chunk)
         return sha1.digest()
 
-    def get_temp_file_path(self, file_path: str) -> str:
+    def _get_temp_file_path(self, file_path: str) -> str:
         file_name = os.path.basename(file_path)
         prefix, extension = file_name, None
         if "." in file_name:
@@ -335,13 +336,14 @@ class TempFileManager:
         else:
             extension = ""
         prefix = utils.strip_invalid_filename_characters(prefix)
-        file_hash = self.hash_file(file_path)
+        file_hash = self._hash_file(file_path)
         return prefix + file_hash + extension
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
-        """ """
+        """Main method of the class. It returns a temporary file path for the given file 
+        path if it does not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_file_path = self.get_temp_file_path(file_path)
+        temp_file_path = self._get_temp_file_path(file_path)
         f.name = temp_file_path
 
         if not os.path.exists(temp_file_path):
