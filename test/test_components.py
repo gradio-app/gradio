@@ -908,7 +908,7 @@ class TestUploadButton:
         upload_input = gr.UploadButton()
         input = upload_input.preprocess(x_file)
         assert isinstance(input, tempfile._TemporaryFileWrapper)
-        
+
         x_file["is_file"] = True
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)

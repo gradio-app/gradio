@@ -2192,7 +2192,11 @@ class File(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> tempfile._TemporaryFileWrapper | List[tempfile._TemporaryFileWrapper] | bytes | List[bytes]:
+    def preprocess(
+        self, x: List[Dict[str, str]] | None
+    ) -> tempfile._TemporaryFileWrapper | List[
+        tempfile._TemporaryFileWrapper
+    ] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2810,7 +2814,9 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 
 @document("click", "upload", "style")
-class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempFileManager):
+class UploadButton(
+    Clickable, Uploadable, IOComponent, SimpleSerializable, TempFileManager
+):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2873,7 +2879,11 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable, TempF
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> tempfile._TemporaryFileWrapper | List[tempfile._TemporaryFileWrapper] | bytes | List[bytes]:
+    def preprocess(
+        self, x: List[Dict[str, str]] | None
+    ) -> tempfile._TemporaryFileWrapper | List[
+        tempfile._TemporaryFileWrapper
+    ] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
