@@ -591,9 +591,6 @@ class TestImage:
         image_input = gr.Image(invert_colors=True)
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
-        with pytest.warns(Warning):
-            file_image = gr.Image(type="file")
-            file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
@@ -628,7 +625,7 @@ class TestImage:
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
-            gr.Image(shape=(30, 10), type="file"),
+            gr.Image(shape=(30, 10), type="filepath"),
             "image",
         )
         output = iface(img)
@@ -753,7 +750,7 @@ class TestAudio:
         y_audio = gr.processing_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
-        audio_output = gr.Audio(type="file")
+        audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
             "name": "audio",
@@ -1394,8 +1391,8 @@ class TestLabel:
 
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
-        label = label_output.postprocess(path)
-        assert label["label"] == "web site"
+        label_dict = label_output.postprocess(path)
+        assert label_dict["label"] == "web site"
 
         assert label_output.get_config() == {
             "name": "label",
