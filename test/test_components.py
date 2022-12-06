@@ -1,14 +1,20 @@
+"""
+Tests for all of the components defined in components.py. Tests are divided into two types:
+1. test_component_functions() are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
+2. test_in_interface() are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
+"""
+
 import filecmp
 import json
 import os
 import pathlib
 import shutil
 import tempfile
-import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
 from unittest.mock import patch
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -20,15 +26,10 @@ import gradio as gr
 from gradio import media_data, processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
-"""
-Tests are divided into two
-1. test_component_functions are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
-2. test_in_interface_... are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
-"""
+matplotlib.use("Agg")
 
 
-class TestComponent(unittest.TestCase):
+class TestComponent:
     def test_component_functions(self):
         """
         component
@@ -44,75 +45,65 @@ def test_raise_warnings():
             component()
 
 
-class TestTextbox(unittest.TestCase):
+class TestTextbox:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
         """
         text_input = gr.Textbox()
-        self.assertEqual(text_input.preprocess("Hello World!"), "Hello World!")
-        self.assertEqual(text_input.postprocess("Hello World!"), "Hello World!")
-        self.assertEqual(text_input.postprocess(None), None)
-        self.assertEqual(text_input.postprocess("Ali"), "Ali")
-        self.assertEqual(text_input.postprocess(2), "2")
-        self.assertEqual(text_input.postprocess(2.14), "2.14")
-        self.assertEqual(text_input.serialize("Hello World!", True), "Hello World!")
+        assert text_input.preprocess("Hello World!") == "Hello World!"
+        assert text_input.postprocess("Hello World!") == "Hello World!"
+        assert text_input.postprocess(None) is None
+        assert text_input.postprocess("Ali") == "Ali"
+        assert text_input.postprocess(2) == "2"
+        assert text_input.postprocess(2.14) == "2.14"
+        assert text_input.serialize("Hello World!", True) == "Hello World!"
 
-        with self.assertWarns(Warning):
-            _ = gr.Textbox(type="number")
-
-        self.assertEqual(
-            text_input.tokenize("Hello World! Gradio speaking."),
-            (
-                ["Hello", "World!", "Gradio", "speaking."],
-                [
-                    "World! Gradio speaking.",
-                    "Hello Gradio speaking.",
-                    "Hello World! speaking.",
-                    "Hello World! Gradio",
-                ],
-                None,
-            ),
+        assert text_input.tokenize("Hello World! Gradio speaking.") == (
+            ["Hello", "World!", "Gradio", "speaking."],
+            [
+                "World! Gradio speaking.",
+                "Hello Gradio speaking.",
+                "Hello World! speaking.",
+                "Hello World! Gradio",
+            ],
+            None,
         )
         text_input.interpretation_replacement = "unknown"
-        self.assertEqual(
-            text_input.tokenize("Hello World! Gradio speaking."),
-            (
-                ["Hello", "World!", "Gradio", "speaking."],
-                [
-                    "unknown World! Gradio speaking.",
-                    "Hello unknown Gradio speaking.",
-                    "Hello World! unknown speaking.",
-                    "Hello World! Gradio unknown",
-                ],
-                None,
-            ),
+        assert text_input.tokenize("Hello World! Gradio speaking.") == (
+            ["Hello", "World!", "Gradio", "speaking."],
+            [
+                "unknown World! Gradio speaking.",
+                "Hello unknown Gradio speaking.",
+                "Hello World! unknown speaking.",
+                "Hello World! Gradio unknown",
+            ],
+            None,
         )
-        self.assertEqual(
-            text_input.get_config(),
-            {
-                "lines": 1,
-                "max_lines": 20,
-                "placeholder": None,
-                "value": "",
-                "name": "textbox",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        self.assertIsInstance(text_input.generate_sample(), str)
+        assert text_input.get_config() == {
+            "lines": 1,
+            "max_lines": 20,
+            "placeholder": None,
+            "value": "",
+            "name": "textbox",
+            "show_label": True,
+            "type": "text",
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert isinstance(text_input.generate_sample(), str)
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
-        self.assertEqual(await iface(["Hello"]), ["olleH"])
+        assert iface("Hello") == "olleH"
         iface = gr.Interface(
             lambda sentence: max([len(word) for word in sentence.split()]),
             gr.Textbox(),
@@ -121,101 +112,107 @@ class TestTextbox(unittest.TestCase):
         )
         scores = await iface.interpret(
             ["Return the length of the longest word in this sentence"]
-        )[0]["interpretation"]
-        self.assertEqual(
-            scores,
-            [
-                ("Return", 0.0),
-                (" ", 0),
-                ("the", 0.0),
-                (" ", 0),
-                ("length", 0.0),
-                (" ", 0),
-                ("of", 0.0),
-                (" ", 0),
-                ("the", 0.0),
-                (" ", 0),
-                ("longest", 0.0),
-                (" ", 0),
-                ("word", 0.0),
-                (" ", 0),
-                ("in", 0.0),
-                (" ", 0),
-                ("this", 0.0),
-                (" ", 0),
-                ("sentence", 1.0),
-                (" ", 0),
-            ],
         )
+        assert scores[0]["interpretation"] == [
+            ("Return", 0.0),
+            (" ", 0),
+            ("the", 0.0),
+            (" ", 0),
+            ("length", 0.0),
+            (" ", 0),
+            ("of", 0.0),
+            (" ", 0),
+            ("the", 0.0),
+            (" ", 0),
+            ("longest", 0.0),
+            (" ", 0),
+            ("word", 0.0),
+            (" ", 0),
+            ("in", 0.0),
+            (" ", 0),
+            ("this", 0.0),
+            (" ", 0),
+            ("sentence", 1.0),
+            (" ", 0),
+        ]
 
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
 
         """
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.Textbox())
-        self.assertEqual(await iface(["Hello"]), ["o"])
+        assert iface("Hello") == "o"
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
-        self.assertEqual(iface([10]), ["5.0"])
+        assert iface(10) == "5.0"
 
     def test_static(self):
         """
         postprocess
         """
         component = gr.Textbox("abc")
-        self.assertEqual(component.get_config().get("value"), "abc")
+        assert component.get_config().get("value") == "abc"
 
     def test_override_template(self):
         """
         override template
         """
         component = gr.TextArea(value="abc")
-        self.assertEqual(component.get_config().get("value"), "abc")
-        self.assertEqual(component.get_config().get("lines"), 7)
+        assert component.get_config().get("value") == "abc"
+        assert component.get_config().get("lines") == 7
         component = gr.TextArea(value="abc", lines=4)
-        self.assertEqual(component.get_config().get("value"), "abc")
-        self.assertEqual(component.get_config().get("lines"), 4)
+        assert component.get_config().get("value") == "abc"
+        assert component.get_config().get("lines") == 4
+
+    def test_faulty_type(self):
+        with pytest.raises(
+            ValueError, match='`type` must be one of "text", "password", or "email".'
+        ):
+            gr.Textbox(type="boo")
+
+    def test_max_lines(self):
+        assert gr.Textbox(type="password").get_config().get("max_lines") == 1
+        assert gr.Textbox(type="email").get_config().get("max_lines") == 1
+        assert gr.Textbox(type="text").get_config().get("max_lines") == 20
+        assert gr.Textbox().get_config().get("max_lines") == 20
 
 
-class TestNumber(unittest.TestCase):
+class TestNumber:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
         numeric_input = gr.Number()
-        self.assertEqual(numeric_input.preprocess(3), 3.0)
-        self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.postprocess(3), 3)
-        self.assertEqual(numeric_input.postprocess(3), 3.0)
-        self.assertEqual(numeric_input.postprocess(2.14), 2.14)
-        self.assertEqual(numeric_input.postprocess(None), None)
-        self.assertEqual(numeric_input.serialize(3, True), 3)
-        self.assertIsInstance(numeric_input.generate_sample(), float)
+        assert numeric_input.preprocess(3) == 3.0
+        assert numeric_input.preprocess(None) is None
+        assert numeric_input.postprocess(3) == 3
+        assert numeric_input.postprocess(3) == 3.0
+        assert numeric_input.postprocess(2.14) == 2.14
+        assert numeric_input.postprocess(None) is None
+        assert numeric_input.serialize(3, True) == 3
+        assert isinstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        self.assertEqual(
-            numeric_input.get_interpretation_neighbors(1),
-            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {}),
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
+            {},
         )
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        self.assertEqual(
-            numeric_input.get_interpretation_neighbors(1),
-            ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [0.97, 0.98, 0.99, 1.01, 1.02, 1.03],
+            {},
         )
-        self.assertEqual(
-            numeric_input.get_config(),
-            {
-                "value": None,
-                "name": "number",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert numeric_input.get_config() == {
+            "value": None,
+            "name": "number",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     def test_component_functions_integer(self):
         """
@@ -223,47 +220,44 @@ class TestNumber(unittest.TestCase):
 
         """
         numeric_input = gr.Number(precision=0, value=42)
-        self.assertEqual(numeric_input.preprocess(3), 3)
-        self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.postprocess(3), 3)
-        self.assertEqual(numeric_input.postprocess(3), 3)
-        self.assertEqual(numeric_input.postprocess(2.85), 3)
-        self.assertEqual(numeric_input.postprocess(None), None)
-        self.assertEqual(numeric_input.serialize(3, True), 3)
-        self.assertIsInstance(numeric_input.generate_sample(), int)
+        assert numeric_input.preprocess(3) == 3
+        assert numeric_input.preprocess(None) is None
+        assert numeric_input.postprocess(3) == 3
+        assert numeric_input.postprocess(3) == 3
+        assert numeric_input.postprocess(2.85) == 3
+        assert numeric_input.postprocess(None) is None
+        assert numeric_input.serialize(3, True) == 3
+        assert isinstance(numeric_input.generate_sample(), int)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
-        self.assertEqual(
-            numeric_input.get_interpretation_neighbors(1),
-            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {}),
+        assert numeric_input.get_interpretation_neighbors(1) == (
+            [-2.0, -1.0, 0.0, 2.0, 3.0, 4.0],
+            {},
         )
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
-        self.assertEqual(
-            numeric_input.get_interpretation_neighbors(100),
-            ([97.0, 98.0, 99.0, 101.0, 102.0, 103.0], {}),
+        assert numeric_input.get_interpretation_neighbors(100) == (
+            [97.0, 98.0, 99.0, 101.0, 102.0, 103.0],
+            {},
         )
-        with self.assertRaises(ValueError) as error:
+        with pytest.raises(ValueError) as error:
             numeric_input.get_interpretation_neighbors(1)
             assert error.msg == "Cannot generate valid set of neighbors"
         numeric_input.set_interpret_parameters(
             steps=3, delta=1.24, delta_type="absolute"
         )
-        with self.assertRaises(ValueError) as error:
+        with pytest.raises(ValueError) as error:
             numeric_input.get_interpretation_neighbors(4)
             assert error.msg == "Cannot generate valid set of neighbors"
-        self.assertEqual(
-            numeric_input.get_config(),
-            {
-                "value": 42,
-                "name": "number",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert numeric_input.get_config() == {
+            "value": 42,
+            "name": "number",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
     def test_component_functions_precision(self):
         """
@@ -271,157 +265,146 @@ class TestNumber(unittest.TestCase):
 
         """
         numeric_input = gr.Number(precision=2, value=42.3428)
-        self.assertEqual(numeric_input.preprocess(3.231241), 3.23)
-        self.assertEqual(numeric_input.preprocess(None), None)
-        self.assertEqual(numeric_input.postprocess(-42.1241), -42.12)
-        self.assertEqual(numeric_input.postprocess(5.6784), 5.68)
-        self.assertEqual(numeric_input.postprocess(2.1421), 2.14)
-        self.assertEqual(numeric_input.postprocess(None), None)
+        assert numeric_input.preprocess(3.231241) == 3.23
+        assert numeric_input.preprocess(None) is None
+        assert numeric_input.postprocess(-42.1241) == -42.12
+        assert numeric_input.postprocess(5.6784) == 5.68
+        assert numeric_input.postprocess(2.1421) == 2.14
+        assert numeric_input.postprocess(None) is None
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        self.assertEqual(iface([2]), ["4.0"])
+        assert iface(2) == "4.0"
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        self.assertEqual(
-            scores,
-            [
-                (1.94, -0.23640000000000017),
-                (1.96, -0.15840000000000032),
-                (1.98, -0.07960000000000012),
-                [2, None],
-                (2.02, 0.08040000000000003),
-                (2.04, 0.16159999999999997),
-                (2.06, 0.24359999999999982),
-            ],
-        )
+        assert scores == [
+            (1.94, -0.23640000000000017),
+            (1.96, -0.15840000000000032),
+            (1.98, -0.07960000000000012),
+            [2, None],
+            (2.02, 0.08040000000000003),
+            (2.04, 0.16159999999999997),
+            (2.06, 0.24359999999999982),
+        ]
 
+    @pytest.mark.asyncio
     async def test_precision_0_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
-        self.assertEqual(iface([2]), ["4"])
+        assert iface(2) == "4"
         iface = gr.Interface(
             lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
         )
         # Output gets rounded to 4 for all input so no change
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        self.assertEqual(
-            scores,
-            [
-                (1.94, 0.0),
-                (1.96, 0.0),
-                (1.98, 0.0),
-                [2, None],
-                (2.02, 0.0),
-                (2.04, 0.0),
-                (2.06, 0.0),
-            ],
-        )
+        assert scores == [
+            (1.94, 0.0),
+            (1.96, 0.0),
+            (1.98, 0.0),
+            [2, None],
+            (2.02, 0.0),
+            (2.04, 0.0),
+            (2.06, 0.0),
+        ]
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
-        self.assertEqual(iface([2]), [4.0])
+        assert iface(2) == 4.0
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        self.assertEqual(
-            scores,
-            [
-                (1.94, -0.23640000000000017),
-                (1.96, -0.15840000000000032),
-                (1.98, -0.07960000000000012),
-                [2, None],
-                (2.02, 0.08040000000000003),
-                (2.04, 0.16159999999999997),
-                (2.06, 0.24359999999999982),
-            ],
-        )
+        assert scores == [
+            (1.94, -0.23640000000000017),
+            (1.96, -0.15840000000000032),
+            (1.98, -0.07960000000000012),
+            [2, None],
+            (2.02, 0.08040000000000003),
+            (2.04, 0.16159999999999997),
+            (2.06, 0.24359999999999982),
+        ]
 
     def test_static(self):
         """
         postprocess
         """
         component = gr.Number()
-        self.assertEqual(component.get_config().get("value"), None)
+        assert component.get_config().get("value") is None
         component = gr.Number(3)
-        self.assertEqual(component.get_config().get("value"), 3.0)
+        assert component.get_config().get("value") == 3.0
 
 
-class TestSlider(unittest.TestCase):
+class TestSlider:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
         """
         slider_input = gr.Slider()
-        self.assertEqual(slider_input.preprocess(3.0), 3.0)
-        self.assertEqual(slider_input.postprocess(3), 3)
-        self.assertEqual(slider_input.postprocess(3), 3)
-        self.assertEqual(slider_input.postprocess(None), 0)
-        self.assertEqual(slider_input.serialize(3, True), 3)
+        assert slider_input.preprocess(3.0) == 3.0
+        assert slider_input.postprocess(3) == 3
+        assert slider_input.postprocess(3) == 3
+        assert slider_input.postprocess(None) == 0
+        assert slider_input.serialize(3, True) == 3
 
-        self.assertIsInstance(slider_input.generate_sample(), int)
+        assert isinstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
-        self.assertEqual(
-            slider_input.get_config(),
-            {
-                "minimum": 10,
-                "maximum": 20,
-                "step": 1,
-                "value": 15,
-                "name": "slider",
-                "show_label": True,
-                "label": "Slide Your Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert slider_input.get_config() == {
+            "minimum": 10,
+            "maximum": 20,
+            "step": 1,
+            "value": 15,
+            "name": "slider",
+            "show_label": True,
+            "label": "Slide Your Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """ "
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
-        self.assertEqual(iface([2]), ["4"])
+        assert iface(2) == "4"
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
         scores = (await iface.interpret([2]))[0]["interpretation"]
-        self.assertEqual(
-            scores,
-            [
-                -4.0,
-                200.08163265306123,
-                812.3265306122449,
-                1832.7346938775513,
-                3261.3061224489797,
-                5098.040816326531,
-                7342.938775510205,
-                9996.0,
-            ],
-        )
+        assert scores == [
+            -4.0,
+            200.08163265306123,
+            812.3265306122449,
+            1832.7346938775513,
+            3261.3061224489797,
+            5098.040816326531,
+            7342.938775510205,
+            9996.0,
+        ]
 
     def test_static(self):
         """
         postprocess
         """
         component = gr.Slider(0, 100, 5)
-        self.assertEqual(component.get_config().get("value"), 5)
+        assert component.get_config().get("value") == 5
         component = gr.Slider(0, 100, None)
-        self.assertEqual(component.get_config().get("value"), 0)
+        assert component.get_config().get("value") == 0
 
     @patch("gradio.Slider.get_random_value", return_value=7)
     def test_slider_get_random_value_on_load(self, mock_get_random_value):
@@ -439,143 +422,135 @@ class TestSlider(unittest.TestCase):
         mock_randint.assert_called()
 
 
-class TestCheckbox(unittest.TestCase):
+class TestCheckbox:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
         """
         bool_input = gr.Checkbox()
-        self.assertEqual(bool_input.preprocess(True), True)
-        self.assertEqual(bool_input.postprocess(True), True)
-        self.assertEqual(bool_input.postprocess(True), True)
-        self.assertEqual(bool_input.serialize(True, True), True)
-        self.assertIsInstance(bool_input.generate_sample(), bool)
+        assert bool_input.preprocess(True)
+        assert bool_input.postprocess(True)
+        assert bool_input.postprocess(True)
+        assert bool_input.serialize(True, True)
+        assert isinstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(value=True, label="Check Your Input")
-        self.assertEqual(
-            bool_input.get_config(),
-            {
-                "value": True,
-                "name": "checkbox",
-                "show_label": True,
-                "label": "Check Your Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert bool_input.get_config() == {
+            "value": True,
+            "name": "checkbox",
+            "show_label": True,
+            "label": "Check Your Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
-        self.assertEqual(iface([True]), [1])
+        assert iface(True) == 1
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
         scores = (await iface.interpret([False]))[0]["interpretation"]
-        self.assertEqual(scores, (None, 1.0))
+        assert scores == (None, 1.0)
         scores = (await iface.interpret([True]))[0]["interpretation"]
-        self.assertEqual(scores, (-1.0, None))
+        assert scores == (-1.0, None)
 
 
-class TestCheckboxGroup(unittest.TestCase):
+class TestCheckboxGroup:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
-        self.assertEqual(checkboxes_input.preprocess(["a", "c"]), ["a", "c"])
-        self.assertEqual(checkboxes_input.postprocess(["a", "c"]), ["a", "c"])
-        self.assertEqual(checkboxes_input.serialize(["a", "c"], True), ["a", "c"])
-        self.assertIsInstance(checkboxes_input.generate_sample(), list)
+        assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
+        assert checkboxes_input.postprocess(["a", "c"]) == ["a", "c"]
+        assert checkboxes_input.serialize(["a", "c"], True) == ["a", "c"]
+        assert isinstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.CheckboxGroup(
             value=["a", "c"],
             choices=["a", "b", "c"],
             label="Check Your Inputs",
         )
-        self.assertEqual(
-            checkboxes_input.get_config(),
-            {
-                "choices": ["a", "b", "c"],
-                "value": ["a", "c"],
-                "name": "checkboxgroup",
-                "show_label": True,
-                "label": "Check Your Inputs",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        with self.assertRaises(ValueError):
-            wrong_type = gr.CheckboxGroup(["a"], type="unknown")
-            wrong_type.preprocess(0)
+        assert checkboxes_input.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": ["a", "c"],
+            "name": "checkboxgroup",
+            "show_label": True,
+            "label": "Check Your Inputs",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
+        with pytest.raises(ValueError):
+            gr.CheckboxGroup(["a"], type="unknown")
 
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
-        self.assertEqual(await iface([["a", "c"]]), ["a|c"])
-        self.assertEqual(await iface([[]]), [""])
+        assert iface(["a", "c"]) == "a|c"
+        assert iface([]) == ""
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
 
-class TestRadio(unittest.TestCase):
+class TestRadio:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config
 
         """
         radio_input = gr.Radio(["a", "b", "c"])
-        self.assertEqual(radio_input.preprocess("c"), "c")
-        self.assertEqual(radio_input.postprocess("a"), "a")
-        self.assertEqual(radio_input.serialize("a", True), "a")
-        self.assertIsInstance(radio_input.generate_sample(), str)
+        assert radio_input.preprocess("c") == "c"
+        assert radio_input.postprocess("a") == "a"
+        assert radio_input.serialize("a", True) == "a"
+        assert isinstance(radio_input.generate_sample(), str)
         radio_input = gr.Radio(
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
-        self.assertEqual(
-            radio_input.get_config(),
-            {
-                "choices": ["a", "b", "c"],
-                "value": None,
-                "name": "radio",
-                "show_label": True,
-                "label": "Pick Your One Input",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        with self.assertRaises(ValueError):
-            wrong_type = gr.Radio(["a", "b"], type="unknown")
-            wrong_type.preprocess(0)
+        assert radio_input.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": None,
+            "name": "radio",
+            "show_label": True,
+            "label": "Pick Your One Input",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+        }
+        with pytest.raises(ValueError):
+            gr.Radio(["a", "b"], type="unknown")
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process, interpret
         """
         radio_input = gr.Radio(["a", "b", "c"])
         iface = gr.Interface(lambda x: 2 * x, radio_input, "textbox")
-        self.assertEqual(iface(["c"]), ["cc"])
+        assert iface("c") == "cc"
         radio_input = gr.Radio(["a", "b", "c"], type="index")
         iface = gr.Interface(
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
-        self.assertEqual(iface(["c"]), [4])
+        assert iface("c") == 4
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
-        self.assertEqual(scores, [-2.0, None, 2.0])
+        assert scores == [-2.0, None, 2.0]
 
 
-class TestImage(unittest.TestCase):
+class TestImage:
+    @pytest.mark.asyncio
     async def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
@@ -583,124 +558,86 @@ class TestImage(unittest.TestCase):
         """
         img = deepcopy(media_data.BASE64_IMAGE)
         image_input = gr.Image()
-        self.assertEqual(image_input.preprocess(img).shape, (68, 61, 3))
+        assert image_input.preprocess(img).shape == (68, 61, 3)
         image_input = gr.Image(shape=(25, 25), image_mode="L")
-        self.assertEqual(image_input.preprocess(img).shape, (25, 25))
+        assert image_input.preprocess(img).shape == (25, 25)
         image_input = gr.Image(shape=(30, 10), type="pil")
-        self.assertEqual(image_input.preprocess(img).size, (30, 10))
-        self.assertEqual(image_input.postprocess("test/test_files/bus.png"), img)
-        self.assertEqual(image_input.serialize("test/test_files/bus.png", True), img)
+        assert image_input.preprocess(img).size == (30, 10)
+        assert image_input.postprocess("test/test_files/bus.png") == img
+        assert image_input.serialize("test/test_files/bus.png") == img
 
-        self.assertIsInstance(image_input.generate_sample(), str)
+        assert isinstance(image_input.generate_sample(), str)
         image_input = gr.Image(
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
-        self.assertEqual(
-            image_input.get_config(),
-            {
-                "image_mode": "RGB",
-                "shape": None,
-                "source": "upload",
-                "tool": "editor",
-                "name": "image",
-                "streaming": False,
-                "show_label": True,
-                "label": "Upload Your Image",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-                "mirror_webcam": True,
-            },
-        )
-        self.assertIsNone(image_input.preprocess(None))
+        assert image_input.get_config() == {
+            "image_mode": "RGB",
+            "shape": None,
+            "source": "upload",
+            "tool": "editor",
+            "name": "image",
+            "streaming": False,
+            "show_label": True,
+            "label": "Upload Your Image",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+            "mirror_webcam": True,
+        }
+        assert image_input.preprocess(None) is None
         image_input = gr.Image(invert_colors=True)
-        self.assertIsNotNone(image_input.preprocess(img))
+        assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
-        with self.assertWarns(Warning):
+        with pytest.warns(Warning):
             file_image = gr.Image(type="file")
             file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
-        self.assertIsInstance(file_image.preprocess(img), str)
-        with self.assertRaises(ValueError):
-            wrong_type = gr.Image(type="unknown")
-            wrong_type.preprocess(img)
-        with self.assertRaises(ValueError):
-            wrong_type = gr.Image(type="unknown")
-            wrong_type.serialize("test/test_files/bus.png", False)
-        img_pil = PIL.Image.open("test/test_files/bus.png")
-        image_input = gr.Image(type="numpy")
-        self.assertIsInstance(image_input.serialize(img_pil, False), str)
-        image_input = gr.Image(type="pil")
-        self.assertIsInstance(image_input.serialize(img_pil, False), str)
-        image_input = gr.Image(type="file")
-        with open("test/test_files/bus.png") as f:
-            self.assertEqual(image_input.serialize(f, False), img)
+        assert isinstance(file_image.preprocess(img), str)
+        with pytest.raises(ValueError):
+            gr.Image(type="unknown")
         image_input.shape = (30, 10)
-        self.assertIsNotNone(image_input._segment_by_slic(img))
+        assert image_input._segment_by_slic(img) is not None
 
         # Output functionalities
         y_img = gr.processing_utils.decode_base64_to_image(
             deepcopy(media_data.BASE64_IMAGE)
         )
         image_output = gr.Image()
-        self.assertTrue(
-            image_output.postprocess(y_img).startswith(
-                "data:image/png;base64,iVBORw0KGgoAAA"
-            )
+        assert image_output.postprocess(y_img).startswith(
+            "data:image/png;base64,iVBORw0KGgoAAA"
         )
-        self.assertTrue(
-            image_output.postprocess(np.array(y_img)).startswith(
-                "data:image/png;base64,iVBORw0KGgoAAA"
-            )
+        assert image_output.postprocess(np.array(y_img)).startswith(
+            "data:image/png;base64,iVBORw0KGgoAAA"
         )
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             image_output.postprocess([1, 2, 3])
         image_output = gr.Image(type="numpy")
-        self.assertTrue(
-            image_output.postprocess(y_img).startswith("data:image/png;base64,")
-        )
+        assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         type: file
         interpretation: default, shap,
         """
-        img = deepcopy(media_data.BASE64_IMAGE)
+        img = "test/test_files/bus.png"
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
             gr.Image(shape=(30, 10), type="file"),
             "image",
         )
-        output = (await iface([img]))[0]
-        self.assertEqual(
-            gr.processing_utils.decode_base64_to_image(output).size, (10, 30)
-        )
+        output = iface(img)
+        assert PIL.Image.open(output).size == (10, 30)
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
-        scores = (await iface.interpret([img]))[0]["interpretation"]
-        self.assertEqual(
-            scores, deepcopy(media_data.SUM_PIXELS_INTERPRETATION)["scores"][0]
-        )
-        iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "label", interpretation="shap"
-        )
-        scores = (await iface.interpret([img]))[0]["interpretation"]
-        self.assertEqual(
-            len(scores[0]),
-            len(deepcopy(media_data.SUM_PIXELS_SHAP_INTERPRETATION)["scores"][0][0]),
-        )
-        image_input = gr.Image(shape=(30, 10))
-        iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "number", interpretation="default"
-        )
-        self.assertIsNotNone(await iface.interpret([img]))
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -710,19 +647,20 @@ class TestImage(unittest.TestCase):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue((await iface([10, 20]))[0].startswith("data:image/png;base64"))
+        assert iface(10, 20).endswith(".png")
 
     def test_static(self):
         """
         postprocess
         """
         component = gr.Image("test/test_files/bus.png")
-        self.assertEqual(component.get_config().get("value"), media_data.BASE64_IMAGE)
+        assert component.get_config().get("value") == media_data.BASE64_IMAGE
         component = gr.Image(None)
-        self.assertEqual(component.get_config().get("value"), None)
+        assert component.get_config().get("value") is None
 
 
-class TestPlot(unittest.TestCase):
+class TestPlot:
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -734,9 +672,9 @@ class TestPlot(unittest.TestCase):
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = (await iface([10]))[0]
-        self.assertEqual(output["type"], "matplotlib")
-        self.assertTrue(output["plot"].startswith("data:image/png;base64"))
+        output = await iface.process_api(fn_index=0, inputs=[10])
+        assert output["data"][0]["type"] == "matplotlib"
+        assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
     def test_static(self):
         """
@@ -746,12 +684,30 @@ class TestPlot(unittest.TestCase):
         plt.plot([1, 2, 3], [1, 2, 3])
 
         component = gr.Plot(fig)
-        self.assertNotEqual(component.get_config().get("value"), None)
+        assert component.get_config().get("value") is not None
         component = gr.Plot(None)
-        self.assertEqual(component.get_config().get("value"), None)
+        assert component.get_config().get("value") is None
+
+    def test_postprocess_altair(self):
+        import altair as alt
+        from vega_datasets import data
+
+        cars = data.cars()
+        chart = (
+            alt.Chart(cars)
+            .mark_point()
+            .encode(
+                x="Horsepower",
+                y="Miles_per_Gallon",
+                color="Origin",
+            )
+        )
+        out = gr.Plot().postprocess(chart)
+        assert isinstance(out["plot"], str)
+        assert out["plot"] == chart.to_json()
 
 
-class TestAudio(unittest.TestCase):
+class TestAudio:
     def test_component_functions(self):
         """
         Preprocess, postprocess serialize, generate_sample, get_config, deserialize
@@ -760,42 +716,37 @@ class TestAudio(unittest.TestCase):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
         output = audio_input.preprocess(x_wav)
-        self.assertEqual(output[0], 8000)
-        self.assertEqual(output[1].shape, (8046,))
+        assert output[0] == 8000
+        assert output[1].shape == (8046,)
         assert filecmp.cmp(
             "test/test_files/audio_sample.wav",
             audio_input.serialize("test/test_files/audio_sample.wav")["name"],
         )
 
-        self.assertIsInstance(audio_input.generate_sample(), dict)
+        assert isinstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
-        self.assertEqual(
-            audio_input.get_config(),
-            {
-                "source": "upload",
-                "name": "audio",
-                "streaming": False,
-                "show_label": True,
-                "label": "Upload Your Audio",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        self.assertIsNone(audio_input.preprocess(None))
+        assert audio_input.get_config() == {
+            "source": "upload",
+            "name": "audio",
+            "streaming": False,
+            "show_label": True,
+            "label": "Upload Your Audio",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert audio_input.preprocess(None) is None
         x_wav["is_example"] = True
         x_wav["crop_min"], x_wav["crop_max"] = 1, 4
-        self.assertIsNotNone(audio_input.preprocess(x_wav))
+        assert audio_input.preprocess(x_wav) is not None
 
         audio_input = gr.Audio(type="filepath")
-        self.assertIsInstance(audio_input.preprocess(x_wav), str)
-        with self.assertRaises(ValueError):
-            audio_input = gr.Audio(type="unknown")
-            audio_input.preprocess(x_wav)
-            audio_input.serialize(x_wav)
+        assert isinstance(audio_input.preprocess(x_wav), str)
+        with pytest.raises(ValueError):
+            gr.Audio(type="unknown")
         audio_input = gr.Audio(type="numpy")
 
         # Output functionalities
@@ -803,34 +754,27 @@ class TestAudio(unittest.TestCase):
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
         audio_output = gr.Audio(type="file")
-        self.assertTrue(
-            filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
-        )
-        self.assertEqual(
-            audio_output.get_config(),
+        assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
+        assert audio_output.get_config() == {
+            "name": "audio",
+            "streaming": False,
+            "show_label": True,
+            "label": None,
+            "source": "upload",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert audio_output.deserialize(
             {
-                "name": "audio",
-                "streaming": False,
-                "show_label": True,
-                "label": None,
-                "source": "upload",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        self.assertTrue(
-            audio_output.deserialize(
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_AUDIO)["data"],
-                    "is_file": False,
-                }
-            ).endswith(".wav")
-        )
+                "name": None,
+                "data": deepcopy(media_data.BASE64_AUDIO)["data"],
+                "is_file": False,
+            }
+        ).endswith(".wav")
 
     def test_tokenize(self):
         """
@@ -839,32 +783,29 @@ class TestAudio(unittest.TestCase):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
-        self.assertEqual(len(tokens), audio_input.interpretation_segments)
+        assert len(tokens) == audio_input.interpretation_segments
         x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
-        self.assertGreater(similarity, 0.9)
+        assert similarity > 0.9
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
             return (sr, np.flipud(data))
 
         iface = gr.Interface(reverse_audio, "audio", "audio")
-        reversed_data = (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0]
-        reversed_input = {"name": "fake_name", "data": reversed_data}
-        self.assertTrue(reversed_data.startswith("data:audio/wav;base64,UklGRgA/"))
-        self.assertTrue(
-            (await iface([deepcopy(media_data.BASE64_AUDIO)]))[0].startswith(
-                "data:audio/wav;base64,UklGRgA/"
-            )
+        reversed_file = iface("test/test_files/audio_sample.wav")
+        reversed_reversed_file = iface(reversed_file)
+        reversed_reversed_data = gr.processing_utils.encode_url_or_file_to_base64(
+            reversed_reversed_file
         )
-        self.maxDiff = None
-        reversed_reversed_data = (await iface([reversed_input]))[0]
         similarity = SequenceMatcher(
             a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
         ).ratio()
-        self.assertGreater(similarity, 0.99)
+        assert similarity > 0.99
 
+    @pytest.mark.asyncio
     async def test_in_interface_as_output(self):
         """
         Interface, process
@@ -874,7 +815,7 @@ class TestAudio(unittest.TestCase):
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        self.assertTrue((await iface([100]))[0].startswith("data:audio/wav;base64"))
+        assert iface(100).endswith(".wav")
 
     def test_audio_preprocess_can_be_read_by_scipy(self):
         x_wav = deepcopy(media_data.BASE64_MICROPHONE)
@@ -883,7 +824,7 @@ class TestAudio(unittest.TestCase):
         wavfile.read(output)
 
 
-class TestFile(unittest.TestCase):
+class TestFile:
     def test_component_functions(self):
         """
         Preprocess, serialize, generate_sample, get_config, value
@@ -891,7 +832,7 @@ class TestFile(unittest.TestCase):
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
         output = file_input.preprocess(x_file)
-        self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
+        assert isinstance(output, tempfile._TemporaryFileWrapper)
         serialized = file_input.serialize("test/test_files/sample_file.pdf")
         assert filecmp.cmp(
             serialized["name"],
@@ -900,40 +841,42 @@ class TestFile(unittest.TestCase):
         assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
-        self.assertIsInstance(file_input.generate_sample(), dict)
+        assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
-        self.assertEqual(
-            file_input.get_config(),
-            {
-                "file_count": "single",
-                "name": "file",
-                "show_label": True,
-                "label": "Upload Your File",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        self.assertIsNone(file_input.preprocess(None))
+        assert file_input.get_config() == {
+            "file_count": "single",
+            "file_types": None,
+            "name": "file",
+            "show_label": True,
+            "label": "Upload Your File",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert file_input.preprocess(None) is None
         x_file["is_example"] = True
-        self.assertIsNotNone(file_input.preprocess(x_file))
+        assert file_input.preprocess(x_file) is not None
 
-    async def test_in_interface_as_input(self):
+        file_input = gr.File(type="binary")
+        output = file_input.preprocess(x_file)
+        assert type(output) == bytes
+
+    def test_in_interface_as_input(self):
         """
         Interface, process
         """
-        x_file = deepcopy(media_data.BASE64_FILE)
+        x_file = media_data.BASE64_FILE["name"]
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
 
         iface = gr.Interface(get_size_of_file, "file", "number")
-        self.assertEqual(await iface([[x_file]]), [10558])
+        assert iface(x_file) == 10558
 
-    async def test_as_component_as_output(self):
+    def test_as_component_as_output(self):
         """
         Interface, process
         """
@@ -944,17 +887,10 @@ class TestFile(unittest.TestCase):
             return "test.txt"
 
         iface = gr.Interface(write_file, "text", "file")
-        self.assertDictEqual(
-            (await iface(["hello world"]))[0],
-            {
-                "name": "test.txt",
-                "size": 11,
-                "data": "data:text/plain;base64,aGVsbG8gd29ybGQ=",
-            },
-        )
+        assert iface("hello world").endswith(".txt")
 
 
-class TestDataframe(unittest.TestCase):
+class TestDataframe:
     def test_component_functions(self):
         """
         Preprocess, serialize, generate_sample, get_config
@@ -965,76 +901,69 @@ class TestDataframe(unittest.TestCase):
         }
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output["Age"][1], 24)
-        self.assertEqual(output["Member"][0], False)
-        self.assertEqual(dataframe_input.postprocess(x_data), x_data)
+        assert output["Age"][1] == 24
+        assert not output["Member"][0]
+        assert dataframe_input.postprocess(x_data) == x_data
 
-        self.assertIsInstance(dataframe_input.generate_sample(), list)
+        assert isinstance(dataframe_input.generate_sample(), list)
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
-        self.assertEqual(
-            dataframe_input.get_config(),
-            {
+        assert dataframe_input.get_config() == {
+            "headers": ["Name", "Age", "Member"],
+            "datatype": ["str", "str", "str"],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "value": {
+                "data": [
+                    ["", "", ""],
+                ],
                 "headers": ["Name", "Age", "Member"],
-                "datatype": ["str", "str", "str"],
-                "row_count": (1, "dynamic"),
-                "col_count": (3, "dynamic"),
-                "value": {
-                    "data": [
-                        ["", "", ""],
-                    ],
-                    "headers": ["Name", "Age", "Member"],
-                },
-                "name": "dataframe",
-                "show_label": True,
-                "label": "Dataframe Input",
-                "max_rows": 20,
-                "max_cols": None,
-                "overflow_row_behaviour": "paginate",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-                "wrap": False,
             },
-        )
+            "name": "dataframe",
+            "show_label": True,
+            "label": "Dataframe Input",
+            "max_rows": 20,
+            "max_cols": None,
+            "overflow_row_behaviour": "paginate",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "wrap": False,
+        }
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(x_data)
-        self.assertEqual(output["Age"][1], 24)
-        with self.assertRaises(ValueError):
-            wrong_type = gr.Dataframe(type="unknown")
-            wrong_type.preprocess(x_data)
+        assert output["Age"][1] == 24
+        with pytest.raises(ValueError):
+            gr.Dataframe(type="unknown")
 
         dataframe_output = gr.Dataframe()
-        self.assertEqual(
-            dataframe_output.get_config(),
-            {
+        assert dataframe_output.get_config() == {
+            "headers": [1, 2, 3],
+            "max_rows": 20,
+            "max_cols": None,
+            "overflow_row_behaviour": "paginate",
+            "name": "dataframe",
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "datatype": ["str", "str", "str"],
+            "row_count": (1, "dynamic"),
+            "col_count": (3, "dynamic"),
+            "value": {
+                "data": [
+                    ["", "", ""],
+                ],
                 "headers": [1, 2, 3],
-                "max_rows": 20,
-                "max_cols": None,
-                "overflow_row_behaviour": "paginate",
-                "name": "dataframe",
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "datatype": ["str", "str", "str"],
-                "row_count": (1, "dynamic"),
-                "col_count": (3, "dynamic"),
-                "value": {
-                    "data": [
-                        ["", "", ""],
-                    ],
-                    "headers": [1, 2, 3],
-                },
-                "interactive": None,
-                "root_url": None,
-                "wrap": False,
             },
-        )
+            "interactive": None,
+            "root_url": None,
+            "wrap": False,
+        }
 
     def test_postprocess(self):
         """
@@ -1042,71 +971,32 @@ class TestDataframe(unittest.TestCase):
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess(np.zeros((2, 2)))
-        self.assertDictEqual(output, {"data": [[0, 0], [0, 0]], "headers": [1, 2]})
+        assert output == {"data": [[0, 0], [0, 0]], "headers": [1, 2]}
         output = dataframe_output.postprocess([[1, 3, 5]])
-        self.assertDictEqual(output, {"data": [[1, 3, 5]], "headers": [1, 2, 3]})
+        assert output == {"data": [[1, 3, 5]], "headers": [1, 2, 3]}
         output = dataframe_output.postprocess(
             pd.DataFrame([[2, True], [3, True], [4, False]], columns=["num", "prime"])
         )
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]],
-            },
-        )
-        with self.assertRaises(ValueError):
-            wrong_type = gr.Dataframe(type="unknown")
-            wrong_type.postprocess(0)
+        assert output == {
+            "headers": ["num", "prime"],
+            "data": [[2, True], [3, True], [4, False]],
+        }
+        with pytest.raises(ValueError):
+            gr.Dataframe(type="unknown")
 
         # When the headers don't match the data
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True], [3, True]])
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["one", "two"],
-                "data": [[2, True], [3, True]],
-            },
-        )
+        assert output == {
+            "headers": ["one", "two"],
+            "data": [[2, True], [3, True]],
+        }
         dataframe_output = gr.Dataframe(headers=["one", "two", "three"])
         output = dataframe_output.postprocess([[2, True, "ab", 4], [3, True, "cd", 5]])
-        self.assertDictEqual(
-            output,
-            {
-                "headers": ["one", "two", "three", 4],
-                "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
-            },
-        )
-
-    async def test_in_interface_as_input(self):
-        """
-        Interface, process,
-        """
-        x_data = {"data": [[1, 2, 3], [4, 5, 6]]}
-        iface = gr.Interface(np.max, "numpy", "number")
-        self.assertEqual(await iface([x_data]), [6])
-        x_data = {"data": [["Tim"], ["Jon"], ["Sal"]], "headers": [1, 2, 3]}
-
-        def get_last(my_list):
-            return my_list[-1][-1]
-
-        iface = gr.Interface(get_last, "list", "text")
-        self.assertEqual(await iface([x_data]), ["Sal"])
-
-    async def test_in_interface_as_output(self):
-        """
-        Interface, process
-        """
-
-        def check_odd(array):
-            return array % 2 == 0
-
-        iface = gr.Interface(check_odd, "numpy", "numpy")
-        self.assertEqual(
-            (await iface([{"data": [[2, 3, 4]]}]))[0],
-            {"data": [[True, False, True]], "headers": [1, 2, 3]},
-        )
+        assert output == {
+            "headers": ["one", "two", "three", 4],
+            "data": [[2, True, "ab", 4], [3, True, "cd", 5]],
+        }
 
     def test_dataframe_postprocess_all_types(self):
         df = pd.DataFrame(
@@ -1174,7 +1064,7 @@ class TestDataframe(unittest.TestCase):
 class TestDataset:
     def test_preprocessing(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = pathlib.Path(test_file_dir, "bus.png")
+        bus = str(pathlib.Path(test_file_dir, "bus.png").resolve())
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
@@ -1227,7 +1117,7 @@ class TestDataset:
         }
 
 
-class TestVideo(unittest.TestCase):
+class TestVideo:
     def test_component_functions(self):
         """
         Preprocess, serialize, deserialize, generate_sample, get_config
@@ -1235,32 +1125,29 @@ class TestVideo(unittest.TestCase):
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
         output = video_input.preprocess(x_video)
-        self.assertIsInstance(output, str)
+        assert isinstance(output, str)
 
-        self.assertIsInstance(video_input.generate_sample(), dict)
+        assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
-        self.assertEqual(
-            video_input.get_config(),
-            {
-                "source": "upload",
-                "name": "video",
-                "show_label": True,
-                "label": "Upload Your Video",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-                "mirror_webcam": True,
-            },
-        )
-        self.assertIsNone(video_input.preprocess(None))
+        assert video_input.get_config() == {
+            "source": "upload",
+            "name": "video",
+            "show_label": True,
+            "label": "Upload Your Video",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+            "mirror_webcam": True,
+        }
+        assert video_input.preprocess(None) is None
         x_video["is_example"] = True
-        self.assertIsNotNone(video_input.preprocess(x_video))
+        assert video_input.preprocess(x_video) is not None
         video_input = gr.Video(format="avi")
         output_video = video_input.preprocess(x_video)
-        self.assertEqual(output_video[-3:], "avi")
+        assert output_video[-3:] == "avi"
         assert "flip" not in output_video
 
         assert filecmp.cmp(
@@ -1270,24 +1157,23 @@ class TestVideo(unittest.TestCase):
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
-        self.assertTrue(video_output.postprocess(y_vid_path)["name"].endswith("mp4"))
-        self.assertTrue(
-            video_output.deserialize(
-                {
-                    "name": None,
-                    "data": deepcopy(media_data.BASE64_VIDEO)["data"],
-                    "is_file": False,
-                }
-            ).endswith(".mp4")
-        )
+        assert video_output.postprocess(y_vid_path)["name"].endswith("mp4")
+        assert video_output.deserialize(
+            {
+                "name": None,
+                "data": deepcopy(media_data.BASE64_VIDEO)["data"],
+                "is_file": False,
+            }
+        ).endswith(".mp4")
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
         """
-        x_video = deepcopy(media_data.BASE64_VIDEO)
+        x_video = media_data.BASE64_VIDEO["name"]
         iface = gr.Interface(lambda x: x, "video", "playable_video")
-        self.assertEqual((await iface([x_video]))[0]["data"], x_video["data"])
+        assert iface(x_video).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -1358,7 +1244,7 @@ class TestVideo(unittest.TestCase):
         assert ".avi" in output_file
 
 
-class TestTimeseries(unittest.TestCase):
+class TestTimeseries:
     def test_component_functions(self):
         """
         Preprocess, postprocess,  generate_sample, get_config,
@@ -1369,140 +1255,72 @@ class TestTimeseries(unittest.TestCase):
             "headers": [timeseries_input.x] + timeseries_input.y,
         }
         output = timeseries_input.preprocess(x_timeseries)
-        self.assertIsInstance(output, pd.core.frame.DataFrame)
+        assert isinstance(output, pd.core.frame.DataFrame)
 
-        self.assertIsInstance(timeseries_input.generate_sample(), dict)
+        assert isinstance(timeseries_input.generate_sample(), dict)
         timeseries_input = gr.Timeseries(
             x="time", y="retail", label="Upload Your Timeseries"
         )
-        self.assertEqual(
-            timeseries_input.get_config(),
-            {
-                "x": "time",
-                "y": ["retail"],
-                "name": "timeseries",
-                "show_label": True,
-                "label": "Upload Your Timeseries",
-                "colors": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
-        self.assertIsNone(timeseries_input.preprocess(None))
+        assert timeseries_input.get_config() == {
+            "x": "time",
+            "y": ["retail"],
+            "name": "timeseries",
+            "show_label": True,
+            "label": "Upload Your Timeseries",
+            "colors": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
+        assert timeseries_input.preprocess(None) is None
         x_timeseries["range"] = (0, 1)
-        self.assertIsNotNone(timeseries_input.preprocess(x_timeseries))
+        assert timeseries_input.preprocess(x_timeseries) is not None
 
         # Output functionalities
 
         timeseries_output = gr.Timeseries(label="Disease")
 
-        self.assertEqual(
-            timeseries_output.get_config(),
-            {
-                "x": None,
-                "y": None,
-                "name": "timeseries",
-                "show_label": True,
-                "label": "Disease",
-                "colors": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert timeseries_output.get_config() == {
+            "x": None,
+            "y": None,
+            "name": "timeseries",
+            "show_label": True,
+            "label": "Disease",
+            "colors": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
-        self.assertEqual(
-            timeseries_output.postprocess(df),
-            {
-                "headers": ["Name", "Age"],
-                "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-            },
-        )
+        assert timeseries_output.postprocess(df) == {
+            "headers": ["Name", "Age"],
+            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
+        }
 
         timeseries_output = gr.Timeseries(y="Age", label="Disease")
         output = timeseries_output.postprocess(df)
-        self.assertEqual(
-            output,
-            {
-                "headers": ["Name", "Age"],
-                "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
-            },
-        )
-
-    async def test_in_interface_as_input(self):
-        """
-        Interface, process
-        """
-        timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        x_timeseries = {
-            "data": [[1] + [2] * len(timeseries_input.y)] * 4,
-            "headers": [timeseries_input.x] + timeseries_input.y,
+        assert output == {
+            "headers": ["Name", "Age"],
+            "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
         }
-        iface = gr.Interface(lambda x: x, timeseries_input, "dataframe")
-        self.assertEqual(
-            await iface([x_timeseries]),
-            [
-                {
-                    "headers": ["time", "retail", "food", "other"],
-                    "data": [
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                        [1, 2, 2, 2],
-                    ],
-                }
-            ],
-        )
-
-    async def test_in_interface_as_output(self):
-        """
-        Interface, process
-        """
-        timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
-        iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
-        df = {
-            "data": pd.DataFrame(
-                {
-                    "time": [1, 2, 3, 4],
-                    "retail": [1, 2, 3, 2],
-                    "food": [1, 2, 3, 2],
-                    "other": [1, 2, 4, 2],
-                }
-            )
-        }
-        self.assertEqual(
-            await iface([df]),
-            [
-                {
-                    "headers": ["time", "retail", "food", "other"],
-                    "data": [
-                        [1, 1, 1, 1],
-                        [2, 2, 2, 2],
-                        [3, 3, 3, 4],
-                        [4, 2, 2, 2],
-                    ],
-                }
-            ],
-        )
 
 
-class TestNames(unittest.TestCase):
+class TestNames:
     # This test ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self):
         subclasses = gr.components.Component.__subclasses__()
         unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
+        assert len(subclasses) == len(unique_subclasses_uncased)
 
 
-class TestLabel(unittest.TestCase):
+class TestLabel:
     def test_component_functions(self):
         """
         Process, postprocess, deserialize
@@ -1510,64 +1328,79 @@ class TestLabel(unittest.TestCase):
         y = "happy"
         label_output = gr.Label()
         label = label_output.postprocess(y)
-        self.assertDictEqual(label, {"label": "happy"})
-        self.assertEqual(json.load(open(label_output.deserialize(label))), label)
+        assert label == {"label": "happy"}
+        assert json.load(open(label_output.deserialize(label))) == label
 
         y = {3: 0.7, 1: 0.2, 0: 0.1}
         label = label_output.postprocess(y)
-        self.assertDictEqual(
-            label,
-            {
-                "label": 3,
-                "confidences": [
-                    {"label": 3, "confidence": 0.7},
-                    {"label": 1, "confidence": 0.2},
-                    {"label": 0, "confidence": 0.1},
-                ],
-            },
-        )
+        assert label == {
+            "label": 3,
+            "confidences": [
+                {"label": 3, "confidence": 0.7},
+                {"label": 1, "confidence": 0.2},
+                {"label": 0, "confidence": 0.1},
+            ],
+        }
         label_output = gr.Label(num_top_classes=2)
         label = label_output.postprocess(y)
 
-        self.assertDictEqual(
-            label,
-            {
-                "label": 3,
-                "confidences": [
-                    {"label": 3, "confidence": 0.7},
-                    {"label": 1, "confidence": 0.2},
-                ],
-            },
-        )
-        with self.assertRaises(ValueError):
+        assert label == {
+            "label": 3,
+            "confidences": [
+                {"label": 3, "confidence": 0.7},
+                {"label": 1, "confidence": 0.2},
+            ],
+        }
+        with pytest.raises(ValueError):
             label_output.postprocess([1, 2, 3])
 
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
         label = label_output.postprocess(path)
-        self.assertEqual(label["label"], "web site")
+        assert label["label"] == "web site"
 
-        self.assertEqual(
-            label_output.get_config(),
-            {
-                "name": "label",
-                "show_label": True,
-                "num_top_classes": 2,
-                "value": None,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-            },
+        assert label_output.get_config() == {
+            "name": "label",
+            "show_label": True,
+            "num_top_classes": 2,
+            "value": None,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "color": None,
+        }
+
+    def test_color_argument(self):
+
+        label = gr.Label(value=-10, color="red")
+        assert label.get_config()["color"] == "red"
+        update_1 = gr.Label.update(value="bad", color="brown")
+        assert update_1["color"] == "brown"
+        update_2 = gr.Label.update(value="bad", color="#ff9966")
+        assert update_2["color"] == "#ff9966"
+
+        update_3 = gr.Label.update(
+            value={"bad": 0.9, "good": 0.09, "so-so": 0.01}, color="green"
         )
+        assert update_3["color"] == "green"
 
+        update_4 = gr.Label.update(value={"bad": 0.8, "good": 0.18, "so-so": 0.02})
+        assert update_4["color"] is None
+
+        update_5 = gr.Label.update(
+            value={"bad": 0.8, "good": 0.18, "so-so": 0.02}, color=None
+        )
+        assert update_5["color"] == "transparent"
+
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
         """
-        x_img = deepcopy(media_data.BASE64_IMAGE)
+        x_img = "test/test_files/bus.png"
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -1580,21 +1413,19 @@ class TestLabel(unittest.TestCase):
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = (await iface([x_img]))[0]
-        self.assertDictEqual(
-            output,
-            {
+        output_filepath = iface(x_img)
+        with open(output_filepath) as fp:
+            assert json.load(fp) == {
                 "label": "red",
                 "confidences": [
                     {"label": "red", "confidence": 0.44},
                     {"label": "green", "confidence": 0.28},
                     {"label": "blue", "confidence": 0.28},
                 ],
-            },
-        )
+            }
 
 
-class TestHighlightedText(unittest.TestCase):
+class TestHighlightedText:
     def test_postprocess(self):
         """
         postprocess
@@ -1608,7 +1439,7 @@ class TestHighlightedText(unittest.TestCase):
             ("", None),
         ]
         result_ = component.postprocess(result)
-        self.assertEqual(result, result_)
+        assert result == result_
 
         text = "Wolfgang lives in Berlin"
         entities = [
@@ -1616,7 +1447,7 @@ class TestHighlightedText(unittest.TestCase):
             {"entity": "LOC", "start": 18, "end": 24},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
-        self.assertEqual(result, result_)
+        assert result == result_
 
         text = "Wolfgang lives in Berlin"
         entities = [
@@ -1624,43 +1455,40 @@ class TestHighlightedText(unittest.TestCase):
             {"entity": "PER", "start": 0, "end": 8},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
-        self.assertEqual(result, result_)
+        assert result == result_
 
         text = "I live there"
         entities = []
         result_ = component.postprocess({"text": text, "entities": entities})
-        self.assertEqual([(text, None)], result_)
+        assert [(text, None)] == result_
 
         text = "Wolfgang"
         entities = [
             {"entity": "PER", "start": 0, "end": 8},
         ]
         result_ = component.postprocess({"text": text, "entities": entities})
-        self.assertEqual([("", None), (text, "PER"), ("", None)], result_)
+        assert [("", None), (text, "PER"), ("", None)] == result_
 
     def test_component_functions(self):
         """
         get_config
         """
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
-        self.assertEqual(
-            ht_output.get_config(),
-            {
-                "color_map": {"pos": "green", "neg": "red"},
-                "name": "highlightedtext",
-                "show_label": True,
-                "label": None,
-                "show_legend": False,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert ht_output.get_config() == {
+            "color_map": {"pos": "green", "neg": "red"},
+            "name": "highlightedtext",
+            "show_label": True,
+            "label": None,
+            "show_legend": False,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "interactive": None,
+            "root_url": None,
+        }
 
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1681,36 +1509,60 @@ class TestHighlightedText(unittest.TestCase):
             return phrases
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
-        self.assertListEqual(
-            (await iface(["Helloooo"]))[0],
-            [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")],
-        )
+        output_filepath = iface("Helloooo")
+        with open(output_filepath) as fp:
+            output = json.load(fp)
+            assert output == [
+                ["H", "non"],
+                ["e", "vowel"],
+                ["ll", "non"],
+                ["oooo", "vowel"],
+            ]
 
 
-class TestJSON(unittest.TestCase):
+class TestChatbot:
+    def test_component_functions(self):
+        """
+        Postprocess, get_config
+        """
+        chatbot = gr.Chatbot()
+        assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
+            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+        ]
+        assert chatbot.get_config() == {
+            "value": [],
+            "color_map": None,
+            "label": None,
+            "show_label": True,
+            "interactive": None,
+            "name": "chatbot",
+            "visible": True,
+            "elem_id": None,
+            "style": {},
+            "root_url": None,
+        }
+
+
+class TestJSON:
     def test_component_functions(self):
         """
         Postprocess
         """
         js_output = gr.JSON()
-        self.assertTrue(
-            js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
-        )
-        self.assertEqual(
-            js_output.get_config(),
-            {
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": None,
-                "show_label": True,
-                "label": None,
-                "name": "json",
-                "interactive": None,
-                "root_url": None,
-            },
-        )
+        assert js_output.postprocess('{"a":1, "b": 2}'), '"{\\"a\\":1, \\"b\\": 2}"'
+        assert js_output.get_config() == {
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": None,
+            "show_label": True,
+            "label": None,
+            "name": "json",
+            "interactive": None,
+            "root_url": None,
+        }
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1736,33 +1588,34 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        self.assertDictEqual(
-            (await iface([{"data": y_data, "headers": ["gender", "age"]}]))[0],
-            {"M": 35, "F": 25, "O": 20},
-        )
+        assert (
+            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
+        )["data"][0] == {
+            "M": 35,
+            "F": 25,
+            "O": 20,
+        }
 
 
-class TestHTML(unittest.TestCase):
+class TestHTML:
     def test_component_functions(self):
         """
         get_config
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
-        self.assertEqual(
-            {
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "value": "#Welcome onboard",
-                "show_label": True,
-                "label": "HTML Input",
-                "name": "html",
-                "interactive": None,
-                "root_url": None,
-            },
-            html_component.get_config(),
-        )
+        assert {
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "value": "#Welcome onboard",
+            "show_label": True,
+            "label": "HTML Input",
+            "name": "html",
+            "interactive": None,
+            "root_url": None,
+        } == html_component.get_config()
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
@@ -1772,94 +1625,108 @@ class TestHTML(unittest.TestCase):
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        self.assertEqual((await iface(["test"]))[0], "<strong>test</strong>")
+        assert iface("test") == "<strong>test</strong>"
 
 
-class TestModel3D(unittest.TestCase):
+class TestMarkdown:
+    def test_component_functions(self):
+        markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
+        assert markdown_component.get_config()["value"].startswith(
+            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
+        )
+
+    @pytest.mark.asyncio
+    async def test_in_interface(self):
+        """
+        Interface, process
+        """
+        iface = gr.Interface(lambda x: x, "text", "markdown")
+        input_data = "Here's an [image](https://gradio.app/images/gradio_logo.png)"
+        output_data = iface(input_data)
+        assert (
+            output_data
+            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+        )
+
+
+class TestModel3D:
     def test_component_functions(self):
         """
         get_config
         """
         component = gr.components.Model3D(None, label="Model")
-        self.assertEqual(
-            {
-                "clearColor": [0.2, 0.2, 0.2, 1.0],
-                "value": None,
-                "label": "Model",
-                "show_label": True,
-                "interactive": None,
-                "root_url": None,
-                "name": "model3d",
-                "visible": True,
-                "elem_id": None,
-                "style": {},
-            },
-            component.get_config(),
-        )
+        assert {
+            "clearColor": [0.2, 0.2, 0.2, 1.0],
+            "value": None,
+            "label": "Model",
+            "show_label": True,
+            "interactive": None,
+            "root_url": None,
+            "name": "model3d",
+            "visible": True,
+            "elem_id": None,
+            "style": {},
+        } == component.get_config()
 
+    @pytest.mark.asyncio
     async def test_in_interface(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
-        input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = (await iface([{"name": "Box.gltf", "data": input_data}]))[0][
-            "data"
-        ]
-        self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
+        input_data = "test/test_files/Box.gltf"
+        output_data = iface(input_data)
+        assert output_data.endswith(".gltf")
 
 
-class TestColorPicker(unittest.TestCase):
+class TestColorPicker:
     def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
         """
         color_picker_input = gr.ColorPicker()
-        self.assertEqual(color_picker_input.preprocess("#000000"), "#000000")
-        self.assertEqual(color_picker_input.postprocess("#000000"), "#000000")
-        self.assertEqual(color_picker_input.postprocess(None), None)
-        self.assertEqual(color_picker_input.postprocess("#FFFFFF"), "#FFFFFF")
-        self.assertEqual(color_picker_input.serialize("#000000", True), "#000000")
+        assert color_picker_input.preprocess("#000000") == "#000000"
+        assert color_picker_input.postprocess("#000000") == "#000000"
+        assert color_picker_input.postprocess(None) is None
+        assert color_picker_input.postprocess("#FFFFFF") == "#FFFFFF"
+        assert color_picker_input.serialize("#000000", True) == "#000000"
 
         color_picker_input.interpretation_replacement = "unknown"
 
-        self.assertEqual(
-            color_picker_input.get_config(),
-            {
-                "value": None,
-                "show_label": True,
-                "label": None,
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-                "root_url": None,
-                "name": "colorpicker",
-            },
-        )
-        self.assertIsInstance(color_picker_input.generate_sample(), str)
+        assert color_picker_input.get_config() == {
+            "value": None,
+            "show_label": True,
+            "label": None,
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "name": "colorpicker",
+        }
+        assert isinstance(color_picker_input.generate_sample(), str)
 
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process, interpret,
         """
         iface = gr.Interface(lambda x: x, "colorpicker", "colorpicker")
-        self.assertEqual(await iface(["#000000"]), ["#000000"])
+        assert iface("#000000") == "#000000"
 
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
 
         """
         iface = gr.Interface(lambda x: x, "colorpicker", gr.ColorPicker())
-        self.assertEqual(await iface(["#000000"]), ["#000000"])
+        assert iface("#000000") == "#000000"
 
     def test_static(self):
         """
         postprocess
         """
         component = gr.ColorPicker("#000000")
-        self.assertEqual(component.get_config().get("value"), "#000000")
+        assert component.get_config().get("value") == "#000000"
 
 
 class TestCarousel:
@@ -1980,7 +1847,3 @@ def test_dataset_calls_as_example(*mocks):
         ],
     )
     assert all([m.called for m in mocks])
-
-
-if __name__ == "__main__":
-    unittest.main()

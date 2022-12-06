@@ -150,6 +150,7 @@ def start_server(
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_keyfile_password=ssl_keyfile_password,
+        ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
     )
     server = Server(config=config)
     server.run_in_thread()

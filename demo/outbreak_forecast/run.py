@@ -1,3 +1,5 @@
+import altair
+
 import gradio as gr
 from math import sqrt
 import matplotlib
@@ -39,12 +41,16 @@ def outbreak(plot_type, r, month, countries, social_distancing):
             yaxis_title="Days Since Day 0",
         )
         return fig
+    elif plot_type == "Altair":
+        df = df.melt(id_vars="day").rename(columns={"variable": "country"})
+        fig = altair.Chart(df).mark_line().encode(x="day", y='value', color='country')
+        return fig
     else:
         raise ValueError("A plot type must be selected")
 
 
 inputs = [
-    gr.Dropdown(["Matplotlib", "Plotly"], label="Plot Type"),
+    gr.Dropdown(["Matplotlib", "Plotly", "Altair"], label="Plot Type"),
     gr.Slider(1, 4, 3.2, label="R"),
     gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
     gr.CheckboxGroup(
@@ -60,6 +66,7 @@ demo = gr.Interface(
     outputs=outputs,
     examples=[
         ["Matplotlib", 2, "March", ["Mexico", "UK"], True],
+        ["Altair", 2, "March", ["Mexico", "Canada"], True],
         ["Plotly", 3.6, "February", ["Canada", "Mexico", "UK"], False],
     ],
     cache_examples=True,

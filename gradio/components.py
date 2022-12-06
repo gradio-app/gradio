@@ -27,6 +27,7 @@ import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -281,6 +282,7 @@ class Textbox(
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        type: str = "text",
         **kwargs,
     ):
         """
@@ -294,9 +296,14 @@ class Textbox(
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            type: The type of textbox. One of: 'text', 'password', 'email', Default is 'text'.
         """
+        if type not in ["text", "password", "email"]:
+            raise ValueError('`type` must be one of "text", "password", or "email".')
+
+        #
         self.lines = lines
-        self.max_lines = max_lines
+        self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
         self.interpret_by_tokens = True
         IOComponent.__init__(
@@ -311,6 +318,7 @@ class Textbox(
         )
         self.cleared_value = ""
         self.test_input = value
+        self.type = type
 
     def get_config(self):
         return {
@@ -318,6 +326,7 @@ class Textbox(
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "value": self.value,
+            "type": self.type,
             **IOComponent.get_config(self),
         }
 
@@ -331,6 +340,7 @@ class Textbox(
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
         interactive: Optional[bool] = None,
+        type: Optional[str] = None,
     ):
         updated_config = {
             "lines": lines,
@@ -340,6 +350,7 @@ class Textbox(
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "type": type,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
@@ -351,7 +362,7 @@ class Textbox(
         """
         Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
-            x: sample input to preprocess.
+            x: text
         Returns:
             text
         """
@@ -878,6 +889,11 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         """
         self.choices = choices or []
         self.cleared_value = []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -1036,6 +1052,11 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.choices = choices or []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
@@ -1252,9 +1273,19 @@ class Image(
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
         self.mirror_webcam = mirror_webcam
+        valid_types = ["numpy", "pil", "file", "filepath"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.shape = shape
         self.image_mode = image_mode
+        valid_sources = ["upload", "webcam", "canvas"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "webcam"
         if tool is None:
@@ -1543,6 +1574,9 @@ class Image(
             postprocess=postprocess,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return os.path.abspath(input_data)
+
 
 @document("change", "clear", "play", "pause", "stop", "style")
 class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
@@ -1586,6 +1620,11 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         """
         self.temp_dir = tempfile.mkdtemp()
         self.format = format
+        valid_sources = ["upload", "webcam"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         self.mirror_webcam = mirror_webcam
         IOComponent.__init__(
@@ -1771,8 +1810,18 @@ class Audio(
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
+        valid_sources = ["upload", "microphone"]
+        if source not in valid_sources:
+            raise ValueError(
+                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
+            )
         self.source = source
         requires_permissions = source == "microphone"
+        valid_types = ["numpy", "filepath", "file"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
@@ -2041,6 +2090,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         value: Optional[str | List[str] | Callable] = None,
         *,
         file_count: str = "single",
+        file_types: List[str] = None,
         type: str = "file",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2053,6 +2103,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             show_label: if True, will display label.
@@ -2062,6 +2113,20 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         """
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
+        self.file_types = file_types
+        valid_types = [
+            "file",
+            "binary",
+            "bytes",
+        ]  # "bytes" is included for backwards compatibility
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
+        if type == "bytes":
+            warnings.warn(
+                "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
+            )
         self.type = type
         self.test_input = None
         IOComponent.__init__(
@@ -2078,6 +2143,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     def get_config(self):
         return {
             "file_count": self.file_count,
+            "file_types": self.file_types,
             "value": self.value,
             **IOComponent.get_config(self),
         }
@@ -2126,7 +2192,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
                     )
                     file.orig_name = file_name
                 return file
-            elif self.type == "bytes":
+            elif (
+                self.type == "binary" or self.type == "bytes"
+            ):  # "bytes" is included for backwards compatibility
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
@@ -2277,6 +2345,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
+        valid_types = ["pandas", "numpy", "array"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         values = {
             "str": "",
@@ -2441,7 +2514,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = MarkdownIt().enable("table")
+            cls.markdown_parser = (
+                MarkdownIt()
+                .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
+                .enable("table")
+            )
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -2706,6 +2783,141 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         return IOComponent.style(self, **kwargs)
 
 
+@document("click", "upload", "style")
+class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
+    """
+    Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
+    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
+    Examples-format: a {str} path to a local file that populates the component.
+    Demos: upload_button
+    """
+
+    def __init__(
+        self,
+        label: str = "Upload a File",
+        value: Optional[str | List[str] | Callable] = None,
+        *,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        type: str = "file",
+        file_count: str = "single",
+        file_types: List[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default text for the button to display.
+            type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
+            file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            label: Text to display on the button. Defaults to "Upload a File".
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+        self.temp_dir = tempfile.mkdtemp()
+        self.type = type
+        self.file_count = file_count
+        self.file_types = file_types
+        self.label = label
+        IOComponent.__init__(
+            self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
+        )
+
+    def get_config(self):
+        return {
+            "label": self.label,
+            "value": self.value,
+            "file_count": self.file_count,
+            "file_types": self.file_types,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[str] = _Keywords.NO_VALUE,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        updated_config = {
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+        """
+        Parameters:
+            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        Returns:
+            File objects in requested format
+        """
+        if x is None:
+            return None
+
+        def process_single_file(f):
+            file_name, data, is_file = (
+                f["name"],
+                f["data"],
+                f.get("is_file", False),
+            )
+            if self.type == "file":
+                if is_file:
+                    file = processing_utils.create_tmp_copy_of_file(
+                        file_name, dir=self.temp_dir
+                    )
+                    file.orig_name = file_name
+                else:
+                    file = processing_utils.decode_base64_to_file(
+                        data, file_path=file_name, dir=self.temp_dir
+                    )
+                    file.orig_name = file_name
+                return file
+            elif self.type == "bytes":
+                if is_file:
+                    with open(file_name, "rb") as file_data:
+                        return file_data.read()
+                return processing_utils.decode_base64_to_binary(data)[0]
+            else:
+                raise ValueError(
+                    "Unknown type: "
+                    + str(self.type)
+                    + ". Please choose from: 'file', 'bytes'."
+                )
+
+        if self.file_count == "single":
+            if isinstance(x, list):
+                return process_single_file(x[0])
+            else:
+                return process_single_file(x)
+        else:
+            if isinstance(x, list):
+                return [process_single_file(f) for f in x]
+            else:
+                return process_single_file(x)
+
+    def generate_sample(self):
+        return deepcopy(media_data.BASE64_FILE)
+
+    def serialize(self, x: str, load_dir: str = "", called_directly: bool = False):
+        serialized = FileSerializable.serialize(self, x, load_dir, called_directly)
+        serialized["size"] = os.path.getsize(serialized["name"])
+        return serialized
+
+    def style(self, *, full_width: Optional[bool] = None, **kwargs):
+        """
+        This method can be used to change the appearance of the button component.
+        Parameters:
+            full_width: If True, will expand to fill parent container.
+        """
+        if full_width is not None:
+            self._style["full_width"] = full_width
+
+        return IOComponent.style(self, **kwargs)
+
+
 @document("change", "submit", "style")
 class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     """
@@ -2829,6 +3041,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        color: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2839,8 +3052,10 @@ class Label(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
+        self.color = color
         IOComponent.__init__(
             self,
             label=label,
@@ -2855,6 +3070,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         return {
             "num_top_classes": self.num_top_classes,
             "value": self.value,
+            "color": self.color,
             **IOComponent.get_config(self),
         }
 
@@ -2896,12 +3112,24 @@ class Label(Changeable, IOComponent, JSONSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        color: Optional[str] = _Keywords.NO_VALUE,
     ):
+        # If color is not specified (NO_VALUE) map it to None so that
+        # it gets filtered out in postprocess. This will mean the color
+        # will not be updated in the front-end
+        if color is _Keywords.NO_VALUE:
+            color = None
+        # If the color was specified by the developer as None
+        # Map is so that the color is updated to be transparent,
+        # e.g. no background default state.
+        elif color is None:
+            color = "transparent"
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "color": color,
             "__type__": "update",
         }
         return updated_config
@@ -3408,9 +3636,9 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 @document("change", "style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
-    Displays a chatbot output showing both user submitted messages and responses
+    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
 
     Demos: chatbot_demo
     """
@@ -3439,6 +3667,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
+        self.md = MarkdownIt()
 
         IOComponent.__init__(
             self,
@@ -3478,11 +3707,15 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Parameters:
-            y: List of tuples representing the message and response
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
         Returns:
-            List of tuples representing the message and response
+            List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        for i, (message, response) in enumerate(y):
+            y[i] = (self.md.render(message), self.md.render(response))
+        return y
 
     def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
@@ -3629,7 +3862,8 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
+    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Guides: plot_component_for_maps
     """
 
     def __init__(
@@ -3644,7 +3878,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3695,7 +3929,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             dtype = "bokeh"
             out_y = json.dumps(y)
         else:
-            dtype = "plotly"
+            is_altair = "altair" in y.__module__
+            if is_altair:
+                dtype = "altair"
+            else:
+                dtype = "plotly"
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
@@ -3706,7 +3944,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
-    Used to render arbitrary Markdown output.
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
@@ -3728,7 +3966,11 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt().enable("table")
+        self.md = (
+            MarkdownIt()
+            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
+            .enable("table")
+        )
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )

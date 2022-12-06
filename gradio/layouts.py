@@ -365,10 +365,12 @@ class Accordion(BlockContext):
     @staticmethod
     def update(
         open: Optional[bool] = None,
+        label: Optional[str] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "visible": visible,
+            "label": label,
             "open": open,
             "__type__": "update",
         }

@@ -10,12 +10,15 @@ import json.decoder
 import os
 import pkgutil
 import random
+import re
 import sys
 import time
+import typing
 import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
 from enum import Enum
+from io import BytesIO
 from numbers import Number
 from pathlib import Path
 from typing import (
@@ -33,6 +36,7 @@ from typing import (
 import aiohttp
 import fsspec.asyn
 import httpx
+import matplotlib.pyplot as plt
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
@@ -53,7 +57,9 @@ def version_check():
         current_pkg_version = (
             pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
         )
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
+            "version"
+        ]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 "IMPORTANT: You are using gradio version {}, "
@@ -395,19 +401,19 @@ def async_iteration(iterator):
         raise StopAsyncIteration()
 
 
-class Request:
+class AsyncRequest:
     """
-    The Request class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
-    Compared to making calls by using httpx directly, Request offers more flexibility and control over:
+    The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
+    Compared to making calls by using httpx directly, AsyncRequest offers more flexibility and control over:
         (1) Includes response validation functionality both using validation models and functions.
         (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
         (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
         individually in the case of multiple asynchronous request calls and some of them failing.
-        (4) Provides HTTP request types with Request.Method Enum class for ease of usage
-    Request also offers some util functions such as has_exception, is_valid and status to inspect get detailed
+        (4) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
+    AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
     information about executed request call.
 
-    The basic usage of Request is as follows: create a Request object with inputs(method, url etc.). Then use it
+    The basic usage of AsyncRequest is as follows: create a AsyncRequest object with inputs(method, url etc.). Then use it
     with the "await" statement, and then you can use util functions to do some post request checks depending on your use-case.
     Finally, call the get_validated_data function to get the response data.
 
@@ -466,13 +472,13 @@ class Request:
         # Create request
         self._request = self._create_request(method, url, **kwargs)
 
-    def __await__(self) -> Generator[None, Any, "Request"]:
+    def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
         """
         Wrap Request's __await__ magic function to create request calls which are executed in one line.
         """
         return self.__run().__await__()
 
-    async def __run(self) -> Request:
+    async def __run(self) -> AsyncRequest:
         """
         Manage the request call lifecycle.
         Execute the request by sending it through the client, then check its status.
@@ -486,7 +492,9 @@ class Request:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await Request.client.send(self._request)
+            self._response: httpx.Response = await AsyncRequest.client.send(
+                self._request
+            )
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -503,7 +511,7 @@ class Request:
         return self
 
     @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> Request:
+    def _create_request(method: Method, url: str, **kwargs) -> AsyncRequest:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -623,10 +631,17 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
-    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
-        :max_size
-    ]
+def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
+    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
+    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
+    filename_len = len(filename.encode())
+    if filename_len > max_bytes:
+        while filename_len > max_bytes:
+            if len(filename) == 0:
+                break
+            filename = filename[:-1]
+            filename_len = len(filename.encode())
+    return filename
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -678,12 +693,11 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
 
 
 def validate_url(possible_url: str) -> bool:
+    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        if requests.get(possible_url).status_code == 200:
-            return True
+        return requests.get(possible_url, headers=headers).ok
     except Exception:
-        pass
-    return False
+        return False
 
 
 def is_update(val):
@@ -744,15 +758,24 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     Checks if the input component set matches the function
     Returns: None if valid, a string error message if mismatch
     """
+
+    def is_special_typed_parameter(name):
+        from gradio.routes import Request
+
+        """Checks if parameter has a type hint designating it as a gr.Request"""
+        return parameter_types.get(name, "") == Request
+
     signature = inspect.signature(fn)
+    parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
     min_args = 0
     max_args = 0
-    for param in signature.parameters.values():
+    for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
-            if not has_default:
-                min_args += 1
-            max_args += 1
+            if not (is_special_typed_parameter(name)):
+                if not has_default:
+                    min_args += 1
+                max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
             max_args = "infinity"
         elif param.kind == param.KEYWORD_ONLY:
@@ -771,3 +794,37 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
+
+
+class TupleNoPrint(tuple):
+    # To remove printing function return in notebook
+    def __repr__(self):
+        return ""
+
+    def __str__(self):
+        return ""
+
+
+def tex2svg(formula, *args):
+    FONTSIZE = 20
+    DPI = 300
+    plt.rc("mathtext", fontset="cm")
+    fig = plt.figure(figsize=(0.01, 0.01))
+    fig.text(0, 0, r"${}$".format(formula), fontsize=FONTSIZE)
+    output = BytesIO()
+    fig.savefig(
+        output,
+        dpi=DPI,
+        transparent=True,
+        format="svg",
+        bbox_inches="tight",
+        pad_inches=0.0,
+    )
+    plt.close(fig)
+    output.seek(0)
+    xml_code = output.read().decode("utf-8")
+    svg_start = xml_code.index("<svg ")
+    svg_code = xml_code[svg_start:]
+    svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+    return f"{copy_code}{svg_code}"
