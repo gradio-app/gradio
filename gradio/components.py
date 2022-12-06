@@ -3571,7 +3571,7 @@ class Gallery(IOComponent, TempFileManager):
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_array_to_file(img)
                 file_path = os.path.abspath(file.name)
-                self.temp_files.add(file_path)                
+                self.temp_files.add(file_path)
             elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_file(img)
                 file_path = os.path.abspath(file.name)
@@ -3580,7 +3580,7 @@ class Gallery(IOComponent, TempFileManager):
                 if utils.validate_url(img):
                     file_path = img
                 else:
-                    file_path= self.make_temp_copy_if_needed(img)
+                    file_path = self.make_temp_copy_if_needed(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
