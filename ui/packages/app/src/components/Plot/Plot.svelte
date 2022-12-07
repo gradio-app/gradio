@@ -18,6 +18,7 @@
 	export let show_label: boolean;
 	export let target: HTMLElement;
 	export let style: Styles = {};
+	export let theme: string;
 </script>
 
 <Block
@@ -30,5 +31,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} on:change />
+	<Plot {value} {target} {theme} on:change />
 </Block>

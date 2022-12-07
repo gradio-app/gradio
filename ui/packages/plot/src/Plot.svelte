@@ -12,6 +12,7 @@
 	export let target;
 	let spec = null;
 	export let colors: Array<string> = [];
+	export let theme: string;
 	
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -27,7 +28,7 @@
 		}
 	}
 
-	$: darkmode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+	$: darkmode = theme == "dark"
 
 	$: if(value && value['type'] == "altair") {
 		spec = JSON.parse(value['plot'])
