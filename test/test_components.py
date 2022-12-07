@@ -1449,6 +1449,16 @@ class TestHighlightedText:
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result == result_
 
+        # Test split entity is merged
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "PER", "start": 0, "end": 4},
+            {"entity": "PER", "start": 4, "end": 8},
+            {"entity": "LOC", "start": 18, "end": 24},
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result == result_
+
         text = "Wolfgang lives in Berlin"
         entities = [
             {"entity": "LOC", "start": 18, "end": 24},
