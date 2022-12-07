@@ -3257,7 +3257,8 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                 index = 0
                 entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
-                    list_format.append((text[index : entity["start"]], None))
+                    if index != entity["start"]:
+                        list_format.append((text[index : entity["start"]], None))
                     list_format.append(
                         (text[entity["start"] : entity["end"]], entity["entity"])
                     )
