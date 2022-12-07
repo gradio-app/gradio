@@ -4038,7 +4038,7 @@ class ScatterPlot(Plot):
                     "must be provided. Please pass a value parameter to "
                     "gr.ScatterPlot.update."
                 )
-            if x is None and y is None:
+            if x is None or y is None:
                 raise ValueError(
                     "In order to update plot properties, the x and y axis data "
                     "must be specified. Please pass valid values for x an y to "

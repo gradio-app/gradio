@@ -1921,3 +1921,20 @@ class TestScatterPlot:
 
         assert config["encoding"]["shape"]["field"] == "Origin"
         assert config["encoding"]["shape"]["type"] == "nominal"
+
+    def test_update(self):
+        output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
+        postprocessed = gr.ScatterPlot().postprocess(output["value"])
+        assert postprocessed == output["value"]
+
+    def test_update_errors(self):
+        with pytest.raises(
+            ValueError, match="In order to update plot properties the value parameter"
+        ):
+            gr.ScatterPlot.update(x="foo", y="bar")
+
+        with pytest.raises(
+            ValueError,
+            match="In order to update plot properties, the x and y axis data",
+        ):
+            gr.ScatterPlot.update(value=cars, x="foo")
