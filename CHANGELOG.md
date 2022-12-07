@@ -2,6 +2,41 @@
 
 ## New Features:
 
+### Scatter plot component
+
+It is now possible to create a scatter plot without knowledge of a plotting library!
+
+The `gr.ScatterPlot` component accepts a pandas dataframe and some optional configuration parameters
+and will automatically create a plot for you!
+
+This is the first of many native plotting components in Gradio!
+
+For an example of how to use `gr.ScatterPlot` see below:
+
+```python
+import gradio as gr
+from vega_datasets import data
+
+cars = data.cars()
+
+with gr.Blocks() as demo:
+    gr.ScatterPlot(show_label=False,
+                   value=cars,
+                   x="Horsepower",
+                   y="Miles_per_Gallon",
+                   color="Origin",
+                   tooltip="Name",
+                   title="Car Data",
+                   y_title="Miles per Gallon",
+                   color_legend_title="Origin of Car").style(container=False)
+
+demo.launch()
+```
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2764](https://github.com/gradio-app/gradio/pull/2764)
+ 
+
+
 ### Support for altair plots
 
 The `Plot` component can now accept altair plots as values! 

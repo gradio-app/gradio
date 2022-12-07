@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import pytest
+import vega_datasets
 from scipy.io import wavfile
 
 import gradio as gr
@@ -1847,3 +1848,76 @@ def test_dataset_calls_as_example(*mocks):
         ],
     )
     assert all([m.called for m in mocks])
+
+
+cars = vega_datasets.data.cars()
+
+
+class TestScatterPlot:
+    def test_get_config(self):
+        assert gr.ScatterPlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+        }
+
+    def test_no_color(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            tooltip="Name",
+            title="Car Data",
+            x_title="Horse",
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["field"] == "Horsepower"
+        assert config["encoding"]["x"]["title"] == "Horse"
+        assert config["encoding"]["y"]["field"] == "Miles_per_Gallon"
+        assert config["title"] == "Car Data"
+
+    def test_color_encoding(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            tooltip="Name",
+            title="Car Data",
+            color="Origin",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["field"] == "Origin"
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": ["USA", "Europe", "Japan"],
+            "range": [0, 1, 2],
+        }
+        assert config["encoding"]["color"]["type"] == "nominal"
+
+    def test_two_encodings(self):
+        plot = gr.ScatterPlot(
+            show_label=False,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            shape="Origin",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["field"] == "Acceleration"
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": [cars.Acceleration.min(), cars.Acceleration.max()],
+            "range": [0, 1],
+        }
+        assert config["encoding"]["color"]["type"] == "quantitative"
+
+        assert config["encoding"]["shape"]["field"] == "Origin"
+        assert config["encoding"]["shape"]["type"] == "nominal"
