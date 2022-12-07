@@ -3950,14 +3950,14 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 class ScatterPlot(Plot):
     def __init__(
         self,
-        x: str,
-        y: str,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
         value: Optional[pd.DataFrame] = None,
         color: Optional[str] = None,
         size: Optional[str] = None,
         shape: Optional[str] = None,
         title: Optional[str] = None,
-        tooltip: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
@@ -3990,56 +3990,118 @@ class ScatterPlot(Plot):
     def get_block_name(self) -> str:
         return "plot"
 
-    def postprocess(self, y: pd.DataFrame | None) -> Dict[str, str] | None:
-        if y is None:
-            return y
+    @staticmethod
+    def update(
+        value: Optional[Any] = _Keywords.NO_VALUE,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        properties = [x, y, color, size, shape, title, tooltip, x_title, y_title,
+                      color_legend_title, size_legend_title, shape_legend_title]
+        if any(properties):
+            if value is _Keywords.NO_VALUE:
+                raise ValueError("In order to update plot properties the value parameter "
+                                 "must be provided.")
+
+        chart = ScatterPlot.create_plot(value, *properties)
+        new_chart_str = {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": new_chart_str,
+            "__type__": "update",
+        }
+        return updated_config
+
+    @staticmethod
+    def create_plot(
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None
+    ):
+
         encodings = dict(
-            x=alt.X(self.x, title=self.x_title or self.x),
-            y=alt.Y(self.y, title=self.y_title or self.y),
+            x=alt.X(x, title=x_title or x),
+            y=alt.Y(y, title=y_title or y),
         )
         properties = {}
-        if self.title:
-            properties["title"] = self.title
-        if self.color:
-            if is_numeric_dtype(y[self.color]):
-                domain = [y[self.color].min(), y[self.color].max()]
+        if title:
+            properties["title"] = title
+        if color:
+            if is_numeric_dtype(value[color]):
+                domain = [value[color].min(), value[color].max()]
                 range_ = [0, 1]
                 type_ = "quantitative"
             else:
-                domain = y[self.color].unique().tolist()
+                domain = value[color].unique().tolist()
                 range_ = list(range(len(domain)))
                 type_ = "nominal"
 
             encodings["color"] = {
-                "field": self.color,
+                "field": color,
                 "type": type_,
-                "legend": {"title": self.color_legend_title or self.color},
+                "legend": {"title": color_legend_title or color},
                 "scale": {"domain": domain, "range": range_},
             }
-        if self.tooltip:
-            encodings["tooltip"] = self.tooltip
-        if self.size:
+        if tooltip:
+            encodings["tooltip"] = tooltip
+        if size:
             encodings["size"] = {
-                "field": self.size,
-                "type": "quantitative" if is_numeric_dtype(y[self.size]) else "nominal",
-                "legend": {"title": self.size_legend_title or self.size},
+                "field": size,
+                "type": "quantitative" if is_numeric_dtype(value[size]) else "nominal",
+                "legend": {"title": size_legend_title or size},
             }
-        if self.shape:
+        if shape:
             encodings["shape"] = {
-                "field": self.shape,
+                "field": shape,
                 "type": "quantitative"
-                if is_numeric_dtype(y[self.shape])
+                if is_numeric_dtype(value[shape])
                 else "nominal",
-                "legend": {"title": self.shape_legend_title or self.shape},
+                "legend": {"title": shape_legend_title or shape},
             }
 
-        chart = (
-            alt.Chart(y)
+        return (
+            alt.Chart(value)
             .mark_point()
             .encode(**encodings)
             .properties(background="transparent", **properties)
             .interactive()
         )
+
+    def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
+        # if None or update
+        if y is None or isinstance(y, Dict):
+            return y
+        chart = self.create_plot(value=y, x=self.x, y=self.y, color=self.color,
+                                 size=self.size, shape=self.shape, title=self.title,
+                                 tooltip=self.tooltip, x_title=self.x_title, y_title=self.y_title,
+                                 color_legend_title=self.color_legend_title, size_legend_title=self.size_legend_title,
+                                 shape_legend_title=self.size_legend_title)
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 

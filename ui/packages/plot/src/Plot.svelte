@@ -33,7 +33,6 @@
 		spec = JSON.parse(value['plot'])
 		const config = create_config(darkmode);
 		spec['config'] = config;
-		console.log(spec);
 		switch (value['chart'] || '') {
 			case "scatter":
 				if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'nominal') {
@@ -42,7 +41,6 @@
 				else if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'quantitative') {
 					spec['encoding']['color']['scale']['range'] = ['#eff6ff', '#1e3a8a'];
 					spec['encoding']['color']['scale']['interpolate'] = "hsl";
-					console.log(spec);
 				}
 				break;
 			default:
