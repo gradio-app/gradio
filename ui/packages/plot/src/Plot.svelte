@@ -13,6 +13,7 @@
 	let spec = null;
 	export let colors: Array<string> = [];
 	export let theme: string;
+	export let caption: string;
 	
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
@@ -48,7 +49,6 @@
 				break;
 		}
 	}
-
 
 	// Plotly
 	let plotDiv;	
@@ -152,8 +152,13 @@
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
 {:else if value && value['type'] == "altair"}
-	<div class="flex justify-center items-center w-full h-full">
-	<Vega spec={spec} />
+	<div class="flex flex-col justify-center items-center w-full h-full">
+		<Vega spec={spec} />
+		{#if caption}
+			<div class="flex justify-center text-sm w-full h-full text-black dark:text-slate-200 ">
+				{caption}
+			</div>
+		{/if}
 	</div>
 {:else if value && value["type"] == "matplotlib"}
 	<div class="output-image w-full flex justify-center items-center relative">

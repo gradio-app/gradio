@@ -3963,6 +3963,7 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        caption: Optional[str] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3980,12 +3981,18 @@ class ScatterPlot(Plot):
         self.color_legend_title = color_legend_title
         self.size_legend_title = size_legend_title
         self.shape_legend_title = shape_legend_title
+        self.caption = caption
         self.value = None
         if value is not None:
             self.value = self.postprocess(value)
         super().__init__(
             value, label=label, show_label=show_label, visible=visible, elem_id=elem_id
         )
+
+    def get_config(self):
+        config = super().get_config()
+        config["caption"] = self.caption
+        return config
 
     def get_block_name(self) -> str:
         return "plot"
@@ -4005,16 +4012,38 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        caption: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
-        properties = [x, y, color, size, shape, title, tooltip, x_title, y_title,
-                      color_legend_title, size_legend_title, shape_legend_title]
+        properties = [
+            x,
+            y,
+            color,
+            size,
+            shape,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            size_legend_title,
+            shape_legend_title,
+        ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
-                raise ValueError("In order to update plot properties the value parameter "
-                                 "must be provided.")
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided. Please pass a value parameter to "
+                    "gr.ScatterPlot.update."
+                )
+            if x is None and y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.ScatterPlot.update."
+                )
 
         chart = ScatterPlot.create_plot(value, *properties)
         new_chart_str = {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
@@ -4024,6 +4053,7 @@ class ScatterPlot(Plot):
             "show_label": show_label,
             "visible": visible,
             "value": new_chart_str,
+            "caption": caption,
             "__type__": "update",
         }
         return updated_config
@@ -4042,7 +4072,7 @@ class ScatterPlot(Plot):
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
-        shape_legend_title: Optional[str] = None
+        shape_legend_title: Optional[str] = None,
     ):
 
         encodings = dict(
@@ -4079,9 +4109,7 @@ class ScatterPlot(Plot):
         if shape:
             encodings["shape"] = {
                 "field": shape,
-                "type": "quantitative"
-                if is_numeric_dtype(value[shape])
-                else "nominal",
+                "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
                 "legend": {"title": shape_legend_title or shape},
             }
 
@@ -4097,11 +4125,21 @@ class ScatterPlot(Plot):
         # if None or update
         if y is None or isinstance(y, Dict):
             return y
-        chart = self.create_plot(value=y, x=self.x, y=self.y, color=self.color,
-                                 size=self.size, shape=self.shape, title=self.title,
-                                 tooltip=self.tooltip, x_title=self.x_title, y_title=self.y_title,
-                                 color_legend_title=self.color_legend_title, size_legend_title=self.size_legend_title,
-                                 shape_legend_title=self.size_legend_title)
+        chart = self.create_plot(
+            value=y,
+            x=self.x,
+            y=self.y,
+            color=self.color,
+            size=self.size,
+            shape=self.shape,
+            title=self.title,
+            tooltip=self.tooltip,
+            x_title=self.x_title,
+            y_title=self.y_title,
+            color_legend_title=self.color_legend_title,
+            size_legend_title=self.size_legend_title,
+            shape_legend_title=self.size_legend_title,
+        )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 

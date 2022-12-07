@@ -19,6 +19,7 @@
 	export let target: HTMLElement;
 	export let style: Styles = {};
 	export let theme: string;
+	export let caption: string;
 </script>
 
 <Block
@@ -31,5 +32,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	<Plot {value} {target} {theme} on:change />
+	<Plot {value} {target} {theme} {caption} on:change />
 </Block>
