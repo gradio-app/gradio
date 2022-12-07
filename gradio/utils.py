@@ -10,7 +10,9 @@ import json.decoder
 import os
 import pkgutil
 import random
+import subprocess
 import sys
+import tempfile
 import time
 import typing
 import warnings
@@ -34,12 +36,15 @@ from typing import (
 import aiohttp
 import fsspec.asyn
 import httpx
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
-from ffmpy import FFmpeg
-import tempfile
 
 import gradio
+from gradio import processing_utils
 from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -794,11 +799,131 @@ class TupleNoPrint(tuple):
     def __str__(self):
         return ""
 
-def audio_to_video(audio: str, image: str):
-    tempFile = tempfile.mkstemp(suffix=".mov")
-    ff = FFmpeg(
-    inputs={audio: None, image: None},
-    outputs={tempFile[1]: "-y -filter_complex '[0:a]showwaves=s=1280x720:mode=line:colors=white|white,format=rgba[sw];[sw][1:v]scale2ref[sw][1];[sw]scale=iw:ih/4[sw];[1][sw]overlay=(W-w)/2:(H-h):format=auto,format=yuv420p[v]' -map '[v]' -map 0:a -movflags +faststart"}
-    )
-    ff.run()
-    return tempFile[1]
+
+class Waveform:
+    def __init__(
+        self,
+        audio: str | Tuple[int, np.ndarray],
+        bg_color: str = "#f3f4f6",
+        bg_image: str = None,
+        fg_alpha: float = 0.75,
+        bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
+        bar_count: int = 50,
+        bar_width: float = 0.6,
+    ):
+        """
+        :param audio: Audio file path or tuple of (sample_rate, audio_data)
+        :param bg_color: Background color of waveform (ignored if bg_image is provided)
+        :param bg_image: Background image of waveform
+        :param fg_alpha: Opacity of foreground waveform
+        :param bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
+        :param bar_count: Number of bars in waveform
+        :param bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
+        """
+        if isinstance(audio, str):
+            self.audio_file = audio
+            self.audio = processing_utils.audio_from_file(audio)
+        else:
+            tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav")
+            processing_utils.audio_to_file(audio, tmp_wav.name)
+            self.audio = audio
+            self.audio_file = tmp_wav.name
+
+        self.bg_color = bg_color
+        self.bg_image = bg_image
+        self.fg_alpha = fg_alpha
+        self.bars_color = bars_color
+        self.bar_count = bar_count
+        self.bar_width = bar_width
+
+    def get_video(self, directory: str):
+        # Helper methods to create waveform
+        def hex_to_RGB(hex_str):
+            return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
+
+        def get_color_gradient(c1, c2, n):
+            assert n > 1
+            c1_rgb = np.array(hex_to_RGB(c1)) / 255
+            c2_rgb = np.array(hex_to_RGB(c2)) / 255
+            mix_pcts = [x / (n - 1) for x in range(n)]
+            rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
+            return [
+                "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
+                for item in rgb_colors
+            ]
+
+        # Reshape audio to have a fixed number of bars
+        samples = self.audio[1]
+        if len(samples.shape) > 1:
+            samples = np.mean(samples, 1)
+        bins_to_pad = self.bar_count - (len(samples) % self.bar_count)
+        samples = np.pad(samples, [(0, bins_to_pad)])
+        samples = np.reshape(samples, (self.bar_count, -1))
+        samples = np.abs(samples)
+        samples = np.max(samples, 1)
+
+        print(samples)
+
+        matplotlib.use("Agg")
+        # Plot waveform
+        color = (
+            self.bars_color
+            if isinstance(self.bars_color, str)
+            else get_color_gradient(
+                self.bars_color[0], self.bars_color[1], self.bar_count
+            )
+        )
+        plt.bar(
+            np.arange(0, self.bar_count),
+            samples * 2,
+            bottom=(-1 * samples),
+            width=self.bar_width,
+            color=color,
+        )
+        plt.axis("off")
+        plt.margins(x=0)
+        tmp_img = tempfile.NamedTemporaryFile(suffix=".png")
+        savefig_kwargs = {"bbox_inches": "tight"}
+        if self.bg_image is not None:
+            savefig_kwargs["transparent"] = True
+        else:
+            savefig_kwargs["facecolor"] = self.bg_color
+        plt.savefig(tmp_img.name, **savefig_kwargs)
+        waveform_img = PIL.Image.open(tmp_img.name)
+        waveform_img = waveform_img.resize((1000, 200))
+
+        # Composite waveform with background image
+        if self.bg_image is not None:
+            waveform_array = np.array(waveform_img)
+            waveform_array[:, :, 3] = waveform_array[:, :, 3] * self.fg_alpha
+            waveform_img = PIL.Image.fromarray(waveform_array)
+
+            bg_img = PIL.Image.open(self.bg_image)
+            waveform_width, waveform_height = waveform_img.size
+            bg_width, bg_height = bg_img.size
+            if waveform_width != bg_width:
+                bg_img = bg_img.resize(
+                    (waveform_width, int(bg_height * waveform_width / bg_width))
+                )
+                bg_img.show()
+                bg_width, bg_height = bg_img.size
+            composite_height = max(bg_height, waveform_height)
+            composite = PIL.Image.new(
+                "RGBA", (waveform_width, composite_height), "#FFFFFF"
+            )
+            composite.paste(bg_img, (0, composite_height - bg_height))
+            composite.paste(
+                waveform_img, (0, composite_height - waveform_height), waveform_img
+            )
+            composite.save(tmp_img.name)
+        else:
+            waveform_img.save(tmp_img.name)
+
+        # Convert waveform to video with ffmpeg
+        output_mp4 = tempfile.NamedTemporaryFile(
+            suffix=".mp4", delete=False, dir=directory
+        )
+        ffmpeg_cmd = f"ffmpeg -loop 1 -i {tmp_img.name} -i {self.audio_file} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' -y {output_mp4.name}"
+        subprocess.call(ffmpeg_cmd, shell=True)
+        print(output_mp4.name)
+        return output_mp4

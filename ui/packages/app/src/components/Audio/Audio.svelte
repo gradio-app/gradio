@@ -5,7 +5,7 @@
 	import type { FileData } from "@gradio/upload";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
-	import { Audio, StaticAudio } from "@gradio/audio";
+	import { Audio, StaticAudio, Waveform } from "@gradio/audio";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { Block } from "@gradio/atoms";
 	import type { Styles } from "@gradio/utils";
@@ -83,6 +83,8 @@
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
 		/>
+	{:else if _value?.media === "video"}
+		<Waveform value={_value} on:change={({ detail }) => (value = detail)} />
 	{:else}
 		<StaticAudio
 			{show_label}

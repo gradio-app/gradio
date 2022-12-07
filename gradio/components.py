@@ -50,6 +50,7 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+from gradio.utils import Waveform
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -1773,7 +1774,7 @@ class Audio(
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file, which gets displayed
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath or URL to an audio file or a gradio.Waveform object, which gets displayed
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real_time_speech_recognition
@@ -1781,7 +1782,7 @@ class Audio(
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.array] | Callable] = None,
+        value: Optional[str | Tuple[int, np.array] | Waveform | Callable] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1998,7 +1999,9 @@ class Audio(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
-    def postprocess(self, y: Tuple[int, np.array] | str | None) -> str | None:
+    def postprocess(
+        self, y: Tuple[int, np.array] | str | Waveform | None
+    ) -> str | None:
         """
         Parameters:
             y: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
@@ -2008,18 +2011,23 @@ class Audio(
         if y is None:
             return None
 
-        if utils.validate_url(y):
-            file = processing_utils.download_to_file(y, dir=self.temp_dir)
+        media = "audio"
+        if isinstance(y, str):
+            if utils.validate_url(y):
+                file = processing_utils.download_to_file(y, dir=self.temp_dir)
+            else:
+                file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
         elif isinstance(y, tuple):
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(
                 suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
-        else:
-            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+        elif isinstance(y, Waveform):
+            media = "video"
+            file = y.get_video(self.temp_dir)
 
-        return {"name": file.name, "data": None, "is_file": True}
+        return {"name": file.name, "data": None, "is_file": True, "media": media}
 
     def stream(
         self,
