@@ -3,13 +3,15 @@ import os
 import pathlib
 import sys
 import textwrap
+import warnings
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 
 import gradio
 import gradio as gr
-from gradio import utils
+from gradio import media_data, utils
 from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
@@ -233,6 +235,21 @@ class TestLoadInterface:
             assert output is not None
         except TooManyRequestsError:
             pass
+
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        resp = client.post(
+            "api/predict",
+            json={"fn_index": 0, "data": [media_data.BASE64_AUDIO], "name": "sample"},
+        )
+        try:
+            if resp.status_code != 200:
+                warnings.warn("Request for speech recognition model failed!")
+                pass
+            else:
+                assert resp.json()["data"] is not None
+        finally:
+            io.close()
 
     def test_text_to_image_model(self):
         io = gr.Interface.load("models/osanseviero/BigGAN-deep-128")
