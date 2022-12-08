@@ -3257,8 +3257,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                 index = 0
                 entities = sorted(entities, key=lambda x: x["start"])
                 for entity in entities:
-                    if index != entity["start"]:
-                        list_format.append((text[index : entity["start"]], None))
+                    list_format.append((text[index : entity["start"]], None))
                     list_format.append(
                         (text[entity["start"] : entity["end"]], entity["entity"])
                     )
@@ -3274,6 +3273,10 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                     running_category = category
                 elif category == running_category:
                     running_text += self.adjacent_separator + text
+                elif text == "" and category is None:
+                    # Skip fully empty item, these get added in processing
+                    # of dictionaries.
+                    pass
                 else:
                     output.append((running_text, running_category))
                     running_text = text
