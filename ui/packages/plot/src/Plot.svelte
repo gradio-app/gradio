@@ -31,18 +31,18 @@
 
 	$: darkmode = theme == "dark"
 
-	$: if(value && value['type'] == "altair") {
+	$: if(value && value.type == "altair") {
 		spec = JSON.parse(value['plot'])
 		const config = create_config(darkmode);
-		spec['config'] = config;
-		switch (value['chart'] || '') {
+		spec.config = config;
+		switch (value.chart || '') {
 			case "scatter":
-				if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'nominal') {
-					spec['encoding']['color']['scale']['range'] = spec['encoding']['color']['scale']['range'].map((e, i) => get_color(i));
+				if (spec.encoding.color && spec.encoding.color.type == 'nominal') {
+					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map((e, i) => get_color(i));
 				}
-				else if (spec['encoding']['color'] && spec['encoding']['color']['type'] == 'quantitative') {
-					spec['encoding']['color']['scale']['range'] = ['#eff6ff', '#1e3a8a'];
-					spec['encoding']['color']['scale']['interpolate'] = "hsl";
+				else if (spec.encoding.color && spec.encoding.color.type == 'quantitative') {
+					spec.encoding.color.scale.range = ['#eff6ff', '#1e3a8a'];
+					spec.encoding.color.scale.range.interpolate = "hsl";
 				}
 				break;
 			default:

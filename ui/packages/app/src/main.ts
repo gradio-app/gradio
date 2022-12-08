@@ -262,7 +262,6 @@ function create_custom_element() {
 			const _autoscroll = autoscroll === "true" ? true : false;
 
 			this.wrapper.style.minHeight = initial_height || "300px";
-			console.log(this.theme);
 
 			const config = await handle_config(this.root, source);
 			if (config === null) {
