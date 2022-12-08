@@ -1457,17 +1457,17 @@ class TestHighlightedText:
             {"entity": "LOC", "start": 18, "end": 24},
         ]
         # After a merge empty entries are stripped except the leading one
-        result_after_merge_ = [("", None)] + [
-            entry for entry in result_ if entry != ("", None)
+        result_after_merge = [("", None)] + [
+            entry for entry in result if entry != ("", None)
         ]
         default_adjacent = component.combine_adjacent
         component.combine_adjacent = False
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result != result_
-        assert result != result_after_merge_
+        assert result_after_merge != result_
         component.combine_adjacent = True
         result_ = component.postprocess({"text": text, "entities": entities})
-        assert result == result_after_merge_
+        assert result_after_merge == result_
         component.combine_adjacent = default_adjacent
 
         text = "Wolfgang lives in Berlin"
