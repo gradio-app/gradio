@@ -1456,7 +1456,7 @@ class TestHighlightedText:
             {"entity": "PER", "start": 4, "end": 8},
             {"entity": "LOC", "start": 18, "end": 24},
         ]
-        default_adjacent = component.combine_adjacent 
+        default_adjacent = component.combine_adjacent
         component.combine_adjacent = False
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result != result_
