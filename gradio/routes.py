@@ -22,7 +22,7 @@ import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
@@ -426,6 +426,10 @@ class App(FastAPI):
                 app.startup_events_triggered = True
                 return True
             return False
+
+        @app.get("/robots.txt", response_class=PlainTextResponse)
+        def robots_txt():
+            return "User-agent: *\nDisallow: /"
 
         return app
 
