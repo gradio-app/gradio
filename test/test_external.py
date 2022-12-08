@@ -236,7 +236,7 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
-        app, _, _ = io.launch(prevent_thread_lock=True)
+        app, _, _ = io.launch(prevent_thread_lock=True, show_error=True)
         client = TestClient(app)
         resp = client.post(
             "api/predict",
@@ -245,7 +245,10 @@ class TestLoadInterface:
         try:
             if resp.status_code != 200:
                 warnings.warn("Request for speech recognition model failed!")
-                pass
+                if "Could not complete request to HuggingFace API" in resp.json()['error']:
+                    pass
+                else:
+                    assert False
             else:
                 assert resp.json()["data"] is not None
         finally:
