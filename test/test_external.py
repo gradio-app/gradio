@@ -245,7 +245,10 @@ class TestLoadInterface:
         try:
             if resp.status_code != 200:
                 warnings.warn("Request for speech recognition model failed!")
-                if "Could not complete request to HuggingFace API" in resp.json()['error']:
+                if (
+                    "Could not complete request to HuggingFace API"
+                    in resp.json()["error"]
+                ):
                     pass
                 else:
                     assert False
