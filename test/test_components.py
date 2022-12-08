@@ -1858,7 +1858,7 @@ class TestScatterPlot:
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
-            "interactive": True,
+            "interactive": None,
             "label": None,
             "name": "plot",
             "root_url": None,
@@ -1890,6 +1890,8 @@ class TestScatterPlot:
             }
         }
         assert config["title"] == "Car Data"
+        assert "height" not in config
+        assert "width" not in config
 
     def test_no_interactive(self):
         plot = gr.ScatterPlot(
@@ -1899,6 +1901,16 @@ class TestScatterPlot:
         assert sorted(list(output.keys())) == ["chart", "plot", "type"]
         config = json.loads(output["plot"])
         assert "selection" not in config
+
+    def test_height_width(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", height=100, width=200
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
 
     def test_color_encoding(self):
         plot = gr.ScatterPlot(
@@ -1942,6 +1954,11 @@ class TestScatterPlot:
         output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
         postprocessed = gr.ScatterPlot().postprocess(output["value"])
         assert postprocessed == output["value"]
+
+    def test_update_visibility(self):
+        output = gr.ScatterPlot.update(visible=False)
+        assert not output["visible"]
+        assert output["value"] is gr.components._Keywords.NO_VALUE
 
     def test_update_errors(self):
         with pytest.raises(

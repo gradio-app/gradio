@@ -3948,6 +3948,15 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
 @document("change", "clear")
 class ScatterPlot(Plot):
+    """
+    Create a scatter plot.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a pandas dataframe with the data to plot.
+
+    Demos: native_plots
+    """
+
     def __init__(
         self,
         x: Optional[str] = None,
@@ -3963,6 +3972,8 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
         caption: Optional[str] = None,
         interactive: Optional[bool] = True,
         label: Optional[str] = None,
@@ -3970,6 +3981,30 @@ class ScatterPlot(Plot):
         visible: bool = True,
         elem_id: Optional[str] = None,
     ):
+        """
+        Parameters:
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            size: The column used to determine the point size. Should contain numeric data so that gradio can map the data to the point size.
+            shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
+            shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+            elem_id: Unique id used for custom css targetting.
+        """
         self.x = x
         self.y = y
         self.color = color
@@ -3983,7 +4018,9 @@ class ScatterPlot(Plot):
         self.size_legend_title = size_legend_title
         self.shape_legend_title = shape_legend_title
         self.caption = caption
-        self.interactive = interactive
+        self.interactive_chart = interactive
+        self.width = width
+        self.height = height
         self.value = None
         if value is not None:
             self.value = self.postprocess(value)
@@ -3993,7 +4030,6 @@ class ScatterPlot(Plot):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
-            interactive=interactive,
         )
 
     def get_config(self):
@@ -4019,12 +4055,40 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
-        interactive: Optional[bool] = True,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        interactive: Optional[bool] = None,
         caption: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
     ):
+        """Update an existing plot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            size: The column used to determine the point size. Should contain numeric data so that gradio can map the data to the point size.
+            shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
+            shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display in the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
         properties = [
             x,
             y,
@@ -4039,6 +4103,8 @@ class ScatterPlot(Plot):
             size_legend_title,
             shape_legend_title,
             interactive,
+            height,
+            width,
         ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
@@ -4053,15 +4119,14 @@ class ScatterPlot(Plot):
                     "must be specified. Please pass valid values for x an y to "
                     "gr.ScatterPlot.update."
                 )
-
-        chart = ScatterPlot.create_plot(value, *properties)
-        new_chart_str = {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+            chart = ScatterPlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
-            "value": new_chart_str,
+            "value": value,
             "caption": caption,
             "__type__": "update",
         }
@@ -4082,9 +4147,12 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
         interactive: Optional[bool] = True,
     ):
-
+        """Helper for creating the scatter plot."""
+        interactive = True if interactive is None else interactive
         encodings = dict(
             x=alt.X(x, title=x_title or x),
             y=alt.Y(y, title=y_title or y),
@@ -4092,6 +4160,10 @@ class ScatterPlot(Plot):
         properties = {}
         if title:
             properties["title"] = title
+        if height:
+            properties["height"] = height
+        if width:
+            properties["width"] = width
         if color:
             if is_numeric_dtype(value[color]):
                 domain = [value[color].min(), value[color].max()]
@@ -4151,7 +4223,9 @@ class ScatterPlot(Plot):
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,
-            interactive=self.interactive,
+            interactive=self.interactive_chart,
+            height=self.height,
+            width=self.width,
         )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
