@@ -155,7 +155,7 @@
 	<div class="flex flex-col justify-center items-center w-full h-full">
 		<Vega spec={spec} />
 		{#if caption}
-			<div class="flex justify-center text-sm w-full h-full text-black dark:text-slate-200 ">
+			<div class="flex justify-center text-xs w-full h-full text-black dark:text-slate-200 ">
 				{caption}
 			</div>
 		{/if}

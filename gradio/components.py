@@ -3964,6 +3964,7 @@ class ScatterPlot(Plot):
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
         caption: Optional[str] = None,
+        interactive: Optional[bool] = True,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3982,11 +3983,17 @@ class ScatterPlot(Plot):
         self.size_legend_title = size_legend_title
         self.shape_legend_title = shape_legend_title
         self.caption = caption
+        self.interactive = interactive
         self.value = None
         if value is not None:
             self.value = self.postprocess(value)
         super().__init__(
-            value, label=label, show_label=show_label, visible=visible, elem_id=elem_id
+            value,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            interactive=interactive,
         )
 
     def get_config(self):
@@ -4012,6 +4019,7 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        interactive: Optional[bool] = True,
         caption: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -4030,6 +4038,7 @@ class ScatterPlot(Plot):
             color_legend_title,
             size_legend_title,
             shape_legend_title,
+            interactive,
         ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
@@ -4073,6 +4082,7 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        interactive: Optional[bool] = True,
     ):
 
         encodings = dict(
@@ -4112,14 +4122,16 @@ class ScatterPlot(Plot):
                 "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
                 "legend": {"title": shape_legend_title or shape},
             }
-
-        return (
+        chart = (
             alt.Chart(value)
             .mark_point()
             .encode(**encodings)
             .properties(background="transparent", **properties)
-            .interactive()
         )
+        if interactive:
+            chart = chart.interactive()
+
+        return chart
 
     def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
         # if None or update
@@ -4139,6 +4151,7 @@ class ScatterPlot(Plot):
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,
+            interactive=self.interactive,
         )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}

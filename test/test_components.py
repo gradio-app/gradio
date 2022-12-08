@@ -1858,7 +1858,7 @@ class TestScatterPlot:
         assert gr.ScatterPlot().get_config() == {
             "caption": None,
             "elem_id": None,
-            "interactive": None,
+            "interactive": True,
             "label": None,
             "name": "plot",
             "root_url": None,
@@ -1882,7 +1882,23 @@ class TestScatterPlot:
         assert config["encoding"]["x"]["field"] == "Horsepower"
         assert config["encoding"]["x"]["title"] == "Horse"
         assert config["encoding"]["y"]["field"] == "Miles_per_Gallon"
+        assert config["selection"] == {
+            "selector001": {
+                "bind": "scales",
+                "encodings": ["x", "y"],
+                "type": "interval",
+            }
+        }
         assert config["title"] == "Car Data"
+
+    def test_no_interactive(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert "selection" not in config
 
     def test_color_encoding(self):
         plot = gr.ScatterPlot(
