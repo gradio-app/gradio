@@ -294,7 +294,9 @@ class TestComponentsInBlocks:
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if not (comp == gr.State)]
+        io_components = [
+            comp for comp in io_components if comp not in [gr.State, gr.ScatterPlot]
+        ]
         interface = gr.Interface(
             lambda *args: None,
             inputs=[comp(value=lambda: None) for comp in io_components],
@@ -307,7 +309,9 @@ class TestComponentsInBlocks:
         assert len(dependencies_on_load) == len(io_components)
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
-        io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
+        io_components = [
+            c() for c in io_components if c not in [gr.State, gr.Button, gr.ScatterPlot]
+        ]
         with gr.Blocks() as demo:
             for component in io_components:
                 component.render()
