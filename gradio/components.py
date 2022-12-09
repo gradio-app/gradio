@@ -27,6 +27,7 @@ import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+from mdit_py_plugins.dollarmath import dollarmath_plugin
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -712,6 +713,24 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
+    def preprocess(self, x: float | None) -> float | None:
+        """
+        Any preprocessing needed to be performed on function input.
+        Parameters:
+            x: numeric input
+        Returns:
+            None if the input is None, else the numeric input.
+        Raises:
+            ValueError: if the input is greater than maximum or less than minimum.
+        """
+        if x is None:
+            return None
+        if x > self.maximum or x < self.minimum:
+            raise ValueError(
+                f"Slider value {x} is out of range. Minimum is {self.minimum} and maximum is {self.maximum}."
+            )
+        return x
+
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -943,17 +962,23 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            list of selected choices as strings or indices within choice list
+            Returns a list of selected choices as strings or indices within choice list
+            depending on `self.type`.
+        Raises:
+            ValueError: if any of elements in `x` are not in `self.choices`, or if `self.type` is not one of "value" or "index".
         """
+        for choice in x:
+            if choice not in self.choices:
+                raise ValueError(
+                    f"Invalid choice: {choice}. Select from: {self.choices}."
+                )
         if self.type == "value":
             return x
         elif self.type == "index":
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | None) -> List[str]:
@@ -1102,25 +1127,29 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    def preprocess(self, x: str) -> str | int:
+    def preprocess(self, x: str | None) -> str | int | None:
         """
         Parameters:
             x: selected choice
         Returns:
-            selected choice as string or index within choice list
+            the input string `x` if `self.type` is "value", otherwise if `self.type` is "index", returns the index of `x` in `self.choices`.
+        Raises:
+            ValueError: if x is not in `self.choices` or if `self.type` is not "value" or "index".
         """
+        if x is None:
+            return None
+        if x not in self.choices:
+            raise ValueError(
+                f"Invalid value for value: {x}. Please choose from: {self.choices}."
+            )
+
         if self.type == "value":
             return x
         elif self.type == "index":
-            if x is None:
-                return None
-            else:
-                return self.choices.index(x)
+            return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
@@ -1573,6 +1602,9 @@ class Image(
             preprocess=preprocess,
             postprocess=postprocess,
         )
+
+    def as_example(self, input_data: str | None) -> str:
+        return os.path.abspath(input_data)
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -2133,10 +2165,18 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
         self.file_types = file_types
-        valid_types = ["file", "binary"]
+        valid_types = [
+            "file",
+            "binary",
+            "bytes",
+        ]  # "bytes" is included for backwards compatibility
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
+        if type == "bytes":
+            warnings.warn(
+                "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
         self.type = type
         self.test_input = None
@@ -2203,7 +2243,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
                     )
                     file.orig_name = file_name
                 return file
-            elif self.type == "bytes":
+            elif (
+                self.type == "binary" or self.type == "bytes"
+            ):  # "bytes" is included for backwards compatibility
                 if is_file:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
@@ -2523,7 +2565,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             return data
 
         if cls.markdown_parser is None:
-            cls.markdown_parser = MarkdownIt().enable("table")
+            cls.markdown_parser = (
+                MarkdownIt()
+                .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
+                .enable("table")
+            )
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -2870,11 +2916,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    file = processing_utils.create_tmp_copy_of_file(
+                        file_name, dir=self.temp_dir
+                    )
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name
+                        data, file_path=file_name, dir=self.temp_dir
                     )
                     file.orig_name = file_name
                 return file
@@ -3044,6 +3092,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         show_label: bool = True,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        color: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3054,8 +3103,10 @@ class Label(Changeable, IOComponent, JSONSerializable):
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            color: The background color of the label (either a valid css color name or hexadecimal string).
         """
         self.num_top_classes = num_top_classes
+        self.color = color
         IOComponent.__init__(
             self,
             label=label,
@@ -3070,6 +3121,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         return {
             "num_top_classes": self.num_top_classes,
             "value": self.value,
+            "color": self.color,
             **IOComponent.get_config(self),
         }
 
@@ -3111,12 +3163,24 @@ class Label(Changeable, IOComponent, JSONSerializable):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
+        color: Optional[str] = _Keywords.NO_VALUE,
     ):
+        # If color is not specified (NO_VALUE) map it to None so that
+        # it gets filtered out in postprocess. This will mean the color
+        # will not be updated in the front-end
+        if color is _Keywords.NO_VALUE:
+            color = None
+        # If the color was specified by the developer as None
+        # Map is so that the color is updated to be transparent,
+        # e.g. no background default state.
+        elif color is None:
+            color = "transparent"
         updated_config = {
             "label": label,
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "color": color,
             "__type__": "update",
         }
         return updated_config
@@ -3623,9 +3687,9 @@ class Carousel(IOComponent, Changeable, SimpleSerializable):
 @document("change", "style")
 class Chatbot(Changeable, IOComponent, JSONSerializable):
     """
-    Displays a chatbot output showing both user submitted messages and responses
+    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, and images.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
 
     Demos: chatbot_demo
     """
@@ -3654,6 +3718,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
+        self.md = MarkdownIt()
 
         IOComponent.__init__(
             self,
@@ -3693,11 +3758,15 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Parameters:
-            y: List of tuples representing the message and response
+            y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
         Returns:
-            List of tuples representing the message and response
+            List of tuples representing the message and response. Each message and response will be a string of HTML.
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        for i, (message, response) in enumerate(y):
+            y[i] = (self.md.render(message), self.md.render(response))
+        return y
 
     def style(self, *, color_map: Optional[List[str, str]] = None, **kwargs):
         """
@@ -3844,7 +3913,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot_component_for_maps
     """
 
@@ -3860,7 +3929,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
@@ -3911,7 +3980,11 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             dtype = "bokeh"
             out_y = json.dumps(y)
         else:
-            dtype = "plotly"
+            is_altair = "altair" in y.__module__
+            if is_altair:
+                dtype = "altair"
+            else:
+                dtype = "plotly"
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
@@ -3922,7 +3995,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 @document("change")
 class Markdown(IOComponent, Changeable, SimpleSerializable):
     """
-    Used to render arbitrary Markdown output.
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
@@ -3944,7 +4017,11 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.md = MarkdownIt().enable("table")
+        self.md = (
+            MarkdownIt()
+            .use(dollarmath_plugin, renderer=utils.tex2svg, allow_digits=False)
+            .enable("table")
+        )
         IOComponent.__init__(
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )

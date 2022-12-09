@@ -377,7 +377,7 @@ class TestSlider:
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
-        """ "
+        """
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
@@ -396,6 +396,17 @@ class TestSlider:
             7342.938775510205,
             9996.0,
         ]
+
+    def test_slider_invalid_values(self):
+        """
+        Preprocesses invalid values for slider
+        """
+        slider = gr.Slider(minimum=20, maximum=30)
+        assert slider.preprocess(25) == 25.0
+        with pytest.raises(ValueError):
+            slider.preprocess(10)
+        with pytest.raises(ValueError):
+            slider.preprocess(40)
 
     def test_static(self):
         """
@@ -502,6 +513,26 @@ class TestCheckboxGroup:
         assert iface([]) == ""
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
 
+    def test_checkboxgroup_invalid_values(self):
+        """
+        tests handling of invalid checkbox group inputs
+        """
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="index")
+        assert checkboxes_input.preprocess(["c"]) == [2]
+        assert checkboxes_input.preprocess(["a", "c"]) == [0, 2]
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(["d"])
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(["a", "b", "d"])
+
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="value")
+        assert checkboxes_input.preprocess(["c"]) == ["c"]
+        assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(["d"])
+        with pytest.raises(ValueError):
+            checkboxes_input.preprocess(["a", "b", "d"])
+
 
 class TestRadio:
     def test_component_functions(self):
@@ -547,6 +578,20 @@ class TestRadio:
         assert iface("c") == 4
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
+
+    def test_radio_invalid_values(self):
+        """
+        tests handling of invalid radio inputs
+        """
+        radio_input = gr.Radio(["a", "b", "c"], type="index")
+        assert radio_input.preprocess("c") == 2
+        with pytest.raises(ValueError):
+            radio_input.preprocess("d")
+
+        radio_input = gr.Radio(["a", "b", "c"], type="value")
+        assert radio_input.preprocess("c") == "c"
+        with pytest.raises(ValueError):
+            radio_input.preprocess("d")
 
 
 class TestImage:
@@ -687,6 +732,24 @@ class TestPlot:
         assert component.get_config().get("value") is not None
         component = gr.Plot(None)
         assert component.get_config().get("value") is None
+
+    def test_postprocess_altair(self):
+        import altair as alt
+        from vega_datasets import data
+
+        cars = data.cars()
+        chart = (
+            alt.Chart(cars)
+            .mark_point()
+            .encode(
+                x="Horsepower",
+                y="Miles_per_Gallon",
+                color="Origin",
+            )
+        )
+        out = gr.Plot().postprocess(chart)
+        assert isinstance(out["plot"], str)
+        assert out["plot"] == chart.to_json()
 
 
 class TestAudio:
@@ -842,6 +905,10 @@ class TestFile:
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
 
+        file_input = gr.File(type="binary")
+        output = file_input.preprocess(x_file)
+        assert type(output) == bytes
+
     def test_in_interface_as_input(self):
         """
         Interface, process
@@ -854,8 +921,7 @@ class TestFile:
         iface = gr.Interface(get_size_of_file, "file", "number")
         assert iface(x_file) == 10558
 
-    @pytest.mark.asyncio
-    async def test_as_component_as_output(self):
+    def test_as_component_as_output(self):
         """
         Interface, process
         """
@@ -1043,7 +1109,7 @@ class TestDataframe:
 class TestDataset:
     def test_preprocessing(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        bus = pathlib.Path(test_file_dir, "bus.png")
+        bus = str(pathlib.Path(test_file_dir, "bus.png").resolve())
 
         dataset = gr.Dataset(
             components=["number", "textbox", "image", "html", "markdown"],
@@ -1349,7 +1415,30 @@ class TestLabel:
             "visible": True,
             "interactive": None,
             "root_url": None,
+            "color": None,
         }
+
+    def test_color_argument(self):
+
+        label = gr.Label(value=-10, color="red")
+        assert label.get_config()["color"] == "red"
+        update_1 = gr.Label.update(value="bad", color="brown")
+        assert update_1["color"] == "brown"
+        update_2 = gr.Label.update(value="bad", color="#ff9966")
+        assert update_2["color"] == "#ff9966"
+
+        update_3 = gr.Label.update(
+            value={"bad": 0.9, "good": 0.09, "so-so": 0.01}, color="green"
+        )
+        assert update_3["color"] == "green"
+
+        update_4 = gr.Label.update(value={"bad": 0.8, "good": 0.18, "so-so": 0.02})
+        assert update_4["color"] is None
+
+        update_5 = gr.Label.update(
+            value={"bad": 0.8, "good": 0.18, "so-so": 0.02}, color=None
+        )
+        assert update_5["color"] == "transparent"
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
@@ -1476,6 +1565,29 @@ class TestHighlightedText:
             ]
 
 
+class TestChatbot:
+    def test_component_functions(self):
+        """
+        Postprocess, get_config
+        """
+        chatbot = gr.Chatbot()
+        assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
+            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+        ]
+        assert chatbot.get_config() == {
+            "value": [],
+            "color_map": None,
+            "label": None,
+            "show_label": True,
+            "interactive": None,
+            "name": "chatbot",
+            "visible": True,
+            "elem_id": None,
+            "style": {},
+            "root_url": None,
+        }
+
+
 class TestJSON:
     def test_component_functions(self):
         """
@@ -1559,6 +1671,27 @@ class TestHTML:
 
         iface = gr.Interface(bold_text, "text", "html")
         assert iface("test") == "<strong>test</strong>"
+
+
+class TestMarkdown:
+    def test_component_functions(self):
+        markdown_component = gr.Markdown("# Let's learn about $x$", label="Markdown")
+        assert markdown_component.get_config()["value"].startswith(
+            """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
+        )
+
+    @pytest.mark.asyncio
+    async def test_in_interface(self):
+        """
+        Interface, process
+        """
+        iface = gr.Interface(lambda x: x, "text", "markdown")
+        input_data = "Here's an [image](https://gradio.app/images/gradio_logo.png)"
+        output_data = iface(input_data)
+        assert (
+            output_data
+            == """<p>Here's an <a href="https://gradio.app/images/gradio_logo.png">image</a></p>\n"""
+        )
 
 
 class TestModel3D:

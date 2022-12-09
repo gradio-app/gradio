@@ -8,6 +8,7 @@ import argparse
 def copy_all_demos(source_dir: str, dest_dir: str):
     demos_to_copy = [
         "audio_debugger",
+        "altair_plot",
         "blocks_essay",
         "blocks_js_methods",
         "blocks_layout",
@@ -64,5 +65,7 @@ if __name__ == "__main__":
     opencv-python==4.6.0.66
     transformers==4.21.1
     torch==1.12.1
+    altair
+    vega_datasets
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

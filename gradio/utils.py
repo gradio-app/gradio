@@ -10,6 +10,7 @@ import json.decoder
 import os
 import pkgutil
 import random
+import re
 import subprocess
 import sys
 import tempfile
@@ -19,6 +20,7 @@ import warnings
 from contextlib import contextmanager
 from distutils.version import StrictVersion
 from enum import Enum
+from io import BytesIO
 from numbers import Number
 from pathlib import Path
 from typing import (
@@ -36,10 +38,17 @@ from typing import (
 import aiohttp
 import fsspec.asyn
 import httpx
+
+<<<<<<< HEAD
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
+
+=======
+import matplotlib.pyplot as plt
+
+>>>>>>> origin
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
@@ -61,7 +70,9 @@ def version_check():
         current_pkg_version = (
             pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
         )
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
+            "version"
+        ]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 "IMPORTANT: You are using gradio version {}, "
@@ -633,10 +644,17 @@ def set_directory(path: Path):
         os.chdir(origin)
 
 
-def strip_invalid_filename_characters(filename: str, max_size: int = 200) -> str:
-    return ("".join([char for char in filename if char.isalnum() or char in "._- "]))[
-        :max_size
-    ]
+def strip_invalid_filename_characters(filename: str, max_bytes: int = 200) -> str:
+    """Strips invalid characters from a filename and ensures that the file_length is less than `max_bytes` bytes."""
+    filename = "".join([char for char in filename if char.isalnum() or char in "._- "])
+    filename_len = len(filename.encode())
+    if filename_len > max_bytes:
+        while filename_len > max_bytes:
+            if len(filename) == 0:
+                break
+            filename = filename[:-1]
+            filename_len = len(filename.encode())
+    return filename
 
 
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
@@ -934,3 +952,28 @@ class Waveform:
 
         subprocess.call(ffmpeg_cmd, shell=True)
         return output_mp4
+
+
+def tex2svg(formula, *args):
+    FONTSIZE = 20
+    DPI = 300
+    plt.rc("mathtext", fontset="cm")
+    fig = plt.figure(figsize=(0.01, 0.01))
+    fig.text(0, 0, r"${}$".format(formula), fontsize=FONTSIZE)
+    output = BytesIO()
+    fig.savefig(
+        output,
+        dpi=DPI,
+        transparent=True,
+        format="svg",
+        bbox_inches="tight",
+        pad_inches=0.0,
+    )
+    plt.close(fig)
+    output.seek(0)
+    xml_code = output.read().decode("utf-8")
+    svg_start = xml_code.index("<svg ")
+    svg_code = xml_code[svg_start:]
+    svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
+    copy_code = f"<span style='font-size: 0px'>{formula}</span>"
+    return f"{copy_code}{svg_code}"
