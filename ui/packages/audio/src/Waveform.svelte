@@ -29,28 +29,10 @@
 			name: name,
 			data: value?.data
 		});
-
-	let time = 0;
-	let duration: number;
-	$: completion = time / duration;
 </script>
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
-<div class="relative">
-	<div
-		class="absolute top-0 left-0 h-full pointer-events-none bg-white !bg-opacity-30"
-		style="width: {completion * 100}%"
-	/>
-	<!-- svelte-ignore a11y-media-has-caption -->
-	<video
-		controls
-		preload="metadata"
-		on:play
-		on:pause
-		on:ended
-		bind:duration
-		bind:currentTime={time}
-	>
-		<source src={value?.data} />
-	</video>
-</div>
+<!-- svelte-ignore a11y-media-has-caption -->
+<video controls preload="metadata" on:play on:pause on:ended>
+	<source src={value?.data} />
+</video>

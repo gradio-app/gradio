@@ -803,7 +803,8 @@ class TupleNoPrint(tuple):
 class Waveform:
     def __init__(
         self,
-        audio: str | Tuple[int, np.ndarray],
+        *,
+        audio: str | Tuple[int, np.ndarray] | None = None,
         bg_color: str = "#f3f4f6",
         bg_image: str = None,
         fg_alpha: float = 0.75,
@@ -820,6 +821,16 @@ class Waveform:
         :param bar_count: Number of bars in waveform
         :param bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
         """
+        if audio:
+            self.load_audio(audio)
+        self.bg_color = bg_color
+        self.bg_image = bg_image
+        self.fg_alpha = fg_alpha
+        self.bars_color = bars_color
+        self.bar_count = bar_count
+        self.bar_width = bar_width
+
+    def load_audio(self, audio):
         if isinstance(audio, str):
             self.audio_file = audio
             self.audio = processing_utils.audio_from_file(audio)
@@ -828,13 +839,7 @@ class Waveform:
             processing_utils.audio_to_file(audio, tmp_wav.name)
             self.audio = audio
             self.audio_file = tmp_wav.name
-
-        self.bg_color = bg_color
-        self.bg_image = bg_image
-        self.fg_alpha = fg_alpha
-        self.bars_color = bars_color
-        self.bar_count = bar_count
-        self.bar_width = bar_width
+        self.duration = round(len(self.audio[1]) / self.audio[0], 4)
 
     def get_video(self, directory: str):
         # Helper methods to create waveform
@@ -862,9 +867,8 @@ class Waveform:
         samples = np.abs(samples)
         samples = np.max(samples, 1)
 
-        print(samples)
-
         matplotlib.use("Agg")
+        plt.clf()
         # Plot waveform
         color = (
             self.bars_color
@@ -903,9 +907,8 @@ class Waveform:
             bg_width, bg_height = bg_img.size
             if waveform_width != bg_width:
                 bg_img = bg_img.resize(
-                    (waveform_width, int(bg_height * waveform_width / bg_width))
+                    (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
                 )
-                bg_img.show()
                 bg_width, bg_height = bg_img.size
             composite_height = max(bg_height, waveform_height)
             composite = PIL.Image.new(
@@ -916,14 +919,18 @@ class Waveform:
                 waveform_img, (0, composite_height - waveform_height), waveform_img
             )
             composite.save(tmp_img.name)
+            img_width, img_height = composite.size
         else:
+            img_width, img_height = waveform_img.size
             waveform_img.save(tmp_img.name)
 
         # Convert waveform to video with ffmpeg
         output_mp4 = tempfile.NamedTemporaryFile(
             suffix=".mp4", delete=False, dir=directory
         )
-        ffmpeg_cmd = f"ffmpeg -loop 1 -i {tmp_img.name} -i {self.audio_file} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' -y {output_mp4.name}"
+
+        ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {self.audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{self.duration})*t:H-h:shortest=1" -t {self.duration} -y {output_mp4.name}       
+        """
+
         subprocess.call(ffmpeg_cmd, shell=True)
-        print(output_mp4.name)
         return output_mp4

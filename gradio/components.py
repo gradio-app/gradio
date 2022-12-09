@@ -1792,6 +1792,7 @@ class Audio(
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
+        waveform: bool | Waveform = False,
         **kwargs,
     ):
         """
@@ -1805,6 +1806,7 @@ class Audio(
             visible: If False, component will be hidden.
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            waveform: If True, will display a waveform of the audio instead of a play button. Can also be passed a gradio.Waveform object to customize the waveform.
         """
         self.temp_dir = tempfile.mkdtemp()
         valid_sources = ["upload", "microphone"]
@@ -1827,6 +1829,7 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
+        self.waveform = Waveform() if waveform is True else waveform
         IOComponent.__init__(
             self,
             label=label,
@@ -1855,6 +1858,7 @@ class Audio(
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
+        waveform: Optional[bool | Waveform] = None,
     ):
         updated_config = {
             "source": source,
@@ -1863,6 +1867,9 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
+            "waveform": waveform.get_args()
+            if isinstance(waveform, Waveform)
+            else waveform,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
@@ -2012,7 +2019,15 @@ class Audio(
             return None
 
         media = "audio"
-        if isinstance(y, str):
+        if self.waveform or isinstance(y, Waveform):
+            if isinstance(y, Waveform):
+                waveform = y
+            else:
+                waveform = self.waveform
+                waveform.load_audio(y)
+            file = waveform.get_video(self.temp_dir)
+            media = "video"
+        elif isinstance(y, str):
             if utils.validate_url(y):
                 file = processing_utils.download_to_file(y, dir=self.temp_dir)
             else:
@@ -2023,9 +2038,9 @@ class Audio(
                 suffix=".wav", dir=self.temp_dir, delete=False
             )
             processing_utils.audio_to_file(sample_rate, data, file.name)
-        elif isinstance(y, Waveform):
-            media = "video"
-            file = y.get_video(self.temp_dir)
+        else:
+            print(">", y.__class__)
+            raise ValueError("Invalid audio data type")
 
         return {"name": file.name, "data": None, "is_file": True, "media": media}
 
