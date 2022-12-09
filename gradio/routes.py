@@ -429,7 +429,10 @@ class App(FastAPI):
 
         @app.get("/robots.txt", response_class=PlainTextResponse)
         def robots_txt():
-            return "User-agent: *\nDisallow: /"
+            if app.blocks.share:
+                return "User-agent: *\nDisallow: /"
+            else: 
+                return "User-agent: *\nDisallow: "
 
         return app
 
