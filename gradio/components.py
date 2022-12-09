@@ -966,8 +966,6 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
             otherwise list of selected choices as strings or indices within choice list
         """
 
-        if x is None:
-            raise ValueError("Check box value(s) cannot be None")
         for choice in x:
             if choice not in self.choices:
                 raise ValueError(
