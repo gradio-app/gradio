@@ -132,7 +132,7 @@ No changes to highlight.
 * Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755) 
 * Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
 * Added handling of invalid values in the `Slider`, `Radio` and `CheckgroupBox` components by [@thehimalayanleo](https://github.com/thehimalayanleo) in [PR 2760](https://github.com/gradio-app/gradio/pull/2760).
-
+* Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -1228,7 +1228,7 @@ You can read more in the [Examples docs](https://gradio.app/docs/#examples) or t
 
 ### 6. Fixes to Audio Streaming
 
-With PR [#1828]([PR 1828),](https://github.com/gradio-app/gradio/pull/1828),) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
+With [PR 1828](https://github.com/gradio-app/gradio/pull/1828) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
 
 <img width="785" alt="Screen Shot 2022-07-19 at 6 02 35 PM" src="https://user-images.githubusercontent.com/9021060/179808136-9e84502c-f9ee-4f30-b5e9-1086f678fe91.png">
 
