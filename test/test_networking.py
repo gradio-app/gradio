@@ -1,7 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
 import os
-import unittest.mock as mock
 import urllib
 import warnings
 
