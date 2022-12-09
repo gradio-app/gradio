@@ -38,17 +38,10 @@ from typing import (
 import aiohttp
 import fsspec.asyn
 import httpx
-
-<<<<<<< HEAD
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
-
-=======
-import matplotlib.pyplot as plt
-
->>>>>>> origin
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
