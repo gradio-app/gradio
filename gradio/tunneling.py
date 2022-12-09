@@ -40,7 +40,8 @@ class Tunnel:
 
             if resp.status_code == 403:
                 raise OSError(
-                    f"Incompatible platform, please contact us {platform.uname()}"
+                    f"Cannot set up a share link as this platform is incompatible. Please "
+                    f"create a GitHub issue with information about your platform: {platform.uname()}"
                 )
 
             resp.raise_for_status()
