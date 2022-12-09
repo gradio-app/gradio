@@ -13,7 +13,7 @@ describe("i18n", () => {
 
 		langs.forEach(([code, translation]) => {
 			// must be "xx" or "xx-xx" -- http://4umi.com/web/html/languagecodes.php
-			const RE = /^([a-z]{2}-[a-z]{2}|[a-z]{2})$/;
+			const RE = /^([a-z]{2}-[a-zA-Z]{2}|[a-z]{2})$/;
 
 			assert.ok(RE.test(code));
 			assert.ok(translation.interface);
