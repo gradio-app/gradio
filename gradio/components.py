@@ -1890,7 +1890,6 @@ class Audio(
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
-        waveform: Optional[bool | Waveform] = None,
     ):
         updated_config = {
             "source": source,
@@ -1899,9 +1898,6 @@ class Audio(
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "waveform": waveform.get_args()
-            if isinstance(waveform, Waveform)
-            else waveform,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
