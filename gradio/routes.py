@@ -22,7 +22,12 @@ import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+)
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
@@ -431,7 +436,7 @@ class App(FastAPI):
         def robots_txt():
             if app.blocks.share:
                 return "User-agent: *\nDisallow: /"
-            else: 
+            else:
                 return "User-agent: *\nDisallow: "
 
         return app
