@@ -976,7 +976,9 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         elif self.type == "index":
             return [self.choices.index(choice) for choice in x]
         else:
-            raise ValueError(f"Unknown type: {self.type}. Please choose from: 'value', 'index'.")
+            raise ValueError(
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
+            )
 
     def postprocess(self, y: List[str] | None) -> List[str]:
         """
