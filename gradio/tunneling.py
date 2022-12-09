@@ -24,9 +24,10 @@ class Tunnel:
         if machine == "x86_64":
             machine = "amd64"
 
+
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
-        binary_path = f"{os.path.dirname(__file__)}/{binary_name}"
+        binary_path = os.path.join(os.path.dirname(__file__), binary_name)
 
         extension = ".exe" if os.name == "nt" else ""
 
@@ -35,7 +36,6 @@ class Tunnel:
 
             import requests
 
-            print(f"Downloading tunnel binary {binary_name}")
             binary_url = f"https://cdn-media.huggingface.co/frpc-gradio-{VERSION}/{binary_name}{extension}"
             resp = requests.get(binary_url)
 
@@ -94,7 +94,6 @@ class Tunnel:
             "--disable_log_color",
         ]
 
-        print(" ".join(command))
 
         self.proc = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -103,7 +102,6 @@ class Tunnel:
         while url == "":
             line = await self.proc.stdout.readline()
             line = line.decode("utf-8")
-            print(line)
             if "start proxy success" in line:
                 url = re.search("start proxy success: (.+)\n", line).group(1)
         return url

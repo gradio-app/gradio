@@ -1418,10 +1418,10 @@ class Blocks(BlockContext):
             try:
                 if self.share_url is None:
                     print(
-                        "\nSetting up a public link... we've recently upgraded the "
-                        "way public links are generated. But if you encounter any "
+                        "\nSetting up a public link... we have recently upgraded the "
+                        "way public links are generated. If you encounter any "
                         "problems, please create an issue at https://gradio.dev and use"
-                        " gradio version 3.8.2\n"
+                        " gradio version 3.13.0\n"
                     )
                     self.share_url = networking.setup_tunnel(
                         self.server_name, self.server_port
