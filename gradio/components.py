@@ -3987,9 +3987,10 @@ class ScatterPlot(Plot):
 
     def __init__(
         self,
+        value: Optional[pd.DataFrame] = None,
         x: Optional[str] = None,
         y: Optional[str] = None,
-        value: Optional[pd.DataFrame] = None,
+        *
         color: Optional[str] = None,
         size: Optional[str] = None,
         shape: Optional[str] = None,
