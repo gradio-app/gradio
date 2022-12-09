@@ -959,7 +959,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            Raises a ValueError if the any of elements in `x` are not in `self.choices`. 
+            Raises a ValueError if the any of elements in `x` are not in `self.choices`.
             Otherwise returns a list of selected choices as strings or indices within choice list
             depending on `self.type`.
         """
