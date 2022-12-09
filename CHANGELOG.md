@@ -4,7 +4,7 @@
 
 ### Scatter plot component
 
-It is now possible to create a scatter plot without knowledge of a plotting library!
+It is now possible to create a scatter plot natively in Gradio!
 
 The `gr.ScatterPlot` component accepts a pandas dataframe and some optional configuration parameters
 and will automatically create a plot for you!
