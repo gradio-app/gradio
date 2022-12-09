@@ -2,7 +2,38 @@
 
 ## New Features:
 
-### Set the color of a Label component with a function
+### Support for altair plots
+
+The `Plot` component can now accept altair plots as values! 
+Simply return an altair plot from your event listener and gradio will display it in the front-end.
+See the example below:
+
+```python
+import gradio as gr
+import altair as alt
+from vega_datasets import data
+
+cars = data.cars()
+chart = (
+    alt.Chart(cars)
+    .mark_point()
+    .encode(
+        x="Horsepower",
+        y="Miles_per_Gallon",
+        color="Origin",
+    )
+)
+
+with gr.Blocks() as demo:
+    gr.Plot(value=chart)
+demo.launch()
+```
+
+<img width="1366" alt="image" src="https://user-images.githubusercontent.com/41651716/204660697-f994316f-5ca7-4e8a-93bc-eb5e0d556c91.png">
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+
+### Set the background color of a Label component 
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
 The `color` argument should either be a valid css color name or hexadecimal string.
@@ -62,7 +93,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.12.0
+# Version 3.12.0
 
 ## New Features:
 
@@ -150,7 +181,7 @@ No changes to highlight.
 * [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!
 
 
-# 3.11.0
+# Version 3.11.0
 
 ## New Features:
 
@@ -226,7 +257,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.10.1
+# Version 3.10.1
 
 ## New Features:
 No changes to highlight.
@@ -250,7 +281,8 @@ No changes to highlight.
 No changes to highlight.
 
 
-# 3.10.0
+# Version 3.10.0
+
 * Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 * `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
 
