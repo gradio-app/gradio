@@ -718,7 +718,9 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: numeric input
         Returns:
-            If the input is greater than maximum or less than minimum raises ValueError, else returns the input.
+            None if the input is None, else the numeric input.
+        Raises:
+            ValueError: if the input is greater than maximum or less than minimum.
         """
         if x is None:
             return None
@@ -959,25 +961,22 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            Raises a ValueError if the any of elements in `x` are not in `self.choices`.
-            Otherwise returns a list of selected choices as strings or indices within choice list
+            Returns a list of selected choices as strings or indices within choice list
             depending on `self.type`.
+        Raises:
+            ValueError: if any of elements in `x` are not in `self.choices`, or if `self.type` is not one of "value" or "index".
         """
         for choice in x:
             if choice not in self.choices:
                 raise ValueError(
-                    "Invalid choice: {choice}. Select from: {self.choices}."
+                    f"Invalid choice: {choice}. Select from: {self.choices}."
                 )
         if self.type == "value":
             return x
         elif self.type == "index":
             return [self.choices.index(choice) for choice in x]
         else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
-            )
+            raise ValueError(f"Unknown type: {self.type}. Please choose from: 'value', 'index'.")
 
     def postprocess(self, y: List[str] | None) -> List[str]:
         """
@@ -1130,8 +1129,9 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: selected choice
         Returns:
-            - if type is "value" and x is not in `self.choices`, raise ValueError, else return x.
-            - if type is "index" and x is not in `self.choices`, raise ValueError, else return the index of `x` in `self.choices`.
+            the input string `x` if `self.type` is "value", otherwise if `self.type` is "index", returns the index of `x` in `self.choices`.
+        Raises:
+            ValueError: if x is not in `self.choices` or if `self.type` is not "value" or "index".
         """
         if x is None:
             return None
@@ -1146,9 +1146,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             return self.choices.index(x)
         else:
             raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
+                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
