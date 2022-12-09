@@ -33,6 +33,9 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
+<img width="404" alt="image" src="https://user-images.githubusercontent.com/41651716/206737726-4c4da5f0-dee8-4f0a-b1e1-e2b75c4638e9.png">
+
+
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2764](https://github.com/gradio-app/gradio/pull/2764)
  
 
