@@ -1466,11 +1466,11 @@ class TestHighlightedText:
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result != result_
         assert result_after_merge != result_
-        
+
         component = gr.HighlightedText(combine_adjacent=True)
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result_after_merge == result_
-        
+
         component = gr.HighlightedText()
 
         text = "Wolfgang lives in Berlin"
