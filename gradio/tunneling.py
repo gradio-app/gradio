@@ -24,7 +24,6 @@ class Tunnel:
         if machine == "x86_64":
             machine = "amd64"
 
-
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
         binary_path = os.path.join(os.path.dirname(__file__), binary_name)
@@ -93,7 +92,6 @@ class Tunnel:
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
         ]
-
 
         self.proc = await asyncio.create_subprocess_exec(
             *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
