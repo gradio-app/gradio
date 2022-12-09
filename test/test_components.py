@@ -1457,8 +1457,6 @@ class TestHighlightedText:
             {"entity": "LOC", "start": 18, "end": 24},
         ]
         # After a merge empty entries are stripped except the leading one
-Nit: I think it would be clearer for readers of the codebase to just write this out:
-```suggestion
         result_after_merge = [
             ("", None),
             ("Wolfgang", "PER"),
@@ -1473,7 +1471,7 @@ Nit: I think it would be clearer for readers of the codebase to just write this 
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result_after_merge == result_
         
-        component = gr.HighlightedText(combine_adjacent=True)
+        component = gr.HighlightedText()
 
         text = "Wolfgang lives in Berlin"
         entities = [
