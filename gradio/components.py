@@ -3987,7 +3987,7 @@ class ScatterPlot(Plot):
 
     def __init__(
         self,
-        value: Optional[pd.DataFrame] = None,
+        value: Optional[pd.DataFrame | Callable] = None,
         x: Optional[str] = None,
         y: Optional[str] = None,
         *,
@@ -4012,9 +4012,9 @@ class ScatterPlot(Plot):
     ):
         """
         Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
-            value: The pandas dataframe containing the data to display in a scatter plot.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
             size: The column used to determine the point size. Should contain numeric data so that gradio can map the data to the point size.
             shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
@@ -4050,11 +4050,11 @@ class ScatterPlot(Plot):
         self.interactive_chart = interactive
         self.width = width
         self.height = height
-        self.value = None
-        if value is not None:
-            self.value = self.postprocess(value)
+        # self.value = None
+        # if value is not None:
+        #     self.value = self.postprocess(value)
         super().__init__(
-            value,
+            value=value,
             label=label,
             show_label=show_label,
             visible=visible,

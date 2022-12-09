@@ -2016,3 +2016,13 @@ class TestScatterPlot:
             match="In order to update plot properties, the x and y axis data",
         ):
             gr.ScatterPlot.update(value=cars, x="foo")
+
+    def test_scatterplot_accepts_fn_as_value(self):
+        plot = gr.ScatterPlot(
+            value=lambda: cars.sample(frac=0.1, replace=False),
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Origin",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)
