@@ -962,7 +962,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            ValuError if x is None or one of the choice in x is not in the choices list
+            ValueError if the choices in x is not in `self.choices`
             otherwise list of selected choices as strings or indices within choice list
         """
 
