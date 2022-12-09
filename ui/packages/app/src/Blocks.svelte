@@ -40,6 +40,7 @@
 	export let show_api: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
+	export let theme: string;
 
 	let loading_status = create_loading_status_store();
 
@@ -419,6 +420,7 @@
 				{instance_map}
 				{root}
 				{target}
+				{theme}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
