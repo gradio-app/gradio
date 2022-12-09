@@ -1134,7 +1134,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: selected choice
         Returns:
-            - if type is "value" and x is not in "choices" list raise ValueError otherwise return x. Note if x is None we return the element at the first index in the "choices" list.
+            - if type is "value" and x is not in `self.choices` list raise ValueError otherwise return x. Note if x is None we return the element at the first index in the "choices" list.
             - if type is "index" and x is not in "choices" list raise ValueError otherwise return choices.index(x). If x is None we return 0 (first index of the list).
         """
 
