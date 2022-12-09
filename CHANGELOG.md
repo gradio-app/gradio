@@ -79,6 +79,7 @@ Add Brazilian Portuguese translation (pt-BR.json) by [@pstwh](http://github.com/
 ## Bug Fixes:
 * Fixed issue where image thumbnails were not showing when an example directory was provided
 by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745) 
+* Fixed bug loading audio input models from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2779](https://github.com/gradio-app/gradio/pull/2779). 
 
 ## Documentation Changes:
 No changes to highlight.
