@@ -3990,7 +3990,7 @@ class ScatterPlot(Plot):
         value: Optional[pd.DataFrame] = None,
         x: Optional[str] = None,
         y: Optional[str] = None,
-        *
+        *,
         color: Optional[str] = None,
         size: Optional[str] = None,
         shape: Optional[str] = None,
