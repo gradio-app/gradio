@@ -44,7 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.tunneling import CURRENT_TUNNEL
+from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
@@ -1615,8 +1615,8 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            if CURRENT_TUNNEL is not None:
-                CURRENT_TUNNEL.kill()
+            for tunnel in CURRENT_TUNNELS:
+                tunnel.kill()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""

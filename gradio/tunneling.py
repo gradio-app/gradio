@@ -1,18 +1,18 @@
-import asyncio
+import atexit
 import os
 import platform
 import re
-import threading
-from typing import Optional
+import subprocess
+from typing import List
 
 VERSION = "0.1"
-CURRENT_TUNNEL: Optional["Tunnel"] = None
+CURRENT_TUNNELS: List["Tunnel"] = []
 
 
 class Tunnel:
     def __init__(self, remote_host, remote_port, local_host, local_port):
-        self.thread = None
         self.proc = None
+        self.url = None
         self.remote_host = remote_host
         self.remote_port = remote_port
         self.local_host = local_host
@@ -56,26 +56,17 @@ class Tunnel:
 
     def start_tunnel(self) -> str:
         binary_path = self.download_binary()
-
-        loop = asyncio.new_event_loop()
-        url = loop.run_until_complete(self._start_tunnel(binary_path))
-
-        def _inner_target():
-            try:
-                loop.run_forever()
-            except Exception as e:
-                print(e)
-
-        self.thread = threading.Thread(target=_inner_target, daemon=True).start()
-
-        return url
+        self.url = self._start_tunnel(binary_path)
+        return self.url
 
     def kill(self):
-        self.proc.terminate()
+        if self.proc is not None:
+            print(f"Killing tunnel {self.local_host}:{self.local_port} <> {self.url}")
+            self.proc.terminate()
+            self.proc = None
 
-    async def _start_tunnel(self, binary: str) -> str:
-        global CURRENT_TUNNEL
-        CURRENT_TUNNEL = self
+    def _start_tunnel(self, binary: str) -> str:
+        CURRENT_TUNNELS.append(self)
         command = [
             binary,
             "http",
@@ -94,12 +85,13 @@ class Tunnel:
             "--disable_log_color",
         ]
 
-        self.proc = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        self.proc = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+        atexit.register(self.kill)
         url = ""
         while url == "":
-            line = await self.proc.stdout.readline()
+            line = self.proc.stdout.readline()
             line = line.decode("utf-8")
             if "start proxy success" in line:
                 url = re.search("start proxy success: (.+)\n", line).group(1)
