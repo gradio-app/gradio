@@ -75,7 +75,7 @@ You might notice that the first inference takes about 20 seconds. This happens s
 ## Hosting your Gradio demos
 
 
-[Hugging Face Spaces](hf.co/spaces) allows anyone to host their Gradio demos freely. The community shares oven 2,000 Spaces. Uploading your Gradio demos take a couple of minutes. You can head to [hf.co/new-space](https://huggingface.co/new-space), select the Gradio SDK, create an `app.py` file, and voila! You have a demo you can share with anyone else.
+[Hugging Face Spaces](https://hf.co/spaces) allows anyone to host their Gradio demos freely. The community shares oven 2,000 Spaces. Uploading your Gradio demos take a couple of minutes. You can head to [hf.co/new-space](https://huggingface.co/new-space), select the Gradio SDK, create an `app.py` file, and voila! You have a demo you can share with anyone else.
 
 ## Building demos based on other demos
 
