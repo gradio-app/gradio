@@ -17,6 +17,9 @@ on:
     paths:
       - 'gradio/version.txt'
 
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
 jobs:
   deploy:
     if: github.event.pull_request.merged == true || github.event.action == ''

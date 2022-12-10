@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 cd "$(dirname ${0})/.."
 source scripts/helpers.sh
@@ -20,6 +21,6 @@ cd ..
 aws s3 cp gradio/templates/cdn "s3://gradio/${new_version}/" --recursive
 cp gradio/templates/cdn/index.html gradio/templates/frontend/share.html
 
-rm -r dist/*
-rm -r build/*
+rm -rf dist/*
+rm -rf build/*
 python3 -m build
