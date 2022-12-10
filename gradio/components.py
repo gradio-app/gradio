@@ -3303,6 +3303,10 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                     running_category = category
                 elif category == running_category:
                     running_text += self.adjacent_separator + text
+                elif not text:
+                    # Skip fully empty item, these get added in processing
+                    # of dictionaries.
+                    pass
                 else:
                     output.append((running_text, running_category))
                     running_text = text
