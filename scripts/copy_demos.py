@@ -28,6 +28,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "kitchen_sink_random",
         "matrix_transpose",
         "model3D",
+        "native_plots",
         "reset_components",
         "reverse_audio",
         "stt_or_tts",
