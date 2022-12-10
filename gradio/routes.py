@@ -8,13 +8,12 @@ import io
 import json
 import mimetypes
 import os
-import posixpath
 import secrets
 import traceback
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, Union
 from urllib.parse import urlparse
 
 import fastapi
@@ -27,20 +26,20 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    RedirectResponse,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
-from gradio.dataclasses import PredictBody, ResetBody
+from gradio.dataclasses import PredictBody, ResetBody, ComponentAPIBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queue import Estimation, Event
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name, safe_join
 
 mimetypes.init()
 
@@ -222,7 +221,7 @@ class App(FastAPI):
                 return FileResponse(app.blocks.favicon_path)
 
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
-        def file(path: str):
+        def file(path: str, component_id: Union[int, None] = None):
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
             if (
@@ -236,6 +235,18 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
+            elif component_id is not None:
+                component = app.blocks.components[component_id]
+                if hasattr(component, "accessible_directories"):
+                    for directory in component.accessible_directories:
+                        if Path(directory).resolve() in Path(path).resolve().parents:
+                            return FileResponse(
+                                Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
+                            )
+                raise ValueError(
+                    f"File cannot be fetched for componebt {component_id}: {path}"
+                )
+
             elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
                 Path(temp_dir).resolve() in Path(path).resolve().parents
                 for temp_dir in app.blocks.temp_dirs
@@ -424,6 +435,23 @@ class App(FastAPI):
         async def get_queue_status():
             return app.blocks._queue.get_estimation()
 
+        @app.post(
+            "/component/{component_id}",
+            dependencies=[Depends(login_check)],
+        )
+        @app.post(
+            "/component/{component_id}/",
+            dependencies=[Depends(login_check)],
+        )
+        async def component_api(component_id: str, body: ComponentAPIBody):
+            component_id = int(component_id)
+            block = app.blocks.blocks[component_id]
+            if hasattr(block, "api"):
+                data = await block.api(body.data)
+                return {"data": data}
+            else:
+                return {"error": "This block does not have an API."}
+
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
@@ -445,26 +473,6 @@ class App(FastAPI):
 ########
 # Helper functions
 ########
-
-
-def safe_join(directory: str, path: str) -> Optional[str]:
-    """Safely path to a base directory to avoid escaping the base directory.
-    Borrowed from: werkzeug.security.safe_join"""
-    _os_alt_seps: List[str] = list(
-        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
-    )
-
-    if path != "":
-        filename = posixpath.normpath(path)
-
-    if (
-        any(sep in filename for sep in _os_alt_seps)
-        or os.path.isabs(filename)
-        or filename == ".."
-        or filename.startswith("../")
-    ):
-        return None
-    return posixpath.join(directory, filename)
 
 
 def get_types(cls_set: List[Type]):

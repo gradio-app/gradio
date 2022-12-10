@@ -1,7 +1,7 @@
 import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { Component as Loader } from "./components/StatusTracker";
-import { fn } from "./api";
+import { fn, component_fn } from "./api";
 
 import type { ComponentMeta, Dependency, LayoutNode } from "./components/types";
 

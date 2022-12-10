@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta } from "./components/types";
+	import { component_fn } from "./api";
 
 	export let root: string;
 	export let component: ComponentMeta["component"];
@@ -54,6 +55,8 @@
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
 	elem_id={("elem_id" in props && props.elem_id) || `component-${id}`}
+	component_id={id}
+	api={component_fn.bind(null, root, id)}
 	on:prop_change={handle_prop_change}
 	{target}
 	{...props}

@@ -18,3 +18,7 @@ class PredictBody(BaseModel):
 class ResetBody(BaseModel):
     session_hash: str
     fn_index: int
+
+
+class ComponentAPIBody(BaseModel):
+    data: Any

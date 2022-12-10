@@ -51,8 +51,8 @@
 
 	export let eta: number | null = null;
 	export let queue: boolean = false;
-	export let queue_position: number | null;
-	export let queue_size: number | null;
+	export let queue_position: number | null = null;
+	export let queue_size: number | null = null;
 	export let status: "complete" | "pending" | "error" | "generating";
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;

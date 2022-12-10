@@ -18,6 +18,7 @@ export const component_map = {
 	gallery: () => import("./Gallery"),
 	group: () => import("./Group"),
 	highlightedtext: () => import("./HighlightedText"),
+	hostfile: () => import("./HostFile"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),
 	interpretation: () => import("./Interpretation"),

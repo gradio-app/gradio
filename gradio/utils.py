@@ -31,7 +31,9 @@ from typing import (
     NewType,
     Tuple,
     Type,
+    Optional,
 )
+import posixpath
 
 import aiohttp
 import fsspec.asyn
@@ -828,3 +830,23 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
+
+
+def safe_join(directory: str, path: str) -> Optional[str]:
+    """Safely path to a base directory to avoid escaping the base directory.
+    Borrowed from: werkzeug.security.safe_join"""
+    _os_alt_seps: List[str] = list(
+        sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
+    )
+
+    if path != "":
+        filename = posixpath.normpath(path)
+
+    if (
+        any(sep in filename for sep in _os_alt_seps)
+        or os.path.isabs(filename)
+        or filename == ".."
+        or filename.startswith("../")
+    ):
+        return None
+    return posixpath.join(directory, filename)
