@@ -35,6 +35,7 @@ from gradio.components import (
     Number,
     Plot,
     Radio,
+    ScatterPlot,
     Slider,
     State,
     StatusTracker,

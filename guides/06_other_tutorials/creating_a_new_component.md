@@ -6,7 +6,7 @@ The purpose of this guide is to illustrate how to add a new component, which you
 
 ## Prerequisites
 
-Make sure you have followed the [CONTRIBUTING.md](../CONTRIBUTING.md) guide in order to setup your local development environment (both client and server side).
+Make sure you have followed the [CONTRIBUTING.md](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) guide in order to setup your local development environment (both client and server side).
 
 ## Step 1 - Create a New Python Class and Import it
 
@@ -379,7 +379,7 @@ You can take a look at the [demo](https://github.com/gradio-app/gradio/tree/main
 To test the application:
 
 - run on a terminal `python path/demo/run.py` which starts the backend at the address [http://localhost:7860](http://localhost:7860);
-- in another terminal, from the ui folder, run `pnpm dev` to start the frontend at [localhost:3000](localhost:3000) with hot reload functionalities.
+- in another terminal, from the ui folder, run `pnpm dev` to start the frontend at [http://localhost:3000](http://localhost:3000) with hot reload functionalities.
 
 ## Conclusion
 
