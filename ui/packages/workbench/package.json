@@ -31,6 +31,7 @@
 		"@gradio/file": "workspace:^0.0.1",
 		"@gradio/form": "workspace:^0.0.1",
 		"@gradio/highlighted-text": "workspace:^0.0.1",
+		"@gradio/hostfile": "workspace:^0.0.1",
 		"@gradio/html": "workspace:^0.0.1",
 		"@gradio/image": "workspace:^0.0.1",
 		"@gradio/json": "workspace:^0.0.1",

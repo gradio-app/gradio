@@ -26,6 +26,7 @@ from gradio.components import (
     Highlight,
     Highlightedtext,
     HighlightedText,
+    HostFile,
     Image,
     Interpretation,
     Json,

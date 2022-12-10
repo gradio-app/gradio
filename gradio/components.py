@@ -53,6 +53,7 @@ from gradio.serializing import (
     Serializable,
     SimpleSerializable,
 )
+from fastapi.responses import FileResponse
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -2307,6 +2308,198 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             return [Path(file).name for file in input_data]
         else:
             return Path(input_data).name
+
+
+@document("change", "clear", "style")
+class HostFile(Changeable, Clearable, Uploadable, IOComponent, JSONSerializable):
+    """
+    Creates a file browser component that allows client to explore files on the gradio host machine.
+    Preprocessing: passes a {str} or {List[str]} depending on `file_count`
+    Postprocessing: expects function to return a {str} path to a file.
+    Examples-format: a {str} path to a local file that populates the component.
+    """
+
+    def __init__(
+        self,
+        root: str = ".",
+        value: str | List[str] = ".",
+        *,
+        file_count: str = "single",
+        select: str = "file",
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            value: Default folder or selected, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files.
+            select: if "file", user can select files. If "folder", user can select folders. If "both", user can select both files and folders.
+            label: component name in interface.
+            show_label: if True, will display label.
+            visible: If False, component will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+        """
+
+        assert os.path.exists(root), "The root directory does not exist."
+        self.root = os.path.abspath(root)
+        self.accessible_directories = [self.root]
+        print(f"HostFile component exposing directory '{self.root}' to user.")
+        assert file_count in [
+            "single",
+            "multiple",
+        ], "'file_count' must be one of 'single' or 'multiple'."
+        self.file_count = file_count
+        assert select in [
+            "file",
+            "folder",
+            "both",
+        ], "'select' must be one of 'file', 'folder', or 'both'."
+        self.select = select
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            value=value,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "file_count": self.file_count,
+            "select": self.select,
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = _Keywords.NO_VALUE,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def generate_sample(self):
+        return "."
+
+    def preprocess(
+        self, x: Tuple[List[str], List[str]]
+    ) -> Tuple[str, str | List[str] | None]:
+        """
+        Parameters:
+            y: Tuple of directory as list of folders and selected file object(s) as list of files
+        Returns:
+            Tuple of directory and selected file object(s), validating user has access to files
+        """
+        print(x)
+        dir, files = x
+        abs_dir_path = self.root
+        for folder in dir:
+            abs_dir_path = utils.safe_join(abs_dir_path, folder)
+        if not os.path.exists(abs_dir_path):
+            raise ValueError(f"Directory '{abs_dir_path}' does not exist.")
+
+        if len(files) == 0:
+            if self.select in ("folder", "both"):
+                output = abs_dir_path
+            else:
+                output = None
+            return output if self.file_count == "single" else [output]
+
+        full_files = []
+        for file in files:
+            full_path = utils.safe_join(abs_dir_path, file)
+            if not os.path.exists(full_path):
+                raise ValueError(f"Path '{file}' is not in directory {abs_dir_path}.")
+            if (os.path.isfile(full_path) and self.select == "folder") or (
+                not os.path.isfile(full_path) and self.select == "file"
+            ):
+                raise ValueError(f"Path '{file}' is not a valid selection.")
+            full_files.append(full_path)
+
+
+        return full_files if self.file_count == "multiple" else full_files[0]
+
+    def postprocess(self, y: str | List[str]) -> Dict:
+        """
+        Parameters:
+            y: selected files or folders as single string or list of strings
+        Returns:
+            Tuple of directory as list of folders and selected file object(s) as list of files
+        """
+        if not isinstance(y, str):
+            y = [y]
+
+        folder_path = None
+        files_paths = []
+        for file in y:
+            file = utils.safe_join(self.root, file)
+            if not os.path.exists(file):
+                raise ValueError(f"Path '{file}' does not exist.")
+            if not file.startswith(self.root):
+                raise ValueError(
+                    f"Path '{file}' is not in root directory '{self.root}'."
+                )
+            isfile = os.path.isfile(file)
+
+            file = os.path.relpath(file, self.root)
+
+            if not isfile and len(y) == 1:
+                folder_path = file
+            else:
+                if folder_path is None:
+                    folder_path = os.path.dirname(file)
+                files_paths.append(os.path.relpath(file, folder_path))
+
+        folder_path = folder_path.split(os.sep)
+        return folder_path, files_paths
+
+    async def api(self, path):
+        """
+        This method is used to expose the file system to the user.
+        Parameters:
+            data: A dictionary containing the path to the directory to list.
+        Return:
+            A list of files and folders in the directory, with file attributes.
+        """
+        path = os.sep.join(path)
+        path = utils.safe_join(self.root, path)
+        if not os.path.exists(path):
+            raise ValueError(f"Path '{path}' does not exist.")
+        dir_data = list(
+            {
+                "name": e.name,
+                "isfile": e.is_file(),
+                "size": e.stat().st_size if e.is_file() else None,
+            }
+            for e in os.scandir(path)
+        )
+        dir_data = sorted(dir_data, key=lambda x: ("b" if x["isfile"] else "a") + x["name"])
+        return dir_data
+
+    def style(
+        self,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the file component.
+        """
+        return IOComponent.style(
+            self,
+            **kwargs,
+        )
 
 
 @document("change", "style")

@@ -88,6 +88,7 @@ importers:
       '@gradio/file': workspace:^0.0.1
       '@gradio/form': workspace:^0.0.1
       '@gradio/highlighted-text': workspace:^0.0.1
+      '@gradio/hostfile': workspace:^0.0.1
       '@gradio/html': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/image': workspace:^0.0.1
@@ -117,6 +118,7 @@ importers:
       '@gradio/file': link:../file
       '@gradio/form': link:../form
       '@gradio/highlighted-text': link:../highlighted-text
+      '@gradio/hostfile': link:../hostfile
       '@gradio/html': link:../html
       '@gradio/icons': link:../icons
       '@gradio/image': link:../image
@@ -226,6 +228,9 @@ importers:
     dependencies:
       '@gradio/theme': link:../theme
       '@gradio/utils': link:../utils
+
+  packages/hostfile:
+    specifiers: {}
 
   packages/html:
     specifiers: {}
@@ -366,6 +371,7 @@ importers:
       '@gradio/file': workspace:^0.0.1
       '@gradio/form': workspace:^0.0.1
       '@gradio/highlighted-text': workspace:^0.0.1
+      '@gradio/hostfile': workspace:^0.0.1
       '@gradio/html': workspace:^0.0.1
       '@gradio/image': workspace:^0.0.1
       '@gradio/json': workspace:^0.0.1
@@ -400,6 +406,7 @@ importers:
       '@gradio/file': link:../file
       '@gradio/form': link:../form
       '@gradio/highlighted-text': link:../highlighted-text
+      '@gradio/hostfile': link:../hostfile
       '@gradio/html': link:../html
       '@gradio/image': link:../image
       '@gradio/json': link:../json
