@@ -280,6 +280,7 @@ importers:
   packages/plot:
     specifiers:
       '@gradio/icons': workspace:^0.0.1
+      '@gradio/theme': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
       '@rollup/plugin-json': ^5.0.2
       plotly.js-dist-min: ^2.10.1
@@ -288,6 +289,7 @@ importers:
       vega-lite: '*'
     dependencies:
       '@gradio/icons': link:../icons
+      '@gradio/theme': link:../theme
       '@gradio/utils': link:../utils
       '@rollup/plugin-json': 5.0.2
       plotly.js-dist-min: 2.11.1
