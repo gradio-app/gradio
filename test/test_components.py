@@ -1495,6 +1495,30 @@ class TestHighlightedText:
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result == result_
 
+        # Test split entity is merged when combine adjacent is set
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "PER", "start": 0, "end": 4},
+            {"entity": "PER", "start": 4, "end": 8},
+            {"entity": "LOC", "start": 18, "end": 24},
+        ]
+        # After a merge empty entries are stripped except the leading one
+        result_after_merge = [
+            ("", None),
+            ("Wolfgang", "PER"),
+            (" lives in ", None),
+            ("Berlin", "LOC"),
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result != result_
+        assert result_after_merge != result_
+
+        component = gr.HighlightedText(combine_adjacent=True)
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result_after_merge == result_
+
+        component = gr.HighlightedText()
+
         text = "Wolfgang lives in Berlin"
         entities = [
             {"entity": "LOC", "start": 18, "end": 24},
