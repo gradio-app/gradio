@@ -18,11 +18,16 @@
 	class:m-1={!absolute}
 >
 	{#if editable}
-		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
+		<IconButton
+			Icon={Edit}
+			aria-label="Edit"
+			on:click={() => dispatch("edit")}
+		/>
 	{/if}
 
 	<IconButton
 		Icon={Clear}
+		aria-label="Clear"
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();
