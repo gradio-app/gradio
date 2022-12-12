@@ -714,24 +714,6 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self) -> float:
         return self.maximum
 
-    def preprocess(self, x: float | None) -> float | None:
-        """
-        Any preprocessing needed to be performed on function input.
-        Parameters:
-            x: numeric input
-        Returns:
-            None if the input is None, else the numeric input.
-        Raises:
-            ValueError: if the input is greater than maximum or less than minimum.
-        """
-        if x is None:
-            return None
-        if x > self.maximum or x < self.minimum:
-            raise ValueError(
-                f"Slider value {x} is out of range. Minimum is {self.minimum} and maximum is {self.maximum}."
-            )
-        return x
-
     def postprocess(self, y: float | None) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
@@ -963,23 +945,17 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             x: list of selected choices
         Returns:
-            Returns a list of selected choices as strings or indices within choice list
-            depending on `self.type`.
-        Raises:
-            ValueError: if any of elements in `x` are not in `self.choices`, or if `self.type` is not one of "value" or "index".
+            list of selected choices as strings or indices within choice list
         """
-        for choice in x:
-            if choice not in self.choices:
-                raise ValueError(
-                    f"Invalid choice: {choice}. Select from: {self.choices}."
-                )
         if self.type == "value":
             return x
         elif self.type == "index":
             return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError(
-                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
             )
 
     def postprocess(self, y: List[str] | None) -> List[str]:
@@ -1128,29 +1104,25 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    def preprocess(self, x: str | None) -> str | int | None:
+    def preprocess(self, x: str) -> str | int:
         """
         Parameters:
             x: selected choice
         Returns:
-            the input string `x` if `self.type` is "value", otherwise if `self.type` is "index", returns the index of `x` in `self.choices`.
-        Raises:
-            ValueError: if x is not in `self.choices` or if `self.type` is not "value" or "index".
+            selected choice as string or index within choice list
         """
-        if x is None:
-            return None
-        if x not in self.choices:
-            raise ValueError(
-                f"Invalid value for value: {x}. Please choose from: {self.choices}."
-            )
-
         if self.type == "value":
             return x
         elif self.type == "index":
-            return self.choices.index(x)
+            if x is None:
+                return None
+            else:
+                return self.choices.index(x)
         else:
             raise ValueError(
-                f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
             )
 
     def set_interpret_parameters(self):
