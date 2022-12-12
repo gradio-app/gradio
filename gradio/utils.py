@@ -937,8 +937,7 @@ class Waveform:
             suffix=".mp4", delete=False, dir=directory
         )
 
-        ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {self.audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{self.duration})*t:H-h:shortest=1" -t {self.duration} -y {output_mp4.name}       
-        """
+        ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {self.audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{self.duration})*t:H-h:shortest=1" -t {self.duration} -y {output_mp4.name}"""
 
         subprocess.call(ffmpeg_cmd, shell=True)
         return output_mp4
