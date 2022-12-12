@@ -958,12 +958,12 @@ class Blocks(BlockContext):
                         block=block,
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
-                        state=state[output_id] if state[output_id] is not None else {},
+                        state=state[output_id] if state.get(output_id) is not None else {},
                     )
                     state[output_id] = updated_state
                 elif block_fn.postprocess:
                     prediction_value = block.postprocess(
-                        prediction_value, state[output_id]
+                        prediction_value, state.get(output_id)
                     )
                 output.append(prediction_value)
         return output
