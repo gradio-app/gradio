@@ -119,7 +119,7 @@ by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/g
 * Fixed bug loading audio input models from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2779](https://github.com/gradio-app/gradio/pull/2779). 
 * Fixed issue where entities were not merged when highlighted text was generated from the
 dictionary inputs [@payoto](https://github.com/payoto) in [PR 2767](https://github.com/gradio-app/gradio/pull/2767)
-
+* Fixed bug where generating events did not finish running even if the websocket connection was closed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2783](https://github.com/gradio-app/gradio/pull/2783). 
 
 ## Documentation Changes:
 No changes to highlight.
