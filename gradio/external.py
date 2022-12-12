@@ -84,14 +84,14 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
             ),
         },
         "audio-to-audio": {
-            # example model: speechbrain/mtl-mimic-voicebank
+            # example model: facebook/xm_transformer_sm_all-en
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
             "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
-            # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
+            # example model: facebook/wav2vec2-base-960h
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
             "preprocess": to_binary,

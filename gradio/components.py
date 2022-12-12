@@ -20,6 +20,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
+import altair as alt
 import matplotlib.figure
 import numpy as np
 import pandas as pd
@@ -28,6 +29,7 @@ import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
+from pandas.api.types import is_numeric_dtype
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -3354,6 +3356,10 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
                     running_category = category
                 elif category == running_category:
                     running_text += self.adjacent_separator + text
+                elif not text:
+                    # Skip fully empty item, these get added in processing
+                    # of dictionaries.
+                    pass
                 else:
                     output.append((running_text, running_category))
                     running_text = text
@@ -4027,8 +4033,297 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
             out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
-    def style(self):
-        return self
+    def style(self, container: Optional[bool] = None):
+        return IOComponent.style(
+            self,
+            container=container,
+        )
+
+
+@document("change", "clear")
+class ScatterPlot(Plot):
+    """
+    Create a scatter plot.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a pandas dataframe with the data to plot.
+
+    Demos: native_plots
+    """
+
+    def __init__(
+        self,
+        value: Optional[pd.DataFrame | Callable] = None,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        *,
+        color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        caption: Optional[str] = None,
+        interactive: Optional[bool] = True,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            size: The column used to determine the point size. Should contain numeric data so that gradio can map the data to the point size.
+            shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
+            shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+            elem_id: Unique id used for custom css targetting.
+        """
+        self.x = x
+        self.y = y
+        self.color = color
+        self.size = size
+        self.shape = shape
+        self.tooltip = tooltip
+        self.title = title
+        self.x_title = x_title
+        self.y_title = y_title
+        self.color_legend_title = color_legend_title
+        self.size_legend_title = size_legend_title
+        self.shape_legend_title = shape_legend_title
+        self.caption = caption
+        self.interactive_chart = interactive
+        self.width = width
+        self.height = height
+        # self.value = None
+        # if value is not None:
+        #     self.value = self.postprocess(value)
+        super().__init__(
+            value=value,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+        )
+
+    def get_config(self):
+        config = super().get_config()
+        config["caption"] = self.caption
+        return config
+
+    def get_block_name(self) -> str:
+        return "plot"
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = _Keywords.NO_VALUE,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        interactive: Optional[bool] = None,
+        caption: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        """Update an existing plot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            size: The column used to determine the point size. Should contain numeric data so that gradio can map the data to the point size.
+            shape: The column used to determine the point shape. Should contain categorical data. Gradio will map each unique value to a different shape.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
+            shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display in the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
+        properties = [
+            x,
+            y,
+            color,
+            size,
+            shape,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            size_legend_title,
+            shape_legend_title,
+            interactive,
+            height,
+            width,
+        ]
+        if any(properties):
+            if value is _Keywords.NO_VALUE:
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided. Please pass a value parameter to "
+                    "gr.ScatterPlot.update."
+                )
+            if x is None or y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.ScatterPlot.update."
+                )
+            chart = ScatterPlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "caption": caption,
+            "__type__": "update",
+        }
+        return updated_config
+
+    @staticmethod
+    def create_plot(
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: Optional[str] = None,
+        size: Optional[str] = None,
+        shape: Optional[str] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        size_legend_title: Optional[str] = None,
+        shape_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        interactive: Optional[bool] = True,
+    ):
+        """Helper for creating the scatter plot."""
+        interactive = True if interactive is None else interactive
+        encodings = dict(
+            x=alt.X(x, title=x_title or x),
+            y=alt.Y(y, title=y_title or y),
+        )
+        properties = {}
+        if title:
+            properties["title"] = title
+        if height:
+            properties["height"] = height
+        if width:
+            properties["width"] = width
+        if color:
+            if is_numeric_dtype(value[color]):
+                domain = [value[color].min(), value[color].max()]
+                range_ = [0, 1]
+                type_ = "quantitative"
+            else:
+                domain = value[color].unique().tolist()
+                range_ = list(range(len(domain)))
+                type_ = "nominal"
+
+            encodings["color"] = {
+                "field": color,
+                "type": type_,
+                "legend": {"title": color_legend_title or color},
+                "scale": {"domain": domain, "range": range_},
+            }
+        if tooltip:
+            encodings["tooltip"] = tooltip
+        if size:
+            encodings["size"] = {
+                "field": size,
+                "type": "quantitative" if is_numeric_dtype(value[size]) else "nominal",
+                "legend": {"title": size_legend_title or size},
+            }
+        if shape:
+            encodings["shape"] = {
+                "field": shape,
+                "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
+                "legend": {"title": shape_legend_title or shape},
+            }
+        chart = (
+            alt.Chart(value)
+            .mark_point()
+            .encode(**encodings)
+            .properties(background="transparent", **properties)
+        )
+        if interactive:
+            chart = chart.interactive()
+
+        return chart
+
+    def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
+        # if None or update
+        if y is None or isinstance(y, Dict):
+            return y
+        chart = self.create_plot(
+            value=y,
+            x=self.x,
+            y=self.y,
+            color=self.color,
+            size=self.size,
+            shape=self.shape,
+            title=self.title,
+            tooltip=self.tooltip,
+            x_title=self.x_title,
+            y_title=self.y_title,
+            color_legend_title=self.color_legend_title,
+            size_legend_title=self.size_legend_title,
+            shape_legend_title=self.size_legend_title,
+            interactive=self.interactive_chart,
+            height=self.height,
+            width=self.width,
+        )
+
+        return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
 
 
 @document("change")
