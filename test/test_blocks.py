@@ -323,7 +323,7 @@ class TestComponentsInBlocks:
             )
 
         output = demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+            0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
             [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
