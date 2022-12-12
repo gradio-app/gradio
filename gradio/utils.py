@@ -815,7 +815,6 @@ class Waveform:
     def __init__(
         self,
         *,
-        audio: str | Tuple[int, np.ndarray] | None = None,
         bg_color: str = "#f3f4f6",
         bg_image: str = None,
         fg_alpha: float = 0.75,
@@ -832,8 +831,6 @@ class Waveform:
         :param bar_count: Number of bars in waveform
         :param bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
         """
-        if audio:
-            self.load_audio(audio)
         self.bg_color = bg_color
         self.bg_image = bg_image
         self.fg_alpha = fg_alpha

@@ -398,7 +398,12 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+def postprocess_update_dict(
+    block: Block,
+    update_dict: Dict,
+    postprocess: bool = True,
+    state: Optional[Dict] = None,
+):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -413,10 +418,14 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
         update_dict = block.get_specific_update(update_dict)
     if update_dict.get("value") is components._Keywords.NO_VALUE:
         update_dict.pop("value")
+    state_update = update_dict.pop("__state__", None)
+    if state_update is not None:
+        state.update(state_update)
+
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
-        prediction_value["value"] = block.postprocess(prediction_value["value"])
-    return prediction_value
+        prediction_value["value"] = block.postprocess(prediction_value["value"], state)
+    return prediction_value, state
 
 
 def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
@@ -945,13 +954,17 @@ class Blocks(BlockContext):
             else:
                 prediction_value = predictions[i]
                 if utils.is_update(prediction_value):
-                    prediction_value = postprocess_update_dict(
+                    prediction_value, updated_state = postprocess_update_dict(
                         block=block,
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
+                        state=state[output_id] if state[output_id] is not None else {},
                     )
+                    state[output_id] = updated_state
                 elif block_fn.postprocess:
-                    prediction_value = block.postprocess(prediction_value)
+                    prediction_value = block.postprocess(
+                        prediction_value, state[output_id]
+                    )
                 output.append(prediction_value)
         return output
 

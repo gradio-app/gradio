@@ -265,11 +265,15 @@ class App(FastAPI):
         ):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
-                    app.state_holder[body.session_hash] = {
-                        _id: deepcopy(getattr(block, "value", None))
-                        for _id, block in app.blocks.blocks.items()
-                        if getattr(block, "stateful", False)
-                    }
+                    app.state_holder[body.session_hash] = {}
+                    for _id, block in app.blocks.blocks.items():
+                        if getattr(block, "stateful", False):
+                            # if the block is stateful, the value of the component will be stored
+                            state_value = deepcopy(getattr(block, "value", None))
+                        else:
+                            # if the block is not stateful, we will store stateful component configuration updates
+                            state_value = {}
+                        app.state_holder[body.session_hash][_id] = state_value
                 session_state = app.state_holder[body.session_hash]
                 iterators = app.iterators[body.session_hash]
                 # The should_reset set keeps track of the fn_indices

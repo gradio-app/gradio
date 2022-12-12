@@ -178,9 +178,14 @@ class IOComponent(Component, Serializable):
         """
         pass
 
-    def postprocess(self, y):
+    def postprocess(self, y, state: Optional[Dict] = None):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+            y: Output of function
+            state: State of component
+        Returns:
+            Postprocessed output
         """
         return y
 
@@ -369,7 +374,7 @@ class Textbox(
         """
         return None if x is None else str(x)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, state: Optional[Dict] = None) -> str | None:
         """
         Postproccess the function output y by converting it to a str before passing it to the frontend.
         Parameters:
@@ -542,7 +547,9 @@ class Number(
             return None
         return self._round_to_precision(x, self.precision)
 
-    def postprocess(self, y: float | None) -> float | None:
+    def postprocess(
+        self, y: float | None, state: Optional[Dict] = None
+    ) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
 
@@ -731,7 +738,9 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
             )
         return x
 
-    def postprocess(self, y: float | None) -> float | None:
+    def postprocess(
+        self, y: float | None, state: Optional[Dict] = None
+    ) -> float | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -981,7 +990,9 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
                 f"Unknown type: {self.type}. Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: List[str] | None) -> List[str]:
+    def postprocess(
+        self, y: List[str] | None, state: Optional[Dict] = None
+    ) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -1439,7 +1450,9 @@ class Image(
 
         return self._format_image(im)
 
-    def postprocess(self, y: np.ndarray | PIL.Image | str | Path) -> str:
+    def postprocess(
+        self, y: np.ndarray | PIL.Image | str | Path, state: Optional[Dict] = None
+    ) -> str:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
@@ -1742,7 +1755,9 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         """Generates a random video for testing the API."""
         return deepcopy(media_data.BASE64_VIDEO)
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(
+        self, y: str | None, state: Optional[Dict] = None
+    ) -> Dict[str, str] | None:
         """
         Processes a video to ensure that it is in the correct format before
         returning it to the front end.
@@ -1824,7 +1839,7 @@ class Audio(
         visible: bool = True,
         streaming: bool = False,
         elem_id: Optional[str] = None,
-        waveform: bool | Waveform = False,
+        waveform: bool | str | Waveform = False,
         **kwargs,
     ):
         """
@@ -1838,7 +1853,7 @@ class Audio(
             visible: If False, component will be hidden.
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
-            waveform: If True, will display a waveform of the audio instead of a play button. Can also be passed a gradio.Waveform object to customize the waveform.
+            waveform: If True, will display a waveform of the audio instead of a play button. If passed a {str} filepath to an image, will use that path as the background for the waveform. Can also be passed a gradio.Waveform object to customize the waveform.
         """
         self.temp_dir = tempfile.mkdtemp()
         valid_sources = ["upload", "microphone"]
@@ -1861,7 +1876,14 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
-        self.waveform = Waveform() if waveform is True else waveform
+        if waveform is True:
+            self.waveform = Waveform()
+        elif isinstance(waveform, str):
+            self.waveform = Waveform(bg_image=waveform)
+        elif isinstance(waveform, Waveform):
+            self.waveform = waveform
+        else:
+            self.waveform = None
         IOComponent.__init__(
             self,
             label=label,
@@ -1890,6 +1912,7 @@ class Audio(
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
         visible: Optional[bool] = None,
+        waveform: Optional[bool | str | Waveform] = None,
     ):
         updated_config = {
             "source": source,
@@ -1900,6 +1923,12 @@ class Audio(
             "value": value,
             "__type__": "update",
         }
+        if waveform is not None:
+            updated_config["__state__"] = {
+                "waveform": Waveform(bg_image=waveform)
+                if isinstance(waveform, str)
+                else waveform
+            }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
@@ -2035,7 +2064,7 @@ class Audio(
         return deepcopy(media_data.BASE64_AUDIO)
 
     def postprocess(
-        self, y: Tuple[int, np.array] | str | Waveform | None
+        self, y: Tuple[int, np.array] | str | None, state: Optional[Dict] = None
     ) -> str | None:
         """
         Parameters:
@@ -2047,12 +2076,11 @@ class Audio(
             return None
 
         media = "audio"
-        if self.waveform or isinstance(y, Waveform):
-            if isinstance(y, Waveform):
-                waveform = y
-            else:
-                waveform = self.waveform
-                waveform.load_audio(y)
+        state = {} if state is None else state
+        waveform = state.get("waveform", self.waveform)
+        print("!waveform", waveform)
+        if waveform:
+            waveform.load_audio(y)
             file = waveform.get_video(self.temp_dir)
             media = "video"
         elif isinstance(y, str):
@@ -2267,7 +2295,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def postprocess(self, y: str) -> Dict:
+    def postprocess(self, y: str, state: Optional[Dict] = None) -> Dict:
         """
         Parameters:
             y: file path
@@ -2490,7 +2518,9 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         return [[1, 2, 3], [4, 5, 6]]
 
     def postprocess(
-        self, y: str | pd.DataFrame | np.ndarray | List[List[str | float]] | Dict
+        self,
+        y: str | pd.DataFrame | np.ndarray | List[List[str | float]] | Dict,
+        state: Optional[Dict] = None,
     ) -> Dict:
         """
         Parameters:
@@ -2698,7 +2728,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
     def generate_sample(self):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
 
-    def postprocess(self, y: str | pd.DataFrame) -> Dict:
+    def postprocess(self, y: str | pd.DataFrame, state: Optional[Dict] = None) -> Dict:
         """
         Parameters:
             y: csv or dataframe with timeseries data
@@ -3047,7 +3077,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
     def generate_sample(self) -> str:
         return "#000000"
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, state: Optional[Dict] = None) -> str | None:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
@@ -3121,7 +3151,9 @@ class Label(Changeable, IOComponent, JSONSerializable):
             **IOComponent.get_config(self),
         }
 
-    def postprocess(self, y: Dict[str, float] | str | float | None) -> Dict | None:
+    def postprocess(
+        self, y: Dict[str, float] | str | float | None, state: Optional[Dict] = None
+    ) -> Dict | None:
         """
         Parameters:
             y: a dictionary mapping labels to confidence value, or just a string/numerical label by itself
@@ -3279,7 +3311,9 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         return updated_config
 
     def postprocess(
-        self, y: List[Tuple[str, str | float | None]] | Dict | None
+        self,
+        y: List[Tuple[str, str | float | None]] | Dict | None,
+        state: Optional[Dict] = None,
     ) -> List[Tuple[str, str | float | None]] | None:
         """
         Parameters:
@@ -3410,7 +3444,9 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: Dict | List | str | None) -> Dict | List | None:
+    def postprocess(
+        self, y: Dict | List | str | None, state: Optional[Dict] = None
+    ) -> Dict | List | None:
         """
         Parameters:
             y: JSON output
@@ -3563,6 +3599,7 @@ class Gallery(IOComponent):
         y: List[np.ndarray | PIL.Image | str]
         | List[Tuple[np.ndarray | PIL.Image | str, str]]
         | None,
+        state: Optional[Dict] = None,
     ) -> List[str]:
         """
         Parameters:
@@ -3751,7 +3788,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(
+        self, y: List[Tuple[str, str]], state: Optional[Dict] = None
+    ) -> List[Tuple[str, str]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3873,7 +3912,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(
+        self, y: str | None, state: Optional[Dict] = None
+    ) -> Dict[str, str] | None:
         """
         Parameters:
             y: path to the model
@@ -3960,7 +4001,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: str | None) -> Dict[str, str] | None:
+    def postprocess(
+        self, y: str | None, state: Optional[Dict] = None
+    ) -> Dict[str, str] | None:
         """
         Parameters:
             y: plot data
@@ -4022,7 +4065,7 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
             self, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, y: str | None, state: Optional[Dict] = None) -> str | None:
         """
         Parameters:
             y: markdown representation
@@ -4141,7 +4184,9 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def postprocess(self, samples: List[List[Any]]) -> Dict:
+    def postprocess(
+        self, samples: List[List[Any]], state: Optional[Dict] = None
+    ) -> Dict:
         return {
             "samples": samples,
             "__type__": "update",
@@ -4201,7 +4246,7 @@ class Interpretation(Component):
     def style(self):
         return self
 
-    def postprocess(self, y: Any) -> Any:
+    def postprocess(self, y: Any, state: Optional[Dict] = None) -> Any:
         return y
 
 
