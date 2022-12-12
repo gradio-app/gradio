@@ -335,7 +335,7 @@ class TestComponentsInBlocks:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
 
     def test_blocks_returns_correct_output_dict_single_key(self):
@@ -349,12 +349,10 @@ class TestComponentsInBlocks:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(
-            0, {num2: gr.Number.update(value=42)}, state=None
-        )
+        output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state={})
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        output = demo.postprocess_data(0, {num2: 23}, state={})
         assert output[0] == 23
 
     @pytest.mark.asyncio
