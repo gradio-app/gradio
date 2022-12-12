@@ -990,6 +990,7 @@ class Blocks(BlockContext):
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
+        state = state or {}
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
