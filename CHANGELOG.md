@@ -131,15 +131,10 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748)
 * Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748) 
 * Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755) 
-<<<<<<< HEAD
 * Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
-* Added handling of invalid values in the `Slider`, `Radio` and `CheckgroupBox` components by [@thehimalayanleo](https://github.com/thehimalayanleo) in [PR 2760](https://github.com/gradio-app/gradio/pull/2760).
 * Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
-=======
->>>>>>> parent of 76c4a553 (Add backend validation for `Slider`, `Radio`, and `CheckboxGroup` (#2760))
 
 ## Contributors Shoutout:
 No changes to highlight.
