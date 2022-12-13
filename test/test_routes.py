@@ -408,7 +408,7 @@ def test_orjson_serialization():
             "date_1": pd.date_range("2021-01-01", periods=2),
             "date_2": pd.date_range("2022-02-15", periods=2).strftime("%B %d, %Y, %r"),
             "number": np.array([0.2233, 0.57281]),
-            "number_2": np.array([84, 23]).astype(np.int),
+            "number_2": np.array([84, 23]).astype(np.int64),
             "bool": [True, False],
             "markdown": ["# Hello", "# Goodbye"],
         }
