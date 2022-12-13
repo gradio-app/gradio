@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import pytest
+import vega_datasets
 from scipy.io import wavfile
 
 import gradio as gr
@@ -1483,6 +1484,30 @@ class TestHighlightedText:
         result_ = component.postprocess({"text": text, "entities": entities})
         assert result == result_
 
+        # Test split entity is merged when combine adjacent is set
+        text = "Wolfgang lives in Berlin"
+        entities = [
+            {"entity": "PER", "start": 0, "end": 4},
+            {"entity": "PER", "start": 4, "end": 8},
+            {"entity": "LOC", "start": 18, "end": 24},
+        ]
+        # After a merge empty entries are stripped except the leading one
+        result_after_merge = [
+            ("", None),
+            ("Wolfgang", "PER"),
+            (" lives in ", None),
+            ("Berlin", "LOC"),
+        ]
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result != result_
+        assert result_after_merge != result_
+
+        component = gr.HighlightedText(combine_adjacent=True)
+        result_ = component.postprocess({"text": text, "entities": entities})
+        assert result_after_merge == result_
+
+        component = gr.HighlightedText()
+
         text = "Wolfgang lives in Berlin"
         entities = [
             {"entity": "LOC", "start": 18, "end": 24},
@@ -1886,3 +1911,136 @@ def test_dataset_calls_as_example(*mocks):
         ],
     )
     assert all([m.called for m in mocks])
+
+
+cars = vega_datasets.data.cars()
+
+
+class TestScatterPlot:
+    def test_get_config(self):
+        assert gr.ScatterPlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+        }
+
+    def test_no_color(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            tooltip="Name",
+            title="Car Data",
+            x_title="Horse",
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["field"] == "Horsepower"
+        assert config["encoding"]["x"]["title"] == "Horse"
+        assert config["encoding"]["y"]["field"] == "Miles_per_Gallon"
+        assert config["selection"] == {
+            "selector001": {
+                "bind": "scales",
+                "encodings": ["x", "y"],
+                "type": "interval",
+            }
+        }
+        assert config["title"] == "Car Data"
+        assert "height" not in config
+        assert "width" not in config
+
+    def test_no_interactive(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", tooltip="Name", interactive=False
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert "selection" not in config
+
+    def test_height_width(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", height=100, width=200
+        )
+        output = plot.postprocess(cars)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+    def test_color_encoding(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            tooltip="Name",
+            title="Car Data",
+            color="Origin",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["field"] == "Origin"
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": ["USA", "Europe", "Japan"],
+            "range": [0, 1, 2],
+        }
+        assert config["encoding"]["color"]["type"] == "nominal"
+
+    def test_two_encodings(self):
+        plot = gr.ScatterPlot(
+            show_label=False,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            shape="Origin",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["field"] == "Acceleration"
+        assert config["encoding"]["color"]["scale"] == {
+            "domain": [cars.Acceleration.min(), cars.Acceleration.max()],
+            "range": [0, 1],
+        }
+        assert config["encoding"]["color"]["type"] == "quantitative"
+
+        assert config["encoding"]["shape"]["field"] == "Origin"
+        assert config["encoding"]["shape"]["type"] == "nominal"
+
+    def test_update(self):
+        output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
+        postprocessed = gr.ScatterPlot().postprocess(output["value"])
+        assert postprocessed == output["value"]
+
+    def test_update_visibility(self):
+        output = gr.ScatterPlot.update(visible=False)
+        assert not output["visible"]
+        assert output["value"] is gr.components._Keywords.NO_VALUE
+
+    def test_update_errors(self):
+        with pytest.raises(
+            ValueError, match="In order to update plot properties the value parameter"
+        ):
+            gr.ScatterPlot.update(x="foo", y="bar")
+
+        with pytest.raises(
+            ValueError,
+            match="In order to update plot properties, the x and y axis data",
+        ):
+            gr.ScatterPlot.update(value=cars, x="foo")
+
+    def test_scatterplot_accepts_fn_as_value(self):
+        plot = gr.ScatterPlot(
+            value=lambda: cars.sample(frac=0.1, replace=False),
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Origin",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)

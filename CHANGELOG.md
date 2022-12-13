@@ -1,6 +1,67 @@
-# Upcoming Release
+# Upcoming Release 
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.13.0
+
+## New Features:
+
+### Scatter plot component
+
+It is now possible to create a scatter plot natively in Gradio!
+
+The `gr.ScatterPlot` component accepts a pandas dataframe and some optional configuration parameters
+and will automatically create a plot for you!
+
+This is the first of many native plotting components in Gradio!
+
+For an example of how to use `gr.ScatterPlot` see below:
+
+```python
+import gradio as gr
+from vega_datasets import data
+
+cars = data.cars()
+
+with gr.Blocks() as demo:
+    gr.ScatterPlot(show_label=False,
+                   value=cars,
+                   x="Horsepower",
+                   y="Miles_per_Gallon",
+                   color="Origin",
+                   tooltip="Name",
+                   title="Car Data",
+                   y_title="Miles per Gallon",
+                   color_legend_title="Origin of Car").style(container=False)
+
+demo.launch()
+```
+
+<img width="404" alt="image" src="https://user-images.githubusercontent.com/41651716/206737726-4c4da5f0-dee8-4f0a-b1e1-e2b75c4638e9.png">
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2764](https://github.com/gradio-app/gradio/pull/2764)
+ 
 
 ### Support for altair plots
 
@@ -33,7 +94,7 @@ demo.launch()
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
 
-### Set the background color of a Label component 
+### Set the background color of a Label component
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
 The `color` argument should either be a valid css color name or hexadecimal string.
@@ -70,10 +131,19 @@ demo.queue().launch()
 
 ![label_bg_color_update](https://user-images.githubusercontent.com/41651716/204400372-80e53857-f26f-4a38-a1ae-1acadff75e89.gif)
 
+### Add Brazilian Portuguese translation 
+
+Add Brazilian Portuguese translation (pt-BR.json) by [@pstwh](http://github.com/pstwh) in [PR 2753](https://github.com/gradio-app/gradio/pull/2753):
+
+<img width="951" alt="image" src="https://user-images.githubusercontent.com/1778297/206615305-4c52031e-3f7d-4df2-8805-a79894206911.png">
 
 ## Bug Fixes:
 * Fixed issue where image thumbnails were not showing when an example directory was provided
 by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745) 
+* Fixed bug loading audio input models from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2779](https://github.com/gradio-app/gradio/pull/2779). 
+* Fixed issue where entities were not merged when highlighted text was generated from the
+dictionary inputs [@payoto](https://github.com/payoto) in [PR 2767](https://github.com/gradio-app/gradio/pull/2767)
+* Fixed bug where generating events did not finish running even if the websocket connection was closed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2783](https://github.com/gradio-app/gradio/pull/2783). 
 
 ## Documentation Changes:
 No changes to highlight.
@@ -90,6 +160,8 @@ No changes to highlight.
 * Fixed issue where too many temporary files were created, all with randomly generated
 filepaths. Now fewer temporary files are created and are assigned a path that is a 
 hash based on the file contents by [@abidlabs](https://github.com/abidlabs) in [PR 2758](https://github.com/gradio-app/gradio/pull/2758) 
+* Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
+* Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -1185,7 +1257,7 @@ You can read more in the [Examples docs](https://gradio.app/docs/#examples) or t
 
 ### 6. Fixes to Audio Streaming
 
-With PR [#1828]([PR 1828),](https://github.com/gradio-app/gradio/pull/1828),) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
+With [PR 1828](https://github.com/gradio-app/gradio/pull/1828) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
 
 <img width="785" alt="Screen Shot 2022-07-19 at 6 02 35 PM" src="https://user-images.githubusercontent.com/9021060/179808136-9e84502c-f9ee-4f30-b5e9-1086f678fe91.png">
 
