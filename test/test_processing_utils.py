@@ -251,7 +251,9 @@ class TestVideoProcessing:
         self, exception_to_raise, test_file_dir
     ):
         with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
-            with tempfile.NamedTemporaryFile(suffix="out.avi", delete=False) as tmp_not_playable_vid:
+            with tempfile.NamedTemporaryFile(
+                suffix="out.avi", delete=False
+            ) as tmp_not_playable_vid:
                 shutil.copy(
                     str(test_file_dir / "bad_video_sample.mp4"),
                     tmp_not_playable_vid.name,
@@ -274,7 +276,9 @@ class TestVideoProcessing:
     def test_video_conversion_returns_original_video_if_fails(
         self, mock_run, test_file_dir
     ):
-        with tempfile.NamedTemporaryFile(suffix="out.avi", delete=False) as tmp_not_playable_vid:
+        with tempfile.NamedTemporaryFile(
+            suffix="out.avi", delete=False
+        ) as tmp_not_playable_vid:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
