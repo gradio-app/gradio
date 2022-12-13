@@ -2489,16 +2489,16 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             y = pd.read_csv(y)
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(
+                "data": Dataframe.__make_serializable(Dataframe.__process_markdown(
                     y.to_dict(orient="split")["data"], self.datatype
-                ),
+                )),
             }
         if isinstance(y, pd.DataFrame):
             return {
                 "headers": list(y.columns),
-                "data": Dataframe.__process_markdown(
+                "data": Dataframe.__make_serializable(Dataframe.__process_markdown(
                     y.to_dict(orient="split")["data"], self.datatype
-                ),
+                )),
             }
         if isinstance(y, (np.ndarray, list)):
             if isinstance(y, np.ndarray):
@@ -2555,6 +2555,14 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
                 if datatype[j] == "markdown":
                     data[i][j] = Dataframe.markdown_parser.render(data[i][j])
 
+        return data
+    
+    @classmethod
+    def __make_serializable(cls, data: List[List[Any]]) -> List[List[Any]]:
+        try:
+            json.dumps(data)
+        except:
+            data = [[str(x) for x in row] for row in data]
         return data
 
     def style(
