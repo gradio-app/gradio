@@ -153,8 +153,8 @@ class TestTempFileManager:
         assert h1 == h2
         assert h1 != h3
 
-    def test_make_temp_copy_if_needed(self):
-        shutil.copy2 = MagicMock()
+    @patch("shutil.copy2")
+    def test_make_temp_copy_if_needed(self, mock_copy2):
         temp_file_manager = processing_utils.TempFileManager()
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
@@ -164,7 +164,7 @@ class TestTempFileManager:
             pass
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert shutil.copy2.called
+        assert mock_copy2.called
         assert len(temp_file_manager.temp_files) == 1
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
@@ -251,7 +251,7 @@ class TestVideoProcessing:
         self, exception_to_raise, test_file_dir
     ):
         with patch("ffmpy.FFprobe.run", side_effect=exception_to_raise):
-            with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+            with tempfile.NamedTemporaryFile(suffix="out.avi", delete=False) as tmp_not_playable_vid:
                 shutil.copy(
                     str(test_file_dir / "bad_video_sample.mp4"),
                     tmp_not_playable_vid.name,
@@ -274,7 +274,7 @@ class TestVideoProcessing:
     def test_video_conversion_returns_original_video_if_fails(
         self, mock_run, test_file_dir
     ):
-        with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+        with tempfile.NamedTemporaryFile(suffix="out.avi", delete=False) as tmp_not_playable_vid:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
