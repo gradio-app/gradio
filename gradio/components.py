@@ -1736,12 +1736,9 @@ class Video(
         else:
             conversion_needed = True
 
-        # For cases where the video does not need to be converted to another format
+        # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if utils.validate_url(y) and not (conversion_needed):
             return {"name": y, "data": None, "is_file": True}
-        elif not (conversion_needed):
-            temp_file_path = self.make_temp_copy_if_needed(y)
-            return {"name": temp_file_path, "data": None, "is_file": True}
 
         # For cases where the video needs to be converted to another format
         if utils.validate_url(y):
@@ -1761,7 +1758,7 @@ class Video(
             y = output_file_name
 
         y = self.make_temp_copy_if_needed(y)
-        return {"name": y.name, "data": None, "is_file": True}
+        return {"name": y, "data": None, "is_file": True}
 
     def style(
         self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs

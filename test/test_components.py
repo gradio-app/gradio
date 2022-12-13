@@ -1212,7 +1212,7 @@ class TestVideo:
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
-            suffix="bad_video.mp4"
+            suffix="bad_video.mp4", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "bad_video_sample.mp4")
             assert not processing_utils.video_is_playable(bad_vid)
@@ -1226,7 +1226,7 @@ class TestVideo:
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
-            suffix="playable_but_bad_container.mkv"
+            suffix="playable_but_bad_container.mkv", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
