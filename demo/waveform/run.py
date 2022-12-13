@@ -11,28 +11,17 @@ COLORS = [
 def audio_waveform(audio, image):
     return (
         audio,
-        audio,
-        audio,
-        audio,
-        gr.Audio.update(
-            value=audio,
-            waveform=gr.Waveform(bg_image=image, bars_color=random.choice(COLORS)),
-        ),
+        gr.make_waveform(audio),
+        gr.make_waveform(audio, bg_image=image, bars_color=random.choice(COLORS)),
     )
 
 
 gr.Interface(
     audio_waveform,
-    inputs=[gr.Audio(type="filepath"), gr.Image(type="filepath")],
+    inputs=[gr.Audio(), gr.Image(type="filepath")],
     outputs=[
         gr.Audio(),
-        gr.Audio(waveform=True),
-        gr.Audio(waveform="drake.jpg"),
-        gr.Audio(
-            waveform=gr.Waveform(
-                bars_color=("#00ff00", "#0011ff"), bar_count=100, bg_color="#000000"
-            )
-        ),
-        gr.Audio(waveform=True),
+        gr.Video(),
+        gr.Video(),
     ],
 ).launch()

@@ -4,5 +4,4 @@ export interface FileData {
 	size?: number;
 	data: string;
 	is_file?: boolean;
-	media?: string;
 }
