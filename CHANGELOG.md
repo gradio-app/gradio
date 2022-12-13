@@ -10,7 +10,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Testing and Infrastructure Changes:
-No changes to highlight.
+* Fixed test for IP address by [@abidlabs](https://github.com/abidlabs) in [PR 2808](https://github.com/gradio-app/gradio/pull/2808) 
 
 ## Breaking Changes:
 No changes to highlight.
