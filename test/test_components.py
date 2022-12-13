@@ -1077,7 +1077,6 @@ class TestDataframe:
                 ],
             ],
         }
-        
 
     def test_dataframe_postprocess_only_dates(self):
         df = pd.DataFrame(

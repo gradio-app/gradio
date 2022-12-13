@@ -55,10 +55,14 @@ with open(VERSION_FILE) as version_file:
 
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
-    
+
     @staticmethod
     def _render(content: Any) -> bytes:
-        return orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME, default=str)
+        return orjson.dumps(
+            content,
+            option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+            default=str,
+        )
 
     def render(self, content: Any) -> bytes:
         return ORJSONResponse._render(content)
@@ -70,7 +74,7 @@ class ORJSONResponse(JSONResponse):
 
 def toorjson(value):
     return htmlsafe_json_dumps(value, dumps=ORJSONResponse._render_str)
-    
+
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
