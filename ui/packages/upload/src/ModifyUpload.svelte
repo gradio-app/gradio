@@ -18,11 +18,7 @@
 	class:m-1={!absolute}
 >
 	{#if editable}
-		<IconButton
-			Icon={Edit}
-			label="Edit"
-			on:click={() => dispatch("edit")}
-		/>
+		<IconButton Icon={Edit} label="Edit" on:click={() => dispatch("edit")} />
 	{/if}
 
 	<IconButton
