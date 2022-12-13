@@ -1,7 +1,8 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+* Allow all components to take an `every` parameter that re-runs their initial functions
+at periodic intervals by [@abidlabs](https://github.com/abidlabs) in [PR 2806](https://github.com/gradio-app/gradio/pull/2806) 
 
 ## Bug Fixes:
 * Allows `gr.Dataframe()` to take a `pandas.DataFrame` that includes numpy array and other types as its initial value, by [@abidlabs](https://github.com/abidlabs) in [PR 2804](https://github.com/gradio-app/gradio/pull/2804) 

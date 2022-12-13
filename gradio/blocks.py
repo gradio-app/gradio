@@ -1624,6 +1624,7 @@ class Blocks(BlockContext):
                     component,
                     no_target=True,
                     queue=False,
+                    every=component.every,
                 )
 
     def startup_events(self):
