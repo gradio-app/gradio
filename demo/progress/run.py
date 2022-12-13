@@ -4,24 +4,27 @@ import time
 
 
 with gr.Blocks() as demo:
+    text = gr.Textbox("Image search")
     btn = gr.Button("Go")
-    progress = gr.ProgressBar(visible=False)
-    num = gr.Number()
+    img = gr.Image()
 
-    def dummy():
-        yield {progress: gr.ProgressBar.update(value=0, visible=True)}
-        total_duration = random.randint(3, 10)
-        duration = 0
-        while duration < total_duration:
-            yield {progress: duration / total_duration}
-            time.sleep(1)
-            duration += 1
-        yield {
-            progress: gr.ProgressBar.update(visible=False),
-            num: random.randint(0, 100),
-        }
+    def dummy(text, progress=gr.Progress()):
+        imgs = [None] * 100
 
-    btn.click(dummy, None, {num, progress})
+        # tqdm-like iterable wrapper
+        for img in progress(imgs, label="Loading images..."):
+            time.sleep(0.1)
+
+        # explicit progress
+        progress(0, label="Collecting Images...")
+        time.sleep(3)
+        progress(50, label="Collecting Images...")
+        time.sleep(2)
+        progress(100, label="Collecting Images...")
+
+
+
+    btn.click(dummy, text, img)
 
 
 if __name__ == "__main__":

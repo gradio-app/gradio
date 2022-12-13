@@ -51,6 +51,7 @@ from gradio.utils import (
     delete_none,
     get_cancel_function,
     get_continuous_fn,
+    fn_has_progress_tracker
 )
 
 set_documentation_group("blocks")

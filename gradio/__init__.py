@@ -34,7 +34,6 @@ from gradio.components import (
     Model3D,
     Number,
     Plot,
-    ProgressBar,
     Radio,
     Slider,
     State,
@@ -78,6 +77,7 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
+from gradio.utils import Progress
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version

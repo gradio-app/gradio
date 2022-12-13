@@ -31,6 +31,7 @@ from typing import (
     NewType,
     Tuple,
     Type,
+    Iterable
 )
 
 import aiohttp
@@ -828,3 +829,27 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
+
+
+class Progress:
+    """
+    Progress tracker that is used in function signature to identify function needs to be tracked.
+    """
+    def __call__(self, progress: float | Iterable, status: str | None = None):
+        """
+        Updates progress tracker with progress and status text.
+        Parameters:
+            progress: If float, should be between 0 and 1 representing completion. If iterable, will automatically calculate progress.
+            status: Status message to display.
+        """
+        return progress
+    
+def fn_has_progress_tracker(fn: Callable):
+    """
+    Checks if function has a progress tracker and if so, returns True.
+    """
+    signature = inspect.signature(fn)
+    for param in signature.parameters.values():
+        if isinstance(param.default, Progress) or param.default == Progress:
+            return True
+    return False
