@@ -4,6 +4,8 @@ import os
 import sys
 from unittest.mock import patch
 
+import numpy as np
+import pandas as pd
 import pytest
 import starlette.routing
 import websockets
@@ -398,3 +400,24 @@ def test_show_api_queue_not_enabled():
     io.close()
     io.launch(prevent_thread_lock=True, show_api=False)
     assert not io.show_api
+
+
+def test_orjson_serialization():
+    df = pd.DataFrame(
+        {
+            "date_1": pd.date_range("2021-01-01", periods=2),
+            "date_2": pd.date_range("2022-02-15", periods=2).strftime("%B %d, %Y, %r"),
+            "number": np.array([0.2233, 0.57281]),
+            "number_2": np.array([84, 23]).astype(np.int64),
+            "bool": [True, False],
+            "markdown": ["# Hello", "# Goodbye"],
+        }
+    )
+
+    with gr.Blocks() as demo:
+        gr.DataFrame(df)
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    test_client = TestClient(app)
+    response = test_client.get("/")
+    assert response.status_code == 200
+    demo.close()

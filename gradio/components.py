@@ -2449,7 +2449,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         """
         if y is None:
             return self.postprocess(self.test_input)
-        if isinstance(y, Dict):
+        if isinstance(y, dict):
             return y
         if isinstance(y, str):
             y = pd.read_csv(y)
