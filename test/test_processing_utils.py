@@ -259,7 +259,9 @@ class TestVideoProcessing:
                 assert processing_utils.video_is_playable(tmp_not_playable_vid.name)
 
     def test_convert_video_to_playable_mp4(self, test_file_dir):
-        with tempfile.NamedTemporaryFile(suffix="out.avi") as tmp_not_playable_vid:
+        with tempfile.NamedTemporaryFile(
+            suffix="out.avi", delete=False
+        ) as tmp_not_playable_vid:
             shutil.copy(
                 str(test_file_dir / "bad_video_sample.mp4"), tmp_not_playable_vid.name
             )
