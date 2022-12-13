@@ -1,6 +1,30 @@
 # Upcoming Release
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.13.0
+
+## New Features:
 
 ### Scatter plot component
 
@@ -122,7 +146,6 @@ dictionary inputs [@payoto](https://github.com/payoto) in [PR 2767](https://gith
 * Fixed bug where generating events did not finish running even if the websocket connection was closed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2783](https://github.com/gradio-app/gradio/pull/2783).
 * Added aria-labels to icon buttons that are built into UI components by [@emilyuhde](http://github.com/emilyuhde) in [PR 2777](https://github.com/gradio-app/gradio/pull/2777)
 
-
 ## Documentation Changes:
 No changes to highlight.
 
@@ -136,7 +159,6 @@ No changes to highlight.
 * Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748)
 * Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755)
 * Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
-* Added handling of invalid values in the `Slider`, `Radio` and `CheckgroupBox` components by [@thehimalayanleo](https://github.com/thehimalayanleo) in [PR 2760](https://github.com/gradio-app/gradio/pull/2760).
 * Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
 
 ## Contributors Shoutout:
