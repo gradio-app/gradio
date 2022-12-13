@@ -4077,6 +4077,8 @@ class ScatterPlot(Plot):
         shape_legend_title: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         caption: Optional[str] = None,
         interactive: Optional[bool] = True,
         label: Optional[str] = None,
@@ -4102,6 +4104,8 @@ class ScatterPlot(Plot):
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis.
+            y_lim: A tuple of list containing the limits for the y-axis.
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
@@ -4125,6 +4129,8 @@ class ScatterPlot(Plot):
         self.interactive_chart = interactive
         self.width = width
         self.height = height
+        self.x_lim = x_lim
+        self.y_lim = y_lim
         super().__init__(
             value=value,
             label=label,
@@ -4159,6 +4165,8 @@ class ScatterPlot(Plot):
         shape_legend_title: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         interactive: Optional[bool] = None,
         caption: Optional[str] = None,
         label: Optional[str] = None,
@@ -4185,8 +4193,10 @@ class ScatterPlot(Plot):
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            caption: The (optional) caption to display below the plot.
+            x_lim: A tuple or list containing the limits for the x-axis.
+            y_lim: A tuple of list containing the limits for the y-axis.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            caption: The (optional) caption to display below the plot.
             label: The (optional) label to display in the top left corner of the plot.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
@@ -4207,6 +4217,8 @@ class ScatterPlot(Plot):
             interactive,
             height,
             width,
+            x_lim,
+            y_lim,
         ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
@@ -4251,13 +4263,23 @@ class ScatterPlot(Plot):
         shape_legend_title: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         interactive: Optional[bool] = True,
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
         encodings = dict(
-            x=alt.X(x, title=x_title or x),
-            y=alt.Y(y, title=y_title or y),
+            x=alt.X(
+                x,
+                title=x_title or x,
+                scale=alt.Scale(domain=x_lim) if x_lim else alt.Undefined,
+            ),
+            y=alt.Y(
+                y,
+                title=y_title or y,
+                scale=alt.Scale(domain=y_lim) if y_lim else alt.Undefined,
+            ),
         )
         properties = {}
         if title:
@@ -4298,7 +4320,7 @@ class ScatterPlot(Plot):
             }
         chart = (
             alt.Chart(value)
-            .mark_point()
+            .mark_point(clip=True)
             .encode(**encodings)
             .properties(background="transparent", **properties)
         )
@@ -4328,9 +4350,300 @@ class ScatterPlot(Plot):
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
+            x_lim=self.x_lim,
+            y_lim=self.y_lim,
         )
 
         return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+
+
+@document("change", "clear")
+class LinePlot(Plot):
+    """
+    Create a line plot.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a pandas dataframe with the data to plot.
+
+    Demos: native_plots
+    """
+
+    def __init__(
+        self,
+        value: Optional[pd.DataFrame | Callable] = None,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        *,
+        color: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        caption: Optional[str] = None,
+        interactive: Optional[bool] = True,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis.
+            y_lim: A tuple of list containing the limits for the y-axis.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+            elem_id: Unique id used for custom css targetting.
+        """
+        self.x = x
+        self.y = y
+        self.color = color
+        self.tooltip = tooltip
+        self.title = title
+        self.x_title = x_title
+        self.y_title = y_title
+        self.color_legend_title = color_legend_title
+        self.overlay_point = overlay_point
+        self.x_lim = x_lim
+        self.y_lim = y_lim
+        self.caption = caption
+        self.interactive_chart = interactive
+        self.width = width
+        self.height = height
+        super().__init__(
+            value=value,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+        )
+
+    def get_config(self):
+        config = super().get_config()
+        config["caption"] = self.caption
+        return config
+
+    def get_block_name(self) -> str:
+        return "plot"
+
+    @staticmethod
+    def update(
+        value: Optional[pd.DataFrame] = _Keywords.NO_VALUE,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        color: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        interactive: Optional[bool] = True,
+        caption: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        """Update an existing plot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis.
+            y_lim: A tuple of list containing the limits for the y-axis.
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display in the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
+        properties = [
+            x,
+            y,
+            color,
+            overlay_point,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            interactive,
+            height,
+            width,
+            x_lim,
+            y_lim,
+        ]
+        if any(properties):
+            if value is _Keywords.NO_VALUE:
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided. Please pass a value parameter to "
+                    "gr.LinePlot.update."
+                )
+            if x is None or y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.LinePlot.update."
+                )
+            chart = LinePlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "line"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "caption": caption,
+            "__type__": "update",
+        }
+        return updated_config
+
+    @staticmethod
+    def create_plot(
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        interactive: Optional[bool] = True,
+    ):
+        """Helper for creating the scatter plot."""
+        interactive = True if interactive is None else interactive
+        encodings = dict(
+            x=alt.X(
+                x,
+                title=x_title or x,
+                scale=alt.Scale(domain=x_lim) if x_lim else alt.Undefined,
+            ),
+            y=alt.Y(
+                y,
+                title=y_title or y,
+                scale=alt.Scale(domain=y_lim) if y_lim else alt.Undefined,
+            ),
+        )
+        properties = {}
+        if title:
+            properties["title"] = title
+        if height:
+            properties["height"] = height
+        if width:
+            properties["width"] = width
+
+        highlight = None
+        if color:
+            domain = value[color].unique().tolist()
+            range_ = list(range(len(domain)))
+            encodings["color"] = {
+                "field": color,
+                "type": "nominal",
+                "legend": {"title": color_legend_title or color},
+                "scale": {"domain": domain, "range": range_},
+            }
+            highlight = alt.selection(
+                type="single", on="mouseover", fields=[color], nearest=True
+            )
+        if tooltip:
+            encodings["tooltip"] = tooltip
+
+        chart = alt.Chart(value).encode(**encodings)
+        import pdb
+
+        pdb.set_trace()
+        if highlight:
+            points = (
+                chart.mark_circle()
+                .encode(
+                    opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0)
+                )
+                .add_selection(highlight)
+            )
+            lines = chart.mark_line().encode(
+                size=alt.condition(highlight, alt.value(4), alt.value(1))
+            )
+        else:
+            points = chart.mark_circle().encode(
+                opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0)
+            )
+            lines = chart.mark_line()
+        # if highlight:
+        #    points.add_selection(highlight)
+        #    lines.encode(size=alt.condition(highlight, alt.value(4), alt.value(1)))
+
+        chart = (points + lines).properties(background="transparent", **properties)
+        if interactive:
+            chart = chart.interactive()
+
+        return chart
+
+    def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
+        # if None or update
+        if y is None or isinstance(y, Dict):
+            return y
+        chart = self.create_plot(
+            value=y,
+            x=self.x,
+            y=self.y,
+            color=self.color,
+            overlay_point=self.overlay_point,
+            title=self.title,
+            tooltip=self.tooltip,
+            x_title=self.x_title,
+            y_title=self.y_title,
+            color_legend_title=self.color_legend_title,
+            x_lim=self.x_lim,
+            y_lim=self.y_lim,
+            interactive=self.interactive_chart,
+            height=self.height,
+            width=self.width,
+        )
+
+        return {"type": "altair", "plot": chart.to_json(), "chart": "line"}
 
 
 @document("change")
