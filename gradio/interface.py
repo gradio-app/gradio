@@ -381,10 +381,6 @@ class Interface(Blocks):
         self.share_url = None
         self.local_url = None
 
-        self.requires_permissions = any(
-            [component.requires_permissions for component in self.input_components]
-        )
-
         self.favicon_path = None
 
         if self.analytics_enabled:

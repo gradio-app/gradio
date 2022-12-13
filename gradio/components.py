@@ -104,14 +104,12 @@ class IOComponent(Component, Serializable):
         show_label: bool = True,
         interactive: Optional[bool] = None,
         visible: bool = True,
-        requires_permissions: bool = False,
         elem_id: Optional[str] = None,
         load_fn: Optional[Callable] = None,
         **kwargs,
     ):
         self.label = label
         self.show_label = show_label
-        self.requires_permissions = requires_permissions
         self.interactive = interactive
 
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
@@ -1289,7 +1287,6 @@ class Image(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
             )
         self.source = source
-        requires_permissions = source == "webcam"
         if tool is None:
             self.tool = "sketch" if source == "canvas" else "editor"
         else:
@@ -1308,7 +1305,6 @@ class Image(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            requires_permissions=requires_permissions,
             value=value,
             **kwargs,
         )
@@ -1818,7 +1814,6 @@ class Audio(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
             )
         self.source = source
-        requires_permissions = source == "microphone"
         valid_types = ["numpy", "filepath", "file"]
         if type not in valid_types:
             raise ValueError(
@@ -1839,7 +1834,6 @@ class Audio(
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            requires_permissions=requires_permissions,
             value=value,
             **kwargs,
         )
