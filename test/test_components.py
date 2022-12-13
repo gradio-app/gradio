@@ -551,8 +551,7 @@ class TestRadio:
 
 
 class TestImage:
-    @pytest.mark.asyncio
-    async def test_component_functions(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -615,8 +614,7 @@ class TestImage:
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         type: file
@@ -635,8 +633,7 @@ class TestImage:
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -790,8 +787,7 @@ class TestAudio:
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         assert similarity > 0.9
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
             return (sr, np.flipud(data))
@@ -807,8 +803,7 @@ class TestAudio:
         ).ratio()
         assert similarity > 0.99
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -1033,7 +1028,7 @@ class TestDataframe:
                     "%B %d, %Y, %r"
                 ),
                 "number": np.array([0.2233, 0.57281]),
-                "number_2": np.array([84, 23]).astype(np.int),
+                "number_2": np.array([84, 23]).astype(np.int64),
                 "bool": [True, False],
                 "markdown": ["# Hello", "# Goodbye"],
             }
@@ -1199,8 +1194,7 @@ class TestVideo:
             }
         ).endswith(".mp4")
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1430,8 +1424,7 @@ class TestLabel:
         )
         assert update_5["color"] == "transparent"
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1674,8 +1667,7 @@ class TestHTML:
             "root_url": None,
         } == html_component.get_config()
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1694,8 +1686,7 @@ class TestMarkdown:
             """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
         )
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1732,8 +1723,7 @@ class TestModel3D:
         output2 = component.postprocess(file)
         assert output1 == output2
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
