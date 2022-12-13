@@ -205,7 +205,6 @@ class Block:
             )
 
         if every:
-            print("every", every)
             fn = get_continuous_fn(fn, every)
 
         Context.root_block.fns.append(

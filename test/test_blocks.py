@@ -299,7 +299,7 @@ class TestComponentsInBlocks:
         ]
         interface = gr.Interface(
             lambda *args: None,
-            inputs=[comp(value=lambda: None) for comp in io_components],
+            inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
 
@@ -307,6 +307,7 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
+        assert all([dep["every"] == 1 for dep in dependencies_on_load])
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
