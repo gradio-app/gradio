@@ -10,7 +10,7 @@ We'll be working with the New York Times' COVID dataset that is available on Big
 
 ## Setting up your BigQuery Credentials
 
-To use Gradio with BigQuery, you will need to obtain your BigQuery credentials and use them with the BigQuery Python client. If you already have BigQuery credentials, you can skip this section. If not, you can do this for free very quickly:
+To use Gradio with BigQuery, you will need to obtain your BigQuery credentials and use them with the BigQuery Python client. If you already have BigQuery credentials, you can skip this section. If not, you can do this for free in just a couple of minutes:
 
 1. First, log in to your Google Cloud account and go to the Google Cloud Console (https://console.cloud.google.com/)
 
@@ -60,6 +60,8 @@ With your credentials authenticated, you can now use the BigQuery Python client 
 Here is an example of a function which queries the `covid19_nyt.us_counties` dataset in BigQuery to show the top 20 counties with the most confirmed cases as of the current day:
 
 ```py
+import numpy as np
+
 QUERY = (
     'SELECT * FROM `bigquery-public-data.covid19_nyt.us_counties` ' 
     'ORDER BY date DESC,confirmed_cases DESC '
@@ -68,13 +70,15 @@ QUERY = (
 def run_query():
     query_job = client.query(QUERY)  
     query_result = query_job.result()  
-    df = query_result.to_dataframe()   
+    df = query_result.to_dataframe()
+    # select a subset of columns and converted some columns to standard numpy types
+    df = df[["deaths", "county", "deaths", "confirmed_cases"]].astype({"deaths": np.int64, "confirmed_cases": np.int64})
     return df
 ```
 
 ## Building a Dashboard for Real-Time Data Analysis
 
-Once you have a function to query the data, you can use the gr.DataFrame component from the Gradio library to display the results in a tabular format. This is a useful way to inspect the data and make sure that it has been queried correctly.
+Once you have a function to query the data, you can use the `gr.DataFrame` component from the Gradio library to display the results in a tabular format. This is a useful way to inspect the data and make sure that it has been queried correctly.
 
 Here is an example of how to use the `gr.DataFrame` component to display the results. By passing in the `run_query` function to `gr.DataFrame`, we instruct Gradio to run the function as soon as the page loads and show the results. In addition, you also pass in the keyword `every` to tell the dashboard to refresh every hour (60*60 seconds).
 
@@ -87,16 +91,20 @@ with gr.Blocks() as demo:
 demo.queue().launch()  # Run the demo using queuing
 ```
 
-Perhaps you'd like to add a visualization to our dashboard. You can use the `gr.ScatterPlot()` component to visualize the data in a scatter plot. This allows you to see the relationship between different variables such as case count and case deaths in the dataset and can be useful for exploring the data and gaining insights.
+Perhaps you'd like to add a visualization to our dashboard. You can use the `gr.ScatterPlot()` component to visualize the data in a scatter plot. This allows you to see the relationship between different variables such as case count and case deaths in the dataset and can be useful for exploring the data and gaining insights. Again, we can do this in real-time
+by passing in the `every` parameter. 
 
 Here is a complete example showing how to use the `gr.ScatterPlot` to visualize in addition to displaying data with the `gr.DataFrame`
 
 ```py
 import gradio as gr
 
-# create a ScatterPlot component
-plot = gr.ScatterPlot(results, x="temperature", y="pressure")
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column(scale=0.66):
+            gr.DataFrame(run_query, every=60*60)
+        with gr.Column(scale=0.33):
+            gr.ScatterPlot(run_query, x="confirmed_cases", y="deaths", tooltip="county", every=60*60 )
 
-# display the scatter plot
-plot.launch()
+demo.queue().launch()  # Run the demo with queuing enabled
 ```
