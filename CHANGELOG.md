@@ -1,4 +1,28 @@
-# Upcoming Release
+# Upcoming Release 
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805) 
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.13.0
 
 ## New Features:
 
@@ -137,7 +161,6 @@ No changes to highlight.
 * Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748) 
 * Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755) 
 * Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
-* Added handling of invalid values in the `Slider`, `Radio` and `CheckgroupBox` components by [@thehimalayanleo](https://github.com/thehimalayanleo) in [PR 2760](https://github.com/gradio-app/gradio/pull/2760).
 * Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
 
 ## Contributors Shoutout:
