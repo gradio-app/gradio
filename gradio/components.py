@@ -119,7 +119,7 @@ class IOComponent(Component, Serializable):
         self.value = self.postprocess(initial_value)
 
         self.set_interpret_parameters()
-        
+
         if callable(load_fn):
             self.attach_load_event = True
             self.load_fn = load_fn
