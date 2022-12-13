@@ -20,14 +20,14 @@
 	{#if editable}
 		<IconButton
 			Icon={Edit}
-			aria-label="Edit"
+			label="Edit"
 			on:click={() => dispatch("edit")}
 		/>
 	{/if}
 
 	<IconButton
 		Icon={Clear}
-		aria-label="Clear"
+		label="Clear"
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

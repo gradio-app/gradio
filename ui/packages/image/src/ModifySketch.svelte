@@ -7,10 +7,10 @@
 </script>
 
 <div class="z-50 top-2 right-2 justify-end flex gap-1 absolute">
-	<IconButton Icon={Undo} aria-label="Undo" on:click={() => dispatch("undo")} />
+	<IconButton Icon={Undo} label="Undo" on:click={() => dispatch("undo")} />
 	<IconButton
 		Icon={Clear}
-		aria-label="Clear"
+		label="Clear"
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

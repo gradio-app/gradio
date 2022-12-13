@@ -24,7 +24,7 @@
 	<span class="absolute top-0 right-0">
 		<IconButton
 			Icon={Brush}
-			aria-label="Use brush"
+			label="Use brush"
 			on:click={() => (show_size = !show_size)}
 		/>
 		{#if show_size}
@@ -43,7 +43,7 @@
 		<span class="absolute top-6 right-0">
 			<IconButton
 				Icon={Color}
-				aria-label="Select brush color"
+				label="Select brush color"
 				on:click={() => (show_col = !show_col)}
 			/>
 			{#if show_col}
