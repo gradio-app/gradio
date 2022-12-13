@@ -1236,11 +1236,10 @@ class TestVideo:
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    @patch("os.path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
-        os.path.exists = MagicMock(return_value=False)
-
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
