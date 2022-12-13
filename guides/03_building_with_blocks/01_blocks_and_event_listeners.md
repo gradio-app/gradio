@@ -33,7 +33,8 @@ Instead of being triggered by a click, the `welcome` function is triggered by ty
 ## Running Events Continuously
 
 You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
-`every` number of seconds. Note that this does not take into account the runtime of the event itself. So a function
+`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
+Note that this does not take into account the runtime of the event itself. So a function
 with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
 
 Here is an example of a sine curve that updates every second!
