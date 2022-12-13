@@ -115,7 +115,7 @@ class IOComponent(Component, Serializable):
         self.requires_permissions = requires_permissions
         self.interactive = interactive
 
-        load_fn, initial_value = self.get_load_fn_and_initial_value(value, every)
+        load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
 
         self.set_interpret_parameters()

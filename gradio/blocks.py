@@ -205,6 +205,7 @@ class Block:
             )
 
         if every:
+            print("every", every)
             fn = get_continuous_fn(fn, every)
 
         Context.root_block.fns.append(
@@ -1609,7 +1610,7 @@ class Blocks(BlockContext):
             self.server.close()
 
     def attach_load_events(self):
-        """Add a load event for every component whose initial value should be randomized."""
+        """Add a load event for every component whose initial value is a function."""
 
         for component in Context.root_block.blocks.values():
             if (
@@ -1623,7 +1624,6 @@ class Blocks(BlockContext):
                     None,
                     component,
                     no_target=True,
-                    queue=False,
                     every=component.every,
                 )
 
