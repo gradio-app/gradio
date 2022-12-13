@@ -979,6 +979,47 @@ class TestEvery:
                     else:
                         break
 
+    @pytest.mark.asyncio
+    async def test_generating_event_cancelled_if_ws_closed(self, capsys):
+        def generation():
+            for i in range(10):
+                time.sleep(0.1)
+                print(f"At step {i}")
+                yield i
+            return "Hello!"
+
+        with gr.Blocks() as demo:
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+            button.click(generation, None, greeting)
+
+        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            n_steps = 0
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                elif msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                elif msg["msg"] == "process_generating":
+                    if n_steps == 2:
+                        # Close the websocket
+                        break
+                    n_steps += 1
+                else:
+                    continue
+        await asyncio.sleep(1)
+        # If the generation function did not get cancelled
+        # it would have finished running and `At step 9` would
+        # have been printed
+        captured = capsys.readouterr()
+        assert "At step 9" not in captured.out
+
 
 class TestAddRequests:
     def test_no_type_hints(self):

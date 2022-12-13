@@ -67,7 +67,7 @@ class Changeable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -130,7 +130,7 @@ class Clickable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -195,7 +195,7 @@ class Submittable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -259,7 +259,7 @@ class Editable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -323,7 +323,7 @@ class Clearable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -387,7 +387,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -449,7 +449,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -511,7 +511,7 @@ class Playable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         if status_tracker:
@@ -575,7 +575,7 @@ class Streamable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
         self.streaming = True
@@ -639,7 +639,7 @@ class Blurrable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
@@ -696,7 +696,7 @@ class Uploadable(Block):
             preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
             postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             cancels: A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         """
         # _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
 
