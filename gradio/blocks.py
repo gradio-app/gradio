@@ -1458,11 +1458,11 @@ class Blocks(BlockContext):
                 if self.share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(0.25)
-                    display(
-                        HTML(
-                            f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
-                        )
-                    )
+                    # display(
+                    #     HTML(
+                    #         f'<div><iframe src="{self.share_url}" width="{self.width}" height="{self.height}" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>'
+                    #     )
+                    # )
                 elif self.is_colab:
                     # modified from /usr/local/lib/python3.7/dist-packages/google/colab/output/_util.py within Colab environment
                     code = """(async (port, path, width, height, cache, element) => {
