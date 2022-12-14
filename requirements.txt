@@ -7,7 +7,6 @@ matplotlib
 numpy
 orjson
 pandas
-paramiko
 pillow
 pycryptodome
 python-multipart
