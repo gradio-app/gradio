@@ -519,7 +519,6 @@ class Blocks(BlockContext):
         self.limiter = None
         self.save_to = None
         self.theme = theme
-        self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
         self.enable_queue = None
