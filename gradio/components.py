@@ -4592,9 +4592,7 @@ class LinePlot(Plot):
             encodings["tooltip"] = tooltip
 
         chart = alt.Chart(value).encode(**encodings)
-        import pdb
 
-        pdb.set_trace()
         if highlight:
             points = (
                 chart.mark_circle()

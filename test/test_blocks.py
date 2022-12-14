@@ -317,7 +317,9 @@ class TestComponentsInBlocks:
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
-            c() for c in io_components if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
+            c()
+            for c in io_components
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
