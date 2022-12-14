@@ -80,7 +80,9 @@ def version_check():
 def get_local_ip_address() -> str:
     """Gets the public IP address or returns the string "No internet connection" if unable to obtain it."""
     try:
-        ip_address = requests.get("https://checkip.amazonaws.com/", timeout=3).text
+        ip_address = requests.get(
+            "https://checkip.amazonaws.com/", timeout=3
+        ).text.strip()
     except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         ip_address = "No internet connection"
     return ip_address
