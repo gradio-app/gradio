@@ -1,7 +1,21 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### New Shareable Links
+
+Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by [XciD](https://github.com/XciD) and [Wauplin](https://github.com/Wauplin) in [PR 2509](https://github.com/gradio-app/gradio/pull/2509)
+
+You don't need to do anything differently, but when you set `share=True` in `launch()`,
+you'll get this message and a public link that look a little bit different:
+
+```
+Setting up a public link... we have recently upgraded the way public links are generated. If you encounter any problems, please downgrade to gradio version 3.13.0
+.
+Running on public URL: https://bec81a83-5b5c-471e.gradio.live
+```
+
+These links are a more secure and scalable way to create shareable demos!
 
 ## Bug Fixes:
 * Allows `gr.Dataframe()` to take a `pandas.DataFrame` that includes numpy array and other types as its initial value, by [@abidlabs](https://github.com/abidlabs) in [PR 2804](https://github.com/gradio-app/gradio/pull/2804) 
@@ -552,7 +566,6 @@ No changes to highlight.
 * Added the `every` keyword to event listeners that runs events on a fixed schedule by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2512](https://github.com/gradio-app/gradio/pull/2512)
 * Fix whitespace issue when using plotly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2548](https://github.com/gradio-app/gradio/pull/2548)
 * Apply appropriate alt text to all gallery images. [@camenduru](https://github.com/camenduru) in [PR 2358](https://github.com/gradio-app/gradio/pull/2538)
-* Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by [XciD](https://github.com/XciD) and [Wauplin](https://github.com/Wauplin) in [PR 2509](https://github.com/gradio-app/gradio/pull/2509)
 
 ## Contributors Shoutout:
 No changes to highlight.

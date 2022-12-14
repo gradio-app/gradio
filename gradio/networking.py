@@ -175,11 +175,11 @@ def setup_tunnel(local_host: str, local_port: int) -> str:
 def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
-            time.sleep(0.500)
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
                 r = requests.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
+            time.sleep(0.500)
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
