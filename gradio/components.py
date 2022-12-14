@@ -1885,7 +1885,7 @@ class Audio(
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
-            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max". 
+            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max".
         Returns:
             audio in requested format
         """

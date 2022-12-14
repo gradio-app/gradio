@@ -333,7 +333,7 @@ class TempFileManager:
     def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
         remote = urllib.request.urlopen(url)
-        max_file_size = 100*1024*1024  # 100MB
+        max_file_size = 100 * 1024 * 1024  # 100MB
         total_read = 0
         while True:
             data = remote.read(chunk_num_blocks * sha1.block_size)
@@ -354,7 +354,7 @@ class TempFileManager:
         prefix = utils.strip_invalid_filename_characters(prefix)
         file_hash = self.hash_file(file_path)
         return prefix + file_hash + extension
-    
+
     def get_temp_url_path(self, url: str) -> str:
         file_name = os.path.basename(url)
         prefix, extension = file_name, None
@@ -365,10 +365,10 @@ class TempFileManager:
             extension = ""
         prefix = utils.strip_invalid_filename_characters(prefix)
         file_hash = self.hash_url(url)
-        return prefix + file_hash + extension    
+        return prefix + file_hash + extension
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
-        """Returns a temporary file path for a copy of the given file path if it does 
+        """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
         temp_dir, _ = os.path.split(f.name)
@@ -384,7 +384,7 @@ class TempFileManager:
         return full_temp_file_path
 
     def download_temp_copy_if_needed(self, url: str) -> str:
-        """Downloads a file and makes a temporary file path for a copy if does not already 
+        """Downloads a file and makes a temporary file path for a copy if does not already
         exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
         temp_dir, _ = os.path.split(f.name)

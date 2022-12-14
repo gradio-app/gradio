@@ -200,7 +200,6 @@ class TestTempFileManager:
         assert len(temp_file_manager.temp_files) == 2
 
 
-
 class TestOutputPreprocessing:
     def test_decode_base64_to_binary(self):
         binary = processing_utils.decode_base64_to_binary(
