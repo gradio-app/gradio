@@ -35,6 +35,7 @@ class TestImagePreprocessing:
         )
         assert output_base64 == deepcopy(media_data.BASE64_IMAGE)
 
+    @pytest.mark.flaky
     def test_encode_url_to_base64(self):
         output_base64 = processing_utils.encode_url_to_base64(
             "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
@@ -154,7 +155,7 @@ class TestTempFileManager:
         assert h1 != h3
 
     @patch("shutil.copy2")
-    def test_make_temp_copy_if_needed(self, mock_copy2):
+    def test_make_temp_copy_if_needed(self, mock_copy):
         temp_file_manager = processing_utils.TempFileManager()
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
@@ -164,7 +165,7 @@ class TestTempFileManager:
             pass
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
-        assert mock_copy2.called
+        assert mock_copy.called
         assert len(temp_file_manager.temp_files) == 1
 
         f = temp_file_manager.make_temp_copy_if_needed("gradio/test_data/cheetah1.jpg")
@@ -174,6 +175,30 @@ class TestTempFileManager:
             "gradio/test_data/cheetah1-copy.jpg"
         )
         assert len(temp_file_manager.temp_files) == 2
+
+    @pytest.mark.flaky
+    @patch("shutil.copyfileobj")
+    def test_download_temp_copy_if_needed(self, mock_copy):
+        temp_file_manager = processing_utils.TempFileManager()
+        url1 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/test_image.png"
+        url2 = "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/test_data/cheetah1.jpg"
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        try:  # Delete if already exists from before this test
+            os.remove(f)
+        except OSError:
+            pass
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        assert mock_copy.called
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.download_temp_copy_if_needed(url1)
+        assert len(temp_file_manager.temp_files) == 1
+
+        f = temp_file_manager.download_temp_copy_if_needed(url2)
+        assert len(temp_file_manager.temp_files) == 2
+
 
 
 class TestOutputPreprocessing:

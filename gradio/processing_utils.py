@@ -9,6 +9,7 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
 from typing import Dict
@@ -329,6 +330,19 @@ class TempFileManager:
                 sha1.update(chunk)
         return sha1.hexdigest()
 
+    def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        remote = urllib.request.urlopen(url)
+        max_file_size = 100*1024*1024  # 100MB
+        total_read = 0
+        while True:
+            data = remote.read(chunk_num_blocks * sha1.block_size)
+            total_read += chunk_num_blocks * sha1.block_size
+            if not data or total_read > max_file_size:
+                break
+            sha1.update(data)
+        return sha1.hexdigest()
+
     def get_temp_file_path(self, file_path: str) -> str:
         file_name = os.path.basename(file_path)
         prefix, extension = file_name, None
@@ -340,10 +354,22 @@ class TempFileManager:
         prefix = utils.strip_invalid_filename_characters(prefix)
         file_hash = self.hash_file(file_path)
         return prefix + file_hash + extension
+    
+    def get_temp_url_path(self, url: str) -> str:
+        file_name = os.path.basename(url)
+        prefix, extension = file_name, None
+        if "." in file_name:
+            prefix = file_name[0 : file_name.index(".")]
+            extension = "." + file_name[file_name.index(".") + 1 :]
+        else:
+            extension = ""
+        prefix = utils.strip_invalid_filename_characters(prefix)
+        file_hash = self.hash_url(url)
+        return prefix + file_hash + extension    
 
     def make_temp_copy_if_needed(self, file_path: str) -> str:
-        """Main method of the class. It returns a temporary file path for the given file
-        path if it does not already exist. Otherwise returns the path to the existing temp file."""
+        """Returns a temporary file path for a copy of the given file path if it does 
+        not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
         temp_dir, _ = os.path.split(f.name)
 
@@ -353,6 +379,24 @@ class TempFileManager:
 
         if not os.path.exists(full_temp_file_path):
             shutil.copy2(file_path, full_temp_file_path)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    def download_temp_copy_if_needed(self, url: str) -> str:
+        """Downloads a file and makes a temporary file path for a copy if does not already 
+        exist. Otherwise returns the path to the existing temp file."""
+        f = tempfile.NamedTemporaryFile()
+        temp_dir, _ = os.path.split(f.name)
+
+        temp_file_path = self.get_temp_url_path(url)
+        f.name = os.path.join(temp_dir, temp_file_path)
+        full_temp_file_path = os.path.abspath(f.name)
+
+        if not os.path.exists(full_temp_file_path):
+            with requests.get(url, stream=True) as r:
+                with open(full_temp_file_path, "wb") as f:
+                    shutil.copyfileobj(r.raw, f)
 
         self.temp_files.add(full_temp_file_path)
         return full_temp_file_path

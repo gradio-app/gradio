@@ -1885,12 +1885,13 @@ class Audio(
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
-            x: JSON object with filename as 'name' property and base64 data as 'data' property
+            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max". 
         Returns:
             audio in requested format
         """
         if x is None:
             return x
+        print(x)
         file_name, file_data, is_file = (
             x["name"],
             x["data"],
@@ -1898,7 +1899,10 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            temp_file_path = self.make_temp_copy_if_needed(file_name)
+            if utils.validate_url(file_name):
+                temp_file_path = processing_utils.download_file(file_name)
+            else:
+                temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
             temp_file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
