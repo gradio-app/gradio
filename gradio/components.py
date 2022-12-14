@@ -1742,7 +1742,7 @@ class Video(
 
         # For cases where the video needs to be converted to another format
         if utils.validate_url(y):
-            y = processing_utils.download_to_file(y).name
+            y = self.download_temp_copy_if_needed(y)
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(y)
@@ -1891,7 +1891,6 @@ class Audio(
         """
         if x is None:
             return x
-        print(x)
         file_name, file_data, is_file = (
             x["name"],
             x["data"],
@@ -1900,7 +1899,7 @@ class Audio(
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
             if utils.validate_url(file_name):
-                temp_file_path = processing_utils.download_file(file_name)
+                temp_file_path = self.download_temp_copy_if_needed(file_name)
             else:
                 temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
