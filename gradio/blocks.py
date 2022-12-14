@@ -741,7 +741,7 @@ class Blocks(BlockContext):
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_file_sets.append(self.temp_file_sets)
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)

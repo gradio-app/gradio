@@ -3,6 +3,7 @@ import copy
 import io
 import json
 import os
+import pathlib
 import random
 import sys
 import time
@@ -1172,3 +1173,19 @@ async def test_queue_when_using_auth():
         *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
     )
     await group
+
+
+def test_temp_file_sets_get_extended():
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+    
+    with gr.Blocks() as demo1:
+        gr.Video(str(test_file_dir / "video_sample.mp4"))
+
+    with gr.Blocks() as demo2:
+        gr.Audio(str(test_file_dir / "audio_sample.wav"))
+    
+    with gr.Blocks() as demo3:
+        demo1.render()
+        demo2.render()
+        
+    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
