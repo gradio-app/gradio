@@ -822,7 +822,7 @@ def make_waveform(
     bar_width: float = 0.6,
 ):
     """
-    Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization.
+    Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
     Parameters:
         audio: Audio file path or tuple of (sample_rate, audio_data)
         bg_color: Background color of waveform (ignored if bg_image is provided)
