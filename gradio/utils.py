@@ -822,19 +822,23 @@ def make_waveform(
     bar_width: float = 0.6,
 ):
     """
-    :param audio: Audio file path or tuple of (sample_rate, audio_data)
-    :param bg_color: Background color of waveform (ignored if bg_image is provided)
-    :param bg_image: Background image of waveform
-    :param fg_alpha: Opacity of foreground waveform
-    :param bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
-    :param bar_count: Number of bars in waveform
-    :param bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
+    Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization.
+    Parameters:
+        audio: Audio file path or tuple of (sample_rate, audio_data)
+        bg_color: Background color of waveform (ignored if bg_image is provided)
+        bg_image: Background image of waveform
+        fg_alpha: Opacity of foreground waveform
+        bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
+        bar_count: Number of bars in waveform
+        bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
+    Returns:
+        A filepath to the output video.
     """
     if isinstance(audio, str):
         audio_file = audio
         audio = processing_utils.audio_from_file(audio)
     else:
-        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav")
+        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
         processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
         audio_file = tmp_wav.name
     duration = round(len(audio[1]) / audio[0], 4)
@@ -881,7 +885,7 @@ def make_waveform(
     )
     plt.axis("off")
     plt.margins(x=0)
-    tmp_img = tempfile.NamedTemporaryFile(suffix=".png")
+    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
     savefig_kwargs = {"bbox_inches": "tight"}
     if bg_image is not None:
         savefig_kwargs["transparent"] = True
