@@ -103,6 +103,7 @@ class TestUtils:
 
 
 class TestIPAddress:
+    @pytest.mark.flaky
     def test_get_ip(self):
         ip = get_local_ip_address()
         if ip == "No internet connection":
