@@ -3612,6 +3612,7 @@ class Gallery(IOComponent, TempFileManager):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        os.makedirs(gallery_path)
         captions = {}
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
@@ -3619,9 +3620,7 @@ class Gallery(IOComponent, TempFileManager):
             else:
                 caption = None
             name = FileSerializable.deserialize(self, img_data, gallery_path)
-            if caption is not None:
-                captions[name] = caption
-        if len(captions):
+            captions[name] = caption
             captions_file = os.path.join(gallery_path, "captions.json")
             with open(captions_file, "w") as captions_json:
                 json.dump(captions, captions_json)
@@ -3630,21 +3629,11 @@ class Gallery(IOComponent, TempFileManager):
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         captions_file = os.path.join(x, "captions.json")
-        for file in os.listdir(x):
-            file_path = os.path.join(x, file)
-            if file_path == captions_file:
-                continue
-            if os.path.exists(captions_file):
-                with open(captions_file) as captions_json:
-                    captions = json.load(captions_json)
-                caption = captions.get(file_path)
-            else:
-                caption = None
-            img = FileSerializable.serialize(self, file_path)
-            if caption:
-                files.append([img, caption])
-            else:
-                files.append(img)
+        with open(captions_file) as captions_json:
+            captions = json.load(captions_json)
+        for file_name, caption in captions.items():
+            img = FileSerializable.serialize(self, file_name)
+            files.append([img, caption])
         return files
 
 
