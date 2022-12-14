@@ -4375,12 +4375,15 @@ class LinePlot(Plot):
         y: Optional[str] = None,
         *,
         color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
         overlay_point: Optional[bool] = None,
         title: Optional[str] = None,
         tooltip: Optional[List[str] | str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4398,6 +4401,7 @@ class LinePlot(Plot):
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
             overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
@@ -4418,11 +4422,14 @@ class LinePlot(Plot):
         self.x = x
         self.y = y
         self.color = color
+        self.stroke_dash = stroke_dash
         self.tooltip = tooltip
         self.title = title
         self.x_title = x_title
         self.y_title = y_title
         self.color_legend_title = color_legend_title
+        self.stroke_dash_legend_title = stroke_dash_legend_title
+        self.color_legend_position = color_legend_position
         self.overlay_point = overlay_point
         self.x_lim = x_lim
         self.y_lim = y_lim
@@ -4452,12 +4459,15 @@ class LinePlot(Plot):
         x: Optional[str] = None,
         y: Optional[str] = None,
         color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
         overlay_point: Optional[bool] = None,
         title: Optional[str] = None,
         tooltip: Optional[List[str] | str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4477,12 +4487,15 @@ class LinePlot(Plot):
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
             overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
+            color_legend_position: Position of color legend. Use 'none' to ommit the legend.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis.
@@ -4497,12 +4510,15 @@ class LinePlot(Plot):
             x,
             y,
             color,
+            stroke_dash,
             overlay_point,
             title,
             tooltip,
             x_title,
             y_title,
             color_legend_title,
+            color_legend_position,
+            stroke_dash_legend_title,
             interactive,
             height,
             width,
@@ -4541,12 +4557,15 @@ class LinePlot(Plot):
         x: str,
         y: str,
         color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
         overlay_point: Optional[bool] = None,
         title: Optional[str] = None,
         tooltip: Optional[List[str] | str] = None,
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4582,38 +4601,50 @@ class LinePlot(Plot):
             encodings["color"] = {
                 "field": color,
                 "type": "nominal",
-                "legend": {"title": color_legend_title or color},
                 "scale": {"domain": domain, "range": range_},
             }
-            highlight = alt.selection(
-                type="single", on="mouseover", fields=[color], nearest=True
-            )
+            if color_legend_position == "none":
+                legend = None
+            else:
+                legend = {"title": color_legend_title or color}
+                if color_legend_position:
+                    legend["orient"] = color_legend_position
+
+            encodings["color"]["legend"] = legend
+
+            if interactive and any([color, stroke_dash]):
+                highlight = alt.selection(
+                    type="single",
+                    on="mouseover",
+                    fields=[c for c in [color, stroke_dash] if c],
+                    nearest=True,
+                )
+
+        if stroke_dash:
+            stroke_dash = {
+                "field": stroke_dash,
+                "legend": {"title": stroke_dash_legend_title or stroke_dash},
+            }
+        else:
+            stroke_dash = alt.value(alt.Undefined)
         if tooltip:
             encodings["tooltip"] = tooltip
 
         chart = alt.Chart(value).encode(**encodings)
 
-        if highlight:
-            points = (
-                chart.mark_circle()
-                .encode(
-                    opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0)
-                )
-                .add_selection(highlight)
-            )
-            lines = chart.mark_line().encode(
-                size=alt.condition(highlight, alt.value(4), alt.value(1))
-            )
-        else:
-            points = chart.mark_circle().encode(
-                opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0)
-            )
-            lines = chart.mark_line()
-        # if highlight:
-        #    points.add_selection(highlight)
-        #    lines.encode(size=alt.condition(highlight, alt.value(4), alt.value(1)))
+        points = chart.mark_point().encode(
+            opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0),
+        )
+        lines = chart.mark_line().encode(strokeDash=stroke_dash)
 
-        chart = (points + lines).properties(background="transparent", **properties)
+        if highlight:
+            points = points.add_selection(highlight)
+
+            lines = lines.encode(
+                size=alt.condition(highlight, alt.value(4), alt.value(1)),
+            )
+
+        chart = (lines + points).properties(background="transparent", **properties)
         if interactive:
             chart = chart.interactive()
 
@@ -4634,8 +4665,11 @@ class LinePlot(Plot):
             x_title=self.x_title,
             y_title=self.y_title,
             color_legend_title=self.color_legend_title,
+            color_legend_position=self.color_legend_position,
+            stroke_dash_legend_title=self.stroke_dash_legend_title,
             x_lim=self.x_lim,
             y_lim=self.y_lim,
+            stroke_dash=self.stroke_dash,
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
