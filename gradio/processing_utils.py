@@ -12,7 +12,7 @@ import tempfile
 import urllib.request
 import warnings
 from io import BytesIO
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 import requests
@@ -334,8 +334,8 @@ class TempFileManager:
             sha1.update(data)
         return sha1.hexdigest()
 
-    def get_temp_file_path(self, file_path: str) -> str:
-        file_name = os.path.basename(file_path)
+    def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
+        file_name = os.path.basename(file_path_or_url)
         prefix, extension = file_name, None
         if "." in file_name:
             prefix = file_name[0 : file_name.index(".")]
@@ -343,18 +343,15 @@ class TempFileManager:
         else:
             extension = ""
         prefix = utils.strip_invalid_filename_characters(prefix)
+        return prefix, extension
+
+    def get_temp_file_path(self, file_path: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(file_path)
         file_hash = self.hash_file(file_path)
         return prefix + file_hash + extension
 
     def get_temp_url_path(self, url: str) -> str:
-        file_name = os.path.basename(url)
-        prefix, extension = file_name, None
-        if "." in file_name:
-            prefix = file_name[0 : file_name.index(".")]
-            extension = "." + file_name[file_name.index(".") + 1 :]
-        else:
-            extension = ""
-        prefix = utils.strip_invalid_filename_characters(prefix)
+        prefix, extension = self.get_prefix_and_extension(url)
         file_hash = self.hash_url(url)
         return prefix + file_hash + extension
 
