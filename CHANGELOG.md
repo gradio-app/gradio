@@ -1,6 +1,29 @@
 # Upcoming Release
 
 ## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# Version 3.13.0
+
+## New Features:
 
 ### New Shareable Links
 
@@ -20,6 +43,7 @@ These links are a more secure and scalable way to create shareable demos!
 ## Bug Fixes:
 * Allows `gr.Dataframe()` to take a `pandas.DataFrame` that includes numpy array and other types as its initial value, by [@abidlabs](https://github.com/abidlabs) in [PR 2804](https://github.com/gradio-app/gradio/pull/2804) 
 * Add `altair` to requirements.txt by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2811](https://github.com/gradio-app/gradio/pull/2811)
+* Added aria-labels to icon buttons that are built into UI components by [@emilyuhde](http://github.com/emilyuhde) in [PR 2791](https://github.com/gradio-app/gradio/pull/2791)
 
 ## Documentation Changes:
 * Fixed some typos in the "Plot Component for Maps" guide by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2811](https://github.com/gradio-app/gradio/pull/2811)
@@ -162,7 +186,6 @@ by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/grad
 * Fixed issue where entities were not merged when highlighted text was generated from the
 dictionary inputs [@payoto](https://github.com/payoto) in [PR 2767](https://github.com/gradio-app/gradio/pull/2767)
 * Fixed bug where generating events did not finish running even if the websocket connection was closed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2783](https://github.com/gradio-app/gradio/pull/2783).
-* Added aria-labels to icon buttons that are built into UI components by [@emilyuhde](http://github.com/emilyuhde) in [PR 2791](https://github.com/gradio-app/gradio/pull/2791)
 
 ## Documentation Changes:
 No changes to highlight.
