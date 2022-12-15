@@ -40,16 +40,34 @@
 		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
-<svelte:element
-	this={tag}
-	data-testid={test_id}
-	id={elem_id}
-	class:!hidden={visible === false}
-	class="gr-block gr-box relative w-full overflow-hidden {styles[
-		variant
-	]} {styles[color]} {classes}"
-	class:gr-padded={padding}
-	style={size_style || null}
->
-	<slot />
-</svelte:element>
+<div>
+	<svelte:element
+		this={tag}
+		data-testid={test_id}
+		id={elem_id}
+		class:!hidden={visible === false}
+		class="gr-block {styles[variant]} {styles[color]} {classes}"
+		class:padded={padding}
+		style={size_style || null}
+	>
+		<slot />
+	</svelte:element>
+</div>
+
+<style>
+	div > * {
+		position: relative;
+		overflow: hidden;
+		width: 100%;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		border-radius: var(--block-border-radius);
+		box-shadow: var(--shadow-drop);
+		background: var(--block-background);
+	}
+
+	.padded {
+		padding: var(--size-2-5) var(--size-3);
+	}
+</style>

@@ -6,5 +6,8 @@
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true
+	"private": true,
+	"scripts": {
+		"generate": "node src/generate_theme.cjs"
+	}
 }

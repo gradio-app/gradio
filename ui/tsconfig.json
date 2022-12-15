@@ -30,5 +30,11 @@
 		"**/workbench/**/*",
 		"**/Plot.svelte"
 	],
-	"include": ["**/*.d.ts", "**/*.js", "**/*.ts", "**/*.svelte"]
+	"include": [
+		"**/*.d.ts",
+		"**/*.js",
+		"**/*.ts",
+		"**/*.svelte",
+		"packages/theme/src/generate_theme.cjs"
+	]
 }

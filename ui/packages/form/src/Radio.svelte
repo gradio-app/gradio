@@ -9,7 +9,7 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
 	export let elem_id: string;
 
 	const dispatch = createEventDispatcher();
