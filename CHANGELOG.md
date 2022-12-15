@@ -60,10 +60,6 @@ No changes to highlight.
 * Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810)
 
 
-## Contributors Shoutout:
-No changes to highlight.
-
-
 # Version 3.13.0
 
 ## New Features:
