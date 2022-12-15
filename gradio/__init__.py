@@ -78,7 +78,7 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
-from gradio.utils import make_waveform
+from gradio.utils import makeWaveform
 
 current_pkg_version = pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
 __version__ = current_pkg_version

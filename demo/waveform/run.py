@@ -11,8 +11,8 @@ COLORS = [
 def audio_waveform(audio, image):
     return (
         audio,
-        gr.make_waveform(audio),
-        gr.make_waveform(audio, bg_image=image, bars_color=random.choice(COLORS)),
+        gr.makeWaveform(audio),
+        gr.makeWaveform(audio, bg_image=image, bars_color=random.choice(COLORS)),
     )
 
 

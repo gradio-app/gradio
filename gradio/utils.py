@@ -48,6 +48,8 @@ from pydantic import BaseModel, Json, parse_obj_as
 import gradio
 from gradio import processing_utils
 from gradio.context import Context
+from gradio.documentation import document, set_documentation_group
+
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -813,8 +815,10 @@ class TupleNoPrint(tuple):
     def __str__(self):
         return ""
 
+set_documentation_group("component-helpers")
 
-def make_waveform(
+@document()
+def makeWaveform(
     audio: str | Tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",
