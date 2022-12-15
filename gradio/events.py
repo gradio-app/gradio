@@ -20,6 +20,7 @@ def set_cancel_events(
         if not isinstance(cancels, list):
             cancels = [cancels]
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
+        print("cancel_fn", cancel_fn)
         block.set_event_trigger(
             event_name,
             cancel_fn,

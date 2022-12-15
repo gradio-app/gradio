@@ -834,7 +834,7 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-
+        print("name", block_fn.fn.__name__, processed_input)
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
@@ -1079,7 +1079,6 @@ class Blocks(BlockContext):
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
-        self.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -1616,24 +1615,6 @@ class Blocks(BlockContext):
             self.server.close()
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
-
-    def attach_load_events(self):
-        """Add a load event for every component whose initial value is a function."""
-
-        for component in Context.root_block.blocks.values():
-            if (
-                isinstance(component, components.IOComponent)
-                and component.attach_load_event
-            ):
-                # Use set_event_trigger to avoid ambiguity between load class/instance method
-                component.load_event = self.set_event_trigger(
-                    "load",
-                    component.load_fn,
-                    None,
-                    component,
-                    no_target=True,
-                    every=component.every,
-                )
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""

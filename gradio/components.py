@@ -33,6 +33,7 @@ from pandas.api.types import is_numeric_dtype
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
+from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
     Blurrable,
@@ -109,24 +110,20 @@ class IOComponent(Component, Serializable):
         every: Optional[float] = None,
         **kwargs,
     ):
+        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
+        
         self.label = label
         self.show_label = show_label
         self.interactive = interactive
 
+        self.load_event = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
+        if callable(load_fn):
+            self.attach_load_event(load_fn, every)
 
         self.set_interpret_parameters()
 
-        if callable(load_fn):
-            self.attach_load_event = True
-            self.load_fn = load_fn
-        else:
-            self.attach_load_event = False
-            self.load_fn = None
-        self.every = every
-
-        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
     def get_config(self):
         return {
@@ -249,6 +246,16 @@ class IOComponent(Component, Serializable):
             initial_value = value
             load_fn = None
         return load_fn, initial_value
+
+    def attach_load_event(self, callable, every):
+        """Add a load event if initial value is a function."""
+        Context.root_block.load(
+                callable,
+                None,
+                self,
+                no_target=True,
+                every=every,
+            )
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
