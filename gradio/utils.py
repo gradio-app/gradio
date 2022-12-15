@@ -741,8 +741,6 @@ def get_cancel_function(
 ) -> Tuple[Callable, List[int]]:
     fn_to_comp = {}
     for dep in dependencies:
-        print("Context.root_block.dependencies", Context.root_block.dependencies)
-        print("d", dep)        
         fn_index = next(
             i for i, d in enumerate(Context.root_block.dependencies) if d == dep
         )
@@ -752,7 +750,6 @@ def get_cancel_function(
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
         await cancel_tasks(task_ids)
 
-    print(list(fn_to_comp.keys()))
     return (
         cancel,
         list(fn_to_comp.keys()),

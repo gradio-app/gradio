@@ -834,7 +834,6 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-        print("name", block_fn.fn.__name__, processed_input)
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
