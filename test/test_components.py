@@ -410,9 +410,9 @@ class TestSlider:
     @patch("gradio.Slider.get_random_value", return_value=7)
     def test_slider_get_random_value_on_load(self, mock_get_random_value):
         slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
-        assert slider.attach_load_event
         assert slider.value == 7
-        assert slider.load_fn() == 7
+        assert slider.load_event_to_attach[0]() == 7
+        assert slider.load_event_to_attach[1] is None
 
     @patch("random.randint", return_value=3)
     def test_slider_rounds_when_using_default_randomizer(self, mock_randint):
