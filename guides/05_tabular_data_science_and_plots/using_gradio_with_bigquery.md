@@ -1,8 +1,8 @@
-# Using Gradio with Google BigQuery
+# Creating a Real-Time Dashboard with BigQuery Data
 
 Google BigQuery is a cloud-based big data analytics web service for processing very large data sets. It is a serverless and highly scalable data warehousing solution that enables users to analyze data using SQL-like queries.
 
-In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data *real-time* in a  dashboard using `gradio`. 
+In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a *real-time* dashboard using `gradio`. 
 
 We'll be working with the New York Times' COVID dataset that is available on BigQuery. The dataset, named `covid19_nyt.us_counties` contains the latest information about the number of confirmed cases and deaths from COVID across US counties. 
 
