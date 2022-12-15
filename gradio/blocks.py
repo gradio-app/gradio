@@ -834,7 +834,6 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
@@ -1623,16 +1622,18 @@ class Blocks(BlockContext):
         for component in Context.root_block.blocks.values():
             if (
                 isinstance(component, components.IOComponent)
-                and component.attach_load_event
+                and component.load_event_to_attach
             ):
+                load_fn, every = component.load_event_to_attach
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
-                    component.load_fn,
+                    load_fn,
                     None,
                     component,
                     no_target=True,
                     queue=False,
+                    every=every,
                 )
 
     def startup_events(self):
