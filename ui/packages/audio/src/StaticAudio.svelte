@@ -33,13 +33,11 @@
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
 {#if value === null}
-	<div class="h-full min-h-[8rem] flex justify-center items-center">
-		<!-- <img src={audio_icon} alt="" class="h-6 opacity-20" /> -->
-		<div class="h-5 dark:text-white opacity-50"><Music /></div>
+	<div class="placeholder-wrap">
+		<div class="icon"><Music /></div>
 	</div>
 {:else}
 	<audio
-		class="w-full h-14 p-2 mt-7"
 		controls
 		preload="metadata"
 		src={value.data}
@@ -48,3 +46,25 @@
 		on:ended
 	/>
 {/if}
+
+<style>
+	audio {
+		width: var(--size-full);
+		height: var(--size-14);
+		padding: var(--size-2);
+		margin-top: var(--size-7);
+	}
+
+	.placeholder-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: var(--size-full);
+		min-height: var(--size-32);
+	}
+
+	.icon {
+		height: var(--size-5);
+		opacity: 0.5;
+	}
+</style>
