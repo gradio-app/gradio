@@ -21,7 +21,6 @@ from typing import (
     Dict,
     Iterator,
     List,
-    Literal,
     Optional,
     Set,
     Tuple,
@@ -1185,7 +1184,7 @@ class Blocks(BlockContext):
     def queue(
         self,
         concurrency_count: int = 1,
-        status_update_rate: float | Literal["auto"] = "auto",
+        status_update_rate: float | str = "auto",
         client_position_to_load_data: int | None = None,
         default_enabled: bool = True,
         api_open: bool = True,
