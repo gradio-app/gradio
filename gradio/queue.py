@@ -46,7 +46,6 @@ class Queue:
         self,
         live_updates: bool,
         concurrency_count: int,
-        data_gathering_start: int,
         update_intervals: int,
         max_size: Optional[int],
         blocks_dependencies: List,
@@ -55,7 +54,6 @@ class Queue:
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
-        self.data_gathering_start = data_gathering_start
         self.update_intervals = update_intervals
         self.active_jobs: List[None | List[Event]] = [None] * concurrency_count
         self.delete_lock = asyncio.Lock()
