@@ -46,6 +46,7 @@ from gradio.events import (
     Uploadable,
 )
 from gradio.layouts import Column, Form, Row
+from gradio.processing_utils import TempFileManager
 from gradio.serializing import (
     FileSerializable,
     ImgSerializable,
@@ -1263,7 +1264,7 @@ class Image(
             invert_colors: whether to invert the image as a preprocessing step.
             source: Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
             tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
+            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -1273,7 +1274,7 @@ class Image(
             mirror_webcam: If True webcam will be mirrored. Default is True.
         """
         self.mirror_webcam = mirror_webcam
-        valid_types = ["numpy", "pil", "file", "filepath"]
+        valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
@@ -1350,19 +1351,13 @@ class Image(
             return im
         elif self.type == "numpy":
             return np.array(im)
-        elif self.type == "file" or self.type == "filepath":
+        elif self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=("." + fmt.lower() if fmt is not None else ".png"),
             )
             im.save(file_obj.name)
-            if self.type == "file":
-                warnings.warn(
-                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                )
-                return file_obj
-            else:
-                return file_obj.name
+            return file_obj.name
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1577,7 +1572,15 @@ class Image(
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
-class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerializable):
+class Video(
+    Changeable,
+    Clearable,
+    Playable,
+    Uploadable,
+    IOComponent,
+    FileSerializable,
+    TempFileManager,
+):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -1616,7 +1619,6 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcma will be mirrored. Default is True.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.format = format
         valid_sources = ["upload", "webcam"]
         if source not in valid_sources:
@@ -1625,6 +1627,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             )
         self.source = source
         self.mirror_webcam = mirror_webcam
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -1680,15 +1683,15 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             x.get("is_file", False),
         )
         if is_file:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
+            file = self.make_temp_copy_if_needed(file_name)
+            file_name = Path(file)
         else:
             file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
+            file_name = Path(file.name)
 
-        file_name = Path(file.name)
         uploaded_format = file_name.suffix.replace(".", "")
-
         modify_format = self.format is not None and uploaded_format != self.format
         flip = self.source == "webcam" and self.mirror_webcam
         if modify_format or flip:
@@ -1698,6 +1701,8 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
+            if os.path.exists(output_file_name):
+                return output_file_name
             ff = FFmpeg(
                 inputs={str(file_name): None},
                 outputs={output_file_name: output_options},
@@ -1724,10 +1729,20 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
         if y is None:
             return None
 
-        if utils.validate_url(y):
-            y = processing_utils.download_to_file(y, dir=self.temp_dir).name
-
         returned_format = y.split(".")[-1].lower()
+
+        if self.format is None or returned_format == self.format:
+            conversion_needed = False
+        else:
+            conversion_needed = True
+
+        # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
+        if utils.validate_url(y) and not (conversion_needed):
+            return {"name": y, "data": None, "is_file": True}
+
+        # For cases where the video needs to be converted to another format
+        if utils.validate_url(y):
+            y = self.download_temp_copy_if_needed(y)
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(y)
@@ -1742,8 +1757,8 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             ff.run()
             y = output_file_name
 
-        y = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
-        return {"name": y.name, "data": None, "is_file": True}
+        y = self.make_temp_copy_if_needed(y)
+        return {"name": y, "data": None, "is_file": True}
 
     def style(
         self, *, height: Optional[int] = None, width: Optional[int] = None, **kwargs
@@ -1771,6 +1786,7 @@ class Audio(
     Uploadable,
     IOComponent,
     FileSerializable,
+    TempFileManager,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -1807,14 +1823,13 @@ class Audio(
             streaming: If set to True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         valid_sources = ["upload", "microphone"]
         if source not in valid_sources:
             raise ValueError(
                 f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
             )
         self.source = source
-        valid_types = ["numpy", "filepath", "file"]
+        valid_types = ["numpy", "filepath"]
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
@@ -1827,6 +1842,7 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source is 'microphone'."
             )
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -1869,7 +1885,7 @@ class Audio(
     def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
-            x: JSON object with filename as 'name' property and base64 data as 'data' property
+            x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max".
         Returns:
             audio in requested format
         """
@@ -1882,25 +1898,25 @@ class Audio(
         )
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
         if is_file:
-            file_obj = processing_utils.create_tmp_copy_of_file(file_name)
+            if utils.validate_url(file_name):
+                temp_file_path = self.download_temp_copy_if_needed(file_name)
+            else:
+                temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            file_obj = processing_utils.decode_base64_to_file(
+            temp_file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
+            temp_file_path = temp_file_obj.name
+
         sample_rate, data = processing_utils.audio_from_file(
-            file_obj.name, crop_min=crop_min, crop_max=crop_max
+            temp_file_path, crop_min=crop_min, crop_max=crop_max
         )
+
         if self.type == "numpy":
             return sample_rate, data
-        elif self.type in ["file", "filepath"]:
-            processing_utils.audio_to_file(sample_rate, data, file_obj.name)
-            if self.type == "file":
-                warnings.warn(
-                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                )
-                return file_obj
-            else:
-                return file_obj.name
+        elif self.type == "filepath":
+            processing_utils.audio_to_file(sample_rate, data, temp_file_path)
+            return temp_file_path
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2009,17 +2025,18 @@ class Audio(
             return None
 
         if utils.validate_url(y):
-            file = processing_utils.download_to_file(y, dir=self.temp_dir)
-        elif isinstance(y, tuple):
-            sample_rate, data = y
-            file = tempfile.NamedTemporaryFile(
-                suffix=".wav", dir=self.temp_dir, delete=False
-            )
-            processing_utils.audio_to_file(sample_rate, data, file.name)
-        else:
-            file = processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir)
+            return {"name": y, "data": None, "is_file": True}
 
-        return {"name": file.name, "data": None, "is_file": True}
+        if isinstance(y, tuple):
+            sample_rate, data = y
+            file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+            processing_utils.audio_to_file(sample_rate, data, file.name)
+            file_path = file.name
+            self.temp_files.add(file_path)
+        else:
+            file_path = self.make_temp_copy_if_needed(y)
+
+        return {"name": file_path, "data": None, "is_file": True}
 
     def stream(
         self,
@@ -2072,7 +2089,9 @@ class Audio(
 
 
 @document("change", "clear", "style")
-class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
+class File(
+    Changeable, Clearable, Uploadable, IOComponent, FileSerializable, TempFileManager
+):
     """
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2107,7 +2126,6 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.file_count = file_count
         self.file_types = file_types
         valid_types = [
@@ -2125,6 +2143,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             )
         self.type = type
         self.test_input = None
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -2162,7 +2181,11 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+    def preprocess(
+        self, x: List[Dict[str, str]] | None
+    ) -> tempfile._TemporaryFileWrapper | List[
+        tempfile._TemporaryFileWrapper
+    ] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2180,7 +2203,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(file_name)
+                    temp_file_path = self.make_temp_copy_if_needed(file_name)
+                    file = tempfile.NamedTemporaryFile(delete=False)
+                    file.name = temp_file_path
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
@@ -2216,7 +2241,9 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def postprocess(self, y: str) -> Dict:
+    def postprocess(
+        self, y: str | List[str]
+    ) -> Dict[str | Any] | List[Dict[str | Any]]:
         """
         Parameters:
             y: file path
@@ -2229,9 +2256,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             return [
                 {
                     "orig_name": os.path.basename(file),
-                    "name": processing_utils.create_tmp_copy_of_file(
-                        file, dir=self.temp_dir
-                    ).name,
+                    "name": self.make_temp_copy_if_needed(file),
                     "size": os.path.getsize(file),
                     "data": None,
                     "is_file": True,
@@ -2241,9 +2266,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
         else:
             return {
                 "orig_name": os.path.basename(y),
-                "name": processing_utils.create_tmp_copy_of_file(
-                    y, dir=self.temp_dir
-                ).name,
+                "name": self.make_temp_copy_if_needed(y),
                 "size": os.path.getsize(y),
                 "data": None,
                 "is_file": True,
@@ -2780,7 +2803,9 @@ class Button(Clickable, IOComponent, SimpleSerializable):
 
 
 @document("click", "upload", "style")
-class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
+class UploadButton(
+    Clickable, Uploadable, IOComponent, SimpleSerializable, TempFileManager
+):
     """
     Used to create an upload button, when cicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
@@ -2811,11 +2836,11 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.type = type
         self.file_count = file_count
         self.file_types = file_types
         self.label = label
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
@@ -2843,7 +2868,11 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, str]] | None) -> str | List[str]:
+    def preprocess(
+        self, x: List[Dict[str, str]] | None
+    ) -> tempfile._TemporaryFileWrapper | List[
+        tempfile._TemporaryFileWrapper
+    ] | bytes | List[bytes]:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2861,13 +2890,13 @@ class UploadButton(Clickable, Uploadable, IOComponent, SimpleSerializable):
             )
             if self.type == "file":
                 if is_file:
-                    file = processing_utils.create_tmp_copy_of_file(
-                        file_name, dir=self.temp_dir
-                    )
+                    temp_file_path = self.make_temp_copy_if_needed(file_name)
+                    file = tempfile.NamedTemporaryFile(delete=False)
+                    file.name = temp_file_path
                     file.orig_name = file_name
                 else:
                     file = processing_utils.decode_base64_to_file(
-                        data, file_path=file_name, dir=self.temp_dir
+                        data, file_path=file_name
                     )
                     file.orig_name = file_name
                 return file
@@ -3452,7 +3481,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
 
 
 @document("style")
-class Gallery(IOComponent):
+class Gallery(IOComponent, TempFileManager):
     """
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
@@ -3479,7 +3508,7 @@ class Gallery(IOComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
+        TempFileManager.__init__(self)
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3531,25 +3560,27 @@ class Gallery(IOComponent):
             if isinstance(img, tuple) or isinstance(img, list):
                 img, caption = img
             if isinstance(img, np.ndarray):
-                file = processing_utils.save_array_to_file(img, dir=self.temp_dir)
+                file = processing_utils.save_array_to_file(img)
+                file_path = os.path.abspath(file.name)
+                self.temp_files.add(file_path)
             elif isinstance(img, PIL.Image.Image):
-                file = processing_utils.save_pil_to_file(img, dir=self.temp_dir)
+                file = processing_utils.save_pil_to_file(img)
+                file_path = os.path.abspath(file.name)
+                self.temp_files.add(file_path)
             elif isinstance(img, str):
                 if utils.validate_url(img):
-                    file = processing_utils.download_to_file(img, dir=self.temp_dir)
+                    file_path = img
                 else:
-                    file = processing_utils.create_tmp_copy_of_file(
-                        img, dir=self.temp_dir
-                    )
+                    file_path = self.make_temp_copy_if_needed(img)
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
 
             if caption is not None:
                 output.append(
-                    [{"name": file.name, "data": None, "is_file": True}, caption]
+                    [{"name": file_path, "data": None, "is_file": True}, caption]
                 )
             else:
-                output.append({"name": file.name, "data": None, "is_file": True})
+                output.append({"name": file_path, "data": None, "is_file": True})
 
         return output
 
@@ -3581,6 +3612,7 @@ class Gallery(IOComponent):
         if x is None:
             return None
         gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
+        os.makedirs(gallery_path)
         captions = {}
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
@@ -3588,9 +3620,7 @@ class Gallery(IOComponent):
             else:
                 caption = None
             name = FileSerializable.deserialize(self, img_data, gallery_path)
-            if caption is not None:
-                captions[name] = caption
-        if len(captions):
+            captions[name] = caption
             captions_file = os.path.join(gallery_path, "captions.json")
             with open(captions_file, "w") as captions_json:
                 json.dump(captions, captions_json)
@@ -3599,21 +3629,11 @@ class Gallery(IOComponent):
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
         captions_file = os.path.join(x, "captions.json")
-        for file in os.listdir(x):
-            file_path = os.path.join(x, file)
-            if file_path == captions_file:
-                continue
-            if os.path.exists(captions_file):
-                with open(captions_file) as captions_json:
-                    captions = json.load(captions_json)
-                caption = captions.get(file_path)
-            else:
-                caption = None
-            img = FileSerializable.serialize(self, file_path)
-            if caption:
-                files.append([img, caption])
-            else:
-                files.append(img)
+        with open(captions_file) as captions_json:
+            captions = json.load(captions_json)
+        for file_name, caption in captions.items():
+            img = FileSerializable.serialize(self, file_name)
+            files.append([img, caption])
         return files
 
 
@@ -3735,7 +3755,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
 
 @document("change", "edit", "clear", "style")
-class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
+class Model3D(
+    Changeable, Editable, Clearable, IOComponent, FileSerializable, TempFileManager
+):
     """
     Component allows users to upload or view 3D Model files (.obj, .glb, or .gltf).
     Preprocessing: This component passes the uploaded file as a {str} filepath.
@@ -3765,8 +3787,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.temp_dir = tempfile.mkdtemp()
         self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
             label=label,
@@ -3805,7 +3827,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         Parameters:
             x: JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-            file path to 3D image model
+            string file path to temporary file with the 3D image model
         """
         if x is None:
             return x
@@ -3815,13 +3837,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             x.get("is_file", False),
         )
         if is_file:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
+            temp_file_path = self.make_temp_copy_if_needed(file_name)
         else:
-            file = processing_utils.decode_base64_to_file(
+            temp_file = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name
             )
-        file_name = file.name
-        return file_name
+            temp_file_path = temp_file.name
+
+        return temp_file_path
 
     def generate_sample(self):
         return media_data.BASE64_MODEL3D
@@ -3836,7 +3859,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
         if y is None:
             return y
         data = {
-            "name": processing_utils.create_tmp_copy_of_file(y, dir=self.temp_dir).name,
+            "name": self.make_temp_copy_if_needed(y),
             "data": None,
             "is_file": True,
         }

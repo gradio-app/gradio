@@ -8,7 +8,9 @@ Adds a `gr.make_waveform()` function that creates a waveform video by combining 
 ![waveform screenrecording](https://user-images.githubusercontent.com/7870876/206062396-164a5e71-451a-4fe0-94a7-cbe9269d57e6.gif)
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed issue where too many temporary files were created, all with randomly generated
+filepaths. Now fewer temporary files are created and are assigned a path that is a 
+hash based on the file contents by [@abidlabs](https://github.com/abidlabs) in [PR 2758](https://github.com/gradio-app/gradio/pull/2758) 
 
 ## Documentation Changes:
 No changes to highlight.
@@ -83,6 +85,11 @@ These links are a more secure and scalable way to create shareable demos!
 No changes to highlight.
 
 ## Full Changelog:
+* Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805) 
+* Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810) 
+
+## Contributors Shoutout:
+No changes to highlight.
 
 * Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805)
 * Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810)
