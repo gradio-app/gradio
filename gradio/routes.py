@@ -254,9 +254,11 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
-            if Path(app.cwd).resolve() in Path(path).resolve().parents or str(
-                Path(path).resolve()
-            ) in set().union(*app.blocks.temp_file_sets):
+            if Path(app.cwd).resolve() in Path(
+                path
+            ).resolve().parents or os.path.abspath(path) in set().union(
+                *app.blocks.temp_file_sets
+            ):  # Need to use os.path.abspath in the second condition to be consistent with usage in TempFileManager
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )
