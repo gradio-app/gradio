@@ -15,7 +15,7 @@ pydub
 pyyaml
 requests
 uvicorn
-Jinja2
+Jinja2>=3.0
 fsspec
 httpx
 pydantic
