@@ -1,4 +1,4 @@
-# Upcoming Release
+# Upcoming Release 
 
 ## New Features:
 
@@ -15,6 +15,30 @@ No changes to highlight.
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.13.2
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+* Improves documentation of several queuing-related parameters by [@abidlabs](https://github.com/abidlabs) in [PR 2825](https://github.com/gradio-app/gradio/pull/2825) 
+
+## Testing and Infrastructure Changes:
+* Remove h11 pinning by [@ecederstrand]([https://github.com/abidlabs](https://github.com/ecederstrand)) in [PR 2820]([https://github.com/gradio-app/gradio/pull/2808](https://github.com/gradio-app/gradio/pull/2820)) 
 
 ## Breaking Changes:
 No changes to highlight.
