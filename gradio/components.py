@@ -111,7 +111,7 @@ class IOComponent(Component, Serializable):
         **kwargs,
     ):
         super().__init__(elem_id=elem_id, visible=visible, **kwargs)
-        
+
         self.label = label
         self.show_label = show_label
         self.interactive = interactive
@@ -123,7 +123,6 @@ class IOComponent(Component, Serializable):
             self.load_event = self.attach_load_event(load_fn, every)
 
         self.set_interpret_parameters()
-
 
     def get_config(self):
         return {
@@ -250,12 +249,12 @@ class IOComponent(Component, Serializable):
     def attach_load_event(self, callable: Callable, every: int | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         return Context.root_block.load(
-                callable,
-                None,
-                self,
-                no_target=True,
-                every=every,
-            )
+            callable,
+            None,
+            self,
+            no_target=True,
+            every=every,
+        )
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
