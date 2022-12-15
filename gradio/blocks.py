@@ -1625,7 +1625,7 @@ class Blocks(BlockContext):
                 and component.attach_load_event
             ):
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
-                self.set_event_trigger(
+                component.load_event = self.set_event_trigger(
                     "load",
                     component.load_fn,
                     None,

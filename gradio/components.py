@@ -296,7 +296,7 @@ class Textbox(
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -470,7 +470,7 @@ class Number(
         Parameters:
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be editable; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -647,7 +647,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, slider will be adjustable; if False, adjusting will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -801,7 +801,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Parameters:
             value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, this checkbox can be checked; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -898,7 +898,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: default selected list of options. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this checkbox group will be checkable; if False, checking will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -1065,7 +1065,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
             value: the button selected by default. If None, no button is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this radio group will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -1212,7 +1212,7 @@ class Dropdown(Radio):
             value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -1290,7 +1290,7 @@ class Image(
             tool: Tools used for editing. "editor" allows a full screen editor (and is the default if source is "upload" or "webcam"), "select" provides a cropping and zoom tool, "sketch" allows you to create a binary sketch (and is the default if source="canvas"), and "color-sketch" allows you to created a sketch in different colors. "color-sketch" can be used with source="upload" or "webcam" to allow sketching on an image. "sketch" can also be used with "upload" or "webcam" to create a mask over an image and in that case both the image and mask are passed into the function as a dictionary with keys "image" and "mask" respectively.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -1638,7 +1638,7 @@ class Video(Changeable, Clearable, Playable, Uploadable, IOComponent, FileSerial
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
             source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -1832,7 +1832,7 @@ class Audio(
             source: Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload and edit a audio file; if False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -2136,7 +2136,7 @@ class File(Changeable, Clearable, Uploadable, IOComponent, FileSerializable):
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -2353,12 +2353,11 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
             max_rows: Maximum number of rows to display at once. Set to None for infinite.
             max_cols: Maximum number of columns to display at once. Set to None for infinite.
             overflow_row_behaviour: If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -2616,7 +2615,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             x: Column name of x (time) series. None if csv has no headers, in which case first column is x series.
             y: Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             colors: an ordered list of colors to use for each line plot
             show_label: if True, will display label.
             interactive: if True, will allow users to upload a timeseries csv; if False, can only be used to display timeseries data. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -2983,7 +2982,7 @@ class ColorPicker(Changeable, Submittable, IOComponent, SimpleSerializable):
         Parameters:
             value: default text to provide in color picker. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             interactive: if True, will be rendered as an editable color picker; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -3092,7 +3091,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3225,7 +3224,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3379,7 +3378,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3467,7 +3466,7 @@ class HTML(Changeable, IOComponent, SimpleSerializable):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3534,7 +3533,7 @@ class Gallery(IOComponent):
         Parameters:
             value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3720,7 +3719,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3826,7 +3825,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             value: path to (.obj, glb, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -3946,9 +3945,9 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
     ):
         """
         Parameters:
-            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
-            every: If `value` is a callabe, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -4053,7 +4052,7 @@ class ScatterPlot(Plot):
     ):
         """
         Parameters:
-            value: The pandas dataframe containing the data to display in a scatter plot.
+            value: The pandas dataframe containing the data to display in a scatter plot, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
@@ -4091,9 +4090,6 @@ class ScatterPlot(Plot):
         self.interactive_chart = interactive
         self.width = width
         self.height = height
-        # self.value = None
-        # if value is not None:
-        #     self.value = self.postprocess(value)
         super().__init__(
             value=value,
             label=label,
