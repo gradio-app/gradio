@@ -32,7 +32,6 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from jinja2.utils import htmlsafe_json_dumps
 from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
