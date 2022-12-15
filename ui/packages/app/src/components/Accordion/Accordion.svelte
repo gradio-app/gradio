@@ -14,14 +14,39 @@
 
 <div
 	id={elem_id}
-	class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col gap-3 hover:border-gray-300 dark:hover:border-gray-600 transition"
-	class:hidden={!visible}
+	class="container border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 "
+	style:display={visible ? "block" : "none"}
 >
-	<div on:click={toggle} class="w-full flex justify-between cursor-pointer">
+	<div on:click={toggle} class="label-wrap">
 		<span>{label}</span>
-		<span class:rotate-90={!_open} class="transition">▼</span>
+		<span style:transform={_open ? "rotate(0)" : "rotate(90deg)"} class="icon"
+			>▼</span
+		>
 	</div>
 	<Column visible={_open}>
 		<slot />
 	</Column>
 </div>
+
+<style>
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-3);
+		padding: var(--size-3);
+		border-width: 1px;
+		transition: 150ms;
+		border-radius: var(--radius-lg);
+	}
+
+	.label-wrap {
+		width: var(--size-full);
+		display: flex;
+		justify-content: space-between;
+		cursor: pointer;
+	}
+
+	.icon {
+		transition: 150ms;
+	}
+</style>

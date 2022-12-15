@@ -11,7 +11,8 @@
 		"test:snapshot": "pnpm exec playwright test snapshots/ --config=../../playwright.config.js",
 		"test:browser": "pnpm exec playwright test test/ --config=../../playwright.config.js",
 		"test:browser:full": "python test/create_demo_configs.py && pnpm exec playwright test test/ --config=../../playwright.config.js",
-		"test:browser:debug": "pnpm exec playwright test test/ --debug --config=../../playwright.config.js"
+		"test:browser:debug": "pnpm exec playwright test test/ --debug --config=../../playwright.config.js",
+		"build:css": "pollen -c pollen.config.cjs -o src/pollen-dev.css"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^0.0.1",

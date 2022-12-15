@@ -1,9 +1,9 @@
 <script>
 	import { page } from "$app/stores";
 	const comp_routes = [
+		"Atoms",
 		"Audio",
 		"Button",
-		"Carousel",
 		"Chatbot",
 		"Chart",
 		"Forms",
@@ -31,5 +31,12 @@
 				href="/{route}">{name}</a
 			>
 		{/each}
+		<a
+			class="font-mono text-md hover:text-orange-500 {$page.url.pathname ===
+			`/z_Theme`
+				? 'text-orange-500'
+				: ''} "
+			href="/z_Theme">Theme</a
+		>
 	</ul>
 </nav>

@@ -42,6 +42,7 @@
 		"playwright": "^1.27.1",
 		"plotly.js-dist-min": "^2.10.1",
 		"polka": "^1.0.0-next.22",
+		"pollen-css": "^4.6.1",
 		"postcss": "^8.4.5",
 		"postcss-nested": "^5.0.6",
 		"prettier": "^2.6.2",

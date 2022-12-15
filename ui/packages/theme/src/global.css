@@ -48,8 +48,8 @@
 }
 
 @layer components {
-	.gr-form > .gr-block {
-		@apply border-0 rounded-none !shadow-none;
+	.gr-form .gr-block {
+		@apply border-0 !rounded-none !shadow-none;
 	}
 	.row > *,
 	.row > .gr-form > * {
