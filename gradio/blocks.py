@@ -1078,6 +1078,7 @@ class Blocks(BlockContext):
         super().fill_expected_parents()
         Context.block = self.parent
         # Configure the load events before root_block is reset
+        self.attach_load_events()
         if self.parent is None:
             Context.root_block = None
         else:
@@ -1614,6 +1615,26 @@ class Blocks(BlockContext):
             self.server.close()
             for tunnel in CURRENT_TUNNELS:
                 tunnel.kill()
+
+    def attach_load_events(self):
+        """Add a load event for every component whose initial value should be randomized."""
+
+        for component in Context.root_block.blocks.values():
+            if (
+                isinstance(component, components.IOComponent)
+                and component.need_to_attach_load_event
+            ):
+                load_fn, every = component.need_to_attach_load_event
+                # Use set_event_trigger to avoid ambiguity between load class/instance method
+                self.set_event_trigger(
+                    "load",
+                    load_fn,
+                    None,
+                    component,
+                    no_target=True,
+                    queue=False,
+                    every=every,
+                )
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""

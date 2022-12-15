@@ -117,6 +117,7 @@ class IOComponent(Component, Serializable):
         self.interactive = interactive
 
         self.load_event = None
+        self.need_to_attach_load_event = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
         if callable(load_fn):
@@ -248,13 +249,16 @@ class IOComponent(Component, Serializable):
 
     def attach_load_event(self, callable: Callable, every: int | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
-        return Context.root_block.load(
-            callable,
-            None,
-            self,
-            no_target=True,
-            every=every,
-        )
+        if Context.root_block:
+            return Context.root_block.load(
+                callable,
+                None,
+                self,
+                no_target=True,
+                every=every,
+            )
+        else:
+            self.need_to_attach_load_event = (callable, every)
 
     def as_example(self, input_data):
         """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""

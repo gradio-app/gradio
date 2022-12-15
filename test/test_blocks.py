@@ -283,9 +283,9 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.attach_load_event
+                    assert not component.load_event
                 else:
-                    assert component.attach_load_event
+                    assert component.load_event
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
