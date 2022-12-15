@@ -120,7 +120,7 @@ class IOComponent(Component, Serializable):
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         self.value = self.postprocess(initial_value)
         if callable(load_fn):
-            self.attach_load_event(load_fn, every)
+            self.load_event = self.attach_load_event(load_fn, every)
 
         self.set_interpret_parameters()
 
@@ -247,9 +247,9 @@ class IOComponent(Component, Serializable):
             load_fn = None
         return load_fn, initial_value
 
-    def attach_load_event(self, callable, every):
-        """Add a load event if initial value is a function."""
-        Context.root_block.load(
+    def attach_load_event(self, callable: Callable, every: int | None):
+        """Add a load event that runs `callable`, optionally every `every` seconds."""
+        return Context.root_block.load(
                 callable,
                 None,
                 self,
