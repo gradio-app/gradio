@@ -1,7 +1,11 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### Add Waveform Visual Support to Audio
+Adds a `gr.make_waveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
+
+![waveform screenrecording](https://user-images.githubusercontent.com/7870876/206062396-164a5e71-451a-4fe0-94a7-cbe9269d57e6.gif)
 
 ## Bug Fixes:
 No changes to highlight.
