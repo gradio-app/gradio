@@ -44,6 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
@@ -518,7 +519,6 @@ class Blocks(BlockContext):
         self.limiter = None
         self.save_to = None
         self.theme = theme
-        self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -1416,8 +1416,14 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    share_url = networking.setup_tunnel(self.server_port, None)
-                    self.share_url = share_url
+                    print(
+                        "\nSetting up a public link... we have recently upgraded the "
+                        "way public links are generated. If you encounter any "
+                        "problems, please report the issue and downgrade to gradio version 3.13.0\n."
+                    )
+                    self.share_url = networking.setup_tunnel(
+                        self.server_name, self.server_port
+                    )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
@@ -1607,6 +1613,8 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
+            for tunnel in CURRENT_TUNNELS:
+                tunnel.kill()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
