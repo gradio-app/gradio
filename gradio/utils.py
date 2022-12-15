@@ -50,7 +50,6 @@ from gradio import processing_utils
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
     from gradio.components import Component
@@ -815,7 +814,9 @@ class TupleNoPrint(tuple):
     def __str__(self):
         return ""
 
+
 set_documentation_group("component-helpers")
+
 
 @document()
 def makeWaveform(
