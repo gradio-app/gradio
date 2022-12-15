@@ -4,6 +4,7 @@ h11<0.13,>=0.11
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
+markupsafe
 matplotlib
 numpy
 orjson
@@ -15,7 +16,7 @@ pydub
 pyyaml
 requests
 uvicorn
-Jinja2>=3.0
+Jinja2
 fsspec
 httpx
 pydantic
