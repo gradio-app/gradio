@@ -9,7 +9,7 @@ Adds a `gr.make_waveform()` function that creates a waveform video by combining 
 
 ### Allows Every Component to Accept an `every` Parameter
 
-When a component's initial value is a function, the `every` parameter re-runs the function every `every` seconds. E.g.
+When a component's initial value is a function, the `every` parameter re-runs the function every `every` seconds. By [@abidlabs](https://github.com/abidlabs) in [PR 2806](https://github.com/gradio-app/gradio/pull/2806). Here's a code example:
 
 ```py
 import gradio as gr
