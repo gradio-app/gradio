@@ -744,7 +744,7 @@ def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
 
 
 def get_cancel_function(
-    dependencies: List[Dict[str, Any] | None]
+    dependencies: List[Dict[str, Any]]
 ) -> Tuple[Callable, List[int]]:
     fn_to_comp = {}
     for dep in dependencies:

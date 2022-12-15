@@ -411,8 +411,8 @@ class TestSlider:
     def test_slider_get_random_value_on_load(self, mock_get_random_value):
         slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
         assert slider.value == 7
-        assert slider.need_to_attach_load_event[0]() == 7
-        assert slider.need_to_attach_load_event[1] == None
+        assert slider.load_event_to_attach[0]() == 7
+        assert slider.load_event_to_attach[1] == None
 
     @patch("random.randint", return_value=3)
     def test_slider_rounds_when_using_default_randomizer(self, mock_randint):
