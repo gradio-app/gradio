@@ -1,8 +1,24 @@
 # Upcoming Release 
 
 ## New Features:
-* Allow all components to take an `every` parameter that re-runs their initial functions
-at periodic intervals by [@abidlabs](https://github.com/abidlabs) in [PR 2806](https://github.com/gradio-app/gradio/pull/2806) 
+
+### Add Waveform Visual Support to Audio
+Adds a `gr.make_waveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
+
+![waveform screenrecording](https://user-images.githubusercontent.com/7870876/206062396-164a5e71-451a-4fe0-94a7-cbe9269d57e6.gif)
+
+### Allows Every Component to Accept an `every` Parameter
+
+When a component's initial value is a function, the `every` parameter re-runs the function every `every` seconds. E.g.
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    df = gr.DataFrame(run_query, every=60*60)
+
+demo.queue().launch() 
+```
 
 ## Bug Fixes:
 No changes to highlight.
