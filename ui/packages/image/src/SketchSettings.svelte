@@ -22,9 +22,14 @@
 	<!-- <IconButton Icon={Undo} on:click={() => dispatch("undo")} /> -->
 
 	<span class="absolute top-0 right-0">
-		<IconButton Icon={Brush} on:click={() => (show_size = !show_size)} />
+		<IconButton
+			Icon={Brush}
+			label="Use brush"
+			on:click={() => (show_size = !show_size)}
+		/>
 		{#if show_size}
 			<input
+				aria-label="Brush radius"
 				bind:value={brush_radius}
 				class="absolute top-[2px] right-6"
 				type="range"
@@ -36,9 +41,14 @@
 
 	{#if mode !== "mask"}
 		<span class="absolute top-6 right-0">
-			<IconButton Icon={Color} on:click={() => (show_col = !show_col)} />
+			<IconButton
+				Icon={Color}
+				label="Select brush color"
+				on:click={() => (show_col = !show_col)}
+			/>
 			{#if show_col}
 				<input
+					aria-label="Brush color"
 					bind:value={brush_color}
 					class="absolute top-[-3px] right-6"
 					type="color"
