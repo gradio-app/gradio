@@ -3,6 +3,7 @@ altair
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
+markupsafe
 matplotlib
 numpy
 orjson
