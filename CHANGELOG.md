@@ -21,7 +21,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# Version 3.13.0
+# Version 3.13.1
 
 ## New Features:
 
