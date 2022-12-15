@@ -90,6 +90,7 @@
   --size-screen: 100vw;
   --size-min: min-content;
   --size-max: max-content;
+  --size-0-5: 2px;
   --size-2-5: 10px;
   --width-xs: 480px;
   --width-sm: 640px;

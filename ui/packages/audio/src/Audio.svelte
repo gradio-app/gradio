@@ -254,35 +254,29 @@
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
 {#if value === null || streaming}
 	{#if source === "microphone"}
-		<div class="mt-6 p-2">
+		<div class="mic-wrap">
 			{#if recording}
-				<button class="gr-button !bg-red-500/10" on:click={stop}>
-					<span class="flex h-1.5 w-1.5 relative mr-2 ">
-						<span
-							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-						/>
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<button class="stop-button" on:click={stop}>
+					<span class="record-icon">
+						<span class="pinger" />
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap text-red-500">Stop recording</div>
+					Stop recording
 				</button>
 			{:else}
-				<button class="gr-button text-gray-800" on:click={record}>
-					<span class="flex h-1.5 w-1.5 relative mr-2">
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<button class="" on:click={record}>
+					<span class="record-icon">
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap">Record from microphone</div>
+					Record from microphone
 				</button>
 			{/if}
 		</div>
 	{:else if source === "upload"}
 		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-			<div class="flex flex-col">
+			<div class="upload-text">
 				{drop_text}
-				<span class="text-gray-300">- {or_text} -</span>
+				<span class="delim">- {or_text} -</span>
 				{upload_text}
 			</div>
 		</Upload>
@@ -297,7 +291,6 @@
 
 	<audio
 		use:loaded
-		class="w-full h-14 p-2"
 		controls
 		bind:this={player}
 		preload="metadata"
@@ -318,3 +311,82 @@
 		/>
 	{/if}
 {/if}
+
+<style>
+	.mic-wrap {
+		padding: var(--size-2);
+		margin-top: var(--size-6);
+	}
+
+	.stop-button {
+		background: rgba(239 68 68 / 0.1);
+		color: var(--color-red-500);
+	}
+
+	button {
+		border: 1px solid var(--color-border-primary);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: var(--shadow-drop);
+		background: var(--color-background-tertiary);
+		border-radius: var(--radius-sm);
+		padding: var(--size-0-5) var(--size-2);
+		line-height: var(--line-md);
+		font-size: var(--scale-00);
+		white-space: nowrap;
+	}
+
+	.record-icon {
+		display: flex;
+		position: relative;
+		height: 6px;
+		width: 6px;
+		margin-right: var(--size-2);
+	}
+
+	.dot {
+		/*  relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500 */
+		position: relative;
+		display: inline-flex;
+		border-radius: var(--radius-full);
+		height: 6px;
+		width: 6px;
+		background: var(--color-red-500);
+	}
+
+	.pinger {
+		/* animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 */
+		position: absolute;
+		display: inline-flex;
+		height: var(--size-full);
+		width: var(--size-full);
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		opacity: 0.9;
+		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+
+	@keyframes ping {
+		75%,
+		100% {
+			transform: scale(2);
+			opacity: 0;
+		}
+	}
+
+	.upload-text {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.delim {
+		color: var(--color-grey-300);
+	}
+
+	audio {
+		width: var(--size-full);
+		height: var(--size-14);
+		padding: var(--size-2);
+	}
+</style>

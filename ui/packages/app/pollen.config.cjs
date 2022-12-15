@@ -17,6 +17,7 @@ module.exports = defineConfig((pollen) => {
 			},
 			size: {
 				...pollen.size,
+				0.5: "2px",
 				2.5: "10px"
 			},
 			color: {
