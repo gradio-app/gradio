@@ -1,13 +1,13 @@
 aiohttp
-h11<0.13,>=0.11
+altair
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
+markupsafe
 matplotlib
 numpy
 orjson
 pandas
-paramiko
 pillow
 pycryptodome
 python-multipart
