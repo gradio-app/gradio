@@ -1,12 +1,170 @@
-# Upcoming Release
+# Upcoming Release 
 
 ## New Features:
 
-### Set the color of a Label component with a function
+### Add Waveform Visual Support to Audio
+Adds a `gr.make_waveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
+
+![waveform screenrecording](https://user-images.githubusercontent.com/7870876/206062396-164a5e71-451a-4fe0-94a7-cbe9269d57e6.gif)
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+No changes to highlight.
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+
+# Version 3.13.2
+
+## New Features:
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+* Improves documentation of several queuing-related parameters by [@abidlabs](https://github.com/abidlabs) in [PR 2825](https://github.com/gradio-app/gradio/pull/2825) 
+
+## Testing and Infrastructure Changes:
+* Remove h11 pinning by [@ecederstrand]([https://github.com/abidlabs](https://github.com/ecederstrand)) in [PR 2820]([https://github.com/gradio-app/gradio/pull/2808](https://github.com/gradio-app/gradio/pull/2820)) 
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+No changes to highlight.
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# Version 3.13.1
+
+## New Features:
+
+### New Shareable Links
+
+Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by [XciD](https://github.com/XciD) and [Wauplin](https://github.com/Wauplin) in [PR 2509](https://github.com/gradio-app/gradio/pull/2509)
+
+You don't need to do anything differently, but when you set `share=True` in `launch()`,
+you'll get this message and a public link that look a little bit different:
+
+```
+Setting up a public link... we have recently upgraded the way public links are generated. If you encounter any problems, please downgrade to gradio version 3.13.0
+.
+Running on public URL: https://bec81a83-5b5c-471e.gradio.live
+```
+
+These links are a more secure and scalable way to create shareable demos!
+
+## Bug Fixes:
+* Allows `gr.Dataframe()` to take a `pandas.DataFrame` that includes numpy array and other types as its initial value, by [@abidlabs](https://github.com/abidlabs) in [PR 2804](https://github.com/gradio-app/gradio/pull/2804) 
+* Add `altair` to requirements.txt by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2811](https://github.com/gradio-app/gradio/pull/2811)
+* Added aria-labels to icon buttons that are built into UI components by [@emilyuhde](http://github.com/emilyuhde) in [PR 2791](https://github.com/gradio-app/gradio/pull/2791)
+
+## Documentation Changes:
+* Fixed some typos in the "Plot Component for Maps" guide by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2811](https://github.com/gradio-app/gradio/pull/2811)
+
+## Testing and Infrastructure Changes:
+* Fixed test for IP address by [@abidlabs](https://github.com/abidlabs) in [PR 2808](https://github.com/gradio-app/gradio/pull/2808) 
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+
+* Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805)
+* Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810)
+
+
+# Version 3.13.0
+
+## New Features:
+
+### Scatter plot component
+
+It is now possible to create a scatter plot natively in Gradio!
+
+The `gr.ScatterPlot` component accepts a pandas dataframe and some optional configuration parameters
+and will automatically create a plot for you!
+
+This is the first of many native plotting components in Gradio!
+
+For an example of how to use `gr.ScatterPlot` see below:
+
+```python
+import gradio as gr
+from vega_datasets import data
+
+cars = data.cars()
+
+with gr.Blocks() as demo:
+    gr.ScatterPlot(show_label=False,
+                   value=cars,
+                   x="Horsepower",
+                   y="Miles_per_Gallon",
+                   color="Origin",
+                   tooltip="Name",
+                   title="Car Data",
+                   y_title="Miles per Gallon",
+                   color_legend_title="Origin of Car").style(container=False)
+
+demo.launch()
+```
+
+<img width="404" alt="image" src="https://user-images.githubusercontent.com/41651716/206737726-4c4da5f0-dee8-4f0a-b1e1-e2b75c4638e9.png">
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2764](https://github.com/gradio-app/gradio/pull/2764)
+
+
+### Support for altair plots
+
+The `Plot` component can now accept altair plots as values!
+Simply return an altair plot from your event listener and gradio will display it in the front-end.
+See the example below:
+
+```python
+import gradio as gr
+import altair as alt
+from vega_datasets import data
+
+cars = data.cars()
+chart = (
+    alt.Chart(cars)
+    .mark_point()
+    .encode(
+        x="Horsepower",
+        y="Miles_per_Gallon",
+        color="Origin",
+    )
+)
+
+with gr.Blocks() as demo:
+    gr.Plot(value=chart)
+demo.launch()
+```
+
+<img width="1366" alt="image" src="https://user-images.githubusercontent.com/41651716/204660697-f994316f-5ca7-4e8a-93bc-eb5e0d556c91.png">
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2741](https://github.com/gradio-app/gradio/pull/2741)
+
+### Set the background color of a Label component
 
 The `Label` component now accepts a `color` argument by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2736](https://github.com/gradio-app/gradio/pull/2736).
 The `color` argument should either be a valid css color name or hexadecimal string.
-You can update the color with `gr.Label.update`! 
+You can update the color with `gr.Label.update`!
 
 This lets you create Alert and Warning boxes with the `Label` component. See below:
 
@@ -29,8 +187,8 @@ def update_value():
     choice = random.choice(['good', 'bad', 'so-so'])
     color = update_color(choice)
     return gr.Label.update(value=choice, color=color)
-    
-    
+
+
 with gr.Blocks() as demo:
     label = gr.Label(value=-10)
     demo.load(lambda: update_value(), inputs=None, outputs=[label], every=1)
@@ -39,10 +197,19 @@ demo.queue().launch()
 
 ![label_bg_color_update](https://user-images.githubusercontent.com/41651716/204400372-80e53857-f26f-4a38-a1ae-1acadff75e89.gif)
 
+### Add Brazilian Portuguese translation
+
+Add Brazilian Portuguese translation (pt-BR.json) by [@pstwh](http://github.com/pstwh) in [PR 2753](https://github.com/gradio-app/gradio/pull/2753):
+
+<img width="951" alt="image" src="https://user-images.githubusercontent.com/1778297/206615305-4c52031e-3f7d-4df2-8805-a79894206911.png">
 
 ## Bug Fixes:
 * Fixed issue where image thumbnails were not showing when an example directory was provided
-by by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745) 
+by [@abidlabs](https://github.com/abidlabs) in [PR 2745](https://github.com/gradio-app/gradio/pull/2745)
+* Fixed bug loading audio input models from the hub by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2779](https://github.com/gradio-app/gradio/pull/2779).
+* Fixed issue where entities were not merged when highlighted text was generated from the
+dictionary inputs [@payoto](https://github.com/payoto) in [PR 2767](https://github.com/gradio-app/gradio/pull/2767)
+* Fixed bug where generating events did not finish running even if the websocket connection was closed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2783](https://github.com/gradio-app/gradio/pull/2783).
 
 ## Documentation Changes:
 No changes to highlight.
@@ -54,19 +221,22 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748) 
+* Images in the chatbot component are now resized if they exceed a max width by [@abidlabs](https://github.com/abidlabs) in [PR 2748](https://github.com/gradio-app/gradio/pull/2748)
+* Missing parameters have been added to `gr.Blocks().load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2755](https://github.com/gradio-app/gradio/pull/2755)
+* Deindex share URLs from search by [@aliabd](https://github.com/aliabd) in [PR 2772](https://github.com/gradio-app/gradio/pull/2772)
+* Redirect old links and fix broken ones by [@aliabd](https://github.com/aliabd) in [PR 2774](https://github.com/gradio-app/gradio/pull/2774)
 
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.12.0
+# Version 3.12.0
 
 ## New Features:
 
 ### The `Chatbot` component now supports a subset of Markdown (including bold, italics, code, images)
 
-You can now pass in some Markdown to the Chatbot component and it will show up, 
-meaning that you can pass in images as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731) 
+You can now pass in some Markdown to the Chatbot component and it will show up,
+meaning that you can pass in images as well! by [@abidlabs](https://github.com/abidlabs) in [PR 2731](https://github.com/gradio-app/gradio/pull/2731)
 
 Here's a simple example that references a local image `lion.jpg` that is in the same
 folder as the Python script:
@@ -76,7 +246,7 @@ import gradio as gr
 
 with gr.Blocks() as demo:
     gr.Chatbot([("hi", "hello **abubakar**"), ("![](/file=lion.jpg)", "cool pic")])
-    
+
 demo.launch()
 ```
 
@@ -127,7 +297,7 @@ demo.launch()
 ## Bug Fixes:
 * Fixed bug where requests timeout is missing from utils.version_check() by [@yujiehecs](https://github.com/yujiehecs) in [PR 2729](https://github.com/gradio-app/gradio/pull/2729)
 * Fixed bug where so that the `File` component can properly preprocess files to "binary" byte-string format by [CoffeeVampir3](https://github.com/CoffeeVampir3) in [PR 2727](https://github.com/gradio-app/gradio/pull/2727)
-* Fixed bug to ensure that filenames are less than 200 characters even for non-English languages by [@SkyTNT](https://github.com/SkyTNT) in [PR 2685](https://github.com/gradio-app/gradio/pull/2685) 
+* Fixed bug to ensure that filenames are less than 200 characters even for non-English languages by [@SkyTNT](https://github.com/SkyTNT) in [PR 2685](https://github.com/gradio-app/gradio/pull/2685)
 
 ## Documentation Changes:
 * Performance improvements to docs on mobile by  [@aliabd](https://github.com/aliabd) in [PR 2730](https://github.com/gradio-app/gradio/pull/2730)
@@ -147,7 +317,7 @@ No changes to highlight.
 * [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!
 
 
-# 3.11.0
+# Version 3.11.0
 
 ## New Features:
 
@@ -199,11 +369,11 @@ io = gr.Interface(echo, "textbox", "textbox").launch()
 is now 1GB  by [@abidlabs](https://github.com/abidlabs) in [PR 2709](https://github.com/gradio-app/gradio/pull/2709)
 
 ## Documentation Changes:
-* Updated documentation for embedding Gradio demos on Spaces as web components by 
+* Updated documentation for embedding Gradio demos on Spaces as web components by
 [@julien-c](https://github.com/julien-c) in [PR 2698](https://github.com/gradio-app/gradio/pull/2698)
-* Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by  
+* Updated IFrames in Guides to use the host URL instead of the Space name to be consistent with the new method for embedding Spaces, by
 [@julien-c](https://github.com/julien-c) in [PR 2692](https://github.com/gradio-app/gradio/pull/2692)
- * Colab buttons on every demo in the website! Just click open in colab, and run the demo there. 
+ * Colab buttons on every demo in the website! Just click open in colab, and run the demo there.
 
 
 
@@ -216,14 +386,14 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Better warnings and error messages for `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2694](https://github.com/gradio-app/gradio/pull/2694) 
+* Better warnings and error messages for `gr.Interface.load()` by [@abidlabs](https://github.com/abidlabs) in [PR 2694](https://github.com/gradio-app/gradio/pull/2694)
 * Add open in colab buttons to demos in docs and /demos by [@aliabd](https://github.com/aliabd) in [PR 2608](https://github.com/gradio-app/gradio/pull/2608)
 * Apply different formatting for the types in component docstrings by [@aliabd](https://github.com/aliabd) in [PR 2707](https://github.com/gradio-app/gradio/pull/2707)
 
 ## Contributors Shoutout:
 No changes to highlight.
 
-# 3.10.1
+# Version 3.10.1
 
 ## New Features:
 No changes to highlight.
@@ -241,13 +411,14 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612) 
+* Clean up printed statements in Embedded Colab Mode by [@aliabid94](https://github.com/aliabid94) in [PR 2612](https://github.com/gradio-app/gradio/pull/2612)
 
 ## Contributors Shoutout:
 No changes to highlight.
 
 
-# 3.10.0
+# Version 3.10.0
+
 * Add support for `'password'` and `'email'` types to `Textbox`. [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653)
 * `gr.Textbox` component will now raise an exception if `type` is not "text", "email", or "password" [@pngwn](https://github.com/pngwn) in [PR 2653](https://github.com/gradio-app/gradio/pull/2653). This will cause demos using the deprecated `gr.Textbox(type="number")` to raise an exception.
 
@@ -282,13 +453,13 @@ No changes to highlight.
 
 ## Bug Fixes:
 * Only set a min height on md and html when loading by [@pngwn](https://github.com/pngwn) in [PR 2623](https://github.com/gradio-app/gradio/pull/2623)
- 
+
 ## Documentation Changes:
 * See docs for the latest gradio commit to main as well the latest pip release:
 
 ![main-vs-pip](https://user-images.githubusercontent.com/9021060/199607887-aab1ae4e-a070-4527-966d-024397abe15b.gif)
 
-* Modified the "Connecting To a Database Guide" to use `pd.read_sql` as opposed to low-level postgres connector by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2604](https://github.com/gradio-app/gradio/pull/2604) 
+* Modified the "Connecting To a Database Guide" to use `pd.read_sql` as opposed to low-level postgres connector by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2604](https://github.com/gradio-app/gradio/pull/2604)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -298,7 +469,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Dropdown for seeing docs as latest or main by [@aliabd](https://github.com/aliabd) in [PR 2544](https://github.com/gradio-app/gradio/pull/2544)
-* Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600) 
+* Allow `gr.Templates` to accept parameters to override the defaults by [@abidlabs](https://github.com/abidlabs) in [PR 2600](https://github.com/gradio-app/gradio/pull/2600)
 * Components now throw a `ValueError()` if constructed with invalid parameters for `type` or `source` (for components that take those parameters) in [PR 2610](https://github.com/gradio-app/gradio/pull/2610)
 * Allow auth with using queue by [@GLGDLY](https://github.com/GLGDLY) in [PR 2611](https://github.com/gradio-app/gradio/pull/2611)
 
@@ -309,7 +480,7 @@ No changes to highlight.
 # Version 3.9
 
 ## New Features:
-* Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455) 
+* Gradio is now embedded directly in colab without requiring the share link by [@aliabid94](https://github.com/aliabid94) in [PR 2455](https://github.com/gradio-app/gradio/pull/2455)
 
 ### Calling functions by api_name in loaded apps
 
@@ -341,7 +512,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593) 
+* Add `api_name` to `Blocks.__call__` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2593](https://github.com/gradio-app/gradio/pull/2593)
 * Update queue with using deque & update requirements by [@GLGDLY](https://github.com/GLGDLY) in [PR 2428](https://github.com/gradio-app/gradio/pull/2428)
 
 
@@ -363,7 +534,7 @@ Gradio now supports the ability to run an event continuously on a fixed schedule
 pass `every=# of seconds` to the event definition. This will run the event every given number of seconds!
 
 This can be used to:
-* Create live visualizations that show the most up to date data 
+* Create live visualizations that show the most up to date data
 * Refresh the state of the frontend automatically in response to changes in the backend
 
 Here is an example of a live plot that refreshes every half second:
@@ -459,7 +630,7 @@ No changes to highlight.
 Gradio now supports the ability to pass *batched* functions. Batched functions are just
 functions which take in a list of inputs and return a list of predictions.
 
-For example, here is a batched function that takes in two lists of inputs (a list of 
+For example, here is a batched function that takes in two lists of inputs (a list of
 words and a list of ints), and returns a list of trimmed words as output:
 
 ```py
@@ -469,15 +640,15 @@ def trim_words(words, lens):
     trimmed_words = []
     time.sleep(5)
     for w, l in zip(words, lens):
-        trimmed_words.append(w[:l])        
+        trimmed_words.append(w[:l])
     return [trimmed_words]
 ```
 
 The advantage of using batched functions is that if you enable queuing, the Gradio
-server can automatically *batch* incoming requests and process them in parallel, 
+server can automatically *batch* incoming requests and process them in parallel,
 potentially speeding up your demo. Here's what the Gradio code looks like (notice
 the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
-into event triggers or into the `Interface` class) 
+into event triggers or into the `Interface` class)
 
 ```py
 import gradio as gr
@@ -515,7 +686,7 @@ with gr.Blocks() as demo:
         output_video = gr.Video()
 
      # Clears the output video when an input video is uploaded
-    input_video.upload(lambda : None, None, output_video)  
+    input_video.upload(lambda : None, None, output_video)
 ```
 
 
@@ -523,9 +694,9 @@ with gr.Blocks() as demo:
 * Fixes issue where plotly animations, interactivity, titles, legends, were not working properly. [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2486](https://github.com/gradio-app/gradio/pull/2486)
 * Prevent requests to the `/api` endpoint from skipping the queue if the queue is enabled for that event by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2493](https://github.com/gradio-app/gradio/pull/2493)
 * Fixes a bug with `cancels` in event triggers so that it works properly if multiple
-Blocks are rendered by [@abidlabs](https://github.com/abidlabs) in [PR 2530](https://github.com/gradio-app/gradio/pull/2530)  
+Blocks are rendered by [@abidlabs](https://github.com/abidlabs) in [PR 2530](https://github.com/gradio-app/gradio/pull/2530)
 * Prevent invalid targets of events from crashing the whole application. [@pngwn](https://github.com/pngwn) in [PR 2534](https://github.com/gradio-app/gradio/pull/2534)
-* Properly dequeue cancelled events when multiple apps are rendered by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2540](https://github.com/gradio-app/gradio/pull/2540) 
+* Properly dequeue cancelled events when multiple apps are rendered by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2540](https://github.com/gradio-app/gradio/pull/2540)
 
 ## Documentation Changes:
 * Added an example interactive dashboard to the "Tabular & Plots" section of the Demos page by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2508](https://github.com/gradio-app/gradio/pull/2508)
@@ -546,7 +717,6 @@ No changes to highlight.
 * Clearer error message when events are defined outside of a Blocks scope, and a warning if you
 try to use `Series` or `Parallel` with `Blocks` by [@abidlabs](https://github.com/abidlabs) in [PR 2543](https://github.com/gradio-app/gradio/pull/2543)
 * Adds support for audio samples that are in `float64`, `float16`, or `uint16` formats by [@abidlabs](https://github.com/abidlabs) in [PR 2545](https://github.com/gradio-app/gradio/pull/2545)
-
 
 ## Contributors Shoutout:
 No changes to highlight.
@@ -653,9 +823,9 @@ No changes to highlight.
 * Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
 * Fixed queue getting stuck under very high load by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2374](https://github.com/gradio-app/gradio/pull/2374)
 * Ensure that components always behave as if `interactive=True` were set when the following conditions are true:
-  - no default value is provided, 
+  - no default value is provided,
   - they are not set as the input or output of an event,
-  - `interactive` kwarg is not set. 
+  - `interactive` kwarg is not set.
 
   [@pngwn](https://github.com/pngwn) in [PR 2459](https://github.com/gradio-app/gradio/pull/2459)
 
@@ -676,18 +846,18 @@ No changes to highlight.
 
 ## Full Changelog:
 * Speeds up Gallery component by using temporary files instead of base64 representation in the front-end by [@proxyphi](https://github.com/proxyphi), [@pngwn](https://github.com/pngwn), and [@abidlabs](https://github.com/abidlabs) in [PR 2265](https://github.com/gradio-app/gradio/pull/2265)
-* Fixed some embedded demos in the guides by not loading the gradio web component in some guides by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2403](https://github.com/gradio-app/gradio/pull/2403) 
+* Fixed some embedded demos in the guides by not loading the gradio web component in some guides by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2403](https://github.com/gradio-app/gradio/pull/2403)
 * When an `Image` component is set to `source="upload"`, it is now possible to drag and drop and image to replace a previously uploaded image by [@pngwn](https://github.com/pngwn) in [PR 2400](https://github.com/gradio-app/gradio/pull/2410)
 * Improve documentation of the `Blocks.load()` event by [@abidlabs](https://github.com/abidlabs) in [PR 2413](https://github.com/gradio-app/gradio/pull/2413)
 * Decreased latency in iterative-output demos by making the iteration asynchronous [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2409](https://github.com/gradio-app/gradio/pull/2409)
 * Updated share link message to reference new Spaces Hardware [@abidlabs](https://github.com/abidlabs) in [PR 2423](https://github.com/gradio-app/gradio/pull/2423)
 * Automatically restart spaces if they're down by [@aliabd](https://github.com/aliabd) in [PR 2405](https://github.com/gradio-app/gradio/pull/2405)
 * Carousel component is now deprecated by [@abidlabs](https://github.com/abidlabs) in [PR 2434](https://github.com/gradio-app/gradio/pull/2434)
-* Build Gradio from source in ui tests by by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2440](https://github.com/gradio-app/gradio/pull/2440) 
+* Build Gradio from source in ui tests by by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2440](https://github.com/gradio-app/gradio/pull/2440)
 * Change "return ValueError" to "raise ValueError" by [@vzakharov](https://github.com/vzakharov) in [PR 2445](https://github.com/gradio-app/gradio/pull/2445)
 * Add guide on creating a map demo using the `gr.Plot()` component [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2402](https://github.com/gradio-app/gradio/pull/2402)
 * Add blur event for `Textbox` and `Number` components [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 2448](https://github.com/gradio-app/gradio/pull/2448)
-* Stops a gradio launch from hogging a port even after it's been killed [@aliabid94](https://github.com/aliabid94) in [PR 2453](https://github.com/gradio-app/gradio/pull/2453) 
+* Stops a gradio launch from hogging a port even after it's been killed [@aliabid94](https://github.com/aliabid94) in [PR 2453](https://github.com/gradio-app/gradio/pull/2453)
 * Fix embedded interfaces on touch screen devices by [@aliabd](https://github.com/aliabd) in [PR 2457](https://github.com/gradio-app/gradio/pull/2457)
 * Upload all demos to spaces by [@aliabd](https://github.com/aliabd) in [PR 2281](https://github.com/gradio-app/gradio/pull/2281)
 
@@ -763,18 +933,18 @@ No changes to highlight.
 
 ## New Features:
 
-### 1. Gallery Captions 🖼️ 
+### 1. Gallery Captions 🖼️
 
-You can now pass captions to images in the Gallery component. To do so you need to pass a {List} of (image, {str} caption) tuples. This is optional and the component also accepts just a list of the images. 
+You can now pass captions to images in the Gallery component. To do so you need to pass a {List} of (image, {str} caption) tuples. This is optional and the component also accepts just a list of the images.
 
-Here's an example: 
+Here's an example:
 
 ```python
 import gradio as gr
 
 images_with_captions = [
     ("https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6", "Cheetah by David Groves"),
-    ("https://images.unsplash.com/photo-1546182990-dffeafbe841d", "Lion by Francesco"), 
+    ("https://images.unsplash.com/photo-1546182990-dffeafbe841d", "Lion by Francesco"),
     ("https://images.unsplash.com/photo-1561731216-c3a4d99437d5", "Tiger by Mike Marrah")
     ]
 
@@ -786,15 +956,15 @@ demo.launch()
 
 <img src="https://user-images.githubusercontent.com/9021060/192399521-7360b1a9-7ce0-443e-8e94-863a230a7dbe.gif" alt="gallery_captions" width="1000"/>
 
-### 2. Type Values into the Slider 🔢 
+### 2. Type Values into the Slider 🔢
 
-You can now type values directly on the Slider component! Here's what it looks like: 
+You can now type values directly on the Slider component! Here's what it looks like:
 
 ![type-slider](https://user-images.githubusercontent.com/9021060/192399877-76b662a1-fede-4417-a932-fc15f0da7360.gif)
 
-### 3. Better Sketching and Inpainting 🎨 
+### 3. Better Sketching and Inpainting 🎨
 
-We've made a lot of changes to our Image component so that it can support better sketching and inpainting. 
+We've made a lot of changes to our Image component so that it can support better sketching and inpainting.
 
 Now supports:
 * A standalone black-and-white sketch
@@ -835,7 +1005,7 @@ demo.launch()
 ![webcam-sketch](https://user-images.githubusercontent.com/9021060/192410820-0ffaf324-776e-4e1f-9de6-0fdbbf4940fa.gif)
 
 
-As well as other fixes 
+As well as other fixes
 
 
 ## Bug Fixes:
@@ -888,7 +1058,7 @@ As well as other fixes
 
 ## New Features:
 
-### 1. Iterative Outputs ⏳  
+### 1. Iterative Outputs ⏳
 
 You can now create an iterative output simply by having your function return a generator!
 
@@ -904,22 +1074,22 @@ def predict(steps, seed):
 
 ![example](https://user-images.githubusercontent.com/9021060/189086273-f5e7087d-71fa-4158-90a9-08e84da0421c.mp4)
 
-### 2. Accordion Layout 🆕 
+### 2. Accordion Layout 🆕
 
-This version of Gradio introduces a new layout component to Blocks: the Accordion. Wrap your elements in a neat, expandable layout that allows users to toggle them as needed. 
+This version of Gradio introduces a new layout component to Blocks: the Accordion. Wrap your elements in a neat, expandable layout that allows users to toggle them as needed.
 
 Usage: ([Read the docs](https://gradio.app/docs/#accordion))
 
 ```python
 with gr.Accordion("open up"):
-# components here 
+# components here
 ```
 
 ![accordion](https://user-images.githubusercontent.com/9021060/189088465-f0ffd7f0-fc6a-42dc-9249-11c5e1e0529b.gif)
 
-### 3. Skops Integration 📈 
+### 3. Skops Integration 📈
 
-Our new integration with [skops](https://huggingface.co/blog/skops) allows you to load tabular classification and regression models directly from the [hub](https://huggingface.co/models). 
+Our new integration with [skops](https://huggingface.co/blog/skops) allows you to load tabular classification and regression models directly from the [hub](https://huggingface.co/models).
 
 Here's a classification example showing how quick it is to set up an interface for a [model](https://huggingface.co/scikit-learn/tabular-playground).
 
@@ -971,24 +1141,24 @@ No changes to highlight.
 
 ## New Features:
 
-### 1. Improvements to Queuing 🥇 
+### 1. Improvements to Queuing 🥇
 
 We've implemented a brand new queuing system based on **web sockets** instead of HTTP long polling. Among other things, this allows us to manage queue sizes better on Hugging Face Spaces. There are also additional queue-related parameters you can add:
 
-* Now supports concurrent workers (parallelization) 
+* Now supports concurrent workers (parallelization)
 ```python
 demo = gr.Interface(...)
 demo.queue(concurrency_count=3)
 demo.launch()
 ```
-* Configure a maximum queue size 
+* Configure a maximum queue size
 ```python
 demo = gr.Interface(...)
 demo.queue(max_size=100)
 demo.launch()
 ```
 
-* If a user closes their tab / browser, they leave the queue, which means the demo will run faster for everyone else 
+* If a user closes their tab / browser, they leave the queue, which means the demo will run faster for everyone else
 
 ### 2. Fixes to Examples
 
@@ -996,29 +1166,29 @@ demo.launch()
 
 ![Screen Shot 2022-08-30 at 8 29 58 PM](https://user-images.githubusercontent.com/9021060/187586561-d915bafb-f968-4966-b9a2-ef41119692b2.png)
 
-* Image and Video thumbnails are cropped to look neater and more uniform: (thanks to PR #2109) 
+* Image and Video thumbnails are cropped to look neater and more uniform: (thanks to PR #2109)
 
- 
+
 ![Screen Shot 2022-08-30 at 8 32 15 PM](https://user-images.githubusercontent.com/9021060/187586890-56e1e4f0-1b84-42d9-a82f-911772c41030.png)
 
 * Other fixes in PR #2131 and #2064  make it easier to design and use Examples
 
-### 3. Component Fixes 🧱  
+### 3. Component Fixes 🧱
 * Specify the width and height of an image in its style tag (thanks to PR #2133)
 ```python
 components.Image().style(height=260, width=300)
 ```
 * Automatic conversion of videos so they are playable in the browser (thanks to PR #2003). Gradio will check if a video's format is playable  in the browser and, if it isn't, will automatically convert it to a format that is (mp4).
-* Pass in a json filepath to the Label component (thanks to PR #2083)   
-* Randomize the default value of a Slider (thanks to PR #1935) 
+* Pass in a json filepath to the Label component (thanks to PR #2083)
+* Randomize the default value of a Slider (thanks to PR #1935)
 
 ![slider-random](https://user-images.githubusercontent.com/9021060/187596230-3db9697f-9f4d-42f5-9387-d77573513448.gif)
 
 
-* Improvements to State in PR #2100 
+* Improvements to State in PR #2100
 
-### 4. Ability to Randomize Input Sliders and Reload Data whenever the Page Loads 
-* In some cases, you want to be able to show a different set of input data to every user as they load the page app. For example, you might want to randomize the value of a "seed" `Slider` input. Or you might want to show a `Textbox` with the current date. We now supporting passing _functions_ as the default value in input components. When you pass in a function, it gets **re-evaluated** every time someone loads the demo, allowing you to reload / change data for different users. 
+### 4. Ability to Randomize Input Sliders and Reload Data whenever the Page Loads
+* In some cases, you want to be able to show a different set of input data to every user as they load the page app. For example, you might want to randomize the value of a "seed" `Slider` input. Or you might want to show a `Textbox` with the current date. We now supporting passing _functions_ as the default value in input components. When you pass in a function, it gets **re-evaluated** every time someone loads the demo, allowing you to reload / change data for different users.
 
 Here's an example loading the current date time into an input Textbox:
 
@@ -1028,7 +1198,7 @@ import datetime
 
 with gr.Blocks() as demo:
     gr.Textbox(datetime.datetime.now)
-    
+
 demo.launch()
 ```
 
@@ -1042,7 +1212,7 @@ demo = gr.Interface(lambda x:x, gr.Slider(0, 10, randomize=True), "number")
 demo.launch()
 ```
 
-### 5. New Guide 🖊️ 
+### 5. New Guide 🖊️
 * [Gradio and W&B Integration](https://gradio.app/Gradio_and_Wandb_Integration/)
 
 
@@ -1082,8 +1252,8 @@ demo.launch()
 
 ## New Features:
 
-### 1.  Embedding Demos on Any Website 💻 
- 
+### 1.  Embedding Demos on Any Website 💻
+
 With PR #1444, Gradio is now distributed as a web component. This means demos can be natively embedded on websites. You'll just need to add two lines: one to load the gradio javascript, and one to link to the demos backend.
 
 Here's a simple example that embeds the demo from a Hugging Face space:
@@ -1093,16 +1263,16 @@ Here's a simple example that embeds the demo from a Hugging Face space:
 <gradio-app space="abidlabs/pytorch-image-classifier"></gradio-app>
 ```
 
-But you can also embed demos that are running anywhere, you just need to link the demo to `src` instead of `space`. In fact, all the demos on the gradio website are embedded this way: 
+But you can also embed demos that are running anywhere, you just need to link the demo to `src` instead of `space`. In fact, all the demos on the gradio website are embedded this way:
 
 <img width="1268" alt="Screen Shot 2022-07-14 at 2 41 44 PM" src="https://user-images.githubusercontent.com/9021060/178997124-b2f05af2-c18f-4716-bf1b-cb971d012636.png">
 
 
 Read more in the [Embedding Gradio Demos](https://gradio.app/embedding_gradio_demos) guide.
 
-### 2. Reload Mode 👨‍💻 
+### 2. Reload Mode 👨‍💻
 
-Reload mode helps developers create gradio demos faster by automatically reloading the demo whenever the code changes. It can support development on Python IDEs (VS Code, PyCharm, etc), the terminal, as well as Jupyter notebooks. 
+Reload mode helps developers create gradio demos faster by automatically reloading the demo whenever the code changes. It can support development on Python IDEs (VS Code, PyCharm, etc), the terminal, as well as Jupyter notebooks.
 
 If your demo code is in a script named `app.py`, instead of running `python app.py` you can now run `gradio app.py` and that will launch the demo in reload mode:
 
@@ -1116,7 +1286,7 @@ If you're working from a Jupyter or Colab Notebook, use these magic commands ins
 
 ![Blocks](https://user-images.githubusercontent.com/9021060/178986488-ed378cc8-5141-4330-ba41-672b676863d0.gif)
 
-### 3. Inpainting Support on `gr.Image()` 🎨  
+### 3. Inpainting Support on `gr.Image()` 🎨
 
 We updated the Image component to add support for inpainting demos. It works by adding `tool="sketch"` as a parameter, that passes both an image and a sketchable mask to your prediction function.
 
@@ -1124,23 +1294,23 @@ Here's an example from the [LAMA space](https://huggingface.co/spaces/akhaliq/la
 
 ![FXApVlFVsAALSD-](https://user-images.githubusercontent.com/9021060/178989479-549867c8-7fb0-436a-a97d-1e91c9f5e611.jpeg)
 
-### 4. Markdown and HTML support in Dataframes 🔢 
+### 4. Markdown and HTML support in Dataframes 🔢
 
-We upgraded the Dataframe component in PR #1684 to support rendering Markdown and HTML inside the cells. 
+We upgraded the Dataframe component in PR #1684 to support rendering Markdown and HTML inside the cells.
 
 This means you can build Dataframes that look like the following:
 
 ![image (8)](https://user-images.githubusercontent.com/9021060/178991233-41cb07a5-e7a3-433e-89b8-319bc78eb9c2.png)
 
 
-### 5. `gr.Examples()` for Blocks 🧱 
+### 5. `gr.Examples()` for Blocks 🧱
 
-We've added the `gr.Examples` component helper to allow you to add examples to any Blocks demo. This class is a wrapper over the `gr.Dataset` component. 
+We've added the `gr.Examples` component helper to allow you to add examples to any Blocks demo. This class is a wrapper over the `gr.Dataset` component.
 
 <img width="1271" alt="Screen Shot 2022-07-14 at 2 23 50 PM" src="https://user-images.githubusercontent.com/9021060/178992715-c8bc7550-bc3d-4ddc-9fcb-548c159cd153.png">
 
 
-gr.Examples takes two required parameters: 
+gr.Examples takes two required parameters:
 
 - `examples` which takes in a nested list
 -  `inputs` which takes in a component or list of components
@@ -1149,7 +1319,7 @@ You can read more in the [Examples docs](https://gradio.app/docs/#examples) or t
 
 ### 6. Fixes to Audio Streaming
 
-With PR [#1828]([PR 1828),](https://github.com/gradio-app/gradio/pull/1828),) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
+With [PR 1828](https://github.com/gradio-app/gradio/pull/1828) we now hide the status loading animation, as well as remove the echo in streaming. Check out the [stream_audio](https://github.com/gradio-app/gradio/blob/main/demo/stream_audio/run.py) demo for more or read through our [Real Time Speech Recognition](https://gradio.app/real_time_speech_recognition/) guide.
 
 <img width="785" alt="Screen Shot 2022-07-19 at 6 02 35 PM" src="https://user-images.githubusercontent.com/9021060/179808136-9e84502c-f9ee-4f30-b5e9-1086f678fe91.png">
 
@@ -1175,12 +1345,12 @@ With PR [#1828]([PR 1828),](https://github.com/gradio-app/gradio/pull/1828),) we
 
 # Version 3.0
 
-### 🔥 Gradio 3.0 is the biggest update to the library, ever.  
+### 🔥 Gradio 3.0 is the biggest update to the library, ever.
 
 ## New Features:
 
 ### 1.  Blocks 🧱
- 
+
 Blocks is a new, low-level API that allows you to have full control over the data flows and layout of your application. It allows you to build very complex, multi-step applications. For example, you might want to:
 
 * Group together related demos as multiple tabs in one web app
@@ -1207,8 +1377,8 @@ with demo:
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
 
-    inp.change(fn=update, 
-               inputs=inp, 
+    inp.change(fn=update,
+               inputs=inp,
                outputs=out)
 
 demo.launch()
@@ -1220,16 +1390,16 @@ demo.launch()
 Read our [Introduction to Blocks](http://gradio.app/introduction_to_blocks/) guide for more, and join the 🎈 [Gradio Blocks Party](https://huggingface.co/spaces/Gradio-Blocks/README)!
 
 
-### 2. Our Revamped Design 🎨 
+### 2. Our Revamped Design 🎨
 
-We've upgraded our design across the entire library: from components, and layouts all the way to dark mode. 
+We've upgraded our design across the entire library: from components, and layouts all the way to dark mode.
 
 ![kitchen_sink](https://user-images.githubusercontent.com/9021060/168686333-7a6e3096-3e23-4309-abf2-5cd7736e0463.gif)
 
 
-### 3. A New Website 💻 
+### 3. A New Website 💻
 
-We've upgraded [gradio.app](https://gradio.app) to make it cleaner, faster and easier to use. Our docs now come with components and demos embedded directly on the page. So you can quickly get up to speed with what you're looking for. 
+We've upgraded [gradio.app](https://gradio.app) to make it cleaner, faster and easier to use. Our docs now come with components and demos embedded directly on the page. So you can quickly get up to speed with what you're looking for.
 
 ![website](https://user-images.githubusercontent.com/9021060/168687191-10d6a3bd-101f-423a-8193-48f47a5e077d.gif)
 

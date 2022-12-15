@@ -294,7 +294,9 @@ class TestComponentsInBlocks:
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if not (comp == gr.State)]
+        io_components = [
+            comp for comp in io_components if comp not in [gr.State, gr.ScatterPlot]
+        ]
         interface = gr.Interface(
             lambda *args: None,
             inputs=[comp(value=lambda: None) for comp in io_components],
@@ -307,7 +309,9 @@ class TestComponentsInBlocks:
         assert len(dependencies_on_load) == len(io_components)
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
-        io_components = [c() for c in io_components if c not in [gr.State, gr.Button]]
+        io_components = [
+            c() for c in io_components if c not in [gr.State, gr.Button, gr.ScatterPlot]
+        ]
         with gr.Blocks() as demo:
             for component in io_components:
                 component.render()
@@ -319,7 +323,7 @@ class TestComponentsInBlocks:
             )
 
         output = demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+            0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
             [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
@@ -335,7 +339,7 @@ class TestComponentsInBlocks:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
 
     def test_blocks_returns_correct_output_dict_single_key(self):
@@ -349,12 +353,10 @@ class TestComponentsInBlocks:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(
-            0, {num2: gr.Number.update(value=42)}, state=None
-        )
+        output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state={})
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        output = demo.postprocess_data(0, {num2: 23}, state={})
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -974,6 +976,47 @@ class TestEvery:
                         assert False
                     else:
                         break
+
+    @pytest.mark.asyncio
+    async def test_generating_event_cancelled_if_ws_closed(self, capsys):
+        def generation():
+            for i in range(10):
+                time.sleep(0.1)
+                print(f"At step {i}")
+                yield i
+            return "Hello!"
+
+        with gr.Blocks() as demo:
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+            button.click(generation, None, greeting)
+
+        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            n_steps = 0
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                elif msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                elif msg["msg"] == "process_generating":
+                    if n_steps == 2:
+                        # Close the websocket
+                        break
+                    n_steps += 1
+                else:
+                    continue
+        await asyncio.sleep(1)
+        # If the generation function did not get cancelled
+        # it would have finished running and `At step 9` would
+        # have been printed
+        captured = capsys.readouterr()
+        assert "At step 9" not in captured.out
 
 
 class TestAddRequests:

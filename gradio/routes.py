@@ -18,11 +18,17 @@ from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
+import markupsafe
 import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+)
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
@@ -50,11 +56,34 @@ with open(VERSION_FILE) as version_file:
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
 
+    @staticmethod
+    def _render(content: Any) -> bytes:
+        return orjson.dumps(
+            content,
+            option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+            default=str,
+        )
+
     def render(self, content: Any) -> bytes:
-        return orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY)
+        return ORJSONResponse._render(content)
+
+    @staticmethod
+    def _render_str(content: Any) -> str:
+        return ORJSONResponse._render(content).decode("utf-8")
+
+
+def toorjson(value):
+    return markupsafe.Markup(
+        ORJSONResponse._render_str(value)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("'", "\\u0027")
+    )
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+templates.env.filters["toorjson"] = toorjson
 
 
 ###########
@@ -426,6 +455,13 @@ class App(FastAPI):
                 app.startup_events_triggered = True
                 return True
             return False
+
+        @app.get("/robots.txt", response_class=PlainTextResponse)
+        def robots_txt():
+            if app.blocks.share:
+                return "User-agent: *\nDisallow: /"
+            else:
+                return "User-agent: *\nDisallow: "
 
         return app
 
