@@ -98,8 +98,8 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if hasattr(self, "temp_dir"):
-                Context.root_block.temp_dirs.add(self.temp_dir)
+            if isinstance(self, components.TempFileManager):
+                Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -557,7 +557,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.temp_dirs = set()
+        self.temp_file_sets = []
         self.title = title
         self.show_api = True
 
@@ -741,7 +741,7 @@ class Blocks(BlockContext):
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
