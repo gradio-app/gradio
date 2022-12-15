@@ -1,7 +1,9 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### Add Waveform Visual Support to Audio
+Adds a `gr.make_waveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
 
 ## Bug Fixes:
 No changes to highlight.
@@ -174,9 +176,6 @@ demo.queue().launch()
 Add Brazilian Portuguese translation (pt-BR.json) by [@pstwh](http://github.com/pstwh) in [PR 2753](https://github.com/gradio-app/gradio/pull/2753):
 
 <img width="951" alt="image" src="https://user-images.githubusercontent.com/1778297/206615305-4c52031e-3f7d-4df2-8805-a79894206911.png">
-
-### Add Waveform Visual Support to Audio
-Adds a `gr.makeWaveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
 
 ## Bug Fixes:
 * Fixed issue where image thumbnails were not showing when an example directory was provided

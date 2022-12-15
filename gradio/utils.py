@@ -819,7 +819,7 @@ set_documentation_group("component-helpers")
 
 
 @document()
-def makeWaveform(
+def make_waveform(
     audio: str | Tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",

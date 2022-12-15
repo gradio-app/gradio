@@ -1175,7 +1175,7 @@ class TestVideo:
         Interface, process
         """
         x_audio = media_data.BASE64_AUDIO["name"]
-        iface = gr.Interface(lambda x: gr.makeWaveform(x), "audio", "video")
+        iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
         assert iface(x_audio).endswith(".mp4")
 
     def test_video_postprocess_converts_to_playable_format(self):
