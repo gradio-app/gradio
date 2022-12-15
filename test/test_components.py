@@ -12,7 +12,7 @@ import shutil
 import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -591,9 +591,6 @@ class TestImage:
         image_input = gr.Image(invert_colors=True)
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
-        with pytest.warns(Warning):
-            file_image = gr.Image(type="file")
-            file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
@@ -627,7 +624,7 @@ class TestImage:
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
-            gr.Image(shape=(30, 10), type="file"),
+            gr.Image(shape=(30, 10), type="filepath"),
             "image",
         )
         output = iface(img)
@@ -751,7 +748,7 @@ class TestAudio:
         y_audio = gr.processing_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
-        audio_output = gr.Audio(type="file")
+        audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
             "name": "audio",
@@ -773,6 +770,10 @@ class TestAudio:
                 "is_file": False,
             }
         ).endswith(".wav")
+
+        output1 = audio_output.postprocess(y_audio.name)
+        output2 = audio_output.postprocess(y_audio.name)
+        assert output1 == output2
 
     def test_tokenize(self):
         """
@@ -837,6 +838,11 @@ class TestFile:
         assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
+        x_file["is_file"] = True
+        input1 = file_input.preprocess(x_file)
+        input2 = file_input.preprocess(x_file)
+        assert input1.name == input2.name
+
         assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -859,6 +865,10 @@ class TestFile:
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
         assert type(output) == bytes
+
+        output1 = file_input.postprocess("test/test_files/sample_file.pdf")
+        output2 = file_input.postprocess("test/test_files/sample_file.pdf")
+        assert output1 == output2
 
     def test_in_interface_as_input(self):
         """
@@ -884,6 +894,22 @@ class TestFile:
 
         iface = gr.Interface(write_file, "text", "file")
         assert iface("hello world").endswith(".txt")
+
+
+class TestUploadButton:
+    def test_component_functions(self):
+        """
+        preprocess
+        """
+        x_file = deepcopy(media_data.BASE64_FILE)
+        upload_input = gr.UploadButton()
+        input = upload_input.preprocess(x_file)
+        assert isinstance(input, tempfile._TemporaryFileWrapper)
+
+        x_file["is_file"] = True
+        input1 = upload_input.preprocess(x_file)
+        input2 = upload_input.preprocess(x_file)
+        assert input1.name == input2.name
 
 
 class TestDataframe:
@@ -1120,8 +1146,10 @@ class TestVideo:
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
-        output = video_input.preprocess(x_video)
-        assert isinstance(output, str)
+        output1 = video_input.preprocess(x_video)
+        assert isinstance(output1, str)
+        output2 = video_input.preprocess(x_video)
+        assert output1 == output2
 
         assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
@@ -1153,7 +1181,11 @@ class TestVideo:
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
-        assert video_output.postprocess(y_vid_path)["name"].endswith("mp4")
+        output1 = video_output.postprocess(y_vid_path)["name"]
+        assert output1.endswith("mp4")
+        output2 = video_output.postprocess(y_vid_path)["name"]
+        assert output1 == output2
+
         assert video_output.deserialize(
             {
                 "name": None,
@@ -1182,7 +1214,7 @@ class TestVideo:
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
-            suffix="bad_video.mp4"
+            suffix="bad_video.mp4", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "bad_video_sample.mp4")
             assert not processing_utils.video_is_playable(bad_vid)
@@ -1196,7 +1228,7 @@ class TestVideo:
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
-            suffix="playable_but_bad_container.mkv"
+            suffix="playable_but_bad_container.mkv", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
@@ -1207,8 +1239,10 @@ class TestVideo:
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    @patch("os.path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+        # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
@@ -1359,8 +1393,8 @@ class TestLabel:
 
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
-        label = label_output.postprocess(path)
-        assert label["label"] == "web site"
+        label_dict = label_output.postprocess(path)
+        assert label_dict["label"] == "web site"
 
         assert label_output.get_config() == {
             "name": "label",
@@ -1692,6 +1726,11 @@ class TestModel3D:
             "style": {},
         } == component.get_config()
 
+        file = "test/test_files/Box.gltf"
+        output1 = component.postprocess(file)
+        output2 = component.postprocess(file)
+        assert output1 == output2
+
     def test_in_interface(self):
         """
         Interface, process
@@ -1787,7 +1826,8 @@ class TestGallery:
             path = gallery.deserialize(data, tmpdir)
             assert path.endswith("my-uuid")
             data_restored = gallery.serialize(path)
-            assert sorted(data) == sorted([d["data"] for d in data_restored])
+            data_restored = [d[0]["data"] for d in data_restored]
+            assert sorted(data) == sorted(data_restored)
 
 
 class TestState:

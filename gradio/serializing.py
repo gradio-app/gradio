@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict
 
-from gradio import processing_utils
+from gradio import processing_utils, utils
 
 
 class Serializable(ABC):
@@ -93,7 +93,7 @@ class ImgSerializable(Serializable):
 
 class FileSerializable(Serializable):
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
     ) -> Any:
         """
         Convert from human-friendly version of a file (string filepath) to a
@@ -116,7 +116,10 @@ class FileSerializable(Serializable):
         }
 
     def deserialize(
-        self, x: Dict, save_dir: str | None = None, encryption_key: bytes | None = None
+        self,
+        x: str | Dict | None,
+        save_dir: str | None = None,
+        encryption_key: bytes | None = None,
     ):
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -129,21 +132,26 @@ class FileSerializable(Serializable):
         if x is None:
             return None
         if isinstance(x, str):
-            file = processing_utils.decode_base64_to_file(
+            file_name = processing_utils.decode_base64_to_file(
                 x, dir=save_dir, encryption_key=encryption_key
-            )
+            ).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
-                file = processing_utils.create_tmp_copy_of_file(x["name"], dir=save_dir)
+                if utils.validate_url(x["name"]):
+                    file_name = x["name"]
+                else:
+                    file_name = processing_utils.create_tmp_copy_of_file(
+                        x["name"], dir=save_dir
+                    ).name
             else:
-                file = processing_utils.decode_base64_to_file(
+                file_name = processing_utils.decode_base64_to_file(
                     x["data"], dir=save_dir, encryption_key=encryption_key
-                )
+                ).name
         else:
             raise ValueError(
                 f"A FileSerializable component cannot only deserialize a string or a dict, not a: {type(x)}"
             )
-        return file.name
+        return file_name
 
 
 class JSONSerializable(Serializable):
