@@ -1622,9 +1622,9 @@ class Blocks(BlockContext):
         for component in Context.root_block.blocks.values():
             if (
                 isinstance(component, components.IOComponent)
-                and component.need_to_attach_load_event
+                and component.load_event_to_attach
             ):
-                load_fn, every = component.need_to_attach_load_event
+                load_fn, every = component.load_event_to_attach
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
