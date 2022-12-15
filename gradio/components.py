@@ -4384,6 +4384,7 @@ class LinePlot(Plot):
         color_legend_title: Optional[str] = None,
         stroke_dash_legend_title: Optional[str] = None,
         color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4408,6 +4409,9 @@ class LinePlot(Plot):
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
+            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            stroke_dash_legend_position: The position of the stoke_dash legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis.
@@ -4430,6 +4434,7 @@ class LinePlot(Plot):
         self.color_legend_title = color_legend_title
         self.stroke_dash_legend_title = stroke_dash_legend_title
         self.color_legend_position = color_legend_position
+        self.stroke_dash_legend_position = stroke_dash_legend_position
         self.overlay_point = overlay_point
         self.x_lim = x_lim
         self.y_lim = y_lim
@@ -4468,6 +4473,7 @@ class LinePlot(Plot):
         color_legend_title: Optional[str] = None,
         stroke_dash_legend_title: Optional[str] = None,
         color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4495,7 +4501,8 @@ class LinePlot(Plot):
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
-            color_legend_position: Position of color legend. Use 'none' to ommit the legend.
+            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            stroke_dash_legend_position: The position of the stoke_dash legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis.
@@ -4564,8 +4571,9 @@ class LinePlot(Plot):
         x_title: Optional[str] = None,
         y_title: Optional[str] = None,
         color_legend_title: Optional[str] = None,
-        color_legend_position: Optional[str] = None,
         stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
@@ -4594,7 +4602,6 @@ class LinePlot(Plot):
         if width:
             properties["width"] = width
 
-        highlight = None
         if color:
             domain = value[color].unique().tolist()
             range_ = list(range(len(domain)))
@@ -4606,36 +4613,44 @@ class LinePlot(Plot):
             if color_legend_position == "none":
                 legend = None
             else:
-                legend = {"title": color_legend_title or color}
-                if color_legend_position:
-                    legend["orient"] = color_legend_position
-
+                position = (
+                    {"orient": color_legend_position} if color_legend_position else {}
+                )
+                legend = {"title": color_legend_title or color, **position}
             encodings["color"]["legend"] = legend
 
-            if interactive and any([color, stroke_dash]):
-                highlight = alt.selection(
-                    type="single",
-                    on="mouseover",
-                    fields=[c for c in [color, stroke_dash] if c],
-                    nearest=True,
-                )
+        highlight = None
+        if interactive and any([color, stroke_dash]):
+            highlight = alt.selection(
+                type="single",
+                on="mouseover",
+                fields=[c for c in [color, stroke_dash] if c],
+                nearest=True,
+            )
 
         if stroke_dash:
-            stroke_dash = {
-                "field": stroke_dash,
-                "legend": {"title": stroke_dash_legend_title or stroke_dash},
-            }
+            if stroke_dash_legend_position == "none":
+                legend = None
+            else:
+                position = (
+                    {"orient": stroke_dash_legend_position}
+                    if stroke_dash_legend_position
+                    else {}
+                )
+                legend = {"title": stroke_dash_legend_title or stroke_dash, **position}
+            stroke_dash = {"field": stroke_dash, "legend": legend}
         else:
             stroke_dash = alt.value(alt.Undefined)
+
         if tooltip:
             encodings["tooltip"] = tooltip
 
         chart = alt.Chart(value).encode(**encodings)
 
-        points = chart.mark_point().encode(
+        points = chart.mark_point(clip=True).encode(
             opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0),
         )
-        lines = chart.mark_line().encode(strokeDash=stroke_dash)
+        lines = chart.mark_line(clip=True).encode(strokeDash=stroke_dash)
 
         if highlight:
             points = points.add_selection(highlight)
@@ -4667,6 +4682,7 @@ class LinePlot(Plot):
             color_legend_title=self.color_legend_title,
             color_legend_position=self.color_legend_position,
             stroke_dash_legend_title=self.stroke_dash_legend_title,
+            stroke_dash_legend_position=self.stroke_dash_legend_position,
             x_lim=self.x_lim,
             y_lim=self.y_lim,
             stroke_dash=self.stroke_dash,
