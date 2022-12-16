@@ -16,51 +16,110 @@
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value}
-	<div
-		class="file-preview overflow-y-scroll w-full max-h-60 flex flex-col justify-between mt-7 mb-7 dark:text-slate-200"
-	>
+	<div class="file-preview">
 		{#if Array.isArray(value)}
 			{#each value as file}
-				<div class="flex flex-row w-full justify-between">
-					<div class="file-name p-2">
+				<div class="file file-multiple">
+					<div>
 						{display_file_name(file)}
 					</div>
-					<div class="file-size  p-2">
+					<div>
 						{display_file_size(file)}
 					</div>
-					<div class="file-size w-3/12 p-2 hover:underline">
+					<div class="download">
 						<a
 							href={download_files(file)}
 							target={window.__is_colab__ ? "_blank" : null}
 							download={window.__is_colab__ ? null : display_file_name(file)}
-							class="text-indigo-600 hover:underline dark:text-indigo-300"
-							>Download</a
+							class="download-link">Download</a
 						>
 					</div>
 				</div>
 			{/each}
 		{:else}
-			<div class="flex flex-row">
-				<div class="file-name w-5/12 p-2">
+			<div class="file">
+				<div class="file-name">
 					{display_file_name(value)}
 				</div>
-				<div class="file-size w-3/12  p-2">
+				<div class="file-size">
 					{display_file_size(value)}
 				</div>
-				<div class="file-size w-3/12 p-2 hover:underline">
+				<div class="download">
 					<a
 						href={download_files(value)}
 						target={window.__is_colab__ ? "_blank" : null}
 						download={window.__is_colab__ ? null : display_file_name(value)}
-						class="text-indigo-600 hover:underline dark:text-indigo-300"
-						>Download</a
+						class="download-link">Download</a
 					>
 				</div>
 			</div>
 		{/if}
 	</div>
 {:else}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><File /></div>
+	<div class="empty">
+		<div><File /></div>
 	</div>
 {/if}
+
+<style>
+	.empty {
+		/*   */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: var(--size-full);
+		min-height: var(--size-60);
+	}
+
+	.empty > div {
+		height: var(--size-5);
+		color: var(--color-text-subdued);
+	}
+
+	.file-preview {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		margin-top: var(--size-7);
+		margin-bottom: var(--size-7);
+		overflow-y: scroll;
+		width: var(--size-full);
+		max-height: var(--size-60);
+		color: var(--color-text-body);
+	}
+	.file {
+		display: flex;
+		flex-direction: row;
+	}
+	.file-multiple {
+		display: flex;
+		justify-content: space-between;
+		flex-direction: row;
+		width: var(--size-full);
+	}
+
+	.file > * {
+		padding: var(--size-2);
+	}
+
+	.file-name {
+		width: 41.666667%;
+	}
+	.file-size {
+		width: 25%;
+	}
+	.file-size-single {
+	}
+
+	.download {
+		width: 25%;
+	}
+
+	.download:hover {
+		text-decoration: underline;
+	}
+	.download-link {
+		/* text-indigo-600 hover:underline dark:text-indigo-300 */
+		color: var(--color-blue-300);
+	}
+</style>
