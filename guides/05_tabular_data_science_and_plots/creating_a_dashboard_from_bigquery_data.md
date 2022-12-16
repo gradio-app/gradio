@@ -2,11 +2,15 @@
 
 [Google BigQuery](https://cloud.google.com/bigquery) is a cloud-based service for processing very large data sets. It is a serverless and highly scalable data warehousing solution that enables users to analyze data [using SQL-like queries](https://www.oreilly.com/library/view/google-bigquery-the/9781492044451/ch01.html).
 
-In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a dashboard that updates in real time using `gradio`. We'll cover the following steps:
+In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a dashboard that updates in real time using `gradio`. The dashboard will look like this:
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/bigquery-dashboard.gif)
+
+We'll cover the following steps in thsi Guide:
 
 1. Setting up your BigQuery credentials
 2. Using the BigQuery client
-3. Building the real-time dashboard (in just 8 lines of Python!)
+3. Building the real-time dashboard (in just *7 lines of Python*)
 
 We'll be working with the [New York Times' COVID dataset](https://www.nytimes.com/interactive/2021/us/covid-cases.html) that is available as a public dataset on BigQuery. The dataset, named `covid19_nyt.us_counties` contains the latest information about the number of confirmed cases and deaths from COVID across US counties. 
 
@@ -14,19 +18,19 @@ We'll be working with the [New York Times' COVID dataset](https://www.nytimes.co
 
 ## Setting up your BigQuery Credentials
 
-To use Gradio with BigQuery, you will need to obtain your BigQuery credentials and use them with the [BigQuery Python client](https://pypi.org/project/google-cloud-bigquery/). If you already have BigQuery credentials, you can skip this section. If not, you can do this for free in just a couple of minutes.
+To use Gradio with BigQuery, you will need to obtain your BigQuery credentials and use them with the [BigQuery Python client](https://pypi.org/project/google-cloud-bigquery/). If you already have BigQuery credentials (as a `.json` file), you can skip this section. If not, you can do this for free in just a couple of minutes.
 
 1. First, log in to your Google Cloud account and go to the Google Cloud Console (https://console.cloud.google.com/)
 
-1. In the Cloud Console, click on the hamburger menu in the top-left corner and select "APIs & Services" from the menu. If you do not have an existing project, you will need to create one.
+2. In the Cloud Console, click on the hamburger menu in the top-left corner and select "APIs & Services" from the menu. If you do not have an existing project, you will need to create one.
 
-1. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "BigQuery API", click on it, and click the "Enable" button. If you see the "Manage" button, then the BigQuery is already enabled, and you're all set. 
+3. Then, click the "+ Enabled APIs & services" button, which allows you to enable specific services for your project. Search for "BigQuery API", click on it, and click the "Enable" button. If you see the "Manage" button, then the BigQuery is already enabled, and you're all set. 
 
-1. In the APIs & Services menu, click on the "Credentials" tab and then click on the "Create credentials" button.
+4. In the APIs & Services menu, click on the "Credentials" tab and then click on the "Create credentials" button.
 
-1. In the "Create credentials" dialog, select "Service account key" as the type of credentials to create, and give it a name. Also grant the service account permissions by giving it a role such as "BigQuery User", which will allow you to run queries.
+5. In the "Create credentials" dialog, select "Service account key" as the type of credentials to create, and give it a name. Also grant the service account permissions by giving it a role such as "BigQuery User", which will allow you to run queries.
 
-1. After selecting the service account, select the "JSON" key type and then click on the "Create" button. This will download the JSON key file containing your credentials to your computer. It will look something like this:
+6. After selecting the service account, select the "JSON" key type and then click on the "Create" button. This will download the JSON key file containing your credentials to your computer. It will look something like this:
 
 ```json
 {
@@ -75,8 +79,10 @@ def run_query():
     query_job = client.query(QUERY)  
     query_result = query_job.result()  
     df = query_result.to_dataframe()
-    # select a subset of columns and converted some columns to standard numpy types
-    df = df[["deaths", "county", "deaths", "confirmed_cases"]].astype({"deaths": np.int64, "confirmed_cases": np.int64})
+    # Select a subset of columns 
+    df = df[["confirmed_cases", "deaths", "county", "state_name"]]
+    # Convert numeric columns to standard numpy types
+    df = df.astype({"deaths": np.int64, "confirmed_cases": np.int64})
     return df
 ```
 
@@ -90,7 +96,7 @@ Here is an example of how to use the `gr.DataFrame` component to display the res
 import gradio as gr
 
 with gr.Blocks() as demo:
-    df = gr.DataFrame(run_query, every=60*60)
+    gr.DataFrame(run_query, every=60*60)
 
 demo.queue().launch()  # Run the demo using queuing
 ```
@@ -104,11 +110,10 @@ Here is a complete example showing how to use the `gr.ScatterPlot` to visualize 
 import gradio as gr
 
 with gr.Blocks() as demo:
+    gr.Markdown("# 💉 Covid Dashboard (Updated Hourly)")
     with gr.Row():
-        with gr.Column(scale=0.66):
-            gr.DataFrame(run_query, every=60*60)
-        with gr.Column(scale=0.33):
-            gr.ScatterPlot(run_query, x="confirmed_cases", y="deaths", tooltip="county", every=60*60 )
+        gr.DataFrame(run_query, every=60*60)
+        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases", y="deaths", tooltip="county", width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
