@@ -83,8 +83,8 @@
 	--button-small-text-size: var(--scale-00);
 	--button-small-text-weight: 400;
 	--button-primary-border-color-base: var(--color-orange-200);
-	--button-primary-border-color-hover: var(--color-orange-600);
-	--button-primary-border-color-focus: var(--color-orange-600);
+	--button-primary-border-color-hover: var(--color-orange-200);
+	--button-primary-border-color-focus: var(--color-orange-200);
 	--button-primary-text-color-base: var(--color-orange-600);
 	--button-primary-text-color-hover: var(--color-orange-600);
 	--button-primary-text-color-focus: var(--color-orange-600);
@@ -126,16 +126,18 @@
 	--gallery-thumb-scale-selected: 1;
 	--chatbot-border-radius: var(--radius-3xl);
 	--chatbot-border-width: 0;
-	--chatbot-border-color-base: transparent;
-	--chatbot-border-color-latest: transparent;
-	--chatbot-user-background-base: ;
-	--chatbot-user-background-latest: ;
+	--chatbot-user-background-base: var(--color-orange-400);
+	--chatbot-user-background-latest: var(--color-orange-400);
 	--chatbot-user-text-color-base: white;
 	--chatbot-user-text-color-latest: white;
-	--chatbot-bot-background-base: ;
-	--chatbot-bot-background-latest: ;
+	--chatbot-user-border-color-base: transparent;
+	--chatbot-user-border-color-latest: transparent;
+	--chatbot-bot-background-base: var(--color-grey-400);
+	--chatbot-bot-background-latest: var(--color-grey-400);
 	--chatbot-bot-text-color-base: white;
 	--chatbot-bot-text-color-latest: white;
+	--chatbot-bot-border-color-base: transparent;
+	--chatbot-bot-border-color-latest: transparent;
 
 }
 

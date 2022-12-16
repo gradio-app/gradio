@@ -41,19 +41,21 @@
 	}
 </script>
 
-<div class="overflow-y-auto h-[40vh]" bind:this={div}>
-	<div class="flex flex-col items-end space-y-4 p-3">
-		{#each value as message}
+<div class="wrap" bind:this={div}>
+	<div class="message-wrap">
+		{#each value as message, i}
 			<div
 				data-testid="user"
-				class="px-3 py-2 rounded-[22px] rounded-br-none text-white text-sm chat-message"
+				class:latest={i === value.length - 1}
+				class="message user"
 				style={"background-color:" + _colors[0]}
 			>
 				{@html message[0]}
 			</div>
 			<div
 				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white text-sm chat-message"
+				class:latest={i === value.length - 1}
+				class="message bot"
 				style={"background-color:" + _colors[1]}
 			>
 				{@html message[1]}
@@ -63,8 +65,59 @@
 </div>
 
 <style>
-	.chat-message :global(img) {
+	.wrap {
+		overflow-y: auto;
+		height: var(--size-56);
+	}
+
+	.message-wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		padding: var(--size-3);
+	}
+
+	.message-wrap > * + * {
+		margin-top: var(--size-4);
+	}
+	.message-wrap > div :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
+	}
+
+	.message {
+		padding: var(--size-2) var(--size-3);
+		border-radius: var(--chatbot-border-radius);
+		border-width: var(--chatbot-border-width);
+		border-style: solid;
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+
+	.user {
+		border-bottom-right-radius: 0;
+		background: var(--chatbot-user-background-base);
+		border-color: var(--chatbot-user-border-color-base);
+		color: var(--chatbot-user-text-color-base);
+	}
+
+	.user.latest {
+		background: var(--chatbot-user-background-latest);
+		border-color: var(--chatbot-user-border-color-latest);
+		color: var(--chatbot-user-text-color-latest);
+	}
+
+	.bot {
+		border-bottom-left-radius: 0;
+		background: var(--chatbot-bot-background-base);
+		border-color: var(--chatbot-bot-border-color-base);
+		color: var(--chatbot-bot-text-color-base);
+		place-self: start;
+	}
+
+	.bot.latest {
+		background: var(--chatbot-bot-background-latest);
+		border-color: var(--chatbot-bot-border-color-latest);
+		color: var(--chatbot-bot-text-color-latest);
 	}
 </style>
