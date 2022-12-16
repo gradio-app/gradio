@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
 	export let disabled: boolean = false;
@@ -41,10 +40,40 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="number"
-		class="gr-box gr-input w-full gr-text-input"
 		bind:value
 		on:keypress={handle_keypress}
 		on:blur={handle_blur}
 		{disabled}
 	/>
 </label>
+
+<style>
+	input[type="number"] {
+		--ring-color: transparent;
+		display: block;
+		position: relative;
+		width: 100%;
+		padding: var(--size-2-5);
+		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		border-radius: var(--input-border-radius);
+		background: var(--input-background-base);
+		color: var(--color-text-body);
+		border: 1px solid var(--input-border-color-base);
+		outline: none !important;
+	}
+
+	input:focus {
+		--ring-color: var(--color-focus-ring);
+		border-color: var(--input-border-color-focus);
+	}
+
+	input::placeholder {
+		color: var(--color-text-placeholder);
+	}
+
+	input[disabled] {
+		box-shadow: none;
+	}
+</style>
