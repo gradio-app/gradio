@@ -214,8 +214,8 @@ const theme_light = {
 			border: {
 				color: {
 					base: "var(--color-orange-200)",
-					hover: "var(--color-orange-600)",
-					focus: "var(--color-orange-600)"
+					hover: "var(--color-orange-200)",
+					focus: "var(--color-orange-200)"
 				}
 			},
 			text: {
@@ -316,17 +316,24 @@ const theme_light = {
 	chatbot: {
 		border: {
 			radius: "var(--radius-3xl)",
-			width: "0",
-			color: { base: "transparent", latest: "transparent" }
+			width: "0"
 		},
 		// do we do this via theme or constructor?
 		user: {
-			background: { base: "", latest: "" }, // orange-400
-			text: { color: { base: "white", latest: "white" } }
+			background: {
+				base: "var(--color-orange-400)",
+				latest: "var(--color-orange-400)"
+			},
+			text: { color: { base: "white", latest: "white" } },
+			border: { color: { base: "transparent", latest: "transparent" } }
 		},
 		bot: {
-			background: { base: "", latest: "" }, // grey-400
-			text: { color: { base: "white", latest: "white" } }
+			background: {
+				base: "var(--color-grey-400)",
+				latest: "var(--color-grey-400)"
+			},
+			text: { color: { base: "white", latest: "white" } },
+			border: { color: { base: "transparent", latest: "transparent" } }
 		}
 	}
 };
