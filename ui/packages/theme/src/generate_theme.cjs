@@ -41,6 +41,7 @@ const foundation_light = {
 	},
 	shadow: {
 		drop: "rgba(0,0,0,0.05) 0px 1px 2px 0px",
+		"drop-lg": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
 		inset: "rgba(0,0,0,0.05) 0px 2px 4px 0px inset"
 	}
 };
@@ -209,41 +210,74 @@ const theme_light = {
 				weight: "400"
 			}
 		},
-
 		primary: {
 			border: {
-				color: { base: "orange", hover: "orange", focus: "orange" } // orange-200
+				color: {
+					base: "var(--color-orange-200)",
+					hover: "var(--color-orange-600)",
+					focus: "var(--color-orange-600)"
+				}
 			},
 			text: {
-				color: { base: "darkorange", hover: "darkorange", focus: "darkorange" } // orange-600
+				color: {
+					base: "var(--color-orange-600)",
+					hover: "var(--color-orange-600)",
+					focus: "var(--color-orange-600)"
+				}
 			},
-			background: { base: "", hover: "", focus: "" } // gradient
+			background: {
+				base: "linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 176 102 / 0.8))",
+				hover:
+					"linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 216 180 / 0.9))",
+				focus:
+					"linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 216 180 / 0.9))"
+			}
 		},
 		secondary: {
 			border: {
 				color: {
-					base: "color.border.primary",
-					hover: "color.border.primary",
-					focus: "color.border.primary"
+					base: "var(--color-grey-200)",
+					hover: "var(--color-grey-200)",
+					focus: "var(--color-grey-200)"
 				}
 			},
 			text: {
 				color: {
-					base: "color.text.body",
-					hover: "color.text.body",
-					focus: "color.text.body"
+					base: "var(--border-grey-700)",
+					hover: "var(--border-grey-700)",
+					focus: "var(--border-grey-700)"
 				}
 			},
-			background: { base: "", hover: "", focus: "" } // gradient
+			background: {
+				base: "linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(229 231 235 / .8))",
+				hover:
+					"linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(243 244 246 / .9))",
+				focus:
+					"linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(243 244 246 / .9))"
+			}
 		},
 		cancel: {
 			border: {
-				color: { base: "red", hover: "red", focus: "red" } // red-200
+				color: {
+					base: "var(--color-red-200)",
+					hover: "var(--color-red-200)",
+					focus: "var(--color-red-200)"
+				}
 			},
 			text: {
-				color: { base: "crimson", hover: "crimson", focus: "crimson" } // red-600
+				color: {
+					base: "var(--color-red-600)",
+					hover: "var(--color-red-600)",
+					focus: "var(--color-red-600)"
+				}
 			},
-			background: { base: "", hover: "", focus: "" } //gradient
+			background: {
+				base: "linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(252 165 165 / 0.8))",
+				hover:
+					"linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9))",
+				focus:
+					"linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9))"
+			}
 		}
 	},
 	highlighted_text: {
@@ -322,7 +356,7 @@ const theme_dark = {
 		icon: {
 			color: "color.text.label"
 		},
-		shadow: "shadow.drop", //gradient
+		shadow: "shadow.drop",
 		background: "color.background.secondary"
 	},
 	icon_button: {
@@ -396,30 +430,67 @@ const theme_dark = {
 	button: {
 		primary: {
 			border: {
-				color: { base: "orange", hover: "orange", focus: "orange" } // orange-600
+				color: {
+					base: "var(--color-orange-600)",
+					hover: "var(--color-orange-600)",
+					focus: "var(--color-orange-600)"
+				}
 			},
 			text: {
 				color: { base: "white", hover: "white", focus: "white" }
 			},
-			background: { base: "", hover: "", focus: "" } // gradient
+			background: {
+				base: "linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-700))",
+				hover:
+					"linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-500))",
+				focus:
+					"linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-500))"
+			}
 		},
 		secondary: {
 			border: {
-				color: { base: "gray", hover: "gray", focus: "gray" } // grey-600
+				color: {
+					base: "var(--color-grey-600)",
+					hover: "var(--color-grey-600)",
+					focus: "var(--color-grey-600)"
+				}
 			},
 			text: {
 				color: { base: "white", hover: "white", focus: "white" }
 			},
-			background: { base: "", hover: "", focus: "" } //gradient
+			background: {
+				base: "linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-700))",
+				hover:
+					"linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-600))",
+				focus:
+					"linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-600))"
+			}
 		},
 		cancel: {
 			border: {
-				color: { base: "red", hover: "red", focus: "red" } // red-600
+				color: {
+					base: "var(--color-red-600)",
+					// TODO: these should inherit from base
+					hover: "var(--color-red-600)",
+					focus: "var(--color-red-600)"
+				}
 			},
 			text: {
-				color: { base: "white", hover: "white", focus: "white" }
+				color: {
+					base: "white",
+					// TODO: these should inherit from base
+					hover: "white",
+					focus: "white"
+				}
 			},
-			background: { base: "", hover: "", focus: "" } // gradient
+			background: {
+				// TODO: how can these inherit from each other?
+				base: "linear-gradient(to bottom right, var(--color-red-700), var(--color-red-700))",
+				focus:
+					"linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500))",
+				hover:
+					"linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500))"
+			}
 		}
 	},
 	gallery: {
