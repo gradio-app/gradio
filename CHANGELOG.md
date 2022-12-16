@@ -2,7 +2,23 @@
 
 ## New Features:
 
-No changes to highlight.
+The newest plotting component to Gradio, `gr.LinePlot`! 📈
+
+With this component you can easily create time series visualizations with customizable
+appearance for your demos and dashboards ... all without having to know an external plotting library.
+
+For an example of the api see below:
+
+```python
+gr.LinePlot(stocks,
+            x="date",
+            y="price",
+            color="symbol",
+            color_legend_position="bottom",
+            width=600, height=400, title="Stock Prices")
+```
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
 
 ## Bug Fixes:
 No changes to highlight.
