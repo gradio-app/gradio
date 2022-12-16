@@ -2,7 +2,7 @@
 
 ## New Features:
 
-The newest plotting component to Gradio, `gr.LinePlot`! 📈
+Gradio's newest plotting component `gr.LinePlot`! 📈
 
 With this component you can easily create time series visualizations with customizable
 appearance for your demos and dashboards ... all without having to know an external plotting library.
