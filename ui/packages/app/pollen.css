@@ -91,6 +91,7 @@
   --size-min: min-content;
   --size-max: max-content;
   --size-0-5: 2px;
+  --size-1-5: 6px;
   --size-2-5: 10px;
   --width-xs: 480px;
   --width-sm: 640px;
@@ -190,10 +191,10 @@
   --color-green-500: #22c55e;
   --color-green-700: #2f855a;
   --color-green: #22c55e;
-  --color-blue-300: #63b3ed;
-  --color-blue-500: #4299e1;
-  --color-blue-700: #3182ce;
-  --color-blue: var(--color-blue-500);
+  --color-blue-300: #93c5fd;
+  --color-blue-500: #0ea5e9;
+  --color-blue-700: #1d4ed8;
+  --color-blue: #0ea5e9;
   --color-pink-300: #fbb6ce;
   --color-pink-500: #ed64a6;
   --color-pink-700: #d53f8c;
@@ -218,6 +219,8 @@
   --color-brown-500: #795548;
   --color-brown-700: #5d4037;
   --color-brown: var(--color-brown-500);
+  --color-blue-200: #bfdbfe;
+  --color-blue-600: #2563eb;
   --color-grey-950: #0b0f19;
   --color-red-200: #fecaca;
   --color-red-600: #dc2626;

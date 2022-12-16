@@ -5,11 +5,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { get_styles } from "@gradio/utils";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: number = 0;
-	export let style: Styles = {};
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;
@@ -24,14 +21,13 @@
 	const clamp = () => (value = Math.min(Math.max(value, minimum), maximum));
 </script>
 
-<div class="w-full flex flex-col ">
-	<div class="flex justify-between">
+<div class="wrap">
+	<div class="head">
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
 		<input
 			type="number"
-			class="gr-box gr-input gr-text-input text-center h-6"
 			bind:value
 			min={minimum}
 			max={maximum}
@@ -46,10 +42,57 @@
 	type="range"
 	{id}
 	name="cowbell"
-	class="w-full disabled:cursor-not-allowed"
 	bind:value
 	min={minimum}
 	max={maximum}
 	{step}
 	{disabled}
 />
+
+<style>
+	.wrap {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.head {
+		display: flex;
+		justify-content: space-between;
+	}
+	input[type="number"] {
+		--ring-color: transparent;
+		height: var(--size-6);
+		text-align: left;
+		display: block;
+		position: relative;
+		padding: var(--size-3) var(--size-1);
+		padding-right: 0;
+		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		border-radius: var(--radius-xs);
+		background: var(--input-background-base);
+		color: var(--color-text-body);
+		border: 1px solid var(--input-border-color-base);
+		outline: none !important;
+	}
+
+	input:focus {
+		--ring-color: var(--color-focus-ring);
+		border-color: var(--input-border-color-focus);
+	}
+
+	input::placeholder {
+		color: var(--color-text-placeholder);
+	}
+
+	input[type="range"] {
+		width: 100%;
+	}
+
+	input[disabled] {
+		box-shadow: none;
+		cursor: not-allowed;
+	}
+</style>

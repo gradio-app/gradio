@@ -21,20 +21,75 @@
 
 <BlockTitle {show_label}>{label}</BlockTitle>
 
-<div class="flex flex-wrap gap-2">
+<div class="wrap">
 	{#each choices as choice, i (i)}
-		<label
-			class:!cursor-not-allowed={disabled}
-			class="gr-input-label flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner {item_container}"
-		>
+		<label class:disabled class={item_container}>
 			<input
 				{disabled}
 				bind:group={value}
 				type="radio"
 				name="radio-{elem_id}"
-				class="gr-check-radio gr-radio"
 				value={choice}
 			/> <span class="ml-2">{choice}</span></label
 		>
 	{/each}
 </div>
+
+<style>
+	.wrap {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+	}
+	label {
+		display: flex;
+		align-items: center;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-md);
+		cursor: pointer;
+		border-radius: var(--checkbox-label-border-radius);
+		box-shadow: var(--checkbox-label-shadow);
+		padding: var(--size-1-5) var(--size-3);
+		border: 1px solid var(--checkbox-label-border-color-base);
+		background: var(--checkbox-label-background-base);
+	}
+
+	label:hover {
+		background: var(--checkbox-label-background-hover);
+	}
+
+	label:focus {
+		background: var(--checkbox-label-background-focus);
+	}
+	label > * + * {
+		margin-left: var(--size-2);
+	}
+
+	input {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		border: 1px solid var(--checkbox-border-color-base);
+		background-color: var(--checkbox-background-base);
+		border-radius: var(--radius-full);
+	}
+
+	input:focus {
+		--ring-color: var(--color-focus-ring);
+		background-color: var(--checkbox-background-color-focus);
+		border-color: var(--checkbox-border-color-focus);
+	}
+
+	input:checked {
+		background-color: var(--checkbox-background-selected);
+		border-color: var(--checkbox-border-color-selected);
+	}
+
+	input[disabled],
+	.disabled {
+		cursor: not-allowed;
+	}
+</style>

@@ -10,7 +10,8 @@ const foundation_light = {
 	color: {
 		focus: {
 			primary: "var(--color-blue-300)",
-			secondary: "var(--color-blue-500)"
+			secondary: "var(--color-blue-500)",
+			ring: "rgb(191 219 254 / 0.5)"
 		},
 		background: {
 			primary: "white",
@@ -50,7 +51,8 @@ const foundation_dark = {
 	color: {
 		focus: {
 			primary: "var(--color-grey-700)",
-			secondary: "var(--color-grey-600)"
+			secondary: "var(--color-grey-600)",
+			ring: "rgb(55 65 81)"
 		},
 		background: {
 			primary: "var(--color-grey-950)",
@@ -148,28 +150,28 @@ const theme_light = {
 			}
 		},
 		background: {
-			base: "color.background.primary",
-			hover: "color.background.primary",
-			focus: "color.background.primary"
+			base: "color.background.tertiary",
+			hover: "color.background.tertiary",
+			focus: "color.focus.tertiary"
 		},
 		shadow: "shadow.inset"
 	},
 	checkbox: {
 		shadow: "shadow.drop",
 		border: {
-			radius: "var(--radius-md)",
+			radius: "var(--radius-sm)",
 			color: {
-				base: "color.border.primary",
-				hover: "color.border.primary",
-				focus: "color.focus.primary",
-				selected: "color.focus.secondary"
+				base: "var(--color-grey-300)",
+				hover: "var(--color-grey-300)",
+				focus: "var(--color-grey-300)",
+				selected: "transparent"
 			}
 		},
 		background: {
 			base: "color.background.primary",
 			hover: "color.background.primary",
 			focus: "color.background.primary",
-			selected: "color.focus.secondary"
+			selected: "var(--color-blue-600)"
 		},
 		label: {
 			border: {
@@ -177,13 +179,14 @@ const theme_light = {
 				color: {
 					base: "color.border.primary",
 					hover: "color.border.primary",
-					focus: "color.border.primary"
+					focus: "color.focus.secondary"
 				}
 			},
 			background: {
-				base: "", //gradient
-				hover: "", //gradient
-				focus: "color.background.primary"
+				// hover:from-gray-100 dark:from-gray-900 dark:to-gray-800 transition;
+				base: "linear-gradient(to top, var(--color-grey-50), white)", //gradient
+				hover: "linear-gradient(to top, var(--color-grey-100), white)", //gradient
+				focus: "linear-gradient(to top, var(--color-grey-100), white)"
 			},
 			shadow: "shadow.drop"
 		}
@@ -393,9 +396,9 @@ const theme_dark = {
 			}
 		},
 		background: {
-			base: "color.background.primary",
-			hover: "color.background.primary",
-			focus: "color.background.primary"
+			base: "color.background.tertiary",
+			hover: "color.background.tertiary",
+			focus: "color.background.tertiary"
 		},
 		shadow: "shadow.inset"
 	},
@@ -405,27 +408,29 @@ const theme_dark = {
 				base: "color.border.primary",
 				hover: "color.border.primary",
 				focus: "color.focus.primary",
-				selected: "color.focus.secondary"
+				selected: "transparent"
 			}
 		},
 		background: {
 			base: "color.background.primary",
 			hover: "color.background.primary",
 			focus: "color.background.primary",
-			selected: "color.focus.secondary"
+			selected: "var(--color-blue-600)"
 		},
 		label: {
 			border: {
 				color: {
 					base: "color.border.primary",
 					hover: "color.border.primary",
-					focus: "color.border.primary"
+					focus: "color.border.secondary"
 				}
 			},
 			background: {
-				base: "", //gradient
-				hover: "", //gradient
-				focus: "color.background.primary"
+				base: "linear-gradient(to top, var(--color-grey-900), var(--color-grey-800))", //gradient
+				hover:
+					"linear-gradient(to top, var(--color-grey-900), var(--color-grey-800))", //gradient
+				focus:
+					"linear-gradient(to top, var(--color-grey-900), var(--color-grey-800))"
 			}
 		}
 	},

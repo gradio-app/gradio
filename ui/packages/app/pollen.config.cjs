@@ -18,10 +18,17 @@ module.exports = defineConfig((pollen) => {
 			size: {
 				...pollen.size,
 				0.5: "2px",
+				1.5: "6px",
 				2.5: "10px"
 			},
 			color: {
 				...pollen.color,
+				blue: "#0ea5e9",
+				"blue-200": "#bfdbfe",
+				"blue-300": "#93c5fd",
+				"blue-500": "#0ea5e9",
+				"blue-600": "#2563eb",
+				"blue-700": "#1d4ed8",
 				grey: "#6b7280",
 				"grey-50": "#f9fafb",
 				"grey-100": "#f3f4f6",
