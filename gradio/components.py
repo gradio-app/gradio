@@ -4048,6 +4048,22 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         )
 
 
+class AltairPlot:
+    @staticmethod
+    def create_legend(position, title):
+        if position == "none":
+            legend = None
+        else:
+            position = {"orient": position} if position else {}
+            legend = {"title": title, **position}
+
+        return legend
+
+    @staticmethod
+    def create_scale(limit):
+        return alt.Scale(domain=limit) if limit else alt.Undefined
+
+
 @document("change", "clear")
 class ScatterPlot(Plot):
     """
@@ -4075,6 +4091,9 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int | float]] = None,
@@ -4102,6 +4121,9 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis.
@@ -4109,6 +4131,7 @@ class ScatterPlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
+            every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
@@ -4123,8 +4146,11 @@ class ScatterPlot(Plot):
         self.x_title = x_title
         self.y_title = y_title
         self.color_legend_title = color_legend_title
+        self.color_legend_position = color_legend_position
         self.size_legend_title = size_legend_title
+        self.size_legend_position = size_legend_position
         self.shape_legend_title = shape_legend_title
+        self.shape_legend_position = shape_legend_position
         self.caption = caption
         self.interactive_chart = interactive
         self.width = width
@@ -4163,6 +4189,9 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int | float]] = None,
@@ -4191,6 +4220,9 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
             x_lim: A tuple or list containing the limits for the x-axis.
@@ -4214,6 +4246,9 @@ class ScatterPlot(Plot):
             color_legend_title,
             size_legend_title,
             shape_legend_title,
+            color_legend_position,
+            size_legend_position,
+            shape_legend_position,
             interactive,
             height,
             width,
@@ -4261,6 +4296,9 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
         x_lim: Optional[List[int | float]] = None,
@@ -4273,12 +4311,12 @@ class ScatterPlot(Plot):
             x=alt.X(
                 x,
                 title=x_title or x,
-                scale=alt.Scale(domain=x_lim) if x_lim else alt.Undefined,
+                scale=AltairPlot.create_scale(x_lim),
             ),
             y=alt.Y(
                 y,
                 title=y_title or y,
-                scale=alt.Scale(domain=y_lim) if y_lim else alt.Undefined,
+                scale=AltairPlot.create_scale(y_lim),
             ),
         )
         properties = {}
@@ -4301,7 +4339,9 @@ class ScatterPlot(Plot):
             encodings["color"] = {
                 "field": color,
                 "type": type_,
-                "legend": {"title": color_legend_title or color},
+                "legend": AltairPlot.create_legend(
+                    position=color_legend_position, title=color_legend_title or color
+                ),
                 "scale": {"domain": domain, "range": range_},
             }
         if tooltip:
@@ -4310,13 +4350,17 @@ class ScatterPlot(Plot):
             encodings["size"] = {
                 "field": size,
                 "type": "quantitative" if is_numeric_dtype(value[size]) else "nominal",
-                "legend": {"title": size_legend_title or size},
+                "legend": AltairPlot.create_legend(
+                    position=size_legend_position, title=size_legend_title or size
+                ),
             }
         if shape:
             encodings["shape"] = {
                 "field": shape,
                 "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
-                "legend": {"title": shape_legend_title or shape},
+                "legend": AltairPlot.create_legend(
+                    position=shape_legend_position, title=shape_legend_title or shape
+                ),
             }
         chart = (
             alt.Chart(value)
@@ -4347,6 +4391,9 @@ class ScatterPlot(Plot):
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,
+            color_legend_position=self.color_legend_position,
+            size_legend_position=self.size_legend_position,
+            shape_legend_position=self.shape_legend_position,
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
@@ -4393,6 +4440,7 @@ class LinePlot(Plot):
         interactive: Optional[bool] = True,
         label: Optional[str] = None,
         show_label: bool = True,
+        every: float | None = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
     ):
@@ -4419,6 +4467,7 @@ class LinePlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
@@ -4448,6 +4497,7 @@ class LinePlot(Plot):
             show_label=show_label,
             visible=visible,
             elem_id=elem_id,
+            every=every,
         )
 
     def get_config(self):
@@ -4478,7 +4528,7 @@ class LinePlot(Plot):
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
         y_lim: Optional[List[int]] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
         caption: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -4524,13 +4574,14 @@ class LinePlot(Plot):
             x_title,
             y_title,
             color_legend_title,
-            color_legend_position,
             stroke_dash_legend_title,
-            interactive,
+            color_legend_position,
+            stroke_dash_legend_position,
             height,
             width,
             x_lim,
             y_lim,
+            interactive,
         ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
@@ -4578,7 +4629,7 @@ class LinePlot(Plot):
         width: Optional[int] = None,
         x_lim: Optional[List[int]] = None,
         y_lim: Optional[List[int]] = None,
-        interactive: Optional[bool] = True,
+        interactive: Optional[bool] = None,
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
@@ -4586,12 +4637,12 @@ class LinePlot(Plot):
             x=alt.X(
                 x,
                 title=x_title or x,
-                scale=alt.Scale(domain=x_lim) if x_lim else alt.Undefined,
+                scale=AltairPlot.create_scale(x_lim),
             ),
             y=alt.Y(
                 y,
                 title=y_title or y,
-                scale=alt.Scale(domain=y_lim) if y_lim else alt.Undefined,
+                scale=AltairPlot.create_scale(y_lim),
             ),
         )
         properties = {}
@@ -4609,15 +4660,10 @@ class LinePlot(Plot):
                 "field": color,
                 "type": "nominal",
                 "scale": {"domain": domain, "range": range_},
+                "legend": AltairPlot.create_legend(
+                    position=color_legend_position, title=color_legend_title or color
+                ),
             }
-            if color_legend_position == "none":
-                legend = None
-            else:
-                position = (
-                    {"orient": color_legend_position} if color_legend_position else {}
-                )
-                legend = {"title": color_legend_title or color, **position}
-            encodings["color"]["legend"] = legend
 
         highlight = None
         if interactive and any([color, stroke_dash]):
@@ -4629,16 +4675,13 @@ class LinePlot(Plot):
             )
 
         if stroke_dash:
-            if stroke_dash_legend_position == "none":
-                legend = None
-            else:
-                position = (
-                    {"orient": stroke_dash_legend_position}
-                    if stroke_dash_legend_position
-                    else {}
-                )
-                legend = {"title": stroke_dash_legend_title or stroke_dash, **position}
-            stroke_dash = {"field": stroke_dash, "legend": legend}
+            stroke_dash = {
+                "field": stroke_dash,
+                "legend": AltairPlot.create_legend(
+                    position=stroke_dash_legend_position,
+                    title=stroke_dash_legend_title or stroke_dash,
+                ),
+            }
         else:
             stroke_dash = alt.value(alt.Undefined)
 
