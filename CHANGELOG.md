@@ -35,6 +35,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Fixed importing gradio can cause PIL.Image.registered_extensions() to break by `[@aliencaocao](https://github.com/aliencaocao)` in `[PR 2846](https://github.com/gradio-app/gradio/pull/2846)`
+* Added the ability to set `x_lim`, `y_lim` and legend positions for `gr.ScatterPlot` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807)  
 
 ## Contributors Shoutout:
 No changes to highlight.
