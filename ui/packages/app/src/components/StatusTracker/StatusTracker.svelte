@@ -58,6 +58,7 @@
 	export let timer: boolean = true;
 	export let visible: boolean = true;
 	export let message: string | null = null;
+	export let progress: number | [number, number] | null = null;
 	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
@@ -67,11 +68,41 @@
 	let timer_diff = 0;
 	let old_eta: number | null = null;
 	let message_visible: boolean = false;
+	let eta_level: number | null = 0;
+	let progress_level: number | undefined = undefined;
+	let old_progress_level: number | undefined = undefined;
+	let progress_bar: HTMLElement | null = null;
 
-	$: progress =
+	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
+
+	$: {
+		if (progress !== null) {
+			if (Array.isArray(progress)) {
+				if (progress[1]) {
+					progress_level = progress[0] / progress[1];
+				} else {
+					progress_level = undefined;
+				}
+			} else {
+				progress_level = progress;
+			}
+		}
+		if (
+			progress_bar &&
+			progress_level !== undefined &&
+			old_progress_level !== undefined
+		) {
+			if (progress_level < old_progress_level) {
+				progress_bar.classList.remove("transition-transform");
+			} else {
+				progress_bar.classList.add("transition-transform");
+			}
+		}
+		old_progress_level = progress_level;
+	}
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -154,25 +185,47 @@
 >
 	{#if status === "pending"}
 		{#if variant === "default"}
-			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+			<div class="eta-bar" style:transform="scaleX({eta_level || 0})" />
 		{/if}
 		<div
 			class="dark:text-gray-400"
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
 		>
-			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+			{#if progress && Array.isArray(progress)}
+				{#if progress[1]}
+					{progress[0]}/{progress[1]}
+				{:else}
+					{progress[0]}
+				{/if} steps |
+			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
 
 			{#if timer}
-				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}s
 			{/if}
 		</div>
 
-		<Loader margin={variant === "default"} />
+		{#if progress_level !== undefined}
+			<div class="z-20 w-full flex items-center flex-col gap-1">
+				<div class="p-1 m-1 bg-white border mx-auto font-mono text-xs">
+					{#if message}{message} - {/if}
+					{(100 * progress_level).toFixed(1)}%
+				</div>
+				<div class="w-2/3 h-4 rounded bg-white border">
+					<div
+						bind:this={progress_bar}
+						class="progress-bar"
+						style:transform="scaleX({progress_level})"
+					/>
+				</div>
+			</div>
+		{:else}
+			<Loader margin={variant === "default"} />
+		{/if}
 
 		{#if !timer}
 			<p class="timer">Loading...</p>
@@ -224,8 +277,11 @@
 		@apply border-2 border-orange-500 animate-pulse;
 	}
 
+	.eta-bar {
+		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80 transition-transform;
+	}
 	.progress-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+		@apply rounded inset-0 origin-left h-full w-full bg-orange-400 dark:bg-orange-500;
 	}
 
 	.meta-text {

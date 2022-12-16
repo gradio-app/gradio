@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class PredictBody(BaseModel):
     session_hash: Optional[str]
+    event_id: Optional[str]
     data: List[Any]
     fn_index: Optional[int]
     batched: Optional[

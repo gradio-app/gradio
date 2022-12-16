@@ -4,28 +4,51 @@ import time
 
 
 with gr.Blocks() as demo:
-    text = gr.Textbox("Image search")
-    btn = gr.Button("Go")
-    img = gr.Image()
+    text = gr.Textbox()
+    with gr.Row():
+        load_set_btn = gr.Button("Load Set")
+        load_random_btn = gr.Button("Load Random")
+        clean_imgs_btn = gr.Button("Clean Images")
+        do_all_btn = gr.Button("Do All")
+    text2 = gr.Textbox()
 
-    def dummy(text, progress=gr.Progress()):
-        imgs = [None] * 100
-
-        # tqdm-like iterable wrapper
-        for img in progress(imgs, label="Loading images..."):
+    # tqdm over list
+    def load_set(text, progress=gr.Progress()):
+        imgs = [None] * 24
+        for img in progress.tqdm(imgs, message="Loading from list"):
             time.sleep(0.1)
+        return "done"
+    load_set_btn.click(load_set, text, text2)
 
-        # explicit progress
-        progress(0, label="Collecting Images...")
-        time.sleep(3)
-        progress(50, label="Collecting Images...")
-        time.sleep(2)
-        progress(100, label="Collecting Images...")
+    # tqdm over iterable of unknown length
+    def load_random(text, progress=gr.Progress()):
+        def yielder():
+            for i in range(0, random.randint(15, 20)):
+                time.sleep(0.1)
+                yield None
+        for img in progress.tqdm(yielder()):
+            pass
+        return "done"
+    load_random_btn.click(load_random, text, text2)
+        
+    # manual progress
+    def clean_imgs(text, progress=gr.Progress()):
+        progress(0.2, message="Collecting Images")
+        time.sleep(1)
+        progress(0.5, message="Cleaning Images")
+        time.sleep(1.5)
+        progress(0.8, message="Sending Images")
+        time.sleep(1.5)
+        return "done"
+    clean_imgs_btn.click(clean_imgs, text, text2)
 
-
-
-    btn.click(dummy, text, img)
-
+    # multiple progressions
+    def do_all(text, progress=gr.Progress()):
+        load_set(text, progress)
+        load_random(text, progress)
+        clean_imgs(text, progress)
+        return "done"
+    do_all_btn.click(do_all, text, text2)
 
 if __name__ == "__main__":
     demo.queue().launch()

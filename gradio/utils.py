@@ -29,11 +29,11 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Iterable,
     List,
     NewType,
     Tuple,
     Type,
-    Iterable
 )
 
 import aiohttp
@@ -401,7 +401,14 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-    return event_loop.create_task(func(*args, **kwargs))
+
+    async def fn_print_err(func, *args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            print(e)
+
+    return event_loop.create_task(fn_print_err(func, *args, **kwargs))
 
 
 def async_iteration(iterator):
@@ -964,25 +971,67 @@ def tex2svg(formula, *args):
     return f"{copy_code}{svg_code}"
 
 
-class Progress:
+class Progress(Iterable):
     """
     Progress tracker that is used in function signature to identify function needs to be tracked.
     """
-    def __call__(self, progress: float | Iterable, status: str | None = None):
+
+    def __init__(self, _active: bool = False, _callback: Callable = None):
+        self._active = _active
+        self._callback = _callback
+        self.message = None
+
+    def __len__(self):
+        return self.len
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
         """
-        Updates progress tracker with progress and status text.
+        Updates progress tracker with next item in iterable.
+        """
+        if self._active:
+            self.index += 1
+            progress = [self.index, self.len]
+            self._callback(progress=progress, message=self.message)
+        return next(self.iterable)
+
+    def __call__(
+        self,
+        progress: float | Tuple[int, int | None] | None = None,
+        message: str | None = None,
+    ):
+        """
+        Updates progress tracker with progress and message text.
         Parameters:
-            progress: If float, should be between 0 and 1 representing completion. If iterable, will automatically calculate progress.
-            status: Status message to display.
+            progress: If float, should be between 0 and 1 representing completion. If Tuple, first number represents steps completed, and second number represents total steps.
+            message: message to display.
         """
-        return progress
-    
-def fn_has_progress_tracker(fn: Callable):
+        if self._active:
+            self._callback(progress=progress, message=message)
+        else:
+            return progress
+
+    def tqdm(self, iterable: Iterable, message: str = None):
+        self.len = len(iterable) if hasattr(iterable, "__len__") else None
+        self.iterable = iter(iterable)
+        self.message = message
+        self.index = 0
+        return self
+
+
+def has_progress_arg(fn: Callable, input_count: int):
     """
-    Checks if function has a progress tracker and if so, returns True.
+    Checks if function has a progress tracker positioned after input parameters.
+    Parameters:
+        fn: function to check.
+        input_count: number of input parameters.
+    Returns:
+        Whether progress arg exists.
     """
     signature = inspect.signature(fn)
-    for param in signature.parameters.values():
-        if isinstance(param.default, Progress) or param.default == Progress:
-            return True
-    return False
+    params = list(signature.parameters.values())
+    return len(params) > input_count and isinstance(
+        params[input_count].default, Progress
+    )

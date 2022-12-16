@@ -52,7 +52,6 @@ from gradio.utils import (
     delete_none,
     get_cancel_function,
     get_continuous_fn,
-    fn_has_progress_tracker
 )
 
 set_documentation_group("blocks")
@@ -823,6 +822,7 @@ class Blocks(BlockContext):
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
         request: routes.Request | List[routes.Request] | None = None,
+        event_id: str | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
@@ -843,6 +843,18 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
+            progress_arg = utils.has_progress_arg(block_fn.fn, len(block_fn.inputs))
+            if progress_arg is not None and event_id is not None:
+
+                def callback(
+                    progress: float | Tuple[int, int | None] | None,
+                    message: str | None = None,
+                ):
+                    self._queue.set_progress(event_id, progress, message)
+
+                progress = utils.Progress(_active=True, _callback=callback)
+                processed_input = (*processed_input, progress)
+
             if inspect.iscoroutinefunction(block_fn.fn):
                 prediction = await block_fn.fn(*processed_input)
             else:
@@ -964,6 +976,7 @@ class Blocks(BlockContext):
         username: str = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
+        event_id: str | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -997,7 +1010,9 @@ class Blocks(BlockContext):
                 )
 
             inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None, request)
+            result = await self.call_function(
+                fn_index, zip(*inputs), None, request, event_id
+            )
             preds = result["prediction"]
             data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
             data = list(zip(*data))
@@ -1005,7 +1020,9 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator, request)
+            result = await self.call_function(
+                fn_index, inputs, iterator, request, event_id
+            )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
@@ -1638,8 +1655,13 @@ class Blocks(BlockContext):
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
+
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start)
+            progress_tracking = any(
+                utils.has_progress_arg(block_fn.fn, len(block_fn.inputs))
+                for block_fn in self.fns
+            )
+            utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):

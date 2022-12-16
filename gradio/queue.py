@@ -4,8 +4,9 @@ import asyncio
 import copy
 import sys
 import time
+import uuid
 from collections import deque
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import fastapi
 from pydantic import BaseModel
@@ -24,18 +25,27 @@ class Estimation(BaseModel):
     queue_eta: int
 
 
+class Progress(BaseModel):
+    msg: Optional[str] = "progress"
+    progress: Union[float, Tuple[int, Optional[int]]] = None
+    status_message: Optional[str] = None
+
+
 class Event:
     def __init__(
         self,
         websocket: fastapi.WebSocket,
         fn_index: int | None = None,
     ):
+        self._id = str(uuid.uuid4())
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
         self.fn_index: int | None = fn_index
         self.session_hash: str = "foo"
         self.token: str | None = None
+        self.progress: Progress | None = None
+        self.progress_pending: bool = False
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -65,12 +75,15 @@ class Queue:
         self.queue_duration = 1
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
+        self.progress_update_sleep_when_free = 0.2
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
 
-    async def start(self):
+    async def start(self, progress_tracking=False):
         run_coro_in_background(self.start_processing)
+        if progress_tracking:
+            run_coro_in_background(self.start_progress_tracking)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
 
@@ -131,6 +144,41 @@ class Queue:
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
+
+    async def start_progress_tracking(self) -> None:
+        while not self.stopped:
+            if not any(self.active_jobs):
+                await asyncio.sleep(self.progress_update_sleep_when_free)
+                continue
+
+            for job in self.active_jobs:
+                if job is None:
+                    continue
+                for event in job:
+                    if event.progress_pending:
+                        event.progress_pending = False
+                        client_awake = await self.send_message(
+                            event, event.progress.dict()
+                        )
+                        if not client_awake:
+                            await self.clean_event(event)
+
+            await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    def set_progress(
+        self,
+        event_id: str,
+        progress: int | Tuple[int, int | None],
+        message: str | None = None,
+    ):
+        for job in self.active_jobs:
+            if job is None:
+                continue
+            for evt in job:
+                if evt._id == event_id:
+                    evt.progress = Progress(progress=progress, status_message=message)
+                    evt.progress_pending = True
+                    return
 
     def push(self, event: Event) -> int | None:
         """
@@ -254,6 +302,7 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
+        data.event_id = events[0]._id if not batch else None
         try:
             data.request = self.get_request_params(events[0].websocket)
         except ValueError:
