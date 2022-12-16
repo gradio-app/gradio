@@ -8,7 +8,8 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a Guide on using BigQuery with Gradio's `DataFrame` and `ScatterPlot` component,
+by [@abidlabs](https://github.com/abidlabs) in [PR 2794](https://github.com/gradio-app/gradio/pull/2794) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
