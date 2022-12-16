@@ -98,8 +98,8 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if hasattr(self, "temp_dir"):
-                Context.root_block.temp_dirs.add(self.temp_dir)
+            if isinstance(self, components.TempFileManager):
+                Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -557,7 +557,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.temp_dirs = set()
+        self.temp_file_sets = []
         self.title = title
         self.show_api = True
 
@@ -741,7 +741,7 @@ class Blocks(BlockContext):
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -834,7 +834,6 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
@@ -1185,20 +1184,20 @@ class Blocks(BlockContext):
         self,
         concurrency_count: int = 1,
         status_update_rate: float | str = "auto",
-        client_position_to_load_data: int = 30,
+        client_position_to_load_data: int | None = None,
         default_enabled: bool = True,
         api_open: bool = True,
-        max_size: Optional[int] = None,
+        max_size: int | None = None,
     ):
         """
         You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
         Parameters:
-            concurrency_count: Number of worker threads that will be processing requests concurrently.
+            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
-            client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
+            client_position_to_load_data: DEPRECATED. This parameter is deprecated and has no effect.
             default_enabled: If True, all event listeners will use queueing by default.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
-            max_size: The maximum number of events the queue will store at any given moment.
+            max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
@@ -1206,10 +1205,11 @@ class Blocks(BlockContext):
         """
         self.enable_queue = default_enabled
         self.api_open = api_open
+        if client_position_to_load_data is not None:
+            warnings.warn("The client_position_to_load_data parameter is deprecated.")
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
-            data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             blocks_dependencies=self.dependencies,
@@ -1260,7 +1260,7 @@ class Blocks(BlockContext):
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
             enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
+            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
             encrypt: If True, flagged data will be encrypted by key provided by creator at launch
@@ -1622,16 +1622,18 @@ class Blocks(BlockContext):
         for component in Context.root_block.blocks.values():
             if (
                 isinstance(component, components.IOComponent)
-                and component.attach_load_event
+                and component.load_event_to_attach
             ):
+                load_fn, every = component.load_event_to_attach
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
-                    component.load_fn,
+                    load_fn,
                     None,
                     component,
                     no_target=True,
                     queue=False,
+                    every=every,
                 )
 
     def startup_events(self):
