@@ -4,9 +4,9 @@
 
 In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a dashboard that updates in real time using `gradio`. The dashboard will look like this:
 
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/bigquery-dashboard.gif)
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/bigquery-dashboard.gif">
 
-We'll cover the following steps in thsi Guide:
+We'll cover the following steps in this Guide:
 
 1. Setting up your BigQuery credentials
 2. Using the BigQuery client
@@ -51,7 +51,7 @@ To use Gradio with BigQuery, you will need to obtain your BigQuery credentials a
 
 Once you have the credentials, you will need to use the BigQuery Python client to authenticate using your credentials. To do this, you will need to install the BigQuery Python client by running the following command in the terminal:
 
-```
+```bash
 pip install google-cloud-bigquery[pandas]
 ```
 
@@ -113,7 +113,8 @@ with gr.Blocks() as demo:
     gr.Markdown("# 💉 Covid Dashboard (Updated Hourly)")
     with gr.Row():
         gr.DataFrame(run_query, every=60*60)
-        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases", y="deaths", tooltip="county", width=500, height=500)
+        gr.ScatterPlot(run_query, every=60*60, x="confirmed_cases", 
+                        y="deaths", tooltip="county", width=500, height=500)
 
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
