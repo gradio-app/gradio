@@ -100,7 +100,7 @@ Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by 
 You don't need to do anything differently, but when you set `share=True` in `launch()`,
 you'll get this message and a public link that look a little bit different:
 
-```
+```bash
 Setting up a public link... we have recently upgraded the way public links are generated. If you encounter any problems, please downgrade to gradio version 3.13.0
 .
 Running on public URL: https://bec81a83-5b5c-471e.gradio.live
