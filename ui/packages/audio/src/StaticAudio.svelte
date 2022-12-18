@@ -15,7 +15,7 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let name: string;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;

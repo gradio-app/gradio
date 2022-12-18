@@ -49,10 +49,11 @@
 			on:change
 			on:clear
 			on:upload
-			drop_text={$_("interface.drop_file")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
-		/>
+		>
+			{$_("interface.drop_file")}
+			<br />- {$_("or")} -<br />
+			{$_("interface.click_to_upload")}</FileUpload
+		>
 	{:else}
 		<File value={_value} {label} {show_label} />
 	{/if}

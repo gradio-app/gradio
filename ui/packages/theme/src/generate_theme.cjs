@@ -22,7 +22,8 @@ const foundation_light = {
 			body: "var(--color-grey-700)",
 			label: "var(--color-grey)",
 			placeholder: "var(--color-grey-400)",
-			subdued: "var(--color-grey-400)"
+			subdued: "var(--color-grey-400)",
+			link: "var(--color-blue-600)"
 		},
 		border: {
 			primary: "var(--color-grey-200)",
@@ -63,7 +64,8 @@ const foundation_dark = {
 			body: "var(--color-grey-300)",
 			label: "var(--color-grey-200)",
 			placeholder: "var(--color-grey)",
-			subdued: "var(--color-grey-400)" // i dont know what this is for? upload text?
+			subdued: "var(--color-grey-400)", // i dont know what this is for? upload text?
+			link: "var(--color-blue-300)"
 		},
 		border: {
 			primary: "var(--color-grey-700)",
