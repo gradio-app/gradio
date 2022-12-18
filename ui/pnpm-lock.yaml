@@ -84,7 +84,6 @@ importers:
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
-      '@gradio/carousel': workspace:^0.0.1
       '@gradio/chart': workspace:^0.0.1
       '@gradio/chatbot': workspace:^0.0.1
       '@gradio/file': workspace:^0.0.1
@@ -102,7 +101,7 @@ importers:
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
-      '@gradio/uploadbutton': workspace:^0.0.1
+      '@gradio/upload-button': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
       d3-dsv: ^3.0.1
@@ -113,7 +112,6 @@ importers:
       '@gradio/atoms': link:../atoms
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
-      '@gradio/carousel': link:../carousel
       '@gradio/chart': link:../chart
       '@gradio/chatbot': link:../chatbot
       '@gradio/file': link:../file
@@ -131,7 +129,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
-      '@gradio/uploadbutton': link:../upload-button
+      '@gradio/upload-button': link:../upload-button
       '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       d3-dsv: 3.0.1
@@ -335,8 +333,10 @@ importers:
 
   packages/upload-button:
     specifiers:
+      '@gradio/button': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
     dependencies:
+      '@gradio/button': link:../button
       '@gradio/utils': link:../utils
 
   packages/utils:
@@ -379,7 +379,7 @@ importers:
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
-      '@gradio/uploadbutton': workspace:^0.0.1
+      '@gradio/upload-button': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
       '@sveltejs/adapter-auto': next
       '@sveltejs/kit': ^1.0.0-next.318
@@ -413,7 +413,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
-      '@gradio/uploadbutton': link:../upload-button
+      '@gradio/upload-button': link:../upload-button
       '@gradio/video': link:../video
       svelte: 3.49.0
     devDependencies:

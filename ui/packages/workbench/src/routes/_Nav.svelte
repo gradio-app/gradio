@@ -12,18 +12,10 @@
 		["Design", ["Atoms", "Theme"]],
 		["Layout", ["Tabs"]],
 		["Misc", ["Chatbot", "HighlightedText", "Label", "Dataset"]]
-	].map((section) => {
-		console.log({ section });
-		return [
-			section[0],
-			section[1].map((comp) => {
-				console.log({ comp });
-				return [comp, comp.toLowerCase()];
-			})
-		];
-	}) as Array<[string, [string, string]]>;
-
-	console.log(comp_routes);
+	].map((section) => [
+		section[0],
+		section[1].map((comp) => [comp, comp.toLowerCase()])
+	]) as Array<[string, [string, string]]>;
 </script>
 
 <nav class="inline-block">
