@@ -21,6 +21,8 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 import altair as alt
+from PIL import Image as _Image  # using _ to minimize namespace pollution
+_Image.init()  # this have to be ran before importing matplotlib.figure to prevent https://github.com/gradio-app/gradio/issues/2843
 import matplotlib.figure
 import numpy as np
 import pandas as pd
