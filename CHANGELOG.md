@@ -17,6 +17,8 @@ gr.LinePlot(stocks,
             color_legend_position="bottom",
             width=600, height=400, title="Stock Prices")
 ```
+![image](https://user-images.githubusercontent.com/41651716/208711646-81ae3745-149b-46a3-babd-0569aecdd409.png)
+
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
 
