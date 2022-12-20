@@ -26,7 +26,7 @@ demo = gr.Blocks()
 
 with demo:
     gr.Markdown(
-        "Let's do some kinematics! Choose the speed and angle to see the trajectory."
+        r"Let's do some kinematics! Choose the speed and angle to see the trajectory. Remember that the range $R = v_0^2 \cdot \frac{\sin(2\theta)}{g}$"
     )
 
     with gr.Row():

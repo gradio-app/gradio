@@ -1,7 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
 import os
-import unittest.mock as mock
 import urllib
 import warnings
 
@@ -75,11 +74,6 @@ class TestStartServer:
 
 
 class TestURLs:
-    def test_setup_tunnel(self):
-        networking.create_tunnel = mock.MagicMock(return_value="test")
-        res = networking.setup_tunnel(None, None)
-        assert res == "test"
-
     def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")
         assert res

@@ -28,7 +28,9 @@ You can either drag and drop a folder containing your Gradio model and all relat
 
 Once you have hosted your app on Hugging Face Spaces, you may want to embed the demo on a different website, such as your blog or your portfolio. Embedding an interactive demo allows people to try out the machine learning model that you have built, without needing to download or install anything — right in their browser! The best part is that you can embed interative demos even in static websites, such as GitHub pages.
 
-There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces.
+There are two ways to embed your Gradio demos, hosted on Hugging Face Spaces. You can find quick links to both options directly on the Space page, in the "Embed this Space" dropdown option:
+
+![Embed this Space dropdown option](/assets/guides/embed_this_space.png)
 
 ### Embedding with Web Components
 
@@ -44,12 +46,12 @@ src="https://gradio.s3-us-west-2.amazonaws.com/{GRADIO_VERSION}/gradio.js">
 
 2. Add 
     ```html
-&lt;gradio-app space="$user/$space_name">&lt;/gradio-app>
+&lt;gradio-app src="https://$your_space_host.hf.space">&lt;/gradio-app>
     ```
-element where you want to place the app. Set the `space=` attribute with your user and space name. For example:
+element where you want to place the app. Set the `src=` attribute to your Space's embed URL, which you can find in the Embed this Space button. For example:
 
     ```html
-&lt;gradio-app space="abidlabs/pytorch-image-classifier">&lt;/gradio-app>
+&lt;gradio-app src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/gradio-app>
     ```
 
 <script>
@@ -67,13 +69,13 @@ fetch("https://pypi.org/pypi/gradio/json"
 To embed with IFrames instead, simply add this element:
 
 ```html
-&lt;iframe src="https://hf.space/embed/$user/$space_name/+">&lt;/iframe>
+&lt;iframe src="https://$your_space_host.hf.space">&lt;/iframe>
 ```
 
 For example: 
 
 ```html
-&lt;iframe src="https://hf.space/embed/abidlabs/pytorch-image-classifier/+">&lt;/iframe>
+&lt;iframe src="https://abidlabs-pytorch-image-classifier.hf.space">&lt;/iframe>
 ```
 
 ## API Page

@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+import warnings
 from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Dict
 
@@ -67,7 +68,9 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
 
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url, headers=headers)
-    assert response.status_code == 200, "Invalid model name or src"
+    assert (
+        response.status_code == 200
+    ), f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
     p = response.json().get("pipeline_tag")
 
     pipelines = {
@@ -81,14 +84,14 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
             ),
         },
         "audio-to-audio": {
-            # example model: speechbrain/mtl-mimic-voicebank
+            # example model: facebook/xm_transformer_sm_all-en
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
             "preprocess": to_binary,
             "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
-            # example model: jonatasgrosman/wav2vec2-large-xlsr-53-english
+            # example model: facebook/wav2vec2-base-960h
             "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
             "preprocess": to_binary,
@@ -328,7 +331,7 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
 
     if iframe_url is None:
         raise ValueError(
-            f"Could not find Space: {space_name}. If it is a private Space, please provide an access token in the `api_key` parameter."
+            f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
         )
 
     r = requests.get(iframe_url, headers=headers)
@@ -345,6 +348,13 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
             space_name, config, alias, api_key, iframe_url, **kwargs
         )
     else:  # Create a Blocks for Gradio 3.x Spaces
+        if kwargs:
+            warnings.warn(
+                "You cannot override parameters for this Space by passing in kwargs. "
+                "Instead, please load the Space as a function and use it to create a "
+                "Blocks or Interface locally. You may find this Guide helpful: "
+                "https://gradio.app/using_blocks_like_functions/"
+            )
         return from_spaces_blocks(config, api_key, iframe_url)
 
 

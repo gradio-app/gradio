@@ -11,7 +11,7 @@ $demo_hello_blocks
 
 - First, note the `with gr.Blocks() as demo:` clause. The Blocks app code will be contained within this clause.
 - Next come the Components. These are the same Components used in `Interface`. However, instead of being passed to some constructor, Components are automatically added to the Blocks as they are created within the `with` clause.
-- Finally, the `click()` event listener. Event listeners define the data flows within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
+- Finally, the `click()` event listener. Event listeners define the data flow within the app. In the example above, the listener ties the two Textboxes together. The Textbox `name` acts as the input and Textbox `output` acts as the output to the `greet` method. This dataflow is triggered when the Button `greet_btn` is clicked. Like an Interface, an event listener can take multiple inputs or outputs.
 
 ## Event Listeners and Interactivity
 
@@ -28,12 +28,13 @@ Take a look at the demo below:
 $code_blocks_hello
 $demo_blocks_hello
 
-Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Commponent supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs) for the event listeners for each Component.
+Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs) for the event listeners for each Component.
 
 ## Running Events Continuously
 
 You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
-`every` number of seconds. Note that this does not take into account the runtime of the event itself. So a function
+`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
+Note that this does not take into account the runtime of the event itself. So a function
 with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
 
 Here is an example of a sine curve that updates every second!
@@ -81,7 +82,7 @@ Similarly, you may return values for multiple output components either as:
 1. a list of values, or
 2. a dictionary keyed by the component
 
-Let's first see an example of (1), where we set the the values of two output components by returning two values:
+Let's first see an example of (1), where we set the values of two output components by returning two values:
 
 ```python
 with gr.Blocks() as demo:
@@ -101,7 +102,7 @@ with gr.Blocks() as demo:
 
 Above, each return statement returns two values corresponding to `food_box` and `status_box`, respectively.
 
-Instead of returning a list of values corresponing to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. 
+Instead of returning a list of values corresponding to each output component in order, you can also return a dictionary, with the key corresponding to the output component and the value as the new value. This also allows you to skip updating some output components. 
 
 ```python
 with gr.Blocks() as demo:

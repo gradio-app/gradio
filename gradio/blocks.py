@@ -44,6 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
@@ -97,8 +98,8 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if hasattr(self, "temp_dir"):
-                Context.root_block.temp_dirs.add(self.temp_dir)
+            if isinstance(self, components.TempFileManager):
+                Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -518,7 +519,6 @@ class Blocks(BlockContext):
         self.limiter = None
         self.save_to = None
         self.theme = theme
-        self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
         self.share = False
         self.enable_queue = None
@@ -557,7 +557,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.temp_dirs = set()
+        self.temp_file_sets = []
         self.title = title
         self.show_api = True
 
@@ -741,7 +741,7 @@ class Blocks(BlockContext):
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -834,7 +834,6 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
@@ -1093,13 +1092,21 @@ class Blocks(BlockContext):
         fn: Optional[Callable] = None,
         inputs: Optional[List[Component]] = None,
         outputs: Optional[List[Component]] = None,
+        api_name: AnyStr = None,
+        scroll_to_output: bool = False,
+        show_progress: bool = True,
+        queue=None,
+        batch: bool = False,
+        max_batch_size: int = 4,
+        preprocess: bool = True,
+        postprocess: bool = True,
+        every: float | None = None,
+        _js: Optional[str] = None,
         *,
         name: Optional[str] = None,
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None,
-        _js: Optional[str] = None,
-        every: None | int = None,
         **kwargs,
     ) -> Blocks | Dict[str, Any] | None:
         """
@@ -1116,9 +1123,17 @@ class Blocks(BlockContext):
             src: Class Method - the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
             api_key: Class Method - optional access token for loading private Hugging Face Hub models or spaces. Find your token here: https://huggingface.co/settings/tokens
             alias: Class Method - optional string used as the name of the loaded model instead of the default name (only applies if loading a Space running Gradio 2.x)
-            fn: Instance Method - Callable function
-            inputs: Instance Method - input list
-            outputs: Instance Method - output list
+            fn: Instance Method - the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
+            inputs: Instance Method - List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
+            outputs: Instance Method - List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.
+            api_name: Instance Method - Defining this parameter exposes the endpoint in the api docs
+            scroll_to_output: Instance Method - If True, will scroll to output component on completion
+            show_progress: Instance Method - If True, will show progress animation while pending
+            queue: Instance Method - If True, will place the request on the queue, if the queue exists
+            batch: Instance Method - If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.
+            max_batch_size: Instance Method - Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
+            preprocess: Instance Method - If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
+            postprocess: Instance Method - If False, will not run postprocessing of component data before returning 'fn' output to the browser.
             every: Instance Method - Run this event 'every' number of seconds. Interpreted in seconds. Queue must be enabled.
         Example:
             import gradio as gr
@@ -1143,9 +1158,17 @@ class Blocks(BlockContext):
                 fn=fn,
                 inputs=inputs,
                 outputs=outputs,
+                api_name=api_name,
+                preprocess=preprocess,
+                postprocess=postprocess,
+                scroll_to_output=scroll_to_output,
+                show_progress=show_progress,
                 js=_js,
-                no_target=True,
+                queue=queue,
+                batch=batch,
+                max_batch_size=max_batch_size,
                 every=every,
+                no_target=True,
             )
 
     def clear(self):
@@ -1161,20 +1184,20 @@ class Blocks(BlockContext):
         self,
         concurrency_count: int = 1,
         status_update_rate: float | str = "auto",
-        client_position_to_load_data: int = 30,
+        client_position_to_load_data: int | None = None,
         default_enabled: bool = True,
         api_open: bool = True,
-        max_size: Optional[int] = None,
+        max_size: int | None = None,
     ):
         """
         You can control the rate of processed requests by creating a queue. This will allow you to set the number of requests to be processed at one time, and will let users know their position in the queue.
         Parameters:
-            concurrency_count: Number of worker threads that will be processing requests concurrently.
+            concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
-            client_position_to_load_data: Once a client's position in Queue is less that this value, the Queue will collect the input data from the client. You may make this smaller if clients can send large volumes of data, such as video, since the queued data is stored in memory.
+            client_position_to_load_data: DEPRECATED. This parameter is deprecated and has no effect.
             default_enabled: If True, all event listeners will use queueing by default.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
-            max_size: The maximum number of events the queue will store at any given moment.
+            max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
         Example:
             demo = gr.Interface(gr.Textbox(), gr.Image(), image_generator)
             demo.queue(concurrency_count=3)
@@ -1182,10 +1205,11 @@ class Blocks(BlockContext):
         """
         self.enable_queue = default_enabled
         self.api_open = api_open
+        if client_position_to_load_data is not None:
+            warnings.warn("The client_position_to_load_data parameter is deprecated.")
         self._queue = queue.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
-            data_gathering_start=client_position_to_load_data,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             blocks_dependencies=self.dependencies,
@@ -1236,7 +1260,7 @@ class Blocks(BlockContext):
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             show_tips: if True, will occasionally show tips about new Gradio features
             enable_queue: DEPRECATED (use .queue() method instead.) if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
-            max_threads: allow up to `max_threads` to be processed in parallel. The default is inherited from the starlette library (currently 40).
+            max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40). Applies whether the queue is enabled or not. But if queuing is enabled, this parameter is increaseed to be at least the concurrency_count of the queue.
             width: The width in pixels of the iframe element containing the interface (used if inline=True)
             height: The height in pixels of the iframe element containing the interface (used if inline=True)
             encrypt: If True, flagged data will be encrypted by key provided by creator at launch
@@ -1392,8 +1416,14 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    share_url = networking.setup_tunnel(self.server_port, None)
-                    self.share_url = share_url
+                    print(
+                        "\nSetting up a public link... we have recently upgraded the "
+                        "way public links are generated. If you encounter any "
+                        "problems, please report the issue and downgrade to gradio version 3.13.0\n."
+                    )
+                    self.share_url = networking.setup_tunnel(
+                        self.server_name, self.server_port
+                    )
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
@@ -1583,6 +1613,8 @@ class Blocks(BlockContext):
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
+            for tunnel in CURRENT_TUNNELS:
+                tunnel.kill()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
@@ -1590,16 +1622,18 @@ class Blocks(BlockContext):
         for component in Context.root_block.blocks.values():
             if (
                 isinstance(component, components.IOComponent)
-                and component.attach_load_event
+                and component.load_event_to_attach
             ):
+                load_fn, every = component.load_event_to_attach
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
-                    component.load_fn,
+                    load_fn,
                     None,
                     component,
                     no_target=True,
                     queue=False,
+                    every=every,
                 )
 
     def startup_events(self):

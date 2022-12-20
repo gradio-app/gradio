@@ -60,7 +60,7 @@ This will help our users understand how the model works and also evaluate its ef
 For example, we should expect our model to identify the words "happy" and "love" with positive sentiment - if not it's a sign we made a mistake in training it!
 
 For each word in the input, we will compute a score of how much the model's prediction of positive sentiment is changed by that word.
-Once we have those `(word, score)` pairs we can use gradio to visualize them to the user.
+Once we have those `(word, score)` pairs we can use gradio to visualize them for the user.
 
 The [shap](https://shap.readthedocs.io/en/stable/index.html) library will help us compute the `(word, score)` pairs and
 gradio will take care of displaying the output to the user.
