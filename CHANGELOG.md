@@ -19,6 +19,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Fixed importing gradio can cause PIL.Image.registered_extensions() to break by `[@aliencaocao](https://github.com/aliencaocao)` in `[PR 2846](https://github.com/gradio-app/gradio/pull/2846)`
+* Fix css glitch and navigation in docs by [@aliabd](https://github.com/aliabd) in [PR 2856](https://github.com/gradio-app/gradio/pull/2856)
 
 ## Contributors Shoutout:
 No changes to highlight.
