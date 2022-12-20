@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
+from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block

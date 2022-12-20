@@ -351,7 +351,9 @@ class class_or_instancemethod(classmethod):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
 
+
 set_documentation_group("component-helpers")
+
 
 @document()
 def update(**kwargs) -> dict:
@@ -360,7 +362,7 @@ def update(**kwargs) -> dict:
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component. 
+    if you use the update method on the component.
     Demos: blocks_essay, blocks_update, blocks_essay_update
 
     Parameters:
@@ -396,6 +398,7 @@ def update(**kwargs) -> dict:
 
 
 set_documentation_group("blocks")
+
 
 def skip() -> dict:
     return update()
