@@ -221,6 +221,10 @@ class Block:
                 )
                 api_name = api_name_
 
+        sets_explicit_progress = utils.sets_explicit_progress(
+            fn, 1 if inputs_as_dict else len(inputs)
+        )
+
         dependency = {
             "targets": [self._id] if not no_target else [],
             "trigger": event_name,
@@ -236,7 +240,7 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
-            "sets_explicit_progress": utils.sets_explicit_progress(fn, len(inputs))
+            "sets_explicit_progress": sets_explicit_progress,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -843,7 +847,9 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            sets_explicit_progress = self.dependencies[fn_index].get("sets_explicit_progress")
+            sets_explicit_progress = self.dependencies[fn_index].get(
+                "sets_explicit_progress"
+            )
             if sets_explicit_progress and event_id is not None:
 
                 def callback(

@@ -970,10 +970,24 @@ def tex2svg(formula, *args):
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
-@document()
+
+@document("__call__", "tqdm")
 class Progress(Iterable):
     """
-    Progress tracker that is used in function signature to identify function needs to be tracked.
+    The Progress class provides a custom progress tracker that is used in a function signature.
+    To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to `gradio.Progress()`.
+    The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
+    Example:
+        import gradio as gr
+        import time
+        def my_function(x, progress=gr.Progress()):
+            progress(0, message="Starting...")
+            time.sleep(1)
+            for i in progress.tqdm(range(100)):
+                time.sleep(0.1)
+            return x
+        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).launch()
+    Demos: progress
     """
 
     def __init__(self, _active: bool = False, _callback: Callable = None):
@@ -1014,6 +1028,12 @@ class Progress(Iterable):
             return progress
 
     def tqdm(self, iterable: Iterable, message: str = None):
+        """
+        Attaches progress tracker to iterable.
+        Parameters:
+            iterable: iterable to attach progress tracker to.
+            message: message to display.
+        """
         self.len = len(iterable) if hasattr(iterable, "__len__") else None
         self.iterable = iter(iterable)
         self.message = message
