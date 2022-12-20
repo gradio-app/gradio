@@ -899,7 +899,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] | Callable = None,
+        value: List[str] | str | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         every: float | None = None,
@@ -995,7 +995,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: List of selected choices
+            y: List of selected choices. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
