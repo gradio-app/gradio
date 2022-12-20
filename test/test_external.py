@@ -384,6 +384,11 @@ def check_dataset(config, readme_examples):
         ]
 
 
+def test_load_blocks_with_default_values():
+    gr.Interface.load("spaces/abidlabs/min-dalle")
+    gr.Interface.load("spaces/abidlabs/min-dalle-later")
+
+
 @pytest.mark.parametrize(
     "hypothetical_readme",
     [

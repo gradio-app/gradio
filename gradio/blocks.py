@@ -74,6 +74,7 @@ class Block:
         elem_id: str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
+        _skip_init_processing: bool = False,  # Used for loading from Spaces
         **kwargs,
     ):
         self._id = Context.id
@@ -81,6 +82,7 @@ class Block:
         self.visible = visible
         self.elem_id = elem_id
         self.root_url = root_url
+        self._skip_init_processing = _skip_init_processing
         self._style = {}
         if render:
             self.render()
@@ -602,7 +604,8 @@ class Blocks(BlockContext):
             style = block_config["props"].pop("style", None)
             if block_config["props"].get("root_url") is None and root_url:
                 block_config["props"]["root_url"] = root_url + "/"
-            block = cls(**block_config["props"])
+            # Any component has already processed its initial value, so we skip that step here
+            block = cls(**block_config["props"], _skip_init_processing=True)
             if style:
                 block.style(**style)
             return block
@@ -657,13 +660,14 @@ class Blocks(BlockContext):
                         first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
-            blocks.predict = [fns[0]]
-            blocks.input_components = [
-                Context.root_block.blocks[i] for i in first_dependency["inputs"]
-            ]
-            blocks.output_components = [
-                Context.root_block.blocks[o] for o in first_dependency["outputs"]
-            ]
+            if len(fns):
+                blocks.predict = [fns[0]]
+                blocks.input_components = [
+                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
+                ]
+                blocks.output_components = [
+                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
+                ]
 
         if config.get("mode", "blocks") == "interface":
             blocks.__name__ = "Interface"

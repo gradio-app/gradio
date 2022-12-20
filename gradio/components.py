@@ -122,7 +122,7 @@ class IOComponent(Component, Serializable):
         self.load_event = None
         self.load_event_to_attach = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
+        self.value = initial_value if self._skip_init_processing else self.postprocess(initial_value) 
         if callable(load_fn):
             self.load_event = self.attach_load_event(load_fn, every)
 
