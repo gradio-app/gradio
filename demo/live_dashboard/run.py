@@ -18,12 +18,14 @@ def get_plot(period=1):
     global plot_end
     x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
     y = np.sin(2 * math.pi * period * x)
-    update = gr.LinePlot.update(value=pd.DataFrame({"x": x, "y": y}),
-                                x="x",
-                                y="y",
-                                title="Plot (updates every second)",
-                                width=600,
-                                height=350)
+    update = gr.LinePlot.update(
+        value=pd.DataFrame({"x": x, "y": y}),
+        x="x",
+        y="y",
+        title="Plot (updates every second)",
+        width=600,
+        height=350,
+    )
     plot_end += 2 * math.pi
     if plot_end > 1000:
         plot_end = 2 * math.pi
