@@ -45,6 +45,10 @@ class TestExamples:
         for sample in examples.dataset.samples:
             assert os.path.isabs(sample[0])
 
+    def test_examples_per_page(self):
+        examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
+        assert examples.dataset.get_config()["samples_per_page"] == 2
+
     @pytest.mark.asyncio
     async def test_no_preprocessing(self):
         with gr.Blocks():

@@ -132,10 +132,13 @@ class TestInterface:
 
     def test_examples_list(self):
         examples = ["test1", "test2"]
-        interface = Interface(lambda x: x, "textbox", "label", examples=examples)
+        interface = Interface(
+            lambda x: x, "textbox", "label", examples=examples, examples_per_page=2
+        )
         interface.launch(prevent_thread_lock=True)
         assert len(interface.examples_handler.examples) == 2
         assert len(interface.examples_handler.examples[0]) == 1
+        assert interface.examples_handler.dataset.get_config()["samples_per_page"] == 2
         interface.close()
 
     @mock.patch("IPython.display.display")
