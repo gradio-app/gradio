@@ -899,7 +899,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] | Callable = None,
+        value: List[str] | str | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         every: float | None = None,
@@ -952,7 +952,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = _Keywords.NO_VALUE,
+        value: Optional[List[str] | str] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -991,15 +991,19 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: List[str] | None) -> List[str]:
+    def postprocess(self, y: List[str] | str | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: List of selected choices
+            y: List of selected choices. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        if not isinstance(y, list):
+            y = [y]
+        return y
 
     def set_interpret_parameters(self):
         """
