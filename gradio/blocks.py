@@ -351,16 +351,16 @@ class class_or_instancemethod(classmethod):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
 
+set_documentation_group("component-helpers")
 
 @document()
 def update(**kwargs) -> dict:
     """
-    Updates component properties.
+    Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component.
-
+    if you use the update method on the component. 
     Demos: blocks_essay, blocks_update, blocks_essay_update
 
     Parameters:
@@ -394,6 +394,8 @@ def update(**kwargs) -> dict:
     kwargs["__type__"] = "generic_update"
     return kwargs
 
+
+set_documentation_group("blocks")
 
 def skip() -> dict:
     return update()
