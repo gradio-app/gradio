@@ -4834,6 +4834,7 @@ class Dataset(Clickable, Component):
         samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
+        samples_per_page: int = 10,
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
@@ -4844,6 +4845,7 @@ class Dataset(Clickable, Component):
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
+            samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -4861,6 +4863,7 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
+        self.samples_per_page = samples_per_page
 
     def get_config(self):
         return {
@@ -4869,6 +4872,7 @@ class Dataset(Clickable, Component):
             "samples": self.samples,
             "type": self.type,
             "label": self.label,
+            "samples_per_page": self.samples_per_page,
             **Component.get_config(self),
         }
 
