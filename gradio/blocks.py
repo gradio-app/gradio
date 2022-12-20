@@ -658,9 +658,9 @@ class Blocks(BlockContext):
                     )
                     if first_dependency is None:
                         first_dependency = dependency
-
+            
             # Allows some use of Interface-specific methods with loaded Spaces
-            if len(fns):
+            if first_dependency:
                 blocks.predict = [fns[0]]
                 blocks.input_components = [
                     Context.root_block.blocks[i] for i in first_dependency["inputs"]
