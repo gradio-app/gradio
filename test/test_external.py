@@ -384,6 +384,20 @@ def check_dataset(config, readme_examples):
         ]
 
 
+def test_load_blocks_with_default_values():
+    io = gr.Interface.load("spaces/abidlabs/min-dalle")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/abidlabs/min-dalle-later")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/freddyaboulton/dataframe_load")
+    assert io.get_config_file()["components"][0]["props"]["value"] == {
+        "headers": ["a", "b"],
+        "data": [[1, 4], [2, 5], [3, 6]],
+    }
+
+
 @pytest.mark.parametrize(
     "hypothetical_readme",
     [
