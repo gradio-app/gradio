@@ -2,10 +2,30 @@
 
 ## New Features:
 
-No changes to highlight.
+Gradio's newest plotting component `gr.LinePlot`! 📈
+
+With this component you can easily create time series visualizations with customizable
+appearance for your demos and dashboards ... all without having to know an external plotting library.
+
+For an example of the api see below:
+
+```python
+gr.LinePlot(stocks,
+            x="date",
+            y="price",
+            color="symbol",
+            color_legend_position="bottom",
+            width=600, height=400, title="Stock Prices")
+```
+![image](https://user-images.githubusercontent.com/41651716/208711646-81ae3745-149b-46a3-babd-0569aecdd409.png)
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed bug where the `examples_per_page` parameter of the `Examples` component was not passed to the internal `Dataset` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2861](https://github.com/gradio-app/gradio/pull/2861)  
+* Fixes loading Spaces that have components with default values by [@abidlabs](https://github.com/abidlabs) in [PR 2855](https://github.com/gradio-app/gradio/pull/2855) 
+* Fixes flagging when `allow_flagging="auto"` in `gr.Interface()` by [@abidlabs](https://github.com/abidlabs) in [PR 2695](https://github.com/gradio-app/gradio/pull/2695)
 
 ## Documentation Changes:
 * Added a Guide on using BigQuery with Gradio's `DataFrame` and `ScatterPlot` component,
@@ -19,6 +39,7 @@ No changes to highlight.
 
 ## Full Changelog:
 * Fixed importing gradio can cause PIL.Image.registered_extensions() to break by `[@aliencaocao](https://github.com/aliencaocao)` in `[PR 2846](https://github.com/gradio-app/gradio/pull/2846)`
+* Added the ability to set `x_lim`, `y_lim` and legend positions for `gr.ScatterPlot` by  [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807)  
 
 ## Contributors Shoutout:
 No changes to highlight.

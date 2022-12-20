@@ -30,6 +30,7 @@ from gradio.components import (
     Interpretation,
     Json,
     Label,
+    LinePlot,
     Markdown,
     Model3D,
     Number,
