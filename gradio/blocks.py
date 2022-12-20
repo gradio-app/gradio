@@ -658,7 +658,7 @@ class Blocks(BlockContext):
                     )
                     if first_dependency is None:
                         first_dependency = dependency
-            
+
             # Allows some use of Interface-specific methods with loaded Spaces
             if first_dependency:
                 blocks.predict = [fns[0]]
