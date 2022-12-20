@@ -9,6 +9,7 @@ with gr.Blocks() as demo:
         load_set_btn = gr.Button("Load Set")
         load_random_btn = gr.Button("Load Random")
         clean_imgs_btn = gr.Button("Clean Images")
+        wait_btn = gr.Button("Wait")
         do_all_btn = gr.Button("Do All")
     text2 = gr.Textbox()
 
@@ -42,11 +43,18 @@ with gr.Blocks() as demo:
         return "done"
     clean_imgs_btn.click(clean_imgs, text, text2)
 
+    # no progress
+    def wait(text):
+        time.sleep(4)
+        return "done"
+    wait_btn.click(wait, text, text2)
+
     # multiple progressions
     def do_all(text, progress=gr.Progress()):
         load_set(text, progress)
         load_random(text, progress)
         clean_imgs(text, progress)
+        wait(text)
         return "done"
     do_all_btn.click(do_all, text, text2)
 

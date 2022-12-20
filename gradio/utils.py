@@ -970,7 +970,7 @@ def tex2svg(formula, *args):
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
 
-
+@document()
 class Progress(Iterable):
     """
     Progress tracker that is used in function signature to identify function needs to be tracked.
@@ -1021,7 +1021,7 @@ class Progress(Iterable):
         return self
 
 
-def has_progress_arg(fn: Callable, input_count: int):
+def sets_explicit_progress(fn: Callable, input_count: int):
     """
     Checks if function has a progress tracker positioned after input parameters.
     Parameters:

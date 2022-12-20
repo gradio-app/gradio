@@ -236,6 +236,7 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
+            "sets_explicit_progress": utils.sets_explicit_progress(fn, len(inputs))
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -843,8 +844,8 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            progress_arg = utils.has_progress_arg(block_fn.fn, len(block_fn.inputs))
-            if progress_arg is not None and event_id is not None:
+            sets_explicit_progress = self.dependencies[fn_index].get("sets_explicit_progress")
+            if sets_explicit_progress and event_id is not None:
 
                 def callback(
                     progress: float | Tuple[int, int | None] | None,
@@ -1658,8 +1659,8 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                utils.has_progress_arg(block_fn.fn, len(block_fn.inputs))
-                for block_fn in self.fns
+                dependency.get("sets_explicit_progress")
+                for dependency in self.dependencies
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)

@@ -72,11 +72,15 @@
 	let progress_level: number | undefined = undefined;
 	let old_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
+	let show_eta_bar: boolean = true;
 
 	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
+	$: if (progress != null) {
+		show_eta_bar = false;
+	}
 
 	$: {
 		if (progress !== null) {
@@ -184,7 +188,7 @@
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default"}
+		{#if variant === "default" && show_eta_bar}
 			<div class="eta-bar" style:transform="scaleX({eta_level || 0})" />
 		{/if}
 		<div
@@ -278,7 +282,7 @@
 	}
 
 	.eta-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80 transition-transform;
+		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
 	}
 	.progress-bar {
 		@apply rounded inset-0 origin-left h-full w-full bg-orange-400 dark:bg-orange-500;
