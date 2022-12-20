@@ -4121,13 +4121,13 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
-            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            size_legend_position: The position of the size legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            shape_legend_position: The position of the shape legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis.
-            y_lim: A tuple of list containing the limits for the y-axis.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
@@ -4220,13 +4220,13 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
-            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            size_legend_position: The position of the size legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            shape_legend_position: The position of the shape legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis.
-            y_lim: A tuple of list containing the limits for the y-axis.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             caption: The (optional) caption to display below the plot.
             label: The (optional) label to display in the top left corner of the plot.
@@ -4458,12 +4458,12 @@ class LinePlot(Plot):
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
-            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            stroke_dash_legend_position: The position of the stoke_dash legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis.
-            y_lim: A tuple of list containing the limits for the y-axis.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
@@ -4551,12 +4551,12 @@ class LinePlot(Plot):
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
-            color_legend_position: The position of the color legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
-            stroke_dash_legend_position: The position of the stoke_dash legend. If 'none', omit the legend. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis.
-            y_lim: A tuple of list containing the limits for the y-axis.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display in the top left corner of the plot.
