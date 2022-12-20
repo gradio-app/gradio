@@ -45,6 +45,13 @@
 					spec.encoding.color.scale.range.interpolate = "hsl";
 				}
 				break;
+			case "line":
+				spec.layer.forEach((d) => {
+					if (d.encoding.color) {
+						d.encoding.color.scale.range = d.encoding.color.scale.range.map((e, i) => get_color(i))
+					}
+				})
+				console.log(spec);
 			default:
 				break;
 		}

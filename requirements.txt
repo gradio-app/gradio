@@ -1,5 +1,5 @@
 aiohttp
-altair
+altair>=4.2.0
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
