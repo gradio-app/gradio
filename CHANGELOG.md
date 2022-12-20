@@ -5,7 +5,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes loading Spaces that have components with default values by [@abidlabs](https://github.com/abidlabs) in [PR 2855](https://github.com/gradio-app/gradio/pull/2855) 
 
 ## Documentation Changes:
 * Added a Guide on using BigQuery with Gradio's `DataFrame` and `ScatterPlot` component,
