@@ -999,7 +999,13 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         Returns:
             List of selected choices
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        if not isinstance(y, list):
+            raise ValueError(
+                f"Value of CheckboxGroup.postprocess must be a list. Received {type(y)}"
+            )
+        return y
 
     def set_interpret_parameters(self):
         """
