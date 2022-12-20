@@ -23,7 +23,7 @@ gr.LinePlot(stocks,
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes flagging when `allow_flagging="auto"` in `gr.Interface()` by [@abidlabs](https://github.com/abidlabs) in [PR 2695](https://github.com/gradio-app/gradio/pull/2695)
 
 ## Documentation Changes:
 * Added a Guide on using BigQuery with Gradio's `DataFrame` and `ScatterPlot` component,
