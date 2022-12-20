@@ -2,13 +2,53 @@
 
 ## New Features:
 
+No changes to highlight.
+
+## Bug Fixes:
+No changes to highlight.
+
+## Documentation Changes:
+* Added a Guide on using BigQuery with Gradio's `DataFrame` and `ScatterPlot` component,
+by [@abidlabs](https://github.com/abidlabs) in [PR 2794](https://github.com/gradio-app/gradio/pull/2794) 
+
+## Testing and Infrastructure Changes:
+No changes to highlight.
+
+## Breaking Changes:
+No changes to highlight.
+
+## Full Changelog:
+* Fixed importing gradio can cause PIL.Image.registered_extensions() to break by `[@aliencaocao](https://github.com/aliencaocao)` in `[PR 2846](https://github.com/gradio-app/gradio/pull/2846)`
+
+## Contributors Shoutout:
+No changes to highlight.
+
+# Version 3.14.0
+
+## New Features:
+
 ### Add Waveform Visual Support to Audio
 Adds a `gr.make_waveform()` function that creates a waveform video by combining an audio and an optional background image by [@dawoodkhan82](http://github.com/dawoodkhan82) and [@aliabid94](http://github.com/aliabid94) in [PR 2706](https://github.com/gradio-app/gradio/pull/2706. Helpful for making audio outputs much more shareable.
 
 ![waveform screenrecording](https://user-images.githubusercontent.com/7870876/206062396-164a5e71-451a-4fe0-94a7-cbe9269d57e6.gif)
 
+### Allows Every Component to Accept an `every` Parameter
+
+When a component's initial value is a function, the `every` parameter re-runs the function every `every` seconds. By [@abidlabs](https://github.com/abidlabs) in [PR 2806](https://github.com/gradio-app/gradio/pull/2806). Here's a code example:
+
+```py
+import gradio as gr
+
+with gr.Blocks() as demo:
+    df = gr.DataFrame(run_query, every=60*60)
+
+demo.queue().launch() 
+```
+
 ## Bug Fixes:
-No changes to highlight.
+* Fixed issue where too many temporary files were created, all with randomly generated
+filepaths. Now fewer temporary files are created and are assigned a path that is a 
+hash based on the file contents by [@abidlabs](https://github.com/abidlabs) in [PR 2758](https://github.com/gradio-app/gradio/pull/2758) 
 
 ## Documentation Changes:
 No changes to highlight.
@@ -60,7 +100,7 @@ Replaces tunneling logic based on ssh port-forwarding to that based on `frp` by 
 You don't need to do anything differently, but when you set `share=True` in `launch()`,
 you'll get this message and a public link that look a little bit different:
 
-```
+```bash
 Setting up a public link... we have recently upgraded the way public links are generated. If you encounter any problems, please downgrade to gradio version 3.13.0
 .
 Running on public URL: https://bec81a83-5b5c-471e.gradio.live
@@ -83,6 +123,11 @@ These links are a more secure and scalable way to create shareable demos!
 No changes to highlight.
 
 ## Full Changelog:
+* Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805) 
+* Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810) 
+
+## Contributors Shoutout:
+No changes to highlight.
 
 * Fixed typo in parameter `visible` in classes in `templates.py` by [@abidlabs](https://github.com/abidlabs) in [PR 2805](https://github.com/gradio-app/gradio/pull/2805)
 * Switched external service for getting IP address from `https://api.ipify.org` to `https://checkip.amazonaws.com/` by [@abidlabs](https://github.com/abidlabs) in [PR 2810](https://github.com/gradio-app/gradio/pull/2810)

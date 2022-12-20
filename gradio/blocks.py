@@ -98,8 +98,8 @@ class Block:
             Context.block.add(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-            if hasattr(self, "temp_dir"):
-                Context.root_block.temp_dirs.add(self.temp_dir)
+            if isinstance(self, components.TempFileManager):
+                Context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -558,7 +558,7 @@ class Blocks(BlockContext):
         self.auth = None
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
-        self.temp_dirs = set()
+        self.temp_file_sets = []
         self.title = title
         self.show_api = True
 
@@ -742,7 +742,7 @@ class Blocks(BlockContext):
                     )
                     Context.root_block.fns[dependency_offset + i] = new_fn
                 Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_dirs = Context.root_block.temp_dirs | self.temp_dirs
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
 
         if Context.block is not None:
             Context.block.children.extend(self.children)
@@ -836,7 +836,6 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-
         processed_input = add_request_to_inputs(
             block_fn.fn, list(processed_input), request
         )
@@ -1642,16 +1641,18 @@ class Blocks(BlockContext):
         for component in Context.root_block.blocks.values():
             if (
                 isinstance(component, components.IOComponent)
-                and component.attach_load_event
+                and component.load_event_to_attach
             ):
+                load_fn, every = component.load_event_to_attach
                 # Use set_event_trigger to avoid ambiguity between load class/instance method
                 self.set_event_trigger(
                     "load",
-                    component.load_fn,
+                    load_fn,
                     None,
                     component,
                     no_target=True,
                     queue=False,
+                    every=every,
                 )
 
     def startup_events(self):

@@ -3,6 +3,7 @@ import copy
 import io
 import json
 import os
+import pathlib
 import random
 import sys
 import time
@@ -283,9 +284,9 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.attach_load_event
+                    assert not component.load_event
                 else:
-                    assert component.attach_load_event
+                    assert component.load_event
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
@@ -294,12 +295,10 @@ class TestComponentsInBlocks:
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [
-            comp for comp in io_components if comp not in [gr.State, gr.ScatterPlot]
-        ]
+        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
-            inputs=[comp(value=lambda: None) for comp in io_components],
+            inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
 
@@ -307,6 +306,14 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
+        assert all([dep["every"] == 1 for dep in dependencies_on_load])
+
+    def test_get_load_events(self, io_components):
+        components = []
+        with gr.Blocks() as demo:
+            for component in io_components:
+                components.append(component(value=lambda: None, every=1))
+        assert [comp.load_event for comp in components] == demo.dependencies
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
@@ -1170,3 +1177,19 @@ async def test_queue_when_using_auth():
         *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
     )
     await group
+
+
+def test_temp_file_sets_get_extended():
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+
+    with gr.Blocks() as demo1:
+        gr.Video(str(test_file_dir / "video_sample.mp4"))
+
+    with gr.Blocks() as demo2:
+        gr.Audio(str(test_file_dir / "audio_sample.wav"))
+
+    with gr.Blocks() as demo3:
+        demo1.render()
+        demo2.render()
+
+    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
