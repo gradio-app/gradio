@@ -30,7 +30,7 @@ def scatter_plot_fn(dataset):
             title="Car Data",
             y_title="Miles per Gallon",
             color_legend_title="Origin of Car",
-            caption="MPG vs Horsepower of various cars"
+            caption="MPG vs Horsepower of various cars",
         )
 
 
