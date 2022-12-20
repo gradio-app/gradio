@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
+from PIL import Image as _Image  # using _ to minimize namespace pollution
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
 
 
 set_documentation_group("component")
+_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class _Keywords(Enum):
