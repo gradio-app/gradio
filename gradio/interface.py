@@ -416,7 +416,10 @@ class Interface(Blocks):
                     component.label = "output " + str(i)
 
         if self.allow_flagging != "never":
-            if self.interface_type == self.InterfaceTypes.UNIFIED or self.allow_flagging == "auto":
+            if (
+                self.interface_type == self.InterfaceTypes.UNIFIED
+                or self.allow_flagging == "auto"
+            ):
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
             elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
                 pass
@@ -616,7 +619,10 @@ class Interface(Blocks):
                 ]:
                     if self.allow_flagging == "auto":
                         flag_btns = [(submit_btn, None)]
-                    if self.interface_type == self.InterfaceTypes.UNIFIED or self.allow_flagging == "auto":
+                    if (
+                        self.interface_type == self.InterfaceTypes.UNIFIED
+                        or self.allow_flagging == "auto"
+                    ):
                         flag_components = self.input_components
                     else:
                         flag_components = self.input_components + self.output_components
