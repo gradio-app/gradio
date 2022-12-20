@@ -493,6 +493,11 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
 
+        with pytest.raises(
+            ValueError, match="Value of CheckboxGroup.postprocess must be a list"
+        ):
+            gr.CheckboxGroup(choices=["a", "b"], value="c")
+
     def test_in_interface(self):
         """
         Interface, process
