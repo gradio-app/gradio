@@ -406,7 +406,7 @@ class Progress(Iterable):
                 current_iterable = self.iterables.pop()
             self._callback(
                 event_id=self._event_id,
-                tracked_iterables=self.iterables,
+                iterables=self.iterables,
             )
             current_iterable.index += 1
             try:
@@ -434,7 +434,7 @@ class Progress(Iterable):
         if self._active:
             self._callback(
                 event_id=self._event_id,
-                tracked_iterables=self.iterables
+                iterables=self.iterables
                 + [TrackedIterable(None, 0, total, desc, unit, _tqdm, progress)],
             )
         else:
@@ -460,7 +460,7 @@ class Progress(Iterable):
         if iterable is None:
             new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
             self.iterables.append(new_iterable)
-            self._callback(event_id=self._event_id, tracked_iterables=self.iterables)
+            self._callback(event_id=self._event_id, iterables=self.iterables)
             return
         length = len(iterable) if hasattr(iterable, "__len__") else None
         self.iterables.append(
@@ -479,7 +479,7 @@ class Progress(Iterable):
             current_iterable.index += n
             self._callback(
                 event_id=self._event_id,
-                tracked_iterables=self.iterables,
+                iterables=self.iterables,
             )
         else:
             return
@@ -495,24 +495,17 @@ class Progress(Iterable):
                     break
             self._callback(
                 event_id=self._event_id,
-                tracked_iterables=self.iterables,
+                iterables=self.iterables,
             )
         else:
             return
 
 
 def create_tracker(block_parent, event_id, fn, track_tqdm):
-    def callback(tracked_iterables: List[TrackedIterable], event_id: str):
-        block_parent._queue.set_progress(
-            event_id,
-            [
-                t.progress if t.progress is not None else [t.index, t.length, t.unit]
-                for t in tracked_iterables
-            ],
-            [t.desc for t in tracked_iterables],
-        )
 
-    progress = Progress(_active=True, _callback=callback, _event_id=event_id)
+    progress = Progress(
+        _active=True, _callback=block_parent._queue.set_progress, _event_id=event_id
+    )
     if not track_tqdm:
         return progress, fn
 
@@ -556,8 +549,6 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
         _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
     _tqdm.tqdm.__exit__ = exit_tqdm
-
-    # print signature of tqdm.tqdm.__init__ to see if it has changed
 
     _tqdm.tqdm.__iter__ = iter_tqdm
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):

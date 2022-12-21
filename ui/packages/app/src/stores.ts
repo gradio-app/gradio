@@ -10,7 +10,7 @@ export interface LoadingStatus {
 	message?: string | null;
 	scroll_to_output?: boolean;
 	visible?: boolean;
-	progress?: number | [number, number];
+	progress?: Array<{ progress: number | null, index: number | null, length: number | null, unit: string | null, desc: string | null }>;
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;

@@ -199,8 +199,8 @@ export const fn =
 							null,
 							null,
 							null,
-							data.desc,
-							data.progress
+							null,
+							data.progress_data
 						);
 						break;
 					case "process_generating":

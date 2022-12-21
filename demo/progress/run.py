@@ -79,8 +79,8 @@ with gr.Blocks() as demo:
     do_all_btn.click(do_all, {text, textb}, text2)
 
     def track_tqdm(data, progress=gr.Progress(track_tqdm=True)):
-        for i in tqdm.tqdm(range(5)):
-            for j in tqdm.tqdm(range(4)):
+        for i in tqdm.tqdm(range(5), desc="outer"):
+            for j in tqdm.tqdm(range(4), desc="inner"):
                 time.sleep(1)
         return "done"
     track_tqdm_btn.click(track_tqdm, {text, textb}, text2)

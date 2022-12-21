@@ -7,4 +7,5 @@ export interface LoadingStatus {
 	visible: boolean;
 	fn_index: number;
 	message?: string;
+	progress?: Array<{progress: number | null, index: number | null, length: number | null, unit: string | null, desc: string | null}>;
 }

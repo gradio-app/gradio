@@ -49,6 +49,7 @@
 	import { onDestroy } from "svelte";
 	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
+	import type { LoadingStatus } from "./types";
 
 	export let eta: number | null = null;
 	export let queue: boolean = false;
@@ -58,8 +59,8 @@
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
-	export let message: string[] | null = null;
-	export let progress: Array<number | [number, number, string]> | null = null;
+	export let message: string | null = null;
+	export let progress: LoadingStatus["progress"];
 	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
@@ -84,16 +85,14 @@
 	}
 
 	$: {
-		if (Array.isArray(progress)) {
+		if (progress != null) {
 			progress_level = progress.map((p) => {
-				if (Array.isArray(p)) {
-					if (p[1]) {
-						return p[0] / p[1];
-					} else {
-						return undefined;
-					}
+				if (p.index != null && p.length != null) {
+					return p.index / p.length;
+				} else if (p.progress != null) {
+					return p.progress;
 				} else {
-					return p;
+					return undefined;
 				}
 			});
 		} else {
@@ -119,7 +118,6 @@
 		timer_diff = 0;
 		_timer = true;
 		run();
-		// timer = setInterval(, 100);
 	};
 
 	function run() {
@@ -203,15 +201,13 @@
 			class:meta-text={variant === "default"}
 		>
 			{#if progress}
-				{#each progress as p, i}
-					&nbsp;
-					{#if Array.isArray(p)}
-						{#if p[1]}
-							{prettySI(p[0])}/{prettySI(p[1])} {p[2]} |
-						{:else}
-							{prettySI(p[0])} {p[2]} |
-						{/if}
+				{#each progress as p}
+					{#if p.length != null}
+						{prettySI(p.index || 0)}/{prettySI(p.length)}
+					{:else}
+						{prettySI(p.index || 0)}
 					{/if}
+					{p.unit} | {" "}
 				{/each}
 			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
@@ -227,18 +223,20 @@
 		{#if last_progress_level != null}
 			<div class="z-20 w-full flex items-center flex-col gap-1">
 				<div class="m-2 mx-auto font-mono text-xs dark:text-gray-100">
-					{#if message}
-						{#each message as m, i}
-							{#if m != null && progress_level && progress_level[i] != null}
+					{#if progress != null}
+						{#each progress as p, i}
+							{#if p.desc != null || (progress_level && progress_level[i] != null)}
 								{#if i !== 0}
 									&nbsp;/
 								{/if}
-								{#if m != null}
-									{m}
+								{#if p.desc != null}
+									{p.desc}
 								{/if}
-								-
-								{#if progress_level[i] != null}
-									{(100 * progress_level[i]).toFixed(1)}%
+								{#if p.desc != null && progress_level && progress_level[i] != null}
+									-
+								{/if}
+								{#if progress_level != null}
+									{(100 * (progress_level[i] || 0)).toFixed(1)}%
 								{/if}
 							{/if}
 						{/each}
@@ -281,7 +279,7 @@
 						>
 					</div>
 					<div class="px-3 py-3 text-base font-mono">
-						{message}
+						{message || ""}
 					</div>
 				</div>
 			</div>

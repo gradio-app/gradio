@@ -10,6 +10,7 @@ from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import fastapi
 from pydantic import BaseModel
+from gradio.helpers import TrackedIterable
 
 from gradio.dataclasses import PredictBody
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
@@ -25,10 +26,17 @@ class Estimation(BaseModel):
     queue_eta: int
 
 
+class ProgressUnit(BaseModel):
+    index: Optional[int]
+    length: Optional[int]
+    unit: Optional[str]
+    progress: Optional[float]
+    desc: Optional[str]
+
+
 class Progress(BaseModel):
     msg: str = "progress"
-    progress: Optional[List[Union[float, Tuple[int, Optional[int], str], None]]] = None
-    desc: List[Optional[str]] = None
+    progress_data: List[ProgressUnit] = []
 
 
 class Event:
@@ -168,17 +176,27 @@ class Queue:
     def set_progress(
         self,
         event_id: str,
-        progress: List[int | Tuple[int, int | None, str]] | None,
-        desc: List[str | None],
+        iterables: List[TrackedIterable] | None,
     ):
+        if iterables is None:
+            return
         for job in self.active_jobs:
             if job is None:
                 continue
             for evt in job:
                 if evt._id == event_id:
-                    evt.progress = Progress(progress=progress, desc=desc)
+                    progress_data: List[ProgressUnit] = []
+                    for iterable in iterables:
+                        progress_unit = ProgressUnit(
+                            index=iterable.index,
+                            length=iterable.length,
+                            unit=iterable.unit,
+                            progress=iterable.progress,
+                            desc=iterable.desc,
+                        )
+                        progress_data.append(progress_unit)
+                    evt.progress = Progress(progress_data=progress_data)
                     evt.progress_pending = True
-                    return
 
     def push(self, event: Event) -> int | None:
         """
