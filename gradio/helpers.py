@@ -419,6 +419,7 @@ def update(**kwargs) -> dict:
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
+
         # Interface example
         import gradio as gr
         def change_textbox(choice):
@@ -439,6 +440,10 @@ def update(**kwargs) -> dict:
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
+
+
+def skip() -> dict:
+    return update()
 
 
 @document()

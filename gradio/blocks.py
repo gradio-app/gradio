@@ -44,6 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.helpers import Progress, skip
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -359,10 +360,6 @@ class class_or_instancemethod(classmethod):
     def __get__(self, instance, type_):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
-
-
-def skip() -> dict:
-    return update()
 
 
 def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
@@ -821,7 +818,7 @@ class Blocks(BlockContext):
                 ):
                     self._queue.set_progress(event_id, progress, message)
 
-                progress = utils.Progress(_active=True, _callback=callback)
+                progress = Progress(_active=True, _callback=callback)
                 processed_input = (*processed_input, progress)
 
             if inspect.iscoroutinefunction(block_fn.fn):
