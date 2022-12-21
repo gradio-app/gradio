@@ -9,7 +9,6 @@ import pkgutil
 import random
 import sys
 import time
-import typing
 import warnings
 import webbrowser
 from types import ModuleType
