@@ -60,7 +60,7 @@
 	export let timer: boolean = true;
 	export let visible: boolean = true;
 	export let message: string | null = null;
-	export let progress: LoadingStatus["progress"];
+	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
