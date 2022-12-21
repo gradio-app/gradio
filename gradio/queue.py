@@ -10,9 +10,9 @@ from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
 import fastapi
 from pydantic import BaseModel
-from gradio.helpers import TrackedIterable
 
 from gradio.dataclasses import PredictBody
+from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
 
