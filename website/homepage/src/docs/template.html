@@ -282,34 +282,16 @@
         document.body.appendChild(scriptEle);
       }
 
-      function removeFooters() {
-      window.setTimeout(function() {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          if ( g.shadowRoot ) {
-            let shadowroot = g.shadowRoot;
-            let f = shadowroot.querySelector('footer');
-            if (f != null) {
-              f.classList.add('hidden');
-              let c = shadowroot.querySelector('.gradio-container');
-              c.style.removeProperty('min-height');
-            }
-          };
-        });
-      }, 1000);
-      };
-
       {% if version=='main' %}
 
       if (!isMobile) {
         loadJS('/assets/index.js');
-        window.addEventListener('load', removeFooters());
       }
 
       {% else %}
 
       if (!isMobile) {
         loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
-        window.addEventListener('load', removeFooters());
       }
 
       {% endif %}
