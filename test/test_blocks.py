@@ -1039,12 +1039,12 @@ class TestProgressBar:
             button = gr.Button(value="Greet")
 
             def greet(s, prog=gr.Progress(track_tqdm=True)):
-                prog(0)
+                prog(0, desc="start")
                 time.sleep(0.25)
-                for _ in prog.track(range(4)):
+                for _ in prog.track(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
-                for i in tqdm(["a", "b", "c"]):
+                for i in tqdm(["a", "b", "c"], desc="alphabet"):
                     time.sleep(0.25)
                 return f"Hello, {s}!"
 
@@ -1063,20 +1063,52 @@ class TestProgressBar:
                 if msg["msg"] == "send_hash":
                     await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
                 if msg["msg"] == "progress":
-                    progress_updates.append(msg["progress"])
+                    progress_updates.append(msg["progress_data"])
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
         assert progress_updates == [
-            [0.0],
-            [[0, 4, "steps"]],
-            [[1, 4, "steps"]],
-            [[2, 4, "steps"]],
-            [[3, 4, "steps"]],
-            [[4, 4, "steps"]],
-            [[0, 3, "steps"]],
-            [[1, 3, "steps"]],
-            [[2, 3, "steps"]],
+            [
+                {
+                    "index": 0,
+                    "length": None,
+                    "unit": "steps",
+                    "progress": 0.0,
+                    "desc": "start",
+                }
+            ],
+            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [
+                {
+                    "index": 0,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 1,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 2,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
         ]
 
 
