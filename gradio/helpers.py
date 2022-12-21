@@ -425,8 +425,6 @@ def update(**kwargs) -> dict:
     Note that your editor's autocompletion will suggest proper parameters
     if you use the update method on the component.
 
-    Demos: blocks_essay, blocks_update, blocks_essay_update
-
     Parameters:
         kwargs: Key-word arguments used to update the component's properties.
     Example:
