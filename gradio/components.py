@@ -4081,6 +4081,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
+    Guides: creating_a_dashboard_from_bigquery_data
     """
 
     def __init__(
@@ -4420,7 +4421,7 @@ class LinePlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots
+    Demos: native_plots, live_dashboard
     """
 
     def __init__(
