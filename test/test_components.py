@@ -493,6 +493,10 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
 
+        cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
+        assert cbox.get_config()["value"] == ["c"]
+        assert cbox.postprocess("a") == ["a"]
+
     def test_in_interface(self):
         """
         Interface, process
