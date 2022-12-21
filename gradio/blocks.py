@@ -1204,7 +1204,7 @@ class Blocks(BlockContext):
             concurrency_count: Number of worker threads that will be processing requests from the queue concurrently. Increasing this number will increase the rate at which requests are processed, but will also increase the memory usage of the queue.
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             client_position_to_load_data: DEPRECATED. This parameter is deprecated and has no effect.
-            default_enabled: Deprecated and has no effect. If True, all event listeners will use queueing by default.
+            default_enabled: Deprecated and has no effect.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
         Example:
