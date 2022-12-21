@@ -542,7 +542,6 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, and `path_params`,
-
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -556,6 +555,8 @@ class Request:
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
+        Parameters:
+            request: A fastapi.Request
         """
         self.request: fastapi.Request = request
         self.kwargs: Dict = kwargs

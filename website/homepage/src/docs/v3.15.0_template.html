@@ -49,7 +49,7 @@
       <div class="pl-2 pr-1 py-1 w-fit text-gray-600 font-semibold">
         <select id="toggle" onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);" class="form-select appearance-none block px-3 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded-full transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none w-max" style="width: 135%; padding-top: 0.125rem; padding-bottom: 0.125rem">
             <option value="/docs" selected>
-              v3.14.0
+              v3.15.0
             </option>
             <option value="/docs/main" >
               main
@@ -230,6 +230,8 @@
       
         <a class="px-4 block thin-link" href="#scatterplot">ScatterPlot</a>
       
+        <a class="px-4 block thin-link" href="#lineplot">LinePlot</a>
+      
         <a class="px-4 block thin-link" href="#markdown">Markdown</a>
       
         <a class="px-4 block thin-link" href="#dataset">Dataset</a>
@@ -240,9 +242,10 @@
       
         <a class="px-4 block thin-link" href="#make_waveform">make_waveform</a>
       
+        <a class="px-4 block thin-link" href="#update">update</a>
+      
         <a class="px-4 block thin-link" href="#examples">Examples</a>
       
-      <a class="thin-link px-4 block" href="#update">Update</a>
       <a class="link px-4 my-2 block" href="#routes">Routes
         
           <a class="px-4 block thin-link" href="#request">Request</a>
@@ -391,7 +394,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -467,7 +470,7 @@ demo.launch()</code></pre>
     
       <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       More Examples →
     </button>
@@ -755,7 +758,7 @@ demo.launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700 break-words">
-              <p>one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".</p>
+              <p>one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".</p>
             </td>
           </tr>
         
@@ -2411,7 +2414,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -2473,7 +2476,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -2685,7 +2688,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -2721,7 +2724,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -2894,7 +2897,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -2932,7 +2935,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -3267,7 +3270,7 @@ demo.launch()</code></pre>
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -3301,7 +3304,7 @@ demo.launch()</code></pre>
     
       <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       More Examples →
     </button>
@@ -4769,7 +4772,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -4839,7 +4842,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -6463,7 +6466,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -6557,7 +6560,7 @@ demo.launch()
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -7859,7 +7862,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -7948,7 +7951,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -8852,7 +8855,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -8933,7 +8936,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -9761,7 +9764,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -9846,7 +9849,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -9891,7 +9894,7 @@ if __name__ == "__main__":
               <code class="block">
                 value
               </code>
-              <p class="text-gray-500 italic">List[str] | Callable</p>
+              <p class="text-gray-500 italic">List[str] | str | Callable</p>
               
               <p class="text-gray-500 font-semibold">default: None</p>
               
@@ -10769,7 +10772,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -10854,7 +10857,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -11735,7 +11738,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -11820,7 +11823,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -12577,7 +12580,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -12664,7 +12667,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -14800,7 +14803,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -14878,7 +14881,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -17106,7 +17109,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -17222,7 +17225,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -19513,7 +19516,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -19596,7 +19599,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -20754,7 +20757,7 @@ demo.launch()
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -20850,7 +20853,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -21714,7 +21717,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -21813,7 +21816,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -22568,7 +22571,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -22632,7 +22635,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -22866,7 +22869,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -22958,7 +22961,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -23588,7 +23591,7 @@ demo.launch()
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -23654,7 +23657,7 @@ demo.launch()
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -24764,7 +24767,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -24862,7 +24865,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -26053,7 +26056,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -26163,7 +26166,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -26972,7 +26975,7 @@ demo.launch()
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -27064,7 +27067,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -27913,7 +27916,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -27986,7 +27989,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -28676,7 +28679,7 @@ demo.launch()
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -28764,7 +28767,7 @@ demo.launch()
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -29382,7 +29385,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -29475,7 +29478,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -29857,7 +29860,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -29935,7 +29938,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -30630,7 +30633,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -30708,7 +30711,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -32446,7 +32449,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -32636,7 +32639,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -33527,12 +33530,15 @@ if __name__ == "__main__":
           <pre class=" max-h-80 overflow-auto"><code class="lang-python">import gradio as gr
 
 from scatter_plot_demo import scatter_plot
+from line_plot_demo import line_plot
 
 
 with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("Scatter Plot"):
             scatter_plot.render()
+        with gr.TabItem("Line Plot"):
+            line_plot.render()
 
 if __name__ == "__main__":
     demo.launch()
@@ -33555,7 +33561,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -33563,6 +33569,16 @@ if __name__ == "__main__":
   </div>
   
   <div class="codeblock"><pre><code class="lang-python">gradio.<span>ScatterPlot(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
 --><!--
   --><!--
 --><!--
@@ -33636,12 +33652,15 @@ if __name__ == "__main__":
       <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">import gradio as gr
 
 from scatter_plot_demo import scatter_plot
+from line_plot_demo import line_plot
 
 
 with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("Scatter Plot"):
             scatter_plot.render()
+        with gr.TabItem("Line Plot"):
+            line_plot.render()
 
 if __name__ == "__main__":
     demo.launch()
@@ -33649,7 +33668,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -33896,6 +33915,57 @@ if __name__ == "__main__":
           <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
             <td class="p-3 w-2/5 break-words">
               <code class="block">
+                color_legend_position
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                size_legend_position
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                shape_legend_position
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
                 height
               </code>
               <p class="text-gray-500 italic">Optional[int]</p>
@@ -33922,6 +33992,40 @@ if __name__ == "__main__":
             </td>
             <td class="p-3 text-gray-700 break-words">
               <p>The width of the plot in pixels.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                x_lim
+              </code>
+              <p class="text-gray-500 italic">Optional[List[int | float]]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                y_lim
+              </code>
+              <p class="text-gray-500 italic">Optional[List[int | float]]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].</p>
             </td>
           </tr>
         
@@ -33989,7 +34093,7 @@ if __name__ == "__main__":
               
             </td>
             <td class="p-3 text-gray-700 break-words">
-              <p></p>
+              <p> If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.</p>
             </td>
           </tr>
         
@@ -34753,7 +34857,1432 @@ if __name__ == "__main__":
   
    <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
       
-        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">ScatterPlot</span></p>
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/creating_a_dashboard_from_bigquery_data">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Creating A Dashboard From Bigquery Data</p>
+            </div>
+          </a>
+          
+        </div>
+      
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="lineplot">
+
+
+
+
+
+
+
+  
+  <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
+    <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
+      <div class="flex">
+        
+        <button 
+          class="demo-btn selected-demo px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+          name="native_plots"
+          onclick="show_demo('lineplot', 'native_plots')"
+
+        >native_plots</button>
+        
+        <button 
+          class="demo-btn  px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+          name="live_dashboard"
+          onclick="show_demo('lineplot', 'live_dashboard')"
+
+        >live_dashboard</button>
+        
+      </div>
+      
+      <div class="demo-content " name="native_plots">
+        <div class="codeblock">
+          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/native_plots/run.ipynb" target="_blank" style="right:30px">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg">
+          </a>
+          <pre class=" max-h-80 overflow-auto"><code class="lang-python">import gradio as gr
+
+from scatter_plot_demo import scatter_plot
+from line_plot_demo import line_plot
+
+
+with gr.Blocks() as demo:
+    with gr.Tabs():
+        with gr.TabItem("Scatter Plot"):
+            scatter_plot.render()
+        with gr.TabItem("Line Plot"):
+            line_plot.render()
+
+if __name__ == "__main__":
+    demo.launch()
+</code></pre>
+        </div>
+        
+          <gradio-app space="gradio/native_plots" />      
+        
+      </div>
+      
+      <div class="demo-content hidden" name="live_dashboard">
+        <div class="codeblock">
+          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/live_dashboard/run.ipynb" target="_blank" style="right:30px">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg">
+          </a>
+          <pre class=" max-h-80 overflow-auto"><code class="lang-python">import math
+
+import pandas as pd
+
+import gradio as gr
+import datetime
+import numpy as np
+
+
+def get_time():
+    return datetime.datetime.now()
+
+
+plot_end = 2 * math.pi
+
+
+def get_plot(period=1):
+    global plot_end
+    x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
+    y = np.sin(2 * math.pi * period * x)
+    update = gr.LinePlot.update(
+        value=pd.DataFrame({"x": x, "y": y}),
+        x="x",
+        y="y",
+        title="Plot (updates every second)",
+        width=600,
+        height=350,
+    )
+    plot_end += 2 * math.pi
+    if plot_end > 1000:
+        plot_end = 2 * math.pi
+    return update
+
+
+with gr.Blocks() as demo:
+    with gr.Row():
+        with gr.Column():
+            c_time2 = gr.Textbox(label="Current Time refreshed every second")
+            gr.Textbox(
+                "Change the value of the slider to automatically update the plot",
+                label="",
+            )
+            period = gr.Slider(
+                label="Period of plot", value=1, minimum=0, maximum=10, step=1
+            )
+            plot = gr.LinePlot(show_label=False)
+        with gr.Column():
+            name = gr.Textbox(label="Enter your name")
+            greeting = gr.Textbox(label="Greeting")
+            button = gr.Button(value="Greet")
+            button.click(lambda s: f"Hello {s}", name, greeting)
+
+    demo.load(lambda: datetime.datetime.now(), None, c_time2, every=1)
+    dep = demo.load(get_plot, None, plot, every=1)
+    period.change(get_plot, period, plot, every=1, cancels=[dep])
+
+if __name__ == "__main__":
+    demo.queue().launch()
+</code></pre>
+        </div>
+        
+          <gradio-app space="gradio/live_dashboard" />      
+        
+      </div>
+      
+    </div>
+  </div>
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="lineplot-header"
+      class="text-3xl font-light py-4">LinePlot</h3>
+    
+
+    
+    <button 
+      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
+    >
+      Try Examples
+    </button>
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.<span>LinePlot(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+    <div class="embedded-component">
+      
+        <gradio-app space="gradio/lineplot_component" />
+      
+    </div>
+  
+  <p class="mt-8 mb-2 text-lg">Create a line plot. <br> <br></p>
+  <br>
+  
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> this component does *not* accept input.</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> expects a pandas dataframe with the data to plot.</p>
+  
+  
+  <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>change(), clear()</em></p>
+  
+  
+  
+  
+
+    <div class="container relative">
+      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">import gradio as gr
+
+from scatter_plot_demo import scatter_plot
+from line_plot_demo import line_plot
+
+
+with gr.Blocks() as demo:
+    with gr.Tabs():
+        with gr.TabItem("Scatter Plot"):
+            scatter_plot.render()
+        with gr.TabItem("Line Plot"):
+            line_plot.render()
+
+if __name__ == "__main__":
+    demo.launch()
+</code></pre></div>
+      <div class="absolute top-16" style="left: 44%;">
+          <button 
+          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
+        >
+          Try Examples
+        </button>
+      </div>
+    </div>
+
+    
+    
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                value
+              </code>
+              <p class="text-gray-500 italic">Optional[pd.DataFrame | Callable]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The pandas dataframe containing the data to display in a scatter plot.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                x
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Column corresponding to the x axis.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                y
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Column corresponding to the y axis.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                color
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                stroke_dash
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                overlay_point
+              </code>
+              <p class="text-gray-500 italic">Optional[bool]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Whether to draw a point on the line for each (x, y) coordinate pair.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                title
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The title to display on top of the chart.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                tooltip
+              </code>
+              <p class="text-gray-500 italic">Optional[List[str] | str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                x_title
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The title given to the x axis. By default, uses the value of the x parameter.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                y_title
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The title given to the y axis. By default, uses the value of the y parameter.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                color_legend_title
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The title given to the color legend. By default, uses the value of color parameter.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                stroke_dash_legend_title
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                color_legend_position
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                stroke_dash_legend_position
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                height
+              </code>
+              <p class="text-gray-500 italic">Optional[int]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The height of the plot in pixels.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                width
+              </code>
+              <p class="text-gray-500 italic">Optional[int]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The width of the plot in pixels.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                x_lim
+              </code>
+              <p class="text-gray-500 italic">Optional[List[int]]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                y_lim
+              </code>
+              <p class="text-gray-500 italic">Optional[List[int]]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                caption
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The (optional) caption to display below the plot.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                interactive
+              </code>
+              <p class="text-gray-500 italic">Optional[bool]</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                label
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>The (optional) label to display on the top left corner of the plot.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                show_label
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Whether the label should be displayed.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                every
+              </code>
+              <p class="text-gray-500 italic">float | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                visible
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Whether the plot should be visible.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                elem_id
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Unique id used for custom css targetting.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  <table class="mb-4 table-fixed w-full mt-6">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Class</th>
+        <th class="p-3 font-semibold">Interface String Shortcut</th>
+        <th class="p-3 font-semibold">Initialization</th>
+      </tr>
+    </thead>
+    <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+    
+        <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+          <td class="p-3 w-2/5 break-words" >
+            <p><code class="lang-python">gradio.LinePlot</code></p>
+          </td>
+          <td class="p-3 w-2/5 break-words">
+            <p>"lineplot"</p>
+          </td>
+          <td class="p-3 text-gray-700 break-words">
+            Uses default values
+          </td>
+        </tr>
+    
+    </tbody>
+  </table>
+  
+  
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
+      <div class="flex flex-col gap-8 pl-12">
+        
+          
+            
+<div class="obj" id="lineplot-change">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="lineplot-change-header"
+      class="text-3xl font-light py-4">change</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.LinePlot.<span>change(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">This event is triggered when the component's input value changes (e.g. when the user types in a textbox or uploads an image). This method can be used when this component is in a Gradio Blocks. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                fn
+              </code>
+              <p class="text-gray-500 italic">Callable</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                inputs
+              </code>
+              <p class="text-gray-500 italic">Component | List[Component] | Set[Component] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                outputs
+              </code>
+              <p class="text-gray-500 italic">Component | List[Component] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                api_name
+              </code>
+              <p class="text-gray-500 italic">AnyStr</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Defining this parameter exposes the endpoint in the api docs</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                status_tracker
+              </code>
+              <p class="text-gray-500 italic">Optional[StatusTracker]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p></p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                scroll_to_output
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will scroll to output component on completion</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                show_progress
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will show progress animation while pending</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                queue
+              </code>
+              <p class="text-gray-500 italic">Optional[bool]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will place the request on the queue, if the queue exists</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                batch
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                max_batch_size
+              </code>
+              <p class="text-gray-500 italic">int</p>
+              
+              <p class="text-gray-500 font-semibold">default: 4</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                preprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                postprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If False, will not run postprocessing of component data before returning 'fn' output to the browser.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                cancels
+              </code>
+              <p class="text-gray-500 italic">Dict[str, Any] | List[Dict[str, Any]] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                every
+              </code>
+              <p class="text-gray-500 italic">float | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+          
+            
+<div class="obj" id="lineplot-clear">
+
+
+
+
+
+
+
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="lineplot-clear-header"
+      class="text-3xl font-light py-4">clear</h3>
+    
+
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.LinePlot.<span>clear(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">This event is triggered when the user clears the component (e.g. image or audio) using the X button for the component. This method can be used when this component is in a Gradio Blocks. <br></p>
+  <br>
+  
+  
+  
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                fn
+              </code>
+              <p class="text-gray-500 italic">Callable</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>the function to wrap an interface around. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                inputs
+              </code>
+              <p class="text-gray-500 italic">Component | List[Component] | Set[Component] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                outputs
+              </code>
+              <p class="text-gray-500 italic">Component | List[Component] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>List of gradio.components to use as inputs. If the function returns no outputs, this should be an empty list.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                api_name
+              </code>
+              <p class="text-gray-500 italic">AnyStr</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Defining this parameter exposes the endpoint in the api docs</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                status_tracker
+              </code>
+              <p class="text-gray-500 italic">Optional[StatusTracker]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p></p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                scroll_to_output
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will scroll to output component on completion</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                show_progress
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will show progress animation while pending</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                queue
+              </code>
+              <p class="text-gray-500 italic">Optional[bool]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, will place the request on the queue, if the queue exists</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                batch
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. The lists should be of equal length (and be up to length `max_batch_size`). The function is then *required* to return a tuple of lists (even if there is only 1 output component), with each list in the tuple corresponding to one output component.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                max_batch_size
+              </code>
+              <p class="text-gray-500 italic">int</p>
+              
+              <p class="text-gray-500 font-semibold">default: 4</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                preprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                postprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If False, will not run postprocessing of component data before returning 'fn' output to the browser.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                cancels
+              </code>
+              <p class="text-gray-500 italic">Dict[str, Any] | List[Dict[str, Any]] | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>A list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                every
+              </code>
+              <p class="text-gray-500 italic">float | None</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+          
+        
+      <div class="ml-12"> </div>
+    </div>
+  
+  
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
+      
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">LinePlot</span></p>
       
   
 </div>
@@ -34895,7 +36424,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -34955,7 +36484,7 @@ if __name__ == "__main__":
       <div class="absolute top-16" style="left: 44%;">
           <button 
           class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
         >
           Try Examples
         </button>
@@ -35564,6 +37093,23 @@ if __name__ == "__main__":
             </td>
             <td class="p-3 text-gray-700 break-words">
               <p>'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                samples_per_page
+              </code>
+              <p class="text-gray-500 italic">int</p>
+              
+              <p class="text-gray-500 font-semibold">default: 10</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>how many examples to show per page.</p>
             </td>
           </tr>
         
@@ -36233,9 +37779,10 @@ if __name__ == "__main__":
             add common functionality to your app without having to repeatedly create the same components and event listeners.
           </p>
         </div>
-        
+        <section class="pt-2">
           
             
+              
 <div class="obj" id="make_waveform">
 
 
@@ -36434,567 +37981,10 @@ if __name__ == "__main__":
         }
       }
 </script>
-          
-        
+            
           
             
-<div class="obj" id="examples">
-
-
-
-
-
-
-
-  
-  <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
-    <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
-      <div class="flex">
-        
-        <button 
-          class="demo-btn selected-demo px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
-          name="blocks_inputs"
-          onclick="show_demo('examples', 'blocks_inputs')"
-
-        >blocks_inputs</button>
-        
-        <button 
-          class="demo-btn  px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
-          name="fake_gan"
-          onclick="show_demo('examples', 'fake_gan')"
-
-        >fake_gan</button>
-        
-      </div>
-      
-      <div class="demo-content " name="blocks_inputs">
-        <div class="codeblock">
-          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/blocks_inputs/run.ipynb" target="_blank" style="right:30px">
-            <img src="https://colab.research.google.com/assets/colab-badge.svg">
-          </a>
-          <pre class=" max-h-80 overflow-auto"><code class="lang-python">import gradio as gr
-import os
-
-
-def combine(a, b):
-    return a + " " + b
-
-
-def mirror(x):
-    return x
-
-
-with gr.Blocks() as demo:
-
-    txt = gr.Textbox(label="Input", lines=2)
-    txt_2 = gr.Textbox(label="Input 2")
-    txt_3 = gr.Textbox(value="", label="Output")
-    btn = gr.Button(value="Submit")
-    btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
-
-    with gr.Row():
-        im = gr.Image()
-        im_2 = gr.Image()
-
-    btn = gr.Button(value="Mirror Image")
-    btn.click(mirror, inputs=[im], outputs=[im_2])
-
-    gr.Markdown("## Text Examples")
-    gr.Examples(
-        [["hi", "Adam"], ["hello", "Eve"]],
-        [txt, txt_2],
-        txt_3,
-        combine,
-        cache_examples=True,
-    )
-    gr.Markdown("## Image Examples")
-    gr.Examples(
-        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
-        inputs=im,
-        outputs=im_2,
-        fn=mirror,
-        cache_examples=True,
-    )
-
-if __name__ == "__main__":
-    demo.launch()
-</code></pre>
-        </div>
-        
-          <gradio-app space="gradio/blocks_inputs" />      
-        
-      </div>
-      
-      <div class="demo-content hidden" name="fake_gan">
-        <div class="codeblock">
-          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/fake_gan/run.ipynb" target="_blank" style="right:30px">
-            <img src="https://colab.research.google.com/assets/colab-badge.svg">
-          </a>
-          <pre class=" max-h-80 overflow-auto"><code class="lang-python"># This demo needs to be run from the repo folder.
-# python demo/fake_gan/run.py
-import os
-import random
-
-import gradio as gr
-
-
-def fake_gan():
-    images = [
-        (random.choice(
-            [
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
-                "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=386&q=80",
-                "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8aHVtYW4lMjBmYWNlfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
-                "https://images.unsplash.com/photo-1546456073-92b9f0a8d413?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
-                "https://images.unsplash.com/photo-1601412436009-d964bd02edbc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
-            ]
-        ), f"label {i}" if i != 0 else "label" * 50)
-        for i in range(3)
-    ]
-    return images
-
-
-with gr.Blocks() as demo:
-    with gr.Column(variant="panel"):
-        with gr.Row(variant="compact"):
-            text = gr.Textbox(
-                label="Enter your prompt",
-                show_label=False,
-                max_lines=1,
-                placeholder="Enter your prompt",
-            ).style(
-                container=False,
-            )
-            btn = gr.Button("Generate image").style(full_width=False)
-
-        gallery = gr.Gallery(
-            label="Generated images", show_label=False, elem_id="gallery"
-        ).style(grid=[2], height="auto")
-
-    btn.click(fake_gan, None, gallery)
-
-if __name__ == "__main__":
-    demo.launch()
-</code></pre>
-        </div>
-        
-          <gradio-app space="gradio/fake_gan" />      
-        
-      </div>
-      
-    </div>
-  </div>
-  
-  <div class="flex flex-row items-center justify-between">
-    
-      <h3 id="examples-header"
-      class="text-3xl font-light py-4">Examples</h3>
-    
-
-    
-    <button 
-      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
-    >
-      Try Examples
-    </button>
-    
-  </div>
-  
-  <div class="codeblock"><pre><code class="lang-python">gradio.<span>Examples(</span><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--
-  --><!--
---><!--  
--->···<span>)</span></code></pre></div>
-  
-  
-  <p class="mt-8 mb-2 text-lg">This class is a wrapper over the Dataset component and can be used to create Examples for Blocks / Interfaces. Populates the Dataset component with examples and assigns event listener so that clicking on an example populates the input/output components. Optionally handles example caching for fast inference. <br></p>
-  <br>
-  
-  
-  
-
-    <div class="container relative">
-      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">import gradio as gr
-import os
-
-
-def combine(a, b):
-    return a + " " + b
-
-
-def mirror(x):
-    return x
-
-
-with gr.Blocks() as demo:
-
-    txt = gr.Textbox(label="Input", lines=2)
-    txt_2 = gr.Textbox(label="Input 2")
-    txt_3 = gr.Textbox(value="", label="Output")
-    btn = gr.Button(value="Submit")
-    btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
-
-    with gr.Row():
-        im = gr.Image()
-        im_2 = gr.Image()
-
-    btn = gr.Button(value="Mirror Image")
-    btn.click(mirror, inputs=[im], outputs=[im_2])
-
-    gr.Markdown("## Text Examples")
-    gr.Examples(
-        [["hi", "Adam"], ["hello", "Eve"]],
-        [txt, txt_2],
-        txt_3,
-        combine,
-        cache_examples=True,
-    )
-    gr.Markdown("## Image Examples")
-    gr.Examples(
-        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
-        inputs=im,
-        outputs=im_2,
-        fn=mirror,
-        cache_examples=True,
-    )
-
-if __name__ == "__main__":
-    demo.launch()
-</code></pre></div>
-      <div class="absolute top-16" style="left: 44%;">
-          <button 
-          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
-        >
-          Try Examples
-        </button>
-      </div>
-    </div>
-
-    
-    
-
-  
-  <table class="table-fixed w-full mt-6 leading-loose">
-    <thead class="text-left">
-      <tr>
-        <th class="p-3 font-semibold w-2/5">Parameter</th>
-        <th class="p-3 font-semibold">Description</th>
-      </tr>
-    </thead>
-    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
-      
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                examples
-              </code>
-              <p class="text-gray-500 italic">List[Any] | List[List[Any]] | str</p>
               
-              <p class="text-orange-600 font-semibold italic">required</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                inputs
-              </code>
-              <p class="text-gray-500 italic">IOComponent | List[IOComponent]</p>
-              
-              <p class="text-orange-600 font-semibold italic">required</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>the component or list of components corresponding to the examples</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                outputs
-              </code>
-              <p class="text-gray-500 italic">Optional[IOComponent | List[IOComponent]]</p>
-              
-              <p class="text-gray-500 font-semibold">default: None</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                fn
-              </code>
-              <p class="text-gray-500 italic">Optional[Callable]</p>
-              
-              <p class="text-gray-500 font-semibold">default: None</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                cache_examples
-              </code>
-              <p class="text-gray-500 italic">bool</p>
-              
-              <p class="text-gray-500 font-semibold">default: False</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                examples_per_page
-              </code>
-              <p class="text-gray-500 italic">int</p>
-              
-              <p class="text-gray-500 font-semibold">default: 10</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>how many examples to show per page (this parameter currently has no effect)</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                label
-              </code>
-              <p class="text-gray-500 italic">str</p>
-              
-              <p class="text-gray-500 font-semibold">default: "Examples"</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>the label to use for the examples component (by default, "Examples")</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                elem_id
-              </code>
-              <p class="text-gray-500 italic">Optional[str]</p>
-              
-              <p class="text-gray-500 font-semibold">default: None</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>an optional string that is assigned as the id of this component in the HTML DOM.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                run_on_click
-              </code>
-              <p class="text-gray-500 italic">bool</p>
-              
-              <p class="text-gray-500 font-semibold">default: False</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                preprocess
-              </code>
-              <p class="text-gray-500 italic">bool</p>
-              
-              <p class="text-gray-500 font-semibold">default: True</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                postprocess
-              </code>
-              <p class="text-gray-500 italic">bool</p>
-              
-              <p class="text-gray-500 font-semibold">default: True</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.</p>
-            </td>
-          </tr>
-        
-      
-        
-          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-            <td class="p-3 w-2/5 break-words">
-              <code class="block">
-                batch
-              </code>
-              <p class="text-gray-500 italic">bool</p>
-              
-              <p class="text-gray-500 font-semibold">default: False</p>
-              
-            </td>
-            <td class="p-3 text-gray-700 break-words">
-              <p>If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.</p>
-            </td>
-          </tr>
-        
-      
-    </tbody>
-  </table>
-  
-  
-  
-  
-  
-   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
-      
-        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/more_on_examples_and_flagging">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">More On Examples And Flagging</p>
-            </div>
-          </a>
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/using_hugging_face_integrations">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">Using Hugging Face Integrations</p>
-            </div>
-          </a>
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_in_pytorch">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">Image Classification In Pytorch</p>
-            </div>
-          </a>
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_in_tensorflow">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">Image Classification In Tensorflow</p>
-            </div>
-          </a>
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_with_vision_transformers">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">Image Classification With Vision Transformers</p>
-            </div>
-          </a>
-          
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/create_your_own_friends_with_a_gan">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">Create Your Own Friends With A Gan</p>
-            </div>
-          </a>
-          
-        </div>
-      
-  
-</div>
-
-<script>
-  function load_gradio(FILE_URL) {
-        console.log(FILE_URL);
-        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
-        if (len === 0) {
-          let scriptEle = document.createElement("script");
-          scriptEle.setAttribute("src", FILE_URL);
-          scriptEle.setAttribute("type", "module");
-          document.body.appendChild(scriptEle);
-        }
-      }
-</script>
-          
-        
-      </section>
-      <section id="update" class="pt-2 flex flex-col gap-10">
-          <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
-          <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
-            a Blocks events returns a typical value, it updates the value of the 
-            output component. But it is also possible to update the <em>properties</em> 
-            of an output component (such as the number of lines of a `Textbox` or 
-            the visibility of an `Image`) by returning the component's `update()` function, 
-            which takes as parameters any of the constructor parameters for that component.
-            Here's an example:
-          </p>
-          <div class="flex flex-col gap-10">
-            
-<section class="pt-2">
 <div class="obj" id="update">
 
 
@@ -37165,7 +38155,7 @@ if __name__ == "__main__":
     
     <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       Try Examples
     </button>
@@ -37179,7 +38169,7 @@ if __name__ == "__main__":
 -->···<span>)</span></code></pre></div>
   
   
-  <p class="mt-8 mb-2 text-lg">Updates component properties. This is a shorthand for using the update method on a component. For example, rather than using gr.Number.update(...) you can just use gr.update(...). Note that your editor's autocompletion will suggest proper parameters if you use the update method on the component. <br> <br></p>
+  <p class="mt-8 mb-2 text-lg">Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component. This is a shorthand for using the update method on a component. For example, rather than using gr.Number.update(...) you can just use gr.update(...). Note that your editor's autocompletion will suggest proper parameters if you use the update method on the component. <br></p>
   <br>
   
   
@@ -37214,7 +38204,7 @@ gr.Interface(
     
       <button 
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
     >
       More Examples →
     </button>
@@ -37257,8 +38247,12 @@ gr.Interface(
   
   
   
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
+      
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">update</span></p>
+      
+  
 </div>
-</section>              
 
 <script>
   function load_gradio(FILE_URL) {
@@ -37273,8 +38267,554 @@ gr.Interface(
       }
 </script>
             
-          </div>
+          
+            
+              
+<div class="obj" id="examples">
+
+
+
+
+
+
+
+  
+  <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
+    <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
+      <div class="flex">
+        
+        <button 
+          class="demo-btn selected-demo px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+          name="blocks_inputs"
+          onclick="show_demo('examples', 'blocks_inputs')"
+
+        >blocks_inputs</button>
+        
+        <button 
+          class="demo-btn  px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
+          name="fake_gan"
+          onclick="show_demo('examples', 'fake_gan')"
+
+        >fake_gan</button>
+        
+      </div>
+      
+      <div class="demo-content " name="blocks_inputs">
+        <div class="codeblock">
+          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/blocks_inputs/run.ipynb" target="_blank" style="right:30px">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg">
+          </a>
+          <pre class=" max-h-80 overflow-auto"><code class="lang-python">import gradio as gr
+import os
+
+
+def combine(a, b):
+    return a + " " + b
+
+
+def mirror(x):
+    return x
+
+
+with gr.Blocks() as demo:
+
+    txt = gr.Textbox(label="Input", lines=2)
+    txt_2 = gr.Textbox(label="Input 2")
+    txt_3 = gr.Textbox(value="", label="Output")
+    btn = gr.Button(value="Submit")
+    btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
+
+    with gr.Row():
+        im = gr.Image()
+        im_2 = gr.Image()
+
+    btn = gr.Button(value="Mirror Image")
+    btn.click(mirror, inputs=[im], outputs=[im_2])
+
+    gr.Markdown("## Text Examples")
+    gr.Examples(
+        [["hi", "Adam"], ["hello", "Eve"]],
+        [txt, txt_2],
+        txt_3,
+        combine,
+        cache_examples=True,
+    )
+    gr.Markdown("## Image Examples")
+    gr.Examples(
+        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
+        inputs=im,
+        outputs=im_2,
+        fn=mirror,
+        cache_examples=True,
+    )
+
+if __name__ == "__main__":
+    demo.launch()
+</code></pre>
+        </div>
+        
+          <gradio-app space="gradio/blocks_inputs" />      
+        
+      </div>
+      
+      <div class="demo-content hidden" name="fake_gan">
+        <div class="codeblock">
+          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/fake_gan/run.ipynb" target="_blank" style="right:30px">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg">
+          </a>
+          <pre class=" max-h-80 overflow-auto"><code class="lang-python"># This demo needs to be run from the repo folder.
+# python demo/fake_gan/run.py
+import os
+import random
+
+import gradio as gr
+
+
+def fake_gan():
+    images = [
+        (random.choice(
+            [
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
+                "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=386&q=80",
+                "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8aHVtYW4lMjBmYWNlfGVufDB8fDB8fA%3D%3D&w=1000&q=80",
+                "https://images.unsplash.com/photo-1546456073-92b9f0a8d413?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=387&q=80",
+                "https://images.unsplash.com/photo-1601412436009-d964bd02edbc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
+            ]
+        ), f"label {i}" if i != 0 else "label" * 50)
+        for i in range(3)
+    ]
+    return images
+
+
+with gr.Blocks() as demo:
+    with gr.Column(variant="panel"):
+        with gr.Row(variant="compact"):
+            text = gr.Textbox(
+                label="Enter your prompt",
+                show_label=False,
+                max_lines=1,
+                placeholder="Enter your prompt",
+            ).style(
+                container=False,
+            )
+            btn = gr.Button("Generate image").style(full_width=False)
+
+        gallery = gr.Gallery(
+            label="Generated images", show_label=False, elem_id="gallery"
+        ).style(grid=[2], height="auto")
+
+    btn.click(fake_gan, None, gallery)
+
+if __name__ == "__main__":
+    demo.launch()
+</code></pre>
+        </div>
+        
+          <gradio-app space="gradio/fake_gan" />      
+        
+      </div>
+      
+    </div>
+  </div>
+  
+  <div class="flex flex-row items-center justify-between">
+    
+      <h3 id="examples-header"
+      class="text-3xl font-light py-4">Examples</h3>
+    
+
+    
+    <button 
+      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
+      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
+    >
+      Try Examples
+    </button>
+    
+  </div>
+  
+  <div class="codeblock"><pre><code class="lang-python">gradio.<span>Examples(</span><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--
+  --><!--
+--><!--  
+-->···<span>)</span></code></pre></div>
+  
+  
+  <p class="mt-8 mb-2 text-lg">This class is a wrapper over the Dataset component and can be used to create Examples for Blocks / Interfaces. Populates the Dataset component with examples and assigns event listener so that clicking on an example populates the input/output components. Optionally handles example caching for fast inference. <br></p>
+  <br>
+  
+  
+  
+
+    <div class="container relative">
+      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">import gradio as gr
+import os
+
+
+def combine(a, b):
+    return a + " " + b
+
+
+def mirror(x):
+    return x
+
+
+with gr.Blocks() as demo:
+
+    txt = gr.Textbox(label="Input", lines=2)
+    txt_2 = gr.Textbox(label="Input 2")
+    txt_3 = gr.Textbox(value="", label="Output")
+    btn = gr.Button(value="Submit")
+    btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
+
+    with gr.Row():
+        im = gr.Image()
+        im_2 = gr.Image()
+
+    btn = gr.Button(value="Mirror Image")
+    btn.click(mirror, inputs=[im], outputs=[im_2])
+
+    gr.Markdown("## Text Examples")
+    gr.Examples(
+        [["hi", "Adam"], ["hello", "Eve"]],
+        [txt, txt_2],
+        txt_3,
+        combine,
+        cache_examples=True,
+    )
+    gr.Markdown("## Image Examples")
+    gr.Examples(
+        examples=[os.path.join(os.path.dirname(__file__), "lion.jpg")],
+        inputs=im,
+        outputs=im_2,
+        fn=mirror,
+        cache_examples=True,
+    )
+
+if __name__ == "__main__":
+    demo.launch()
+</code></pre></div>
+      <div class="absolute top-16" style="left: 44%;">
+          <button 
+          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
+          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');"
+        >
+          Try Examples
+        </button>
+      </div>
+    </div>
+
+    
+    
+
+  
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                examples
+              </code>
+              <p class="text-gray-500 italic">List[Any] | List[List[Any]] | str</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                inputs
+              </code>
+              <p class="text-gray-500 italic">IOComponent | List[IOComponent]</p>
+              
+              <p class="text-orange-600 font-semibold italic">required</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>the component or list of components corresponding to the examples</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                outputs
+              </code>
+              <p class="text-gray-500 italic">Optional[IOComponent | List[IOComponent]]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                fn
+              </code>
+              <p class="text-gray-500 italic">Optional[Callable]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                cache_examples
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                examples_per_page
+              </code>
+              <p class="text-gray-500 italic">int</p>
+              
+              <p class="text-gray-500 font-semibold">default: 10</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>how many examples to show per page.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                label
+              </code>
+              <p class="text-gray-500 italic">str</p>
+              
+              <p class="text-gray-500 font-semibold">default: "Examples"</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>the label to use for the examples component (by default, "Examples")</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                elem_id
+              </code>
+              <p class="text-gray-500 italic">Optional[str]</p>
+              
+              <p class="text-gray-500 font-semibold">default: None</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>an optional string that is assigned as the id of this component in the HTML DOM.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                run_on_click
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                preprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                postprocess
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: True</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.</p>
+            </td>
+          </tr>
+        
+      
+        
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                batch
+              </code>
+              <p class="text-gray-500 italic">bool</p>
+              
+              <p class="text-gray-500 font-semibold">default: False</p>
+              
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.</p>
+            </td>
+          </tr>
+        
+      
+    </tbody>
+  </table>
+  
+  
+  
+  
+  
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
+      
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/more_on_examples_and_flagging">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">More On Examples And Flagging</p>
+            </div>
+          </a>
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/using_hugging_face_integrations">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Using Hugging Face Integrations</p>
+            </div>
+          </a>
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_in_pytorch">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Image Classification In Pytorch</p>
+            </div>
+          </a>
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_in_tensorflow">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Image Classification In Tensorflow</p>
+            </div>
+          </a>
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/image_classification_with_vision_transformers">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Image Classification With Vision Transformers</p>
+            </div>
+          </a>
+          
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/create_your_own_friends_with_a_gan">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">Create Your Own Friends With A Gan</p>
+            </div>
+          </a>
+          
+        </div>
+      
+  
+</div>
+
+<script>
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+</script>
+            
+          
         </section>
+      </section>
         <section id="routes" class="pt-2 flex flex-col gap-10">
           <div>
             <h2 id="routes-header"
@@ -37314,7 +38854,7 @@ gr.Interface(
 -->···<span>)</span></code></pre></div>
   
   
-  <p class="mt-8 mb-2 text-lg">A Gradio request object that can be used to access the request headers, cookies, query parameters and other information about the request from within the prediction function. The class is a thin wrapper around the fastapi.Request class. Attributes of this class include: `headers`, `client`, `query_params`, and `path_params`, <br></p>
+  <p class="mt-8 mb-2 text-lg">A Gradio request object that can be used to access the request headers, cookies, query parameters and other information about the request from within the prediction function. The class is a thin wrapper around the fastapi.Request class. Attributes of this class include: `headers`, `client`, `query_params`, and `path_params`,</p>
   <br>
   
   
@@ -37356,7 +38896,7 @@ io = gr.Interface(echo, "textbox", "textbox").launch()</code></pre>
               
             </td>
             <td class="p-3 text-gray-700 break-words">
-              <p></p>
+              <p>A fastapi.Request</p>
             </td>
           </tr>
         
@@ -37553,27 +39093,10 @@ app = gr.mount_gradio_app(app, io, path="/gradio")
         document.body.appendChild(scriptEle);
       }
 
-      function removeFooters() {
-      window.setTimeout(function() {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          if ( g.shadowRoot ) {
-            let shadowroot = g.shadowRoot;
-            let f = shadowroot.querySelector('footer');
-            if (f != null) {
-              f.classList.add('hidden');
-              let c = shadowroot.querySelector('.gradio-container');
-              c.style.removeProperty('min-height');
-            }
-          };
-        });
-      }, 1000);
-      };
-
       
 
       if (!isMobile) {
-        loadJS('https://gradio.s3-us-west-2.amazonaws.com/3.14.0/gradio.js');
-        window.addEventListener('load', removeFooters());
+        loadJS('https://gradio.s3-us-west-2.amazonaws.com/3.15.0/gradio.js');
       }
 
       
@@ -37738,8 +39261,8 @@ addCopyButtons(navigator.clipboard);
       mainNavLinks.forEach(link => {
         let section = document.querySelector(link.hash);
         if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
         ) {
           link.classList.add("current-nav-link");
         } else {
@@ -37757,8 +39280,8 @@ addCopyButtons(navigator.clipboard);
         let section = document.querySelector(hash);
 
         if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
         ) {
           subLinkDiv.classList.remove("hidden");
         } else {

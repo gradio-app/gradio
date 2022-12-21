@@ -309,34 +309,16 @@
         document.body.appendChild(scriptEle);
       }
 
-      function removeFooters() {
-      window.setTimeout(function() {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          if ( g.shadowRoot ) {
-            let shadowroot = g.shadowRoot;
-            let f = shadowroot.querySelector('footer');
-            if (f != null) {
-              f.classList.add('hidden');
-              let c = shadowroot.querySelector('.gradio-container');
-              c.style.removeProperty('min-height');
-            }
-          };
-        });
-      }, 1000);
-      };
-
       {% if version=='main' %}
 
       if (!isMobile) {
         loadJS('/assets/index.js');
-        window.addEventListener('load', removeFooters());
       }
 
       {% else %}
 
       if (!isMobile) {
         loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
-        window.addEventListener('load', removeFooters());
       }
 
       {% endif %}
@@ -368,7 +350,7 @@
       mainNavLinks.forEach(link => {
         let section = document.querySelector(link.hash);
         if (
-          section.offsetTop < fromTop &&
+          section.offsetTop <= fromTop &&
           section.offsetTop + section.offsetHeight > fromTop
         ) {
           link.classList.add("current-nav-link");
@@ -387,8 +369,8 @@
         let section = document.querySelector(hash);
 
         if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
         ) {
           subLinkDiv.classList.remove("hidden");
         } else {
