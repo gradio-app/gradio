@@ -2,7 +2,7 @@
 
 ## New Features:
 
-Gradio's newest plotting component `gr.LinePlot`! 📈
+### Gradio's newest plotting component `gr.LinePlot`! 📈
 
 With this component you can easily create time series visualizations with customizable
 appearance for your demos and dashboards ... all without having to know an external plotting library.
@@ -21,6 +21,24 @@ gr.LinePlot(stocks,
 
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
+
+
+### Custom Progress Updates
+
+Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
+
+```python
+def clean_imgs(text, progress=gr.Progress()):
+    progress(0.2, message="Collecting Images")
+    time.sleep(1.5)
+    progress(0.8, message="Sending Images")
+    time.sleep(1.5)
+    return "done"
+clean_imgs_btn.click(clean_imgs, text, text2)
+```
+
+Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750](https://github.com/gradio-app/gradio/pull/2750).
+
 
 ## Bug Fixes:
 * Fixed bug where the `examples_per_page` parameter of the `Examples` component was not passed to the internal `Dataset` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2861](https://github.com/gradio-app/gradio/pull/2861)  
