@@ -97,7 +97,7 @@ class Examples:
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
-            examples_per_page: how many examples to show per page (this parameter currently has no effect)
+            examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
@@ -182,7 +182,6 @@ class Examples:
         self.outputs = outputs
         self.fn = fn
         self.cache_examples = cache_examples
-        self.examples_per_page = examples_per_page
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
@@ -218,6 +217,7 @@ class Examples:
                 samples=non_none_examples,
                 type="index",
                 label=label,
+                samples_per_page=examples_per_page,
                 elem_id=elem_id,
             )
 

@@ -1,5 +1,8 @@
 # Setting Up a Demo for Maximum Performance
 
+Tags: QUEUE, PERFORMANCE
+
+
 Let's say that your Gradio demo goes *viral* on social media -- you have lots of users trying it out simultaneously, and you want to provide your users with the best possible experience or, in other words, minimize the amount of time that each user has to wait in the queue to see their prediction.
 
 How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configurations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously with minimal latency.
@@ -41,6 +44,8 @@ The first parameter we will explore is the `concurrency_count` parameter of `que
 So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the `concurrency_count` too high. You may also start to get diminishing returns if the `concurrency_count` is too high because of costs of switching between different worker threads.
 
 **Recommendation**: Increase the `concurrency_count` parameter as high as you can while you continue to see performance gains or until you hit memory limits on your machine. You can [read about Hugging Face Spaces machine specs here](https://huggingface.co/docs/hub/spaces-overview). 
+
+*Note*: there is a second parameter which controls the *total* number of threads that Gradio can generate, whether or not queuing is enabled. This is the `max_threads` parameter in the `launch()` method. When you increase the `concurrency_count` parameter in `queue()`, this is automatically increased as well. However, in some cases, you may want to manually increase this, e.g. if queuing is not enabled. 
 
 ### The `max_size` parameter
 
