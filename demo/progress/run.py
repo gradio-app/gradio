@@ -4,7 +4,9 @@ import time
 
 
 with gr.Blocks() as demo:
-    text = gr.Textbox()
+    with gr.Row():
+        text = gr.Textbox()
+        textb = gr.Textbox()
     with gr.Row():
         load_set_btn = gr.Button("Load Set")
         load_random_btn = gr.Button("Load Random")
@@ -14,15 +16,15 @@ with gr.Blocks() as demo:
     text2 = gr.Textbox()
 
     # tqdm over list
-    def load_set(text, progress=gr.Progress()):
+    def load_set(text, text2, progress=gr.Progress()):
         imgs = [None] * 24
         for img in progress.tqdm(imgs, message="Loading from list"):
             time.sleep(0.1)
         return "done"
-    load_set_btn.click(load_set, text, text2)
+    load_set_btn.click(load_set, [text, textb], text2)
 
     # tqdm over iterable of unknown length
-    def load_random(text, progress=gr.Progress()):
+    def load_random(data, progress=gr.Progress()):
         def yielder():
             for i in range(0, random.randint(15, 20)):
                 time.sleep(0.1)
@@ -30,7 +32,7 @@ with gr.Blocks() as demo:
         for img in progress.tqdm(yielder()):
             pass
         return "done"
-    load_random_btn.click(load_random, text, text2)
+    load_random_btn.click(load_random, {text, textb}, text2)
         
     # manual progress
     def clean_imgs(text, progress=gr.Progress()):
@@ -50,14 +52,14 @@ with gr.Blocks() as demo:
     wait_btn.click(wait, text, text2)
 
     # multiple progressions
-    def do_all(text, progress=gr.Progress()):
-        load_set(text, progress)
-        load_random(text, progress)
-        clean_imgs(text, progress)
+    def do_all(data, progress=gr.Progress()):
+        load_set(data[text], data[textb], progress)
+        load_random(data, progress)
+        clean_imgs(data[text], progress)
         progress(None)
         wait(text)
         return "done"
-    do_all_btn.click(do_all, text, text2)
+    do_all_btn.click(do_all, {text, textb}, text2)
 
 if __name__ == "__main__":
     demo.queue().launch()
