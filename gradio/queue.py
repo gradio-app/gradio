@@ -6,7 +6,7 @@ import sys
 import time
 import uuid
 from collections import deque
-from typing import Any, Deque, Dict, List, Optional, Tuple, Union
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import fastapi
 from pydantic import BaseModel
