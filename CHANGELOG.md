@@ -42,7 +42,7 @@ No changes to highlight.
 
 ## New Features:
 
-### Gradio's newest plotting component `gr.LinePlot`! 📈
+- Gradio's newest plotting component `gr.LinePlot`! 📈
 
 With this component you can easily create time series visualizations with customizable
 appearance for your demos and dashboards ... all without having to know an external plotting library.
@@ -61,8 +61,6 @@ gr.LinePlot(stocks,
 
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2807](https://github.com/gradio-app/gradio/pull/2807) 
-
-
 
 ## Bug Fixes:
 * Fixed bug where the `examples_per_page` parameter of the `Examples` component was not passed to the internal `Dataset` component by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2861](https://github.com/gradio-app/gradio/pull/2861)  
