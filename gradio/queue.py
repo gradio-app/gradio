@@ -26,9 +26,9 @@ class Estimation(BaseModel):
 
 
 class Progress(BaseModel):
-    msg: Optional[str] = "progress"
-    progress: Union[float, Tuple[int, Optional[int]]] = None
-    status_message: Optional[str] = None
+    msg: str = "progress"
+    progress: Optional[List[Union[float, Tuple[int, Optional[int], str], None]]] = None
+    desc: List[Optional[str]] = None
 
 
 class Event:
@@ -168,15 +168,15 @@ class Queue:
     def set_progress(
         self,
         event_id: str,
-        progress: int | Tuple[int, int | None],
-        message: str | None = None,
+        progress: List[int | Tuple[int, int | None, str]] | None,
+        desc: List[str | None],
     ):
         for job in self.active_jobs:
             if job is None:
                 continue
             for evt in job:
                 if evt._id == event_id:
-                    evt.progress = Progress(progress=progress, status_message=message)
+                    evt.progress = Progress(progress=progress, desc=desc)
                     evt.progress_pending = True
                     return
 

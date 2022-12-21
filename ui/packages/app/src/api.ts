@@ -199,7 +199,7 @@ export const fn =
 							null,
 							null,
 							null,
-							data.status_message,
+							data.desc,
 							data.progress
 						);
 						break;

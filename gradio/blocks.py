@@ -44,7 +44,13 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import Progress, sets_explicit_progress, skip
+from gradio.helpers import (
+    Progress,
+    TrackedIterable,
+    create_tracker,
+    get_progress_tracker,
+    skip,
+)
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -154,7 +160,6 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
-        explicit_progress: bool | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -194,15 +199,8 @@ class Block:
             elif not isinstance(outputs, list):
                 outputs = [outputs]
 
-        if fn is not None:
-            if explicit_progress is None:
-                explicit_progress = sets_explicit_progress(
-                    fn, 1 if inputs_as_dict else len(inputs)
-                )
-            if not cancels:
-                check_function_inputs_match(fn, inputs, inputs_as_dict)
-        else:
-            explicit_progress = False
+        if fn is not None and not cancels:
+            check_function_inputs_match(fn, inputs, inputs_as_dict)
 
         if Context.root_block is None:
             raise AttributeError(
@@ -247,7 +245,6 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
-            "explicit_progress": explicit_progress,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -809,23 +806,22 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            explicit_progress = self.dependencies[fn_index].get("explicit_progress")
-            if explicit_progress and event_id is not None:
-
-                def callback(
-                    progress: float | Tuple[int, int | None] | None,
-                    message: str | None = None,
-                ):
-                    self._queue.set_progress(event_id, progress, message)
-
-                progress = Progress(_active=True, _callback=callback)
+            progress_tracker = get_progress_tracker(
+                block_fn.fn, 1 if block_fn.inputs_as_dict else len(block_fn.inputs)
+            )
+            if progress_tracker is not None:
+                progress, fn = create_tracker(
+                    self, event_id, block_fn.fn, progress_tracker.track_tqdm
+                )
                 processed_input = (*processed_input, progress)
+            else:
+                fn = block_fn.fn
 
-            if inspect.iscoroutinefunction(block_fn.fn):
-                prediction = await block_fn.fn(*processed_input)
+            if inspect.iscoroutinefunction(fn):
+                prediction = await fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
-                    block_fn.fn, *processed_input, limiter=self.limiter
+                    fn, *processed_input, limiter=self.limiter
                 )
 
         if inspect.isasyncgenfunction(block_fn.fn):
@@ -1626,7 +1622,12 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                dependency.get("explicit_progress") for dependency in self.dependencies
+                get_progress_tracker(
+                    block_fn.fn,
+                    1 if block_fn.inputs_as_dict else len(block_fn.inputs),
+                )
+                is not None
+                for block_fn in self.fns
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)

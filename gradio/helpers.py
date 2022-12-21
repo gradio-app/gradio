@@ -9,6 +9,7 @@ import inspect
 import os
 import subprocess
 import tempfile
+import threading
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
@@ -329,7 +330,27 @@ class Examples:
         return output
 
 
-@document("__call__", "tqdm")
+class TrackedIterable:
+    def __init__(
+        self,
+        iterable: Iterable,
+        index: int,
+        length: int | None,
+        desc: str | None,
+        unit: str | None,
+        _tqdm=None,
+        progress: float = None,
+    ) -> None:
+        self.iterable = iterable
+        self.index = index
+        self.length = length
+        self.desc = desc
+        self.unit = unit
+        self._tqdm = _tqdm
+        self.progress = progress
+
+
+@document("__call__", "track")
 class Progress(Iterable):
     """
     The Progress class provides a custom progress tracker that is used in a function signature.
@@ -340,22 +361,34 @@ class Progress(Iterable):
         import gradio as gr
         import time
         def my_function(x, progress=gr.Progress()):
-            progress(0, message="Starting...")
+            progress(0, desc="Starting...")
             time.sleep(1)
-            for i in progress.tqdm(range(100)):
+            for i in progress.track(range(100)):
                 time.sleep(0.1)
             return x
         gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
     Demos: progress
     """
 
-    def __init__(self, _active: bool = False, _callback: Callable = None):
+    def __init__(
+        self,
+        track_tqdm: bool = False,
+        _active: bool = False,
+        _callback: Callable = None,
+        _event_id: str = None,
+    ):
+        """
+        Parameters:
+            track_tqdm: If True, the Progress object will track any iterations made with tqdm.tqdm in the function.
+        """
+        self.track_tqdm = track_tqdm
         self._active = _active
         self._callback = _callback
-        self.message = None
+        self._event_id = _event_id
+        self.iterables: List[TrackedIterable] = []
 
     def __len__(self):
-        return self.len
+        return self.iterables[-1].length
 
     def __iter__(self):
         return self
@@ -365,55 +398,194 @@ class Progress(Iterable):
         Updates progress tracker with next item in iterable.
         """
         if self._active:
-            progress = [self.index, self.len]
-            self.index += 1
-            self._callback(progress=progress, message=self.message)
-        return next(self.iterable)
+            current_iterable = self.iterables[-1]
+            while (
+                not hasattr(current_iterable.iterable, "__next__")
+                and len(self.iterables) > 0
+            ):
+                current_iterable = self.iterables.pop()
+            self._callback(
+                event_id=self._event_id,
+                tracked_iterables=self.iterables,
+            )
+            current_iterable.index += 1
+            try:
+                return next(current_iterable.iterable)
+            except StopIteration:
+                self.iterables.pop()
+                raise StopIteration
+        else:
+            return self
 
     def __call__(
         self,
         progress: float | Tuple[int, int | None] | None,
-        message: str | None = None,
+        desc: str | None = None,
+        total: float | None = None,
+        unit: str = "steps",
+        _tqdm=None,
     ):
         """
         Updates progress tracker with progress and message text.
         Parameters:
             progress: If float, should be between 0 and 1 representing completion. If Tuple, first number represents steps completed, and second value represents total steps or None if unknown. If None, hides progress bar.
-            message: message to display.
+            desc: description to display.
         """
         if self._active:
-            self._callback(progress=progress, message=message)
+            self._callback(
+                event_id=self._event_id,
+                tracked_iterables=self.iterables
+                + [TrackedIterable(None, 0, total, desc, unit, _tqdm, progress)],
+            )
         else:
             return progress
 
-    def tqdm(self, iterable: Iterable, message: str = None):
+    def track(
+        self,
+        iterable: Iterable | None,
+        desc: str = None,
+        total: float = None,
+        unit: str = "steps",
+        _tqdm=None,
+        *args,
+        **kwargs,
+    ):
         """
         Attaches progress tracker to iterable.
         Parameters:
             iterable: iterable to attach progress tracker to.
-            message: message to display.
+            desc: description to display.
+
         """
-        self.len = len(iterable) if hasattr(iterable, "__len__") else None
-        self.iterable = iter(iterable)
-        self.message = message
-        self.index = 0
+        if iterable is None:
+            new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
+            self.iterables.append(new_iterable)
+            self._callback(event_id=self._event_id, tracked_iterables=self.iterables)
+            return
+        length = len(iterable) if hasattr(iterable, "__len__") else None
+        self.iterables.append(
+            TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
+        )
         return self
 
+    def update(self, n=1):
+        """
+        Increases latest iterable with specified number of steps.
+        Parameters:
+            n: number of steps completed.
+        """
+        if self._active and len(self.iterables) > 0:
+            current_iterable = self.iterables[-1]
+            current_iterable.index += n
+            self._callback(
+                event_id=self._event_id,
+                tracked_iterables=self.iterables,
+            )
+        else:
+            return
 
-def sets_explicit_progress(fn: Callable, input_count: int):
+    def close(self, _tqdm):
+        """
+        Removes iterable with given _tqdm.
+        """
+        if self._active:
+            for i in range(len(self.iterables)):
+                if id(self.iterables[i]._tqdm) == id(_tqdm):
+                    self.iterables.pop(i)
+                    break
+            self._callback(
+                event_id=self._event_id,
+                tracked_iterables=self.iterables,
+            )
+        else:
+            return
+
+
+def create_tracker(block_parent, event_id, fn, track_tqdm):
+    def callback(tracked_iterables: List[TrackedIterable], event_id: str):
+        block_parent._queue.set_progress(
+            event_id,
+            [
+                t.progress if t.progress is not None else [t.index, t.length, t.unit]
+                for t in tracked_iterables
+            ],
+            [t.desc for t in tracked_iterables],
+        )
+
+    progress = Progress(_active=True, _callback=callback, _event_id=event_id)
+    if not track_tqdm:
+        return progress, fn
+
+    _tqdm = __import__("tqdm")
+    if not hasattr(block_parent, "_progress_tracker_per_thread"):
+        block_parent._progress_tracker_per_thread = {}
+
+    def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
+        self._progress = block_parent._progress_tracker_per_thread[
+            threading.get_ident()
+        ]
+        self._progress.event_id = event_id
+        self._progress.track(iterable, desc, _tqdm=self, *args, **kwargs)
+        kwargs["file"] = open(os.devnull, "w")
+        self.__init__orig__(iterable, desc, *args, **kwargs)
+
+    def iter_tqdm(self):
+        return self._progress
+
+    def update_tqdm(self, n=1):
+        self._progress.update(n)
+        return self.__update__orig__(n)
+
+    def close_tqdm(self):
+        self._progress.close(self)
+        return self.__close__orig__()
+
+    def exit_tqdm(self, exc_type, exc_value, traceback):
+        self._progress.close(self)
+        return self.__exit__orig__(exc_type, exc_value, traceback)
+
+    if not hasattr(_tqdm.tqdm, "__init__orig__"):
+        _tqdm.tqdm.__init__orig__ = _tqdm.tqdm.__init__
+    _tqdm.tqdm.__init__ = init_tqdm
+    if not hasattr(_tqdm.tqdm, "__update__orig__"):
+        _tqdm.tqdm.__update__orig__ = _tqdm.tqdm.update
+    _tqdm.tqdm.update = update_tqdm
+    if not hasattr(_tqdm.tqdm, "__close__orig__"):
+        _tqdm.tqdm.__close__orig__ = _tqdm.tqdm.close
+    _tqdm.tqdm.close = close_tqdm
+    if not hasattr(_tqdm.tqdm, "__exit__orig__"):
+        _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
+    _tqdm.tqdm.__exit__ = exit_tqdm
+
+    # print signature of tqdm.tqdm.__init__ to see if it has changed
+
+    _tqdm.tqdm.__iter__ = iter_tqdm
+    if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
+        _tqdm.auto.tqdm = _tqdm.tqdm
+
+    def tracked_fn(*args):
+        thread_id = threading.get_ident()
+        block_parent._progress_tracker_per_thread[thread_id] = progress
+        fn(*args)
+        del block_parent._progress_tracker_per_thread[thread_id]
+
+    return progress, tracked_fn
+
+
+def get_progress_tracker(fn: Callable, input_count: int):
     """
     Checks if function has a progress tracker positioned after input parameters.
     Parameters:
         fn: function to check.
         input_count: number of input parameters.
     Returns:
-        Whether progress arg exists.
+        Progress tracker or None.
     """
     signature = inspect.signature(fn)
     params = list(signature.parameters.values())
-    return len(params) > input_count and isinstance(
-        params[input_count].default, Progress
-    )
+    if len(params) > input_count and isinstance(params[input_count].default, Progress):
+        return params[input_count].default
+    return None
 
 
 @document()

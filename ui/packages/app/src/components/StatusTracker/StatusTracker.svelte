@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
+	import { prettySI } from "../utils/helpers";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -57,8 +58,8 @@
 	export let scroll_to_output: boolean = false;
 	export let timer: boolean = true;
 	export let visible: boolean = true;
-	export let message: string | null = null;
-	export let progress: number | [number, number] | null = null;
+	export let message: string[] | null = null;
+	export let progress: Array<number | [number, number, string]> | null = null;
 	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
@@ -69,8 +70,8 @@
 	let old_eta: number | null = null;
 	let message_visible: boolean = false;
 	let eta_level: number | null = 0;
-	let progress_level: number | undefined | null = undefined;
-	let old_progress_level: number | undefined | null = undefined;
+	let progress_level: Array<number | undefined> | null = null;
+	let last_progress_level: number | undefined = undefined;
 	let progress_bar: HTMLElement | null = null;
 	let show_eta_bar: boolean = true;
 
@@ -84,22 +85,33 @@
 
 	$: {
 		if (Array.isArray(progress)) {
-			if (progress[1]) {
-				progress_level = progress[0] / progress[1];
-			} else {
-				progress_level = undefined;
+			progress_level = progress.map((p) => {
+				if (Array.isArray(p)) {
+					if (p[1]) {
+						return p[0] / p[1];
+					} else {
+						return undefined;
+					}
+				} else {
+					return p;
+				}
+			});
+		} else {
+			progress_level = null;
+		}
+
+		if (progress_level) {
+			last_progress_level = progress_level[progress_level.length - 1];
+			if (progress_bar) {
+				if (last_progress_level === 0) {
+					progress_bar.classList.remove("transition-transform");
+				} else {
+					progress_bar.classList.add("transition-transform");
+				}
 			}
 		} else {
-			progress_level = progress;
+			last_progress_level = undefined;
 		}
-		if (progress_bar && progress_level != null && old_progress_level != null) {
-			if (progress_level < old_progress_level) {
-				progress_bar.classList.remove("transition-transform");
-			} else {
-				progress_bar.classList.add("transition-transform");
-			}
-		}
-		old_progress_level = progress_level;
 	}
 
 	const start_timer = () => {
@@ -190,12 +202,17 @@
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
 		>
-			{#if progress && Array.isArray(progress)}
-				{#if progress[1]}
-					{progress[0]}/{progress[1]}
-				{:else}
-					{progress[0]}
-				{/if} steps |
+			{#if progress}
+				{#each progress as p, i}
+					&nbsp;
+					{#if Array.isArray(p)}
+						{#if p[1]}
+							{prettySI(p[0])}/{prettySI(p[1])} {p[2]} |
+						{:else}
+							{prettySI(p[0])} {p[2]} |
+						{/if}
+					{/if}
+				{/each}
 			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
@@ -207,17 +224,31 @@
 			{/if}
 		</div>
 
-		{#if progress_level != null}
+		{#if last_progress_level != null}
 			<div class="z-20 w-full flex items-center flex-col gap-1">
 				<div class="m-2 mx-auto font-mono text-xs dark:text-gray-100">
-					{#if message}{message} - {/if}
-					{(100 * progress_level).toFixed(1)}%
+					{#if message}
+						{#each message as m, i}
+							{#if m != null && progress_level && progress_level[i] != null}
+								{#if i !== 0}
+									&nbsp;/
+								{/if}
+								{#if m != null}
+									{m}
+								{/if}
+								-
+								{#if progress_level[i] != null}
+									{(100 * progress_level[i]).toFixed(1)}%
+								{/if}
+							{/if}
+						{/each}
+					{/if}
 				</div>
 				<div class="w-2/3 h-4 rounded bg-white border">
 					<div
 						bind:this={progress_bar}
 						class="progress-bar"
-						style:transform="scaleX({progress_level})"
+						style:transform="scaleX({last_progress_level})"
 					/>
 				</div>
 			</div>

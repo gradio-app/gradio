@@ -1031,17 +1031,21 @@ class TestEvery:
 class TestProgressBar:
     @pytest.mark.asyncio
     async def test_progress_bar(self):
+        from tqdm import tqdm
+
         with gr.Blocks() as demo:
             name = gr.Textbox()
             greeting = gr.Textbox()
             button = gr.Button(value="Greet")
 
-            def greet(s, prog=gr.Progress()):
+            def greet(s, prog=gr.Progress(track_tqdm=True)):
                 prog(0)
                 time.sleep(0.25)
-                for _ in prog.tqdm(range(4)):
+                for _ in prog.track(range(4)):
                     time.sleep(0.25)
                 time.sleep(1)
+                for i in tqdm(["a", "b", "c"]):
+                    time.sleep(0.25)
                 return f"Hello, {s}!"
 
             button.click(greet, name, greeting)
@@ -1063,7 +1067,17 @@ class TestProgressBar:
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
-        assert progress_updates == [0, [0, 4], [1, 4], [2, 4], [3, 4], [4, 4]]
+        assert progress_updates == [
+            [0.0],
+            [[0, 4, "steps"]],
+            [[1, 4, "steps"]],
+            [[2, 4, "steps"]],
+            [[3, 4, "steps"]],
+            [[4, 4, "steps"]],
+            [[0, 3, "steps"]],
+            [[1, 3, "steps"]],
+            [[2, 3, "steps"]],
+        ]
 
 
 class TestAddRequests:
