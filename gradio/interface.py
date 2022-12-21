@@ -32,9 +32,9 @@ from gradio.components import (
 )
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
-from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
+from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, TabItem, Tabs
-from gradio.pipelines import load_from_pipeline  # type: ignore
+from gradio.pipelines import load_from_pipeline
 
 set_documentation_group("interface")
 
@@ -172,7 +172,7 @@ class Interface(Blocks):
             thumbnail: path or url to image to use as display image when the web demo is shared on social media.
             theme: Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
             css: custom css or path to custom css file to use with interface.
-            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+            allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
             flagging_dir: what to name the directory where flagged data is stored.
             flagging_callback: An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
@@ -416,7 +416,10 @@ class Interface(Blocks):
                     component.label = "output " + str(i)
 
         if self.allow_flagging != "never":
-            if self.interface_type == self.InterfaceTypes.UNIFIED:
+            if (
+                self.interface_type == self.InterfaceTypes.UNIFIED
+                or self.allow_flagging == "auto"
+            ):
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)
             elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
                 pass
@@ -608,22 +611,18 @@ class Interface(Blocks):
                 """,
             )
 
-            class FlagMethod:
-                def __init__(self, flagging_callback, flag_option=None):
-                    self.flagging_callback = flagging_callback
-                    self.flag_option = flag_option
-                    self.__name__ = "Flag"
-
-                def __call__(self, *flag_data):
-                    self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
-
-            if self.allow_flagging == "manual":
+            if self.allow_flagging in ["manual", "auto"]:
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.OUTPUT_ONLY,
                     self.InterfaceTypes.UNIFIED,
                 ]:
-                    if self.interface_type == self.InterfaceTypes.UNIFIED:
+                    if self.allow_flagging == "auto":
+                        flag_btns = [(submit_btn, None)]
+                    if (
+                        self.interface_type == self.InterfaceTypes.UNIFIED
+                        or self.allow_flagging == "auto"
+                    ):
                         flag_components = self.input_components
                     else:
                         flag_components = self.input_components + self.output_components

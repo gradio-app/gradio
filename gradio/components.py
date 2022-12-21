@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
+from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -122,7 +122,11 @@ class IOComponent(Component, Serializable):
         self.load_event = None
         self.load_event_to_attach = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
+        self.value = (
+            initial_value
+            if self._skip_init_processing
+            else self.postprocess(initial_value)
+        )
         if callable(load_fn):
             self.load_event = self.attach_load_event(load_fn, every)
 
@@ -895,7 +899,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] | Callable = None,
+        value: List[str] | str | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         every: float | None = None,
@@ -948,7 +952,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = _Keywords.NO_VALUE,
+        value: Optional[List[str] | str] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -987,15 +991,19 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: List[str] | None) -> List[str]:
+    def postprocess(self, y: List[str] | str | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: List of selected choices
+            y: List of selected choices. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        if not isinstance(y, list):
+            y = [y]
+        return y
 
     def set_interpret_parameters(self):
         """
@@ -4073,6 +4081,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
+    Guides: creating_a_dashboard_from_bigquery_data
     """
 
     def __init__(
@@ -4412,7 +4421,7 @@ class LinePlot(Plot):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a pandas dataframe with the data to plot.
 
-    Demos: native_plots
+    Demos: native_plots, live_dashboard
     """
 
     def __init__(
@@ -4830,6 +4839,7 @@ class Dataset(Clickable, Component):
         samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
+        samples_per_page: int = 10,
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
@@ -4840,6 +4850,7 @@ class Dataset(Clickable, Component):
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
+            samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -4857,6 +4868,7 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
+        self.samples_per_page = samples_per_page
 
     def get_config(self):
         return {
@@ -4865,6 +4877,7 @@ class Dataset(Clickable, Component):
             "samples": self.samples,
             "type": self.type,
             "label": self.label,
+            "samples_per_page": self.samples_per_page,
             **Component.get_config(self),
         }
 

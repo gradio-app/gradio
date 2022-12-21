@@ -20,14 +20,7 @@ Alternatively, for development, read the `homepage` section below:
 
 ## The `homepage` docker
 
-The homepage folder builds the static content of the website into standalone files, served by nginx in docker. For development purposes, instead of running docker to test changes, just run `sh scripts/launch_website.sh` from the root of the repo. The steps in that script are the following: 
-
-- `npm install`
-- `npm run build --url=https://gradio-main-build.s3.amazonaws.com/XXX/`
-
-Note that the url arg above is required but, when running locally and without docker, it's only used for the install instructions on `/docs/main`. 
-
-The website will be built in the `gradio/website/homepage/build` directory. You can run a development server from this directory to launch the homepage, e.g. `python -m http.server`. See `gradio/website/homepage/package.json` for build steps.
+The homepage folder builds the static content of the website into standalone files, served by nginx in docker. For development purposes, instead of running docker to test changes, just run `sh scripts/launch_website.sh` from the root of the repo. 
 
 ## Auto-Reloading
 
