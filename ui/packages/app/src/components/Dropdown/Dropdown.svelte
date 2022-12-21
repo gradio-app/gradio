@@ -8,7 +8,8 @@
 	export let label: string = "Dropdown";
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: string = "";
+	export let value: string | Array<string> = "";
+	export let multiselect: boolean = false;
 	export let choices: Array<string>;
 	export let show_label: boolean;
 	export let style: Styles = {};
@@ -27,6 +28,7 @@
 	<Dropdown
 		bind:value
 		{choices}
+		{multiselect}
 		{label}
 		{show_label}
 		on:change

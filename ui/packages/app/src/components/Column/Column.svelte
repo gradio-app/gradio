@@ -12,7 +12,7 @@
 
 <div
 	id={elem_id}
-	class="overflow-hidden flex flex-col relative col {create_classes(style)}"
+	class="flex flex-col relative col {create_classes(style)}"
 	class:gap-4={style.gap !== false}
 	class:gr-compact={variant === "compact"}
 	class:gr-panel={variant === "panel"}

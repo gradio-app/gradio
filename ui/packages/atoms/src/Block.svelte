@@ -45,7 +45,7 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:!hidden={visible === false}
-	class="gr-block gr-box relative w-full overflow-hidden {styles[
+	class="gr-block gr-box relative w-full {styles[
 		variant
 	]} {styles[color]} {classes}"
 	class:gr-padded={padding}
