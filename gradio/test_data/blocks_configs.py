@@ -194,6 +194,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
         {
             "targets": [39],
@@ -210,6 +211,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
         {
             "targets": [],
@@ -226,6 +228,7 @@ XRAY_CONFIG = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
     ],
 }
@@ -427,6 +430,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
         {
             "targets": [933],
@@ -443,6 +447,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
         {
             "targets": [],
@@ -459,6 +464,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "max_batch_size": 4,
             "cancels": [],
             "every": None,
+            "explicit_progress": False,
         },
     ],
 }

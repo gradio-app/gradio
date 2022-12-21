@@ -154,6 +154,7 @@ class Block:
         max_batch_size: int = 4,
         cancels: List[int] | None = None,
         every: float | None = None,
+        explicit_progress: bool | None = None,
     ) -> Dict[str, Any]:
         """
         Adds an event to the component's dependencies.
@@ -194,9 +195,10 @@ class Block:
                 outputs = [outputs]
 
         if fn is not None:
-            explicit_progress = sets_explicit_progress(
-                fn, 1 if inputs_as_dict else len(inputs)
-            )
+            if explicit_progress is None:
+                explicit_progress = sets_explicit_progress(
+                    fn, 1 if inputs_as_dict else len(inputs)
+                )
             if not cancels:
                 check_function_inputs_match(fn, inputs, inputs_as_dict)
         else:
@@ -245,7 +247,7 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
-            "sets_explicit_progress": explicit_progress,
+            "explicit_progress": explicit_progress,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -807,9 +809,7 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            explicit_progress = self.dependencies[fn_index].get(
-                "sets_explicit_progress"
-            )
+            explicit_progress = self.dependencies[fn_index].get("explicit_progress")
             if explicit_progress and event_id is not None:
 
                 def callback(
@@ -1626,8 +1626,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                dependency.get("sets_explicit_progress")
-                for dependency in self.dependencies
+                dependency.get("explicit_progress") for dependency in self.dependencies
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)
