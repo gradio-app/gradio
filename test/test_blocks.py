@@ -1032,7 +1032,6 @@ class TestProgressBar:
     @pytest.mark.asyncio
     async def test_progress_bar(self):
         with gr.Blocks() as demo:
-            num = gr.Number(value=0)
             name = gr.Textbox()
             greeting = gr.Textbox()
             button = gr.Button(value="Greet")
@@ -1040,7 +1039,7 @@ class TestProgressBar:
             def greet(s, prog=gr.Progress()):
                 prog(0)
                 time.sleep(0.25)
-                for i in prog.tqdm(range(4)):
+                for _ in prog.tqdm(range(4)):
                     time.sleep(0.25)
                 time.sleep(1)
                 return f"Hello, {s}!"
