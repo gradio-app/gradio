@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ast
 import csv
+import inspect
 import os
 import subprocess
 import tempfile
@@ -18,7 +19,6 @@ import numpy as np
 import PIL
 
 from gradio import processing_utils, utils
-from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
@@ -218,6 +218,8 @@ class Examples:
                     )
                     break
 
+        from gradio.components import Dataset
+
         with utils.set_directory(working_directory):
             self.dataset = Dataset(
                 components=inputs_with_examples,
@@ -396,6 +398,22 @@ class Progress(Iterable):
         self.message = message
         self.index = 0
         return self
+
+
+def sets_explicit_progress(fn: Callable, input_count: int):
+    """
+    Checks if function has a progress tracker positioned after input parameters.
+    Parameters:
+        fn: function to check.
+        input_count: number of input parameters.
+    Returns:
+        Whether progress arg exists.
+    """
+    signature = inspect.signature(fn)
+    params = list(signature.parameters.values())
+    return len(params) > input_count and isinstance(
+        params[input_count].default, Progress
+    )
 
 
 @document()

@@ -42,7 +42,6 @@ from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
 from gradio.context import Context
-from gradio.helpers import Progress
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -839,19 +838,3 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
-
-
-def sets_explicit_progress(fn: Callable, input_count: int):
-    """
-    Checks if function has a progress tracker positioned after input parameters.
-    Parameters:
-        fn: function to check.
-        input_count: number of input parameters.
-    Returns:
-        Whether progress arg exists.
-    """
-    signature = inspect.signature(fn)
-    params = list(signature.parameters.values())
-    return len(params) > input_count and isinstance(
-        params[input_count].default, Progress
-    )
