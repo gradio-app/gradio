@@ -1,7 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { fly } from 'svelte/transition';
-	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
     export let id = '';
     export let readonly = false;
@@ -31,7 +29,7 @@
         selected = rest;
       }
     }
-  
+
     function optionsVisibility(show) {
       if (readonly) return;
       if (typeof show === 'boolean') {
@@ -84,6 +82,7 @@
         input.focus();
       }
     }
+	$: if (multiselect) {value = Object.values(selected);}
   </script>
 
 {#if !multiselect}
@@ -130,7 +129,7 @@
     <select bind:this={slot} type="multiple" class="hidden"><slot></slot></select>
     
     {#if showOptions}
-      <ul class="text-neutral-800 shadow ml-0 list-none max-h-16 overflow-auto absolute w-full fill-gray-500" transition:fly="{{duration: 200, y: 5}}" on:mousedown|preventDefault={handleOptionMousedown}>
+      <ul class="z-50 text-neutral-800 shadow ml-0 list-none max-h-16 overflow-auto absolute w-full fill-gray-500" transition:fly="{{duration: 200, y: 5}}" on:mousedown|preventDefault={handleOptionMousedown}>
         {#each choices as choice}
           <li class="bg-gray-100 cursor-pointer p-2 hover:bg-gray-300" class:selected={selected[choice]} class:active={activeOption === choice} data-value="{choice}">{choice}</li>
         {/each}
