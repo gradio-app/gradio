@@ -393,15 +393,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
 
     """
     event_loop = asyncio.get_event_loop()
-
-    async def fn_print_err(func, *args, **kwargs):
-        try:
-            return await func(*args, **kwargs)
-        except Exception as e:
-            print(e)
-
-    return event_loop.create_task(fn_print_err(func, *args, **kwargs))
-
+    return event_loop.create_task(func(*args, **kwargs))
 
 def async_iteration(iterator):
     try:
