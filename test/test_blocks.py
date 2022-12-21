@@ -1028,6 +1028,45 @@ class TestEvery:
         assert "At step 9" not in captured.out
 
 
+class TestProgressBar:
+    @pytest.mark.asyncio
+    async def test_progress_bar(self):
+        with gr.Blocks() as demo:
+            num = gr.Number(value=0)
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+
+            def greet(s, prog=gr.Progress()):
+                prog(0)
+                time.sleep(0.25)
+                for i in prog.tqdm(range(4)):
+                    time.sleep(0.25)
+                time.sleep(1)
+                return f"Hello, {s}!"
+
+            button.click(greet, name, greeting)
+        demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            progress_updates = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "progress":
+                    progress_updates.append(msg["progress"])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        assert progress_updates == [0, [0, 4], [1, 4], [2, 4], [3, 4], [4, 4]]
+
+
 class TestAddRequests:
     def test_no_type_hints(self):
         def moo(a, b):

@@ -365,8 +365,8 @@ class Progress(Iterable):
         Updates progress tracker with next item in iterable.
         """
         if self._active:
-            self.index += 1
             progress = [self.index, self.len]
+            self.index += 1
             self._callback(progress=progress, message=self.message)
         return next(self.iterable)
 

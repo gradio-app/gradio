@@ -44,7 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import Progress, skip
+from gradio.helpers import Progress, sets_explicit_progress, skip
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -194,13 +194,13 @@ class Block:
                 outputs = [outputs]
 
         if fn is not None:
-            sets_explicit_progress = utils.sets_explicit_progress(
+            explicit_progress = sets_explicit_progress(
                 fn, 1 if inputs_as_dict else len(inputs)
             )
             if not cancels:
                 check_function_inputs_match(fn, inputs, inputs_as_dict)
         else:
-            sets_explicit_progress = False
+            explicit_progress = False
 
         if Context.root_block is None:
             raise AttributeError(
@@ -245,7 +245,7 @@ class Block:
             "batch": batch,
             "max_batch_size": max_batch_size,
             "cancels": cancels or [],
-            "sets_explicit_progress": sets_explicit_progress,
+            "sets_explicit_progress": explicit_progress,
         }
         Context.root_block.dependencies.append(dependency)
         return dependency
@@ -807,10 +807,10 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            sets_explicit_progress = self.dependencies[fn_index].get(
+            explicit_progress = self.dependencies[fn_index].get(
                 "sets_explicit_progress"
             )
-            if sets_explicit_progress and event_id is not None:
+            if explicit_progress and event_id is not None:
 
                 def callback(
                     progress: float | Tuple[int, int | None] | None,
