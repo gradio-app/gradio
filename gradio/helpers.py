@@ -514,27 +514,34 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
         block_parent._progress_tracker_per_thread = {}
 
     def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
-        self._progress = block_parent._progress_tracker_per_thread[
+        self._progress = block_parent._progress_tracker_per_thread.get(
             threading.get_ident()
-        ]
-        self._progress.event_id = event_id
-        self._progress.track(iterable, desc, _tqdm=self, *args, **kwargs)
-        kwargs["file"] = open(os.devnull, "w")
+        )
+        if self._progress is not None:
+            self._progress.event_id = event_id
+            self._progress.track(iterable, desc, _tqdm=self, *args, **kwargs)
+            kwargs["file"] = open(os.devnull, "w")
         self.__init__orig__(iterable, desc, *args, **kwargs)
 
     def iter_tqdm(self):
-        return self._progress
+        if self._progress is not None:
+            return self._progress
+        else:
+            return self.__iter__orig__()
 
     def update_tqdm(self, n=1):
-        self._progress.update(n)
+        if self._progress is not None:
+            self._progress.update(n)
         return self.__update__orig__(n)
 
     def close_tqdm(self):
-        self._progress.close(self)
+        if self._progress is not None:
+            self._progress.close(self)
         return self.__close__orig__()
 
     def exit_tqdm(self, exc_type, exc_value, traceback):
-        self._progress.close(self)
+        if self._progress is not None:
+            self._progress.close(self)
         return self.__exit__orig__(exc_type, exc_value, traceback)
 
     if not hasattr(_tqdm.tqdm, "__init__orig__"):
@@ -549,7 +556,8 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
     if not hasattr(_tqdm.tqdm, "__exit__orig__"):
         _tqdm.tqdm.__exit__orig__ = _tqdm.tqdm.__exit__
     _tqdm.tqdm.__exit__ = exit_tqdm
-
+    if not hasattr(_tqdm.tqdm, "__iter__orig__"):
+        _tqdm.tqdm.__iter__orig__ = _tqdm.tqdm.__iter__
     _tqdm.tqdm.__iter__ = iter_tqdm
     if hasattr(_tqdm, "auto") and hasattr(_tqdm.auto, "tqdm"):
         _tqdm.auto.tqdm = _tqdm.tqdm
