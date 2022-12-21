@@ -27,7 +27,6 @@ from typing import (
     Callable,
     Dict,
     Generator,
-    Iterable,
     List,
     NewType,
     Tuple,
@@ -43,7 +42,7 @@ from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
+from gradio.helpers import Progress
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
