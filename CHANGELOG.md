@@ -20,7 +20,7 @@ Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
 
 ## Documentation Changes:
 No changes to highlight.
@@ -32,7 +32,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* The `default_enabled` parameter of the `Blocks.queue` method has no effect by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876) 
 
 ## Contributors Shoutout:
 No changes to highlight.
