@@ -1425,11 +1425,6 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    print(
-                        "\nSetting up a public link... we have recently upgraded the "
-                        "way public links are generated. If you encounter any "
-                        "problems, please report the issue and downgrade to gradio version 3.13.0\n."
-                    )
                     self.share_url = networking.setup_tunnel(
                         self.server_name, self.server_port
                     )
