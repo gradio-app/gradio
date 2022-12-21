@@ -6,11 +6,18 @@ from __future__ import annotations
 import ast
 import csv
 import os
+import subprocess
+import tempfile
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 
-from gradio import utils
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL
+
+from gradio import processing_utils, utils
 from gradio.components import Dataset
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
@@ -22,7 +29,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
 
-set_documentation_group("component-helpers")
+set_documentation_group("helpers")
 
 
 def create_examples(
@@ -318,3 +325,237 @@ class Examples:
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(component.serialize(value, self.cached_folder))
         return output
+
+
+@document("__call__", "tqdm")
+class Progress(Iterable):
+    """
+    The Progress class provides a custom progress tracker that is used in a function signature.
+    To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to `gradio.Progress()`.
+    The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
+    The Progress tracker is currently only available with `queue()`.
+    Example:
+        import gradio as gr
+        import time
+        def my_function(x, progress=gr.Progress()):
+            progress(0, message="Starting...")
+            time.sleep(1)
+            for i in progress.tqdm(range(100)):
+                time.sleep(0.1)
+            return x
+        gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
+    Demos: progress
+    """
+
+    def __init__(self, _active: bool = False, _callback: Callable = None):
+        self._active = _active
+        self._callback = _callback
+        self.message = None
+
+    def __len__(self):
+        return self.len
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        """
+        Updates progress tracker with next item in iterable.
+        """
+        if self._active:
+            self.index += 1
+            progress = [self.index, self.len]
+            self._callback(progress=progress, message=self.message)
+        return next(self.iterable)
+
+    def __call__(
+        self,
+        progress: float | Tuple[int, int | None] | None,
+        message: str | None = None,
+    ):
+        """
+        Updates progress tracker with progress and message text.
+        Parameters:
+            progress: If float, should be between 0 and 1 representing completion. If Tuple, first number represents steps completed, and second value represents total steps or None if unknown. If None, hides progress bar.
+            message: message to display.
+        """
+        if self._active:
+            self._callback(progress=progress, message=message)
+        else:
+            return progress
+
+    def tqdm(self, iterable: Iterable, message: str = None):
+        """
+        Attaches progress tracker to iterable.
+        Parameters:
+            iterable: iterable to attach progress tracker to.
+            message: message to display.
+        """
+        self.len = len(iterable) if hasattr(iterable, "__len__") else None
+        self.iterable = iter(iterable)
+        self.message = message
+        self.index = 0
+        return self
+
+
+@document()
+def update(**kwargs) -> dict:
+    """
+    Updates component properties.
+    This is a shorthand for using the update method on a component.
+    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
+    Note that your editor's autocompletion will suggest proper parameters
+    if you use the update method on the component.
+
+    Demos: blocks_essay, blocks_update, blocks_essay_update
+
+    Parameters:
+        kwargs: Key-word arguments used to update the component's properties.
+    Example:
+        # Blocks Example
+        import gradio as gr
+        with gr.Blocks() as demo:
+            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
+            number = gr.Number(value=2, interactive=True)
+            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
+        demo.launch()
+        # Interface example
+        import gradio as gr
+        def change_textbox(choice):
+          if choice == "short":
+              return gr.Textbox.update(lines=2, visible=True)
+          elif choice == "long":
+              return gr.Textbox.update(lines=8, visible=True)
+          else:
+              return gr.Textbox.update(visible=False)
+        gr.Interface(
+          change_textbox,
+          gr.Radio(
+              ["short", "long", "none"], label="What kind of essay would you like to write?"
+          ),
+          gr.Textbox(lines=2),
+          live=True,
+        ).launch()
+    """
+    kwargs["__type__"] = "generic_update"
+    return kwargs
+
+
+@document()
+def make_waveform(
+    audio: str | Tuple[int, np.ndarray],
+    *,
+    bg_color: str = "#f3f4f6",
+    bg_image: str = None,
+    fg_alpha: float = 0.75,
+    bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
+    bar_count: int = 50,
+    bar_width: float = 0.6,
+):
+    """
+    Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
+    Parameters:
+        audio: Audio file path or tuple of (sample_rate, audio_data)
+        bg_color: Background color of waveform (ignored if bg_image is provided)
+        bg_image: Background image of waveform
+        fg_alpha: Opacity of foreground waveform
+        bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
+        bar_count: Number of bars in waveform
+        bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
+    Returns:
+        A filepath to the output video.
+    """
+    if isinstance(audio, str):
+        audio_file = audio
+        audio = processing_utils.audio_from_file(audio)
+    else:
+        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
+        audio_file = tmp_wav.name
+    duration = round(len(audio[1]) / audio[0], 4)
+
+    # Helper methods to create waveform
+    def hex_to_RGB(hex_str):
+        return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
+
+    def get_color_gradient(c1, c2, n):
+        assert n > 1
+        c1_rgb = np.array(hex_to_RGB(c1)) / 255
+        c2_rgb = np.array(hex_to_RGB(c2)) / 255
+        mix_pcts = [x / (n - 1) for x in range(n)]
+        rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
+        return [
+            "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
+            for item in rgb_colors
+        ]
+
+    # Reshape audio to have a fixed number of bars
+    samples = audio[1]
+    if len(samples.shape) > 1:
+        samples = np.mean(samples, 1)
+    bins_to_pad = bar_count - (len(samples) % bar_count)
+    samples = np.pad(samples, [(0, bins_to_pad)])
+    samples = np.reshape(samples, (bar_count, -1))
+    samples = np.abs(samples)
+    samples = np.max(samples, 1)
+
+    matplotlib.use("Agg")
+    plt.clf()
+    # Plot waveform
+    color = (
+        bars_color
+        if isinstance(bars_color, str)
+        else get_color_gradient(bars_color[0], bars_color[1], bar_count)
+    )
+    plt.bar(
+        np.arange(0, bar_count),
+        samples * 2,
+        bottom=(-1 * samples),
+        width=bar_width,
+        color=color,
+    )
+    plt.axis("off")
+    plt.margins(x=0)
+    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    savefig_kwargs = {"bbox_inches": "tight"}
+    if bg_image is not None:
+        savefig_kwargs["transparent"] = True
+    else:
+        savefig_kwargs["facecolor"] = bg_color
+    plt.savefig(tmp_img.name, **savefig_kwargs)
+    waveform_img = PIL.Image.open(tmp_img.name)
+    waveform_img = waveform_img.resize((1000, 200))
+
+    # Composite waveform with background image
+    if bg_image is not None:
+        waveform_array = np.array(waveform_img)
+        waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
+        waveform_img = PIL.Image.fromarray(waveform_array)
+
+        bg_img = PIL.Image.open(bg_image)
+        waveform_width, waveform_height = waveform_img.size
+        bg_width, bg_height = bg_img.size
+        if waveform_width != bg_width:
+            bg_img = bg_img.resize(
+                (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
+            )
+            bg_width, bg_height = bg_img.size
+        composite_height = max(bg_height, waveform_height)
+        composite = PIL.Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
+        composite.paste(bg_img, (0, composite_height - bg_height))
+        composite.paste(
+            waveform_img, (0, composite_height - waveform_height), waveform_img
+        )
+        composite.save(tmp_img.name)
+        img_width, img_height = composite.size
+    else:
+        img_width, img_height = waveform_img.size
+        waveform_img.save(tmp_img.name)
+
+    # Convert waveform to video with ffmpeg
+    output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+
+    ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1" -t {duration} -y {output_mp4.name}"""
+
+    subprocess.call(ffmpeg_cmd, shell=True)
+    return output_mp4.name

@@ -63,9 +63,9 @@
   {% if obj['override_signature'] %}
   <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
   {% else %}
-  <div class="codeblock"><pre><code class="lang-python">{{ parent }}.<span>{{ obj["name"] }}(</span><!--
+  <div class="codeblock"><pre><code class="lang-python">{{ parent }}{% if obj["name"] != "__call__" %}.<span>{{ obj["name"] }}{% endif %}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and "default" not in param and param["name"] != "self" %}<!--
+  -->{% if "positional" in param["kind"] and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
@@ -86,7 +86,7 @@
   <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {{ obj["tags"]["preprocessing"] }}</p>
   <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {{ obj["tags"]["postprocessing"] }}</p>
   {% if "examples-format" in obj["tags"]  %}
-  <p class="text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
   {% endif %}
   {% if obj["events"]|length > 0 %}
   <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{{ obj["events"] }}</em></p>
@@ -100,7 +100,7 @@
     </div>
     {% if obj["demos"] %}
       <button 
-      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
+      class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
       onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
     >
       More Examples →
@@ -110,7 +110,7 @@
 
     {% elif obj["demos"] %}
 
-    <div class="container relative">
+    {# <div class="container relative">
       <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">{{ obj["demos"][0][1] }}</code></pre></div>
       <div class="absolute top-16" style="left: 44%;">
           <button 
@@ -120,7 +120,7 @@
           Try Examples
         </button>
       </div>
-    </div>
+    </div> #}
 
     
     {% endif %}

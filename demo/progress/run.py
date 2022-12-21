@@ -54,6 +54,7 @@ with gr.Blocks() as demo:
         load_set(text, progress)
         load_random(text, progress)
         clean_imgs(text, progress)
+        progress(None)
         wait(text)
         return "done"
     do_all_btn.click(do_all, text, text2)

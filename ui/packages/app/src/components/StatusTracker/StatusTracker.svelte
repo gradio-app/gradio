@@ -69,8 +69,8 @@
 	let old_eta: number | null = null;
 	let message_visible: boolean = false;
 	let eta_level: number | null = 0;
-	let progress_level: number | undefined = undefined;
-	let old_progress_level: number | undefined = undefined;
+	let progress_level: number | undefined | null = undefined;
+	let old_progress_level: number | undefined | null = undefined;
 	let progress_bar: HTMLElement | null = null;
 	let show_eta_bar: boolean = true;
 
@@ -83,22 +83,16 @@
 	}
 
 	$: {
-		if (progress !== null) {
-			if (Array.isArray(progress)) {
-				if (progress[1]) {
-					progress_level = progress[0] / progress[1];
-				} else {
-					progress_level = undefined;
-				}
+		if (Array.isArray(progress)) {
+			if (progress[1]) {
+				progress_level = progress[0] / progress[1];
 			} else {
-				progress_level = progress;
+				progress_level = undefined;
 			}
+		} else {
+			progress_level = progress;
 		}
-		if (
-			progress_bar &&
-			progress_level !== undefined &&
-			old_progress_level !== undefined
-		) {
+		if (progress_bar && progress_level != null && old_progress_level != null) {
 			if (progress_level < old_progress_level) {
 				progress_bar.classList.remove("transition-transform");
 			} else {
@@ -213,9 +207,9 @@
 			{/if}
 		</div>
 
-		{#if progress_level !== undefined}
+		{#if progress_level != null}
 			<div class="z-20 w-full flex items-center flex-col gap-1">
-				<div class="p-1 m-1 bg-white border mx-auto font-mono text-xs">
+				<div class="m-2 mx-auto font-mono text-xs dark:text-gray-100">
 					{#if message}{message} - {/if}
 					{(100 * progress_level).toFixed(1)}%
 				</div>
@@ -285,7 +279,7 @@
 		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
 	}
 	.progress-bar {
-		@apply rounded inset-0 origin-left h-full w-full bg-orange-400 dark:bg-orange-500;
+		@apply rounded inset-0 origin-left h-full w-full bg-orange-500;
 	}
 
 	.meta-text {

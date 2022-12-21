@@ -192,8 +192,14 @@ class Block:
             elif not isinstance(outputs, list):
                 outputs = [outputs]
 
-        if fn is not None and not cancels:
-            check_function_inputs_match(fn, inputs, inputs_as_dict)
+        if fn is not None:
+            sets_explicit_progress = utils.sets_explicit_progress(
+                fn, 1 if inputs_as_dict else len(inputs)
+            )
+            if not cancels:
+                check_function_inputs_match(fn, inputs, inputs_as_dict)
+        else:
+            sets_explicit_progress = False
 
         if Context.root_block is None:
             raise AttributeError(
@@ -222,10 +228,6 @@ class Block:
                     "api_name {} already exists, using {}".format(api_name, api_name_)
                 )
                 api_name = api_name_
-
-        sets_explicit_progress = utils.sets_explicit_progress(
-            fn, 1 if inputs_as_dict else len(inputs)
-        )
 
         dependency = {
             "targets": [self._id] if not no_target else [],
@@ -357,49 +359,6 @@ class class_or_instancemethod(classmethod):
     def __get__(self, instance, type_):
         descr_get = super().__get__ if instance is None else self.__func__.__get__
         return descr_get(instance, type_)
-
-
-@document()
-def update(**kwargs) -> dict:
-    """
-    Updates component properties.
-    This is a shorthand for using the update method on a component.
-    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
-    Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component.
-
-    Demos: blocks_essay, blocks_update, blocks_essay_update
-
-    Parameters:
-        kwargs: Key-word arguments used to update the component's properties.
-    Example:
-        # Blocks Example
-        import gradio as gr
-        with gr.Blocks() as demo:
-            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
-            number = gr.Number(value=2, interactive=True)
-            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
-        demo.launch()
-        # Interface example
-        import gradio as gr
-        def change_textbox(choice):
-          if choice == "short":
-              return gr.Textbox.update(lines=2, visible=True)
-          elif choice == "long":
-              return gr.Textbox.update(lines=8, visible=True)
-          else:
-              return gr.Textbox.update(visible=False)
-        gr.Interface(
-          change_textbox,
-          gr.Radio(
-              ["short", "long", "none"], label="What kind of essay would you like to write?"
-          ),
-          gr.Textbox(lines=2),
-          live=True,
-        ).launch()
-    """
-    kwargs["__type__"] = "generic_update"
-    return kwargs
 
 
 def skip() -> dict:

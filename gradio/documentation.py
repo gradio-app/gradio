@@ -85,6 +85,7 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
             "name": param_name,
             "annotation": param.annotation,
             "doc": parameters.get(param_name),
+            "kind": param.kind.description,
         }
         if param_name in parameters:
             del parameters[param_name]
