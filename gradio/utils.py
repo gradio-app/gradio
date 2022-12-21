@@ -395,6 +395,7 @@ def run_coro_in_background(func: Callable, *args, **kwargs):
     event_loop = asyncio.get_event_loop()
     return event_loop.create_task(func(*args, **kwargs))
 
+
 def async_iteration(iterator):
     try:
         return next(iterator)
