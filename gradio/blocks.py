@@ -44,7 +44,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
-from gradio.helpers import create_tracker, get_progress_tracker, skip
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -399,23 +399,6 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
-
-
-def add_request_to_inputs(
-    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
-):
-    """
-    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
-    """
-    param_names = inspect.getfullargspec(fn)[0]
-    try:
-        parameter_types = typing.get_type_hints(fn)
-        for idx, param_name in enumerate(param_names):
-            if parameter_types.get(param_name, "") == routes.Request:
-                inputs.insert(idx, request)
-    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
-        pass
-    return inputs
 
 
 @document("load")
@@ -793,21 +776,22 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-        processed_input = add_request_to_inputs(
-            block_fn.fn, list(processed_input), request
+
+        processed_input, _, progress_index = special_args(
+            block_fn, processed_input, request
+        )
+        progress_tracker = (
+            processed_input[progress_index] if progress_index is not None else None
         )
 
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            progress_tracker = get_progress_tracker(
-                block_fn.fn, 1 if block_fn.inputs_as_dict else len(block_fn.inputs)
-            )
             if progress_tracker is not None:
-                progress, fn = create_tracker(
+                progress_tracker, fn = create_tracker(
                     self, event_id, block_fn.fn, progress_tracker.track_tqdm
                 )
-                processed_input = (*processed_input, progress)
+                processed_input[progress_index] = progress_tracker
             else:
                 fn = block_fn.fn
 
@@ -1616,12 +1600,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                get_progress_tracker(
-                    block_fn.fn,
-                    1 if block_fn.inputs_as_dict else len(block_fn.inputs),
-                )
-                is not None
-                for block_fn in self.fns
+                special_args(block_fn)[2] is not None for block_fn in self.fns
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)

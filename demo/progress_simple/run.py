@@ -13,4 +13,4 @@ def reverse(word, progress=gr.Progress()):
 demo = gr.Interface(reverse, gr.Text(), gr.Text())
 
 if __name__ == "__main__":
-    demo.queue(concurrency_count=20).launch()
+    demo.queue(concurrency_count=10).launch()

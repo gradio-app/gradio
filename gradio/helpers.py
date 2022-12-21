@@ -19,12 +19,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, routes, utils
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
+    from gradio.blocks import BlockFunction
     from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
@@ -571,20 +572,46 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
     return progress, tracked_fn
 
 
-def get_progress_tracker(fn: Callable, input_count: int):
+def special_args(
+    block_fn: BlockFunction,
+    inputs: List[Any] | None = None,
+    request: routes.Request | None = None,
+    progress: Progress | None = None,
+):
     """
-    Checks if function has a progress tracker positioned after input parameters.
+    Checks if function has special arguments Request (via annotation) or Progress (via default value).
+    If inputs is provided, these values will be loaded into the inputs array.
     Parameters:
-        fn: function to check.
-        input_count: number of input parameters.
+        block_fn: function to check.
+        inputs: array to load special arguments into.
+        request: request to load into inputs.
     Returns:
-        Progress tracker or None.
+        updated inputs, request index, progress index
     """
-    signature = inspect.signature(fn)
-    params = list(signature.parameters.values())
-    if len(params) > input_count and isinstance(params[input_count].default, Progress):
-        return params[input_count].default
-    return None
+    expected_input_count = 1 if block_fn.inputs_as_dict else len(block_fn.inputs)
+    signature = inspect.signature(block_fn.fn)
+    request_index = None
+    progress_index = None
+    for i, param in enumerate(signature.parameters.values()):
+        if i < expected_input_count:
+            continue
+        if "positional" not in param.kind.description:
+            break
+        if isinstance(param.default, Progress):
+            progress_index = i
+            if inputs is not None:
+                inputs.append(param.default)
+        elif param.annotation == routes.Request:
+            request_index = i
+            if inputs is not None:
+                inputs.append(request)
+        elif inputs:
+            if param.default == param.empty:
+                warnings.warn("Unexpected argument. Filling with None.")
+                inputs.append(None)
+            else:
+                inputs.append(param.default)
+    return inputs, request_index, progress_index
 
 
 @document()

@@ -184,7 +184,7 @@ Supplying a generator into Gradio **requires** you to enable queuing in the unde
 
 ## Progress Updates
 
-Ypu can explicitly update the progress of a function by adding an argument to your method that has a default value of `gradio.Progress()`. Then you can update the progress levels by calling this argument directly, or using the `track()` method of `Progress` to track progress over an iterable.
+Ypu can explicitly update the progress of a function by adding an argument to your method that has a default value of `gradio.Progress()`. Then you can update the progress levels by calling this argument directly, or using the `track()` method of `Progress` to track progress over an iterable. Currently, queueing must be enabled for progress updates.
 
 $code_progress_simple
 $demo_progress_simple
