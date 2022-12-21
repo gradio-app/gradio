@@ -8,6 +8,7 @@ import random
 import sys
 import time
 import unittest.mock as mock
+import warnings
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
@@ -71,6 +72,20 @@ class TestBlocksMethods:
             demo.launch(prevent_thread_lock=True)
             assert demo.share
             demo.close()
+
+    def test_default_enabled_deprecated(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with pytest.warns(
+            UserWarning, match="The default_enabled parameter of queue has no effect"
+        ):
+            io.queue(default_enabled=True)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            io.queue()
+        for warning in record:
+            assert "default_enabled" not in str(warning.message)
 
     def test_xray(self):
         def fake_func():
