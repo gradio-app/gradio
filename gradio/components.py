@@ -26,11 +26,11 @@ import numpy as np
 import pandas as pd
 import PIL
 import PIL.ImageOps
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
+from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block
@@ -122,7 +122,11 @@ class IOComponent(Component, Serializable):
         self.load_event = None
         self.load_event_to_attach = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        self.value = self.postprocess(initial_value)
+        self.value = (
+            initial_value
+            if self._skip_init_processing
+            else self.postprocess(initial_value)
+        )
         if callable(load_fn):
             self.load_event = self.attach_load_event(load_fn, every)
 
@@ -895,7 +899,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
         self,
         choices: Optional[List[str]] = None,
         *,
-        value: List[str] | Callable = None,
+        value: List[str] | str | Callable = None,
         type: str = "value",
         label: Optional[str] = None,
         every: float | None = None,
@@ -948,7 +952,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[List[str]] = _Keywords.NO_VALUE,
+        value: Optional[List[str] | str] = _Keywords.NO_VALUE,
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
@@ -987,15 +991,19 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def postprocess(self, y: List[str] | None) -> List[str]:
+    def postprocess(self, y: List[str] | str | None) -> List[str]:
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            y: List of selected choices
+            y: List of selected choices. If a single choice is selected, it can be passed in as a string
         Returns:
             List of selected choices
         """
-        return [] if y is None else y
+        if y is None:
+            return []
+        if not isinstance(y, list):
+            y = [y]
+        return y
 
     def set_interpret_parameters(self):
         """
@@ -4048,6 +4056,22 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         )
 
 
+class AltairPlot:
+    @staticmethod
+    def create_legend(position, title):
+        if position == "none":
+            legend = None
+        else:
+            position = {"orient": position} if position else {}
+            legend = {"title": title, **position}
+
+        return legend
+
+    @staticmethod
+    def create_scale(limit):
+        return alt.Scale(domain=limit) if limit else alt.Undefined
+
+
 @document("change", "clear")
 class ScatterPlot(Plot):
     """
@@ -4057,6 +4081,7 @@ class ScatterPlot(Plot):
     Postprocessing: expects a pandas dataframe with the data to plot.
 
     Demos: native_plots
+    Guides: creating_a_dashboard_from_bigquery_data
     """
 
     def __init__(
@@ -4075,8 +4100,13 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         caption: Optional[str] = None,
         interactive: Optional[bool] = True,
         label: Optional[str] = None,
@@ -4100,11 +4130,17 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
+            every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
@@ -4119,12 +4155,17 @@ class ScatterPlot(Plot):
         self.x_title = x_title
         self.y_title = y_title
         self.color_legend_title = color_legend_title
+        self.color_legend_position = color_legend_position
         self.size_legend_title = size_legend_title
+        self.size_legend_position = size_legend_position
         self.shape_legend_title = shape_legend_title
+        self.shape_legend_position = shape_legend_position
         self.caption = caption
         self.interactive_chart = interactive
         self.width = width
         self.height = height
+        self.x_lim = x_lim
+        self.y_lim = y_lim
         super().__init__(
             value=value,
             label=label,
@@ -4157,8 +4198,13 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         interactive: Optional[bool] = None,
         caption: Optional[str] = None,
         label: Optional[str] = None,
@@ -4183,10 +4229,15 @@ class ScatterPlot(Plot):
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
             size_legend_title: The title given to the size legend. By default, uses the value of the size parameter.
             shape_legend_title: The title given to the shape legend. By default, uses the value of the shape parameter.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            caption: The (optional) caption to display below the plot.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            caption: The (optional) caption to display below the plot.
             label: The (optional) label to display in the top left corner of the plot.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
@@ -4204,9 +4255,14 @@ class ScatterPlot(Plot):
             color_legend_title,
             size_legend_title,
             shape_legend_title,
+            color_legend_position,
+            size_legend_position,
+            shape_legend_position,
             interactive,
             height,
             width,
+            x_lim,
+            y_lim,
         ]
         if any(properties):
             if value is _Keywords.NO_VALUE:
@@ -4249,15 +4305,28 @@ class ScatterPlot(Plot):
         color_legend_title: Optional[str] = None,
         size_legend_title: Optional[str] = None,
         shape_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        size_legend_position: Optional[str] = None,
+        shape_legend_position: Optional[str] = None,
         height: Optional[int] = None,
         width: Optional[int] = None,
+        x_lim: Optional[List[int | float]] = None,
+        y_lim: Optional[List[int | float]] = None,
         interactive: Optional[bool] = True,
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
         encodings = dict(
-            x=alt.X(x, title=x_title or x),
-            y=alt.Y(y, title=y_title or y),
+            x=alt.X(
+                x,
+                title=x_title or x,
+                scale=AltairPlot.create_scale(x_lim),
+            ),
+            y=alt.Y(
+                y,
+                title=y_title or y,
+                scale=AltairPlot.create_scale(y_lim),
+            ),
         )
         properties = {}
         if title:
@@ -4279,7 +4348,9 @@ class ScatterPlot(Plot):
             encodings["color"] = {
                 "field": color,
                 "type": type_,
-                "legend": {"title": color_legend_title or color},
+                "legend": AltairPlot.create_legend(
+                    position=color_legend_position, title=color_legend_title or color
+                ),
                 "scale": {"domain": domain, "range": range_},
             }
         if tooltip:
@@ -4288,17 +4359,21 @@ class ScatterPlot(Plot):
             encodings["size"] = {
                 "field": size,
                 "type": "quantitative" if is_numeric_dtype(value[size]) else "nominal",
-                "legend": {"title": size_legend_title or size},
+                "legend": AltairPlot.create_legend(
+                    position=size_legend_position, title=size_legend_title or size
+                ),
             }
         if shape:
             encodings["shape"] = {
                 "field": shape,
                 "type": "quantitative" if is_numeric_dtype(value[shape]) else "nominal",
-                "legend": {"title": shape_legend_title or shape},
+                "legend": AltairPlot.create_legend(
+                    position=shape_legend_position, title=shape_legend_title or shape
+                ),
             }
         chart = (
             alt.Chart(value)
-            .mark_point()
+            .mark_point(clip=True)
             .encode(**encodings)
             .properties(background="transparent", **properties)
         )
@@ -4325,12 +4400,350 @@ class ScatterPlot(Plot):
             color_legend_title=self.color_legend_title,
             size_legend_title=self.size_legend_title,
             shape_legend_title=self.size_legend_title,
+            color_legend_position=self.color_legend_position,
+            size_legend_position=self.size_legend_position,
+            shape_legend_position=self.shape_legend_position,
+            interactive=self.interactive_chart,
+            height=self.height,
+            width=self.width,
+            x_lim=self.x_lim,
+            y_lim=self.y_lim,
+        )
+
+        return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+
+
+@document("change", "clear")
+class LinePlot(Plot):
+    """
+    Create a line plot.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a pandas dataframe with the data to plot.
+
+    Demos: native_plots, live_dashboard
+    """
+
+    def __init__(
+        self,
+        value: Optional[pd.DataFrame | Callable] = None,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        *,
+        color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        caption: Optional[str] = None,
+        interactive: Optional[bool] = True,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        every: float | None = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
+            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display on the top left corner of the plot.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+            elem_id: Unique id used for custom css targetting.
+        """
+        self.x = x
+        self.y = y
+        self.color = color
+        self.stroke_dash = stroke_dash
+        self.tooltip = tooltip
+        self.title = title
+        self.x_title = x_title
+        self.y_title = y_title
+        self.color_legend_title = color_legend_title
+        self.stroke_dash_legend_title = stroke_dash_legend_title
+        self.color_legend_position = color_legend_position
+        self.stroke_dash_legend_position = stroke_dash_legend_position
+        self.overlay_point = overlay_point
+        self.x_lim = x_lim
+        self.y_lim = y_lim
+        self.caption = caption
+        self.interactive_chart = interactive
+        self.width = width
+        self.height = height
+        super().__init__(
+            value=value,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            every=every,
+        )
+
+    def get_config(self):
+        config = super().get_config()
+        config["caption"] = self.caption
+        return config
+
+    def get_block_name(self) -> str:
+        return "plot"
+
+    @staticmethod
+    def update(
+        value: Optional[pd.DataFrame] = _Keywords.NO_VALUE,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        interactive: Optional[bool] = None,
+        caption: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        """Update an existing plot component.
+
+        If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
+
+        Parameters:
+            value: The pandas dataframe containing the data to display in a scatter plot.
+            x: Column corresponding to the x axis.
+            y: Column corresponding to the y axis.
+            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
+            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            title: The title to display on top of the chart.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            x_title: The title given to the x axis. By default, uses the value of the x parameter.
+            y_title: The title given to the y axis. By default, uses the value of the y parameter.
+            color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
+            stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            height: The height of the plot in pixels.
+            width: The width of the plot in pixels.
+            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
+            y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
+            caption: The (optional) caption to display below the plot.
+            interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
+            label: The (optional) label to display in the top left corner of the plot.
+            show_label: Whether the label should be displayed.
+            visible: Whether the plot should be visible.
+        """
+        properties = [
+            x,
+            y,
+            color,
+            stroke_dash,
+            overlay_point,
+            title,
+            tooltip,
+            x_title,
+            y_title,
+            color_legend_title,
+            stroke_dash_legend_title,
+            color_legend_position,
+            stroke_dash_legend_position,
+            height,
+            width,
+            x_lim,
+            y_lim,
+            interactive,
+        ]
+        if any(properties):
+            if value is _Keywords.NO_VALUE:
+                raise ValueError(
+                    "In order to update plot properties the value parameter "
+                    "must be provided. Please pass a value parameter to "
+                    "gr.LinePlot.update."
+                )
+            if x is None or y is None:
+                raise ValueError(
+                    "In order to update plot properties, the x and y axis data "
+                    "must be specified. Please pass valid values for x an y to "
+                    "gr.LinePlot.update."
+                )
+            chart = LinePlot.create_plot(value, *properties)
+            value = {"type": "altair", "plot": chart.to_json(), "chart": "line"}
+
+        updated_config = {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "caption": caption,
+            "__type__": "update",
+        }
+        return updated_config
+
+    @staticmethod
+    def create_plot(
+        value: pd.DataFrame,
+        x: str,
+        y: str,
+        color: Optional[str] = None,
+        stroke_dash: Optional[str] = None,
+        overlay_point: Optional[bool] = None,
+        title: Optional[str] = None,
+        tooltip: Optional[List[str] | str] = None,
+        x_title: Optional[str] = None,
+        y_title: Optional[str] = None,
+        color_legend_title: Optional[str] = None,
+        stroke_dash_legend_title: Optional[str] = None,
+        color_legend_position: Optional[str] = None,
+        stroke_dash_legend_position: Optional[str] = None,
+        height: Optional[int] = None,
+        width: Optional[int] = None,
+        x_lim: Optional[List[int]] = None,
+        y_lim: Optional[List[int]] = None,
+        interactive: Optional[bool] = None,
+    ):
+        """Helper for creating the scatter plot."""
+        interactive = True if interactive is None else interactive
+        encodings = dict(
+            x=alt.X(
+                x,
+                title=x_title or x,
+                scale=AltairPlot.create_scale(x_lim),
+            ),
+            y=alt.Y(
+                y,
+                title=y_title or y,
+                scale=AltairPlot.create_scale(y_lim),
+            ),
+        )
+        properties = {}
+        if title:
+            properties["title"] = title
+        if height:
+            properties["height"] = height
+        if width:
+            properties["width"] = width
+
+        if color:
+            domain = value[color].unique().tolist()
+            range_ = list(range(len(domain)))
+            encodings["color"] = {
+                "field": color,
+                "type": "nominal",
+                "scale": {"domain": domain, "range": range_},
+                "legend": AltairPlot.create_legend(
+                    position=color_legend_position, title=color_legend_title or color
+                ),
+            }
+
+        highlight = None
+        if interactive and any([color, stroke_dash]):
+            highlight = alt.selection(
+                type="single",
+                on="mouseover",
+                fields=[c for c in [color, stroke_dash] if c],
+                nearest=True,
+            )
+
+        if stroke_dash:
+            stroke_dash = {
+                "field": stroke_dash,
+                "legend": AltairPlot.create_legend(
+                    position=stroke_dash_legend_position,
+                    title=stroke_dash_legend_title or stroke_dash,
+                ),
+            }
+        else:
+            stroke_dash = alt.value(alt.Undefined)
+
+        if tooltip:
+            encodings["tooltip"] = tooltip
+
+        chart = alt.Chart(value).encode(**encodings)
+
+        points = chart.mark_point(clip=True).encode(
+            opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0),
+        )
+        lines = chart.mark_line(clip=True).encode(strokeDash=stroke_dash)
+
+        if highlight:
+            points = points.add_selection(highlight)
+
+            lines = lines.encode(
+                size=alt.condition(highlight, alt.value(4), alt.value(1)),
+            )
+
+        chart = (lines + points).properties(background="transparent", **properties)
+        if interactive:
+            chart = chart.interactive()
+
+        return chart
+
+    def postprocess(self, y: pd.DataFrame | Dict | None) -> Dict[str, str] | None:
+        # if None or update
+        if y is None or isinstance(y, Dict):
+            return y
+        chart = self.create_plot(
+            value=y,
+            x=self.x,
+            y=self.y,
+            color=self.color,
+            overlay_point=self.overlay_point,
+            title=self.title,
+            tooltip=self.tooltip,
+            x_title=self.x_title,
+            y_title=self.y_title,
+            color_legend_title=self.color_legend_title,
+            color_legend_position=self.color_legend_position,
+            stroke_dash_legend_title=self.stroke_dash_legend_title,
+            stroke_dash_legend_position=self.stroke_dash_legend_position,
+            x_lim=self.x_lim,
+            y_lim=self.y_lim,
+            stroke_dash=self.stroke_dash,
             interactive=self.interactive_chart,
             height=self.height,
             width=self.width,
         )
 
-        return {"type": "altair", "plot": chart.to_json(), "chart": "scatter"}
+        return {"type": "altair", "plot": chart.to_json(), "chart": "line"}
 
 
 @document("change")
@@ -4426,6 +4839,7 @@ class Dataset(Clickable, Component):
         samples: List[List[Any]] = None,
         headers: Optional[List[str]] = None,
         type: str = "values",
+        samples_per_page: int = 10,
         visible: bool = True,
         elem_id: Optional[str] = None,
         **kwargs,
@@ -4436,6 +4850,7 @@ class Dataset(Clickable, Component):
             samples: a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
             headers: Column headers in the Dataset widget, should be the same len as components. If not provided, inferred from component labels
             type: 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
+            samples_per_page: how many examples to show per page.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
@@ -4453,6 +4868,7 @@ class Dataset(Clickable, Component):
             self.headers = []
         else:
             self.headers = [c.label or "" for c in self.components]
+        self.samples_per_page = samples_per_page
 
     def get_config(self):
         return {
@@ -4461,6 +4877,7 @@ class Dataset(Clickable, Component):
             "samples": self.samples,
             "type": self.type,
             "label": self.label,
+            "samples_per_page": self.samples_per_page,
             **Component.get_config(self),
         }
 

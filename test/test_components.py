@@ -493,6 +493,10 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
 
+        cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
+        assert cbox.get_config()["value"] == ["c"]
+        assert cbox.postprocess("a") == ["a"]
+
     def test_in_interface(self):
         """
         Interface, process
@@ -1913,6 +1917,7 @@ def test_dataset_calls_as_example(*mocks):
 
 
 cars = vega_datasets.data.cars()
+stocks = vega_datasets.data.stocks()
 
 
 class TestScatterPlot:
@@ -1974,6 +1979,15 @@ class TestScatterPlot:
         assert config["height"] == 100
         assert config["width"] == 200
 
+    def test_xlim_ylim(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", x_lim=[200, 400], y_lim=[300, 500]
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["scale"] == {"domain": [200, 400]}
+        assert config["encoding"]["y"]["scale"] == {"domain": [300, 500]}
+
     def test_color_encoding(self):
         plot = gr.ScatterPlot(
             x="Horsepower",
@@ -2012,6 +2026,49 @@ class TestScatterPlot:
         assert config["encoding"]["shape"]["field"] == "Origin"
         assert config["encoding"]["shape"]["type"] == "nominal"
 
+    def test_legend_position(self):
+        plot = gr.ScatterPlot(
+            show_label=False,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            color_legend_position="none",
+            color_legend_title="Foo",
+            shape="Origin",
+            shape_legend_position="none",
+            shape_legend_title="Bar",
+            size="Acceleration",
+            size_legend_title="Accel",
+            size_legend_position="none",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["legend"] is None
+        assert config["encoding"]["shape"]["legend"] is None
+        assert config["encoding"]["size"]["legend"] is None
+
+        output = gr.ScatterPlot.update(
+            value=cars,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            color_legend_position="top",
+            color_legend_title="Foo",
+            shape="Origin",
+            shape_legend_position="bottom",
+            shape_legend_title="Bar",
+            size="Acceleration",
+            size_legend_title="Accel",
+            size_legend_position="left",
+        )
+
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["color"]["legend"]["orient"] == "top"
+        assert config["encoding"]["shape"]["legend"]["orient"] == "bottom"
+        assert config["encoding"]["size"]["legend"]["orient"] == "left"
+
     def test_update(self):
         output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
         postprocessed = gr.ScatterPlot().postprocess(output["value"])
@@ -2040,6 +2097,167 @@ class TestScatterPlot:
             x="Horsepower",
             y="Miles_per_Gallon",
             color="Origin",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)
+
+
+class TestLinePlot:
+    def test_get_config(self):
+        assert gr.LinePlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+        }
+
+    def test_no_color(self):
+        plot = gr.LinePlot(
+            x="date",
+            y="price",
+            tooltip=["symbol", "price"],
+            title="Stock Performance",
+            x_title="Trading Day",
+        )
+        output = plot.postprocess(stocks)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["mark"]["type"] in ["line", "point"]
+            assert layer["encoding"]["x"]["field"] == "date"
+            assert layer["encoding"]["x"]["title"] == "Trading Day"
+            assert layer["encoding"]["y"]["field"] == "price"
+
+        assert config["title"] == "Stock Performance"
+        assert "height" not in config
+        assert "width" not in config
+
+    def test_height_width(self):
+        plot = gr.LinePlot(x="date", y="price", height=100, width=200)
+        output = plot.postprocess(stocks)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+        output = gr.LinePlot.update(stocks, x="date", y="price", height=100, width=200)
+        config = json.loads(output["value"]["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+    def test_xlim_ylim(self):
+        plot = gr.LinePlot(x="date", y="price", x_lim=[200, 400], y_lim=[300, 500])
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["encoding"]["x"]["scale"] == {"domain": [200, 400]}
+            assert layer["encoding"]["y"]["scale"] == {"domain": [300, 500]}
+
+    def test_color_encoding(self):
+        plot = gr.LinePlot(
+            x="date", y="price", tooltip="symbol", color="symbol", overlay_point=True
+        )
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["encoding"]["color"]["field"] == "symbol"
+            assert layer["encoding"]["color"]["scale"] == {
+                "domain": ["MSFT", "AMZN", "IBM", "GOOG", "AAPL"],
+                "range": [0, 1, 2, 3, 4],
+            }
+            assert layer["encoding"]["color"]["type"] == "nominal"
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["opacity"] == {}
+
+    def test_two_encodings(self):
+        output = gr.LinePlot.update(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_title="Color",
+            stroke_dash_legend_title="Stroke Dash",
+        )
+        config = json.loads(output["value"]["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["opacity"] == {"value": 0}
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["field"] == "symbol"
+                assert (
+                    layer["encoding"]["strokeDash"]["legend"]["title"] == "Stroke Dash"
+                )
+
+    def test_legend_position(self):
+        plot = gr.LinePlot(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_position="none",
+            stroke_dash_legend_position="none",
+        )
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["color"]["legend"] is None
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["legend"] is None
+                assert layer["encoding"]["color"]["legend"] is None
+
+        output = gr.LinePlot.update(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_position="top-right",
+            stroke_dash_legend_position="top-left",
+        )
+
+        config = json.loads(output["value"]["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["legend"]["orient"] == "top-left"
+                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
+
+    def test_update_visibility(self):
+        output = gr.LinePlot.update(visible=False)
+        assert not output["visible"]
+        assert output["value"] is gr.components._Keywords.NO_VALUE
+
+    def test_update_errors(self):
+        with pytest.raises(
+            ValueError, match="In order to update plot properties the value parameter"
+        ):
+            gr.LinePlot.update(x="foo", y="bar")
+
+        with pytest.raises(
+            ValueError,
+            match="In order to update plot properties, the x and y axis data",
+        ):
+            gr.LinePlot.update(value=stocks, x="foo")
+
+    def test_lineplot_accepts_fn_as_value(self):
+        plot = gr.LinePlot(
+            value=lambda: stocks.sample(frac=0.1, replace=False),
+            x="date",
+            y="price",
+            color="symbol",
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)
