@@ -46,7 +46,7 @@
 		data-testid={test_id}
 		id={elem_id}
 		class:!hidden={visible === false}
-		class="gr-block {styles[variant]} {styles[color]} {classes}"
+		class="{styles[variant]} {styles[color]} {classes}"
 		class:padded={padding}
 		style={size_style || null}
 	>

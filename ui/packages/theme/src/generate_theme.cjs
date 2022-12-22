@@ -298,10 +298,26 @@ const theme_light = {
 		}
 	},
 	gallery: {
+		label: {
+			background: {
+				base: "var(--color-grey-50)",
+				hover: "var(--color-grey-50)"
+			},
+			border: {
+				radius: "var(--radius-lg)",
+				color: {
+					base: "color.border.primary",
+					hover: "color.border.primary"
+				}
+			}
+		},
 		thumb: {
+			background: {
+				base: "var(--color-grey-100)",
+				hover: "white"
+			},
 			border: {
 				radius: "var(--radius-sm)",
-				// width: "",
 				style: {
 					base: "solid",
 					hover: "solid",
@@ -508,12 +524,28 @@ const theme_dark = {
 		}
 	},
 	gallery: {
-		thumb: {
+		label: {
+			background: {
+				base: "var(--color-grey-50)",
+				hover: "var(--color-grey-50)"
+			},
 			border: {
 				color: {
 					base: "color.border.primary",
-					hover: "color.accent.light",
-					focus: "color.focus.secondary",
+					hover: "color.border.primary"
+				}
+			}
+		},
+		thumb: {
+			background: {
+				base: "var(--color-grey-900)",
+				hover: "var(--color-grey-900)"
+			},
+			border: {
+				color: {
+					base: "color.border.primary",
+					hover: "color.accent.base",
+					focus: "var(--color-blue-500)",
 					selected: "color.accent.base"
 				}
 			}
