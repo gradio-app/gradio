@@ -1,10 +1,8 @@
 // @ts-nocheck
 const tw_theme = require("tailwindcss/defaultTheme");
 
-const colors = require("tailwindcss/colors");
 const fs = require("fs");
 const path = require("path");
-const { borderRadius, borderWidth, spacing } = tw_theme;
 
 const foundation_light = {
 	color: {
@@ -19,7 +17,7 @@ const foundation_light = {
 			tertiary: "white"
 		},
 		text: {
-			body: "var(--color-grey-700)",
+			body: "var(--color-grey-800)",
 			label: "var(--color-grey)",
 			placeholder: "var(--color-grey-400)",
 			subdued: "var(--color-grey-400)",
