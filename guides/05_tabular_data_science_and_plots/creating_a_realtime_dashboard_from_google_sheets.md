@@ -22,7 +22,7 @@ If you want to build a dashboard from a Google Sheet that is public, then loadin
 https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQwpU/edit#gid=0
 ```
 
-2. Now, let's use this URL to read the data from the Google Sheets into a Pandas DataFrame. Note that we tweak the URL slightly to export the Google Sheet into a CSV that can be read by `pandas` (replace the `URL` variable with the URL of your public Google Sheet):
+2. Now, let's modify this URL and then use it to read the data from the Google Sheets into a Pandas DataFrame. (In the code below, replace the `URL` variable with the URL of your public Google Sheet):
 
 ```py
 import pandas as pd
@@ -34,7 +34,7 @@ def get_data():
     return pd.read_csv(csv_url)
 ```
 
-3. We've made the data query a function, which means that, it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component. To do this, we just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) we would like the component to refresh. Here's the Gradio code:
+3. We've made the data query a function, which means that it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component (of course, depending on the data, a different plot may be appropriate). To do this, we just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) we would like the component to refresh. Here's the Gradio code:
 
 ```py
 import gradio as gr
@@ -98,7 +98,7 @@ https://docs.google.com/spreadsheets/d/1UoKzzRzOCt-FXLLqDKLbryEKEgllGAQUEJ5qtmmQ
 ```
 
 
-2. Install the `gspread` library, which makes it easy to work with the Google Sheets API in Python: `pip install gspread`
+2. Install the `gspread` library, which makes it easy to work with the Google Sheets API in Python by running in the terminal: `pip install gspread`
 
 3. Write a function to load the data from the Google Sheet, like this (replace the `URL` variable with the URL of your private Google Sheet):
 
@@ -120,7 +120,7 @@ def get_data():
 
 ```
 
-3. We've made the data query a function, which means that, it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component. To do this, we just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) we would like the component to refresh. Here's the Gradio code:
+3. We've made the data query a function, which means that it's easy to display it real-time using the the `gr.DataFrame` component, or plot it real-time using the `gr.LinePlot` component (of course, depending on the data, a different plot may be appropriate). To do this, we just pass the function into the respective components, and set the `every` parameter based on how frequently (in seconds) we would like the component to refresh. Here's the Gradio code:
 
 ```py
 import gradio as gr
@@ -136,12 +136,12 @@ with gr.Blocks() as demo:
 demo.queue().launch()  # Run the demo with queuing enabled
 ```
  
-And that's it! You have a Dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
+You now have a Dashboard that refreshes every 5 seconds, pulling the data from your Google Sheet.
 
 
 ## Conclusion
 
-And that's all there is to it! With just a few lines of code, you can use `gradio` and other libraries to read data from a public or private Google Sheet and then display the data in a real-time dashboard.
+And that's all there is to it! With just a few lines of code, you can use `gradio` and other libraries to read data from a public or private Google Sheet and then display and plot the data in a real-time dashboard.
 
 
 
