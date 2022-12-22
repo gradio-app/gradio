@@ -8,6 +8,7 @@
 	let mode = "light";
 
 	$: console.log(mode);
+	export const ssr = false;
 </script>
 
 <svelte:head>
