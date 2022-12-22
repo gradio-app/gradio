@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
+import markupsafe
 import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
@@ -31,7 +32,6 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from jinja2.utils import htmlsafe_json_dumps
 from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
@@ -73,7 +73,13 @@ class ORJSONResponse(JSONResponse):
 
 
 def toorjson(value):
-    return htmlsafe_json_dumps(value, dumps=ORJSONResponse._render_str)
+    return markupsafe.Markup(
+        ORJSONResponse._render_str(value)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("'", "\\u0027")
+    )
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
@@ -254,17 +260,17 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
-            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
-                Path(temp_dir).resolve() in Path(path).resolve().parents
-                for temp_dir in app.blocks.temp_dirs
-            ):
+            if Path(app.cwd).resolve() in Path(
+                path
+            ).resolve().parents or os.path.abspath(path) in set().union(
+                *app.blocks.temp_file_sets
+            ):  # Need to use os.path.abspath in the second condition to be consistent with usage in TempFileManager
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}, perhaps because "
-                    f"it is not in any of {app.blocks.temp_dirs}"
+                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -531,7 +537,6 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, and `path_params`,
-
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -545,6 +550,8 @@ class Request:
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
+        Parameters:
+            request: A fastapi.Request
         """
         self.request: fastapi.Request = request
         self.kwargs: Dict = kwargs

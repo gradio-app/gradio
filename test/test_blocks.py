@@ -3,10 +3,12 @@ import copy
 import io
 import json
 import os
+import pathlib
 import random
 import sys
 import time
 import unittest.mock as mock
+import warnings
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
@@ -70,6 +72,20 @@ class TestBlocksMethods:
             demo.launch(prevent_thread_lock=True)
             assert demo.share
             demo.close()
+
+    def test_default_enabled_deprecated(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with pytest.warns(
+            UserWarning, match="The default_enabled parameter of queue has no effect"
+        ):
+            io.queue(default_enabled=True)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            io.queue()
+        for warning in record:
+            assert "default_enabled" not in str(warning.message)
 
     def test_xray(self):
         def fake_func():
@@ -283,9 +299,9 @@ class TestComponentsInBlocks:
         for component in demo.blocks.values():
             if isinstance(component, gr.components.IOComponent):
                 if "Non-random" in component.label:
-                    assert not component.attach_load_event
+                    assert not component.load_event
                 else:
-                    assert component.attach_load_event
+                    assert component.load_event
         dependencies_on_load = [
             dep["trigger"] == "load" for dep in demo.config["dependencies"]
         ]
@@ -294,12 +310,10 @@ class TestComponentsInBlocks:
         assert not any([dep["queue"] for dep in demo.config["dependencies"]])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [
-            comp for comp in io_components if comp not in [gr.State, gr.ScatterPlot]
-        ]
+        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
-            inputs=[comp(value=lambda: None) for comp in io_components],
+            inputs=[comp(value=lambda: None, every=1) for comp in io_components],
             outputs=None,
         )
 
@@ -307,10 +321,20 @@ class TestComponentsInBlocks:
             dep for dep in interface.config["dependencies"] if dep["trigger"] == "load"
         ]
         assert len(dependencies_on_load) == len(io_components)
+        assert all([dep["every"] == 1 for dep in dependencies_on_load])
+
+    def test_get_load_events(self, io_components):
+        components = []
+        with gr.Blocks() as demo:
+            for component in io_components:
+                components.append(component(value=lambda: None, every=1))
+        assert [comp.load_event for comp in components] == demo.dependencies
 
     def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
-            c() for c in io_components if c not in [gr.State, gr.Button, gr.ScatterPlot]
+            c()
+            for c in io_components
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
@@ -323,7 +347,7 @@ class TestComponentsInBlocks:
             )
 
         output = demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+            0, [gr.update(value=None) for _ in io_components], state={}
         )
         assert all(
             [o["value"] == c.postprocess(None) for o, c in zip(output, io_components)]
@@ -339,7 +363,7 @@ class TestComponentsInBlocks:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state={})
         assert output[0]["value"] == "NO_VALUE"
 
     def test_blocks_returns_correct_output_dict_single_key(self):
@@ -353,12 +377,10 @@ class TestComponentsInBlocks:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(
-            0, {num2: gr.Number.update(value=42)}, state=None
-        )
+        output = demo.postprocess_data(0, {num2: gr.Number.update(value=42)}, state={})
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        output = demo.postprocess_data(0, {num2: 23}, state={})
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -1172,3 +1194,19 @@ async def test_queue_when_using_auth():
         *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
     )
     await group
+
+
+def test_temp_file_sets_get_extended():
+    test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+
+    with gr.Blocks() as demo1:
+        gr.Video(str(test_file_dir / "video_sample.mp4"))
+
+    with gr.Blocks() as demo2:
+        gr.Audio(str(test_file_dir / "audio_sample.wav"))
+
+    with gr.Blocks() as demo3:
+        demo1.render()
+        demo2.render()
+
+    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
