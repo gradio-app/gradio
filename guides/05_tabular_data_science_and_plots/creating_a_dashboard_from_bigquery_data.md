@@ -1,5 +1,8 @@
 # Creating a Real-Time Dashboard from BigQuery Data
 
+Tags: TABULAR, DASHBOARD, PLOTS 
+
+
 [Google BigQuery](https://cloud.google.com/bigquery) is a cloud-based service for processing very large data sets. It is a serverless and highly scalable data warehousing solution that enables users to analyze data [using SQL-like queries](https://www.oreilly.com/library/view/google-bigquery-the/9781492044451/ch01.html).
 
 In this tutorial, we will show you how to query a BigQuery dataset in Python and display the data in a dashboard that updates in real time using `gradio`. The dashboard will look like this:
