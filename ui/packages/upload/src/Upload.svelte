@@ -72,10 +72,8 @@
 </script>
 
 <div
-	class="w-full cursor-pointer h-full  items-center justify-center text-gray-400 md:text-xl {boundedheight
-		? 'min-h-[10rem] md:min-h-[15rem] max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem]'
-		: ''}"
-	class:text-center={center}
+	class:center
+	class:boundedheight
 	class:flex
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
@@ -91,7 +89,6 @@
 >
 	<slot />
 	<input
-		class="hidden-upload hidden"
 		type="file"
 		bind:this={hidden_upload}
 		on:change={loadFilesFromUpload}
@@ -101,3 +98,25 @@
 		mozdirectory={file_count === "directory" || undefined}
 	/>
 </div>
+
+<style>
+	div {
+		width: var(--size-full);
+		height: var(--size-full);
+		min-height: var(--size-40);
+		cursor: pointer;
+	}
+
+	.center {
+		text-align: center;
+	}
+	.flex {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	input {
+		display: none;
+	}
+</style>
