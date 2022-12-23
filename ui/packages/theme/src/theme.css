@@ -147,6 +147,8 @@
 	--chatbot-bot-text-color-latest: white;
 	--chatbot-bot-border-color-base: transparent;
 	--chatbot-bot-border-color-latest: transparent;
+	--label-gradient-from: var(--color-orange-400);
+	--label-gradient-to: var(--color-orange-200);
 
 }
 
@@ -256,5 +258,7 @@
 	--chatbot-bot-background-latest: ;
 	--chatbot-bot-text-color-base: white;
 	--chatbot-bot-text-color-latest: white;
+	--label-gradient-from: var(--color-orange-400);
+	--label-gradient-to: var(--color-orange-600);
 	
 }

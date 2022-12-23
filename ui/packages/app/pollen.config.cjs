@@ -4,6 +4,10 @@ module.exports = defineConfig((pollen) => {
 	console.log(pollen);
 	return {
 		modules: {
+			font: {
+				...pollen.font,
+				mono: `IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`
+			},
 			radius: {
 				...pollen.radius,
 
