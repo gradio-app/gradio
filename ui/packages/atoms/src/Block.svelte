@@ -45,7 +45,7 @@
 		this={tag}
 		data-testid={test_id}
 		id={elem_id}
-		class:!hidden={visible === false}
+		class:hidden={visible === false}
 		class="{styles[variant]} {styles[color]} {classes}"
 		class:padded={padding}
 		style={size_style || null}
@@ -69,5 +69,9 @@
 
 	.padded {
 		padding: var(--size-2-5) var(--size-3);
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>
