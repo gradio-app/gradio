@@ -106,13 +106,9 @@
 	}
 </script>
 
-<div class="h-full min-h-[15rem] w-full relative">
+<div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video
-		bind:this={video_source}
-		class="h-full w-full "
-		class:scale-x-[-1]={mirror_webcam}
-	/>
+	<video bind:this={video_source} class:scale-x-[-1]={mirror_webcam} />
 	{#if !streaming}
 		<button
 			on:click={mode === "image" ? take_picture : take_recording}
@@ -120,19 +116,57 @@
 		>
 			{#if mode === "video"}
 				{#if recording}
-					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<div class="icon">
 						<Square />
 					</div>
 				{:else}
-					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<div class="icon ">
 						<Circle />
 					</div>
 				{/if}
 			{:else}
-				<div class="w-2/4 h-2/4 text-white opacity-80">
+				<div class="icon">
 					<Camera />
 				</div>
 			{/if}
 		</button>
 	{/if}
 </div>
+
+<style>
+	.wrap {
+		height: var(--size-full);
+		width: var(--size-full);
+		min-height: var(--size-60);
+		position: relative;
+	}
+
+	video {
+		height: var(--size-full);
+		width: var(--size-full);
+	}
+
+	button {
+		border-radius: var(--radius-xl);
+		width: var(--size-10);
+		height: var(--size-10);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		left: 0px;
+		right: 0px;
+		bottom: var(--size-2);
+		margin: auto;
+		box-shadow: var(--shadow-drop-lg);
+		background-color: rgba(0, 0, 0, 0.9);
+		/*  md:bottom-4 xl:bottom-8 */
+	}
+
+	.icon {
+		width: 50%;
+		height: 50%;
+		opacity: 0.8;
+		color: white;
+	}
+</style>

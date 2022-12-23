@@ -179,7 +179,6 @@
 
 <style>
 	.wrap {
-		/* mt-3 */
 		margin-top: var(--size-3);
 	}
 
