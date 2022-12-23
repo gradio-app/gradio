@@ -354,6 +354,12 @@ const theme_light = {
 			text: { color: { base: "white", latest: "white" } },
 			border: { color: { base: "transparent", latest: "transparent" } }
 		}
+	},
+	label: {
+		gradient: {
+			from: "var(--color-orange-400)",
+			to: "var(--color-orange-200)"
+		}
 	}
 };
 
@@ -563,6 +569,12 @@ const theme_dark = {
 		bot: {
 			background: { base: "", latest: "" }, // grey-400
 			text: { color: { base: "white", latest: "white" } }
+		}
+	},
+	label: {
+		gradient: {
+			from: "var(--color-orange-400)",
+			to: "var(--color-orange-600)"
 		}
 	}
 };

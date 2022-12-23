@@ -32,7 +32,8 @@
   --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu,
     Cantarell, Helvetica Neue;
   --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: Consolas, Menlo, Monaco, "Liberation Mono", monospace;
+  --font-mono: IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
   --weight-light: 300;
   --weight-regular: 400;
   --weight-medium: 500;
