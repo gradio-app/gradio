@@ -16,11 +16,22 @@
 
 <div
 	id={elem_id}
-	class:min-h-[6rem]={min_height}
-	class="output-markdown gr-prose"
-	class:hidden={!visible}
-	style="max-width: 100%"
+	class:min={min_height}
+	class="gr-prose"
+	class:hide={!visible}
 	bind:this={target}
 >
 	{@html value}
 </div>
+
+<style>
+	div {
+		max-width: 100%;
+	}
+	.min {
+		min-height: var(--size-24);
+	}
+	.hide {
+		display: none;
+	}
+</style>
