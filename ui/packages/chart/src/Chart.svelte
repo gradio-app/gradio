@@ -56,14 +56,11 @@
 	});
 </script>
 
-<div class="mt-3">
-	<div class="flex justify-center items-center text-sm dark:text-slate-200">
+<div class="wrap">
+	<div class="legend">
 		{#each _y as { name }}
-			<div class="mx-2 flex gap-1 items-center">
-				<span
-					class="inline-block w-[12px] h-[12px] rounded-sm "
-					style="background-color: {color_map[name]}"
-				/>
+			<div class="legend-item">
+				<span class="legend-box" style="background-color: {color_map[name]}" />
 				{name}
 			</div>
 		{/each}
@@ -84,7 +81,7 @@
 					stroke="#aaa"
 				/>
 				<text
-					class="font-mono text-xs dark:fill-slate-200"
+					class="label-text"
 					text-anchor="middle"
 					x={scale_x(tick)}
 					y={scale_y(y_ticks[0]) + 30}
@@ -108,7 +105,7 @@
 				/>
 
 				<text
-					class="font-mono text-xs dark:fill-slate-200"
+					class="label-text"
 					text-anchor="end"
 					y={scale_y(tick) + 4}
 					x={scale_x(x_ticks[0]) - 20}
@@ -127,7 +124,7 @@
 					stroke="#aaa"
 				/>
 				<text
-					class="font-mono text-xs dark:fill-slate-200"
+					class="label-text"
 					text-anchor="end"
 					y={scale_y(y_domain[1]) + 4}
 					x={scale_x(x_ticks[0]) - 20}
@@ -175,9 +172,56 @@
 		{/each}
 	</svg>
 
-	<div
-		class="flex justify-center align-items-center text-sm dark:text-slate-200"
-	>
+	<div class="main-label">
 		{_x.name}
 	</div>
 </div>
+
+<style>
+	.wrap {
+		/* mt-3 */
+		margin-top: var(--size-3);
+	}
+
+	.legend {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: var(--scale-00);
+		color: var(--color-text-body);
+	}
+
+	.legend-item {
+		margin-left: var(--size-2);
+		margin-right: var(--size-2);
+		display: flex;
+		gap: var(--size-1);
+		align-items: center;
+	}
+
+	.legend-box {
+		display: inline-block;
+		width: var(--size-3);
+		height: var(--size-3);
+		border-radius: var(--radius-xs);
+	}
+
+	svg {
+		/* w-full */
+		width: var(--size-full);
+	}
+
+	.label-text {
+		font-family: var(--font-mono);
+		font-size: var(--scale-000);
+		fill: var(--color-text-body);
+	}
+
+	.main-label {
+		font-size: var(--scale-00);
+		color: var(--color-text-body);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+</style>

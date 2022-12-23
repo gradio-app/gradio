@@ -14,7 +14,7 @@
 <button
 	on:click
 	class:!hidden={!visible}
-	class="gr-button {size} {variant}
+	class="{size} {variant}
 		{classes}"
 	id={elem_id}
 >
