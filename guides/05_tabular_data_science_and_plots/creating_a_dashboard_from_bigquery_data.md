@@ -17,7 +17,7 @@ We'll cover the following steps in this Guide:
 
 We'll be working with the [New York Times' COVID dataset](https://www.nytimes.com/interactive/2021/us/covid-cases.html) that is available as a public dataset on BigQuery. The dataset, named `covid19_nyt.us_counties` contains the latest information about the number of confirmed cases and deaths from COVID across US counties. 
 
-**Prerequisites**: This Guide uses [Gradio Blocks](../01_getting_started/01_quickstart.md#blocks-more-flexibility-and-control), so make your are familiar with the Blocks class. 
+**Prerequisites**: This Guide uses [Gradio Blocks](../quickstart/#blocks-more-flexibility-and-control), so make your are familiar with the Blocks class. 
 
 ## Setting up your BigQuery Credentials
 
