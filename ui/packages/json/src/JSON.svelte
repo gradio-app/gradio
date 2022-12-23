@@ -29,19 +29,52 @@
 	});
 </script>
 
-<button
-	on:click={handle_copy}
-	class="transition-color overflow-hidden font-sans absolute right-0 top-0  rounded-bl-lg shadow-sm text-xs text-gray-500 flex items-center  bg-white z-20 border-l border-b border-gray-100 dark:text-slate-200"
->
-	<span class="py-1 px-2">{copy_to_clipboard}</span>
+<button on:click={handle_copy}>
+	<span class="copy-text">{copy_to_clipboard}</span>
 	{#if copied}
 		<span
 			in:fade={{ duration: 100 }}
 			out:fade={{ duration: 350 }}
-			class="font-bold dark:text-green-400 text-green-600 py-1 px-2 absolute block w-full text-left bg-white dark:bg-gray-900"
-			>COPIED</span
+			class="copy-success ">COPIED</span
 		>
 	{/if}
 </button>
 
 <JSONNode {value} depth={0} />
+
+<style>
+	button {
+		font: var(--font-sans);
+		display: flex;
+		align-items: center;
+		position: absolute;
+		right: 0;
+		top: 0;
+		overflow: hidden;
+		background: var(--block_label-background);
+		border: 1px solid var(--block_label-border-color);
+		border-bottom-left-radius: var(--block_label-border-radius);
+		border-top: none;
+		border-right: none;
+		border-bottom-left-radius: var(--block_label-border-radius);
+		box-shadow: var(--shadow-drop);
+		font-size: var(--scale-000);
+		color: var(--color-text-label);
+		transition: 150ms;
+	}
+
+	.copy-text {
+		padding: var(--size-1) var(--size-2);
+	}
+
+	.copy-success {
+		font-weight: bold;
+		color: var(--color-functional-success);
+		padding: var(--size-1) var(--size-2);
+		position: absolute;
+		display: block;
+		width: var(--size-full);
+		text-align: left;
+		background: var(--block_label-background);
+	}
+</style>

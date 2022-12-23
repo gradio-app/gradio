@@ -29,8 +29,10 @@
   --scale-fluid-10: clamp(6rem, 4.8rem + 4vw, 8rem);
   --scale-fluid-000: clamp(0.625rem, 0.55rem + 0.25vw, 0.75rem);
   --scale-fluid-00: clamp(0.75rem, 0.675rem + 0.25vw, 0.875rem);
-  --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu,
-    Cantarell, Helvetica Neue;
+  --font-sans: Source Sans Pro, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
   --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, "Liberation Mono", "Courier New", monospace;

@@ -28,7 +28,9 @@
 					c: [1, "two", []]
 				}
 			]
-		}
+		},
+		e: null,
+		f: false
 	};
 </script>
 
