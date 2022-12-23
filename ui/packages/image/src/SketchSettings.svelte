@@ -18,15 +18,12 @@
 	$: width = container_height * (img_width / img_height);
 </script>
 
-<div class="z-50 top-10 right-2 justify-end flex gap-1 absolute">
-	<!-- <IconButton Icon={Undo} on:click={() => dispatch("undo")} /> -->
-
-	<span class="absolute top-0 right-0">
+<div class="wrap">
+	<span class="brush">
 		<IconButton Icon={Brush} on:click={() => (show_size = !show_size)} />
 		{#if show_size}
 			<input
 				bind:value={brush_radius}
-				class="absolute top-[2px] right-6"
 				type="range"
 				min={0.5 * (img_width / width)}
 				max={75 * (img_width / width)}
@@ -35,15 +32,40 @@
 	</span>
 
 	{#if mode !== "mask"}
-		<span class="absolute top-6 right-0">
+		<span class="col">
 			<IconButton Icon={Color} on:click={() => (show_col = !show_col)} />
 			{#if show_col}
-				<input
-					bind:value={brush_color}
-					class="absolute top-[-3px] right-6"
-					type="color"
-				/>
+				<input bind:value={brush_color} type="color" />
 			{/if}
 		</span>
 	{/if}
 </div>
+
+<style>
+	.wrap {
+		z-index: var(--layer-5);
+		position: absolute;
+		justify-content: flex-end;
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-1);
+		right: var(--size-2);
+		top: var(--size-10);
+	}
+	.brush {
+		top: 0;
+		right: 0;
+	}
+
+	.brush input {
+		position: absolute;
+		top: 3px;
+		right: calc(100% + 5px);
+	}
+
+	.col input {
+		position: absolute;
+		bottom: -4px;
+		right: calc(100% + 5px);
+	}
+</style>

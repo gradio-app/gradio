@@ -264,7 +264,7 @@
 					Stop recording
 				</button>
 			{:else}
-				<button class="" on:click={record}>
+				<button on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>

@@ -17,9 +17,31 @@
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 {#if value === null}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><Image /></div>
+	<div class="empty">
+		<div class="icon"><Image /></div>
 	</div>
 {:else}
-	<img class="w-full h-full object-contain" src={value} alt="" />
+	<img src={value} alt="" />
 {/if}
+
+<style>
+	.empty {
+		height: var(--size-full);
+		min-height: var(--size-60);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.icon {
+		height: var(--size-5);
+		color: var(--color-text-body);
+		opacity: 0.5;
+	}
+
+	img {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+</style>

@@ -8,16 +8,22 @@
 </script>
 
 {#if browser}
-	<Block>
+	<Block padding={false}>
 		<Image
 			label="Editor with upload"
 			value={null}
 			source={"upload"}
 			tool="editor"
-		/>
+		>
+			<div class="flex flex-col">
+				drop
+				<span class="text-gray-300">- or -</span>
+				upload
+			</div>
+		</Image>
 	</Block>
 	<span />
-	<Block>
+	<Block padding={false}>
 		<Image
 			label="Editor with webcam"
 			value={null}
@@ -26,7 +32,7 @@
 		/>
 	</Block>
 	<span />
-	<Block>
+	<Block padding={false}>
 		<Image
 			label="Editor with sketch"
 			value={null}
@@ -35,7 +41,7 @@
 		/>
 	</Block>
 	<span />
-	<Block>
+	<Block padding={false}>
 		<Image
 			label="Editor with color sketch"
 			value={null}
@@ -46,18 +52,23 @@
 
 	<span />
 
-	<Block>
+	<Block padding={false}>
 		<Image
 			label="Editor with cropper"
 			value={null}
 			source={"upload"}
 			tool="select"
-		/>
+			><div class="flex flex-col">
+				drop
+				<span class="text-gray-300">- or -</span>
+				upload
+			</div></Image
+		>
 	</Block>
 
 	<span />
 
-	<Block>
+	<Block padding={false}>
 		<StaticImage label="Static - no value" value={null} />
 	</Block>
 
