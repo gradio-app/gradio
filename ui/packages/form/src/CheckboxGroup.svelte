@@ -30,7 +30,7 @@
 
 <div class="wrap" data-testid="checkbox-group">
 	{#each choices as choice}
-		<label class:disabled class="gr-input-label  {item_container}">
+		<label class:disabled class={item_container}>
 			<input
 				{disabled}
 				on:change={() => toggleChoice(choice)}
