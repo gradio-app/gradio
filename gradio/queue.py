@@ -46,7 +46,6 @@ class Queue:
         self,
         live_updates: bool,
         concurrency_count: int,
-        data_gathering_start: int,
         update_intervals: int,
         max_size: Optional[int],
         blocks_dependencies: List,
@@ -55,7 +54,6 @@ class Queue:
         self.events_pending_reconnection = []
         self.stopped = False
         self.max_thread_count = concurrency_count
-        self.data_gathering_start = data_gathering_start
         self.update_intervals = update_intervals
         self.active_jobs: List[None | List[Event]] = [None] * concurrency_count
         self.delete_lock = asyncio.Lock()
@@ -314,8 +312,9 @@ class Queue:
                         if not is_alive:
                             return
                     old_response = response
+                    open_ws = []
                     for event in awake_events:
-                        await self.send_message(
+                        open = await self.send_message(
                             event,
                             {
                                 "msg": "process_generating",
@@ -323,6 +322,12 @@ class Queue:
                                 "success": old_response.status == 200,
                             },
                         )
+                        open_ws.append(open)
+                    awake_events = [
+                        e for e, is_open in zip(awake_events, open_ws) if is_open
+                    ]
+                    if not awake_events:
+                        return
                     response = await self.call_prediction(awake_events, batch)
                 for event in awake_events:
                     await self.send_message(

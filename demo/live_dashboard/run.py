@@ -1,9 +1,10 @@
 import math
+
+import pandas as pd
+
 import gradio as gr
 import datetime
-import plotly.express as px
 import numpy as np
-import time
 
 
 def get_time():
@@ -17,9 +18,18 @@ def get_plot(period=1):
     global plot_end
     x = np.arange(plot_end - 2 * math.pi, plot_end, 0.02)
     y = np.sin(2 * math.pi * period * x)
-    fig = px.line(x=x, y=y)
+    update = gr.LinePlot.update(
+        value=pd.DataFrame({"x": x, "y": y}),
+        x="x",
+        y="y",
+        title="Plot (updates every second)",
+        width=600,
+        height=350,
+    )
     plot_end += 2 * math.pi
-    return fig
+    if plot_end > 1000:
+        plot_end = 2 * math.pi
+    return update
 
 
 with gr.Blocks() as demo:
@@ -33,7 +43,7 @@ with gr.Blocks() as demo:
             period = gr.Slider(
                 label="Period of plot", value=1, minimum=0, maximum=10, step=1
             )
-            plot = gr.Plot(label="Plot (updates every second)")
+            plot = gr.LinePlot(show_label=False)
         with gr.Column():
             name = gr.Textbox(label="Enter your name")
             greeting = gr.Textbox(label="Greeting")

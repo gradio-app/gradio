@@ -1,6 +1,8 @@
 import gradio as gr 
 
-with gr.Blocks() as demo:
+css = "footer {display: none !important;} .gradio-container {min-height: 0px !important;}"
+
+with gr.Blocks(css=css) as demo:
     gr.Dataframe(interactive=True)
 
 demo.launch()
