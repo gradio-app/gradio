@@ -1,15 +1,64 @@
-<script>
+<script lang='ts'>
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
-
+	import { colors as color_palette, ordered_colors } from "@gradio/theme";
+	import { get_next_color } from "@gradio/utils";
+	import { Vega } from "svelte-vega";
 	import { afterUpdate, onDestroy } from "svelte";
+	import {create_config} from "./utils"
 
 	export let value;
 	export let target;
+	let spec = null;
+	export let colors: Array<string> = [];
+	export let theme: string;
+	export let caption: string;
+	
+	function get_color(index: number) {
+		let current_color = colors[index % colors.length];
+
+		if (current_color && current_color in color_palette) {
+			return color_palette[current_color as keyof typeof color_palette]
+				?.primary;
+		} else if (!current_color) {
+			return color_palette[get_next_color(index) as keyof typeof color_palette]
+				.primary;
+		} else {
+			return current_color;
+		}
+	}
+
+	$: darkmode = theme == "dark"
+
+	$: if(value && value.type == "altair") {
+		spec = JSON.parse(value['plot'])
+		const config = create_config(darkmode);
+		spec.config = config;
+		switch (value.chart || '') {
+			case "scatter":
+				if (spec.encoding.color && spec.encoding.color.type == 'nominal') {
+					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map((e, i) => get_color(i));
+				}
+				else if (spec.encoding.color && spec.encoding.color.type == 'quantitative') {
+					spec.encoding.color.scale.range = ['#eff6ff', '#1e3a8a'];
+					spec.encoding.color.scale.range.interpolate = "hsl";
+				}
+				break;
+			case "line":
+				spec.layer.forEach((d) => {
+					if (d.encoding.color) {
+						d.encoding.color.scale.range = d.encoding.color.scale.range.map((e, i) => get_color(i))
+					}
+				})
+				console.log(spec);
+			default:
+				break;
+		}
+	}
 
 	// Plotly
-	let plotDiv;
+	let plotDiv;	
 	let plotlyGlobalStyle;
 
 	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
@@ -109,6 +158,15 @@
 	<div bind:this={plotDiv} />
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
+{:else if value && value['type'] == "altair"}
+	<div class="flex flex-col justify-center items-center w-full h-full">
+		<Vega spec={spec} />
+		{#if caption}
+			<div class="flex justify-center text-xs w-full h-full text-black dark:text-slate-200 ">
+				{caption}
+			</div>
+		{/if}
+	</div>
 {:else if value && value["type"] == "matplotlib"}
 	<div class="output-image w-full flex justify-center items-center relative">
 		<!-- svelte-ignore a11y-missing-attribute -->

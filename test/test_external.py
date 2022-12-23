@@ -3,13 +3,15 @@ import os
 import pathlib
 import sys
 import textwrap
+import warnings
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 
 import gradio
 import gradio as gr
-from gradio import utils
+from gradio import media_data, utils
 from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
@@ -234,6 +236,27 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+        app, _, _ = io.launch(prevent_thread_lock=True, show_error=True)
+        client = TestClient(app)
+        resp = client.post(
+            "api/predict",
+            json={"fn_index": 0, "data": [media_data.BASE64_AUDIO], "name": "sample"},
+        )
+        try:
+            if resp.status_code != 200:
+                warnings.warn("Request for speech recognition model failed!")
+                if (
+                    "Could not complete request to HuggingFace API"
+                    in resp.json()["error"]
+                ):
+                    pass
+                else:
+                    assert False
+            else:
+                assert resp.json()["data"] is not None
+        finally:
+            io.close()
+
     def test_text_to_image_model(self):
         io = gr.Interface.load("models/osanseviero/BigGAN-deep-128")
         try:
@@ -359,6 +382,20 @@ def check_dataset(config, readme_examples):
         assert dataset["props"]["samples"] == [
             [utils.delete_none(cols_to_rows(readme_examples)[1])]
         ]
+
+
+def test_load_blocks_with_default_values():
+    io = gr.Interface.load("spaces/abidlabs/min-dalle")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/abidlabs/min-dalle-later")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/freddyaboulton/dataframe_load")
+    assert io.get_config_file()["components"][0]["props"]["value"] == {
+        "headers": ["a", "b"],
+        "data": [[1, 4], [2, 5], [3, 6]],
+    }
 
 
 @pytest.mark.parametrize(
