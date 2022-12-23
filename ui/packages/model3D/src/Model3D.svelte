@@ -84,9 +84,31 @@
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
 {#if value}
-	<canvas class="w-full h-full object-contain" bind:this={canvas} />
+	<canvas bind:this={canvas} />
 {:else}
-	<div class="h-full min-h-[16rem] flex justify-center items-center">
-		<div class="h-10 dark:text-white opacity-50"><File /></div>
+	<div class="empty">
+		<div class="icon"><File /></div>
 	</div>
 {/if}
+
+<style>
+	canvas {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+
+	.empty {
+		height: var(--size-full);
+		min-height: var(--size-64);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.icon {
+		height: var(--size-5);
+		color: var(--color-text-body);
+		opacity: 0.5;
+	}
+</style>
