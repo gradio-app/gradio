@@ -1653,7 +1653,7 @@ class Video(
         visible: bool = True,
         elem_id: Optional[str] = None,
         mirror_webcam: bool = True,
-        include_audio: bool = True,
+        include_audio: Optional[bool] = None,
         **kwargs,
     ):
         """
@@ -1678,7 +1678,9 @@ class Video(
             )
         self.source = source
         self.mirror_webcam = mirror_webcam
-        self.include_audio = include_audio
+        self.include_audio = (
+            include_audio if include_audio is not None else source == "upload"
+        )
         TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
