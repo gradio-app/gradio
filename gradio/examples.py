@@ -92,12 +92,12 @@ class Examples:
     ):
         """
         Parameters:
-            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
+            examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
-            examples_per_page: how many examples to show per page (this parameter currently has no effect)
+            examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
@@ -182,7 +182,6 @@ class Examples:
         self.outputs = outputs
         self.fn = fn
         self.cache_examples = cache_examples
-        self.examples_per_page = examples_per_page
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
@@ -212,13 +211,15 @@ class Examples:
                     )
                     break
 
-        self.dataset = Dataset(
-            components=inputs_with_examples,
-            samples=non_none_examples,
-            type="index",
-            label=label,
-            elem_id=elem_id,
-        )
+        with utils.set_directory(working_directory):
+            self.dataset = Dataset(
+                components=inputs_with_examples,
+                samples=non_none_examples,
+                type="index",
+                label=label,
+                samples_per_page=examples_per_page,
+                elem_id=elem_id,
+            )
 
         self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
         self.cached_file = os.path.join(self.cached_folder, "log.csv")
