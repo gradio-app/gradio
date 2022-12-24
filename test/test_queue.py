@@ -21,7 +21,6 @@ def queue() -> Queue:
     queue_object = Queue(
         live_updates=True,
         concurrency_count=1,
-        data_gathering_start=1,
         update_intervals=1,
         max_size=None,
         blocks_dependencies=[],
@@ -130,7 +129,6 @@ class TestQueueEstimation:
         queue_object = Queue(
             live_updates=True,
             concurrency_count=5,
-            data_gathering_start=1,
             update_intervals=1,
             max_size=None,
         )

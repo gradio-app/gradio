@@ -45,3 +45,9 @@ workspace.code-workspace
 
 # log files
 .pnpm-debug.log
+
+# Local virtualenv for devs
+.venv*
+
+# FRP
+gradio/frpc_*

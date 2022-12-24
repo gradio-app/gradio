@@ -59,7 +59,7 @@
   
   <main class="container mx-auto px-4 flex gap-4">
     <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-          style="min-width: 20%">
+          style="width: 16.666667%; min-width: 16.666667%;">
       <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
       <input id="search"
              type="search"
@@ -120,13 +120,12 @@
       {% for component in docs["component-helpers"] %}
         <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
       {% endfor %}
-      <a class="thin-link px-4 block" href="#update">Update</a>
       <a class="link px-4 my-2 block" href="#routes">Routes
         {% for component in docs["routes"] %}
           <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
         {% endfor %}
     </div>
-    <div class="flex flex-col">
+    <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
       <div>
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left">
                     New to Gradio? Start here: <a class="link" href="/getting_started">Getting Started</a>
@@ -247,28 +246,14 @@
             add common functionality to your app without having to repeatedly create the same components and event listeners.
           </p>
         </div>
-        {% for component in docs["component-helpers"] %}
-          {% with obj=component, is_class=True, parent="gradio" %}
-            {% include "docs/obj_doc_template.html" %}
-          {% endwith %}
-        {% endfor %}
-      </section>
-      <section id="update" class="pt-2 flex flex-col gap-10">
-          <h3 class="text-3xl font-light my-4" id="update-section-header">Update</h3>
-          <p class="mb-12 text-lg">When a function passed into a Gradio Interface or 
-            a Blocks events returns a typical value, it updates the value of the 
-            output component. But it is also possible to update the <em>properties</em> 
-            of an output component (such as the number of lines of a `Textbox` or 
-            the visibility of an `Image`) by returning the component's `update()` function, 
-            which takes as parameters any of the constructor parameters for that component.
-            Here's an example:
-          </p>
-          <div class="flex flex-col gap-10">
-            {% with obj=find_cls("update"), parent="gradio" %}
+        <section class="pt-2">
+          {% for component in docs["component-helpers"] %}
+            {% with obj=component, is_class=True, parent="gradio" %}
               {% include "docs/obj_doc_template.html" %}
             {% endwith %}
-          </div>
+          {% endfor %}
         </section>
+      </section>
         <section id="routes" class="pt-2 flex flex-col gap-10">
           <div>
             <h2 id="routes-header"
@@ -287,22 +272,41 @@
     </div>
   </main>
 
+    <script>
+      let isMobile = window.matchMedia("only screen and (max-width: 480px)").matches;
+
+      function loadJS(FILE_URL) {
+        let scriptEle = document.createElement("script");
+        scriptEle.setAttribute("src", FILE_URL);
+        scriptEle.setAttribute("type", "module");
+        document.body.appendChild(scriptEle);
+      }
+
+      {% if version=='main' %}
+
+      if (!isMobile) {
+        loadJS('/assets/index.js');
+      }
+
+      {% else %}
+
+      if (!isMobile) {
+        loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
+      }
+
+      {% endif %}
+    </script>
 
     <script src="/assets/prism.js"></script>
     <script>
       window.__gradio_mode__ = "website";
     </script>
-    
-    {% if version=='main' %}
-    <script type="module" src="/assets/index.js"></script>
-    {% else %}
-    <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js"></script>
-    {% endif %}
 
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/guide-color.js' %}</script>
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    
 
     <script>
     const show_demo = (component, demo) => {
@@ -323,8 +327,8 @@
       mainNavLinks.forEach(link => {
         let section = document.querySelector(link.hash);
         if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
         ) {
           link.classList.add("current-nav-link");
         } else {
@@ -342,8 +346,8 @@
         let section = document.querySelector(hash);
 
         if (
-          section.offsetTop <= fromTop*1.01 &&
-          section.offsetTop + section.offsetHeight > fromTop*1.01
+          section.offsetTop <= fromTop &&
+          section.offsetTop + section.offsetHeight > fromTop
         ) {
           subLinkDiv.classList.remove("hidden");
         } else {
@@ -401,27 +405,7 @@
         }
       })
 
-    function removeFooters() {
-      document.querySelectorAll('.embedded-component gradio-app').forEach(g => {
-          if ( g.shadowRoot ) {
-            let shadowroot = g.shadowRoot;
-            let f = shadowroot.querySelector('footer');
-            if (f != null) {
-              f.classList.add('hidden');
-              let c = shadowroot.querySelector('.gradio-container');
-              c.style.removeProperty('min-height');
-            } else {
-              window.setTimeout(removeFooters, 100);
-            }
-          } else {
-            window.setTimeout(removeFooters, 100);
-          }
-          
-        });
-      };
-   
-    window.addEventListener('load', removeFooters());
+  </script>  
 
-  </script>
   </body>
 </html>
