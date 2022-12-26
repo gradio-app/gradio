@@ -1169,6 +1169,7 @@ class TestVideo:
             "interactive": None,
             "root_url": None,
             "mirror_webcam": True,
+            "include_audio": True,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1257,11 +1258,11 @@ class TestVideo:
         assert "flip" in list(output_params.keys())[0]
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        _ = gr.Video(source="webcam", mirror_webcam=False, include_audio=True).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
