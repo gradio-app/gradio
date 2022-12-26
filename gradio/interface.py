@@ -752,6 +752,12 @@ class TabbedInterface(Blocks):
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
         with self:
+            if title:
+                Markdown(
+                    "<h1 style='text-align: center; margin-bottom: 1rem'>"
+                    + title
+                    + "</h1>"
+                )
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):
                     with TabItem(label=tab_name):
