@@ -25,6 +25,7 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    Type,
 )
 
 import anyio
@@ -68,6 +69,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
+    expected_parent: Type[BlockContext] | None = None
+    
     def __init__(
         self,
         *,
@@ -85,6 +88,8 @@ class Block:
         self.root_url = root_url
         self._skip_init_processing = _skip_init_processing
         self._style = {}
+        self.parent: BlockContext | None = None
+        
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -208,8 +213,10 @@ class Block:
                 "Either batch is True or every is non-zero but not both."
             )
 
-        if every:
+        if every and fn:
             fn = get_continuous_fn(fn, every)
+        elif every:
+            raise ValueError("Cannot set a value for `every` without a `fn`.")
 
         Context.root_block.fns.append(
             BlockFunction(fn, inputs, outputs, preprocess, postprocess, inputs_as_dict)
@@ -274,7 +281,7 @@ class BlockContext(Block):
             visible: If False, this will be hidden but included in the Blocks config file (its visibility can later be updated).
             render: If False, this will not be included in the Blocks config file at all.
         """
-        self.children = []
+        self.children: List[Block] = []
         super().__init__(visible=visible, render=render, **kwargs)
 
     def __enter__(self):
@@ -282,7 +289,7 @@ class BlockContext(Block):
         Context.block = self
         return self
 
-    def add(self, child):
+    def add(self, child: Block):
         child.parent = self
         self.children.append(child)
 
@@ -290,7 +297,7 @@ class BlockContext(Block):
         children = []
         pseudo_parent = None
         for child in self.children:
-            expected_parent = getattr(child.__class__, "expected_parent", False)
+            expected_parent = child.__class__.expected_parent
             if not expected_parent or isinstance(self, expected_parent):
                 pseudo_parent = None
                 children.append(child)
@@ -303,7 +310,8 @@ class BlockContext(Block):
                     pseudo_parent = expected_parent(render=False)
                     children.append(pseudo_parent)
                     pseudo_parent.children = [child]
-                    Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                    if Context.root_block:
+                        Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
         self.children = children
 
@@ -322,7 +330,7 @@ class BlockContext(Block):
 class BlockFunction:
     def __init__(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: List[Component],
         outputs: List[Component],
         preprocess: bool,
@@ -411,7 +419,7 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
+def postprocess_update_dict(block: IOComponent, update_dict: Dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -432,10 +440,10 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
     return prediction_value
 
 
-def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List:
+def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List | Dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
-    the outputs_ids and including every output component.
+    the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
     E.g. {"textbox": "hello", "number": {"__type__": "generic_update", "value": "2"}}
     Into -> ["hello", {"__type__": "generic_update"}, {"__type__": "generic_update", "value": "2"}]
     """
@@ -572,6 +580,13 @@ class Blocks(BlockContext):
         self.temp_file_sets = []
         self.title = title
         self.show_api = True
+        
+        # Only used when an Interface is loaded from a config
+        self.predict = None
+        self.input_components = None
+        self.output_components = None
+        self.__name__ = None
+        self.api_mode = None
 
         if self.analytics_enabled:
             self.ip_address = utils.get_local_ip_address()
@@ -580,7 +595,7 @@ class Blocks(BlockContext):
                 "ip_address": self.ip_address,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": pkgutil.get_data(__name__, "version.txt")
+                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
             }
@@ -616,7 +631,7 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = root_url + "/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
-            if style:
+            if style and isinstance(block, IOComponent):
                 block.style(**style)
             return block
 
@@ -624,10 +639,12 @@ class Blocks(BlockContext):
             for child_config in children_list:
                 id = child_config["id"]
                 block = get_block_instance(id)
+                                
                 original_mapping[id] = block
 
                 children = child_config.get("children")
                 if children is not None:
+                    assert isinstance(block, BlockContext), f"Invalid config, Block with id {id} has children but is not a BlockContext."
                     with block:
                         iterate_over_children(children)
 
@@ -669,17 +686,15 @@ class Blocks(BlockContext):
                     if first_dependency is None:
                         first_dependency = dependency
 
-            # Allows some use of Interface-specific methods with loaded Spaces
-            if first_dependency:
-                blocks.predict = [fns[0]]
-                blocks.input_components = [
-                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
-                ]
-                blocks.output_components = [
-                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
-                ]
-
-        if config.get("mode", "blocks") == "interface":
+        # Allows some use of Interface-specific methods with loaded Spaces
+        if first_dependency and Context.root_block:
+            blocks.predict = [fns[0]]
+            blocks.input_components = [
+                Context.root_block.blocks[i] for i in first_dependency["inputs"]
+            ]
+            blocks.output_components = [
+                Context.root_block.blocks[o] for o in first_dependency["outputs"]
+            ]
             blocks.__name__ = "Interface"
             blocks.mode = "interface"
             blocks.api_mode = True
