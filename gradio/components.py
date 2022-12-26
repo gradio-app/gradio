@@ -1668,7 +1668,7 @@ class Video(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             mirror_webcam: If True webcam will be mirrored. Default is True.
-            include_audio: If False, component will not record or retain the audio track for a video.
+            include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
         """
         self.format = format
         valid_sources = ["upload", "webcam"]
