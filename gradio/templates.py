@@ -333,6 +333,7 @@ class PlayableVideo(components.Video):
         visible: bool = True,
         elem_id: Optional[str] = None,
         mirror_webcam: bool = True,
+        include_audio: Optional[bool] = None,
         **kwargs,
     ):
         super().__init__(
@@ -345,6 +346,7 @@ class PlayableVideo(components.Video):
             visible=visible,
             elem_id=elem_id,
             mirror_webcam=mirror_webcam,
+            include_audio=include_audio,
             **kwargs,
         )
 
