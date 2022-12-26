@@ -5,6 +5,7 @@ import getpass
 import inspect
 import json
 import os
+from pathlib import Path
 import pkgutil
 import random
 import sys
@@ -531,7 +532,7 @@ class Blocks(BlockContext):
         self.enable_queue = None
         self.max_threads = 40
         self.show_error = True
-        if css is not None and os.path.exists(css):
+        if css is not None and Path(css).exists():
             with open(css) as css_file:
                 self.css = css_file.read()
         else:
