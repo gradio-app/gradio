@@ -146,7 +146,7 @@ class Block:
         postprocess: bool = True,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        api_name: AnyStr | None = None,
+        api_name: str | None = None,
         js: str | None = None,
         no_target: bool = False,
         queue: bool | None = None,
@@ -251,6 +251,10 @@ class Block:
             "root_url": self.root_url,
         }
 
+    @staticmethod
+    def update():
+        raise NotImplementedError("Each component must implement an update() method")
+    
     @classmethod
     def get_specific_update(cls, generic_update):
         del generic_update["__type__"]
@@ -318,7 +322,7 @@ class BlockContext(Block):
 class BlockFunction:
     def __init__(
         self,
-        fn: Optional[Callable],
+        fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
         preprocess: bool,
@@ -765,7 +769,7 @@ class Blocks(BlockContext):
         if inspect.isasyncgenfunction(block_fn.fn):
             return False
         if inspect.isgeneratorfunction(block_fn.fn):
-            raise False
+            return False
         for input_id in dependency["inputs"]:
             block = self.blocks[input_id]
             if getattr(block, "stateful", False):
@@ -777,7 +781,7 @@ class Blocks(BlockContext):
 
         return True
 
-    def __call__(self, *inputs, fn_index: int = 0, api_name: str = None):
+    def __call__(self, *inputs, fn_index: int = 0, api_name: str | None = None):
         """
         Allows Blocks objects to be called as functions. Supply the parameters to the
         function as positional arguments. To choose which function to call, use the
