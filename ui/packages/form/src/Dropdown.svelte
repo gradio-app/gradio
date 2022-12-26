@@ -2,7 +2,6 @@
     import { fly } from 'svelte/transition';
 	import { BlockTitle } from "@gradio/atoms";
     export let id = '';
-    export let readonly = false;
     export let placeholder = '';
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
@@ -20,18 +19,15 @@
     const iconClearPath = 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z';
   
     function add(token) {
-      if (!readonly) selected[token] = token;
+      selected[token] = token;
     }
   
     function remove(value) {
-      if (!readonly) {
-        const {[value]: val, ...rest} = selected;
-        selected = rest;
-      }
+		const {[value]: val, ...rest} = selected;
+		selected = rest;
     }
 
     function optionsVisibility(show) {
-      if (readonly) return;
       if (typeof show === 'boolean') {
         showOptions = show;
         show && input.focus();
@@ -99,30 +95,26 @@
 		</select>
 	</label>
 {:else}
-  <div class="bg-current border-b-1 border-b-gray-500 relative" class:readonly>
+  <div class="bg-current border-b-1 border-b-gray-500 relative" readonly>
     <div class="items-center flex flex-wrap relative" class:showOptions on:click={handleTokenClick}>
       {#each Object.values(selected) as s}
         <div class="token items-center bg-gray-600 fill-gray-600 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap" data-id="{s.value}">
           <span>{s}</span>
-          {#if !readonly}
             <div class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min" title="Remove {s}">
               <svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
                 <path d="{iconClearPath}"/>
               </svg>
             </div>
-          {/if}
         </div>
       {/each}
       <div class="items-center flex flex-1 min-w-min">
-        {#if !readonly}
-          <input class="border-none	text-2xl w-full outline-none" id={id} autocomplete="off" bind:value={inputValue} bind:this={input} on:keyup={handleKeyup} on:blur={handleBlur} placeholder={placeholder}/>
-          <div class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min" title="Remove All" class:hidden={!Object.keys(selected).length}>
-            <svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
-              <path d="{iconClearPath}"/>
-            </svg>
-          </div>
-          <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M5 8l4 4 4-4z"></path></svg>
-        {/if}
+		<input class="border-none	text-2xl w-full outline-none" id={id} autocomplete="off" bind:value={inputValue} bind:this={input} on:keyup={handleKeyup} on:blur={handleBlur} placeholder={placeholder} readonly/>
+		<div class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min" title="Remove All" class:hidden={!Object.keys(selected).length}>
+		<svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+			<path d="{iconClearPath}"/>
+		</svg>
+		</div>
+		<svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M5 8l4 4 4-4z"></path></svg>
       </div>
     </div>
   

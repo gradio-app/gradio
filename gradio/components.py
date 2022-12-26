@@ -1219,7 +1219,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         *,
         value: Optional[str | List[str] | Callable] = None,
         type: str = "value",
-        multiselect: bool = False,
+        multiselect: bool = None,
         label: Optional[str] = None,
         every: float | None = None,
         show_label: bool = True,
