@@ -726,6 +726,7 @@ class TabbedInterface(Blocks):
         self,
         interface_list: List[Interface],
         tab_names: Optional[List[str]] = None,
+        title: Optional[str] = None,
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         css: Optional[str] = None,
@@ -734,6 +735,7 @@ class TabbedInterface(Blocks):
         Parameters:
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             theme: which theme to use - right now, only "default" is supported.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             css: custom css or path to custom css file to apply to entire Blocks
@@ -741,6 +743,7 @@ class TabbedInterface(Blocks):
             a Gradio Tabbed Interface for the given interfaces
         """
         super().__init__(
+            title=title,
             theme=theme,
             analytics_enabled=analytics_enabled,
             mode="tabbed_interface",
