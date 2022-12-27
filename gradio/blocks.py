@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 import copy
 import getpass
 import inspect
@@ -247,14 +248,15 @@ class Block:
         }
 
     @staticmethod
-    def update():
-        raise NotImplementedError("Each component must implement an update() method")
+    @abstractmethod
+    def update(**kwargs) -> Dict:
+        return {}
 
     @classmethod
-    def get_specific_update(cls, generic_update):
+    def get_specific_update(cls, generic_update: Dict[str, Any]) -> Dict:
         del generic_update["__type__"]
-        generic_update = cls.update(**generic_update)
-        return generic_update
+        specific_update = cls.update(**generic_update)
+        return specific_update
 
 
 class BlockContext(Block):
@@ -394,7 +396,7 @@ def update(**kwargs) -> dict:
           ),
           gr.Textbox(lines=2),
           live=True,
-        ).launch()
+        ).launch()abstrac
     """
     kwargs["__type__"] = "generic_update"
     return kwargs
