@@ -5,4 +5,4 @@ pip_required
 
 pip install --upgrade pip
 pip install mypy
-mypy --strict gradio/context.py  gradio/blocks.py
+mypy gradio/context.py  gradio/blocks.py
