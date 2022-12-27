@@ -4,5 +4,5 @@ source scripts/helpers.sh
 pip_required
 
 pip install --upgrade pip
-pip install mypy
+pip install pyright
 mypy gradio/context.py  gradio/blocks.py
