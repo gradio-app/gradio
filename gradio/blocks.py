@@ -525,7 +525,7 @@ class Blocks(BlockContext):
         Parameters:
             theme: which theme to use - right now, only "default" is supported.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-            mode: a human-friendly name for the kind of Blocks interface being created.
+            mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
             css: custom css or path to custom css file to apply to entire Blocks
         """
@@ -692,7 +692,6 @@ class Blocks(BlockContext):
                     Context.root_block.blocks[o] for o in first_dependency["outputs"]
                 ]
                 blocks.__name__ = "Interface"
-                blocks.mode = "interface"
                 blocks.api_mode = True
 
         return blocks
