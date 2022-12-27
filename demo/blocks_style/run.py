@@ -36,8 +36,7 @@ with gr.Blocks(title="Styling Examples") as demo:
         highlight = gr.HighlightedText(
             "+ hello. - goodbye",
             show_label=False,
-            color_map={"+": "green", "-": "red"},
-        ).style(container=False)
+        ).style(color_map={"+": "green", "-": "red"}, container=False)
         json = gr.JSON().style(container=False)
         html = gr.HTML(show_label=False)
         gallery = gr.Gallery().style(
