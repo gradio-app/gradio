@@ -33,7 +33,7 @@ from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import media_data, processing_utils, utils
-from gradio.blocks import Block
+from gradio.blocks import Block, BlockContext
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.events import (
@@ -106,6 +106,52 @@ class Component(Block):
         Any postprocessing needed to be performed on function output.
         """
         return y
+
+    def style(
+        self,
+        *,
+        container: bool | None = None,
+        **kwargs,
+    ):
+        """
+        This method can be used to change the appearance of the component.
+        Parameters:
+            container: If True, will place the component in a container - providing some extra padding around the border.
+        """
+        put_deprecated_params_in_box = False
+        if "rounded" in kwargs:
+            warnings.warn(
+                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["rounded"], list) or isinstance(
+                kwargs["rounded"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("rounded")
+        if "margin" in kwargs:
+            warnings.warn(
+                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
+            )
+            if isinstance(kwargs["margin"], list) or isinstance(
+                kwargs["margin"], tuple
+            ):
+                put_deprecated_params_in_box = True
+            kwargs.pop("margin")
+        if "border" in kwargs:
+            warnings.warn(
+                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
+            )
+            kwargs.pop("border")
+        if container is not None:
+            self._style["container"] = container
+        if len(kwargs):
+            for key in kwargs:
+                warnings.warn(f"Unknown style parameter: {key}")
+        if put_deprecated_params_in_box and isinstance(self.parent, (Row, Column)):
+            if self.parent.variant == "default":
+                self.parent.variant = "compact"
+        return self
+
 
 
 class IOComponent(Component, Serializable):
@@ -189,51 +235,6 @@ class IOComponent(Component, Serializable):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-        **kwargs,
-    ):
-        """
-        This method can be used to change the appearance of the component.
-        Parameters:
-            container: If True, will place the component in a container - providing some extra padding around the border.
-        """
-        put_deprecated_params_in_box = False
-        if "rounded" in kwargs:
-            warnings.warn(
-                "'rounded' styling is no longer supported. To round adjacent components together, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["rounded"], list) or isinstance(
-                kwargs["rounded"], tuple
-            ):
-                put_deprecated_params_in_box = True
-            kwargs.pop("rounded")
-        if "margin" in kwargs:
-            warnings.warn(
-                "'margin' styling is no longer supported. To place adjacent components together without margin, place them in a Column(variant='box')."
-            )
-            if isinstance(kwargs["margin"], list) or isinstance(
-                kwargs["margin"], tuple
-            ):
-                put_deprecated_params_in_box = True
-            kwargs.pop("margin")
-        if "border" in kwargs:
-            warnings.warn(
-                "'border' styling is no longer supported. To place adjacent components in a shared border, place them in a Column(variant='box')."
-            )
-            kwargs.pop("border")
-        if container is not None:
-            self._style["container"] = container
-        if len(kwargs):
-            for key in kwargs:
-                warnings.warn(f"Unknown style parameter: {key}")
-        if put_deprecated_params_in_box and isinstance(self.parent, (Row, Column)):
-            if self.parent.variant == "default":
-                self.parent.variant = "compact"
-        return self
 
     @staticmethod
     def add_interactive_to_config(config, interactive):
@@ -780,7 +781,7 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             container=container,
         )
@@ -1047,7 +1048,7 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1195,7 +1196,7 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
         if item_container is not None:
             self._style["item_container"] = item_container
 
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -1254,7 +1255,7 @@ class Dropdown(Radio):
         Parameters:
             container: If True, will place the component in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
 
 @document("edit", "clear", "change", "stream", "change", "style")
@@ -1576,7 +1577,7 @@ class Image(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -1835,7 +1836,7 @@ class Video(
         """
         self._style["height"] = height
         self._style["width"] = width
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -2143,7 +2144,7 @@ class Audio(
         """
         This method can be used to change the appearance of the audio component.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -2348,16 +2349,16 @@ class File(
         """
         This method can be used to change the appearance of the file component.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
 
-    def as_example(self, input_data: str | List | None) -> str | List[str]:
+    def as_example(self, input_data: str | List | None) -> str:
         if input_data is None:
             return ""
         elif isinstance(input_data, list):
-            return [Path(file).name for file in input_data]
+            return ", ".join([Path(file).name for file in input_data])
         else:
             return Path(input_data).name
 
@@ -2621,7 +2622,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the DataFrame component.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -2764,7 +2765,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         """
         This method can be used to change the appearance of the TimeSeries component.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -2870,7 +2871,7 @@ class Button(Clickable, IOComponent, SimpleSerializable):
         if full_width is not None:
             self._style["full_width"] = full_width
 
-        return IOComponent.style(self, **kwargs)
+        return Component.style(self, **kwargs)
 
 
 @document("click", "upload", "style")
@@ -3007,7 +3008,7 @@ class UploadButton(
         if full_width is not None:
             self._style["full_width"] = full_width
 
-        return IOComponent.style(self, **kwargs)
+        return Component.style(self, **kwargs)
 
 
 @document("change", "submit", "style")
@@ -3242,7 +3243,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will add a container to the label - providing some extra padding around the border.
         """
-        return IOComponent.style(self, container=container)
+        return Component.style(self, container=container)
 
 
 @document("change", "style")
@@ -3402,7 +3403,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
 
 @document("change", "style")
@@ -3489,7 +3490,7 @@ class JSON(Changeable, IOComponent, JSONSerializable):
         Parameters:
             container: If True, will place the JSON in a container - providing some extra padding around the border.
         """
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
 
 @document("change")
@@ -3687,7 +3688,7 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         if height is not None:
             self._style["height"] = height
 
-        return IOComponent.style(self, container=container, **kwargs)
+        return Component.style(self, container=container, **kwargs)
 
     def deserialize(
         self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
@@ -3834,7 +3835,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if color_map is not None:
             self._style["color_map"] = color_map
 
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -3958,7 +3959,7 @@ class Model3D(
         """
         This method can be used to change the appearance of the Model3D component.
         """
-        return IOComponent.style(
+        return Component.style(
             self,
             **kwargs,
         )
@@ -4053,7 +4054,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
         return {"type": dtype, "plot": out_y}
 
     def style(self, container: bool | None = None):
-        return IOComponent.style(
+        return Component.style(
             self,
             container=container,
         )
@@ -4188,7 +4189,7 @@ class ScatterPlot(Plot):
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: DataFrame | Dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         x: str | None = None,
         y: str | None = None,
         color: str | None = None,
@@ -4268,11 +4269,11 @@ class ScatterPlot(Plot):
             y_lim,
         ]
         if any(properties):
-            if value is _Keywords.NO_VALUE:
+            if not isinstance(value, pd.DataFrame):
                 raise ValueError(
                     "In order to update plot properties the value parameter "
-                    "must be provided. Please pass a value parameter to "
-                    "gr.ScatterPlot.update."
+                    "must be provided, and it must be a Dataframe. Please pass a value "
+                    "parameter to gr.ScatterPlot.update."
                 )
             if x is None or y is None:
                 raise ValueError(
@@ -4321,14 +4322,14 @@ class ScatterPlot(Plot):
         interactive = True if interactive is None else interactive
         encodings = dict(
             x=alt.X(
-                x,  # ignore: type
-                title=x_title or x,  # ignore: type  
-                scale=AltairPlot.create_scale(x_lim),  # ignore: type
+                x,  # type: ignore
+                title=x_title or x,  # type: ignore
+                scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),  # ignore: type
             y=alt.Y(
-                y,  # ignore: type
-                title=y_title or y,  # ignore: type
-                scale=AltairPlot.create_scale(y_lim),  # ignore: type
+                y,  # type: ignore
+                title=y_title or y,  # type: ignore
+                scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
         )
         properties = {}
@@ -4375,8 +4376,8 @@ class ScatterPlot(Plot):
                 ),
             }
         chart = (
-            alt.Chart(value)
-            .mark_point(clip=True)
+            alt.Chart(value)  # type: ignore
+            .mark_point(clip=True)  # type: ignore
             .encode(**encodings)
             .properties(background="transparent", **properties)
         )
@@ -4389,6 +4390,8 @@ class ScatterPlot(Plot):
         # if None or update
         if y is None or isinstance(y, Dict):
             return y
+        if self.x is None or self.y is None:
+            raise ValueError("No value provided for required parameters `x` and `y`.")
         chart = self.create_plot(
             value=y,
             x=self.x,
@@ -4522,7 +4525,7 @@ class LinePlot(Plot):
 
     @staticmethod
     def update(
-        value: pd.DataFrame | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: pd.DataFrame | Dict | Literal[_Keywords.NO_VALUE] = _Keywords.NO_VALUE,
         x: str | None = None,
         y: str | None = None,
         color: str | None = None,
@@ -4596,11 +4599,11 @@ class LinePlot(Plot):
             interactive,
         ]
         if any(properties):
-            if value is _Keywords.NO_VALUE:
+            if not isinstance(value, pd.DataFrame):
                 raise ValueError(
                     "In order to update plot properties the value parameter "
-                    "must be provided. Please pass a value parameter to "
-                    "gr.LinePlot.update."
+                    "must be provided, and it must be a Dataframe. Please pass a value "
+                    "parameter to gr.LinePlot.update."
                 )
             if x is None or y is None:
                 raise ValueError(
@@ -4647,14 +4650,14 @@ class LinePlot(Plot):
         interactive = True if interactive is None else interactive
         encodings = dict(
             x=alt.X(
-                x,
-                title=x_title or x,
-                scale=AltairPlot.create_scale(x_lim),
+                x,  # type: ignore
+                title=x_title or x,  # type: ignore
+                scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),
             y=alt.Y(
-                y,
-                title=y_title or y,
-                scale=AltairPlot.create_scale(y_lim),
+                y,  # type: ignore
+                title=y_title or y,  # type: ignore
+                scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
         )
         properties = {}
@@ -4680,7 +4683,7 @@ class LinePlot(Plot):
         highlight = None
         if interactive and any([color, stroke_dash]):
             highlight = alt.selection(
-                type="single",
+                type="single",  # type: ignore
                 on="mouseover",
                 fields=[c for c in [color, stroke_dash] if c],
                 nearest=True,
@@ -4688,19 +4691,19 @@ class LinePlot(Plot):
 
         if stroke_dash:
             stroke_dash = {
-                "field": stroke_dash,
-                "legend": AltairPlot.create_legend(
-                    position=stroke_dash_legend_position,
-                    title=stroke_dash_legend_title or stroke_dash,
-                ),
-            }
+                "field": stroke_dash,  # type: ignore
+                "legend": AltairPlot.create_legend(  # type: ignore
+                    position=stroke_dash_legend_position,  # type: ignore
+                    title=stroke_dash_legend_title or stroke_dash,  # type: ignore
+                ),  # type: ignore
+            }  # type: ignore
         else:
-            stroke_dash = alt.value(alt.Undefined)
+            stroke_dash = alt.value(alt.Undefined)  # type: ignore
 
         if tooltip:
             encodings["tooltip"] = tooltip
 
-        chart = alt.Chart(value).encode(**encodings)
+        chart = alt.Chart(value).encode(**encodings)  # type: ignore
 
         points = chart.mark_point(clip=True).encode(
             opacity=alt.value(alt.Undefined) if overlay_point else alt.value(0),
@@ -4724,6 +4727,8 @@ class LinePlot(Plot):
         # if None or update
         if y is None or isinstance(y, Dict):
             return y
+        if self.x is None or self.y is None:
+            raise ValueError("No value provided for required parameters `x` and `y`.")        
         chart = self.create_plot(
             value=y,
             x=self.x,
@@ -4816,8 +4821,9 @@ class Markdown(IOComponent, Changeable, SimpleSerializable):
     def style(self):
         return self
 
-    def as_example(self, input_data: str) -> str:
-        return self.postprocess(input_data)
+    def as_example(self, input_data: str | None) -> str:
+        postprocessed = self.postprocess(input_data)
+        return postprocessed if postprocessed else ""
 
 
 ############################
@@ -4839,7 +4845,7 @@ class Dataset(Clickable, Component):
         *,
         label: str | None = None,
         components: List[IOComponent] | List[str],
-        samples: List[List[Any]] = None,
+        samples: List[List[Any]] | None = None,
         headers: List[str] | None = None,
         type: str = "values",
         samples_per_page: int = 10,
@@ -4859,6 +4865,11 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
+        
+        # Narrow type to IOComponent
+        assert all([isinstance(c, IOComponent) for c in self.components]), "All components in a `Dataset` must be subclasses of `IOComponent`"
+        self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
@@ -4916,7 +4927,7 @@ class Dataset(Clickable, Component):
         """
         This method can be used to change the appearance of the Dataset component.
         """
-        return IOComponent.style(self, **kwargs)
+        return Component.style(self, **kwargs)
 
 
 @document()
@@ -5020,6 +5031,8 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         name = comp.pop("name")
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
+        if isinstance(component_obj, BlockContext):
+            raise ValueError(f"Invalid component: {name}")        
         if not (render):
             component_obj.unrender()
         return component_obj
