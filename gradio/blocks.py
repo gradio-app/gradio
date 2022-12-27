@@ -840,6 +840,7 @@ class Blocks(BlockContext):
             fn_index=fn_index,
             inputs=processed_inputs,
             request=None,
+            state={},
         )
         outputs = outputs["data"]
 
