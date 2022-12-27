@@ -17,7 +17,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type
 
 import altair as alt
 import matplotlib.figure
