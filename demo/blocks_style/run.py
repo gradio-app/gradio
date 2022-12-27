@@ -70,7 +70,7 @@ with gr.Blocks(title="Styling Examples") as demo:
             height="auto",
             container=False,
         )
-        chat = gr.Chatbot("hi", color_map=("pink", "blue")).style(
+        chat = gr.Chatbot([("hi", "good bye")], color_map=("pink", "blue")).style(
             rounded=False,
         )
 
@@ -91,13 +91,11 @@ with gr.Blocks(title="Styling Examples") as demo:
             border=False,
         )
 
-        # Not currently public
-        # TODO: Uncomment at next release
-        # gr.Dataset().style(
-        #     rounded=False,
-        #     margin=False,
-        #     border=False,
-        # )
+        gr.Dataset(components=[txt, num]).style(
+            rounded=False,
+            margin=False,
+            border=False,
+        )
 
 
 if __name__ == "__main__":
