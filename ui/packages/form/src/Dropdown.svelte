@@ -104,7 +104,6 @@
 			{#each Object.values(selected) as s}
 				<div
 					class="token items-center bg-gray-400 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap"
-					data-id={s.value}
 				>
 					<span>{s}</span>
 					<div
