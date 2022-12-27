@@ -1233,7 +1233,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             choices: list of options to select from.
             value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-            multiselect: if True, multiple choices can be selected. 
+            multiselect: if True, multiple choices can be selected.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -1263,7 +1263,6 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             **kwargs,
         )
         self.cleared_value = self.value
-
 
     def get_config(self):
         return {
@@ -1339,7 +1338,6 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
-
 
     def style(self, *, container: Optional[bool] = None, **kwargs):
         """
