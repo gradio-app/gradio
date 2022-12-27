@@ -94,7 +94,16 @@ class Component(Block):
             **super().get_config(),
         }
 
-    def postprocess(self, y: Any) -> Any:
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
         return y
 
 
@@ -143,12 +152,6 @@ class IOComponent(Component, Serializable):
             **super().get_config(),
         }
 
-    def preprocess(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
     def set_interpret_parameters(self):
         """
         Set any parameters for interpretation.
@@ -186,12 +189,6 @@ class IOComponent(Component, Serializable):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
 
     def style(
         self,

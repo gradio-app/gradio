@@ -945,7 +945,7 @@ class Blocks(BlockContext):
             for i, input_id in enumerate(dependency["inputs"]):
                 block = self.blocks[input_id]
                 assert isinstance(
-                    block, components.IOComponent
+                    block, components.Component
                 ), f"{block.__class__} Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
