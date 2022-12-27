@@ -10,25 +10,25 @@
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 
-	let input,
-		inputValue,
-		activeOption,
+	let input: any,
+		inputValue: string,
+		activeOption: any,
 		showOptions = false,
-		selected = {},
+		selected: any = {},
 		slot;
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
-	function add(token) {
+	function add(token: string) {
 		selected[token] = token;
 	}
 
-	function remove(value) {
+	function remove(value: string) {
 		const { [value]: val, ...rest } = selected;
 		selected = rest;
 	}
 
-	function optionsVisibility(show) {
+	function optionsVisibility(show: boolean) {
 		if (typeof show === "boolean") {
 			showOptions = show;
 			show && input.focus();
@@ -40,31 +40,20 @@
 		}
 	}
 
-	function handleKeyup(e) {
+	function handleKeyup(e: any) {
 		if (e.keyCode === 13) {
 			Object.keys(selected).includes(activeOption)
 				? remove(activeOption)
 				: add(activeOption);
 			inputValue = "";
 		}
-		if ([38, 40].includes(e.keyCode)) {
-			// up and down arrows
-			const increment = e.keyCode === 38 ? -1 : 1;
-			const calcIndex = filtered.indexOf(activeOption) + increment;
-			activeOption =
-				calcIndex < 0
-					? filtered[filtered.length - 1]
-					: calcIndex === filtered.length
-					? filtered[0]
-					: filtered[calcIndex];
-		}
 	}
 
-	function handleBlur(e) {
+	function handleBlur(e: any) {
 		optionsVisibility(false);
 	}
 
-	function handleTokenClick(e) {
+	function handleTokenClick(e: any) {
 		if (e.target.closest(".token-remove")) {
 			e.stopPropagation();
 			remove(
@@ -78,7 +67,7 @@
 		}
 	}
 
-	function handleOptionMousedown(e) {
+	function handleOptionMousedown(e: any) {
 		const value = e.target.dataset.value;
 		if (selected[value]) {
 			remove(value);
@@ -88,6 +77,7 @@
 		}
 	}
 	$: if (multiselect) {
+		console.log(selected)
 		value = Object.values(selected);
 	}
 </script>
