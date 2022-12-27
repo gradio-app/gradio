@@ -1,7 +1,7 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+* Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 
 ## Bug Fixes:
 * Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
