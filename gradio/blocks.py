@@ -125,7 +125,7 @@ class Block:
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
-        
+
     def get_expected_parent(self) -> Type[BlockContext] | None:
         return None
 
@@ -407,9 +407,7 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(
-    block: Block, update_dict: Dict, postprocess: bool = True
-):
+def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -426,7 +424,9 @@ def postprocess_update_dict(
         update_dict.pop("value")
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
-        assert isinstance(block, IOComponent), f"Component {block.__class__} does not support value"
+        assert isinstance(
+            block, IOComponent
+        ), f"Component {block.__class__} does not support value"
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
 
