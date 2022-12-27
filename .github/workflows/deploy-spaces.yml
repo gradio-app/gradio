@@ -61,10 +61,10 @@ jobs:
     - id: output_step
       run: |
         echo "wheel=gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl" >> $GITHUB_OUTPUT
-        echo "pr_number=${{ env.PR_NUMBER }} >> $GITHUB_OUTPUT
-        echo "gh_sha=${{ github.sha }} >> $GITHUB_OUTPUT
-        echo "run_id=${{ github.run_id }} >> $GITHUB_OUTPUT
-        echo "version=${{ env.GRADIO_VERSION }} >> $GITHUB_OUTPUT
+        echo "pr_number=${{ env.PR_NUMBER }}" >> $GITHUB_OUTPUT
+        echo "gh_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "run_id=${{ github.run_id }}" >> $GITHUB_OUTPUT
+        echo "version=${{ env.GRADIO_VERSION }}" >> $GITHUB_OUTPUT
   deploy_pr:
     needs: build_pr
     uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
