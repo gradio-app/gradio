@@ -125,7 +125,7 @@ class App(FastAPI):
         self.tokens = {}
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> FastAPI:
+    def create_app(blocks: gradio.Blocks) -> App:
         app = App(default_response_class=ORJSONResponse)
         app.configure_app(blocks)
 

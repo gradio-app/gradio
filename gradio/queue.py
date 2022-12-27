@@ -46,7 +46,7 @@ class Queue:
         self,
         live_updates: bool,
         concurrency_count: int,
-        update_intervals: int,
+        update_intervals: float,
         max_size: Optional[int],
         blocks_dependencies: List,
     ):

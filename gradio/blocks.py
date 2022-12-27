@@ -27,7 +27,7 @@ from typing import (
     Tuple,
     Type,
 )
-
+from typing_extensions import Literal
 import anyio
 import requests
 from anyio import CapacityLimiter
@@ -577,7 +577,7 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.ip_address = None
+        self.ip_address = ""
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -1014,9 +1014,8 @@ class Blocks(BlockContext):
         self,
         fn_index: int,
         inputs: List[Any],
+        state: Dict[int, Any],
         request: routes.Request | List[routes.Request] | None = None,
-        username: str | None = None,
-        state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
         """
@@ -1050,10 +1049,10 @@ class Blocks(BlockContext):
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
 
-            inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, zip(*inputs), None, request)
+            inputs = [self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)]
+            result = await self.call_function(fn_index, list(zip(*inputs)), None, request)
             preds = result["prediction"]
-            data = [self.postprocess_data(fn_index, o, state) for o in zip(*preds)]
+            data = [self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)]
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1148,7 +1147,7 @@ class Blocks(BlockContext):
         fn: Callable | None = None,
         inputs: List[Component] | None = None,
         outputs: List[Component] | None = None,
-        api_name: AnyStr = None,
+        api_name: str | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue=None,
@@ -1239,7 +1238,7 @@ class Blocks(BlockContext):
     def queue(
         self,
         concurrency_count: int = 1,
-        status_update_rate: float | str = "auto",
+        status_update_rate: float | Literal["auto"] = "auto",
         client_position_to_load_data: int | None = None,
         default_enabled: bool | None = None,
         api_open: bool = True,
@@ -1280,11 +1279,11 @@ class Blocks(BlockContext):
 
     def launch(
         self,
-        inline: bool = None,
+        inline: bool | None = None,
         inbrowser: bool = False,
         share: bool | None = None,
         debug: bool = False,
-        enable_queue: bool = None,
+        enable_queue: bool | None = None,
         max_threads: int = 40,
         auth: Callable | Tuple[str, str] | List[Tuple[str, str]] | None = None,
         auth_message: str | None = None,
@@ -1349,8 +1348,9 @@ class Blocks(BlockContext):
             and not isinstance(auth[0], tuple)
             and not isinstance(auth[0], list)
         ):
-            auth = [auth]
-        self.auth = auth
+            self.auth = [auth]
+        else:
+            self.auth = auth
         self.auth_message = auth_message
         self.show_tips = show_tips
         self.show_error = show_error
@@ -1399,7 +1399,7 @@ class Blocks(BlockContext):
             )
 
         if self.is_running:
-            self.server_app.launchable = self
+            assert isinstance(self.local_url, str), f"Invalid local_url: {self.local_url}"
             if not (quiet):
                 print(
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
@@ -1495,14 +1495,14 @@ class Blocks(BlockContext):
             self.share_url = None
 
         if inbrowser:
-            link = self.share_url if self.share else self.local_url
+            link = self.share_url if self.share and self.share_url else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
-            inline = utils.ipython_check() and (auth is None)
+            inline = utils.ipython_check() and (self.auth is None)
         if inline:
-            if auth is not None:
+            if self.auth is not None:
                 print(
                     "Warning: authentication is not supported inline. Please"
                     "click the link to access the interface in a new tab."
@@ -1510,7 +1510,7 @@ class Blocks(BlockContext):
             try:
                 from IPython.display import HTML, Javascript, display  # type: ignore
 
-                if self.share:
+                if self.share and self.share_url:
                     while not networking.url_ok(self.share_url):
                         time.sleep(0.25)
                     display(
@@ -1593,9 +1593,9 @@ class Blocks(BlockContext):
 
     def integrate(
         self,
-        comet_ml: comet_ml.Experiment = None,
-        wandb: ModuleType("wandb") = None,
-        mlflow: ModuleType("mlflow") = None,
+        comet_ml: comet_ml.Experiment | None = None,
+        wandb: ModuleType | None = None,
+        mlflow: ModuleType | None = None,
     ) -> None:
         """
         A catch-all method for integrating with other libraries. This method should be run after launch()
@@ -1611,9 +1611,11 @@ class Blocks(BlockContext):
             if self.share_url is not None:
                 comet_ml.log_text("gradio: " + self.share_url)
                 comet_ml.end()
-            else:
+            elif self.local_url:
                 comet_ml.log_text("gradio: " + self.local_url)
                 comet_ml.end()
+            else:
+                raise ValueError("Please run `launch()` first.")
         if wandb is not None:
             analytics_integration = "WandB"
             if self.share_url is not None:
@@ -1674,23 +1676,23 @@ class Blocks(BlockContext):
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
-
-        for component in Context.root_block.blocks.values():
-            if (
-                isinstance(component, components.IOComponent)
-                and component.load_event_to_attach
-            ):
-                load_fn, every = component.load_event_to_attach
-                # Use set_event_trigger to avoid ambiguity between load class/instance method
-                self.set_event_trigger(
-                    "load",
-                    load_fn,
-                    None,
-                    component,
-                    no_target=True,
-                    queue=False,
-                    every=every,
-                )
+        if Context.root_block:
+            for component in Context.root_block.blocks.values():
+                if (
+                    isinstance(component, components.IOComponent)
+                    and component.load_event_to_attach
+                ):
+                    load_fn, every = component.load_event_to_attach
+                    # Use set_event_trigger to avoid ambiguity between load class/instance method
+                    self.set_event_trigger(
+                        "load",
+                        load_fn,
+                        None,
+                        component,
+                        no_target=True,
+                        queue=False,
+                        every=every,
+                    )
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
