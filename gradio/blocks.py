@@ -425,7 +425,7 @@ def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool =
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
         assert isinstance(
-            block, IOComponent
+            block, components.IOComponent
         ), f"Component {block.__class__} does not support value"
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
