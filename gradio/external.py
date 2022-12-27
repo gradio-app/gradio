@@ -33,7 +33,11 @@ if TYPE_CHECKING:
 
 
 def load_blocks_from_repo(
-    name: str, src: str | None = None, api_key: str | None = None, alias: str | None = None, **kwargs
+    name: str,
+    src: str | None = None,
+    api_key: str | None = None,
+    alias: str | None = None,
+    **kwargs,
 ) -> Blocks:
     """Creates and returns a Blocks instance from a Hugging Face model or Space repo."""
     if src is None:

@@ -27,10 +27,11 @@ from typing import (
     Tuple,
     Type,
 )
-from typing_extensions import Literal
+
 import anyio
 import requests
 from anyio import CapacityLimiter
+from typing_extensions import Literal
 
 from gradio import (
     components,
@@ -1049,10 +1050,16 @@ class Blocks(BlockContext):
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
 
-            inputs = [self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)]
-            result = await self.call_function(fn_index, list(zip(*inputs)), None, request)
+            inputs = [
+                self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
+            ]
+            result = await self.call_function(
+                fn_index, list(zip(*inputs)), None, request
+            )
             preds = result["prediction"]
-            data = [self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)]
+            data = [
+                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
+            ]
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1399,7 +1406,9 @@ class Blocks(BlockContext):
             )
 
         if self.is_running:
-            assert isinstance(self.local_url, str), f"Invalid local_url: {self.local_url}"
+            assert isinstance(
+                self.local_url, str
+            ), f"Invalid local_url: {self.local_url}"
             if not (quiet):
                 print(
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
