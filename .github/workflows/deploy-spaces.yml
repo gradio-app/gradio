@@ -66,6 +66,7 @@ jobs:
         echo "run_id=${{ github.run_id }} >> $GITHUB_OUTPUT
         echo "version=${{ env.GRADIO_VERSIO }} >> $GITHUB_OUTPUT
   deploy_pr:
+    needs: build_pr
     uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
     with:
       wheel_name: ${{ needs.build_pr.outputs.wheel }}
