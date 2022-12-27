@@ -5,7 +5,6 @@ import getpass
 import inspect
 import json
 import os
-from pathlib import Path
 import pkgutil
 import random
 import sys
@@ -13,6 +12,7 @@ import time
 import typing
 import warnings
 import webbrowser
+from pathlib import Path
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -70,7 +70,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Block:
     expected_parent: Type[BlockContext] | None = None
-    
+
     def __init__(
         self,
         *,
@@ -89,7 +89,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
-        
+
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -261,7 +261,7 @@ class Block:
     @staticmethod
     def update():
         raise NotImplementedError("Each component must implement an update() method")
-    
+
     @classmethod
     def get_specific_update(cls, generic_update):
         del generic_update["__type__"]
@@ -419,7 +419,9 @@ def skip() -> dict:
     return update()
 
 
-def postprocess_update_dict(block: IOComponent, update_dict: Dict, postprocess: bool = True):
+def postprocess_update_dict(
+    block: IOComponent, update_dict: Dict, postprocess: bool = True
+):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
     E.g. {"__type__": "generic_update", "value": "2", "interactive": False}
@@ -440,7 +442,9 @@ def postprocess_update_dict(block: IOComponent, update_dict: Dict, postprocess: 
     return prediction_value
 
 
-def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) -> List | Dict:
+def convert_component_dict_to_list(
+    outputs_ids: List[int], predictions: Dict
+) -> List | Dict:
     """
     Converts a dictionary of component updates into a list of updates in the order of
     the outputs_ids and including every output component. Leaves other types of dictionaries unchanged.
@@ -466,7 +470,9 @@ def convert_component_dict_to_list(outputs_ids: List[int], predictions: Dict) ->
 
 
 def add_request_to_inputs(
-    fn: Callable, inputs: List[Any], request: routes.Request | List[routes.Request]
+    fn: Callable,
+    inputs: List[Any],
+    request: routes.Request | List[routes.Request] | None,
 ):
     """
     Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
@@ -521,10 +527,10 @@ class Blocks(BlockContext):
     def __init__(
         self,
         theme: str = "default",
-        analytics_enabled: Optional[bool] = None,
+        analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
-        css: Optional[str] = None,
+        css: str | None = None,
         **kwargs,
     ):
         """
@@ -580,7 +586,7 @@ class Blocks(BlockContext):
         self.temp_file_sets = []
         self.title = title
         self.show_api = True
-        
+
         # Only used when an Interface is loaded from a config
         self.predict = None
         self.input_components = None
@@ -639,12 +645,14 @@ class Blocks(BlockContext):
             for child_config in children_list:
                 id = child_config["id"]
                 block = get_block_instance(id)
-                                
+
                 original_mapping[id] = block
 
                 children = child_config.get("children")
                 if children is not None:
-                    assert isinstance(block, BlockContext), f"Invalid config, Block with id {id} has children but is not a BlockContext."
+                    assert isinstance(
+                        block, BlockContext
+                    ), f"Invalid config, Block with id {id} has children but is not a BlockContext."
                     with block:
                         iterate_over_children(children)
 
@@ -808,7 +816,7 @@ class Blocks(BlockContext):
         api_name: The api_name of the dependency to call. Will take precedence over fn_index.
         """
         if api_name is not None:
-            fn_index = next(
+            inferred_fn_index = next(
                 (
                     i
                     for i, d in enumerate(self.dependencies)
@@ -816,8 +824,9 @@ class Blocks(BlockContext):
                 ),
                 None,
             )
-            if fn_index is None:
+            if inferred_fn_index is None:
                 raise InvalidApiName(f"Cannot find a function with api_name {api_name}")
+            fn_index = inferred_fn_index
         if not (self.is_callable(fn_index)):
             raise ValueError(
                 "This function is not callable because it is either stateful or is a generator. Please use the .launch() method instead to create an interactive user interface."
@@ -854,6 +863,7 @@ class Blocks(BlockContext):
     ):
         """Calls and times function with given index and preprocessed input."""
         block_fn = self.fns[fn_index]
+        assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
 
         if block_fn.inputs_as_dict:
@@ -876,6 +886,8 @@ class Blocks(BlockContext):
                 prediction = await anyio.to_thread.run_sync(
                     block_fn.fn, *processed_input, limiter=self.limiter
                 )
+        else:
+            prediction = None
 
         if inspect.isasyncgenfunction(block_fn.fn):
             raise ValueError("Gradio does not support async generators.")
@@ -912,7 +924,10 @@ class Blocks(BlockContext):
         processed_input = []
 
         for i, input_id in enumerate(dependency["inputs"]):
-            block: IOComponent = self.blocks[input_id]
+            block = self.blocks[input_id]
+            assert isinstance(
+                block, IOComponent
+            ), f"Component with id {input_id} not a valid input component."
             serialized_input = block.serialize(inputs[i])
             processed_input.append(serialized_input)
 
@@ -923,7 +938,10 @@ class Blocks(BlockContext):
         predictions = []
 
         for o, output_id in enumerate(dependency["outputs"]):
-            block: IOComponent = self.blocks[output_id]
+            block = self.blocks[output_id]
+            assert isinstance(
+                block, IOComponent
+            ), f"Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(outputs[o])
             predictions.append(deserialized)
 
@@ -936,7 +954,10 @@ class Blocks(BlockContext):
         if block_fn.preprocess:
             processed_input = []
             for i, input_id in enumerate(dependency["inputs"]):
-                block: IOComponent = self.blocks[input_id]
+                block = self.blocks[input_id]
+                assert isinstance(
+                    block, IOComponent
+                ), f"Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
                 else:
@@ -946,7 +967,7 @@ class Blocks(BlockContext):
         return processed_input
 
     def postprocess_data(
-        self, fn_index: int, predictions: List[Any], state: Dict[int, Any]
+        self, fn_index: int, predictions: List | Dict, state: Dict[int, Any]
     ):
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -958,7 +979,9 @@ class Blocks(BlockContext):
             )
 
         if len(dependency["outputs"]) == 1 and not (batch):
-            predictions = (predictions,)
+            predictions = [
+                predictions,
+            ]
 
         output = []
         for i, output_id in enumerate(dependency["outputs"]):
@@ -966,6 +989,9 @@ class Blocks(BlockContext):
                 output.append(None)
                 continue
             block = self.blocks[output_id]
+            assert isinstance(
+                block, IOComponent
+            ), f"Component with id {output_id} not a valid output component."
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
@@ -973,6 +999,7 @@ class Blocks(BlockContext):
             else:
                 prediction_value = predictions[i]
                 if utils.is_update(prediction_value):
+                    assert isinstance(prediction_value, dict)
                     prediction_value = postprocess_update_dict(
                         block=block,
                         update_dict=prediction_value,
@@ -988,7 +1015,7 @@ class Blocks(BlockContext):
         fn_index: int,
         inputs: List[Any],
         request: routes.Request | List[routes.Request] | None = None,
-        username: str = None,
+        username: str | None = None,
         state: Dict[int, Any] | List[Dict[int, Any]] | None = None,
         iterators: Dict[int, Any] | None = None,
     ) -> Dict[str, Any]:
@@ -1118,9 +1145,9 @@ class Blocks(BlockContext):
     @class_or_instancemethod
     def load(
         self_or_cls,
-        fn: Optional[Callable] = None,
-        inputs: Optional[List[Component]] = None,
-        outputs: Optional[List[Component]] = None,
+        fn: Callable | None = None,
+        inputs: List[Component] | None = None,
+        outputs: List[Component] | None = None,
         api_name: AnyStr = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
@@ -1130,12 +1157,12 @@ class Blocks(BlockContext):
         preprocess: bool = True,
         postprocess: bool = True,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
         *,
-        name: Optional[str] = None,
-        src: Optional[str] = None,
-        api_key: Optional[str] = None,
-        alias: Optional[str] = None,
+        name: str | None = None,
+        src: str | None = None,
+        api_key: str | None = None,
+        alias: str | None = None,
         **kwargs,
     ) -> Blocks | Dict[str, Any] | None:
         """
@@ -1255,24 +1282,24 @@ class Blocks(BlockContext):
         self,
         inline: bool = None,
         inbrowser: bool = False,
-        share: Optional[bool] = None,
+        share: bool | None = None,
         debug: bool = False,
         enable_queue: bool = None,
         max_threads: int = 40,
-        auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
-        auth_message: Optional[str] = None,
+        auth: Callable | Tuple[str, str] | List[Tuple[str, str]] | None = None,
+        auth_message: str | None = None,
         prevent_thread_lock: bool = False,
         show_error: bool = False,
-        server_name: Optional[str] = None,
-        server_port: Optional[int] = None,
+        server_name: str | None = None,
+        server_port: int | None = None,
         show_tips: bool = False,
         height: int = 500,
         width: int | str = "100%",
         encrypt: bool = False,
-        favicon_path: Optional[str] = None,
-        ssl_keyfile: Optional[str] = None,
-        ssl_certfile: Optional[str] = None,
-        ssl_keyfile_password: Optional[str] = None,
+        favicon_path: str | None = None,
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
         quiet: bool = False,
         show_api: bool = True,
         _frontend: bool = True,

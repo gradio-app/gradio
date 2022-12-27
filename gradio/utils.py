@@ -60,7 +60,8 @@ analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 def version_check():
     try:
@@ -360,7 +361,7 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args, **kwargs):
+def synchronize_async(func: Callable, *args, **kwargs) -> Any:
     """
     Runs async functions in sync scopes.
 
@@ -714,7 +715,7 @@ def validate_url(possible_url: str) -> bool:
 
 
 def is_update(val):
-    return type(val) is dict and "update" in val.get("__type__", "")
+    return isinstance(val, dict) and "update" in val.get("__type__", "")
 
 
 def get_continuous_fn(fn: Callable, every: float) -> Callable:
