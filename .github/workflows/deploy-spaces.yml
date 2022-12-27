@@ -46,7 +46,7 @@ jobs:
         name: gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
         path: dist/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
     - name: Set up Demos
-        run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
+      run: python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
     - name: Upload all_demos
       uses: actions/upload-artifact@v3
       with:
