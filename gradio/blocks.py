@@ -408,7 +408,7 @@ def skip() -> dict:
 
 
 def postprocess_update_dict(
-    block: IOComponent, update_dict: Dict, postprocess: bool = True
+    block: Block, update_dict: Dict, postprocess: bool = True
 ):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
@@ -426,6 +426,7 @@ def postprocess_update_dict(
         update_dict.pop("value")
     prediction_value = delete_none(update_dict, skip_value=True)
     if "value" in prediction_value and postprocess:
+        assert isinstance(block, IOComponent), f"Component {block.__class__} does not support value"
         prediction_value["value"] = block.postprocess(prediction_value["value"])
     return prediction_value
 
@@ -915,7 +916,7 @@ class Blocks(BlockContext):
             block = self.blocks[input_id]
             assert isinstance(
                 block, components.IOComponent
-            ), f"Component with id {input_id} not a valid input component."
+            ), f"{block.__class__} Component with id {input_id} not a valid input component."
             serialized_input = block.serialize(inputs[i])
             processed_input.append(serialized_input)
 
@@ -929,7 +930,7 @@ class Blocks(BlockContext):
             block = self.blocks[output_id]
             assert isinstance(
                 block, components.IOComponent
-            ), f"Component with id {output_id} not a valid output component."
+            ), f"{block.__class__} Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(outputs[o])
             predictions.append(deserialized)
 
@@ -945,7 +946,7 @@ class Blocks(BlockContext):
                 block = self.blocks[input_id]
                 assert isinstance(
                     block, components.IOComponent
-                ), f"Component with id {input_id} not a valid input component."
+                ), f"{block.__class__} Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
                 else:
@@ -977,9 +978,6 @@ class Blocks(BlockContext):
                 output.append(None)
                 continue
             block = self.blocks[output_id]
-            assert isinstance(
-                block, components.IOComponent
-            ), f"Component with id {output_id} not a valid output component."
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
@@ -994,6 +992,9 @@ class Blocks(BlockContext):
                         postprocess=block_fn.postprocess,
                     )
                 elif block_fn.postprocess:
+                    assert isinstance(
+                        block, components.IOComponent
+                    ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
         return output
