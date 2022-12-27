@@ -330,12 +330,17 @@ class Queue:
                         return
                     response = await self.call_prediction(awake_events, batch)
                 for event in awake_events:
+                    if response.status != 200:
+                        relevant_response = response
+                    else:
+                        relevant_response = old_response
+
                     await self.send_message(
                         event,
                         {
                             "msg": "process_completed",
-                            "output": old_response.json,
-                            "success": old_response.status == 200,
+                            "output": relevant_response.json,
+                            "success": relevant_response.status == 200,
                         },
                     )
             else:
