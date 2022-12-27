@@ -14,17 +14,7 @@ import warnings
 import webbrowser
 from pathlib import Path
 from types import ModuleType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    Set,
-    Tuple,
-    Type,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
 
 import anyio
 import requests

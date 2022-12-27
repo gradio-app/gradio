@@ -802,13 +802,17 @@ class TestSpecificUpdate:
                 inputs=None,
                 outputs=[accordion],
             )
-        result = await demo.process_api(fn_index=0, inputs=[None], request=None, state={})
+        result = await demo.process_api(
+            fn_index=0, inputs=[None], request=None, state={}
+        )
         assert result["data"][0] == {
             "open": True,
             "label": "Open Accordion",
             "__type__": "update",
         }
-        result = await demo.process_api(fn_index=1, inputs=[None], request=None, state={})
+        result = await demo.process_api(
+            fn_index=1, inputs=[None], request=None, state={}
+        )
         assert result["data"][0] == {
             "open": False,
             "label": "Closed Accordion",
