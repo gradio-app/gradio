@@ -9,7 +9,7 @@ import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 import fastapi
 import requests
