@@ -9,7 +9,7 @@ import socket
 import threading
 import time
 import warnings
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 import fastapi
 import requests
@@ -87,12 +87,12 @@ def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
 
 def start_server(
     blocks: Blocks,
-    server_name: Optional[str] = None,
-    server_port: Optional[int] = None,
-    ssl_keyfile: Optional[str] = None,
-    ssl_certfile: Optional[str] = None,
-    ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, App, Server]:
+    server_name: str | None = None,
+    server_port: int | None = None,
+    ssl_keyfile: str | None = None,
+    ssl_certfile: str | None = None,
+    ssl_keyfile_password: str | None = None,
+) -> Tuple[str, int, str, App, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     blocks: The Blocks object to run on the server

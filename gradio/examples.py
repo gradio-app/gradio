@@ -291,7 +291,7 @@ class Examples:
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 prediction = await Context.root_block.process_api(
-                    fn_index=fn_index, inputs=processed_input, request=None
+                    fn_index=fn_index, inputs=processed_input, request=None, state={}
                 )
                 output = prediction["data"]
                 if self.batch:

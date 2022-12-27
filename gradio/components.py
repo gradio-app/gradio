@@ -18,7 +18,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
 
 import altair as alt
 import matplotlib.figure
@@ -28,7 +28,7 @@ import PIL
 import PIL.ImageOps
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
-from mdit_py_plugins.dollarmath import dollarmath_plugin
+from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
@@ -94,6 +94,18 @@ class Component(Block):
             **super().get_config(),
         }
 
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
 
 class IOComponent(Component, Serializable):
     """
@@ -140,12 +152,6 @@ class IOComponent(Component, Serializable):
             **super().get_config(),
         }
 
-    def preprocess(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
     def set_interpret_parameters(self):
         """
         Set any parameters for interpretation.
@@ -183,12 +189,6 @@ class IOComponent(Component, Serializable):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
 
     def style(
         self,
@@ -273,12 +273,13 @@ class IOComponent(Component, Serializable):
 
 
 class FormComponent:
-    expected_parent = Form
+    def get_expected_parent(self) -> Type[Form]:
+        return Form
 
 
 @document("change", "submit", "blur", "style")
 class Textbox(
-    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
 ):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -459,7 +460,7 @@ class Textbox(
 
 @document("change", "submit", "style")
 class Number(
-    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
 ):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -630,7 +631,7 @@ class Number(
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -792,7 +793,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -886,7 +887,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -1056,7 +1057,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1615,7 +1616,7 @@ class Image(
         )
 
     def as_example(self, input_data: str | None) -> str:
-        return os.path.abspath(input_data)
+        return str(Path(input_data).resolve())
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -1758,7 +1759,7 @@ class Video(
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
-            if os.path.exists(output_file_name):
+            if Path(output_file_name).exists():
                 return output_file_name
             ff = FFmpeg(
                 inputs={str(file_name): None},
@@ -2025,7 +2026,7 @@ class Audio(
             out_data = processing_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
             file.close()
-            os.unlink(file.name)
+            Path(file.name).unlink()
 
             # Handle the tokens
             token = np.copy(data)
@@ -2035,7 +2036,7 @@ class Audio(
             processing_utils.audio_to_file(sample_rate, token, file.name)
             token_data = processing_utils.encode_file_to_base64(file.name)
             file.close()
-            os.unlink(file.name)
+            Path(file.name).unlink()
 
             tokens.append(token_data)
         tokens = [{"name": "token.wav", "data": token} for token in tokens]
@@ -2066,7 +2067,7 @@ class Audio(
             processing_utils.audio_to_file(sample_rate, masked_input, file.name)
             masked_data = processing_utils.encode_file_to_base64(file.name)
             file.close()
-            os.unlink(file.name)
+            Path(file.name).unlink()
             masked_inputs.append(masked_data)
         return masked_inputs
 
@@ -3656,11 +3657,11 @@ class Gallery(IOComponent, TempFileManager):
                 img, caption = img
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_array_to_file(img)
-                file_path = os.path.abspath(file.name)
+                file_path = str(Path(file.name).resolve())
                 self.temp_files.add(file_path)
             elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_file(img)
-                file_path = os.path.abspath(file.name)
+                file_path = str(Path(file.name).resolve())
                 self.temp_files.add(file_path)
             elif isinstance(img, str):
                 if utils.validate_url(img):
@@ -3706,8 +3707,8 @@ class Gallery(IOComponent, TempFileManager):
     ) -> None | str:
         if x is None:
             return None
-        gallery_path = os.path.join(save_dir, str(uuid.uuid4()))
-        os.makedirs(gallery_path)
+        gallery_path = Path(save_dir) / str(uuid.uuid4())
+        gallery_path.mkdir(exist_ok=True, parents=True)
         captions = {}
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
@@ -3716,15 +3717,15 @@ class Gallery(IOComponent, TempFileManager):
                 caption = None
             name = FileSerializable.deserialize(self, img_data, gallery_path)
             captions[name] = caption
-            captions_file = os.path.join(gallery_path, "captions.json")
-            with open(captions_file, "w") as captions_json:
+            captions_file = gallery_path / "captions.json"
+            with captions_file.open("w") as captions_json:
                 json.dump(captions, captions_json)
-        return os.path.abspath(gallery_path)
+        return str(gallery_path.resolve())
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
-        captions_file = os.path.join(x, "captions.json")
-        with open(captions_file) as captions_json:
+        captions_file = Path(x) / "captions.json"
+        with captions_file.open("r") as captions_json:
             captions = json.load(captions_json)
         for file_name, caption in captions.items():
             img = FileSerializable.serialize(self, file_name)
@@ -4977,9 +4978,6 @@ class Interpretation(Component):
 
     def style(self):
         return self
-
-    def postprocess(self, y: Any) -> Any:
-        return y
 
 
 class StatusTracker(Component):
