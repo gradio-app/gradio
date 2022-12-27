@@ -671,7 +671,7 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10])
+        output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -1244,7 +1244,7 @@ class TestVideo:
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
-    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
@@ -1658,7 +1658,9 @@ class TestJSON:
             ["F", 30],
         ]
         assert (
-            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
+            await iface.process_api(
+                0, [{"data": y_data, "headers": ["gender", "age"]}], state={}
+            )
         )["data"][0] == {
             "M": 35,
             "F": 25,

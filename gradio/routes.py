@@ -37,10 +37,10 @@ from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
-from gradio.dataclasses import PredictBody, ResetBody
+from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
-from gradio.queue import Estimation, Event
+from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -125,7 +125,7 @@ class App(FastAPI):
         self.tokens = {}
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> FastAPI:
+    def create_app(blocks: gradio.Blocks) -> App:
         app = App(default_response_class=ORJSONResponse)
         app.configure_app(blocks)
 
@@ -322,7 +322,6 @@ class App(FastAPI):
                     fn_index=fn_index,
                     inputs=raw_input,
                     request=request,
-                    username=username,
                     state=session_state,
                     iterators=iterators,
                 )

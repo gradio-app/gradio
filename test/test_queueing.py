@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gradio.queue import Event, Queue
+from gradio.queueing import Event, Queue
 from gradio.utils import AsyncRequest
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -142,7 +142,7 @@ class TestQueueProcessEvents:
         reason="Mocks of async context manager don't work for 3.7",
     )
     @pytest.mark.asyncio
-    @patch("gradio.queue.AsyncRequest", new_callable=AsyncMock)
+    @patch("gradio.queueing.AsyncRequest", new_callable=AsyncMock)
     async def test_process_event(self, mock_request, queue: Queue, mock_event: Event):
         queue.gather_event_data = AsyncMock()
         queue.gather_event_data.return_value = True
@@ -284,7 +284,7 @@ class TestQueueProcessEvents:
         reason="Mocks of async context manager don't work for 3.7",
     )
     @pytest.mark.asyncio
-    @patch("gradio.queue.AsyncRequest", new_callable=AsyncMock)
+    @patch("gradio.queueing.AsyncRequest", new_callable=AsyncMock)
     async def test_process_event_handles_exception_during_disconnect(
         self, mock_request, queue: Queue, mock_event: Event
     ):

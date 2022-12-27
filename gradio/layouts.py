@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Optional, Type
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
@@ -184,8 +184,6 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    expected_parent = Tabs
-
     def __init__(
         self,
         label: str,
@@ -220,6 +218,9 @@ class TabItem(BlockContext):
         Returns: None
         """
         self.set_event_trigger("select", fn, inputs, outputs)
+
+    def get_expected_parent(self) -> Type[Tabs]:
+        return Tabs
 
 
 @document()
