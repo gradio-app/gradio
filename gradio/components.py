@@ -18,7 +18,6 @@ from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
-from typing_extensions import Literal
 
 import altair as alt
 import matplotlib.figure
@@ -31,6 +30,7 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
 from pandas.api.types import is_numeric_dtype
 from PIL import Image as _Image  # using _ to minimize namespace pollution
+from typing_extensions import Literal
 
 from gradio import media_data, processing_utils, utils
 from gradio.blocks import Block, BlockContext
@@ -72,7 +72,6 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 class _Keywords(Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
-
 
 
 class Component(Block):
@@ -153,7 +152,6 @@ class Component(Block):
         return self
 
 
-
 class IOComponent(Component, Serializable):
     """
     A base class for defining methods that all input/output components should have.
@@ -218,7 +216,8 @@ class IOComponent(Component, Serializable):
         return [], {}, True
 
     def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs) -> List:
+        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
+    ) -> List:
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
@@ -605,8 +604,12 @@ class Number(
                 "If delta_type='absolute', pick a value of delta that is an integer."
             )
         # run_interpretation will preprocess the neighbors so no need to covert to int here
-        negatives = (np.array(x) + np.arange(-self.interpretation_steps, 0) * delta).tolist()
-        positives = (np.array(x) + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
+        negatives = (
+            np.array(x) + np.arange(-self.interpretation_steps, 0) * delta
+        ).tolist()
+        positives = (
+            np.array(x) + np.arange(1, self.interpretation_steps + 1) * delta
+        ).tolist()
         return negatives + positives, {}
 
     def get_interpretation_scores(
@@ -948,7 +951,10 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
     @staticmethod
     def update(
-        value: List[str] | str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: List[str]
+        | str
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         choices: List[str] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -1172,7 +1178,9 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
         choices.remove(x)
         return choices, {}
 
-    def get_interpretation_scores(self, x, neighbors, scores: List[float | None], **kwargs) -> List:
+    def get_interpretation_scores(
+        self, x, neighbors, scores: List[float | None], **kwargs
+    ) -> List:
         """
         Returns:
             Each value represents the interpretation score corresponding to each choice.
@@ -1411,7 +1419,9 @@ class Image(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
 
-    def preprocess(self, x: str | Dict[str, str]) -> np.ndarray | _Image.Image | str | Dict | None:
+    def preprocess(
+        self, x: str | Dict[str, str]
+    ) -> np.ndarray | _Image.Image | str | Dict | None:
         """
         Parameters:
             x: base64 url data, or (if tool == "sketch") a dict of image and mask base64 url data
@@ -1420,12 +1430,12 @@ class Image(
         """
         if x is None:
             return x
-        
+
         mask = ""
         if self.tool == "sketch" and self.source in ["upload", "webcam"]:
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
-        
+
         im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -1450,7 +1460,9 @@ class Image(
 
         return self._format_image(im)
 
-    def postprocess(self, y: np.ndarray | _Image.Image | str | Path | None) -> str | None:
+    def postprocess(
+        self, y: np.ndarray | _Image.Image | str | Path | None
+    ) -> str | None:
         """
         Parameters:
             y: image as a numpy array, PIL Image, string/Path filepath, or string URL
@@ -1566,9 +1578,7 @@ class Image(
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
-    def style(
-        self, *, height: int | None = None, width: int | None = None, **kwargs
-    ):
+    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
         This method can be used to change the appearance of the Image component.
         Parameters:
@@ -1825,9 +1835,7 @@ class Video(
         y = self.make_temp_copy_if_needed(y)
         return {"name": y, "data": None, "is_file": True}
 
-    def style(
-        self, *, height: int | None = None, width: int | None = None, **kwargs
-    ):
+    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
         """
         This method can be used to change the appearance of the video component.
         Parameters:
@@ -1950,7 +1958,9 @@ class Audio(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: Dict[str, Any] | None) -> Tuple[int, np.ndarray] | str | None:
+    def preprocess(
+        self, x: Dict[str, Any] | None
+    ) -> Tuple[int, np.ndarray] | str | None:
         """
         Parameters:
             x: dictionary with keys "name", "data", "is_file", "crop_min", "crop_max".
@@ -2250,7 +2260,10 @@ class File(
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
     def preprocess(
-        self, x: List[Dict[str, Any]] | None) -> bytes | tempfile._TemporaryFileWrapper | List[bytes | tempfile._TemporaryFileWrapper] | None:
+        self, x: List[Dict[str, Any]] | None
+    ) -> bytes | tempfile._TemporaryFileWrapper | List[
+        bytes | tempfile._TemporaryFileWrapper
+    ] | None:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2276,7 +2289,7 @@ class File(
                     file = processing_utils.decode_base64_to_file(
                         data, file_path=file_name
                     )
-                    file.orig_name = file_name  # type: ignore  
+                    file.orig_name = file_name  # type: ignore
                 return file
             elif (
                 self.type == "binary" or self.type == "bytes"
@@ -2337,7 +2350,9 @@ class File(
                 "is_file": True,
             }
 
-    def serialize(self, x: str, load_dir: str = "", encryption_key: bytes | None = None) -> Dict:
+    def serialize(
+        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> Dict:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
         serialized["size"] = os.path.getsize(serialized["name"])
         return serialized
@@ -2543,18 +2558,18 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         if isinstance(y, dict):
             return y
         if isinstance(y, str):
-            y = pd.read_csv(y)
+            dataframe = pd.read_csv(y)
             return {
-                "headers": list(y.columns),
+                "headers": list(dataframe.columns),
                 "data": Dataframe.__process_markdown(
-                    y.to_dict(orient="split")["data"], self.datatype
+                    dataframe.to_dict(orient="split")["data"], self.datatype
                 ),
             }
         if isinstance(y, pd.DataFrame):
             return {
-                "headers": list(y.columns),
+                "headers": list(y.columns),  # type: ignore
                 "data": Dataframe.__process_markdown(
-                    y.to_dict(orient="split")["data"], self.datatype
+                    y.to_dict(orient="split")["data"], self.datatype  # type: ignore
                 ),
             }
         if isinstance(y, (np.ndarray, list)):
@@ -2631,7 +2646,7 @@ class Dataframe(Changeable, IOComponent, JSONSerializable):
         if input_data is None:
             return ""
         elif isinstance(input_data, pd.DataFrame):
-            return input_data.head(n=5).to_dict(orient="split")["data"]
+            return input_data.head(n=5).to_dict(orient="split")["data"]  # type: ignore
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
         return input_data
@@ -2752,8 +2767,11 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return None
         if isinstance(y, str):
-            y = pd.read_csv(y)
-            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+            dataframe = pd.read_csv(y)
+            return {
+                "headers": dataframe.columns.values.tolist(),
+                "data": dataframe.values.tolist(),
+            }
         if isinstance(y, pd.DataFrame):
             return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
         raise ValueError("Cannot process value as Timeseries data")
@@ -2940,7 +2958,11 @@ class UploadButton(
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
 
-    def preprocess(self, x: List[Dict[str, Any]] | None) -> bytes | tempfile._TemporaryFileWrapper | List[bytes | tempfile._TemporaryFileWrapper] | None:
+    def preprocess(
+        self, x: List[Dict[str, Any]] | None
+    ) -> bytes | tempfile._TemporaryFileWrapper | List[
+        bytes | tempfile._TemporaryFileWrapper
+    ] | None:
         """
         Parameters:
             x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -2994,7 +3016,9 @@ class UploadButton(
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
 
-    def serialize(self, x: str, load_dir: str = "", encryption_key: bytes | None = None) -> Dict:
+    def serialize(
+        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> Dict:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
         serialized["size"] = os.path.getsize(serialized["name"])
         return serialized
@@ -3207,7 +3231,11 @@ class Label(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Dict[str, float] | str | float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        value: Dict[str, float]
+        | str
+        | float
+        | Literal[_Keywords.NO_VALUE]
+        | None = _Keywords.NO_VALUE,
         label: str | None = None,
         show_label: bool | None = None,
         visible: bool | None = None,
@@ -3261,7 +3289,8 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         self,
         value: List[Tuple[str, str | float | None]] | Dict | Callable | None = None,
         *,
-        color_map: Dict[str, str] | None = None,  # Parameter moved to HighlightedText.style()
+        color_map: Dict[str, str]
+        | None = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
@@ -3313,7 +3342,10 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: List[Tuple[str, str | float | None]] | Dict | Literal[_Keywords.NO_VALUE] | None,
+        value: List[Tuple[str, str | float | None]]
+        | Dict
+        | Literal[_Keywords.NO_VALUE]
+        | None,
         color_map: Dict[str, str] | None = None,
         show_legend: bool | None = None,
         label: str | None = None,
@@ -3981,7 +4013,7 @@ class Plot(Changeable, Clearable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: Callable | None| pd.DataFrame = None,
+        value: Callable | None | pd.DataFrame = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -4728,7 +4760,7 @@ class LinePlot(Plot):
         if y is None or isinstance(y, Dict):
             return y
         if self.x is None or self.y is None:
-            raise ValueError("No value provided for required parameters `x` and `y`.")        
+            raise ValueError("No value provided for required parameters `x` and `y`.")
         chart = self.create_plot(
             value=y,
             x=self.x,
@@ -4865,11 +4897,13 @@ class Dataset(Clickable, Component):
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = [get_component_instance(c, render=False) for c in components]
-        
+
         # Narrow type to IOComponent
-        assert all([isinstance(c, IOComponent) for c in self.components]), "All components in a `Dataset` must be subclasses of `IOComponent`"
+        assert all(
+            [isinstance(c, IOComponent) for c in self.components]
+        ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
-        
+
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self.components, example)):
@@ -5018,6 +5052,8 @@ class StatusTracker(Component):
 
 def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
+    if isinstance(obj, BlockContext):
+        raise ValueError(f"Invalid component: {obj.__class__}")
     return obj
 
 
@@ -5032,7 +5068,7 @@ def get_component_instance(comp: str | dict | Component, render=True) -> Compone
         component_cls = utils.component_or_layout_class(name)
         component_obj = component_cls(**comp)
         if isinstance(component_obj, BlockContext):
-            raise ValueError(f"Invalid component: {name}")        
+            raise ValueError(f"Invalid component: {name}")
         if not (render):
             component_obj.unrender()
         return component_obj
