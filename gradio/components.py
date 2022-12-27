@@ -94,6 +94,9 @@ class Component(Block):
             **super().get_config(),
         }
 
+    def postprocess(self, y: Any) -> Any:
+        return y
+
 
 class IOComponent(Component, Serializable):
     """
@@ -4978,9 +4981,6 @@ class Interpretation(Component):
 
     def style(self):
         return self
-
-    def postprocess(self, y: Any) -> Any:
-        return y
 
 
 class StatusTracker(Component):

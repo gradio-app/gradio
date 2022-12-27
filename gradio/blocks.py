@@ -993,7 +993,7 @@ class Blocks(BlockContext):
                     )
                 elif block_fn.postprocess:
                     assert isinstance(
-                        block, components.IOComponent
+                        block, components.Component
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
