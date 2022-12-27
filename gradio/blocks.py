@@ -681,18 +681,18 @@ class Blocks(BlockContext):
                     if first_dependency is None:
                         first_dependency = dependency
 
-        # Allows some use of Interface-specific methods with loaded Spaces
-        if first_dependency and Context.root_block:
-            blocks.predict = [fns[0]]
-            blocks.input_components = [
-                Context.root_block.blocks[i] for i in first_dependency["inputs"]
-            ]
-            blocks.output_components = [
-                Context.root_block.blocks[o] for o in first_dependency["outputs"]
-            ]
-            blocks.__name__ = "Interface"
-            blocks.mode = "interface"
-            blocks.api_mode = True
+            # Allows some use of Interface-specific methods with loaded Spaces
+            if first_dependency and Context.root_block:
+                blocks.predict = [fns[0]]
+                blocks.input_components = [
+                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
+                ]
+                blocks.output_components = [
+                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
+                ]
+                blocks.__name__ = "Interface"
+                blocks.mode = "interface"
+                blocks.api_mode = True
 
         return blocks
 

@@ -3707,7 +3707,7 @@ class Gallery(IOComponent, TempFileManager):
         if x is None:
             return None
         gallery_path = Path(save_dir) / str(uuid.uuid4())
-        gallery_path.mkdir(exist_ok=True)
+        gallery_path.mkdir(exist_ok=True, parents=True)
         captions = {}
         for img_data in x:
             if isinstance(img_data, list) or isinstance(img_data, tuple):
