@@ -5,4 +5,5 @@ pip_required
 
 pip install --upgrade pip
 pip install pyright
-pyright gradio/context.py  gradio/blocks.py gradio/components.py
+cd gradio
+pyright blocks.py components.py context.py data_classes.py deprecation.py documentation.py
