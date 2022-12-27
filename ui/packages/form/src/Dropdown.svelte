@@ -77,7 +77,6 @@
 		}
 	}
 	$: if (multiselect) {
-		console.log(selected)
 		value = Object.values(selected);
 	}
 </script>
