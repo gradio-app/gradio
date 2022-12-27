@@ -37,7 +37,7 @@ from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
-from gradio.datacls import PredictBody, ResetBody
+from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queueing import Estimation, Event

@@ -10,7 +10,7 @@ from typing import Any, Deque, Dict, List, Optional, Tuple
 import fastapi
 from pydantic import BaseModel
 
-from gradio.datacls import PredictBody
+from gradio.data_classes import PredictBody
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
 
