@@ -322,7 +322,6 @@ class App(FastAPI):
                     fn_index=fn_index,
                     inputs=raw_input,
                     request=request,
-                    username=username,
                     state=session_state,
                     iterators=iterators,
                 )
