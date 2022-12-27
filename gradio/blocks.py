@@ -634,7 +634,7 @@ class Blocks(BlockContext):
                 block_config["props"]["root_url"] = root_url + "/"
             # Any component has already processed its initial value, so we skip that step here
             block = cls(**block_config["props"], _skip_init_processing=True)
-            if style and isinstance(block, IOComponent):
+            if style and isinstance(block, components.IOComponent):
                 block.style(**style)
             return block
 
@@ -923,7 +923,7 @@ class Blocks(BlockContext):
         for i, input_id in enumerate(dependency["inputs"]):
             block = self.blocks[input_id]
             assert isinstance(
-                block, IOComponent
+                block, components.IOComponent
             ), f"Component with id {input_id} not a valid input component."
             serialized_input = block.serialize(inputs[i])
             processed_input.append(serialized_input)
@@ -937,7 +937,7 @@ class Blocks(BlockContext):
         for o, output_id in enumerate(dependency["outputs"]):
             block = self.blocks[output_id]
             assert isinstance(
-                block, IOComponent
+                block, components.IOComponent
             ), f"Component with id {output_id} not a valid output component."
             deserialized = block.deserialize(outputs[o])
             predictions.append(deserialized)
@@ -953,7 +953,7 @@ class Blocks(BlockContext):
             for i, input_id in enumerate(dependency["inputs"]):
                 block = self.blocks[input_id]
                 assert isinstance(
-                    block, IOComponent
+                    block, components.IOComponent
                 ), f"Component with id {input_id} not a valid input component."
                 if getattr(block, "stateful", False):
                     processed_input.append(state.get(input_id))
@@ -987,7 +987,7 @@ class Blocks(BlockContext):
                 continue
             block = self.blocks[output_id]
             assert isinstance(
-                block, IOComponent
+                block, components.IOComponent
             ), f"Component with id {output_id} not a valid output component."
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
