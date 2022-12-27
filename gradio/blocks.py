@@ -36,7 +36,7 @@ from gradio import (
     encryptor,
     external,
     networking,
-    queue,
+    queueing,
     routes,
     strings,
     utils,
@@ -1272,7 +1272,7 @@ class Blocks(BlockContext):
         self.api_open = api_open
         if client_position_to_load_data is not None:
             warnings.warn("The client_position_to_load_data parameter is deprecated.")
-        self._queue = queue.Queue(
+        self._queue = queueing.Queue(
             live_updates=status_update_rate == "auto",
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
