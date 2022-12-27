@@ -1206,7 +1206,7 @@ class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
 @document("change", "style")
 class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
-    Creates a dropdown of which only entries can be selected.
+    Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
     Examples-format: a {str} representing the drop down value to select.

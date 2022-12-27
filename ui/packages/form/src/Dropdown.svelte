@@ -95,10 +95,10 @@
 		</select>
 	</label>
 {:else}
-  <div class="bg-current border-b-1 border-b-gray-500 relative" readonly>
+  <div class="relative border rounded-md" readonly>
     <div class="items-center flex flex-wrap relative" class:showOptions on:click={handleTokenClick}>
       {#each Object.values(selected) as s}
-        <div class="token items-center bg-gray-600 fill-gray-600 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap" data-id="{s.value}">
+        <div class="token items-center bg-gray-400 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap" data-id="{s.value}">
           <span>{s}</span>
             <div class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min" title="Remove {s}">
               <svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
@@ -107,14 +107,14 @@
             </div>
         </div>
       {/each}
-      <div class="items-center flex flex-1 min-w-min">
-		<input class="border-none	text-2xl w-full outline-none" id={id} autocomplete="off" bind:value={inputValue} bind:this={input} on:keyup={handleKeyup} on:blur={handleBlur} placeholder={placeholder} readonly/>
+      <div class="items-center flex flex-1 min-w-min border-none">
+		<input class="border-none bg-inherit text-2xl w-full outline-none" id={id} autocomplete="off" bind:value={inputValue} bind:this={input} on:keyup={handleKeyup} on:blur={handleBlur} placeholder={placeholder} readonly/>
 		<div class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min" title="Remove All" class:hidden={!Object.keys(selected).length}>
 		<svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
 			<path d="{iconClearPath}"/>
 		</svg>
 		</div>
-		<svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M5 8l4 4 4-4z"></path></svg>
+		<svg class="dropdown-arrow fill-white" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><path d="M5 8l4 4 4-4z"></path></svg>
       </div>
     </div>
   
