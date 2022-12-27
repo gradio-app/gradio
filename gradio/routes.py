@@ -37,10 +37,10 @@ from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
-from gradio.dataclasses import PredictBody, ResetBody
+from gradio.datacls import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
-from gradio.queue import Estimation, Event
+from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
