@@ -275,4 +275,4 @@ Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models 
 
 ## See Also
 
-* The [Gradio Discord Bot](https://github.com/gradio-app/gradio-discord-bot), a Discord bot that allows you to try any [Hugging Face Space](https://huggingface.co/spaces) that is running a Gradio demo as a Discord bot
+* The [Gradio Discord Bot](https://github.com/gradio-app/gradio-discord-bot), a Discord bot that allows you to try any [Hugging Face Space](https://huggingface.co/spaces) that is running a Gradio demo as a Discord bot.
