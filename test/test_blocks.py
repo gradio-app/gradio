@@ -14,9 +14,9 @@ from functools import partial
 from string import capwords
 from unittest.mock import patch
 
-import mlflow
+# import mlflow
 import pytest
-import wandb
+# import wandb
 import websockets
 from fastapi.testclient import TestClient
 

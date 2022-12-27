@@ -56,8 +56,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    expected_parent: Type[BlockContext] | None = None
-
     def __init__(
         self,
         *,
@@ -127,6 +125,9 @@ class Block:
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
+        
+    def get_expected_parent(self) -> Type[BlockContext] | None:
+        return None
 
     def set_event_trigger(
         self,
@@ -284,7 +285,7 @@ class BlockContext(Block):
         children = []
         pseudo_parent = None
         for child in self.children:
-            expected_parent = child.__class__.expected_parent
+            expected_parent = child.get_expected_parent()
             if not expected_parent or isinstance(self, expected_parent):
                 pseudo_parent = None
                 children.append(child)

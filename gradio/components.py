@@ -18,7 +18,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
 
 import altair as alt
 import matplotlib.figure
@@ -273,12 +273,13 @@ class IOComponent(Component, Serializable):
 
 
 class FormComponent:
-    expected_parent = Form
+    def get_expected_parent(self) -> Type[Form]:
+        return Form
 
 
 @document("change", "submit", "blur", "style")
 class Textbox(
-    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
 ):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -459,7 +460,7 @@ class Textbox(
 
 @document("change", "submit", "style")
 class Number(
-    Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, FormComponent
+    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
 ):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -630,7 +631,7 @@ class Number(
 
 
 @document("change", "style")
-class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -792,7 +793,7 @@ class Slider(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -886,7 +887,7 @@ class Checkbox(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -1056,7 +1057,7 @@ class CheckboxGroup(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
 
 @document("change", "style")
-class Radio(Changeable, IOComponent, SimpleSerializable, FormComponent):
+class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
