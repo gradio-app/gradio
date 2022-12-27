@@ -6,8 +6,14 @@ on:
       - main
 
 jobs:
-  deploy-current-pr:
+  build_pr:
     runs-on: ubuntu-latest
+    outputs:
+      wheel: ${{ steps.output_step.outputs.wheel }}
+      pr_number: ${{ steps.output_step.outputs.pr_number }}
+      sha: ${{ steps.output_step.outputs.sha }}
+      run_id: ${{ steps.output_step.outputs.run_id }}
+      version: ${{ steps.output_step.outputs.version }}
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -52,11 +58,18 @@ jobs:
       with:
         name: all_demos
         path: demo/all_demos
-    - name: Deploy PR
-      uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
-      with:
-        wheel_name: gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl
-        pr_number: ${{ env.PR_NUMBER }}
-        sha: ${{ github.sha }}
-        run_id: ${{ github.run_id }}
-        gradio_version: ${{ env.GRADIO_VERSION }}
+    - id: output_step
+      run: |
+        echo "wheel=gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl" >> $GITHUB_OUTPUT
+        echo "pr_number=${{ env.PR_NUMBER }} >> $GITHUB_OUTPUT
+        echo "sha=${{ github.sha }} >> $GITHUB_OUTPUT
+        echo "run_id=${{ github.run_id }} >> $GITHUB_OUTPUT
+        echo "version=${{ env.GRADIO_VERSIO }} >> $GITHUB_OUTPUT
+  deploy_pr:
+    uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
+    with:
+      wheel_name: ${{ needs.build_pr.outputs.wheel }}
+      pr_number:  ${{ needs.build_pr.outputs.pr_number }}
+      sha: ${{ needs.build_pr.outputs.sha }}
+      run_id: ${{ needs.build_pr.outputs.run_id }}
+      gradio_version: ${{ needs.build_pr.outputs.version }}
