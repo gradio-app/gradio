@@ -17,12 +17,10 @@ from types import ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
-    AnyStr,
     Callable,
     Dict,
     Iterator,
     List,
-    Optional,
     Set,
     Tuple,
     Type,
