@@ -4,6 +4,12 @@
 * Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 * Added `multiselect` option to `Dropdown` by @dawoodkhan82 in [#2871](https://github.com/gradio-app/gradio/pull/2871)
 
+With `multiselect` set to `true` a user can now select multiple options from the dropdown menu.
+
+```python
+gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"])
+```
+
 ## Bug Fixes:
 * Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
 * Fixed bug where csv preview for DataFrame examples would show filename instead of file contents by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2877](https://github.com/gradio-app/gradio/pull/2877)

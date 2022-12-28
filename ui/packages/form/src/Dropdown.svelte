@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { fly } from "svelte/transition";
 	import { BlockTitle } from "@gradio/atoms";
 	export let id = "";
@@ -10,42 +11,35 @@
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 
-	let input: any,
-		inputValue: string,
-		activeOption: any,
-		showOptions = false,
-		selected: any = {},
-		slot;
+	const dispatch = createEventDispatcher<{
+		change: string | Array<string> | undefined;
+	}>();
+
+	let activeOption: any,
+		showOptions = false;
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
-	function add(token: string) {
-		selected[token] = token;
+	function add(option: string) {
+		if (Array.isArray(value)) {
+			value.push(option);
+			dispatch("change", value);
+		}
+		value = value;
 	}
 
-	function remove(value: string) {
-		const { [value]: val, ...rest } = selected;
-		selected = rest;
+	function remove(option: string) {
+		if (Array.isArray(value)) {
+			value = value.filter((v: string) => v !== option);
+			dispatch("change", value);
+		}
 	}
 
 	function optionsVisibility(show: boolean) {
 		if (typeof show === "boolean") {
 			showOptions = show;
-			show && input.focus();
 		} else {
 			showOptions = !showOptions;
-		}
-		if (!showOptions) {
-			activeOption = undefined;
-		}
-	}
-
-	function handleKeyup(e: any) {
-		if (e.keyCode === 13) {
-			Object.keys(selected).includes(activeOption)
-				? remove(activeOption)
-				: add(activeOption);
-			inputValue = "";
 		}
 	}
 
@@ -60,24 +54,21 @@
 				e.target.closest(".token").getElementsByTagName("span")[0].textContent
 			);
 		} else if (e.target.closest(".remove-all")) {
-			selected = [];
-			inputValue = "";
+			value = [];
 		} else {
 			optionsVisibility(true);
 		}
 	}
 
 	function handleOptionMousedown(e: any) {
-		const value = e.target.dataset.value;
-		if (selected[value]) {
-			remove(value);
-		} else {
-			add(value);
-			input.focus();
+		const option = e.target.dataset.value;
+		if (option !== undefined) {
+			if (value?.includes(option)) {
+				remove(option);
+			} else {
+				add(option);
+			}
 		}
-	}
-	$: if (multiselect) {
-		value = Object.values(selected);
 	}
 </script>
 
@@ -101,35 +92,34 @@
 			class:showOptions
 			on:click={handleTokenClick}
 		>
-			{#each Object.values(selected) as s}
-				<div
-					class="token items-center bg-gray-400 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap"
-				>
-					<span>{s}</span>
+			{#if Array.isArray(value)}
+				{#each value as s}
 					<div
-						class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min"
-						title="Remove {s}"
+						class="token items-center bg-gray-400 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap"
 					>
-						<svg
-							class="icon-clear"
-							xmlns="http://www.w3.org/2000/svg"
-							width="18"
-							height="18"
-							viewBox="0 0 24 24"
+						<span>{s}</span>
+						<div
+							class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min"
+							title="Remove {s}"
 						>
-							<path d={iconClearPath} />
-						</svg>
+							<svg
+								class="icon-clear"
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+							>
+								<path d={iconClearPath} />
+							</svg>
+						</div>
 					</div>
-				</div>
-			{/each}
+				{/each}
+			{/if}
 			<div class="items-center flex flex-1 min-w-min border-none">
 				<input
 					class="border-none bg-inherit text-2xl w-full outline-none"
 					{id}
 					autocomplete="off"
-					bind:value={inputValue}
-					bind:this={input}
-					on:keyup={handleKeyup}
 					on:blur={handleBlur}
 					{placeholder}
 					readonly
@@ -137,7 +127,7 @@
 				<div
 					class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min"
 					title="Remove All"
-					class:hidden={!Object.keys(selected).length}
+					class:hidden={!value?.length}
 				>
 					<svg
 						class="icon-clear"
@@ -159,19 +149,16 @@
 			</div>
 		</div>
 
-		<select bind:this={slot} type="multiple" class="hidden"><slot /></select>
-
 		{#if showOptions}
 			<ul
-				class="z-50 text-neutral-800 shadow ml-0 list-none max-h-16 overflow-auto absolute w-full fill-gray-500"
+				class="z-50 text-neutral-800 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500"
 				transition:fly={{ duration: 200, y: 5 }}
 				on:mousedown|preventDefault={handleOptionMousedown}
 			>
 				{#each choices as choice}
 					<li
 						class="bg-gray-100 cursor-pointer p-2 hover:bg-gray-300"
-						class:selected={selected[choice]}
-						class:active={activeOption === choice}
+						class:selected={value?.includes(choice)}
 						data-value={choice}
 					>
 						{choice}
@@ -181,3 +168,22 @@
 		{/if}
 	</div>
 {/if}
+
+<style lang="postcss">
+	li:last-child {
+		@apply rounded-b;
+	}
+	li:not(.selected):hover {
+		@apply bg-slate-200;
+	}
+	li.selected {
+		@apply bg-blue-900 text-white;
+	}
+	li.selected:nth-child(even) {
+		@apply bg-blue-800 text-white;
+	}
+	li.selected.active,
+	li.selected:hover {
+		@apply bg-blue-700 text-white;
+	}
+</style>
