@@ -2333,9 +2333,9 @@ class File(
         if isinstance(y, list):
             return [
                 {
-                    "orig_name": os.path.basename(file),
+                    "orig_name": Path(file).name,
                     "name": self.make_temp_copy_if_needed(file),
-                    "size": os.path.getsize(file),
+                    "size": Path(file).stat().st_size,
                     "data": None,
                     "is_file": True,
                 }
@@ -2343,9 +2343,9 @@ class File(
             ]
         else:
             return {
-                "orig_name": os.path.basename(y),
+                "orig_name": Path(y).name,
                 "name": self.make_temp_copy_if_needed(y),
-                "size": os.path.getsize(y),
+                "size": Path(y).stat().st_size,
                 "data": None,
                 "is_file": True,
             }
@@ -2354,7 +2354,7 @@ class File(
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
     ) -> Dict:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
-        serialized["size"] = os.path.getsize(serialized["name"])
+        serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
     def style(
@@ -3020,7 +3020,7 @@ class UploadButton(
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
     ) -> Dict:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
-        serialized["size"] = os.path.getsize(serialized["name"])
+        serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
     def style(self, *, full_width: bool | None = None, **kwargs):
@@ -3206,7 +3206,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
         """
         if y is None or y == {}:
             return None
-        if isinstance(y, str) and y.endswith(".json") and os.path.exists(y):
+        if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
             return self.serialize(y)
         if isinstance(y, (str, Number)):
             return {"label": str(y)}
