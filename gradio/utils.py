@@ -634,7 +634,7 @@ class AsyncRequest:
 
 
 @contextmanager
-def set_directory(path: Path):
+def set_directory(path: Path | str):
     """Context manager that sets the working directory to the given path."""
     origin = Path().absolute()
     try:

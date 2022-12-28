@@ -77,13 +77,13 @@ class Examples:
         self,
         examples: List[Any] | List[List[Any]] | str,
         inputs: IOComponent | List[IOComponent],
-        outputs: Optional[IOComponent | List[IOComponent]] = None,
-        fn: Optional[Callable] = None,
+        outputs: IOComponent | List[IOComponent] | None = None,
+        fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        label: str = "Examples",
-        elem_id: Optional[str] = None,
+        label: str | None = "Examples",
+        elem_id: str | None = None,
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
@@ -115,7 +115,7 @@ class Examples:
 
         if not isinstance(inputs, list):
             inputs = [inputs]
-        if not isinstance(outputs, list):
+        if outputs and not isinstance(outputs, list):
             outputs = [outputs]
 
         working_directory = Path().absolute()
@@ -131,12 +131,12 @@ class Examples:
         ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
             examples = [[e] for e in examples]
         elif isinstance(examples, str):
-            if not os.path.exists(examples):
+            if not Path(examples).exists():
                 raise FileNotFoundError(
                     "Could not find examples directory: " + examples
                 )
             working_directory = examples
-            if not os.path.exists(os.path.join(examples, LOG_FILE)):
+            if not (Path(examples) / LOG_FILE).exists():
                 if len(inputs) == 1:
                     examples = [[e] for e in os.listdir(examples)]
                 else:
@@ -145,7 +145,7 @@ class Examples:
                         + LOG_FILE
                     )
             else:
-                with open(os.path.join(examples, LOG_FILE)) as logs:
+                with open(Path(examples) / LOG_FILE) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
                         examples[i][: len(inputs)] for i in range(1, len(examples))
@@ -221,8 +221,8 @@ class Examples:
                 elem_id=elem_id,
             )
 
-        self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
-        self.cached_file = os.path.join(self.cached_folder, "log.csv")
+        self.cached_folder = Path(CACHED_FOLDER) / str(self.dataset._id)
+        self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
@@ -240,19 +240,24 @@ class Examples:
             return utils.resolve_singleton(processed_example)
 
         if Context.root_block:
+            if self.cache_examples and self.outputs:
+                targets = self.inputs_with_examples
+            else:
+                targets = self.inputs
             self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
-                outputs=self.inputs_with_examples
-                + (self.outputs if self.cache_examples else []),
+                outputs=targets,  # type: ignore
                 postprocess=False,
                 queue=False,
             )
             if self.run_on_click and not self.cache_examples:
+                if self.fn is None:
+                    raise ValueError("Cannot run_on_click if no function is provided")
                 self.dataset.click(
                     self.fn,
-                    inputs=self.inputs,
-                    outputs=self.outputs,
+                    inputs=self.inputs,  # type: ignore
+                    outputs=self.outputs,  # type: ignore
                 )
 
         if self.cache_examples:
@@ -262,29 +267,30 @@ class Examples:
         """
         Caches all of the examples so that their predictions can be shown immediately.
         """
-        if os.path.exists(self.cached_file):
+        if Path(self.cached_file).exists():
             print(
-                f"Using cache from '{os.path.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{Path(self.cached_folder).resolve()}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
             if Context.root_block is None:
                 raise ValueError("Cannot cache examples if not in a Blocks context")
 
-            print(f"Caching examples at: '{os.path.abspath(self.cached_file)}'")
+            print(f"Caching examples at: '{Path(self.cached_file).resolve()}'")
             cache_logger = CSVLogger()
 
             # create a fake dependency to process the examples and get the predictions
             dependency = Context.root_block.set_event_trigger(
                 event_name="fake_event",
                 fn=self.fn,
-                inputs=self.inputs_with_examples,
-                outputs=self.outputs,
+                inputs=self.inputs_with_examples,  # type: ignore
+                outputs=self.outputs,  # type: ignore
                 preprocess=self.preprocess and not self._api_mode,
                 postprocess=self.postprocess and not self._api_mode,
                 batch=self.batch,
             )
 
             fn_index = Context.root_block.dependencies.index(dependency)
+            assert self.outputs is not None
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 processed_input = self.processed_examples[example_id]
@@ -310,6 +316,7 @@ class Examples:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
+        assert self.outputs is not None
         for component, value in zip(self.outputs, example):
             try:
                 value_as_dict = ast.literal_eval(value)
