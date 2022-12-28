@@ -118,7 +118,7 @@ class FileSerializable(Serializable):
     def deserialize(
         self,
         x: str | Dict | None,
-        save_dir: str | None = None,
+        save_dir: Path | str | None = None,
         encryption_key: bytes | None = None,
     ):
         """
@@ -131,6 +131,8 @@ class FileSerializable(Serializable):
         """
         if x is None:
             return None
+        if isinstance(save_dir, Path):
+            save_dir = str(save_dir)
         if isinstance(x, str):
             file_name = processing_utils.decode_base64_to_file(
                 x, dir=save_dir, encryption_key=encryption_key

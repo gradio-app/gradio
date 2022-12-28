@@ -9,8 +9,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Context:
-    root_block: Blocks = None  # The current root block that holds all blocks.
-    block: BlockContext = (
-        None  # The current block that all children should be added to.
-    )
-    id = 0  # Running id to uniquely refer to any block that gets defined
+    root_block: Blocks | None = None  # The current root block that holds all blocks.
+    block: BlockContext | None = None  # The current block that children are added to.
+    id: int = 0  # Running id to uniquely refer to any block that gets defined
