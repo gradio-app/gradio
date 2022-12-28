@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Tuple
 
 import requests
 import websockets
-from websockets.legacy.protocol import WebSocketCommonProtocol
 import yaml
 from packaging import version
+from websockets.legacy.protocol import WebSocketCommonProtocol
 
 from gradio import components, exceptions
 
@@ -33,7 +33,9 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
         if yaml_regex is None:
             example_data = {}
         else:
-            example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
+            example_yaml = next(
+                yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]])
+            )
             example_data = example_yaml.get("widget", {}).get("structuredData", {})
     if not example_data:
         raise ValueError(

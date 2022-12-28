@@ -242,7 +242,7 @@ class Tab(TabItem):
     pass
 
 
-Tab = TabItem  #  type: ignore  #  noqa: F811  
+Tab = TabItem  #  type: ignore  #  noqa: F811
 
 
 class Group(BlockContext):

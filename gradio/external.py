@@ -316,7 +316,9 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
     return interface
 
 
-def from_spaces(space_name: str, api_key: str | None, alias: str | None, **kwargs) -> Blocks:
+def from_spaces(
+    space_name: str, api_key: str | None, alias: str | None, **kwargs
+) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
 
     print("Fetching Space from: {}".format(space_url))

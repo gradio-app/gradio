@@ -41,7 +41,10 @@ class SimpleSerializable(Serializable):
         return x
 
     def deserialize(
-        self, x: Any, save_dir: str | Path | None = None, encryption_key: bytes | None = None
+        self,
+        x: Any,
+        save_dir: str | Path | None = None,
+        encryption_key: bytes | None = None,
     ):
         """
         Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
@@ -72,7 +75,10 @@ class ImgSerializable(Serializable):
         )
 
     def deserialize(
-        self, x: str, save_dir: str | Path | None = None, encryption_key: bytes | None = None
+        self,
+        x: str,
+        save_dir: str | Path | None = None,
+        encryption_key: bytes | None = None,
     ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -92,7 +98,10 @@ class ImgSerializable(Serializable):
 
 class FileSerializable(Serializable):
     def serialize(
-        self, x: str | None, load_dir: str | Path = "", encryption_key: bytes | None = None
+        self,
+        x: str | None,
+        load_dir: str | Path = "",
+        encryption_key: bytes | None = None,
     ) -> Dict | None:
         """
         Convert from human-friendly version of a file (string filepath) to a
