@@ -5012,42 +5012,12 @@ class Interpretation(Component):
 
 
 class StatusTracker(Component):
-    """
-    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
-    """
-
     def __init__(
         self,
-        *,
-        cover_container: bool = False,
-        visible: bool = True,
-        elem_id: str | None = None,
         **kwargs,
     ):
-        """
-        Parameters:
-            cover_container: If True, will expand to cover parent container while function pending.
-        """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
-        self.cover_container = cover_container
-
-    def get_config(self):
-        return {
-            "cover_container": self.cover_container,
-            **Component.get_config(self),
-        }
-
-    @staticmethod
-    def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        visible: bool | None = None,
-    ):
-        return {
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
-
+        warnings.warn("The StatusTracker component is deprecated.")
+    
 
 def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
