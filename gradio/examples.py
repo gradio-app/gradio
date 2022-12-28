@@ -8,7 +8,7 @@ import csv
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List
 
 from gradio import utils
 from gradio.components import Dataset

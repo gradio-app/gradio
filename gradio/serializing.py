@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict
@@ -11,7 +10,7 @@ from gradio import processing_utils, utils
 class Serializable(ABC):
     @abstractmethod
     def serialize(
-        self, x: Any, load_dir: str = "", encryption_key: bytes | None = None
+        self, x: Any, load_dir: str | Path = "", encryption_key: bytes | None = None
     ):
         """
         Convert data from human-readable format to serialized format for a browser.
@@ -20,7 +19,7 @@ class Serializable(ABC):
 
     @abstractmethod
     def deserialize(
-        x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
+        x: Any, save_dir: str | Path | None = None, encryption_key: bytes | None = None
     ):
         """
         Convert data from serialized format for a browser to human-readable format.
@@ -30,7 +29,7 @@ class Serializable(ABC):
 
 class SimpleSerializable(Serializable):
     def serialize(
-        self, x: Any, load_dir: str = "", encryption_key: bytes | None = None
+        self, x: Any, load_dir: str | Path = "", encryption_key: bytes | None = None
     ) -> Any:
         """
         Convert data from human-readable format to serialized format. For SimpleSerializable components, this is a no-op.
@@ -42,7 +41,7 @@ class SimpleSerializable(Serializable):
         return x
 
     def deserialize(
-        self, x: Any, save_dir: str | None = None, encryption_key: bytes | None = None
+        self, x: Any, save_dir: str | Path | None = None, encryption_key: bytes | None = None
     ):
         """
         Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
@@ -56,8 +55,8 @@ class SimpleSerializable(Serializable):
 
 class ImgSerializable(Serializable):
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> str:
+        self, x: str, load_dir: str | Path = "", encryption_key: bytes | None = None
+    ) -> str | None:
         """
         Convert from human-friendly version of a file (string filepath) to a seralized
         representation (base64).
@@ -69,12 +68,12 @@ class ImgSerializable(Serializable):
         if x is None or x == "":
             return None
         return processing_utils.encode_url_or_file_to_base64(
-            os.path.join(load_dir, x), encryption_key=encryption_key
+            Path(load_dir) / x, encryption_key=encryption_key
         )
 
     def deserialize(
-        self, x: str, save_dir: str | None = None, encryption_key: bytes | None = None
-    ) -> str:
+        self, x: str, save_dir: str | Path | None = None, encryption_key: bytes | None = None
+    ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by save_dir
@@ -93,8 +92,8 @@ class ImgSerializable(Serializable):
 
 class FileSerializable(Serializable):
     def serialize(
-        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Any:
+        self, x: str | None, load_dir: str | Path = "", encryption_key: bytes | None = None
+    ) -> Dict | None:
         """
         Convert from human-friendly version of a file (string filepath) to a
         seralized representation (base64)
@@ -105,7 +104,7 @@ class FileSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        filename = os.path.join(load_dir, x)
+        filename = Path(load_dir) / x
         return {
             "name": filename,
             "data": processing_utils.encode_url_or_file_to_base64(
@@ -120,7 +119,7 @@ class FileSerializable(Serializable):
         x: str | Dict | None,
         save_dir: Path | str | None = None,
         encryption_key: bytes | None = None,
-    ):
+    ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
         version (string filepath). Optionally, save the file to the directory specified by `save_dir`
@@ -158,7 +157,7 @@ class FileSerializable(Serializable):
 
 class JSONSerializable(Serializable):
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
+        self, x: str, load_dir: str | Path = "", encryption_key: bytes | None = None
     ) -> Dict | None:
         """
         Convert from a a human-friendly version (string path to json file) to a
@@ -170,14 +169,14 @@ class JSONSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        return processing_utils.file_to_json(os.path.join(load_dir, x))
+        return processing_utils.file_to_json(Path(load_dir) / x)
 
     def deserialize(
         self,
         x: str | Dict,
-        save_dir: str | None = None,
+        save_dir: str | Path | None = None,
         encryption_key: bytes | None = None,
-    ) -> str:
+    ) -> str | None:
         """
         Convert from serialized representation (json string) to a human-friendly
         version (string path to json file).  Optionally, save the file to the directory specified by `save_dir`

@@ -5,6 +5,7 @@ import datetime
 import io
 import json
 import os
+from pathlib import Path
 import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional
@@ -178,7 +179,7 @@ class CSVLogger(FlaggingCallback):
     def setup(
         self,
         components: List[IOComponent],
-        flagging_dir: str,
+        flagging_dir: str | Path,
         encryption_key: Optional[str] = None,
     ):
         self.components = components
