@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from abc import abstractmethod
 import copy
 import getpass
 import inspect
@@ -13,6 +12,7 @@ import time
 import typing
 import warnings
 import webbrowser
+from abc import abstractmethod
 from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
