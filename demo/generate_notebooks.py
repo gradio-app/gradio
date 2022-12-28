@@ -2,12 +2,18 @@ import nbformat as nbf
 import os 
 import json
 import random
+import subprocess
 
 GRADIO_DEMO_DIR = os.getcwd()
 DEMOS_TO_SKIP = {"all_demos", "reset_components", "custom_path", "kitchen_sink_random"}
 
 demos = os.listdir(GRADIO_DEMO_DIR)
 demos = [demo for demo in demos if demo not in DEMOS_TO_SKIP and os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo)) and  os.path.exists(os.path.join(GRADIO_DEMO_DIR, demo, "run.py"))]
+
+def git_tracked(demo, file):
+    osstdout = subprocess.Popen(f"cd {demo} && git ls-files --error-unmatch {file}", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+    osstdout.wait()
+    return not osstdout.returncode
 
 for demo in demos: 
     nb = nbf.v4.new_notebook()
@@ -20,17 +26,18 @@ for demo in demos:
         """
 
     files = os.listdir(os.path.join(GRADIO_DEMO_DIR, demo))
-    skip = ["run.py", "run.ipynb", "setup.sh", ".gitignore", "requirements.txt", "DESCRIPTION.md", "screenshot.png", "screenshot.gif", ".DS_Store", "flagged", "__pycache__"]
-    files = [file for file in files if file not in skip]
+    skip = ["run.py", "run.ipynb", "setup.sh", ".gitignore", "requirements.txt", "DESCRIPTION.md", "screenshot.png", "screenshot.gif"]
+    files = [file for file in files if file not in skip if git_tracked(demo, file)]
     files.sort()
     if files: 
         get_files = "# Downloading files from the demo repo\nimport os"
         for file in files:
             if os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo, file)):
-                get_files += f"\nos.mkdir('{file}')"
                 sub_files = os.listdir(os.path.join(GRADIO_DEMO_DIR, demo, file))
-                sub_files = [sub for sub in sub_files if sub not in skip]
+                sub_files = [sub for sub in sub_files if sub not in skip if git_tracked(demo, f"{file}/{sub}")]
                 sub_files.sort()
+                if sub_files:
+                    get_files += f"\nos.mkdir('{file}')"
                 for sub_file in sub_files:
                     get_files += f"\n!wget -q -O {file}/{sub_file} https://github.com/gradio-app/gradio/raw/main/demo/{demo}/{file}/{sub_file}"
             else:
