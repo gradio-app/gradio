@@ -983,17 +983,11 @@ class Blocks(BlockContext):
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
 
-<<<<<<< HEAD
-            inputs = [self.preprocess_data(fn_index, i, state) for i in zip(*inputs)]
-            result = await self.call_function(
-                fn_index, zip(*inputs), None, request, event_id
-=======
             inputs = [
                 self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
             ]
             result = await self.call_function(
                 fn_index, list(zip(*inputs)), None, request
->>>>>>> origin
             )
             preds = result["prediction"]
             data = [
