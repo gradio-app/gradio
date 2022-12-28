@@ -2,9 +2,7 @@
 
 ## New Features:
 
-### Custom Progress Updates
-
-Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
+* Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
 
 ```python
 def clean_imgs(text, progress=gr.Progress()):
@@ -18,12 +16,17 @@ clean_imgs_btn.click(clean_imgs, text, text2)
 
 Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750](https://github.com/gradio-app/gradio/pull/2750).
 
+* Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 
 ## Bug Fixes:
 * Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
+* Fixed bug where csv preview for DataFrame examples would show filename instead of file contents by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2877](https://github.com/gradio-app/gradio/pull/2877)
+* Fixed bug where an error raised after yielding iterative output would not be displayed in the browser by 
+[@JaySmithWpg](https://github.com/JaySmithWpg) in [PR 2889](https://github.com/gradio-app/gradio/pull/2889)
+* Fixed bug in `blocks_style` demo that was preventing it from launching by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2890)  
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a Guide on using Google Sheets to create a real-time dashboard with Gradio's `DataFrame` and `LinePlot` component, by [@abidlabs](https://github.com/abidlabs) in [PR 2816](https://github.com/gradio-app/gradio/pull/2816) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -33,9 +36,11 @@ No changes to highlight.
 
 ## Full Changelog:
 * The `default_enabled` parameter of the `Blocks.queue` method has no effect by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876) 
+* Added typing to several Python files in codebase by [@abidlabs](https://github.com/abidlabs) in [PR 2887](https://github.com/gradio-app/gradio/pull/2887) 
 
 ## Contributors Shoutout:
-No changes to highlight.
+* @JaySmithWpg for making their first contribution to gradio!
+* @MohamedAliRashad for making their first contribution to gradio!
 
 
 # Version 3.15.0
@@ -421,6 +426,7 @@ No changes to highlight.
 * Make try examples button more prominent by [@aliabd](https://github.com/aliabd) in [PR 2705](https://github.com/gradio-app/gradio/pull/2705)
 * Fix id clashes in docs by [@aliabd](https://github.com/aliabd) in [PR 2713](https://github.com/gradio-app/gradio/pull/2713)
 * Fix typos in guide docs by [@andridns](https://github.com/andridns) in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)
+* Add option to `include_audio` in Video component. When `True`, for `source="webcam"` this will record audio and video, for `source="upload"` this will retain  the audio in an uploaded video by [@mandargogate](https://github.com/MandarGogate) in [PR 2721](https://github.com/gradio-app/gradio/pull/2721)
 
 ## Contributors Shoutout:
 * [@andridns](https://github.com/andridns) made their first contribution in [PR 2722](https://github.com/gradio-app/gradio/pull/2722)!

@@ -20,6 +20,7 @@
 	export let loading_status: LoadingStatus;
 	export let style: Styles = {};
 	export let mirror_webcam: boolean;
+	export let include_audio: boolean;
 
 	export let mode: "static" | "dynamic";
 
@@ -60,6 +61,7 @@
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}
 			{mirror_webcam}
+			{include_audio}
 			on:change
 			on:clear
 			on:play

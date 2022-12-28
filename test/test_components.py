@@ -671,7 +671,7 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10])
+        output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -1169,6 +1169,7 @@ class TestVideo:
             "interactive": None,
             "root_url": None,
             "mirror_webcam": True,
+            "include_audio": True,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1243,7 +1244,7 @@ class TestVideo:
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
-    @patch("os.path.exists", MagicMock(return_value=False))
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
         # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
@@ -1257,11 +1258,15 @@ class TestVideo:
         assert "flip" in list(output_params.keys())[0]
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        _ = gr.Video(
+            source="webcam", mirror_webcam=False, include_audio=True
+        ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(
+            x_video
+        )
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
@@ -1276,10 +1281,10 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=False, format="avi"
+            source="webcam", mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
-        assert list(output_params.values())[0] is None
+        assert list(output_params.values())[0] == ["-an"]
         assert "flip" not in list(output_params.keys())[0]
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
@@ -1653,7 +1658,9 @@ class TestJSON:
             ["F", 30],
         ]
         assert (
-            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
+            await iface.process_api(
+                0, [{"data": y_data, "headers": ["gender", "age"]}], state={}
+            )
         )["data"][0] == {
             "M": 35,
             "F": 25,

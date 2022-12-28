@@ -302,7 +302,7 @@ class Examples:
                 if self.batch:
                     processed_input = [[value] for value in processed_input]
                 prediction = await Context.root_block.process_api(
-                    fn_index=fn_index, inputs=processed_input, request=None
+                    fn_index=fn_index, inputs=processed_input, request=None, state={}
                 )
                 output = prediction["data"]
                 if self.batch:
@@ -617,11 +617,12 @@ def special_args(
 @document()
 def update(**kwargs) -> dict:
     """
-    Updates component properties.
+    Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
     This is a shorthand for using the update method on a component.
     For example, rather than using gr.Number.update(...) you can just use gr.update(...).
     Note that your editor's autocompletion will suggest proper parameters
     if you use the update method on the component.
+    Demos: blocks_essay, blocks_update, blocks_essay_update
 
     Parameters:
         kwargs: Key-word arguments used to update the component's properties.
@@ -633,7 +634,6 @@ def update(**kwargs) -> dict:
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
-
         # Interface example
         import gradio as gr
         def change_textbox(choice):
