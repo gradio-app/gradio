@@ -68,6 +68,7 @@ jobs:
   deploy_pr:
     needs: build_pr
     uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
+    secrets: inherit
     with:
       wheel_name: ${{ needs.build_pr.outputs.wheel }}
       pr_number:  ${{ needs.build_pr.outputs.pr_number }}
