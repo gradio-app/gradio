@@ -192,6 +192,7 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
             print(
                 "Please install `ffmpeg` in your system to use non-WAV audio file formats."
             )
+        return 0, np.empty(0)
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
