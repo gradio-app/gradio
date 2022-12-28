@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 	//@ts-nocheck
 	import Plotly from "plotly.js-dist-min";
 	import { Plot as PlotIcon } from "@gradio/icons";
@@ -6,7 +6,7 @@
 	import { get_next_color } from "@gradio/utils";
 	import { Vega } from "svelte-vega";
 	import { afterUpdate, onDestroy } from "svelte";
-	import {create_config} from "./utils"
+	import { create_config } from "./utils";
 
 	export let value;
 	export let target;
@@ -14,7 +14,7 @@
 	export let colors: Array<string> = [];
 	export let theme: string;
 	export let caption: string;
-	
+
 	function get_color(index: number) {
 		let current_color = colors[index % colors.length];
 
@@ -29,19 +29,23 @@
 		}
 	}
 
-	$: darkmode = theme == "dark"
+	$: darkmode = theme == "dark";
 
-	$: if(value && value.type == "altair") {
-		spec = JSON.parse(value['plot'])
+	$: if (value && value.type == "altair") {
+		spec = JSON.parse(value["plot"]);
 		const config = create_config(darkmode);
 		spec.config = config;
-		switch (value.chart || '') {
+		switch (value.chart || "") {
 			case "scatter":
-				if (spec.encoding.color && spec.encoding.color.type == 'nominal') {
-					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map((e, i) => get_color(i));
-				}
-				else if (spec.encoding.color && spec.encoding.color.type == 'quantitative') {
-					spec.encoding.color.scale.range = ['#eff6ff', '#1e3a8a'];
+				if (spec.encoding.color && spec.encoding.color.type == "nominal") {
+					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
+						(e, i) => get_color(i)
+					);
+				} else if (
+					spec.encoding.color &&
+					spec.encoding.color.type == "quantitative"
+				) {
+					spec.encoding.color.scale.range = ["#eff6ff", "#1e3a8a"];
 					spec.encoding.color.scale.range.interpolate = "hsl";
 				}
 				break;
@@ -51,7 +55,7 @@
 	}
 
 	// Plotly
-	let plotDiv;	
+	let plotDiv;
 	let plotlyGlobalStyle;
 
 	const main_src = "https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js";
@@ -85,13 +89,13 @@
 
 	function load_plotly_css() {
 		if (!plotlyGlobalStyle) {
-				plotlyGlobalStyle = document.getElementById("plotly.js-style-global");
-				const plotlyStyleClone = plotlyGlobalStyle.cloneNode();
-				target.appendChild(plotlyStyleClone);
-				for (const rule of plotlyGlobalStyle.sheet.cssRules) {
-					plotlyStyleClone.sheet.insertRule(rule.cssText);
-				}
+			plotlyGlobalStyle = document.getElementById("plotly.js-style-global");
+			const plotlyStyleClone = plotlyGlobalStyle.cloneNode();
+			target.appendChild(plotlyStyleClone);
+			for (const rule of plotlyGlobalStyle.sheet.cssRules) {
+				plotlyStyleClone.sheet.insertRule(rule.cssText);
 			}
+		}
 	}
 
 	const main_script = load_bokeh();
@@ -130,7 +134,9 @@
 		if (value && value["type"] == "plotly") {
 			load_plotly_css();
 			let plotObj = JSON.parse(value["plot"]);
-			plotObj.layout.title ? plotObj.layout.margin = {autoexpand: true} : plotObj.layout.margin = {l: 0, r: 0, b: 0, t: 0};
+			plotObj.layout.title
+				? (plotObj.layout.margin = { autoexpand: true })
+				: (plotObj.layout.margin = { l: 0, r: 0, b: 0, t: 0 });
 			Plotly.react(plotDiv, plotObj);
 		} else if (value && value["type"] == "bokeh") {
 			document.getElementById("bokehDiv").innerHTML = "";
@@ -151,22 +157,66 @@
 	<div bind:this={plotDiv} />
 {:else if value && value["type"] == "bokeh"}
 	<div id="bokehDiv" />
-{:else if value && value['type'] == "altair"}
-	<div class="flex flex-col justify-center items-center w-full h-full">
-		<Vega spec={spec} />
+{:else if value && value["type"] == "altair"}
+	<div class="altair layout">
+		<Vega {spec} />
 		{#if caption}
-			<div class="flex justify-center text-xs w-full h-full text-black dark:text-slate-200 ">
+			<div class="caption layout">
 				{caption}
 			</div>
 		{/if}
 	</div>
 {:else if value && value["type"] == "matplotlib"}
-	<div class="output-image w-full flex justify-center items-center relative">
+	<div class="matplotlib layout">
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img class="w-full max-h-[30rem] object-contain" src={value["plot"]} />
+		<img src={value["plot"]} />
 	</div>
 {:else}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><PlotIcon /></div>
+	<div class="empty">
+		<div class="icon"><PlotIcon /></div>
 	</div>
 {/if}
+
+<style>
+	.layout {
+		display: flex;
+		height: var(--size-full);
+		width: var(--size-full);
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		color: var(--color-text-body);
+	}
+	.altair {
+		display: flex;
+		height: var(--size-full);
+		width: var(--size-full);
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.caption {
+		font-size: var(--scale-000);
+	}
+
+	.matplotlib img {
+		width: var(--size-full);
+		max-height: var(--size-32);
+		object-fit: contain;
+	}
+
+	.empty {
+		height: var(--size-full);
+		min-height: var(--size-60);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.icon {
+		height: var(--size-5);
+		color: var(--color-text-body);
+		opacity: 0.5;
+	}
+</style>

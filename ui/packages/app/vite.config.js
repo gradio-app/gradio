@@ -31,8 +31,25 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
+		// optimizeDeps: {
+		// 	exclude: [
+		// 		"@gradio/plot",
+		// 		"svelte-vega",
+		// 		"vega-embed",
+		// 		"vega-lite",
+		// 		"vega",
+		// 		"clone"
+		// 	]
+		// 	// include: ["", ]
+		// },
+		server: {
+			port: 3000
+		},
 
 		build: {
+			// commonjsOptions: {
+			// 	include: ["clone"]
+			// },
 			sourcemap: true,
 			target: "esnext",
 			minify: production,

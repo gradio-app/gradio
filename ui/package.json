@@ -5,6 +5,7 @@
 	"scripts": {
 		"workbench": "pnpm --filter @gradio/workbench dev",
 		"dev": "pnpm --filter @gradio/app dev",
+		"css": "pnpm --filter @gradio/theme generate",
 		"build": "pnpm --filter @gradio/app build:local --emptyOutDir",
 		"build:cdn": "pnpm --filter @gradio/app build:cdn --emptyOutDir",
 		"build:website": "pnpm --filter @gradio/app build:website --emptyOutDir",

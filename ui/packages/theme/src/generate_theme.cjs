@@ -618,7 +618,7 @@ function generate_theme() {
 		dark_css += `\t${key}: ${dark_props[key]};\n`;
 	}
 
-	const css = `:root {
+	const css = `:root, :host {
 ${light_css}
 }
 

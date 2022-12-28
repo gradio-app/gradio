@@ -1,28 +1,30 @@
 import type { Config as VegaConfig } from "vega";
-import tw_colors from "tailwindcss/colors";
+
+const light = "#e2e8f0";
+const dark = "#111827";
 
 export function create_config(darkmode: boolean): VegaConfig {
 	return {
 		axis: {
 			labelFont: "sans-serif",
-			labelColor: darkmode ? tw_colors.slate["200"] : tw_colors.gray[900],
+			labelColor: dark,
 			titleFont: "sans-serif",
-			titleColor: darkmode ? tw_colors.slate["200"] : tw_colors.gray[900],
+			titleColor: dark,
 			tickColor: "#aaa",
 			gridColor: "#aaa",
 			titleFontWeight: "normal",
 			labelFontWeight: "normal"
 		},
 		legend: {
-			labelColor: darkmode ? tw_colors.slate["200"] : tw_colors.gray[900],
+			labelColor: dark,
 			labelFont: "sans-serif",
-			titleColor: darkmode ? tw_colors.slate["200"] : tw_colors.gray[900],
+			titleColor: dark,
 			titleFont: "sans-serif",
 			titleFontWeight: "normal",
 			labelFontWeight: "normal"
 		},
 		title: {
-			color: darkmode ? tw_colors.slate["200"] : tw_colors.gray[900],
+			color: dark,
 			font: "sans-serif",
 			fontWeight: "normal"
 		}

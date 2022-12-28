@@ -5,8 +5,7 @@ import { fn } from "./api";
 
 import type { ComponentMeta, Dependency, LayoutNode } from "./components/types";
 
-import * as t from "@gradio/theme";
-import "../pollen.css";
+import "@gradio/theme";
 
 let id = -1;
 window.__gradio_loader__ = [];
@@ -203,6 +202,7 @@ function create_custom_element() {
 			this.root = this.attachShadow({ mode: "open" });
 
 			window.scoped_css_attach = (link) => {
+				console.log(link);
 				this.root.append(link);
 			};
 
