@@ -2352,6 +2352,7 @@ class File(
     def serialize(
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
     ) -> Dict:
+        assert serialized is not None
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
@@ -3019,6 +3020,7 @@ class UploadButton(
         self, x: str, load_dir: str = "", encryption_key: bytes | None = None
     ) -> Dict:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
+        assert serialized is not None
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 

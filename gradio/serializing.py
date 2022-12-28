@@ -19,7 +19,10 @@ class Serializable(ABC):
 
     @abstractmethod
     def deserialize(
-        x: Any, save_dir: str | Path | None = None, encryption_key: bytes | None = None
+        self,
+        x: Any,
+        save_dir: str | Path | None = None,
+        encryption_key: bytes | None = None,
     ):
         """
         Convert data from serialized format for a browser to human-readable format.

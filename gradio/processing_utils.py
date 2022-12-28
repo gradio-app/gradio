@@ -12,6 +12,7 @@ import tempfile
 import urllib.request
 import warnings
 from io import BytesIO
+from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
@@ -300,8 +301,9 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path: str) -> Dict:
-    return json.load(open(file_path))
+def file_to_json(file_path: str | Path) -> Dict:
+    with open(file_path) as f:
+        return json.load(f)
 
 
 class TempFileManager:

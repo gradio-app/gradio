@@ -673,9 +673,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(
-    values: List[str | Number] | List[List[str | Number]],
-) -> List[str | Number] | List[List[str | Number]]:
+def sanitize_list_for_csv(values: T) -> T:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
