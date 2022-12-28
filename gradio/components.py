@@ -5017,7 +5017,7 @@ class StatusTracker(Component):
         **kwargs,
     ):
         warnings.warn("The StatusTracker component is deprecated.")
-    
+
 
 def component(cls_name: str) -> Component:
     obj = utils.component_or_layout_class(cls_name)()
