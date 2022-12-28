@@ -9,6 +9,7 @@ With `multiselect` set to `true` a user can now select multiple options from the
 ```python
 gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"])
 ```
+![Screenshot 2022-12-28 at 4 51 02 AM](https://user-images.githubusercontent.com/12725292/209794298-57346404-8408-42f2-8fb4-b30aece460a8.png)
 
 ## Bug Fixes:
 * Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
