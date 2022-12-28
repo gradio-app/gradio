@@ -3,7 +3,6 @@
 import base64
 import json
 import math
-import numbers
 import operator
 import re
 import warnings
@@ -11,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 import requests
 import websockets
+from websockets.legacy.protocol import WebSocketCommonProtocol
 import yaml
 from packaging import version
 
@@ -30,8 +30,11 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
         yaml_regex = re.search(
             "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme.text
         )
-        example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
-        example_data = example_yaml.get("widget", {}).get("structuredData", {})
+        if yaml_regex is None:
+            example_data = {}
+        else:
+            example_yaml = next(yaml.safe_load_all(readme.text[: yaml_regex.span()[-1]]))
+            example_data = example_yaml.get("widget", {}).get("structuredData", {})
     if not example_data:
         raise ValueError(
             f"No example data found in README.md of {model_name} - Cannot build gradio demo. "
@@ -41,7 +44,7 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
     # replace nan with string NaN for inference API
     for data in example_data.values():
         for i, val in enumerate(data):
-            if isinstance(val, numbers.Number) and math.isnan(val):
+            if isinstance(val, float) and math.isnan(val):
                 data[i] = "NaN"
     return example_data
 
@@ -76,7 +79,7 @@ def rows_to_cols(incoming_data: Dict) -> Dict[str, Dict[str, Dict[str, List[str]
 ##################
 
 
-def postprocess_label(scores):
+def postprocess_label(scores: Dict) -> Dict:
     sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
     return {
         "label": sorted_pred[0][0],
@@ -117,9 +120,10 @@ def encode_to_base64(r: requests.Response) -> str:
 
 
 async def get_pred_from_ws(
-    websocket: websockets.WebSocketClientProtocol, data: str, hash_data: str
+    websocket: WebSocketCommonProtocol, data: str, hash_data: str
 ) -> Dict[str, Any]:
     completed = False
+    resp = {}
     while not completed:
         msg = await websocket.recv()
         resp = json.loads(msg)
@@ -135,7 +139,7 @@ async def get_pred_from_ws(
 
 def get_ws_fn(ws_url, headers):
     async def ws_fn(data, hash_data):
-        async with websockets.connect(
+        async with websockets.connect(  # type: ignore
             ws_url, open_timeout=10, extra_headers=headers
         ) as websocket:
             return await get_pred_from_ws(websocket, data, hash_data)

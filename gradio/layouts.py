@@ -30,7 +30,7 @@ class Row(BlockContext):
         *,
         variant: str = "default",
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -49,7 +49,7 @@ class Row(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -59,8 +59,8 @@ class Row(BlockContext):
     def style(
         self,
         *,
-        equal_height: Optional[bool] = None,
-        mobile_collapse: Optional[bool] = None,
+        equal_height: bool | None = None,
+        mobile_collapse: bool | None = None,
         **kwargs,
     ):
         """
@@ -100,7 +100,7 @@ class Column(BlockContext):
         min_width: int = 320,
         variant: str = "default",
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -129,8 +129,8 @@ class Column(BlockContext):
 
     @staticmethod
     def update(
-        variant: Optional[str] = None,
-        visible: Optional[bool] = None,
+        variant: str | None = None,
+        visible: bool | None = None,
     ):
         return {
             "variant": variant,
@@ -147,9 +147,9 @@ class Tabs(BlockContext):
     def __init__(
         self,
         *,
-        selected: Optional[int | str] = None,
+        selected: int | str | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -164,8 +164,9 @@ class Tabs(BlockContext):
     def get_config(self):
         return {"selected": self.selected, **super().get_config()}
 
+    @staticmethod
     def update(
-        selected: Optional[int | str] = None,
+        selected: int | str | None = None,
     ):
         return {
             "selected": selected,
@@ -188,8 +189,8 @@ class TabItem(BlockContext):
         self,
         label: str,
         *,
-        id: Optional[int | str] = None,
-        elem_id: Optional[str] = None,
+        id: int | str | None = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -241,7 +242,7 @@ class Tab(TabItem):
     pass
 
 
-Tab = TabItem  # noqa: F811
+Tab = TabItem  #  type: ignore  #  noqa: F811  
 
 
 class Group(BlockContext):
@@ -258,7 +259,7 @@ class Group(BlockContext):
         self,
         *,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -273,7 +274,7 @@ class Group(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -296,7 +297,7 @@ class Box(BlockContext):
         self,
         *,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -311,7 +312,7 @@ class Box(BlockContext):
 
     @staticmethod
     def update(
-        visible: Optional[bool] = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
@@ -342,7 +343,7 @@ class Accordion(BlockContext):
         *,
         open: bool = True,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         """
@@ -365,9 +366,9 @@ class Accordion(BlockContext):
 
     @staticmethod
     def update(
-        open: Optional[bool] = None,
-        label: Optional[str] = None,
-        visible: Optional[bool] = None,
+        open: bool | None = None,
+        label: str | None = None,
+        visible: bool | None = None,
     ):
         return {
             "visible": visible,
