@@ -62,6 +62,7 @@ module.exports = defineConfig((pollen) => {
 				"green-600": "#16a34a",
 				"green-800": "#166534",
 				orange: "#f97316",
+				"orange-50": "#fff7ed",
 				"orange-200": "#fed7aa",
 				"orange-300": "#fdba74",
 				"orange-400": "#fb923c",

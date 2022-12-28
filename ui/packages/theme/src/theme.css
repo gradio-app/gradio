@@ -81,7 +81,7 @@
 	--button-large-radius: var(--radius-lg);
 	--button-large-text-size: var(--scale-0);
 	--button-large-text-weight: 600;
-	--button-small-radius: var(--radius-md);
+	--button-small-radius: var(--radius-sm);
 	--button-small-text-size: var(--scale-00);
 	--button-small-text-weight: 400;
 	--button-primary-border-color-base: var(--color-orange-200);
@@ -111,6 +111,15 @@
 	--button-cancel-background-base: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(252 165 165 / 0.8));
 	--button-cancel-background-hover: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9));
 	--button-cancel-background-focus: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9));
+	--button-plain-border-color-base: var(--color-border-primary);
+	--button-plain-border-color-hover: var(--color-border-primary);
+	--button-plain-border-color-focus: var(--color-border-primary);
+	--button-plain-text-color-base: var(--color-text-body);
+	--button-plain-text-color-hover: var(--color-text-body);
+	--button-plain-text-color-focus: var(--color-text-body);
+	--button-plain-background-base: white;
+	--button-plain-background-hover: white;
+	--button-plain-background-focus: white;
 	--highlighted_text-outer-border-radius: var(--radius-xs);
 	--highlighted_text-inner-border-radius: var(--radius-xs);
 	--gallery-label-background-base: var(--color-grey-50);
@@ -149,6 +158,9 @@
 	--chatbot-bot-border-color-latest: transparent;
 	--label-gradient-from: var(--color-orange-400);
 	--label-gradient-to: var(--color-orange-200);
+	--table-even-background: transparent;
+	--table-odd-background: var(--color-grey-50);
+	--table-background-edit: var(--color-orange-50);
 
 }
 
@@ -238,6 +250,15 @@
 	--button-cancel-background-base: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-700));
 	--button-cancel-background-focus: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500));
 	--button-cancel-background-hover: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500));
+	--button-plain-border-color-base: var(--color-grey-600);
+	--button-plain-border-color-hover: var(--color-grey-500);
+	--button-plain-border-color-focus: var(--color-grey-500);
+	--button-plain-text-color-base: var(--color-text-body);
+	--button-plain-text-color-hover: var(--color-text-body);
+	--button-plain-text-color-focus: var(--color-text-body);
+	--button-plain-background-base: var(--color-grey-700);
+	--button-plain-background-hover: var(--color-grey-700);
+	--button-plain-background-focus: var(--color-grey-700);
 	--gallery-label-background-base: var(--color-grey-50);
 	--gallery-label-background-hover: var(--color-grey-50);
 	--gallery-label-border-color-base: var(--color-border-primary);
@@ -260,5 +281,7 @@
 	--chatbot-bot-text-color-latest: white;
 	--label-gradient-from: var(--color-orange-400);
 	--label-gradient-to: var(--color-orange-600);
+	--table-odd-background: var(--color-grey-900);
+	--table-background-edit: transparent;
 	
 }

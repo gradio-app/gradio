@@ -207,7 +207,7 @@ const theme_light = {
 			}
 		},
 		small: {
-			radius: "var(--radius-md)",
+			radius: "var(--radius-sm)",
 			text: {
 				size: "var(--scale-00)",
 				weight: "400"
@@ -280,6 +280,27 @@ const theme_light = {
 					"linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9))",
 				focus:
 					"linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9))"
+			}
+		},
+		plain: {
+			border: {
+				color: {
+					base: "var(--color-border-primary)",
+					hover: "var(--color-border-primary)",
+					focus: "var(--color-border-primary)"
+				}
+			},
+			text: {
+				color: {
+					base: "var(--color-text-body)",
+					hover: "var(--color-text-body)",
+					focus: "var(--color-text-body)"
+				}
+			},
+			background: {
+				base: "white",
+				hover: "white",
+				focus: "white"
 			}
 		}
 	},
@@ -359,6 +380,18 @@ const theme_light = {
 		gradient: {
 			from: "var(--color-orange-400)",
 			to: "var(--color-orange-200)"
+		}
+	},
+	table: {
+		even: {
+			background: "transparent"
+		},
+
+		odd: {
+			background: "var(--color-grey-50)"
+		},
+		background: {
+			edit: "var(--color-orange-50)"
 		}
 	}
 };
@@ -525,6 +558,27 @@ const theme_dark = {
 				hover:
 					"linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500))"
 			}
+		},
+		plain: {
+			border: {
+				color: {
+					base: "var(--color-grey-600)",
+					hover: "var(--color-grey-500)",
+					focus: "var(--color-grey-500)"
+				}
+			},
+			text: {
+				color: {
+					base: "var(--color-text-body)",
+					hover: "var(--color-text-body)",
+					focus: "var(--color-text-body)"
+				}
+			},
+			background: {
+				base: "var(--color-grey-700)",
+				hover: "var(--color-grey-700)",
+				focus: "var(--color-grey-700)"
+			}
 		}
 	},
 	gallery: {
@@ -575,6 +629,14 @@ const theme_dark = {
 		gradient: {
 			from: "var(--color-orange-400)",
 			to: "var(--color-orange-600)"
+		}
+	},
+	table: {
+		odd: {
+			background: "var(--color-grey-900)"
+		},
+		background: {
+			edit: "transparent"
 		}
 	}
 };

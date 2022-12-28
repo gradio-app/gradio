@@ -103,7 +103,6 @@
 	div {
 		width: var(--size-full);
 		height: var(--size-full);
-		min-height: var(--size-40);
 		cursor: pointer;
 	}
 

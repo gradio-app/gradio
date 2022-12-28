@@ -1,13 +1,10 @@
 <script>
 	import "../app.css";
 	import * as _ from "@gradio/theme";
-	import "../../../app/pollen.css";
-
 	import Nav from "./_Nav.svelte";
 
 	let mode = "light";
 
-	$: console.log(mode);
 	export const ssr = false;
 </script>
 
