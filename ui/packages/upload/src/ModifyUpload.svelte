@@ -13,9 +13,8 @@
 </script>
 
 <div
-	class="modify-upload z-10 top-2 right-2 justify-end  flex gap-1"
-	class:absolute
-	class:m-1={!absolute}
+	class:not-absolute={!absolute}
+	style:position={absolute ? "absolute" : "static"}
 >
 	{#if editable}
 		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
@@ -29,3 +28,18 @@
 		}}
 	/>
 </div>
+
+<style>
+	div {
+		z-index: var(--layer-1);
+		top: var(--size-2);
+		right: var(--size-2);
+		display: flex;
+		gap: var(--size-1);
+		justify-content: flex-end;
+	}
+
+	.not-absolute {
+		margin: var(--size-1);
+	}
+</style>
