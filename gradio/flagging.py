@@ -8,7 +8,7 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List
 
 import gradio as gr
 from gradio import encryptor, utils

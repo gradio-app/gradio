@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Callable, List, Optional, Type
+from typing import TYPE_CHECKING, Callable, List, Type
 
 from gradio.blocks import BlockContext
 from gradio.documentation import document, set_documentation_group
@@ -184,7 +184,21 @@ class Tabs(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-class TabItem(BlockContext):
+@document()
+class Tab(BlockContext):
+    """
+    Tab (or its alias TabItem) is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
+    Example:
+        with gradio.Blocks() as demo:
+            with gradio.Tab("Lion"):
+                gr.Image("lion.jpg")
+                gr.Button("New Lion")
+            with gradio.Tab("Tiger"):
+                gr.Image("tiger.jpg")
+                gr.Button("New Tiger")
+    Guides: controlling_layout
+    """
+
     def __init__(
         self,
         label: str,
@@ -224,25 +238,7 @@ class TabItem(BlockContext):
         return Tabs
 
 
-@document()
-class Tab(TabItem):
-    """
-    Tab is a layout element. Components defined within the Tab will be visible when this tab is selected tab.
-    Example:
-        with gradio.Blocks() as demo:
-            with gradio.Tab("Lion"):
-                gr.Image("lion.jpg")
-                gr.Button("New Lion")
-            with gradio.Tab("Tiger"):
-                gr.Image("tiger.jpg")
-                gr.Button("New Tiger")
-    Guides: controlling_layout
-    """
-
-    pass
-
-
-Tab = TabItem  #  type: ignore  #  noqa: F811
+TabItem = Tab
 
 
 class Group(BlockContext):
