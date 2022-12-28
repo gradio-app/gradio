@@ -312,12 +312,14 @@ importers:
 
   packages/table:
     specifiers:
+      '@gradio/button': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
       '@types/d3-dsv': ^3.0.0
       d3-dsv: ^3.0.1
       dequal: ^2.0.2
     dependencies:
+      '@gradio/button': link:../button
       '@gradio/upload': link:../upload
       '@gradio/utils': link:../utils
       '@types/d3-dsv': 3.0.0

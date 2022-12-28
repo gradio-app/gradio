@@ -14,9 +14,7 @@
 
 {#if edit}
 	<input
-		class="absolute outline-none inset-2 bg-transparent border-0 translate-x-px flex-1 "
-		class:translate-x-px={!header}
-		class:font-bold={header}
+		class:header
 		tabindex="-1"
 		bind:value
 		bind:this={el}
@@ -25,17 +23,41 @@
 			currentTarget.setAttribute("tabindex", "-1")}
 	/>
 {/if}
-<span
-	on:dblclick
-	tabindex="-1"
-	role="button"
-	class:opacity-0={edit}
-	class:pointer-events-none={edit}
-	class="p-2  outline-none border-0 flex-1"
->
+<span on:dblclick tabindex="-1" role="button" class:edit>
 	{#if datatype === "markdown" || datatype === "html"}
 		{@html value}
 	{:else}
 		{value}
 	{/if}
 </span>
+
+<style>
+	input {
+		position: absolute;
+		outline: none;
+		top: var(--size-2);
+		bottom: var(--size-2);
+		left: var(--size-2);
+		right: var(--size-2);
+		background: transparent;
+		border: none;
+		transform: translateX(-0.1px);
+		flex: 1 1 0%;
+	}
+
+	span {
+		padding: var(--size-2);
+		flex: 1 1 0%;
+		outline: none;
+	}
+
+	.header {
+		transform: translateX(0);
+		font: var(--weight-bold);
+	}
+
+	.edit {
+		opacity: 0;
+		pointer-events: none;
+	}
+</style>

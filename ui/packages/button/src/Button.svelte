@@ -14,8 +14,7 @@
 <button
 	on:click
 	class:!hidden={!visible}
-	class="{size} {variant}
-		{classes}"
+	class="{size} {variant} {classes}"
 	id={elem_id}
 >
 	<slot />
@@ -37,6 +36,23 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.plain {
+		border: 1px solid var(--button-plain-border-color-base);
+		background: var(--button-plain-background-base);
+		color: var(--button-plain-text-color-base);
+	}
+
+	.plain:hover {
+		border: 1px solid var(--button-plain-border-color-hover);
+		background: var(--button-plain-background-hover);
+		color: var(--button-plain-text-color-hover);
+	}
+	.plain:focus {
+		border: 1px solid var(--button-plain-border-color-focus);
+		background: var(--button-plain-background-focus);
+		color: var(--button-plain-text-color-focus);
 	}
 	.primary {
 		border: 1px solid var(--button-primary-border-color-base);
