@@ -48,7 +48,7 @@
 			if (type.includes(".")) {
 				accept_file_types += type + ", ";
 			} else {
-				accept_file_types += type + "/*, "
+				accept_file_types += type + "/*, ";
 			}
 		}
 	} catch (err) {
