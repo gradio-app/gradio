@@ -1,4 +1,4 @@
-name: Deploy to Spaces
+name: BuildPRArtifacts
 
 on:
   pull_request:
@@ -58,6 +58,14 @@ jobs:
       with:
         name: all_demos
         path: demo/all_demos
+    - name: Create metadata artifact
+      run: |
+        python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ env.PR_NUMBER }}, 'version': '${{ env.GRADIO_VERSION }}', 'wheel': 'gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
+    - name: Upload metadata
+      uses: actions/upload-artifact@v3
+      with:
+        name: metadata.json
+        path: metadata.json
     - id: output_step
       run: |
         echo "wheel=gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl" >> $GITHUB_OUTPUT
@@ -65,13 +73,3 @@ jobs:
         echo "gh_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
         echo "run_id=${{ github.run_id }}" >> $GITHUB_OUTPUT
         echo "version=${{ env.GRADIO_VERSION }}" >> $GITHUB_OUTPUT
-  deploy_pr:
-    needs: build_pr
-    uses: gradio-app/gradio-gh-actions/.github/workflows/deploy-pr-to-spaces.yml@main
-    secrets: inherit
-    with:
-      wheel_name: ${{ needs.build_pr.outputs.wheel }}
-      pr_number:  ${{ needs.build_pr.outputs.pr_number }}
-      sha: ${{ needs.build_pr.outputs.gh_sha }}
-      run_id: ${{ needs.build_pr.outputs.run_id }}
-      gradio_version: ${{ needs.build_pr.outputs.version }}
