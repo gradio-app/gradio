@@ -18,7 +18,13 @@
 	const dispatch = createEventDispatcher();
 	let accept_file_types = "";
 	try {
-		file_types.forEach((type) => (accept_file_types += type + "/*, "));
+		for (const type of file_types) {
+			if (type.includes(".")) {
+				accept_file_types += type + ", ";
+			} else {
+				accept_file_types += type + "/*, "
+			}
+		}
 	} catch (err) {
 		if (err instanceof TypeError) {
 			dispatch("error", "Please set file_types to a list.");
