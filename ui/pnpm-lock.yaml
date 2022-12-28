@@ -40,7 +40,7 @@ importers:
     dependencies:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.27.1
-      '@sveltejs/vite-plugin-svelte': 1.0.0-next.44_svelte@3.49.0+vite@2.9.5
+      '@sveltejs/vite-plugin-svelte': 1.0.0-next.44_svelte@3.49.0+vite@2.9.9
       '@tailwindcss/forms': 0.5.0_tailwindcss@3.1.6
       '@testing-library/dom': 8.11.3
       '@testing-library/svelte': 3.1.0_svelte@3.49.0
@@ -68,7 +68,7 @@ importers:
       tailwindcss: 3.1.6_postcss@8.4.6
       tinyspy: 0.3.0
       typescript: 4.7.4
-      vite: 2.9.5
+      vite: 2.9.9
       vitest: 0.12.7_happy-dom@2.49.0
     devDependencies:
       '@types/three': 0.138.0
@@ -298,7 +298,7 @@ importers:
       '@rollup/plugin-json': ^5.0.2
       plotly.js-dist-min: ^2.10.1
       svelte-vega: ^1.2.0
-      vega: '>=5.21.0 <6.0.0'
+      vega: ^5.22.1
       vega-lite: '*'
     dependencies:
       '@gradio/icons': link:../icons
@@ -638,29 +638,6 @@ packages:
       - supports-color
     dev: true
 
-  /@sveltejs/vite-plugin-svelte/1.0.0-next.44_svelte@3.49.0+vite@2.9.5:
-    resolution: {integrity: sha512-n+sssEWbzykPS447FmnNyU5GxEhrBPDVd0lxNZnxRGz9P6651LjjwAnISKr3CKgT9v8IybP8VD0n2i5XzbqExg==}
-    engines: {node: ^14.13.1 || >= 16}
-    peerDependencies:
-      diff-match-patch: ^1.0.5
-      svelte: ^3.44.0
-      vite: ^2.9.0
-    peerDependenciesMeta:
-      diff-match-patch:
-        optional: true
-    dependencies:
-      '@rollup/pluginutils': 4.2.1
-      debug: 4.3.4
-      deepmerge: 4.2.2
-      kleur: 4.1.4
-      magic-string: 0.26.1
-      svelte: 3.49.0
-      svelte-hmr: 0.14.11_svelte@3.49.0
-      vite: 2.9.5
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
   /@sveltejs/vite-plugin-svelte/1.0.0-next.44_svelte@3.49.0+vite@2.9.9:
     resolution: {integrity: sha512-n+sssEWbzykPS447FmnNyU5GxEhrBPDVd0lxNZnxRGz9P6651LjjwAnISKr3CKgT9v8IybP8VD0n2i5XzbqExg==}
     engines: {node: ^14.13.1 || >= 16}
@@ -682,7 +659,6 @@ packages:
       vite: 2.9.9
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /@tailwindcss/forms/0.5.0_tailwindcss@3.1.6:
     resolution: {integrity: sha512-KzWugryEBFkmoaYcBE18rs6gthWCFHHO7cAZm2/hv3hwD67AzwP7udSCa22E7R1+CEJL/FfhYsJWrc0b1aeSzw==}
@@ -2416,12 +2392,6 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  /nanoid/3.3.2:
-    resolution: {integrity: sha512-CuHBogktKwpm5g2sRgv83jEy2ijFzBwMoYA60orPDR7ynsLijJDqgsi4RDGj3OJpy3Ieb+LYwiRmIOGyytgITA==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-    dev: false
-
   /nanoid/3.3.4:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -2728,15 +2698,6 @@ packages:
 
   /postcss-value-parser/4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
-
-  /postcss/8.4.12:
-    resolution: {integrity: sha512-lg6eITwYe9v6Hr5CncVbK70SoioNQIq81nsaG86ev5hAidQvmOeETBqs7jm43K2F5/Ley3ytDtriImV6TpNiSg==}
-    engines: {node: ^10 || ^12 || >=14}
-    dependencies:
-      nanoid: 3.3.2
-      picocolors: 1.0.0
-      source-map-js: 1.0.2
-    dev: false
 
   /postcss/8.4.14:
     resolution: {integrity: sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==}
@@ -3957,30 +3918,6 @@ packages:
       vega-wordcloud: 4.1.3
     transitivePeerDependencies:
       - encoding
-    dev: false
-
-  /vite/2.9.5:
-    resolution: {integrity: sha512-dvMN64X2YEQgSXF1lYabKXw3BbN6e+BL67+P3Vy4MacnY+UzT1AfkHiioFSi9+uiDUiaDy7Ax/LQqivk6orilg==}
-    engines: {node: '>=12.2.0'}
-    hasBin: true
-    peerDependencies:
-      less: '*'
-      sass: '*'
-      stylus: '*'
-    peerDependenciesMeta:
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-    dependencies:
-      esbuild: 0.14.31
-      postcss: 8.4.12
-      resolve: 1.22.0
-      rollup: 2.66.1
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: false
 
   /vite/2.9.9:

@@ -1,4 +1,4 @@
-:root {
+:root, :host {
 	--color-focus-primary: var(--color-blue-300);
 	--color-focus-secondary: var(--color-blue-500);
 	--color-focus-ring: rgb(191 219 254 / 0.5);

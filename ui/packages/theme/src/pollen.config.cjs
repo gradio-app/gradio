@@ -3,6 +3,8 @@ const { defineConfig } = require("pollen-css/utils");
 module.exports = defineConfig((pollen) => {
 	console.log(pollen);
 	return {
+		selector: ":host, :root",
+		output: "./src/pollen.css",
 		modules: {
 			font: {
 				...pollen.font,
