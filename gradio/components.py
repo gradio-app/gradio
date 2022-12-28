@@ -3207,7 +3207,7 @@ class Label(Changeable, IOComponent, JSONSerializable):
             return None
         if isinstance(y, str) and y.endswith(".json") and Path(y).exists():
             return self.serialize(y)
-        if isinstance(y, (str, Number)):
+        if isinstance(y, (str, float, int)):
             return {"label": str(y)}
         if isinstance(y, dict):
             if "confidences" in y and isinstance(y["confidences"], dict):
