@@ -122,10 +122,10 @@ class App(FastAPI):
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
         self.tokens = {}
-        
+
     def get_blocks(self) -> gradio.Blocks:
         if self.blocks is None:
-            raise ValueError("No Blocks has been configured for this app.")        
+            raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
 
     @staticmethod
@@ -198,7 +198,7 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            
+
             if app.auth is None or not (user is None):
                 config = app.get_blocks().config
             else:
@@ -258,11 +258,9 @@ class App(FastAPI):
             blocks = app.get_blocks()
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            if Path(app.cwd).resolve() in Path(
+            if Path(app.cwd).resolve() in Path(path).resolve().parents or Path(
                 path
-            ).resolve().parents or Path(path).resolve() in set().union(
-                *blocks.temp_file_sets
-            ):
+            ).resolve() in set().union(*blocks.temp_file_sets):
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )
@@ -407,19 +405,17 @@ class App(FastAPI):
             # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
             session_hash = await websocket.receive_json()
-            
+
             event = Event(websocket, fn_index=session_hash["fn_index"])
             # set the token into Event to allow using the same token for call_prediction
-            event.token = token            
+            event.token = token
             event.session_hash = session_hash["session_hash"]
 
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
-                await blocks._queue.reset_iterators(
-                    event.session_hash, event.fn_index
-                )
+                await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
                 )

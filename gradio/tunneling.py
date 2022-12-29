@@ -1,9 +1,9 @@
 import atexit
 import os
-from pathlib import Path
 import platform
 import re
 import subprocess
+from pathlib import Path
 from typing import List
 
 VERSION = "0.1"

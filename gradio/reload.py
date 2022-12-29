@@ -6,9 +6,9 @@ $ gradio app.py, to run app.py in reload mode where any changes in the app.py fi
 $ gradio app.py my_demo, to use variable names other than "demo"
 """
 import inspect
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
 
 import gradio
 from gradio import networking

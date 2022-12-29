@@ -42,7 +42,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "AutomaticSpeechRecognitionPipeline") and isinstance(
-        pipeline, pipelines.automatic_speech_recognition.AutomaticSpeechRecognitionPipeline
+        pipeline,
+        pipelines.automatic_speech_recognition.AutomaticSpeechRecognitionPipeline,
     ):
         pipeline_info = {
             "inputs": components.Audio(
