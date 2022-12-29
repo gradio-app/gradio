@@ -2668,7 +2668,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         value: str | Callable | None = None,
         *,
         x: str | None = None,
-        y: str | List[str | None] | None = None,
+        y: str | List[str] | None = None,
         colors: List[str] | None = None,
         label: str | None = None,
         every: float | None = None,
@@ -2692,7 +2692,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
-        if isinstance(y, str) or y is None:
+        if isinstance(y, str):
             y = [y]
         self.y = y
         self.colors = colors
@@ -2756,7 +2756,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         return dataframe
 
     def generate_sample(self):
-        return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
+        return {
+            "data": [[1] + [2] * len(self.y or [])] * 4,
+            "headers": [self.x] + (self.y or []),
+        }
 
     def postprocess(self, y: str | pd.DataFrame | None) -> Dict | None:
         """
