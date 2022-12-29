@@ -34,6 +34,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Optional
 )
 
 import aiohttp
@@ -98,7 +99,7 @@ def get_local_ip_address() -> str:
     return ip_address
 
 
-def initiated_analytics(data: Dict[str:Any]) -> None:
+def initiated_analytics(data: Dict[str, Any]) -> None:
     try:
         requests.post(
             analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
@@ -278,7 +279,7 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
+def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 
@@ -457,8 +458,8 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Type[BaseModel] = None,
-        validation_function: Callable = None,
+        validation_model: Optional[Type[BaseModel]] = None,
+        validation_function: Optional[Callable] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
         **kwargs,
