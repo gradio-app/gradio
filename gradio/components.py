@@ -1286,7 +1286,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
-        visible: bool| None = None,
+        visible: bool | None = None,
     ):
         updated_config = {
             "choices": choices,
@@ -1303,7 +1303,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    def preprocess(self, x: str | List[str]) -> str | int | List[str] | List[int] | None:
+    def preprocess(
+        self, x: str | List[str]
+    ) -> str | int | List[str] | List[int] | None:
         """
         Parameters:
             x: selected choice(s)
@@ -1337,7 +1339,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         choices.remove(x)
         return choices, {}
 
-    def get_interpretation_scores(self, x, neighbors, scores: List[float | None], **kwargs) -> List:
+    def get_interpretation_scores(
+        self, x, neighbors, scores: List[float | None], **kwargs
+    ) -> List:
         """
         Returns:
             Each value represents the interpretation score corresponding to each choice.
