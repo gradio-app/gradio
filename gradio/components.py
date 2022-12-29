@@ -2754,7 +2754,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         return dataframe
 
     def generate_sample(self):
-        return {"data": [[1] + [2] * len(self.y or [])] * 4, "headers": [self.x] + (self.y or [])}
+        return {
+            "data": [[1] + [2] * len(self.y or [])] * 4,
+            "headers": [self.x] + (self.y or []),
+        }
 
     def postprocess(self, y: str | pd.DataFrame | None) -> Dict | None:
         """
