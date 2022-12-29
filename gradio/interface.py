@@ -22,7 +22,6 @@ from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
-    Component,
     Interpretation,
     IOComponent,
     Markdown,
@@ -680,7 +679,7 @@ class Interface(Blocks):
                 + ([interpret_component_column] if self.interpretation else [])
             ),  # type: ignore
             _js=f"""() => {json.dumps(
-                [getattr(component, "cleared_value", None) 
+                [getattr(component, "cleared_value", None)
                     for component in self.input_components + self.output_components] + (
                     [Column.update(visible=True)]
                     if self.interface_type
