@@ -172,7 +172,10 @@ class FileSerializable(Serializable):
 
 class JSONSerializable(Serializable):
     def serialize(
-        self, x: str | None, load_dir: str | Path = "", encryption_key: bytes | None = None
+        self,
+        x: str | None,
+        load_dir: str | Path = "",
+        encryption_key: bytes | None = None,
     ) -> Dict | None:
         """
         Convert from a a human-friendly version (string path to json file) to a
