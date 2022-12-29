@@ -91,8 +91,14 @@ class Tunnel:
         atexit.register(self.kill)
         url = ""
         while url == "":
+            if self.proc.stdout is None:
+                continue
             line = self.proc.stdout.readline()
             line = line.decode("utf-8")
             if "start proxy success" in line:
-                url = re.search("start proxy success: (.+)\n", line).group(1)
+                result = re.search("start proxy success: (.+)\n", line)
+                if result is None:
+                    raise ValueError("Could not create share URL")
+                else:
+                    url = result.group(1)
         return url
