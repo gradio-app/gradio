@@ -34,11 +34,14 @@ with warnings.catch_warnings():
 
 def to_binary(x: str | Dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
-    if isinstance(x, dict) and not x.get("data"):
-        x = encode_url_or_file_to_base64(x["name"])
-    elif isinstance(x, dict) and x.get("data"):
-        x = x["data"]
-    return base64.b64decode(x.split(",")[1])
+    if isinstance(x, dict):
+        if x.get("data"):
+            base64str = x["data"]
+        else:
+            base64str = encode_url_or_file_to_base64(x["name"])
+    else:
+        base64str = x
+    return base64.b64decode(base64str.split(",")[1])
 
 
 #########################
@@ -46,31 +49,33 @@ def to_binary(x: str | Dict) -> bytes:
 #########################
 
 
-def decode_base64_to_image(encoding):
+def decode_base64_to_image(encoding: str) -> Image.Image:
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_url_or_file_to_base64(path, encryption_key=None):
+def encode_url_or_file_to_base64(path: str, encryption_key: bytes | None = None):
     if utils.validate_url(path):
         return encode_url_to_base64(path, encryption_key=encryption_key)
     else:
         return encode_file_to_base64(path, encryption_key=encryption_key)
 
 
-def get_mimetype(filename):
+def get_mimetype(filename: str) -> str | None:
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
     return mimetype
 
 
-def get_extension(encoding):
+def get_extension(encoding: str) -> str | None:
     encoding = encoding.replace("audio/wav", "audio/x-wav")
     type = mimetypes.guess_type(encoding)[0]
     if type == "audio/flac":  # flac is not supported by mimetypes
         return "flac"
+    elif type is None:
+        return None
     extension = mimetypes.guess_extension(type)
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
@@ -176,7 +181,7 @@ def resize_and_crop(img, size, crop_type="center"):
         resize[0] = img.size[0]
     if size[1] is None:
         resize[1] = img.size[1]
-    return ImageOps.fit(img, resize, centering=center)
+    return ImageOps.fit(img, resize, centering=center)  # type: ignore
 
 
 ##################

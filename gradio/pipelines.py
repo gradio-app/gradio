@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING, Dict
 from gradio import components
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import transformers
+    from transformers import pipelines
 
 
-def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
+def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> Dict:
     """
     Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline.
     pipeline (transformers.Pipeline): the transformers.Pipeline from which to create an interface
@@ -20,17 +20,18 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
     """
     try:
         import transformers
+        from transformers import pipelines
     except ImportError:
         raise ImportError(
             "transformers not installed. Please try `pip install transformers`"
         )
-    if not isinstance(pipeline, transformers.Pipeline):
+    if not isinstance(pipeline, pipelines.base.Pipeline):
         raise ValueError("pipeline must be a transformers.Pipeline")
 
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
     if hasattr(transformers, "AudioClassificationPipeline") and isinstance(
-        pipeline, transformers.AudioClassificationPipeline
+        pipeline, pipelines.audio_classification.AudioClassificationPipeline
     ):
         pipeline_info = {
             "inputs": components.Audio(
@@ -41,7 +42,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "AutomaticSpeechRecognitionPipeline") and isinstance(
-        pipeline, transformers.AutomaticSpeechRecognitionPipeline
+        pipeline, pipelines.automatic_speech_recognition.AutomaticSpeechRecognitionPipeline
     ):
         pipeline_info = {
             "inputs": components.Audio(
@@ -52,7 +53,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r["text"],
         }
     elif hasattr(transformers, "FeatureExtractionPipeline") and isinstance(
-        pipeline, transformers.FeatureExtractionPipeline
+        pipeline, pipelines.feature_extraction.FeatureExtractionPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -61,7 +62,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r[0],
         }
     elif hasattr(transformers, "FillMaskPipeline") and isinstance(
-        pipeline, transformers.FillMaskPipeline
+        pipeline, pipelines.fill_mask.FillMaskPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -70,7 +71,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
     elif hasattr(transformers, "ImageClassificationPipeline") and isinstance(
-        pipeline, transformers.ImageClassificationPipeline
+        pipeline, pipelines.image_classification.ImageClassificationPipeline
     ):
         pipeline_info = {
             "inputs": components.Image(type="filepath", label="Input Image"),
@@ -79,7 +80,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "QuestionAnsweringPipeline") and isinstance(
-        pipeline, transformers.QuestionAnsweringPipeline
+        pipeline, pipelines.question_answering.QuestionAnsweringPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -94,7 +95,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
     elif hasattr(transformers, "SummarizationPipeline") and isinstance(
-        pipeline, transformers.SummarizationPipeline
+        pipeline, pipelines.text2text_generation.SummarizationPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(lines=7, label="Input"),
@@ -103,7 +104,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r[0]["summary_text"],
         }
     elif hasattr(transformers, "TextClassificationPipeline") and isinstance(
-        pipeline, transformers.TextClassificationPipeline
+        pipeline, pipelines.text_classification.TextClassificationPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -112,7 +113,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "TextGenerationPipeline") and isinstance(
-        pipeline, transformers.TextGenerationPipeline
+        pipeline, pipelines.text_generation.TextGenerationPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -121,7 +122,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r[0]["generated_text"],
         }
     elif hasattr(transformers, "TranslationPipeline") and isinstance(
-        pipeline, transformers.TranslationPipeline
+        pipeline, pipelines.text2text_generation.TranslationPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -130,7 +131,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r[0]["translation_text"],
         }
     elif hasattr(transformers, "Text2TextGenerationPipeline") and isinstance(
-        pipeline, transformers.Text2TextGenerationPipeline
+        pipeline, pipelines.text2text_generation.Text2TextGenerationPipeline
     ):
         pipeline_info = {
             "inputs": components.Textbox(label="Input"),
@@ -139,7 +140,7 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
             "postprocess": lambda r: r[0]["generated_text"],
         }
     elif hasattr(transformers, "ZeroShotClassificationPipeline") and isinstance(
-        pipeline, transformers.ZeroShotClassificationPipeline
+        pipeline, pipelines.zero_shot_classification.ZeroShotClassificationPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -167,9 +168,9 @@ def load_from_pipeline(pipeline: transformers.Pipeline) -> Dict:
         if isinstance(
             pipeline,
             (
-                transformers.TextClassificationPipeline,
-                transformers.Text2TextGenerationPipeline,
-                transformers.TranslationPipeline,
+                pipelines.text_classification.TextClassificationPipeline,
+                pipelines.text2text_generation.Text2TextGenerationPipeline,
+                pipelines.text2text_generation.TranslationPipeline,
             ),
         ):
             data = pipeline(*data)
