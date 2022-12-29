@@ -193,7 +193,7 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        isfile = os.path.isfile(filename)
+        isfile = Path(filename).is_file()
         msg = (
             f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
             + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
@@ -220,7 +220,8 @@ def audio_to_file(sample_rate, data, filename):
         sample_width=data.dtype.itemsize,
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
-    audio.export(filename, format="wav").close()
+    file = audio.export(filename, format="wav")
+    file.close()  # type: ignore
 
 
 def convert_to_16_bit_wav(data):
@@ -271,7 +272,7 @@ def decode_base64_to_file(
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
-        filename = os.path.basename(file_path)
+        filename = Path(file_path).name
         prefix = filename
         if "." in filename:
             prefix = filename[0 : filename.index(".")]
@@ -346,7 +347,7 @@ class TempFileManager:
         return sha1.hexdigest()
 
     def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
-        file_name = os.path.basename(file_path_or_url)
+        file_name = Path(file_path_or_url).name
         prefix, extension = file_name, None
         if "." in file_name:
             prefix = file_name[0 : file_name.index(".")]
@@ -370,13 +371,13 @@ class TempFileManager:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_dir, _ = os.path.split(f.name)
+        temp_dir = Path(f.name).parent
 
         temp_file_path = self.get_temp_file_path(file_path)
-        f.name = os.path.join(temp_dir, temp_file_path)
-        full_temp_file_path = os.path.abspath(f.name)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(Path(f.name).resolve())
 
-        if not os.path.exists(full_temp_file_path):
+        if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
 
         self.temp_files.add(full_temp_file_path)
@@ -386,13 +387,13 @@ class TempFileManager:
         """Downloads a file and makes a temporary file path for a copy if does not already
         exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_dir, _ = os.path.split(f.name)
+        temp_dir = Path(f.name).parent
 
         temp_file_path = self.get_temp_url_path(url)
-        f.name = os.path.join(temp_dir, temp_file_path)
-        full_temp_file_path = os.path.abspath(f.name)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(Path(f.name).resolve())
 
-        if not os.path.exists(full_temp_file_path):
+        if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r:
                 with open(full_temp_file_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
