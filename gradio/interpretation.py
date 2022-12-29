@@ -1,5 +1,6 @@
 import copy
 import math
+from typing import TYPE_CHECKING, List
 
 import numpy as np
 
@@ -7,7 +8,11 @@ from gradio import utils
 from gradio.components import Label, Number
 
 
-async def run_interpret(interface, raw_input):
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio import Interface
+
+
+async def run_interpret(interface: Interface, raw_input: List):
     """
     Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
     interpretation for a certain set of UI component types, as well as the custom interpretation case.
@@ -162,6 +167,7 @@ async def run_interpret(interface, raw_input):
                     nsamples=int(interface.num_shap * num_total_segments),
                     silent=True,
                 )
+                assert shap_values is not None, "SHAP values could not be calculated"
                 scores.append(
                     input_component.get_interpretation_scores(
                         raw_input[i], None, shap_values[0], masks=masks, tokens=tokens
