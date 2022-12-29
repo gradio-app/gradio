@@ -13,7 +13,7 @@ import re
 import warnings
 import weakref
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.dollarmath.index import dollarmath_plugin
@@ -23,7 +23,6 @@ from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
-    Component,
     Interpretation,
     IOComponent,
     Markdown,
@@ -33,7 +32,7 @@ from gradio.components import (
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
-from gradio.layouts import Column, Row, TabItem, Tabs
+from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 
 set_documentation_group("interface")
@@ -131,8 +130,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: str | Component | List[str | Component] | None,
-        outputs: str | Component | List[str | Component] | None,
+        inputs: str | IOComponent | List[str | IOComponent] | None,
+        outputs: str | IOComponent | List[str | IOComponent] | None,
         examples: List[Any] | List[List[Any]] | str | None = None,
         cache_examples: bool | None = None,
         examples_per_page: int = 10,
@@ -206,8 +205,8 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
-        assert isinstance(inputs, (str, list, Component))
-        assert isinstance(outputs, (str, list, Component))
+        assert isinstance(inputs, (str, list, IOComponent))
+        assert isinstance(outputs, (str, list, IOComponent))
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -237,7 +236,7 @@ class Interface(Blocks):
             state_output_index = state_output_indexes[0]
             if inputs[state_input_index] == "state":
                 default = utils.get_default_args(fn)[state_input_index]
-                state_variable = State(value=default)
+                state_variable = State(value=default)  # type: ignore
             else:
                 state_variable = inputs[state_input_index]
 
@@ -276,6 +275,7 @@ class Interface(Blocks):
             self.InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
+                assert isinstance(o, IOComponent)
                 o.interactive = False  # Force output components to be non-interactive
 
         if (
@@ -378,6 +378,8 @@ class Interface(Blocks):
         self.flagging_options = flagging_options
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
+        self.batch = batch
+        self.max_batch_size = max_batch_size
 
         self.save_to = None  # Used for selenium tests
         self.share = None
@@ -398,7 +400,7 @@ class Interface(Blocks):
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
-                "version": pkgutil.get_data(__name__, "version.txt")
+                "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
             }
@@ -406,12 +408,14 @@ class Interface(Blocks):
 
         utils.version_check()
         Interface.instances.add(self)
-
+        
         param_names = inspect.getfullargspec(self.fn)[0]
         for component, param_name in zip(self.input_components, param_names):
+            assert isinstance(component, IOComponent)
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
+            assert isinstance(component, IOComponent)
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"
@@ -423,253 +427,271 @@ class Interface(Blocks):
                 self.interface_type == self.InterfaceTypes.UNIFIED
                 or self.allow_flagging == "auto"
             ):
-                self.flagging_callback.setup(self.input_components, self.flagging_dir)
+                self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
                 pass
             else:
                 self.flagging_callback.setup(
-                    self.input_components + self.output_components, self.flagging_dir
+                    self.input_components + self.output_components, self.flagging_dir  # type: ignore
                 )
 
+        # Render the UI
         with self:
-            if self.title:
-                Markdown(
-                    "<h1 style='text-align: center; margin-bottom: 1rem'>"
-                    + self.title
-                    + "</h1>"
-                )
-            if self.description:
-                Markdown(self.description)
-
-            def render_flag_btns(flagging_options):
-                if flagging_options is None:
-                    return [(Button("Flag"), None)]
-                else:
-                    return [
-                        (
-                            Button("Flag as " + flag_option),
-                            flag_option,
-                        )
-                        for flag_option in flagging_options
-                    ]
-
+            self.render_title_description()
             with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.INPUT_ONLY,
                     self.InterfaceTypes.UNIFIED,
                 ]:
-                    with Column(variant="panel"):
-                        input_component_column = Column()
-                        with input_component_column:
-                            for component in self.input_components:
-                                component.render()
-                        if self.interpretation:
-                            interpret_component_column = Column(visible=False)
-                            interpretation_set = []
-                            with interpret_component_column:
-                                for component in self.input_components:
-                                    interpretation_set.append(Interpretation(component))
-                        with Row():
-                            if self.interface_type in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                            ]:
-                                clear_btn = Button("Clear")
-                                if not self.live:
-                                    submit_btn = Button("Submit", variant="primary")
-                                    # Stopping jobs only works if the queue is enabled
-                                    # We don't know if the queue is enabled when the interface
-                                    # is created. We use whether a generator function is provided
-                                    # as a proxy of whether the queue will be enabled.
-                                    # Using a generator function without the queue will raise an error.
-                                    if inspect.isgeneratorfunction(fn):
-                                        stop_btn = Button("Stop", variant="stop")
-
-                            elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                                clear_btn = Button("Clear")
-                                submit_btn = Button("Submit", variant="primary")
-                                if inspect.isgeneratorfunction(fn) and not self.live:
-                                    stop_btn = Button("Stop", variant="stop")
-                                if self.allow_flagging == "manual":
-                                    flag_btns = render_flag_btns(self.flagging_options)
-
+                    self.render_input_column()
+                    
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.OUTPUT_ONLY,
                 ]:
+                    self.render_output_column()
+            
+            self.attach_submit_events()
+            self.attach_clear_events()
+            self.attach_interpretation_events()
 
-                    with Column(variant="panel"):
-                        for component in self.output_components:
-                            if not (isinstance(component, State)):
-                                component.render()
-                        with Row():
-                            if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                                clear_btn = Button("Clear")
-                                submit_btn = Button("Generate", variant="primary")
-                                if inspect.isgeneratorfunction(fn) and not self.live:
-                                    # Stopping jobs only works if the queue is enabled
-                                    # We don't know if the queue is enabled when the interface
-                                    # is created. We use whether a generator function is provided
-                                    # as a proxy of whether the queue will be enabled.
-                                    # Using a generator function without the queue will raise an error.
-                                    stop_btn = Button("Stop", variant="stop")
-                            if self.allow_flagging == "manual":
-                                flag_btns = render_flag_btns(self.flagging_options)
-                            if self.interpretation:
-                                interpretation_btn = Button("Interpret")
-            if self.live:
-                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                    super().load(self.fn, None, self.output_components)
-                    submit_btn.click(
-                        self.fn,
-                        None,
-                        self.output_components,
-                        api_name="predict",
-                        preprocess=not (self.api_mode),
-                        postprocess=not (self.api_mode),
-                        batch=batch,
-                        max_batch_size=max_batch_size,
-                    )
-                else:
+            self.render_flagging_buttons()
+            self.render_examples()
+            self.render_article()
+            
+        self.config = self.get_config_file()
+
+    def render_title_description(self) -> None:
+        if self.title:
+            Markdown(
+                "<h1 style='text-align: center; margin-bottom: 1rem'>"
+                + self.title
+                + "</h1>"
+            )
+        if self.description:
+            Markdown(self.description)        
+
+    def render_flag_btns(self) -> List[Tuple[Button, str | None]]:
+        if self.flagging_options is None:
+            return [(Button("Flag"), None)]
+        else:
+            return [
+                (
+                    Button("Flag as " + flag_option),
+                    flag_option,
+                )
+                for flag_option in self.flagging_options
+            ]
+
+    def render_input_column(self):
+        with Column(variant="panel"):
+            input_component_column = Column()
+            with input_component_column:
+                for component in self.input_components:
+                    component.render()
+            if self.interpretation:
+                interpret_component_column = Column(visible=False)
+                interpretation_set = []
+                with interpret_component_column:
                     for component in self.input_components:
-                        if isinstance(component, Streamable):
-                            if component.streaming:
-                                component.stream(
-                                    self.fn,
-                                    self.input_components,
-                                    self.output_components,
-                                    api_name="predict",
-                                    preprocess=not (self.api_mode),
-                                    postprocess=not (self.api_mode),
-                                )
-                                continue
-                            else:
-                                print(
-                                    "Hint: Set streaming=True for "
-                                    + component.__class__.__name__
-                                    + " component to use live streaming."
-                                )
-                        if isinstance(component, Changeable):
-                            component.change(
-                                self.fn,
-                                self.input_components,
-                                self.output_components,
-                                api_name="predict",
-                                preprocess=not (self.api_mode),
-                                postprocess=not (self.api_mode),
-                            )
-            else:
-                pred = submit_btn.click(
+                        interpretation_set.append(Interpretation(component))
+            with Row():
+                if self.interface_type in [
+                    self.InterfaceTypes.STANDARD,
+                    self.InterfaceTypes.INPUT_ONLY,
+                ]:
+                    clear_btn = Button("Clear")
+                    if not self.live:
+                        submit_btn = Button("Submit", variant="primary")
+                        # Stopping jobs only works if the queue is enabled
+                        # We don't know if the queue is enabled when the interface
+                        # is created. We use whether a generator function is provided
+                        # as a proxy of whether the queue will be enabled.
+                        # Using a generator function without the queue will raise an error.
+                        if inspect.isgeneratorfunction(self.fn):
+                            stop_btn = Button("Stop", variant="stop")
+
+                elif self.interface_type == self.InterfaceTypes.UNIFIED:
+                    clear_btn = Button("Clear")
+                    submit_btn = Button("Submit", variant="primary")
+                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                        stop_btn = Button("Stop", variant="stop")
+                    if self.allow_flagging == "manual":
+                        flag_btns = self.render_flag_btns()
+
+    def render_output_column(self):
+        with Column(variant="panel"):
+            for component in self.output_components:
+                if not (isinstance(component, State)):
+                    component.render()
+            with Row():
+                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                    clear_btn = Button("Clear")
+                    submit_btn = Button("Generate", variant="primary")
+                    if inspect.isgeneratorfunction(self.fn) and not self.live:
+                        # Stopping jobs only works if the queue is enabled
+                        # We don't know if the queue is enabled when the interface
+                        # is created. We use whether a generator function is provided
+                        # as a proxy of whether the queue will be enabled.
+                        # Using a generator function without the queue will raise an error.
+                        stop_btn = Button("Stop", variant="stop")
+                if self.allow_flagging == "manual":
+                    flag_btns = self.render_flag_btns()
+                if self.interpretation:
+                    interpretation_btn = Button("Interpret")        
+        
+    def render_article(self):
+        if self.article:
+            Markdown(self.article)
+    
+    def attach_submit_events(self, submit_btn: Button, stop_btn: Button | None):
+        if self.live:
+            if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                super().load(self.fn, None, self.output_components)
+                submit_btn.click(
                     self.fn,
-                    self.input_components,
+                    None,
                     self.output_components,
                     api_name="predict",
-                    scroll_to_output=True,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
-                    batch=batch,
-                    max_batch_size=max_batch_size,
+                    batch=self.batch,
+                    max_batch_size=self.max_batch_size,
                 )
-                if inspect.isgeneratorfunction(fn):
-                    stop_btn.click(
-                        None,
-                        inputs=None,
-                        outputs=None,
-                        cancels=[pred],
-                    )
-
-            clear_btn.click(
-                None,
-                [],
-                (
-                    self.input_components
-                    + self.output_components
-                    + (
-                        [input_component_column]
-                        if self.interface_type
+            else:
+                for component in self.input_components:
+                    if isinstance(component, Streamable) and component.streaming:
+                        component.stream(
+                            self.fn,
+                            self.input_components,
+                            self.output_components,
+                            api_name="predict",
+                            preprocess=not (self.api_mode),
+                            postprocess=not (self.api_mode),
+                        )
+                        continue
+                    if isinstance(component, Changeable):
+                        component.change(
+                            self.fn,
+                            self.input_components,
+                            self.output_components,
+                            api_name="predict",
+                            preprocess=not (self.api_mode),
+                            postprocess=not (self.api_mode),
+                        )
+        else:
+            pred = submit_btn.click(
+                self.fn,
+                self.input_components,
+                self.output_components,
+                api_name="predict",
+                scroll_to_output=True,
+                preprocess=not (self.api_mode),
+                postprocess=not (self.api_mode),
+                batch=batch,
+                max_batch_size=max_batch_size,
+            )
+            if inspect.isgeneratorfunction(fn):
+                stop_btn.click(
+                    None,
+                    inputs=None,
+                    outputs=None,
+                    cancels=[pred],
+                )
+            
+    def attach_clear_events(self):
+        clear_btn.click(
+            None,
+            [],
+            (
+                self.input_components
+                + self.output_components
+                + (
+                    [input_component_column]
+                    if self.interface_type
+                    in [
+                        self.InterfaceTypes.STANDARD,
+                        self.InterfaceTypes.INPUT_ONLY,
+                        self.InterfaceTypes.UNIFIED,
+                    ]
+                    else []
+                )
+                + ([interpret_component_column] if self.interpretation else [])
+            ),
+            _js=f"""() => {json.dumps(
+                [component.cleared_value if hasattr(component, "cleared_value") else None
+                    for component in self.input_components + self.output_components] + (
+                    [Column.update(visible=True)]
+                    if self.interface_type
                         in [
                             self.InterfaceTypes.STANDARD,
                             self.InterfaceTypes.INPUT_ONLY,
                             self.InterfaceTypes.UNIFIED,
                         ]
-                        else []
+                    else []
+                )
+                + ([Column.update(visible=False)] if self.interpretation else [])
+            )}
+            """,
+        )        
+        
+    def attach_interpretation_events(self):
+        if self.interpretation:
+            interpretation_btn.click(
+                self.interpret_func,
+                inputs=self.input_components + self.output_components,
+                outputs=interpretation_set
+                + [input_component_column, interpret_component_column],
+                preprocess=False,
+            )
+        
+    def render_flagging_buttons(self):
+        if self.allow_flagging in ["manual", "auto"]:
+            if self.interface_type in [
+                self.InterfaceTypes.STANDARD,
+                self.InterfaceTypes.OUTPUT_ONLY,
+                self.InterfaceTypes.UNIFIED,
+            ]:
+                if self.allow_flagging == "auto":
+                    flag_btns = [(submit_btn, None)]
+                if (
+                    self.interface_type == self.InterfaceTypes.UNIFIED
+                    or self.allow_flagging == "auto"
+                ):
+                    flag_components = self.input_components
+                else:
+                    flag_components = self.input_components + self.output_components
+                for flag_btn, flag_option in flag_btns:
+                    flag_method = FlagMethod(self.flagging_callback, flag_option)
+                    flag_btn.click(
+                        flag_method,
+                        inputs=flag_components,
+                        outputs=[],
+                        preprocess=False,
+                        queue=False,
                     )
-                    + ([interpret_component_column] if self.interpretation else [])
-                ),
-                _js=f"""() => {json.dumps(
-                    [component.cleared_value if hasattr(component, "cleared_value") else None
-                     for component in self.input_components + self.output_components] + (
-                        [Column.update(visible=True)]
-                        if self.interface_type
-                           in [
-                               self.InterfaceTypes.STANDARD,
-                               self.InterfaceTypes.INPUT_ONLY,
-                               self.InterfaceTypes.UNIFIED,
-                           ]
-                        else []
-                    )
-                    + ([Column.update(visible=False)] if self.interpretation else [])
-                )}
-                """,
+        
+    def render_examples(self):
+        if self.examples:
+            non_state_inputs = [
+                c for c in self.input_components if not isinstance(c, State)
+            ]
+            non_state_outputs = [
+                c for c in self.output_components if not isinstance(c, State)
+            ]
+            self.examples_handler = Examples(
+                examples=self.examples,
+                inputs=non_state_inputs,  # type: ignore
+                outputs=non_state_outputs,  # type: ignore
+                fn=self.fn,
+                cache_examples=self.cache_examples,
+                examples_per_page=examples_per_page,
+                _api_mode=_api_mode,
+                batch=batch,
             )
 
-            if self.allow_flagging in ["manual", "auto"]:
-                if self.interface_type in [
-                    self.InterfaceTypes.STANDARD,
-                    self.InterfaceTypes.OUTPUT_ONLY,
-                    self.InterfaceTypes.UNIFIED,
-                ]:
-                    if self.allow_flagging == "auto":
-                        flag_btns = [(submit_btn, None)]
-                    if (
-                        self.interface_type == self.InterfaceTypes.UNIFIED
-                        or self.allow_flagging == "auto"
-                    ):
-                        flag_components = self.input_components
-                    else:
-                        flag_components = self.input_components + self.output_components
-                    for flag_btn, flag_option in flag_btns:
-                        flag_method = FlagMethod(self.flagging_callback, flag_option)
-                        flag_btn.click(
-                            flag_method,
-                            inputs=flag_components,
-                            outputs=[],
-                            preprocess=False,
-                            queue=False,
-                        )
-
-            if self.examples:
-                non_state_inputs = [
-                    c for c in self.input_components if not isinstance(c, State)
-                ]
-                non_state_outputs = [
-                    c for c in self.output_components if not isinstance(c, State)
-                ]
-                self.examples_handler = Examples(
-                    examples=examples,
-                    inputs=non_state_inputs,
-                    outputs=non_state_outputs,
-                    fn=self.fn,
-                    cache_examples=self.cache_examples,
-                    examples_per_page=examples_per_page,
-                    _api_mode=_api_mode,
-                    batch=batch,
-                )
-
-            if self.interpretation:
-                interpretation_btn.click(
-                    self.interpret_func,
-                    inputs=self.input_components + self.output_components,
-                    outputs=interpretation_set
-                    + [input_component_column, interpret_component_column],
-                    preprocess=False,
-                )
-
-            if self.article:
-                Markdown(self.article)
-
-        self.config = self.get_config_file()
+        
 
     def __str__(self):
         return self.__repr__()
@@ -763,7 +785,7 @@ class TabbedInterface(Blocks):
                 )
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):
-                    with TabItem(label=tab_name):
+                    with Tab(label=tab_name):
                         interface.render()
 
 
