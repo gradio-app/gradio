@@ -405,7 +405,7 @@ class TempFileManager:
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    file_name = os.path.basename(file_path)
+    file_name = Path(file_path).name
     prefix, extension = file_name, None
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]

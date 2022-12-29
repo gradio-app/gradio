@@ -1,5 +1,6 @@
 import atexit
 import os
+from pathlib import Path
 import platform
 import re
 import subprocess
@@ -26,11 +27,11 @@ class Tunnel:
 
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
-        binary_path = os.path.join(os.path.dirname(__file__), binary_name)
+        binary_path = str(Path(__file__).parent / binary_name)
 
         extension = ".exe" if os.name == "nt" else ""
 
-        if not os.path.exists(binary_path):
+        if not Path(binary_path).exists():
             import stat
 
             import requests
