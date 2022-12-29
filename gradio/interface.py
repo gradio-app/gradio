@@ -457,12 +457,18 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.OUTPUT_ONLY,
                 ]:
-                    submit_btn_out, clear_btn_2_out, stop_btn_2_out, flag_btns_out, interpretation_btn = self.render_output_column(submit_btn)
+                    (
+                        submit_btn_out,
+                        clear_btn_2_out,
+                        stop_btn_2_out,
+                        flag_btns_out,
+                        interpretation_btn,
+                    ) = self.render_output_column(submit_btn)
                     submit_btn = submit_btn or submit_btn_out
                     clear_btn = clear_btn or clear_btn_2_out
                     stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
-            
+
             assert submit_btn is not None, "Submit button not rendered"
             assert clear_btn is not None, "Clear button not rendered"
 
@@ -565,7 +571,8 @@ class Interface(Blocks):
         )
 
     def render_output_column(
-        self, submit_btn_in: Button | None,
+        self,
+        submit_btn_in: Button | None,
     ) -> Tuple[Button | None, Button | None, Button | None, List | None, Button | None]:
         submit_btn = submit_btn_in
         interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
@@ -699,7 +706,7 @@ class Interface(Blocks):
             interpretation_btn.click(
                 self.interpret_func,
                 inputs=self.input_components + self.output_components,
-                outputs=interpretation_set  
+                outputs=interpretation_set
                 or [] + [input_component_column, interpret_component_column],  # type: ignore
                 preprocess=False,
             )

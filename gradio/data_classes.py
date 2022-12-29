@@ -26,4 +26,3 @@ class InterfaceTypes(Enum):
     INPUT_ONLY = auto()
     OUTPUT_ONLY = auto()
     UNIFIED = auto()
-
