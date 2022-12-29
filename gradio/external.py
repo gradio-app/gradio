@@ -63,7 +63,7 @@ def load_blocks_from_repo(
     return blocks
 
 
-def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
+def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs):
     model_url = "https://huggingface.co/{}".format(model_name)
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
     print("Fetching model from: {}".format(model_url))
@@ -316,7 +316,9 @@ def from_model(model_name: str, api_key: str | None, alias: str, **kwargs):
     return interface
 
 
-def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> Blocks:
+def from_spaces(
+    space_name: str, api_key: str | None, alias: str | None, **kwargs
+) -> Blocks:
     space_url = "https://huggingface.co/spaces/{}".format(space_name)
 
     print("Fetching Space from: {}".format(space_url))
@@ -344,7 +346,7 @@ def from_spaces(space_name: str, api_key: str | None, alias: str, **kwargs) -> B
         r"window.gradio_config = (.*?);[\s]*</script>", r.text
     )  # some basic regex to extract the config
     try:
-        config = json.loads(result.group(1))
+        config = json.loads(result.group(1))  # type: ignore
     except AttributeError:
         raise ValueError("Could not load the Space: {}".format(space_name))
     if "allow_flagging" in config:  # Create an Interface for Gradio 2.x Spaces
@@ -416,7 +418,7 @@ def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Bl
 def from_spaces_interface(
     model_name: str,
     config: Dict,
-    alias: str,
+    alias: str | None,
     api_key: str | None,
     iframe_url: str,
     **kwargs,

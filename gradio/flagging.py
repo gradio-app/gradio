@@ -7,7 +7,8 @@ import json
 import os
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, List
 
 import gradio as gr
 from gradio import encryptor, utils
@@ -51,9 +52,9 @@ def _get_dataset_features_info(is_new, components):
                 headers.append(component.label + " file")
                 for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
-                        infos["flagged"]["features"][component.label + " file"] = {
-                            "_type": _type
-                        }
+                        infos["flagged"]["features"][
+                            (component.label or "") + " file"
+                        ] = {"_type": _type}
                         break
 
         headers.append("flag")
@@ -85,9 +86,9 @@ class FlaggingCallback(ABC):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: Optional[str] = None,
-        flag_index: Optional[int] = None,
-        username: Optional[str] = None,
+        flag_option: str | None = None,
+        flag_index: int | None = None,
+        username: str | None = None,
     ) -> int:
         """
         This method should be overridden by the FlaggingCallback subclass and may contain optional additional arguments.
@@ -121,7 +122,7 @@ class SimpleCSVLogger(FlaggingCallback):
     def __init__(self):
         pass
 
-    def setup(self, components: List[IOComponent], flagging_dir: str):
+    def setup(self, components: List[IOComponent], flagging_dir: str | Path):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -129,17 +130,17 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: Optional[str] = None,
-        flag_index: Optional[int] = None,
-        username: Optional[str] = None,
+        flag_option: str | None = None,
+        flag_index: int | None = None,
+        username: str | None = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_filepath = os.path.join(flagging_dir, "log.csv")
+        log_filepath = Path(flagging_dir) / "log.csv"
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
-            save_dir = os.path.join(
-                flagging_dir, utils.strip_invalid_filename_characters(component.label)
+            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
+                component.label or ""
             )
             csv_data.append(
                 component.deserialize(
@@ -178,8 +179,8 @@ class CSVLogger(FlaggingCallback):
     def setup(
         self,
         components: List[IOComponent],
-        flagging_dir: str,
-        encryption_key: Optional[str] = None,
+        flagging_dir: str | Path,
+        encryption_key: bytes | None = None,
     ):
         self.components = components
         self.flagging_dir = flagging_dir
@@ -189,54 +190,49 @@ class CSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: Optional[str] = None,
-        flag_index: Optional[int] = None,
-        username: Optional[str] = None,
+        flag_option: str | None = None,
+        flag_index: int | None = None,
+        username: str | None = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_filepath = os.path.join(flagging_dir, "log.csv")
-        is_new = not os.path.exists(log_filepath)
+        log_filepath = Path(flagging_dir) / "log.csv"
+        is_new = not Path(log_filepath).exists()
+        headers = [
+            component.label or f"component {idx}"
+            for idx, component in enumerate(self.components)
+        ] + [
+            "flag",
+            "username",
+            "timestamp",
+        ]
 
-        if flag_index is None:
-            csv_data = []
-            for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
-                save_dir = os.path.join(
-                    flagging_dir,
-                    utils.strip_invalid_filename_characters(
-                        component.label or f"component {idx}"
-                    ),
-                )
-                if utils.is_update(sample):
-                    csv_data.append(str(sample))
-                else:
-                    csv_data.append(
-                        component.deserialize(
-                            sample,
-                            save_dir=save_dir,
-                            encryption_key=self.encryption_key,
-                        )
-                        if sample is not None
-                        else ""
+        csv_data = []
+        for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
+            save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
+                component.label or f"component {idx}"
+            )
+            if utils.is_update(sample):
+                csv_data.append(str(sample))
+            else:
+                csv_data.append(
+                    component.deserialize(
+                        sample,
+                        save_dir=save_dir,
+                        encryption_key=self.encryption_key,
                     )
-            csv_data.append(flag_option if flag_option is not None else "")
-            csv_data.append(username if username is not None else "")
-            csv_data.append(str(datetime.datetime.now()))
-            if is_new:
-                headers = [
-                    component.label or f"component {idx}"
-                    for idx, component in enumerate(self.components)
-                ] + [
-                    "flag",
-                    "username",
-                    "timestamp",
-                ]
+                    if sample is not None
+                    else ""
+                )
+        csv_data.append(flag_option if flag_option is not None else "")
+        csv_data.append(username if username is not None else "")
+        csv_data.append(str(datetime.datetime.now()))
 
-        def replace_flag_at_index(file_content):
-            file_content = io.StringIO(file_content)
-            content = list(csv.reader(file_content))
+        def replace_flag_at_index(file_content: str, flag_index: int):
+            file_content_ = io.StringIO(file_content)
+            content = list(csv.reader(file_content_))
             header = content[0]
             flag_col_index = header.index("flag")
-            content[flag_index][flag_col_index] = flag_option
+            content[flag_index][flag_col_index] = flag_option  # type: ignore
             output = io.StringIO()
             writer = csv.writer(output)
             writer.writerows(utils.sanitize_list_for_csv(content))
@@ -252,7 +248,7 @@ class CSVLogger(FlaggingCallback):
                     )
                     file_content = decrypted_csv.decode()
                     if flag_index is not None:
-                        file_content = replace_flag_at_index(file_content)
+                        file_content = replace_flag_at_index(file_content, flag_index)
                     output.write(file_content)
             writer = csv.writer(output)
             if flag_index is None:
@@ -273,7 +269,7 @@ class CSVLogger(FlaggingCallback):
             else:
                 with open(log_filepath, encoding="utf-8") as csvfile:
                     file_content = csvfile.read()
-                    file_content = replace_flag_at_index(file_content)
+                    file_content = replace_flag_at_index(file_content, flag_index)
                 with open(
                     log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
@@ -302,7 +298,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self,
         hf_token: str,
         dataset_name: str,
-        organization: Optional[str] = None,
+        organization: str | None = None,
         private: bool = False,
     ):
         """
@@ -340,28 +336,28 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
         self.components = components
         self.flagging_dir = flagging_dir
-        self.dataset_dir = os.path.join(flagging_dir, self.dataset_name)
+        self.dataset_dir = Path(flagging_dir) / self.dataset_name
         self.repo = huggingface_hub.Repository(
-            local_dir=self.dataset_dir,
+            local_dir=str(self.dataset_dir),
             clone_from=path_to_dataset_repo,
             use_auth_token=self.hf_token,
         )
         self.repo.git_pull(lfs=True)
 
         # Should filename be user-specified?
-        self.log_file = os.path.join(self.dataset_dir, "data.csv")
-        self.infos_file = os.path.join(self.dataset_dir, "dataset_infos.json")
+        self.log_file = Path(self.dataset_dir) / "data.csv"
+        self.infos_file = Path(self.dataset_dir) / "dataset_infos.json"
 
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: Optional[str] = None,
-        flag_index: Optional[int] = None,
-        username: Optional[str] = None,
+        flag_option: str | None = None,
+        flag_index: int | None = None,
+        username: str | None = None,
     ) -> int:
         self.repo.git_pull(lfs=True)
 
-        is_new = not os.path.exists(self.log_file)
+        is_new = not Path(self.log_file).exists()
 
         with open(self.log_file, "a", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
@@ -378,10 +374,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                save_dir = os.path.join(
-                    self.dataset_dir,
-                    utils.strip_invalid_filename_characters(component.label),
-                )
+                save_dir = Path(
+                    self.dataset_dir
+                ) / utils.strip_invalid_filename_characters(component.label or "")
                 filepath = component.deserialize(sample, save_dir, None)
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
@@ -416,7 +411,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self,
         hf_foken: str,
         dataset_name: str,
-        organization: Optional[str] = None,
+        organization: str | None = None,
         private: bool = False,
         verbose: bool = True,
     ):
@@ -463,34 +458,34 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
         self.components = components
         self.flagging_dir = flagging_dir
-        self.dataset_dir = os.path.join(flagging_dir, self.dataset_name)
+        self.dataset_dir = Path(flagging_dir) / self.dataset_name
         self.repo = huggingface_hub.Repository(
-            local_dir=self.dataset_dir,
+            local_dir=str(self.dataset_dir),
             clone_from=path_to_dataset_repo,
             use_auth_token=self.hf_foken,
         )
         self.repo.git_pull(lfs=True)
 
-        self.infos_file = os.path.join(self.dataset_dir, "dataset_infos.json")
+        self.infos_file = Path(self.dataset_dir) / "dataset_infos.json"
 
     def flag(
         self,
         flag_data: List[Any],
-        flag_option: Optional[str] = None,
-        flag_index: Optional[int] = None,
-        username: Optional[str] = None,
-    ) -> int:
+        flag_option: str | None = None,
+        flag_index: int | None = None,
+        username: str | None = None,
+    ) -> str:
         self.repo.git_pull(lfs=True)
 
         # Generate unique folder for the flagged sample
         unique_name = self.get_unique_name()  # unique name for folder
-        folder_name = os.path.join(
-            self.dataset_dir, unique_name
+        folder_name = (
+            Path(self.dataset_dir) / unique_name
         )  # unique folder for specific example
         os.makedirs(folder_name)
 
         # Now uses the existence of `dataset_infos.json` to determine if new
-        is_new = not os.path.exists(self.infos_file)
+        is_new = not Path(self.infos_file).exists()
 
         # File previews for certain input and output types
         infos, file_preview_types, _ = _get_dataset_features_info(
@@ -505,9 +500,10 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
             headers.append(component.label)
 
             try:
-                filepath = component.save_flagged(
-                    folder_name, component.label, sample, None
+                save_dir = Path(folder_name) / utils.strip_invalid_filename_characters(
+                    component.label or ""
                 )
+                filepath = component.deserialize(sample, save_dir, None)
             except Exception:
                 # Could not parse 'sample' (mostly) because it was None and `component.save_flagged`
                 # does not handle None cases.
@@ -515,7 +511,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 filepath = None
 
             if isinstance(component, tuple(file_preview_types)):
-                headers.append(component.label + " file")
+                headers.append(component.label or "" + " file")
 
                 csv_data.append(
                     "{}/resolve/main/{}/{}".format(
@@ -533,7 +529,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         metadata_dict = {
             header: _csv_data for header, _csv_data in zip(headers, csv_data)
         }
-        self.dump_json(metadata_dict, os.path.join(folder_name, "metadata.jsonl"))
+        self.dump_json(metadata_dict, Path(folder_name) / "metadata.jsonl")
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
@@ -545,7 +541,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         id = uuid.uuid4()
         return str(id)
 
-    def dump_json(self, thing: dict, file_path: str) -> None:
+    def dump_json(self, thing: dict, file_path: str | Path) -> None:
         with open(file_path, "w+", encoding="utf8") as f:
             json.dump(thing, f)
 

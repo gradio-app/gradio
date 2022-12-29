@@ -1,3 +1,4 @@
+# type: ignore
 """
 This module defines various classes that can serve as the `output` to an interface. Each class must inherit from
 `OutputComponent`, and each class must define a path to its template. All of the subclasses of `OutputComponent` are
