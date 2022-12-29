@@ -177,7 +177,7 @@ class Interface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="interface",
             css=css,
-            title=title,
+            title=title or "Gradio",
             theme=theme,
             **kwargs,
         )
@@ -818,7 +818,7 @@ class TabbedInterface(Blocks):
             a Gradio Tabbed Interface for the given interfaces
         """
         super().__init__(
-            title=title,
+            title=title or "Gradio",
             theme=theme,
             analytics_enabled=analytics_enabled,
             mode="tabbed_interface",
