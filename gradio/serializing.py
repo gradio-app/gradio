@@ -61,7 +61,10 @@ class SimpleSerializable(Serializable):
 
 class ImgSerializable(Serializable):
     def serialize(
-        self, x: str | None, load_dir: str | Path = "", encryption_key: bytes | None = None
+        self,
+        x: str | None,
+        load_dir: str | Path = "",
+        encryption_key: bytes | None = None,
     ) -> str | None:
         """
         Convert from human-friendly version of a file (string filepath) to a seralized
