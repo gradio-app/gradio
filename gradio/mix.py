@@ -11,7 +11,7 @@ from gradio.documentation import document, set_documentation_group
 set_documentation_group("mix_interface")
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 
 @document()
@@ -32,7 +32,7 @@ class Parallel(gradio.Interface):
         Returns:
             an Interface object comparing the given models
         """
-        outputs: List[IOComponent] = []
+        outputs: List[Component] = []
 
         for interface in interfaces:
             if not (isinstance(interface, gradio.Interface)):
@@ -44,7 +44,7 @@ class Parallel(gradio.Interface):
 
         async def parallel_fn(*args):
             return_values_with_durations = await asyncio.gather(
-                *[interface.call_function(0, args) for interface in interfaces]
+                *[interface.call_function(0, list(args)) for interface in interfaces]
             )
             return_values = [rv["prediction"] for rv in return_values_with_durations]
             combined_list = []
