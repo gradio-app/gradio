@@ -15,12 +15,12 @@ from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
 
 
 class Estimation(BaseModel):
-    msg: Optional[str] = "estimation"
-    rank: Optional[int] = None
+    msg: str | None = "estimation"
+    rank: int | None = None
     queue_size: int
-    avg_event_process_time: Optional[float]
-    avg_event_concurrent_process_time: Optional[float]
-    rank_eta: Optional[int] = None
+    avg_event_process_time: float | None
+    avg_event_concurrent_process_time: float | None
+    rank_eta: int | None = None
     queue_eta: int
 
 
@@ -28,16 +28,16 @@ class Event:
     def __init__(
         self,
         websocket: fastapi.WebSocket,
-        fn_index: int | None = None,
+        fn_index: int,
     ):
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index: int | None = fn_index
+        self.fn_index: int = fn_index
         self.session_hash: str = "foo"
         self.token: str | None = None
 
-    async def disconnect(self, code=1000):
+    async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
 
 
@@ -47,7 +47,7 @@ class Queue:
         live_updates: bool,
         concurrency_count: int,
         update_intervals: float,
-        max_size: Optional[int],
+        max_size: int | None,
         blocks_dependencies: List,
     ):
         self.event_queue: Deque[Event] = deque()
@@ -60,7 +60,7 @@ class Queue:
         self.server_path = None
         self.duration_history_total = 0
         self.duration_history_count = 0
-        self.avg_process_time = None
+        self.avg_process_time = 0
         self.avg_concurrent_process_time = None
         self.queue_duration = 1
         self.live_updates = live_updates
@@ -382,7 +382,7 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[PredictBody]:
+    async def get_message(self, event) -> PredictBody | None:
         try:
             data = await event.websocket.receive_json()
             return PredictBody(**data)

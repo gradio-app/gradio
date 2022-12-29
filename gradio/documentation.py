@@ -30,7 +30,7 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
+def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:

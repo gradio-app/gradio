@@ -99,7 +99,7 @@ class App(FastAPI):
     def __init__(self, **kwargs):
         self.tokens = None
         self.auth = None
-        self.blocks: Optional[gradio.Blocks] = None
+        self.blocks: gradio.Blocks | None = None
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
@@ -138,7 +138,7 @@ class App(FastAPI):
 
         @app.get("/user")
         @app.get("/user/")
-        def get_current_user(request: fastapi.Request) -> Optional[str]:
+        def get_current_user(request: fastapi.Request) -> str | None:
             token = request.cookies.get("access-token")
             return app.tokens.get(token)
 
@@ -403,16 +403,15 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket)
-            # set the token into Event to allow using the same token for call_prediction
-            event.token = token
-
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
             session_hash = await websocket.receive_json()
+            
+            event = Event(websocket, fn_index=session_hash["fn_index"])
+            # set the token into Event to allow using the same token for call_prediction
+            event.token = token            
             event.session_hash = session_hash["session_hash"]
-            event.fn_index = session_hash["fn_index"]
 
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
@@ -470,7 +469,7 @@ class App(FastAPI):
 ########
 
 
-def safe_join(directory: str, path: str) -> Optional[str]:
+def safe_join(directory: str, path: str) -> str | None:
     """Safely path to a base directory to avoid escaping the base directory.
     Borrowed from: werkzeug.security.safe_join"""
     _os_alt_seps: List[str] = list(
@@ -577,7 +576,7 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: Optional[str] = None,
+    gradio_api_url: str | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
