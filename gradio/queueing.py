@@ -20,8 +20,8 @@ class Estimation(BaseModel):
     queue_size: int
     avg_event_process_time: float | None
     avg_event_concurrent_process_time: float | None
-    rank_eta: int | None = None
-    queue_eta: int
+    rank_eta: float | None = None
+    queue_eta: float
 
 
 class Event:
@@ -253,6 +253,7 @@ class Queue:
 
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
+        assert data is not None, "No event data"
         token = events[0].token
         try:
             data.request = self.get_request_params(events[0].websocket)
@@ -303,6 +304,7 @@ class Queue:
                         },
                     )
             elif response.json.get("is_generating", False):
+                old_response = response
                 while response.json.get("is_generating", False):
                     # Python 3.7 doesn't have named tasks.
                     # In order to determine if a task was cancelled, we
