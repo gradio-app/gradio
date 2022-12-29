@@ -131,6 +131,7 @@
 					>
 						<span>{s}</span>
 						<div
+							class:hidden={disabled}
 							class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min"
 							title="Remove {s}"
 						>
@@ -149,8 +150,9 @@
 			{/if}
 			<div class="items-center flex flex-1 min-w-min border-none">
 				<input
-					class="border-none bg-inherit text-2xl w-full outline-none text-white"
+					class="border-none bg-inherit text-2xl w-full outline-none text-white disabled:cursor-not-allowed"
 					{id}
+					{disabled}
 					autocomplete="off"
 					bind:value={inputValue}
 					on:blur={handleBlur}
@@ -158,9 +160,9 @@
 					{placeholder}
 				/>
 				<div
-					class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min"
+					class:hidden={!value?.length || disabled}
+					class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden"
 					title="Remove All"
-					class:hidden={!value?.length}
 				>
 					<svg
 						class="icon-clear"
@@ -182,15 +184,15 @@
 			</div>
 		</div>
 
-		{#if showOptions}
+		{#if showOptions && !disabled}
 			<ul
-				class="z-50 text-neutral-800 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500"
+				class="z-50 text-white shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-gray-100 dark:bg-gray-700"
 				transition:fly={{ duration: 200, y: 5 }}
 				on:mousedown|preventDefault={handleOptionMousedown}
 			>
 				{#each filtered as choice}
 					<li
-						class="bg-gray-100 cursor-pointer p-2 hover:bg-gray-300"
+						class="cursor-pointer p-2 hover:bg-gray-300"
 						class:selected={value?.includes(choice)}
 						class:active={activeOption === choice}
 						data-value={choice}
@@ -211,16 +213,16 @@
 		@apply bg-gray-400;
 	}
 	li.selected {
-		@apply bg-blue-900 text-white;
+		@apply bg-orange-400 text-white;
 	}
 	li.selected:nth-child(even) {
-		@apply bg-blue-800 text-white;
+		@apply bg-orange-300 text-white;
 	}
 	li.active {
 		@apply bg-gray-400;
 	}
 	li.selected.active,
 	li.selected:hover {
-		@apply bg-blue-700 text-white;
+		@apply bg-orange-200 text-white;
 	}
 </style>
