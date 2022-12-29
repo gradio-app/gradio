@@ -1,4 +1,4 @@
-name: BuildPRArtifacts
+name: Build PR Artifacts
 
 on:
   pull_request:
@@ -8,12 +8,6 @@ on:
 jobs:
   build_pr:
     runs-on: ubuntu-latest
-    outputs:
-      wheel: ${{ steps.output_step.outputs.wheel }}
-      pr_number: ${{ steps.output_step.outputs.pr_number }}
-      gh_sha: ${{ steps.output_step.outputs.gh_sha }}
-      run_id: ${{ steps.output_step.outputs.run_id }}
-      version: ${{ steps.output_step.outputs.version }}
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -66,10 +60,3 @@ jobs:
       with:
         name: metadata.json
         path: metadata.json
-    - id: output_step
-      run: |
-        echo "wheel=gradio-${{ env.GRADIO_VERSION }}-py3-none-any.whl" >> $GITHUB_OUTPUT
-        echo "pr_number=${{ env.PR_NUMBER }}" >> $GITHUB_OUTPUT
-        echo "gh_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-        echo "run_id=${{ github.run_id }}" >> $GITHUB_OUTPUT
-        echo "version=${{ env.GRADIO_VERSION }}" >> $GITHUB_OUTPUT

@@ -2,7 +2,7 @@ name: Deploy PR to Spaces
 
 on:
   workflow_run:
-    workflows: [BuildPRArtifacts]
+    workflows: [Build PR Artifacts]
     types:
       - completed
 
