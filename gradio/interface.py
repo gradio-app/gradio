@@ -469,7 +469,6 @@ class Interface(Blocks):
                     stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
-            assert submit_btn is not None, "Submit button not rendered"
             assert clear_btn is not None, "Clear button not rendered"
 
             self.attach_submit_events(submit_btn, stop_btn)
@@ -606,9 +605,10 @@ class Interface(Blocks):
         if self.article:
             Markdown(self.article)
 
-    def attach_submit_events(self, submit_btn: Button, stop_btn: Button | None):
+    def attach_submit_events(self, submit_btn: Button | None, stop_btn: Button | None):
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
+                assert submit_btn is not None, "Submit button not rendered"
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
@@ -644,6 +644,7 @@ class Interface(Blocks):
                             postprocess=not (self.api_mode),
                         )
         else:
+            assert submit_btn is not None, "Submit button not rendered"
             pred = submit_btn.click(
                 self.fn,
                 self.input_components,
