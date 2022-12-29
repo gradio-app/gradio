@@ -12,6 +12,7 @@ import tempfile
 import urllib.request
 import warnings
 from io import BytesIO
+from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
@@ -187,11 +188,15 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        error_message = str(e)
-        if "ffprobe" in error_message:
-            print(
-                "Please install `ffmpeg` in your system to use non-WAV audio file formats."
-            )
+        isfile = os.path.isfile(filename)
+        msg = (
+            f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+            + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+            " and make sure `ffprobe` is in your PATH."
+            if isfile
+            else ""
+        )
+        raise RuntimeError(msg) from e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
@@ -248,7 +253,7 @@ def convert_to_16_bit_wav(data):
 ##################
 
 
-def decode_base64_to_binary(encoding):
+def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     data = encoding.split(",")[1]
     return base64.b64decode(data), extension
@@ -300,8 +305,9 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path):
-    return json.load(open(file_path))
+def file_to_json(file_path: str | Path) -> Dict:
+    with open(file_path) as f:
+        return json.load(f)
 
 
 class TempFileManager:
