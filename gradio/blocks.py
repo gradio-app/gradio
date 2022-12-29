@@ -779,7 +779,7 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        request: routes.Request | List[routes.Request] | None = None,
+        requests: routes.Request | List[routes.Request] | None = None,
         event_id: str | None = None,
     ):
         """Calls and times function with given index and preprocessed input."""
@@ -795,8 +795,8 @@ class Blocks(BlockContext):
                 }
             ]
 
-        processed_input, _, progress_index = special_args(
-            block_fn, processed_input, request
+        processed_input, progress_index = special_args(
+            block_fn, processed_input, requests
         )
         progress_tracker = (
             processed_input[progress_index] if progress_index is not None else None
@@ -805,7 +805,7 @@ class Blocks(BlockContext):
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            if progress_tracker is not None:
+            if progress_tracker is not None and progress_index is not None:
                 progress_tracker, fn = create_tracker(
                     self, event_id, block_fn.fn, progress_tracker.track_tqdm
                 )
@@ -1643,7 +1643,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                special_args(block_fn)[2] is not None for block_fn in self.fns
+                special_args(block_fn)[1] is not None for block_fn in self.fns
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)

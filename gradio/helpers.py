@@ -575,8 +575,7 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
 def special_args(
     block_fn: BlockFunction,
     inputs: List[Any] | None = None,
-    request: routes.Request | None = None,
-    progress: Progress | None = None,
+    requests: routes.Request | List[routes.Request] | None = None,
 ):
     """
     Checks if function has special arguments Request (via annotation) or Progress (via default value).
@@ -584,34 +583,39 @@ def special_args(
     Parameters:
         block_fn: function to check.
         inputs: array to load special arguments into.
-        request: request to load into inputs.
+        request: requests to load into inputs.
     Returns:
         updated inputs, request index, progress index
     """
-    expected_input_count = 1 if block_fn.inputs_as_dict else len(block_fn.inputs)
+    if isinstance(requests, routes.Request):
+        requests = [requests]
     signature = inspect.signature(block_fn.fn)
-    request_index = None
-    progress_index = None
+    positional_args = []
     for i, param in enumerate(signature.parameters.values()):
-        if i < expected_input_count:
-            continue
         if "positional" not in param.kind.description:
             break
+        positional_args.append(param)
+    progress_index = None
+    requests_inserted = 0
+    for i, param in enumerate(positional_args):
         if isinstance(param.default, Progress):
             progress_index = i
             if inputs is not None:
-                inputs.append(param.default)
+                inputs.insert(i, param.default)
         elif param.annotation == routes.Request:
-            request_index = i
             if inputs is not None:
-                inputs.append(request)
-        elif inputs:
+                inputs.insert(i, requests[requests_inserted])
+                requests_inserted += 1
+    if inputs is not None:
+        while len(inputs) < len(positional_args):
+            i = len(inputs)
+            param = positional_args[i]
             if param.default == param.empty:
                 warnings.warn("Unexpected argument. Filling with None.")
                 inputs.append(None)
             else:
                 inputs.append(param.default)
-    return inputs, request_index, progress_index
+    return inputs or [], progress_index
 
 
 @document()
