@@ -164,7 +164,7 @@ async def run_interpret(interface, raw_input):
                 )
                 scores.append(
                     input_component.get_interpretation_scores(
-                        raw_input[i], None, shap_values[0], masks=masks, tokens=tokens
+                        raw_input[i], None, shap_values[0], masks=masks, tokens=tokens  # type: ignore
                     )
                 )
                 alternative_outputs.append([])

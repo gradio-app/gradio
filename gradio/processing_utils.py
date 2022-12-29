@@ -55,11 +55,11 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_url_or_file_to_base64(path: str, encryption_key: bytes | None = None):
-    if utils.validate_url(path):
-        return encode_url_to_base64(path, encryption_key=encryption_key)
+def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
+    if utils.validate_url(str(path)):
+        return encode_url_to_base64(str(path), encryption_key=encryption_key)
     else:
-        return encode_file_to_base64(path, encryption_key=encryption_key)
+        return encode_file_to_base64(str(path), encryption_key=encryption_key)
 
 
 def get_mimetype(filename: str) -> str | None:
