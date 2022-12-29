@@ -187,11 +187,11 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        error_message = str(e)
-        if "ffprobe" in error_message:
-            print(
-                "Please install `ffmpeg` in your system to use non-WAV audio file formats."
-            )
+        isfile = os.path.isfile(filename)
+        msg = (f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+               + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+                 " and make sure `ffprobe` is in your PATH." if isfile else "")
+        raise RuntimeError(msg) from e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
