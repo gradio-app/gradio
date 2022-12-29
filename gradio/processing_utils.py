@@ -608,8 +608,8 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         imin_in = np.iinfo(dtype_in).min
         imax_in = np.iinfo(dtype_in).max
     if kind_out in "ui":
-        imin_out = np.iinfo(dtype_out).min
-        imax_out = np.iinfo(dtype_out).max
+        imin_out = np.iinfo(dtype_out).min  # type: ignore
+        imax_out = np.iinfo(dtype_out).max  # type: ignore
 
     # any -> binary
     if kind_out == "b":
@@ -638,23 +638,23 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
         if not uniform:
             if kind_out == "u":
-                image_out = np.multiply(image, imax_out, dtype=computation_type)
+                image_out = np.multiply(image, imax_out, dtype=computation_type)  # type: ignore
             else:
                 image_out = np.multiply(
-                    image, (imax_out - imin_out) / 2, dtype=computation_type
+                    image, (imax_out - imin_out) / 2, dtype=computation_type  # type: ignore
                 )
                 image_out -= 1.0 / 2.0
             np.rint(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         elif kind_out == "u":
-            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)
-            np.clip(image_out, 0, imax_out, out=image_out)
+            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)  # type: ignore
+            np.clip(image_out, 0, imax_out, out=image_out)  # type: ignore
         else:
             image_out = np.multiply(
-                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type
+                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type  # type: ignore
             )
             np.floor(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         return image_out.astype(dtype_out)
 
     # signed/unsigned int -> float
@@ -667,13 +667,13 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         if kind_in == "u":
             # using np.divide or np.multiply doesn't copy the data
             # until the computation time
-            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)
+            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)  # type: ignore
             # DirectX uses this conversion also for signed ints
             # if imin_in:
             #     np.maximum(image, -1.0, out=image)
         else:
             image = np.add(image, 0.5, dtype=computation_type)
-            image *= 2 / (imax_in - imin_in)
+            image *= 2 / (imax_in - imin_in)  # type: ignore
 
         return np.asarray(image, dtype_out)
 
@@ -699,9 +699,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         return _scale(image, 8 * itemsize_in - 1, 8 * itemsize_out - 1)
 
     image = image.astype(_dtype_bits("i", itemsize_out * 8))
-    image -= imin_in
+    image -= imin_in  # type: ignore
     image = _scale(image, 8 * itemsize_in, 8 * itemsize_out, copy=False)
-    image += imin_out
+    image += imin_out  # type: ignore
     return image.astype(dtype_out)
 
 
