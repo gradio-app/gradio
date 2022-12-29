@@ -627,7 +627,7 @@ class AsyncRequest:
 
 
 @contextmanager
-def set_directory(path: Path):
+def set_directory(path: Path | str):
     """Context manager that sets the working directory to the given path."""
     origin = Path().absolute()
     try:
@@ -666,9 +666,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(
-    values: List[str | Number] | List[List[str | Number]],
-) -> List[str | Number] | List[List[str | Number]]:
+def sanitize_list_for_csv(values: T) -> T:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
