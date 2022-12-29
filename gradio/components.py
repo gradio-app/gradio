@@ -1218,7 +1218,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     def __init__(
         self,
-        choices: List[str] | None = None,
+        choices: str | List[str] | None = None,
         *,
         value: str | List[str] | Callable | None = None,
         type: str = "value",
@@ -1280,13 +1280,13 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
 
     @staticmethod
     def update(
-        value: Optional[Any] = _Keywords.NO_VALUE,
-        choices: Optional[str | List[str]] = None,
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        choices: str | List[str] | None = None,
         multiselect: bool = False,
-        label: Optional[str] = None,
-        show_label: Optional[bool] = None,
-        interactive: Optional[bool] = None,
-        visible: Optional[bool] = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        interactive: bool | None = None,
+        visible: bool| None = None,
     ):
         updated_config = {
             "choices": choices,
@@ -1303,7 +1303,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def generate_sample(self):
         return self.choices[0]
 
-    def preprocess(self, x: str | List[str]) -> str | int:
+    def preprocess(self, x: str | List[str]) -> str | int | List[str] | List[int] | None:
         """
         Parameters:
             x: selected choice(s)
@@ -1318,7 +1318,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             elif self.multiselect:
                 return [self.choices.index(c) for c in x]
             else:
-                return self.choices.index(x)
+                return self.choices.index(str(x))
         else:
             raise ValueError(
                 "Unknown type: "
@@ -1337,7 +1337,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         choices.remove(x)
         return choices, {}
 
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs) -> List:
+    def get_interpretation_scores(self, x, neighbors, scores: List[float | None], **kwargs) -> List:
         """
         Returns:
             Each value represents the interpretation score corresponding to each choice.
