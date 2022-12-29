@@ -11,7 +11,7 @@ demo = gr.Interface(
         gr.Slider(2, 20, value=4),
         gr.Dropdown(["cat", "dog", "bird"]),
         gr.Radio(["park", "zoo", "road"]),
-        gr.Dropdown(["ran", "swam", "ate", "slept"], multiselect=True),
+        gr.Dropdown(["ran", "swam", "ate", "slept"], value=["swam", "slept"], multiselect=True),
         gr.Checkbox(label="Is it the morning?"),
     ],
     "text",

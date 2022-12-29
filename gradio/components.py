@@ -1220,7 +1220,7 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
         *,
         value: Optional[str | List[str] | Callable] = None,
         type: str = "value",
-        multiselect: bool = None,
+        multiselect: bool | None = None,
         label: Optional[str] = None,
         every: float | None = None,
         show_label: bool = True,
@@ -1250,6 +1250,9 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             )
         self.type = type
         self.multiselect = multiselect
+        if multiselect:
+            if isinstance(value, str):
+                value = [value]
         self.test_input = self.choices[0] if len(self.choices) else None
         self.interpret_by_tokens = False
         IOComponent.__init__(
