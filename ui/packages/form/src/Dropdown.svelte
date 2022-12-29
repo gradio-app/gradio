@@ -15,7 +15,19 @@
 		change: string | Array<string> | undefined;
 	}>();
 
-	let showOptions = false;
+	let inputValue: string,
+		activeOption: string,
+		showOptions = false;
+
+	$: filtered = choices.filter((o) =>
+		inputValue ? o.toLowerCase().includes(inputValue.toLowerCase()) : o
+	);
+	$: if (
+		(activeOption && !filtered.includes(activeOption)) ||
+		(!activeOption && inputValue)
+	)
+		activeOption = filtered[0];
+
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
@@ -46,6 +58,26 @@
 		optionsVisibility(false);
 	}
 
+	function handleKeyup(e: any) {
+		if (e.keyCode === 13) {
+			if (Array.isArray(value)) {
+				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
+				inputValue = "";
+			}
+		}
+		if ([38, 40].includes(e.keyCode)) {
+			// up and down arrows
+			const increment = e.keyCode === 38 ? -1 : 1;
+			const calcIndex = filtered.indexOf(activeOption) + increment;
+			activeOption =
+				calcIndex < 0
+					? filtered[filtered.length - 1]
+					: calcIndex === filtered.length
+					? filtered[0]
+					: filtered[calcIndex];
+		}
+	}
+
 	function handleTokenClick(e: any) {
 		if (e.target.closest(".token-remove")) {
 			e.stopPropagation();
@@ -54,6 +86,7 @@
 			);
 		} else if (e.target.closest(".remove-all")) {
 			value = [];
+			inputValue = "";
 		} else {
 			optionsVisibility(true);
 		}
@@ -116,12 +149,13 @@
 			{/if}
 			<div class="items-center flex flex-1 min-w-min border-none">
 				<input
-					class="border-none bg-inherit text-2xl w-full outline-none"
+					class="border-none bg-inherit text-2xl w-full outline-none text-white"
 					{id}
 					autocomplete="off"
+					bind:value={inputValue}
 					on:blur={handleBlur}
+					on:keyup={handleKeyup}
 					{placeholder}
-					readonly
 				/>
 				<div
 					class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min"
@@ -154,10 +188,11 @@
 				transition:fly={{ duration: 200, y: 5 }}
 				on:mousedown|preventDefault={handleOptionMousedown}
 			>
-				{#each choices as choice}
+				{#each filtered as choice}
 					<li
 						class="bg-gray-100 cursor-pointer p-2 hover:bg-gray-300"
 						class:selected={value?.includes(choice)}
+						class:active={activeOption === choice}
 						data-value={choice}
 					>
 						{choice}
@@ -173,13 +208,16 @@
 		@apply rounded-b;
 	}
 	li:not(.selected):hover {
-		@apply bg-slate-200;
+		@apply bg-gray-400;
 	}
 	li.selected {
 		@apply bg-blue-900 text-white;
 	}
 	li.selected:nth-child(even) {
 		@apply bg-blue-800 text-white;
+	}
+	li.active {
+		@apply bg-gray-400;
 	}
 	li.selected.active,
 	li.selected:hover {
