@@ -53,7 +53,7 @@ def _get_dataset_features_info(is_new, components):
                 for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
                         infos["flagged"]["features"][
-                            component.label or "" + " file"
+                            (component.label or "") + " file"
                         ] = {"_type": _type}
                         break
 
