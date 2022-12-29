@@ -785,7 +785,6 @@
 	}
 
 	.editing {
-		/* editing */
 		background: var(--table-background-edit);
 	}
 

@@ -114,10 +114,26 @@
 		{upload_text}
 	</Upload>
 {:else}
-	<div
-		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-	>
+	<div class="input-model">
 		<ModifyUpload on:clear={handle_clear} absolute />
-		<canvas class="w-full h-full object-contain" bind:this={canvas} />
+		<canvas bind:this={canvas} />
 	</div>
 {/if}
+
+<style>
+	.input-model {
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-60);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: var(--color-background-primary);
+	}
+
+	canvas {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+</style>

@@ -12,12 +12,8 @@
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean;
-	export let mirror_webcam: boolean;
-
-	export let drop_text: string = "Drop a video file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
+	export let show_label: boolean = true;
+	export let mirror_webcam: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -54,11 +50,7 @@
 			filetype="video/mp4,video/x-m4v,video/*"
 			on:load={handle_load}
 		>
-			<div class="flex flex-col">
-				{drop_text}
-				<span class="text-gray-300">- {or_text} -</span>
-				{upload_text}
-			</div>
+			<slot />
 		</Upload>
 	{:else if source === "webcam"}
 		<Webcam
@@ -80,9 +72,22 @@
 			mirror={mirror_webcam && source === "webcam"}
 		/>
 	{:else if value.size}
-		<div class="file-name text-4xl p-6 break-all">{value.name}</div>
-		<div class="file-size text-2xl p-2">
+		<div class="file-name">{value.name}</div>
+		<div class="file-size">
 			{prettyBytes(value.size)}
 		</div>
 	{/if}
 {/if}
+
+<style>
+	.file-name {
+		font-size: var(--scale-6);
+		padding: var(--size-6);
+		word-break: break-all;
+	}
+
+	.file-size {
+		font-size: var(--scale-4);
+		padding: var(--size-2);
+	}
+</style>

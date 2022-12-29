@@ -338,7 +338,6 @@
 
 <style>
 	.fixed-height {
-		/* h-60 */
 		height: var(--size-60);
 	}
 

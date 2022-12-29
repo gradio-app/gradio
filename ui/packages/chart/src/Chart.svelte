@@ -206,7 +206,6 @@
 	}
 
 	svg {
-		/* w-full */
 		width: var(--size-full);
 	}
 

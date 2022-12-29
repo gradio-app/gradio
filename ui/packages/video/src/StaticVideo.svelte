@@ -8,7 +8,7 @@
 
 	export let value: FileData | null = null;
 	export let label: string | undefined = undefined;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -22,10 +22,26 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><Video /></div>
+	<div class="empty">
+		<div class="icon"><Video /></div>
 	</div>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<Player src={value.data} on:play on:pause on:ended mirror={false} />
 {/if}
+
+<style>
+	.empty {
+		height: var(--size-full);
+		min-height: var(--size-60);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.icon {
+		height: var(--size-5);
+		color: var(--color-text-body);
+		opacity: 0.5;
+	}
+</style>
