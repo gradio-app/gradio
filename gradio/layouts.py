@@ -237,6 +237,9 @@ class Tab(BlockContext):
     def get_expected_parent(self) -> Type[Tabs]:
         return Tabs
 
+    def get_block_name(self):
+        return "tabitem"
+
 
 TabItem = Tab
 
