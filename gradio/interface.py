@@ -12,7 +12,6 @@ import pkgutil
 import re
 import warnings
 import weakref
-from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
 
 from markdown_it import MarkdownIt
@@ -23,12 +22,14 @@ from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
 from gradio.components import (
     Button,
+    Component,
     Interpretation,
     IOComponent,
     Markdown,
     State,
     get_component_instance,
 )
+from gradio.data_classes import InterfaceTypes
 from gradio.documentation import document, set_documentation_group
 from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
@@ -64,12 +65,6 @@ class Interface(Blocks):
 
     # stores references to all currently existing Interface instances
     instances: weakref.WeakSet = weakref.WeakSet()
-
-    class InterfaceTypes(Enum):
-        STANDARD = auto()
-        INPUT_ONLY = auto()
-        OUTPUT_ONLY = auto()
-        UNIFIED = auto()
 
     @classmethod
     def get_instances(cls) -> List[Interface]:
@@ -195,15 +190,15 @@ class Interface(Blocks):
                 "instead."
             )
 
-        self.interface_type = self.InterfaceTypes.STANDARD
+        self.interface_type = InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
         elif outputs is None or outputs == []:
             outputs = []
-            self.interface_type = self.InterfaceTypes.INPUT_ONLY
+            self.interface_type = InterfaceTypes.INPUT_ONLY
         elif inputs is None or inputs == []:
             inputs = []
-            self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
+            self.interface_type = InterfaceTypes.OUTPUT_ONLY
 
         assert isinstance(inputs, (str, list, IOComponent))
         assert isinstance(outputs, (str, list, IOComponent))
@@ -212,7 +207,7 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-            
+
         if self.is_space and cache_examples is None:
             self.cache_examples = True
         else:
@@ -268,11 +263,11 @@ class Interface(Blocks):
                 i is o for i, o in zip(self.input_components, self.output_components)
             ]
             if all(same_components):
-                self.interface_type = self.InterfaceTypes.UNIFIED
+                self.interface_type = InterfaceTypes.UNIFIED
 
         if self.interface_type in [
-            self.InterfaceTypes.STANDARD,
-            self.InterfaceTypes.OUTPUT_ONLY,
+            InterfaceTypes.STANDARD,
+            InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
                 assert isinstance(o, IOComponent)
@@ -408,7 +403,7 @@ class Interface(Blocks):
 
         utils.version_check()
         Interface.instances.add(self)
-        
+
         param_names = inspect.getfullargspec(self.fn)[0]
         for component, param_name in zip(self.input_components, param_names):
             assert isinstance(component, IOComponent)
@@ -424,42 +419,68 @@ class Interface(Blocks):
 
         if self.allow_flagging != "never":
             if (
-                self.interface_type == self.InterfaceTypes.UNIFIED
+                self.interface_type == InterfaceTypes.UNIFIED
                 or self.allow_flagging == "auto"
             ):
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
-            elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
+            elif self.interface_type == InterfaceTypes.INPUT_ONLY:
                 pass
             else:
                 self.flagging_callback.setup(
                     self.input_components + self.output_components, self.flagging_dir  # type: ignore
                 )
 
-        # Render the UI
+        # Render the Gradio UI
         with self:
             self.render_title_description()
+
+            submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
+            interpretation_btn, interpretation_set = None, None
+            input_component_column, interpret_component_column = None, None
+
             with Row().style(equal_height=False):
                 if self.interface_type in [
-                    self.InterfaceTypes.STANDARD,
-                    self.InterfaceTypes.INPUT_ONLY,
-                    self.InterfaceTypes.UNIFIED,
+                    InterfaceTypes.STANDARD,
+                    InterfaceTypes.INPUT_ONLY,
+                    InterfaceTypes.UNIFIED,
                 ]:
-                    self.render_input_column()
-                    
+                    (
+                        submit_btn,
+                        clear_btn,
+                        stop_btn,
+                        flag_btns,
+                        input_component_column,
+                        interpret_component_column,
+                        interpretation_set,
+                    ) = self.render_input_column()
                 if self.interface_type in [
-                    self.InterfaceTypes.STANDARD,
-                    self.InterfaceTypes.OUTPUT_ONLY,
+                    InterfaceTypes.STANDARD,
+                    InterfaceTypes.OUTPUT_ONLY,
                 ]:
-                    self.render_output_column()
+                    submit_btn_out, clear_btn_2_out, stop_btn_2_out, flag_btns_out, interpretation_btn = self.render_output_column(submit_btn)
+                    submit_btn = submit_btn or submit_btn_out
+                    clear_btn = clear_btn or clear_btn_2_out
+                    stop_btn = stop_btn or stop_btn_2_out
+                    flag_btns = flag_btns or flag_btns_out
             
-            self.attach_submit_events()
-            self.attach_clear_events()
-            self.attach_interpretation_events()
+            assert submit_btn is not None, "Submit button not rendered"
+            assert clear_btn is not None, "Clear button not rendered"
 
-            self.render_flagging_buttons()
+            self.attach_submit_events(submit_btn, stop_btn)
+            self.attach_clear_events(
+                clear_btn, input_component_column, interpret_component_column
+            )
+            self.attach_interpretation_events(
+                interpretation_btn,
+                interpretation_set,
+                input_component_column,
+                interpret_component_column,
+            )
+
+            self.render_flagging_buttons(flag_btns)
             self.render_examples()
             self.render_article()
-            
+
         self.config = self.get_config_file()
 
     def render_title_description(self) -> None:
@@ -470,7 +491,7 @@ class Interface(Blocks):
                 + "</h1>"
             )
         if self.description:
-            Markdown(self.description)        
+            Markdown(self.description)
 
     def render_flag_btns(self) -> List[Tuple[Button, str | None]]:
         if self.flagging_options is None:
@@ -484,7 +505,20 @@ class Interface(Blocks):
                 for flag_option in self.flagging_options
             ]
 
-    def render_input_column(self):
+    def render_input_column(
+        self,
+    ) -> Tuple[
+        Button | None,
+        Button | None,
+        Button | None,
+        List | None,
+        Column,
+        Column | None,
+        List[Interpretation] | None,
+    ]:
+        submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
+        interpret_component_column, interpretation_set = None, None
+
         with Column(variant="panel"):
             input_component_column = Column()
             with input_component_column:
@@ -498,8 +532,8 @@ class Interface(Blocks):
                         interpretation_set.append(Interpretation(component))
             with Row():
                 if self.interface_type in [
-                    self.InterfaceTypes.STANDARD,
-                    self.InterfaceTypes.INPUT_ONLY,
+                    InterfaceTypes.STANDARD,
+                    InterfaceTypes.INPUT_ONLY,
                 ]:
                     clear_btn = Button("Clear")
                     if not self.live:
@@ -511,22 +545,37 @@ class Interface(Blocks):
                         # Using a generator function without the queue will raise an error.
                         if inspect.isgeneratorfunction(self.fn):
                             stop_btn = Button("Stop", variant="stop")
-
-                elif self.interface_type == self.InterfaceTypes.UNIFIED:
+                elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Submit", variant="primary")
                     if inspect.isgeneratorfunction(self.fn) and not self.live:
                         stop_btn = Button("Stop", variant="stop")
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
+                    elif self.allow_flagging == "auto":
+                        flag_btns = [(submit_btn, None)]
+        return (
+            submit_btn,
+            clear_btn,
+            stop_btn,
+            flag_btns,
+            input_component_column,
+            interpret_component_column,
+            interpretation_set,
+        )
 
-    def render_output_column(self):
+    def render_output_column(
+        self, submit_btn_in: Button | None,
+    ) -> Tuple[Button | None, Button | None, Button | None, List | None, Button | None]:
+        submit_btn = submit_btn_in
+        interpretation_btn, clear_btn, flag_btns, stop_btn = None, None, None, None
+
         with Column(variant="panel"):
             for component in self.output_components:
                 if not (isinstance(component, State)):
                     component.render()
             with Row():
-                if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     clear_btn = Button("Clear")
                     submit_btn = Button("Generate", variant="primary")
                     if inspect.isgeneratorfunction(self.fn) and not self.live:
@@ -538,17 +587,24 @@ class Interface(Blocks):
                         stop_btn = Button("Stop", variant="stop")
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
+                elif self.allow_flagging == "auto":
+                    assert submit_btn is not None, "Submit button not rendered"
+                    flag_btns = [(submit_btn, None)]
                 if self.interpretation:
-                    interpretation_btn = Button("Interpret")        
-        
+                    interpretation_btn = Button("Interpret")
+
+        return submit_btn, clear_btn, stop_btn, flag_btns, interpretation_btn
+
     def render_article(self):
         if self.article:
             Markdown(self.article)
-    
+
     def attach_submit_events(self, submit_btn: Button, stop_btn: Button | None):
         if self.live:
-            if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+            if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                 super().load(self.fn, None, self.output_components)
+                # For output-only interfaces, the user probably still want a "generate"
+                # button even if the Interface is live
                 submit_btn.click(
                     self.fn,
                     None,
@@ -589,74 +645,74 @@ class Interface(Blocks):
                 scroll_to_output=True,
                 preprocess=not (self.api_mode),
                 postprocess=not (self.api_mode),
-                batch=batch,
-                max_batch_size=max_batch_size,
+                batch=self.batch,
+                max_batch_size=self.max_batch_size,
             )
-            if inspect.isgeneratorfunction(fn):
+            if stop_btn:
                 stop_btn.click(
                     None,
                     inputs=None,
                     outputs=None,
                     cancels=[pred],
                 )
-            
-    def attach_clear_events(self):
+
+    def attach_clear_events(
+        self,
+        clear_btn: Button,
+        input_component_column: Column | None,
+        interpret_component_column: Column | None,
+    ):
         clear_btn.click(
             None,
             [],
             (
                 self.input_components
                 + self.output_components
-                + (
-                    [input_component_column]
-                    if self.interface_type
-                    in [
-                        self.InterfaceTypes.STANDARD,
-                        self.InterfaceTypes.INPUT_ONLY,
-                        self.InterfaceTypes.UNIFIED,
-                    ]
-                    else []
-                )
+                + ([input_component_column] if input_component_column else [])
                 + ([interpret_component_column] if self.interpretation else [])
-            ),
+            ),  # type: ignore
             _js=f"""() => {json.dumps(
-                [component.cleared_value if hasattr(component, "cleared_value") else None
+                [getattr(component, "cleared_value", None) 
                     for component in self.input_components + self.output_components] + (
                     [Column.update(visible=True)]
                     if self.interface_type
                         in [
-                            self.InterfaceTypes.STANDARD,
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
+                            InterfaceTypes.STANDARD,
+                            InterfaceTypes.INPUT_ONLY,
+                            InterfaceTypes.UNIFIED,
                         ]
                     else []
                 )
                 + ([Column.update(visible=False)] if self.interpretation else [])
             )}
             """,
-        )        
-        
-    def attach_interpretation_events(self):
-        if self.interpretation:
+        )
+
+    def attach_interpretation_events(
+        self,
+        interpretation_btn: Button | None,
+        interpretation_set: List[Interpretation] | None,
+        input_component_column: Column | None,
+        interpret_component_column: Column | None,
+    ):
+        if interpretation_btn:
             interpretation_btn.click(
                 self.interpret_func,
                 inputs=self.input_components + self.output_components,
-                outputs=interpretation_set
-                + [input_component_column, interpret_component_column],
+                outputs=interpretation_set  
+                or [] + [input_component_column, interpret_component_column],  # type: ignore
                 preprocess=False,
             )
-        
-    def render_flagging_buttons(self):
-        if self.allow_flagging in ["manual", "auto"]:
+
+    def render_flagging_buttons(self, flag_btns: List | None):
+        if flag_btns:
             if self.interface_type in [
-                self.InterfaceTypes.STANDARD,
-                self.InterfaceTypes.OUTPUT_ONLY,
-                self.InterfaceTypes.UNIFIED,
+                InterfaceTypes.STANDARD,
+                InterfaceTypes.OUTPUT_ONLY,
+                InterfaceTypes.UNIFIED,
             ]:
-                if self.allow_flagging == "auto":
-                    flag_btns = [(submit_btn, None)]
                 if (
-                    self.interface_type == self.InterfaceTypes.UNIFIED
+                    self.interface_type == InterfaceTypes.UNIFIED
                     or self.allow_flagging == "auto"
                 ):
                     flag_components = self.input_components
@@ -671,7 +727,7 @@ class Interface(Blocks):
                         preprocess=False,
                         queue=False,
                     )
-        
+
     def render_examples(self):
         if self.examples:
             non_state_inputs = [
@@ -686,12 +742,10 @@ class Interface(Blocks):
                 outputs=non_state_outputs,  # type: ignore
                 fn=self.fn,
                 cache_examples=self.cache_examples,
-                examples_per_page=examples_per_page,
-                _api_mode=_api_mode,
-                batch=batch,
+                examples_per_page=self.examples_per_page,
+                _api_mode=self.api_mode,
+                batch=self.batch,
             )
-
-        
 
     def __str__(self):
         return self.__repr__()
@@ -708,7 +762,7 @@ class Interface(Blocks):
         return repr
 
     async def interpret_func(self, *args):
-        return await self.interpret(args) + [
+        return await self.interpret(list(args)) + [
             Column.update(visible=False),
             Column.update(visible=True),
         ]
@@ -723,20 +777,9 @@ class Interface(Blocks):
 
     def test_launch(self) -> None:
         """
-        Passes a few samples through the function to test if the inputs/outputs
-        components are consistent with the function parameter and return values.
+        Deprecated.
         """
-        print("Test launch: {}()...".format(self.__name__), end=" ")
-        raw_input = []
-        for input_component in self.input_components:
-            if input_component.test_input is None:
-                print("SKIPPED")
-                break
-            else:
-                raw_input.append(input_component.test_input)
-        else:
-            self(raw_input)
-            print("PASSED")
+        warnings.warn("The Interface.test_launch() function is deprecated.")
 
 
 @document()

@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel
@@ -18,3 +19,11 @@ class PredictBody(BaseModel):
 class ResetBody(BaseModel):
     session_hash: str
     fn_index: int
+
+
+class InterfaceTypes(Enum):
+    STANDARD = auto()
+    INPUT_ONLY = auto()
+    OUTPUT_ONLY = auto()
+    UNIFIED = auto()
+
