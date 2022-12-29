@@ -1331,7 +1331,7 @@ class TestTimeseries:
 
         assert timeseries_output.get_config() == {
             "x": None,
-            "y": [None],
+            "y": None,
             "name": "timeseries",
             "show_label": True,
             "label": "Disease",
