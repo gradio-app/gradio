@@ -248,7 +248,7 @@ def convert_to_16_bit_wav(data):
 ##################
 
 
-def decode_base64_to_binary(encoding):
+def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     data = encoding.split(",")[1]
     return base64.b64decode(data), extension
@@ -300,7 +300,7 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path):
+def file_to_json(file_path: str) -> Dict:
     return json.load(open(file_path))
 
 
