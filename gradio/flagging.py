@@ -551,10 +551,10 @@ class FlagMethod:
     Helper class that contains the flagging button option and callback
     """
 
-    def __init__(self, flagging_callback, flag_option=None):
+    def __init__(self, flagging_callback: FlaggingCallback, flag_option=None):
         self.flagging_callback = flagging_callback
         self.flag_option = flag_option
         self.__name__ = "Flag"
 
     def __call__(self, *flag_data):
-        self.flagging_callback.flag(flag_data, flag_option=self.flag_option)
+        self.flagging_callback.flag(list(flag_data), flag_option=self.flag_option)

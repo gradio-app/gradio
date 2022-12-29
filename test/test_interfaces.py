@@ -69,15 +69,6 @@ class TestInterface:
         )
         assert dataset_check
 
-    def test_test_launch(self):
-        with captured_output() as (out, err):
-            prediction_fn = lambda x: x
-            prediction_fn.__name__ = "prediction_fn"
-            interface = Interface(prediction_fn, "textbox", "label")
-            interface.test_launch()
-            output = out.getvalue().strip()
-            assert output == "Test launch: prediction_fn()... PASSED"
-
     @mock.patch("time.sleep")
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):

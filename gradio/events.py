@@ -34,7 +34,7 @@ def set_cancel_events(
 class Changeable(Block):
     def change(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -97,7 +97,7 @@ class Changeable(Block):
 class Clickable(Block):
     def click(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -161,7 +161,7 @@ class Clickable(Block):
 class Submittable(Block):
     def submit(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -226,7 +226,7 @@ class Submittable(Block):
 class Editable(Block):
     def edit(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -290,7 +290,7 @@ class Editable(Block):
 class Clearable(Block):
     def clear(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -354,7 +354,7 @@ class Clearable(Block):
 class Playable(Block):
     def play(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -416,7 +416,7 @@ class Playable(Block):
 
     def pause(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -478,7 +478,7 @@ class Playable(Block):
 
     def stop(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -542,7 +542,7 @@ class Playable(Block):
 class Streamable(Block):
     def stream(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -608,7 +608,7 @@ class Streamable(Block):
 class Blurrable(Block):
     def blur(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
@@ -665,7 +665,7 @@ class Blurrable(Block):
 class Uploadable(Block):
     def upload(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: List[Component],
         outputs: Component | List[Component] | None = None,
         api_name: str | None = None,
