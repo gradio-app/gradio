@@ -1320,7 +1320,8 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             elif self.multiselect:
                 return [self.choices.index(c) for c in x]
             else:
-                return self.choices.index(str(x))
+                if isinstance(x, str):
+                    return self.choices.index(x)
         else:
             raise ValueError(
                 "Unknown type: "
