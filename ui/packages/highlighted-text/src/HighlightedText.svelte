@@ -176,7 +176,6 @@
 	}
 
 	.color-legend {
-		/* background: -webkit-linear-gradient(to right,#8d83d6,black,#eb4d4b);  */
 		background: linear-gradient(
 			to right,
 			var(--color-purple),
@@ -228,7 +227,6 @@
 	}
 
 	.text {
-		/* dark:text-white */
 		color: black;
 	}
 

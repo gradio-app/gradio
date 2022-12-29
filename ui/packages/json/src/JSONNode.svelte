@@ -79,14 +79,12 @@
 
 <style>
 	.spacer {
-		/* inline-block h-0 w-0 */
 		display: inline-block;
 		height: 0;
 		width: 0;
 	}
 
 	.json-node {
-		/* dark:text-slate-200 */
 		display: inline;
 		font-size: var(--scale-00);
 		font-family: var(--font-mono);
@@ -95,7 +93,7 @@
 	}
 
 	.expand-array {
-		background-color: var(--color-background-secondary);
+		background-color: vSar(--color-background-secondary);
 		border: 1px solid var(--color-border-primary);
 		color: var(--color-text-body);
 		border-radius: var(--radius-sm);
@@ -107,7 +105,6 @@
 	}
 
 	.children {
-		/* pl-4 */
 		padding-left: var(--size-4);
 	}
 

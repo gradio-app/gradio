@@ -13,7 +13,7 @@
 
 	export let visible: boolean = true;
 	export let elem_id: string = "id";
-	export let selected: number | string | object;
+	export let selected: number | string | object = 0;
 
 	let tabs: Array<Tab> = [];
 

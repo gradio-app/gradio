@@ -22,7 +22,6 @@
 	}
 
 	button:hover {
-		/* hover:shadow-xl hover:ring-1 */
 		border: 1px solid var(--icon_button-border-color-hover);
 		color: var(--icon_button-icon-color-hover);
 	}

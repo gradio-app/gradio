@@ -346,7 +346,6 @@
 	}
 
 	.dot {
-		/*  relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500 */
 		position: relative;
 		display: inline-flex;
 		border-radius: var(--radius-full);
@@ -356,7 +355,6 @@
 	}
 
 	.pinger {
-		/* animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 */
 		position: absolute;
 		display: inline-flex;
 		height: var(--size-full);
