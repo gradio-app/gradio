@@ -519,8 +519,8 @@ class Blocks(BlockContext):
         self,
         theme: str = "default",
         analytics_enabled: bool | None = None,
-        mode: str = "blocks",
-        title: str = "Gradio",
+        mode: str | None = "blocks",
+        title: str | None = "Gradio",
         css: str | None = None,
         **kwargs,
     ):

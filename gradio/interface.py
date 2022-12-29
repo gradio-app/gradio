@@ -16,8 +16,8 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from markdown_it import MarkdownIt
-from mdit_py_plugins.dollarmath import dollarmath_plugin
-from mdit_py_plugins.footnote import footnote_plugin
+from mdit_py_plugins.dollarmath.index import dollarmath_plugin
+from mdit_py_plugins.footnote.index import footnote_plugin
 
 from gradio import Examples, interpretation, utils
 from gradio.blocks import Blocks
@@ -39,7 +39,7 @@ from gradio.pipelines import load_from_pipeline
 set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import transformers
+    from transformers.pipelines.base import Pipeline
 
 
 @document("launch", "load", "from_pipeline", "integrate", "queue")
@@ -83,9 +83,9 @@ class Interface(Blocks):
     def load(
         cls,
         name: str,
-        src: Optional[str] = None,
-        api_key: Optional[str] = None,
-        alias: Optional[str] = None,
+        src: str | None = None,
+        api_key: str | None = None,
+        alias: str | None = None,
         **kwargs,
     ) -> Interface:
         """
@@ -109,7 +109,7 @@ class Interface(Blocks):
         return super().load(name=name, src=src, api_key=api_key, alias=alias, **kwargs)
 
     @classmethod
-    def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
+    def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
         """
         Class method that constructs an Interface from a Hugging Face transformers.Pipeline object.
         The input and output components are automatically determined from the pipeline.
@@ -131,25 +131,25 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable,
-        inputs: Optional[str | Component | List[str | Component]],
-        outputs: Optional[str | Component | List[str | Component]],
-        examples: Optional[List[Any] | List[List[Any]] | str] = None,
-        cache_examples: Optional[bool] = None,
+        inputs: str | Component | List[str | Component] | None,
+        outputs: str | Component | List[str | Component] | None,
+        examples: List[Any] | List[List[Any]] | str | None = None,
+        cache_examples: bool | None = None,
         examples_per_page: int = 10,
         live: bool = False,
-        interpretation: Optional[Callable | str] = None,
+        interpretation: Callable | str | None = None,
         num_shap: float = 2.0,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        article: Optional[str] = None,
-        thumbnail: Optional[str] = None,
-        theme: Optional[str] = None,
-        css: Optional[str] = None,
-        allow_flagging: Optional[str] = None,
-        flagging_options: List[str] = None,
+        title: str | None = None,
+        description: str | None = None,
+        article: str | None = None,
+        thumbnail: str | None = None,
+        theme: str = "default",
+        css: str | None = None,
+        allow_flagging: str | None = None,
+        flagging_options: List[str] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback = CSVLogger(),
-        analytics_enabled: Optional[bool] = None,
+        analytics_enabled: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         _api_mode: bool = False,
@@ -189,6 +189,13 @@ class Interface(Blocks):
             **kwargs,
         )
 
+        if isinstance(fn, list):
+            raise DeprecationWarning(
+                "The `fn` parameter only accepts a single function, support for a list "
+                "of functions has been deprecated. Please use gradio.mix.Parallel "
+                "instead."
+            )
+
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -199,18 +206,14 @@ class Interface(Blocks):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
-        if isinstance(fn, list):
-            raise DeprecationWarning(
-                "The `fn` parameter only accepts a single function, support for a list "
-                "of functions has been deprecated. Please use gradio.mix.Parallel "
-                "instead."
-            )
+        assert isinstance(inputs, (str, list, Component))
+        assert isinstance(outputs, (str, list, Component))
 
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-
+            
         if self.is_space and cache_examples is None:
             self.cache_examples = True
         else:
@@ -725,11 +728,11 @@ class TabbedInterface(Blocks):
     def __init__(
         self,
         interface_list: List[Interface],
-        tab_names: Optional[List[str]] = None,
-        title: Optional[str] = None,
+        tab_names: List[str] | None = None,
+        title: str | None = None,
         theme: str = "default",
-        analytics_enabled: Optional[bool] = None,
-        css: Optional[str] = None,
+        analytics_enabled: bool | None = None,
+        css: str | None = None,
     ):
         """
         Parameters:
