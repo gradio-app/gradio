@@ -692,13 +692,13 @@ def sanitize_list_for_csv(values: T) -> T:
 
 def append_unique_suffix(name: str, list_of_names: List[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
-    list_of_names = set(list_of_names)  # for O(1) lookup
-    if name not in list_of_names:
+    set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
+    if name not in set_of_names:
         return name
     else:
         suffix_counter = 1
         new_name = name + f"_{suffix_counter}"
-        while new_name in list_of_names:
+        while new_name in set_of_names:
             suffix_counter += 1
             new_name = name + f"_{suffix_counter}"
         return new_name
