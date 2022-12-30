@@ -1,3 +1,7 @@
+"""Contains methods that generate documentation for Gradio functions and classes."""
+
+from __future__ import annotations
+
 import inspect
 from typing import Callable, Dict, List, Tuple
 
