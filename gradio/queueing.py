@@ -211,7 +211,7 @@ class Queue:
             if not client_awake:
                 return False
             event.data = await self.get_message(event)
-            event._id = f"{event.data.session_hash}_{event.data.fn_index}"
+            event._id = f"{event.session_hash}_{event.data.fn_index}"
         return True
 
     async def notify_clients(self) -> None:
@@ -402,11 +402,6 @@ class Queue:
             end_time = time.time()
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
-        except Exception as e:
-            import traceback
-
-            traceback.print_exc()
-            print(e)
         finally:
             for event in awake_events:
                 try:
