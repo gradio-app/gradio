@@ -1335,7 +1335,7 @@ async def test_queue_when_using_auth():
     loop = asyncio.get_event_loop()
     tm = loop.time()
     group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
+        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
     )
     await group
 
