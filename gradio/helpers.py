@@ -350,7 +350,7 @@ class TrackedIterable:
         self.progress = progress
 
 
-@document("__call__", "track")
+@document("__call__", "tqdm")
 class Progress(Iterable):
     """
     The Progress class provides a custom progress tracker that is used in a function signature.
@@ -363,7 +363,7 @@ class Progress(Iterable):
         def my_function(x, progress=gr.Progress()):
             progress(0, desc="Starting...")
             time.sleep(1)
-            for i in progress.track(range(100)):
+            for i in progress.tqdm(range(100)):
                 time.sleep(0.1)
             return x
         gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
@@ -379,7 +379,7 @@ class Progress(Iterable):
     ):
         """
         Parameters:
-            track_tqdm: If True, the Progress object will track any iterations made with tqdm.tqdm in the function.
+            track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
         self.track_tqdm = track_tqdm
         self._active = _active
@@ -440,7 +440,7 @@ class Progress(Iterable):
         else:
             return progress
 
-    def track(
+    def tqdm(
         self,
         iterable: Iterable | None,
         desc: str = None,
@@ -451,7 +451,7 @@ class Progress(Iterable):
         **kwargs,
     ):
         """
-        Attaches progress tracker to iterable.
+        Attaches progress tracker to iterable, like tqdm.
         Parameters:
             iterable: iterable to attach progress tracker to.
             desc: description to display.

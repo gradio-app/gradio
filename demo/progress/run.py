@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
     # track list
     def load_set(text, text2, progress=gr.Progress()):
         imgs = [None] * 24
-        for img in progress.track(imgs, desc="Loading from list"):
+        for img in progress.tqdm(imgs, desc="Loading from list"):
             time.sleep(0.1)
         return "done"
     load_set_btn.click(load_set, [text, textb], text2)
@@ -33,9 +33,9 @@ with gr.Blocks() as demo:
     # track nested list
     def load_nested_set(text, text2, progress=gr.Progress()):
         imgs = [[None] * 8] * 3
-        for img_set in progress.track(imgs, desc="Nested list"):
+        for img_set in progress.tqdm(imgs, desc="Nested list"):
             time.sleep(2)
-            for img in progress.track(img_set, desc="inner list"):
+            for img in progress.tqdm(img_set, desc="inner list"):
                 time.sleep(0.1)
         return "done"
     load_nested_set_btn.click(load_nested_set, [text, textb], text2)
@@ -46,7 +46,7 @@ with gr.Blocks() as demo:
             for i in range(0, random.randint(15, 20)):
                 time.sleep(0.1)
                 yield None
-        for img in progress.track(yielder()):
+        for img in progress.tqdm(yielder()):
             pass
         return "done"
     load_random_btn.click(load_random, {text, textb}, text2)

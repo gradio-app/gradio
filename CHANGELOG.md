@@ -5,13 +5,16 @@
 * Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
 
 ```python
-def clean_imgs(text, progress=gr.Progress()):
-    progress(0.2, message="Collecting Images")
-    time.sleep(1.5)
-    progress(0.8, message="Sending Images")
-    time.sleep(1.5)
-    return "done"
-clean_imgs_btn.click(clean_imgs, text, text2)
+def reverse(word, progress=gr.Progress()):
+    progress(0, desc="Starting")
+    time.sleep(1)
+    new_string = ""
+    for letter in progress.tqdm(word, desc="Reversing"):
+        time.sleep(0.25)
+        new_string = letter + new_string
+    return new_string
+
+demo = gr.Interface(reverse, gr.Text(), gr.Text())
 ```
 
 Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750](https://github.com/gradio-app/gradio/pull/2750).
