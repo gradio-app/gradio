@@ -1,7 +1,7 @@
 import gradio as gr
 import time
 
-def reverse(word, progress=gr.Progress()):
+def slowly_reverse(word, progress=gr.Progress()):
     progress(0, desc="Starting")
     time.sleep(1)
     new_string = ""
