@@ -18,13 +18,15 @@ class Event:
     def __init__(
         self,
         websocket: fastapi.WebSocket,
-        fn_index: int | None = None,
+        session_hash: str,
+        fn_index: int,
     ):
         self.websocket = websocket
+        self.session_hash: str = session_hash
+        self.fn_index: int  = fn_index
+        self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index: int | None = fn_index
-        self.session_hash: str = "foo"
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
@@ -123,7 +125,6 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
-                print("Starting new job")
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
@@ -211,7 +212,6 @@ class Queue:
             if not client_awake:
                 return False
             event.data = await self.get_message(event)
-            event._id = f"{event.session_hash}_{event.data.fn_index}"
         return True
 
     async def notify_clients(self) -> None:
