@@ -189,7 +189,7 @@ Gradio supports the ability to create a custom Progress Bars so that you have cu
 $code_progress_simple
 $demo_progress_simple
 
-You can even make automatic progress updates from any `tqdm.tqdm` by setting the default argument as  `gr.Progress(track_tqdm=True)`.
+If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as  `gr.Progress(track_tqdm=True)`!
 
 ## Batch Functions
 
