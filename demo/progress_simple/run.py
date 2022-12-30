@@ -10,7 +10,7 @@ def slowly_reverse(word, progress=gr.Progress()):
         new_string = letter + new_string
     return new_string
 
-demo = gr.Interface(reverse, gr.Text(), gr.Text())
+demo = gr.Interface(slowly_reverse, gr.Text(), gr.Text())
 
 if __name__ == "__main__":
     demo.queue(concurrency_count=10).launch()
