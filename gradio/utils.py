@@ -34,7 +34,8 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Optional
+    Optional,
+    Union
 )
 
 import aiohttp
@@ -459,7 +460,7 @@ class AsyncRequest:
         url: str,
         *,
         validation_model: Optional[Type[BaseModel]] = None,
-        validation_function: Optional[Callable] = None,
+        validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
         **kwargs,
@@ -476,7 +477,7 @@ class AsyncRequest:
             raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
         """
         self._response = None
-        self._exception = None
+        self._exception: Union[Exception, None] = None
         self._status = None
         self._raise_for_status = raise_for_status
         self._validation_model = validation_model
@@ -582,7 +583,7 @@ class AsyncRequest:
 
     def _validate_response_by_validation_function(
         self, response: ResponseJson
-    ) -> ResponseJson:
+    ) -> Optional[ResponseJson]:
         """
         Validate response json using the validation function.
         Args:
@@ -590,7 +591,11 @@ class AsyncRequest:
         Returns:
             ResponseJson: Validated Json object.
         """
-        validated_data = self._validation_function(response)
+        validated_data = None
+
+        if self._validation_function:
+            validated_data = self._validation_function(response)
+
         return validated_data
 
     def is_valid(self, raise_exceptions: bool = False) -> bool:
@@ -601,7 +606,7 @@ class AsyncRequest:
         Returns:
             bool: validity of the data
         """
-        if self.has_exception:
+        if self.has_exception and self._exception:
             if raise_exceptions:
                 raise self._exception
             return False
@@ -626,7 +631,7 @@ class AsyncRequest:
 
     @property
     def raise_exceptions(self):
-        if self.has_exception:
+        if self.has_exception and self._exception:
             raise self._exception
 
     @property
