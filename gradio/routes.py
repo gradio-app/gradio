@@ -1,4 +1,5 @@
-"""Implements a FastAPI server to run the gradio interface."""
+"""Implements a FastAPI server to run the gradio interface. Note that some types in this
+module use the Optional/Union notation so that they work correctly with pydantic."""
 
 from __future__ import annotations
 
@@ -13,7 +14,7 @@ import traceback
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List, Optional, Type, Union
 from urllib.parse import urlparse
 
 import fastapi
@@ -142,7 +143,7 @@ class App(FastAPI):
 
         @app.get("/user")
         @app.get("/user/")
-        def get_current_user(request: fastapi.Request) -> str | None:
+        def get_current_user(request: fastapi.Request) -> Optional[str]:
             token = request.cookies.get("access-token")
             return app.tokens.get(token)
 
@@ -155,7 +156,7 @@ class App(FastAPI):
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
-        async def ws_login_check(websocket: WebSocket) -> str | None:
+        async def ws_login_check(websocket: WebSocket) -> Optional[str]:
             token = websocket.cookies.get("access-token")
             return token  # token is returned to allow request in queue
 
@@ -285,7 +286,7 @@ class App(FastAPI):
 
         async def run_predict(
             body: PredictBody,
-            request: Request | List[Request],
+            request: Union[Request, List[Request]],
             username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
@@ -393,7 +394,7 @@ class App(FastAPI):
         @app.websocket("/queue/join")
         async def join_queue(
             websocket: WebSocket,
-            token: str | None = Depends(ws_login_check),
+            token: Optional[str] = Depends(ws_login_check),
         ):
             blocks = app.get_blocks()
             if app.auth is not None and token is None:
