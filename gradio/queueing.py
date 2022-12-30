@@ -8,34 +8,28 @@ from collections import deque
 from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import fastapi
-from pydantic import BaseModel
 
-from gradio.data_classes import PredictBody
+from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
+from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
-
-
-class Estimation(BaseModel):
-    msg: Optional[str] = "estimation"
-    rank: Optional[int] = None
-    queue_size: int
-    avg_event_process_time: Optional[float]
-    avg_event_concurrent_process_time: Optional[float]
-    rank_eta: Optional[int] = None
-    queue_eta: int
 
 
 class Event:
     def __init__(
         self,
         websocket: fastapi.WebSocket,
-        fn_index: int | None = None,
+        session_hash: str,
+        fn_index: int,
     ):
         self.websocket = websocket
+        self.session_hash: str = session_hash
+        self.fn_index: int = fn_index
+        self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
-        self.fn_index: int | None = fn_index
-        self.session_hash: str = "foo"
         self.token: str | None = None
+        self.progress: Progress | None = None
+        self.progress_pending: bool = False
 
     async def disconnect(self, code=1000):
         await self.websocket.close(code=code)
@@ -65,12 +59,15 @@ class Queue:
         self.queue_duration = 1
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
+        self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
 
-    async def start(self):
+    async def start(self, progress_tracking=False):
         run_coro_in_background(self.start_processing)
+        if progress_tracking:
+            run_coro_in_background(self.start_progress_tracking)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
 
@@ -131,6 +128,51 @@ class Queue:
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
+
+    async def start_progress_tracking(self) -> None:
+        while not self.stopped:
+            if not any(self.active_jobs):
+                await asyncio.sleep(self.progress_update_sleep_when_free)
+                continue
+
+            for job in self.active_jobs:
+                if job is None:
+                    continue
+                for event in job:
+                    if event.progress_pending:
+                        event.progress_pending = False
+                        client_awake = await self.send_message(
+                            event, event.progress.dict()
+                        )
+                        if not client_awake:
+                            await self.clean_event(event)
+
+            await asyncio.sleep(self.progress_update_sleep_when_free)
+
+    def set_progress(
+        self,
+        event_id: str,
+        iterables: List[TrackedIterable] | None,
+    ):
+        if iterables is None:
+            return
+        for job in self.active_jobs:
+            if job is None:
+                continue
+            for evt in job:
+                if evt._id == event_id:
+                    progress_data: List[ProgressUnit] = []
+                    for iterable in iterables:
+                        progress_unit = ProgressUnit(
+                            index=iterable.index,
+                            length=iterable.length,
+                            unit=iterable.unit,
+                            progress=iterable.progress,
+                            desc=iterable.desc,
+                        )
+                        progress_data.append(progress_unit)
+                    evt.progress = Progress(progress_data=progress_data)
+                    evt.progress_pending = True
 
     def push(self, event: Event) -> int | None:
         """
@@ -254,6 +296,7 @@ class Queue:
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
         token = events[0].token
+        data.event_id = events[0]._id if not batch else None
         try:
             data.request = self.get_request_params(events[0].websocket)
         except ValueError:
@@ -288,7 +331,7 @@ class Queue:
                     )
                 if client_awake:
                     awake_events.append(event)
-            if not (awake_events):
+            if not awake_events:
                 return
             begin_time = time.time()
             response = await self.call_prediction(awake_events, batch)

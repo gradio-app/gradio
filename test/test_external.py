@@ -280,7 +280,7 @@ class TestLoadInterface:
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
@@ -289,7 +289,7 @@ class TestLoadInterfaceWithExamples:
 
     def test_interface_load_cache_examples(self, tmp_path):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],

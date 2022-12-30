@@ -31,7 +31,11 @@ def set_cancel_events(
         )
 
 
-class Changeable(Block):
+class EventListener(Block):
+    pass
+
+
+class Changeable(EventListener):
     def change(
         self,
         fn: Callable | None,
@@ -94,7 +98,7 @@ class Changeable(Block):
         return dep
 
 
-class Clickable(Block):
+class Clickable(EventListener):
     def click(
         self,
         fn: Callable | None,
@@ -158,7 +162,7 @@ class Clickable(Block):
         return dep
 
 
-class Submittable(Block):
+class Submittable(EventListener):
     def submit(
         self,
         fn: Callable | None,
@@ -223,7 +227,7 @@ class Submittable(Block):
         return dep
 
 
-class Editable(Block):
+class Editable(EventListener):
     def edit(
         self,
         fn: Callable | None,
@@ -287,7 +291,7 @@ class Editable(Block):
         return dep
 
 
-class Clearable(Block):
+class Clearable(EventListener):
     def clear(
         self,
         fn: Callable | None,
@@ -351,7 +355,7 @@ class Clearable(Block):
         return dep
 
 
-class Playable(Block):
+class Playable(EventListener):
     def play(
         self,
         fn: Callable | None,
@@ -539,7 +543,7 @@ class Playable(Block):
         return dep
 
 
-class Streamable(Block):
+class Streamable(EventListener):
     def stream(
         self,
         fn: Callable | None,
@@ -605,7 +609,7 @@ class Streamable(Block):
         return dep
 
 
-class Blurrable(Block):
+class Blurrable(EventListener):
     def blur(
         self,
         fn: Callable | None,
@@ -662,7 +666,7 @@ class Blurrable(Block):
         set_cancel_events(self, "blur", cancels)
 
 
-class Uploadable(Block):
+class Uploadable(EventListener):
     def upload(
         self,
         fn: Callable | None,

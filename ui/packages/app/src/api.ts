@@ -191,6 +191,18 @@ export const fn =
 							null
 						);
 						break;
+					case "progress":
+						loading_status.update(
+							fn_index,
+							"pending",
+							queue,
+							null,
+							null,
+							null,
+							null,
+							data.progress_data
+						);
+						break;
 					case "process_generating":
 						loading_status.update(
 							fn_index,

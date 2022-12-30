@@ -312,6 +312,7 @@ class App(FastAPI):
             else:
                 session_state = {}
                 iterators = {}
+            event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
             batch = app.blocks.dependencies[fn_index]["batch"]
@@ -324,6 +325,7 @@ class App(FastAPI):
                     request=request,
                     state=session_state,
                     iterators=iterators,
+                    event_id=event_id,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
@@ -403,16 +405,15 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket)
-            # set the token into Event to allow using the same token for call_prediction
-            event.token = token
-
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
-            session_hash = await websocket.receive_json()
-            event.session_hash = session_hash["session_hash"]
-            event.fn_index = session_hash["fn_index"]
+            session_info = await websocket.receive_json()
+            event = Event(
+                websocket, session_info["session_hash"], session_info["fn_index"]
+            )
+            # set the token into Event to allow using the same token for call_prediction
+            event.token = token
 
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
