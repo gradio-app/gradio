@@ -127,12 +127,11 @@
 			{#if Array.isArray(value)}
 				{#each value as s}
 					<div
-						class="token items-center bg-gray-400 rounded-xl flex my-0.5 mr-2 ml-1 max-h-6 py-0.5 px-2 whitespace-nowrap"
+						class="token gr-input-label flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner my-1 mx-1"
 					>
-						<span>{s}</span>
 						<div
 							class:hidden={disabled}
-							class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center ml-0.5 min-w-min"
+							class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center min-w-min"
 							title="Remove {s}"
 						>
 							<svg
@@ -145,6 +144,7 @@
 								<path d={iconClearPath} />
 							</svg>
 						</div>
+						<span>{s}</span>
 					</div>
 				{/each}
 			{/if}
