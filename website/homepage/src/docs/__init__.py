@@ -1,7 +1,6 @@
 import os
 from gradio.documentation import generate_documentation, document_cls
 from gradio.events import EventListener
-from gradio.blocks import BlockContext
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)
@@ -113,10 +112,21 @@ def style_types():
 
 style_types()
 
-for mode in docs:
-    for cls in docs[mode]:
-        if isinstance(cls["class"], type) and issubclass(cls["class"], BlockContext):
-            cls["override_signature"] = f"with gradio.{cls['name']}():"
+
+def override_signature(name, signature):
+    for mode in docs:
+        for cls in docs[mode]:
+            if cls["name"] == name:
+                cls["override_signature"] = signature
+
+
+override_signature("Blocks", "with gradio.Blocks():")
+override_signature("Row", "with gradio.Row():")
+override_signature("Column", "with gradio.Column():")
+override_signature("Tab", "with gradio.Tab():")
+override_signature("Group", "with gradio.Group():")
+override_signature("Box", "with gradio.Box():")
+override_signature("Dataset", "gr.Dataset(components, samples)")
 
 
 def find_cls(target_cls):

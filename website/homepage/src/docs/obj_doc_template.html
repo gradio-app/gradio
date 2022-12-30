@@ -65,7 +65,7 @@
   {% else %}
   <div class="codeblock"><pre><code class="lang-python">{{ parent }}{% if obj["name"] != "__call__" %}.<span>{{ obj["name"] }}{% endif %}(</span><!--
 -->{% for param in obj["parameters"] %}<!--
-  -->{% if "positional" in param["kind"] and param["name"] != "self" %}<!--
+  -->{% if "kwargs" not in param and "default" not in param and param["name"] != "self" %}<!--
     -->{{ param["name"] }}, <!--
   -->{% endif %}<!--
 -->{% endfor %}<!--  
