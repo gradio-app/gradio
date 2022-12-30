@@ -182,7 +182,7 @@ Note that we've added a `time.sleep(1)` in the iterator to create an artificial 
 
 Supplying a generator into Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
 
-## Progress Updates
+## Progress Bars
 
 Ypu can explicitly update the progress of a function by adding an argument to your method that has a default value of `gradio.Progress()`. Then you can update the progress levels by calling this argument directly, or using the `track()` method of `Progress` to track progress over an iterable. Currently, queueing must be enabled for progress updates.
 
