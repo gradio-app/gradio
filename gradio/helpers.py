@@ -25,7 +25,6 @@ from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import BlockFunction
     from gradio.components import IOComponent
 
 CACHED_FOLDER = "gradio_cached_examples"
