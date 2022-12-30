@@ -312,10 +312,7 @@ class App(FastAPI):
             else:
                 session_state = {}
                 iterators = {}
-            if hasattr(body, "event_id"):
-                event_id = body.event_id
-            else:
-                event_id = None
+             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
             batch = app.blocks.dependencies[fn_index]["batch"]
