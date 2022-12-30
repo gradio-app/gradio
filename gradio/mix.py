@@ -32,7 +32,7 @@ class Parallel(gradio.Interface):
         Returns:
             an Interface object comparing the given models
         """
-        outputs: List[Component] = []
+        outputs = []
 
         for interface in interfaces:
             if not (isinstance(interface, gradio.Interface)):
