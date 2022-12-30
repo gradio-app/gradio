@@ -902,7 +902,7 @@ def make_waveform(
     plt.axis("off")
     plt.margins(x=0)
     tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    savefig_kwargs = {"bbox_inches": "tight"}
+    savefig_kwargs: Dict[str, str | bool] = {"bbox_inches": "tight"}
     if bg_image is not None:
         savefig_kwargs["transparent"] = True
     else:
