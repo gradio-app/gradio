@@ -32,7 +32,7 @@ def queue() -> Queue:
 @pytest.fixture()
 def mock_event() -> Event:
     websocket = MagicMock()
-    event = Event(websocket=websocket, fn_index=0)
+    event = Event(websocket=websocket, session_hash="test", fn_index=0)
     yield event
 
 
@@ -326,7 +326,7 @@ class TestQueueBatch:
         queue.clean_event = AsyncMock()
 
         websocket = MagicMock()
-        mock_event2 = Event(websocket=websocket, fn_index=0)
+        mock_event2 = Event(websocket=websocket, session_hash="test", fn_index=0)
         mock_event2.disconnect = AsyncMock()
         queue.active_jobs = [[mock_event, mock_event2]]
 
@@ -350,10 +350,10 @@ class TestGetEventsInBatch:
         queue.event_queue = deque()
         queue.event_queue.extend(
             [
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
             ]
         )
         events, batch = queue.get_events_in_batch()
@@ -372,12 +372,12 @@ class TestGetEventsInBatch:
         queue.event_queue = deque()
         queue.event_queue.extend(
             [
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=1),
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=1),
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=1),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=1),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
             ]
         )
         events, batch = queue.get_events_in_batch()
@@ -400,11 +400,11 @@ class TestGetEventsInBatch:
         queue.event_queue = deque()
         queue.event_queue.extend(
             [
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=1),
-                Event(websocket=MagicMock(), fn_index=0),
-                Event(websocket=MagicMock(), fn_index=1),
-                Event(websocket=MagicMock(), fn_index=1),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=1),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=0),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=1),
+                Event(websocket=MagicMock(), session_hash="test", fn_index=1),
             ]
         )
         events, batch = queue.get_events_in_batch()
