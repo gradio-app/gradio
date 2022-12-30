@@ -23,7 +23,7 @@ class Event:
     ):
         self.websocket = websocket
         self.session_hash: str = session_hash
-        self.fn_index: int  = fn_index
+        self.fn_index: int = fn_index
         self._id = f"{self.session_hash}_{self.fn_index}"
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None

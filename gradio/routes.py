@@ -409,7 +409,9 @@ class App(FastAPI):
             # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
             session_info = await websocket.receive_json()
-            event = Event(websocket, session_info["session_hash"], session_info["fn_index"])
+            event = Event(
+                websocket, session_info["session_hash"], session_info["fn_index"]
+            )
             # set the token into Event to allow using the same token for call_prediction
             event.token = token
 
