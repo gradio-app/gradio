@@ -14,7 +14,7 @@ import traceback
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
@@ -286,7 +286,8 @@ class App(FastAPI):
 
         async def run_predict(
             body: PredictBody,
-            request: Union[Request, List[Request]],
+            request: Request | List[Request],
+            fn_index_inferred: int,
             username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
@@ -312,12 +313,12 @@ class App(FastAPI):
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
-            batch = app.get_blocks().dependencies[fn_index]["batch"]
+            batch = app.get_blocks().dependencies[fn_index_inferred]["batch"]
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
                 output = await app.get_blocks().process_api(
-                    fn_index=fn_index,
+                    fn_index=fn_index_inferred,
                     inputs=raw_input,
                     request=request,
                     state=session_state,
@@ -355,20 +356,23 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            fn_index_inferred = None
             if body.fn_index is None:
                 for i, fn in enumerate(app.get_blocks().dependencies):
                     if fn["api_name"] == api_name:
-                        body.fn_index = i
+                        fn_index_inferred = i
                         break
-                if body.fn_index is None:
+                if fn_index_inferred is None:
                     return JSONResponse(
                         content={
                             "error": f"This app has no endpoint /api/{api_name}/."
                         },
                         status_code=500,
                     )
+            else:
+                fn_index_inferred = body.fn_index
             if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                body.fn_index
+                fn_index_inferred
             ):
                 if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
                     raise HTTPException(
@@ -378,7 +382,7 @@ class App(FastAPI):
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
-            if app.get_blocks().dependencies[body.fn_index]["cancels"]:
+            if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
@@ -388,7 +392,12 @@ class App(FastAPI):
                     gr_request = Request(**body.request)
             else:
                 gr_request = Request(request)
-            result = await run_predict(body=body, username=username, request=gr_request)
+            result = await run_predict(
+                body=body,
+                fn_index_inferred=fn_index_inferred,
+                username=username,
+                request=gr_request,
+            )
             return result
 
         @app.websocket("/queue/join")
