@@ -27,3 +27,26 @@ class InterfaceTypes(Enum):
     INPUT_ONLY = auto()
     OUTPUT_ONLY = auto()
     UNIFIED = auto()
+
+
+class Estimation(BaseModel):
+    msg: Optional[str] = "estimation"
+    rank: Optional[int] = None
+    queue_size: int
+    avg_event_process_time: Optional[float]
+    avg_event_concurrent_process_time: Optional[float]
+    rank_eta: Optional[int] = None
+    queue_eta: int
+
+
+class ProgressUnit(BaseModel):
+    index: Optional[int]
+    length: Optional[int]
+    unit: Optional[str]
+    progress: Optional[float]
+    desc: Optional[str]
+
+
+class Progress(BaseModel):
+    msg: str = "progress"
+    progress_data: List[ProgressUnit] = []

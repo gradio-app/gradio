@@ -9,34 +9,10 @@ from collections import deque
 from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import fastapi
-from pydantic import BaseModel
 
-from gradio.data_classes import PredictBody
+from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
 from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
-
-
-class Estimation(BaseModel):
-    msg: Optional[str] = "estimation"
-    rank: Optional[int] = None
-    queue_size: int
-    avg_event_process_time: Optional[float]
-    avg_event_concurrent_process_time: Optional[float]
-    rank_eta: Optional[int] = None
-    queue_eta: int
-
-
-class ProgressUnit(BaseModel):
-    index: Optional[int]
-    length: Optional[int]
-    unit: Optional[str]
-    progress: Optional[float]
-    desc: Optional[str]
-
-
-class Progress(BaseModel):
-    msg: str = "progress"
-    progress_data: List[ProgressUnit] = []
 
 
 class Event:
@@ -45,7 +21,6 @@ class Event:
         websocket: fastapi.WebSocket,
         fn_index: int | None = None,
     ):
-        self._id = str(uuid.uuid4())
         self.websocket = websocket
         self.data: PredictBody | None = None
         self.lost_connection_time: float | None = None
@@ -83,7 +58,7 @@ class Queue:
         self.queue_duration = 1
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
-        self.progress_update_sleep_when_free = 0.2
+        self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
@@ -149,6 +124,7 @@ class Queue:
 
             if events:
                 self.active_jobs[self.active_jobs.index(None)] = events
+                print("Starting new job")
                 task = run_coro_in_background(self.process_events, events, batch)
                 run_coro_in_background(self.broadcast_live_estimations)
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
@@ -236,6 +212,7 @@ class Queue:
             if not client_awake:
                 return False
             event.data = await self.get_message(event)
+            event._id = f"{event.data.session_hash}_{event.data.fn_index}"
         return True
 
     async def notify_clients(self) -> None:
@@ -318,6 +295,7 @@ class Queue:
         }
 
     async def call_prediction(self, events: List[Event], batch: bool):
+        print(1)
         data = events[0].data
         token = events[0].token
         data.event_id = events[0]._id if not batch else None
@@ -345,6 +323,7 @@ class Queue:
         return response
 
     async def process_events(self, events: List[Event], batch: bool) -> None:
+        print("here")
         awake_events: List[Event] = []
         try:
             for event in events:
@@ -355,9 +334,11 @@ class Queue:
                     )
                 if client_awake:
                     awake_events.append(event)
-            if not (awake_events):
+            if not awake_events:
+                print("dead")
                 return
             begin_time = time.time()
+            print("go")
             response = await self.call_prediction(awake_events, batch)
             if response.has_exception:
                 for event in awake_events:
@@ -426,6 +407,11 @@ class Queue:
             end_time = time.time()
             if response.status == 200:
                 self.update_estimation(end_time - begin_time)
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            print(e)
         finally:
             for event in awake_events:
                 try:

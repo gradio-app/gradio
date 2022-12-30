@@ -334,7 +334,7 @@ class TrackedIterable:
     def __init__(
         self,
         iterable: Iterable,
-        index: int,
+        index: int | None,
         length: int | None,
         desc: str | None,
         unit: str | None,
@@ -430,12 +430,19 @@ class Progress(Iterable):
         Parameters:
             progress: If float, should be between 0 and 1 representing completion. If Tuple, first number represents steps completed, and second value represents total steps or None if unknown. If None, hides progress bar.
             desc: description to display.
+            total: estimated total number of steps.
+            unit: unit of iterations.
         """
         if self._active:
+            if isinstance(progress, tuple):
+                index, total = progress
+                progress = None
+            else:
+                index = None
             self._callback(
                 event_id=self._event_id,
                 iterables=self.iterables
-                + [TrackedIterable(None, 0, total, desc, unit, _tqdm, progress)],
+                + [TrackedIterable(None, index, total, desc, unit, _tqdm, progress)],
             )
         else:
             return progress
@@ -455,14 +462,15 @@ class Progress(Iterable):
         Parameters:
             iterable: iterable to attach progress tracker to.
             desc: description to display.
-
+            total: estimated total number of steps.
+            unit: unit of iterations.
         """
         if iterable is None:
             new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
             self.iterables.append(new_iterable)
             self._callback(event_id=self._event_id, iterables=self.iterables)
             return
-        length = getattr(iterable, "__len__", None)
+        length = len(iterable) if hasattr(iterable, "__len__") else None
         self.iterables.append(
             TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
         )
@@ -501,25 +509,28 @@ class Progress(Iterable):
             return
 
 
-def create_tracker(block_parent, event_id, fn, track_tqdm):
+def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
     progress = Progress(
-        _active=True, _callback=block_parent._queue.set_progress, _event_id=event_id
+        _active=True, _callback=root_blocks._queue.set_progress, _event_id=event_id
     )
     if not track_tqdm:
         return progress, fn
 
-    _tqdm = __import__("tqdm")
-    if not hasattr(block_parent, "_progress_tracker_per_thread"):
-        block_parent._progress_tracker_per_thread = {}
+    try:
+        _tqdm = __import__("tqdm")
+    except ModuleNotFoundError:
+        return progress, fn
+    if not hasattr(root_blocks, "_progress_tracker_per_thread"):
+        root_blocks._progress_tracker_per_thread = {}
 
     def init_tqdm(self, iterable=None, desc=None, *args, **kwargs):
-        self._progress = block_parent._progress_tracker_per_thread.get(
+        self._progress = root_blocks._progress_tracker_per_thread.get(
             threading.get_ident()
         )
         if self._progress is not None:
             self._progress.event_id = event_id
-            self._progress.track(iterable, desc, _tqdm=self, *args, **kwargs)
+            self._progress.tqdm(iterable, desc, _tqdm=self, *args, **kwargs)
             kwargs["file"] = open(os.devnull, "w")
         self.__init__orig__(iterable, desc, *args, **kwargs)
 
@@ -564,9 +575,10 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
 
     def tracked_fn(*args):
         thread_id = threading.get_ident()
-        block_parent._progress_tracker_per_thread[thread_id] = progress
-        fn(*args)
-        del block_parent._progress_tracker_per_thread[thread_id]
+        root_blocks._progress_tracker_per_thread[thread_id] = progress
+        response = fn(*args)
+        del root_blocks._progress_tracker_per_thread[thread_id]
+        return response
 
     return progress, tracked_fn
 
@@ -633,6 +645,7 @@ def update(**kwargs) -> dict:
             number = gr.Number(value=2, interactive=True)
             radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
         demo.launch()
+
         # Interface example
         import gradio as gr
         def change_textbox(choice):

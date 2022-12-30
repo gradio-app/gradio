@@ -782,7 +782,15 @@ class Blocks(BlockContext):
         requests: routes.Request | List[routes.Request] | None = None,
         event_id: str | None = None,
     ):
-        """Calls and times function with given index and preprocessed input."""
+        """
+        Calls function with given index and preprocessed input, and measures process time.
+        Parameters:
+            fn_index: index of function to call
+            processed_input: preprocessed input to pass to function
+            iterator: iterator to use if function is a generator
+            requests: requests to pass to function
+            event_id: id of event in queue
+        """
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
@@ -1305,6 +1313,11 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.progress_tracking = any(
+            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
+            for block_fn in self.fns
+        )
+
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1319,6 +1332,9 @@ class Blocks(BlockContext):
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
+
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
 
         for dep in self.dependencies:
             for i in dep["cancels"]:
@@ -1648,11 +1664,7 @@ class Blocks(BlockContext):
         """Events that should be run when the app containing this block starts up."""
 
         if self.enable_queue:
-            progress_tracking = any(
-                block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
-                for block_fn in self.fns
-            )
-            utils.run_coro_in_background(self._queue.start, (progress_tracking,))
+            utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):

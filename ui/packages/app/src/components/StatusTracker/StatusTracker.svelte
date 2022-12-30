@@ -202,12 +202,14 @@
 		>
 			{#if progress}
 				{#each progress as p}
-					{#if p.length != null}
-						{prettySI(p.index || 0)}/{prettySI(p.length)}
-					{:else}
-						{prettySI(p.index || 0)}
+					{#if p.index != null}
+						{#if p.length != null}
+							{prettySI(p.index || 0)}/{prettySI(p.length)}
+						{:else}
+							{prettySI(p.index || 0)}
+						{/if}
+						{p.unit} | {" "}
 					{/if}
-					{p.unit} | {" "}
 				{/each}
 			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
