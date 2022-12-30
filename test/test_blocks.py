@@ -1060,7 +1060,7 @@ class TestProgressBar:
             def greet(s, prog=gr.Progress()):
                 prog(0, desc="start")
                 time.sleep(0.25)
-                for _ in prog.track(range(4), unit="iter"):
+                for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
                 for i in tqdm(["a", "b", "c"], desc="alphabet"):
@@ -1086,10 +1086,11 @@ class TestProgressBar:
                 if msg["msg"] == "process_completed":
                     completed = True
                     break
+        print(progress_updates)
         assert progress_updates == [
             [
                 {
-                    "index": 0,
+                    "index": None,
                     "length": None,
                     "unit": "steps",
                     "progress": 0.0,
@@ -1115,7 +1116,7 @@ class TestProgressBar:
             def greet(s, prog=gr.Progress(track_tqdm=True)):
                 prog(0, desc="start")
                 time.sleep(0.25)
-                for _ in prog.track(range(4), unit="iter"):
+                for _ in prog.tqdm(range(4), unit="iter"):
                     time.sleep(0.25)
                 time.sleep(1)
                 for i in tqdm(["a", "b", "c"], desc="alphabet"):
@@ -1144,7 +1145,7 @@ class TestProgressBar:
         assert progress_updates == [
             [
                 {
-                    "index": 0,
+                    "index": None,
                     "length": None,
                     "unit": "steps",
                     "progress": 0.0,

@@ -294,7 +294,6 @@ class Queue:
         }
 
     async def call_prediction(self, events: List[Event], batch: bool):
-        print(1)
         data = events[0].data
         token = events[0].token
         data.event_id = events[0]._id if not batch else None
@@ -322,7 +321,6 @@ class Queue:
         return response
 
     async def process_events(self, events: List[Event], batch: bool) -> None:
-        print("here")
         awake_events: List[Event] = []
         try:
             for event in events:
@@ -334,10 +332,8 @@ class Queue:
                 if client_awake:
                     awake_events.append(event)
             if not awake_events:
-                print("dead")
                 return
             begin_time = time.time()
-            print("go")
             response = await self.call_prediction(awake_events, batch)
             if response.has_exception:
                 for event in awake_events:

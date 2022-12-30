@@ -33,6 +33,7 @@ def queue() -> Queue:
 def mock_event() -> Event:
     websocket = MagicMock()
     event = Event(websocket=websocket, fn_index=0)
+    event.session_hash = "test"
     yield event
 
 
