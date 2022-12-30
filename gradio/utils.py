@@ -44,7 +44,7 @@ import httpx
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import PIL
+from PIL import Image
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
@@ -831,7 +831,7 @@ def make_waveform(
     audio: str | Tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",
-    bg_image: str = None,
+    bg_image: str = "",
     fg_alpha: float = 0.75,
     bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
@@ -908,16 +908,16 @@ def make_waveform(
     else:
         savefig_kwargs["facecolor"] = bg_color
     plt.savefig(tmp_img.name, **savefig_kwargs)
-    waveform_img = PIL.Image.open(tmp_img.name)
+    waveform_img = Image.open(tmp_img.name)
     waveform_img = waveform_img.resize((1000, 200))
 
     # Composite waveform with background image
     if bg_image is not None:
         waveform_array = np.array(waveform_img)
         waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
-        waveform_img = PIL.Image.fromarray(waveform_array)
+        waveform_img = Image.fromarray(waveform_array)
 
-        bg_img = PIL.Image.open(bg_image)
+        bg_img = Image.open(bg_image)
         waveform_width, waveform_height = waveform_img.size
         bg_width, bg_height = bg_img.size
         if waveform_width != bg_width:
@@ -926,7 +926,7 @@ def make_waveform(
             )
             bg_width, bg_height = bg_img.size
         composite_height = max(bg_height, waveform_height)
-        composite = PIL.Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
+        composite = Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
         composite.paste(bg_img, (0, composite_height - bg_height))
         composite.paste(
             waveform_img, (0, composite_height - waveform_height), waveform_img
