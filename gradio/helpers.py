@@ -354,7 +354,7 @@ class TrackedIterable:
 class Progress(Iterable):
     """
     The Progress class provides a custom progress tracker that is used in a function signature.
-    To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to `gradio.Progress()`.
+    To attach a Progress tracker to a function, simply add a parameter right after the input parameters that has a default value set to a `gradio.Progress()` instance.
     The Progress tracker can then be updated in the function by calling the Progress object or using the `tqdm` method on an Iterable.
     The Progress tracker is currently only available with `queue()`.
     Example:
