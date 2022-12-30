@@ -22,3 +22,4 @@ respx
 fastapi>=0.87.0
 altair
 vega_datasets
+tqdm
