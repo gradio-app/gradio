@@ -290,7 +290,7 @@ class Queue:
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
-            "client": dict(host=websocket.client.host, port=websocket.client.port),
+            "client": dict(host=websocket.client.host, port=websocket.client.port),  # type: ignore
         }
 
     async def call_prediction(self, events: List[Event], batch: bool):
