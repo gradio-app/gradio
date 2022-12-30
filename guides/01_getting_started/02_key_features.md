@@ -184,7 +184,7 @@ Supplying a generator into Gradio **requires** you to enable queuing in the unde
 
 ## Progress Bars
 
-Ypu can explicitly update the progress of a function by adding an argument to your method that has a default value of `gradio.Progress()`. Then you can update the progress levels by calling this argument directly, or using the `track()` method of `Progress` to track progress over an iterable. Currently, queueing must be enabled for progress updates.
+Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gradio.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below. Queueing must be enabled for progress updates.
 
 $code_progress_simple
 $demo_progress_simple
