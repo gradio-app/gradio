@@ -3,15 +3,11 @@ Ways to transform interfaces to produce new interfaces
 """
 import asyncio
 import warnings
-from typing import TYPE_CHECKING, List
 
 import gradio
 from gradio.documentation import document, set_documentation_group
 
 set_documentation_group("mix_interface")
-
-if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.components import Component
 
 
 @document()
