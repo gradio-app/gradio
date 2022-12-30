@@ -573,9 +573,9 @@ def create_tracker(block_parent, event_id, fn, track_tqdm):
 
 
 def special_args(
-    block_fn: BlockFunction,
+    fn: Callable,
     inputs: List[Any] | None = None,
-    requests: routes.Request | List[routes.Request] | None = None,
+    request: routes.Request | None = None,
 ):
     """
     Checks if function has special arguments Request (via annotation) or Progress (via default value).
@@ -583,20 +583,17 @@ def special_args(
     Parameters:
         block_fn: function to check.
         inputs: array to load special arguments into.
-        request: requests to load into inputs.
+        request: request to load into inputs.
     Returns:
         updated inputs, request index, progress index
     """
-    if isinstance(requests, routes.Request):
-        requests = [requests]
-    signature = inspect.signature(block_fn.fn)
+    signature = inspect.signature(fn)
     positional_args = []
     for i, param in enumerate(signature.parameters.values()):
         if "positional" not in param.kind.description:
             break
         positional_args.append(param)
     progress_index = None
-    requests_inserted = 0
     for i, param in enumerate(positional_args):
         if isinstance(param.default, Progress):
             progress_index = i
@@ -604,8 +601,7 @@ def special_args(
                 inputs.insert(i, param.default)
         elif param.annotation == routes.Request:
             if inputs is not None:
-                inputs.insert(i, requests[requests_inserted])
-                requests_inserted += 1
+                inputs.insert(i, request)
     if inputs is not None:
         while len(inputs) < len(positional_args):
             i = len(inputs)

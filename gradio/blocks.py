@@ -795,8 +795,14 @@ class Blocks(BlockContext):
                 }
             ]
 
+        if isinstance(requests, list):
+            request = requests[0]
+        else:
+            request = requests
         processed_input, progress_index = special_args(
-            block_fn, processed_input, requests
+            block_fn.fn,
+            processed_input,
+            request,
         )
         progress_tracker = (
             processed_input[progress_index] if progress_index is not None else None
@@ -1643,7 +1649,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             progress_tracking = any(
-                special_args(block_fn)[1] is not None for block_fn in self.fns
+                special_args(block_fn.fn)[1] is not None for block_fn in self.fns
             )
             utils.run_coro_in_background(self._queue.start, (progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)

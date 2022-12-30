@@ -1138,12 +1138,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a=1)
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_no_type_hints_with_request(self):
@@ -1152,12 +1152,12 @@ class TestAddRequests:
 
         inputs = ["abc", 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a="def")
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
@@ -1166,7 +1166,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1174,7 +1174,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
@@ -1183,7 +1183,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
@@ -1191,7 +1191,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
 
