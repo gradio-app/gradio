@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Tuple
 
 classes_to_document = {}
 documentation_group = None

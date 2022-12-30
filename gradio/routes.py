@@ -35,7 +35,7 @@ from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
 import gradio
-from gradio import encryptor, utils
+from gradio import utils
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
@@ -379,13 +379,13 @@ class App(FastAPI):
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
-                    request_ = [Request(**req) for req in body.request]
+                    gr_request = [Request(**req) for req in body.request]
                 else:
                     assert isinstance(body.request, dict)
-                    request_ = Request(**body.request)
+                    gr_request = Request(**body.request)
             else:
-                request_ = Request(request)
-            result = await run_predict(body=body, username=username, request=request_)
+                gr_request = Request(request)
+            result = await run_predict(body=body, username=username, request=gr_request)
             return result
 
         @app.websocket("/queue/join")

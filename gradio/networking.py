@@ -11,7 +11,6 @@ import time
 import warnings
 from typing import TYPE_CHECKING, Tuple
 
-import fastapi
 import requests
 import uvicorn
 

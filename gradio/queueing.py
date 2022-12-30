@@ -5,7 +5,7 @@ import copy
 import sys
 import time
 from collections import deque
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Tuple
 
 import fastapi
 from pydantic import BaseModel
