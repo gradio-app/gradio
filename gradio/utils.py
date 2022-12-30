@@ -787,6 +787,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
     min_args = 0
     max_args = 0
+    infinity = -1
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
@@ -795,7 +796,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
-            max_args = "infinity"
+            max_args = infinity
         elif param.kind == param.KEYWORD_ONLY:
             if not has_default:
                 return f"Keyword-only args must have default values for function {fn}"
@@ -808,7 +809,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         warnings.warn(
             f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
         )
-    if max_args != "infinity" and arg_count > max_args:
+    if max_args != infinity and arg_count > max_args:
         warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
