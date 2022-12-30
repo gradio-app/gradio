@@ -526,7 +526,7 @@ class AsyncRequest:
         return self
 
     @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> AsyncRequest:
+    def _create_request(method: Method, url: str, **kwargs) -> httpx.Request:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -731,7 +731,7 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     return continuous_fn
 
 
-async def cancel_tasks(task_ids: List[str]):
+async def cancel_tasks(task_ids: set[str]):
     if sys.version_info < (3, 8):
         return None
 
@@ -755,10 +755,11 @@ def get_cancel_function(
 ) -> Tuple[Callable, List[int]]:
     fn_to_comp = {}
     for dep in dependencies:
-        fn_index = next(
-            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
-        )
-        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+        if Context.root_block:
+            fn_index = next(
+                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+            )
+            fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
 
     async def cancel(session_hash: str) -> None:
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
