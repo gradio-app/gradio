@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod
 import copy
 import math
-from typing import TYPE_CHECKING, List
+from typing import Any, Dict, TYPE_CHECKING, List, Tuple
 
 import numpy as np
 
@@ -11,6 +12,52 @@ from gradio.components import Label, Number
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
+
+class Interpretable(ABC):
+    def __init__(self, interpret_by_tokens: bool = False):
+        """
+        Initialize the interpretation-related features. 
+        Parameters:
+            interpret_by_tokens: If True, the input will be tokenized (e.g. a sentence will be divided into words; an image into superpixels, etc.) and the interpretation will be done on the tokens.
+        """
+        self.interpret_by_tokens = interpret_by_tokens
+        
+    def set_interpret_parameters(self):
+        """
+        Set any parameters for interpretation. Properties can be set here to be 
+        used in get_interpretation_neighbors and get_interpretation_scores.
+        """
+        pass
+
+    @abstractmethod
+    def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict, bool]:
+        """
+        Generates values similar to input to be used to interpret the significance of the input in the final output.
+        Parameters:
+            x: Input to interface
+        Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
+            neighbor_values: Neighboring values to input x to compute for interpretation
+            interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
+            interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
+        """
+        return [], {}, True
+
+    @abstractmethod
+    def get_interpretation_scores(
+        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
+    ) -> List:
+        """
+        Arrange the output values from the neighbors into interpretation scores for the interface to render.
+        Parameters:
+            x: Input to interface
+            neighbors: Neighboring values to input x used for interpretation.
+            scores: Output value corresponding to each neighbor in neighbors
+        Returns:
+            Arrangement of interpretation scores for interfaces to render.
+        """
+        return []
+
+    
 
 async def run_interpret(interface: Interface, raw_input: List):
     """
