@@ -130,7 +130,8 @@ def integration_analytics(data: Dict[str, Any]) -> None:
 def error_analytics(ip_address: str, message: str) -> None:
     """
     Send error analytics if there is network
-    :param type: RuntimeError or NameError
+    :param ip_address: IP address where error occurred
+    :param message: Details about error
     """
     data = {"ip_address": ip_address, "error": message}
     try:
