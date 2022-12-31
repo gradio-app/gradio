@@ -43,14 +43,14 @@
 
 <style>
 	.wrap {
-		z-index: var(--layer-5);
-		position: absolute;
-		justify-content: flex-end;
 		display: flex;
-		flex-direction: column;
-		gap: var(--size-1);
-		right: var(--size-2);
+		position: absolute;
 		top: var(--size-10);
+		right: var(--size-2);
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: var(--size-1);
+		z-index: var(--layer-5);
 	}
 	.brush {
 		top: 0;
@@ -65,7 +65,7 @@
 
 	.col input {
 		position: absolute;
-		bottom: -4px;
 		right: calc(100% + 5px);
+		bottom: -4px;
 	}
 </style>

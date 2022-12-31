@@ -20,12 +20,12 @@
 
 <style>
 	.wrap {
-		min-height: var(--size-60);
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		line-height: var(--line-md);
+		min-height: var(--size-60);
 		color: var(--color-text-label);
+		line-height: var(--line-md);
 	}
 
 	.or {

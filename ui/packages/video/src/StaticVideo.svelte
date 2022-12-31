@@ -30,16 +30,16 @@
 
 <style>
 	.empty {
-		height: var(--size-full);
-		min-height: var(--size-60);
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		height: var(--size-full);
+		min-height: var(--size-60);
 	}
 
 	.icon {
+		opacity: 0.5;
 		height: var(--size-5);
 		color: var(--color-text-body);
-		opacity: 0.5;
 	}
 </style>

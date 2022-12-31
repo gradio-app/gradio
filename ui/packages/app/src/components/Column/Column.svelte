@@ -24,10 +24,10 @@
 
 <style>
 	div {
-		overflow: hidden;
 		display: flex;
-		flex-direction: column;
 		position: relative;
+		flex-direction: column;
+		overflow: hidden;
 	}
 
 	div > :global(*),
@@ -50,8 +50,8 @@
 
 	.compact,
 	.panel {
-		padding: var(--size-2);
-		background: var(--color-background-secondary);
 		border-radius: var(--radius-lg);
+		background: var(--color-background-secondary);
+		padding: var(--size-2);
 	}
 </style>

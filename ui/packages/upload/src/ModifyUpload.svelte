@@ -31,12 +31,12 @@
 
 <style>
 	div {
-		z-index: var(--layer-1);
+		display: flex;
 		top: var(--size-2);
 		right: var(--size-2);
-		display: flex;
-		gap: var(--size-1);
 		justify-content: flex-end;
+		gap: var(--size-1);
+		z-index: var(--layer-1);
 	}
 
 	.not-absolute {

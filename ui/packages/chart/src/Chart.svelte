@@ -186,23 +186,23 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		font-size: var(--scale-00);
 		color: var(--color-text-body);
+		font-size: var(--scale-00);
 	}
 
 	.legend-item {
-		margin-left: var(--size-2);
-		margin-right: var(--size-2);
 		display: flex;
-		gap: var(--size-1);
 		align-items: center;
+		gap: var(--size-1);
+		margin-right: var(--size-2);
+		margin-left: var(--size-2);
 	}
 
 	.legend-box {
 		display: inline-block;
+		border-radius: var(--radius-xs);
 		width: var(--size-3);
 		height: var(--size-3);
-		border-radius: var(--radius-xs);
 	}
 
 	svg {
@@ -210,16 +210,16 @@
 	}
 
 	.label-text {
-		font-family: var(--font-mono);
-		font-size: var(--scale-000);
 		fill: var(--color-text-body);
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
 	}
 
 	.main-label {
-		font-size: var(--scale-00);
-		color: var(--color-text-body);
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
 	}
 </style>

@@ -3,16 +3,14 @@
 	import type { ComponentMeta, Dependency } from "../components/types";
 	import { post_data } from "../api";
 	import NoApi from "./NoApi.svelte";
-	import api_logo from "./img/api-logo.svg";
-	import clear from "./img/clear.svg";
+
 	import { represent_value } from "./utils";
 
+	import ApiBanner from "./ApiBanner.svelte";
 	import EndpointDetail from "./EndpointDetail.svelte";
 	import InputPayload from "./InputPayload.svelte";
 	import ResponseObject from "./ResponseObject.svelte";
 	import CodeSnippets from "./CodeSnippets.svelte";
-
-	const dispatch = createEventDispatcher();
 
 	export let instance_map: {
 		[id: number]: ComponentMeta;
@@ -108,33 +106,13 @@
 </script>
 
 {#if active_api_count}
-	<div
-		class="wrap px-6 py-4 border-b border-gray-100 dark:border-gray-900 relative text-sm md:text-lg"
-	>
-		<h2 class="h2-1 font-semibold flex">
-			<img src={api_logo} alt="" class="w-3.5 md:w-4 mr-1 md:mr-2" />
-			API documentation for&nbsp;
-			<div class="text-orange-500">
-				{root}
-			</div>
-			<button
-				class="absolute right-6 top-5 md:top-6"
-				on:click={() => dispatch("close")}
-				><img src={clear} alt="" class="w-3 dark:invert" /></button
-			>
-		</h2>
-		{#if active_api_count > 1}
-			<div>
-				{active_api_count} API endpoints:
-			</div>
-		{/if}
+	<div class="banner-wrap ">
+		<ApiBanner on:close {root} {active_api_count} />
 	</div>
-	<div class="flex flex-col gap-6">
+	<div class="docs-wrap">
 		{#each dependencies as dependency, dependency_index}
 			{#if dependency.api_name}
-				<div
-					class="bg-gradient-to-b dark:from-orange-200/5 from-orange-200/20 via-transparent to-transparent p-6 rounded"
-				>
+				<div class="endpoint">
 					<EndpointDetail
 						{dependency_index}
 						{root}
@@ -175,11 +153,28 @@
 {/if}
 
 <style>
-	.wrap {
-		/* px-6 py-4 border-b border-gray-100 dark:border-gray-900 relative text-sm md:text-lg */
+	.banner-wrap {
+		position: relative;
+		border-bottom: 1px solid var(--color-border-primary);
+		padding: var(--size-4) var(--size-6);
+		font-size: var(--scale-00);
 	}
 
-	.h2-1 {
-		/* font-semibold flex */
+	@media (--screen-md) {
+		.banner-wrap {
+			font-size: var(--scale-1);
+		}
+	}
+
+	.docs-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-6);
+	}
+
+	.endpoint {
+		border-radius: var(--radius-md);
+		background: var(--api-background);
+		padding: var(--size-6);
 	}
 </style>

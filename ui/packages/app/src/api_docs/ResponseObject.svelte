@@ -27,8 +27,10 @@
 	class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
 >
 	<div class={is_running ? "hidden" : ""}>
-		&#123;<br />
-		&nbsp;&nbsp;"data": [<br />
+		&#123;
+		<br />
+		&nbsp;&nbsp;"data": [
+		<br />
 		{#each dependency.outputs as component_id, component_index}
 			&nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
 				<input
@@ -36,26 +38,28 @@
 					class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
 					type="text"
 					bind:value={dependency_outputs[dependency_index][component_index]}
-				/> :
+				/>
+				:
 			{/if}
 			<span class="text-gray-500">
 				{instance_map[component_id].documentation?.type},
 			</span>
-			<span class="text-gray-400"
-				>// represents {instance_map[component_id].documentation?.description} of
+			<span class="text-gray-400">
+				// represents {instance_map[component_id].documentation?.description} of
 				{((label) => {
 					return label ? "'" + label + "'" : "the";
 				})(instance_map[component_id].props.label)}
 
-				<span class="capitalize">{instance_map[component_id].props.name}</span> component
+				<span class="capitalize">{instance_map[component_id].props.name}</span>
+				component
 			</span>
 			<br />
 		{/each}
-		&nbsp;&nbsp;&nbsp;&nbsp;],<br />
+		&nbsp;&nbsp;&nbsp;&nbsp;],
+		<br />
 		&nbsp;&nbsp;&nbsp;&nbsp;"duration": (float)
-		<span class="text-gray-400">
-			// number of seconds to run function call</span
-		><br />
+		<span class="text-gray-400">// number of seconds to run function call</span>
+		<br />
 		&#125;
 	</div>
 	{#if is_running}

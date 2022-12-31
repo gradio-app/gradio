@@ -58,12 +58,13 @@
 			value={null}
 			source={"upload"}
 			tool="select"
-			><div class="flex flex-col">
+		>
+			<div class="flex flex-col">
 				drop
 				<span class="text-gray-300">- or -</span>
 				upload
-			</div></Image
-		>
+			</div>
+		</Image>
 	</Block>
 
 	<span />

@@ -184,8 +184,8 @@
 					on:click|stopPropagation
 					in:fade={{ duration: 100 }}
 				>
-					<button on:click={close_message} class="toast-close"
-						><svg
+					<button on:click={close_message} class="toast-close">
+						<svg
 							width="100%"
 							height="100%"
 							viewBox="0 0 24 24"
@@ -195,14 +195,11 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							class="feather feather-x"
-							><line x1="18" y1="6" x2="6" y2="18" /><line
-								x1="6"
-								y1="6"
-								x2="18"
-								y2="18"
-							/></svg
-						></button
-					>
+						>
+							<line x1="18" y1="6" x2="6" y2="18" />
+							<line x1="6" y1="6" x2="18" y2="18" />
+						</svg>
+					</button>
 
 					<div class="toast-details">
 						<div class="toast-title">Something went wrong</div>
@@ -218,21 +215,21 @@
 
 <style lang="postcss">
 	.wrap {
-		position: absolute;
-		z-index: var(--layer-5);
 		display: flex;
+		position: absolute;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		pointer-events: none;
-		max-height: var(--size-screen);
+		z-index: var(--layer-5);
 		background-color: var(--color-background-tertiary);
+		max-height: var(--size-screen);
+		pointer-events: none;
 	}
 
 	.wrap.center {
-		left: 0px;
-		right: 0px;
 		top: 0;
+		right: 0px;
+		left: 0px;
 	}
 
 	.wrap.default {
@@ -247,8 +244,8 @@
 	}
 
 	.generating {
-		border: 2px solid var(--color-accent-base);
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		border: 2px solid var(--color-accent-base);
 	}
 
 	.translucent {
@@ -268,40 +265,40 @@
 	.progress-bar {
 		position: absolute;
 		top: 0;
+		right: 0;
 		bottom: 0;
 		left: 0;
-		right: 0;
 		transform-origin: left;
-		z-index: var(--layer-1);
 		opacity: 0.8;
-		background: var(--color-background-secondary);
-		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
+		z-index: var(--layer-1);
 		transition: 0.5s;
+		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
+		background: var(--color-background-secondary);
 	}
 
 	.meta-text {
 		position: absolute;
 		top: 0;
 		right: 0;
-		padding: var(--size-1) var(--size-2);
-		font-family: var(--font-mono);
 		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
 		font-size: var(--scale-000);
+		font-family: var(--font-mono);
 	}
 
 	.meta-text-center {
+		display: flex;
 		position: absolute;
 		top: 0;
 		right: 0;
-		padding: var(--size-1) var(--size-2);
-		font-family: var(--font-mono);
-		z-index: var(--layer-2);
-		font-size: var(--scale-000);
-		text-align: center;
-		display: flex;
 		justify-content: center;
 		align-items: center;
 		transform: translateY(var(--size-6));
+		z-index: var(--layer-2);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
+		text-align: center;
 	}
 
 	.timer {
@@ -309,93 +306,92 @@
 	}
 
 	.error {
-		color: var(--color-functional-error-base);
+		box-shadow: var(--shadow-drop);
+		border-radius: var(--radius-full);
 		background-color: var(--color-background-primary);
 		background: rgba(255, 0, 0, 0.2);
-		border-radius: var(--radius-full);
-		font-family: var(--font-sans);
+		padding-right: var(--size-4);
+		padding-left: var(--size-4);
+		color: var(--color-functional-error-base);
 		font-weight: var(--weight-semibold);
 		font-size: var(--scale-1);
 		line-height: var(--line-lg);
-		padding-left: var(--size-4);
-		padding-right: var(--size-4);
-		box-shadow: var(--shadow-drop);
+		font-family: var(--font-sans);
 	}
 
 	.toast {
 		position: fixed;
 		top: 0;
-		left: var(--size-4);
 		right: var(--size-4);
 		bottom: 0;
+		left: var(--size-4);
 		z-index: var(--layer-top);
 		padding: var(--size-4);
 	}
 
 	.toast-body {
-		position: absolute;
-		background: var(--color-background-secondary);
-		top: var(--size-8);
-		left: 0;
-		right: 0;
-		border: 1px solid var(--color-border-primary);
-		overflow: hidden;
-		border-radius: var(--radius-lg);
-		pointer-events: auto;
-		box-shadow: var(--shadow-drop-lg-xl);
-		padding: var(--size-4) var(--size-6);
 		display: flex;
+		position: absolute;
+		top: var(--size-8);
+		right: 0;
+		left: 0;
 		align-items: center;
-		max-width: 1200px;
 		margin: var(--size-6) var(--size-4);
-		max-width: 610px;
 		margin: auto;
+		box-shadow: var(--shadow-drop-lg-xl);
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+		background: var(--color-background-secondary);
+		padding: var(--size-4) var(--size-6);
+		max-width: 1200px;
+		max-width: 610px;
+		overflow: hidden;
+		pointer-events: auto;
 	}
 
 	.toast-title {
 		display: flex;
 		align-items: center;
 		padding: var(--size-1) var(--size-3);
-		font-size: var(--scale-0);
-		font-weight: var(--weight-bold);
-		line-height: var(--line-xs);
-
 		color: var(--color-functional-error-base);
 		color: var(--color-red-500);
+		font-weight: var(--weight-bold);
+		font-size: var(--scale-0);
+		line-height: var(--line-xs);
 	}
 
 	.toast-close {
-		height: var(--size-10);
-		width: var(--size-10);
-		font-size: var(--scale-5);
-		border-radius: var(--radius-full);
-		background: var(--color-red-600);
-		color: var(--color-text-body);
-		text-align: center;
 		display: flex;
+		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
+		border-radius: var(--radius-full);
+		background: var(--color-red-600);
 		padding: var(--size-2);
 		padding-left: calc(var(--size-2) - 1px);
+		width: var(--size-10);
+		height: var(--size-10);
+		color: var(--color-text-body);
 		font-weight: var(--weight-bold);
-		flex-shrink: 0;
+		font-size: var(--scale-5);
+		text-align: center;
 	}
 
 	.toast-text {
-		font-size: var(--scale-00);
 		padding: var(--size-1) var(--size-3);
+		font-size: var(--scale-00);
 		font-family: var(--font-mono);
 	}
 
 	.toast-details {
-		width: 100%;
 		padding-left: var(--size-3);
+		width: 100%;
 	}
 
 	@media (--screen-md) {
 		.toast-body {
-			left: auto;
 			right: var(--size-4);
+			left: auto;
 		}
 	}
 </style>

@@ -80,15 +80,14 @@
 	}
 
 	button {
-		color: var(--color-text-subdued);
-		padding: var(--size-1) var(--size-4);
-		border-top-right-radius: var(--radius-md);
-		border-top-left-radius: var(--radius-md);
+		margin-bottom: -2px;
 		border: 2px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
-
-		margin-bottom: -2px;
+		border-top-right-radius: var(--radius-md);
+		border-top-left-radius: var(--radius-md);
+		padding: var(--size-1) var(--size-4);
+		color: var(--color-text-subdued);
 	}
 
 	button:hover {

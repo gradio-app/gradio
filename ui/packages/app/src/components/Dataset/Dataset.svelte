@@ -83,11 +83,12 @@
 			height="1em"
 			preserveAspectRatio="xMidYMid meet"
 			viewBox="0 0 32 32"
-			><path
+		>
+			<path
 				fill="currentColor"
 				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
-			/></svg
-		>
+			/>
+		</svg>
 		{label}
 	</div>
 	{#if gallery}
@@ -177,11 +178,11 @@
 
 <style>
 	.wrap {
-		margin-top: var(--size-4);
 		display: inline-block;
+		margin-top: var(--size-4);
+		width: var(--size-full);
 		max-width: var(--size-full);
 		color: var(--color-text-body);
-		width: var(--size-full);
 	}
 
 	.hide {
@@ -190,11 +191,11 @@
 
 	.label {
 		display: flex;
+		align-items: center;
+		margin-bottom: var(--size-2);
+		color: var(--color-text-label);
 		font-size: var(--scale-000);
 		line-height: var(--line-sm);
-		margin-bottom: var(--size-2);
-		align-items: center;
-		color: var(--color-text-label);
 	}
 
 	svg {
@@ -203,8 +204,8 @@
 
 	.gallery {
 		display: flex;
-		gap: var(--size-2);
 		flex-wrap: wrap;
+		gap: var(--size-2);
 	}
 
 	.button {
@@ -212,11 +213,11 @@
 	}
 
 	.table-wrap {
-		overflow-x: auto;
-		table-layout: auto;
 		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		width: var(--size-full);
+		table-layout: auto;
+		overflow-x: auto;
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
 	}
@@ -225,8 +226,8 @@
 	}
 
 	.tr-head {
-		border-bottom: 1px solid var(--color-border-primary);
 		box-shadow: var(--shadow-drop-lg);
+		border-bottom: 1px solid var(--color-border-primary);
 	}
 
 	.tr-head > * + * {
@@ -274,9 +275,9 @@
 
 	.paginate {
 		display: flex;
-		gap: var(--size-2);
-		align-items: center;
 		justify-content: center;
+		align-items: center;
+		gap: var(--size-2);
 		font-size: var(--scale-000);
 	}
 

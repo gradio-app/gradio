@@ -16,9 +16,9 @@
 <style>
 	img {
 		flex: none;
+		border: 2px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		max-width: none;
-		border: 2px solid var(--color-border-primary);
 	}
 
 	img:hover,
@@ -27,13 +27,13 @@
 	}
 
 	.table {
-		object-fit: cover;
-		height: var(--size-20);
 		width: var(--size-20);
+		height: var(--size-20);
+		object-fit: cover;
 	}
 
 	.gallery {
-		object-fit: cover;
 		max-height: var(--size-20);
+		object-fit: cover;
 	}
 </style>

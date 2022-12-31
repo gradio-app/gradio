@@ -37,8 +37,9 @@
 				checked={value.includes(choice)}
 				type="checkbox"
 				name="test"
-			/> <span class="ml-2">{choice}</span></label
-		>
+			/>
+			<span class="ml-2">{choice}</span>
+		</label>
 	{/each}
 </div>
 
@@ -51,15 +52,15 @@
 	label {
 		display: flex;
 		align-items: center;
+		cursor: pointer;
+		box-shadow: var(--checkbox-label-shadow);
+		border: 1px solid var(--checkbox-label-border-color-base);
+		border-radius: var(--checkbox-label-border-radius);
+		background: var(--checkbox-label-background-base);
+		padding: var(--size-1-5) var(--size-3);
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		line-height: var(--line-md);
-		cursor: pointer;
-		border-radius: var(--checkbox-label-border-radius);
-		box-shadow: var(--checkbox-label-shadow);
-		padding: var(--size-1-5) var(--size-3);
-		border: 1px solid var(--checkbox-label-border-color-base);
-		background: var(--checkbox-label-background-base);
 	}
 
 	label:hover {
@@ -77,22 +78,22 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		border: 1px solid var(--checkbox-border-color-base);
+		border-radius: var(--checkbox-border-radius);
+		background-color: var(--checkbox-background-base);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
-		border: 1px solid var(--checkbox-border-color-base);
-		background-color: var(--checkbox-background-base);
-		border-radius: var(--checkbox-border-radius);
 	}
 
 	input:focus {
 		--ring-color: var(--color-focus-ring);
-		background-color: var(--checkbox-background-color-focus);
 		border-color: var(--checkbox-border-color-focus);
+		background-color: var(--checkbox-background-color-focus);
 	}
 
 	input:checked {
-		background-color: var(--checkbox-background-selected);
 		border-color: var(--checkbox-border-color-selected);
+		background-color: var(--checkbox-background-selected);
 	}
 
 	input[disabled],

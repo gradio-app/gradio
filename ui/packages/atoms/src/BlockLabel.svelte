@@ -22,23 +22,23 @@
 <style>
 	div {
 		display: flex;
-		align-items: center;
-		pointer-events: none;
 		position: absolute;
-		left: 0;
 		top: 0;
-		padding: var(--size-1) var(--size-2);
-		border-radius: 0px 0px var(--block_label-border-radius) 0px;
-		box-shadow: var(--block_label-shadow);
-		font-size: var(--scale-000);
-		line-height: var(--line-sm);
-		color: var(--color-text-label);
+		left: 0;
+		align-items: center;
 		z-index: var(--layer-2);
+		box-shadow: var(--block_label-shadow);
 		border: var(--block_label-border-width) solid
 			var(--block_label-border-color);
-		border-left: none;
 		border-top: none;
+		border-left: none;
+		border-radius: 0px 0px var(--block_label-border-radius) 0px;
 		background: var(--block_label-background);
+		padding: var(--size-1) var(--size-2);
+		pointer-events: none;
+		color: var(--color-text-label);
+		font-size: var(--scale-000);
+		line-height: var(--line-sm);
 	}
 
 	.hide {
@@ -46,9 +46,9 @@
 	}
 
 	span {
-		margin-right: var(--size-2);
-		height: var(--size-3);
-		width: var(--size-3);
 		opacity: 0.8;
+		margin-right: var(--size-2);
+		width: var(--size-3);
+		height: var(--size-3);
 	}
 </style>

@@ -78,14 +78,14 @@
 
 <style>
 	.gallery {
-		overflow: hidden;
 		align-items: center;
-		border: 1px solid var(--color-border-primary);
-		border-collapse: collapse;
 		cursor: pointer;
-		padding: var(--size-2);
+		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
+		border-collapse: collapse;
 		background: transparent;
+		padding: var(--size-2);
+		overflow: hidden;
 		font-size: var(--scale-000);
 		line-height: var(--line-sm);
 		text-align: left;
@@ -97,9 +97,9 @@
 
 	td {
 		border: 1px solid var(--dataset-dataframe-border-base);
-		font-family: var(--font-mono);
-		font-size: var(--scale-000);
 		padding: var(--size-2);
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
 	}
 
 	.selected td {
@@ -125,10 +125,10 @@
 	.overlay {
 		--gradient-to: transparent;
 		position: absolute;
-		width: var(--size-full);
-		height: 50%;
 		bottom: 0;
 		background: linear-gradient(to bottom, transparent, var(--gradient-to));
+		width: var(--size-full);
+		height: 50%;
 	}
 
 	/* i dont know what i've done here but it is what it is */

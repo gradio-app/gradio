@@ -14,17 +14,16 @@
 
 <style>
 	.empty {
-		height: var(--size-full);
-
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		height: var(--size-full);
 	}
 
 	.icon {
+		opacity: 0.5;
 		height: var(--size-5);
 		color: var(--color-text-body);
-		opacity: 0.5;
 	}
 
 	.small {

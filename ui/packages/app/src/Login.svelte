@@ -66,7 +66,9 @@
 
 		<button
 			class="gr-button gr-button-lg gr-button-primary w-full mt-4"
-			on:click={submit}>Login</button
+			on:click={submit}
 		>
+			Login
+		</button>
 	</div>
 </div>

@@ -55,31 +55,31 @@
 
 <style>
 	h1 {
-		font-size: 2rem;
 		margin-bottom: 0.5rem;
+		font-size: 2rem;
 	}
 
 	h2 {
-		font-weight: bold;
-		margin-bottom: 0.5rem;
 		margin-top: 1rem;
+		margin-bottom: 0.5rem;
+		font-weight: bold;
 	}
 	.col {
-		height: 40px;
-		width: 80px;
-		border-radius: 5px;
-		margin-right: 40px;
-		padding-left: 7px;
-		padding-bottom: 3px;
 		display: flex;
 		justify-content: flex-start;
 		align-items: end;
+		margin-right: 40px;
+		border-radius: 5px;
+		padding-bottom: 3px;
+		padding-left: 7px;
+		width: 80px;
+		height: 40px;
 	}
 
 	h3 {
-		text-align: left;
-		font-size: 12px;
 		margin-left: 2px;
+		font-size: 12px;
+		text-align: left;
 	}
 
 	.type {

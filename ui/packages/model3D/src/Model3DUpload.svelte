@@ -118,12 +118,12 @@
 
 <style>
 	.input-model {
-		position: relative;
-		width: var(--size-full);
-		height: var(--size-64);
 		display: flex;
+		position: relative;
 		justify-content: center;
 		align-items: center;
+		width: var(--size-full);
+		height: var(--size-64);
 	}
 
 	canvas {

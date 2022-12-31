@@ -1,4 +1,5 @@
 .output-markdown .math.inline {
+	/* TODO: */
 	@apply inline-block dark:invert align-middle pb-1.5 px-1;
 }
 .output-markdown .math.inline svg {

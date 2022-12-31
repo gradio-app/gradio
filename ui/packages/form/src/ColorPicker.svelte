@@ -28,9 +28,9 @@
 
 <style>
 	input {
-		font-size: var(--scale-00);
-		line-height: var(--line-sm);
 		position: relative;
 		background: var(--color-background-tertiary);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
 	}
 </style>

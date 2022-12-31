@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import clear from "/static/img/clear.svg";
+	import Clear from "./img/clear.svelte";
 
 	const dispatch = createEventDispatcher();
 
@@ -19,17 +19,23 @@
 		To expose an API endpoint of your app in this page, set the <code>
 			api_name
 		</code>
-		parameter of the event listener.<br /> For more information, visit the
-		<a href="https://gradio.app/sharing_your_app/#api-page" target="_blank"
-			>API Page guide</a
-		>. To hide the API documentation button and this page, set
-		<code> show_api=False </code>
+		parameter of the event listener.
+		<br />
+		For more information, visit the
+		<a href="https://gradio.app/sharing_your_app/#api-page" target="_blank">
+			API Page guide
+		</a>
+		. To hide the API documentation button and this page, set
+		<code>show_api=False</code>
 		in the
-		<code> Blocks.launch()</code> method.
+		<code>Blocks.launch()</code>
+		method.
 	</p>
 </div>
 
-<button on:click={() => dispatch("close")}> x </button>
+<button on:click={() => dispatch("close")}>
+	<Clear />
+</button>
 
 <style>
 	.wrap {
@@ -37,24 +43,27 @@
 	}
 
 	.attention {
-		font-size: var(--scale-3);
 		font-weight: var(--weight-bold);
+		font-size: var(--scale-3);
 	}
 
 	.attention code {
+		border: none;
+		background: none;
 		color: var(--color-accent-base);
 		font-weight: var(--weight-bold);
-		background: none;
-		border: none;
 	}
 
 	button {
 		position: absolute;
-		right: var(--size-6);
 		top: var(--size-5);
+		right: var(--size-6);
+		width: var(--size-4);
 		color: var(--color-text-body);
-		font-weight: var(--weight-bold);
-		font-size: var(--scale-3);
+	}
+
+	button:hover {
+		color: var(--color-accent-base);
 	}
 
 	@media (--screen-md) {

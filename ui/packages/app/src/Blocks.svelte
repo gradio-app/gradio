@@ -400,8 +400,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 
@@ -471,16 +470,16 @@
 
 <style>
 	.wrap {
-		width: var(--size-full);
 		display: flex;
 		flex-direction: column;
+		width: var(--size-full);
 	}
 
 	.contain {
-		margin-left: auto;
 		margin-right: auto;
-		padding: var(--size-6) var(--size-4);
+		margin-left: auto;
 		background: var(--color-background-primary);
+		padding: var(--size-6) var(--size-4);
 		width: 100%;
 	}
 
@@ -511,10 +510,10 @@
 	}
 
 	footer {
-		color: var(--color-text-subdued);
 		display: flex;
 		justify-content: center;
 		padding-bottom: var(--size-6);
+		color: var(--color-text-subdued);
 		font-size: var(--scale-00);
 	}
 
@@ -531,9 +530,9 @@
 	}
 
 	.show-api img {
-		width: var(--size-3);
-		margin-left: var(--size-2);
 		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
 	}
 
 	.built-with {
@@ -546,19 +545,19 @@
 	}
 
 	.built-with img {
-		width: var(--size-3);
-		margin-left: var(--size-2);
 		margin-right: var(--size-1);
+		margin-left: var(--size-2);
+		width: var(--size-3);
 	}
 
 	.api-docs {
-		height: var(--size-screen-h);
-		width: var(--size-screen);
+		display: flex;
 		position: fixed;
+		top: 0;
 		z-index: var(--layer-5);
 		background: rgba(0, 0, 0, 0.5);
-		display: flex;
-		top: 0;
+		width: var(--size-screen);
+		height: var(--size-screen-h);
 	}
 
 	.backdrop {
@@ -567,17 +566,17 @@
 	}
 
 	.api-docs-wrap {
+		box-shadow: var(--shadow-drop-lg);
 		background: var(--color-background-primary);
 		overflow-x: hidden;
 		overflow-y: auto;
-		box-shadow: var(--shadow-drop-lg);
 	}
 
 	@media (--screen-md) {
 		.api-docs-wrap {
-			width: 950px;
 			border-top-left-radius: var(--radius-lg);
 			border-bottom-left-radius: var(--radius-lg);
+			width: 950px;
 		}
 	}
 

@@ -49,10 +49,10 @@
 
 <style>
 	audio {
+		margin-top: var(--size-7);
+		padding: var(--size-2);
 		width: var(--size-full);
 		height: var(--size-14);
-		padding: var(--size-2);
-		margin-top: var(--size-7);
 	}
 
 	.placeholder-wrap {
@@ -64,7 +64,7 @@
 	}
 
 	.icon {
-		height: var(--size-5);
 		opacity: 0.5;
+		height: var(--size-5);
 	}
 </style>

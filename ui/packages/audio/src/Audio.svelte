@@ -307,8 +307,8 @@
 
 <style>
 	.mic-wrap {
-		padding: var(--size-2);
 		margin-top: var(--size-6);
+		padding: var(--size-2);
 	}
 
 	.stop-button {
@@ -317,45 +317,45 @@
 	}
 
 	button {
-		border: 1px solid var(--color-border-primary);
 		display: inline-flex;
-		align-items: center;
 		justify-content: center;
+		align-items: center;
 		box-shadow: var(--shadow-drop);
-		background: var(--color-background-tertiary);
+		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-sm);
+		background: var(--color-background-tertiary);
 		padding: var(--size-0-5) var(--size-2);
-		line-height: var(--line-md);
 		font-size: var(--scale-00);
+		line-height: var(--line-md);
 		white-space: nowrap;
 	}
 
 	.record-icon {
 		display: flex;
 		position: relative;
-		height: 6px;
-		width: 6px;
 		margin-right: var(--size-2);
+		width: 6px;
+		height: 6px;
 	}
 
 	.dot {
-		position: relative;
 		display: inline-flex;
+		position: relative;
 		border-radius: var(--radius-full);
-		height: 6px;
-		width: 6px;
 		background: var(--color-red-500);
+		width: 6px;
+		height: 6px;
 	}
 
 	.pinger {
-		position: absolute;
 		display: inline-flex;
-		height: var(--size-full);
-		width: var(--size-full);
-		border-radius: var(--radius-full);
-		background: var(--color-red-500);
+		position: absolute;
 		opacity: 0.9;
 		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		width: var(--size-full);
+		height: var(--size-full);
 	}
 
 	@keyframes ping {
@@ -376,8 +376,8 @@
 	}
 
 	audio {
+		padding: var(--size-2);
 		width: var(--size-full);
 		height: var(--size-14);
-		padding: var(--size-2);
 	}
 </style>

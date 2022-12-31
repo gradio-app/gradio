@@ -19,12 +19,12 @@
 
 <style>
 	div {
-		z-index: var(--layer-5);
+		display: flex;
+		position: absolute;
 		top: var(--size-2);
 		right: var(--size-2);
-		display: flex;
 		justify-content: flex-end;
 		gap: var(--size-1);
-		position: absolute;
+		z-index: var(--layer-5);
 	}
 </style>

@@ -32,8 +32,10 @@
 								class="font-mono text-md hover:text-orange-500 {is_current
 									? 'text-orange-500'
 									: ''} "
-								href="/{route}">{name}</a
+								href="/{route}"
 							>
+								{name}
+							</a>
 						</li>
 					{/each}
 				</ul>
