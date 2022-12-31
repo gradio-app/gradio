@@ -75,7 +75,6 @@
 	}
 
 	.tab-nav {
-		/* flex border-b-2 flex-wrap dark:border-gray-700 */
 		display: flex;
 		border-bottom: 2px solid var(--color-border-primary);
 	}

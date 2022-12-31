@@ -18,7 +18,7 @@
 	import type { fn as api_fn } from "./api";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
-	import ApiDocs from "./ApiDocs.svelte";
+	import { ApiDocs } from "./api_docs/";
 
 	import logo from "./images/logo.svg";
 	import api_logo from "/static/img/api-logo.svg";
@@ -400,15 +400,13 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
-<div class="w-full flex flex-col" class:min-h-screen={app_mode}>
-	<div
-		class="mx-auto container px-4 py-6 dark:bg-gray-950"
-		class:flex-grow={app_mode}
-	>
+<div class="wrap" style:min-height={app_mode ? "var(--size-screen)" : "auto"}>
+	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
 				has_modes={rootNode.has_modes}
@@ -426,43 +424,39 @@
 			/>
 		{/if}
 	</div>
-	<footer
-		class="flex justify-center pb-6 text-gray-400 space-x-2 text-sm md:text-base"
-	>
+	<footer>
 		{#if show_api}
 			<button
 				on:click={() => {
 					set_api_docs_visible(!api_docs_visible);
 				}}
-				class="flex items-center hover:text-gray-500"
+				class="show-api"
 			>
-				Use via API <img src={api_logo} alt="" class="w-2.5 md:w-3 mx-1" />
+				Use via API <img src={api_logo} alt="" />
 			</button>
 			<div>·</div>
 		{/if}
 		<a
 			href="https://gradio.app"
-			class="flex items-center hover:text-gray-500"
+			class="built-with"
 			target="_blank"
 			rel="noreferrer"
 		>
 			Built with Gradio
-			<img class="w-2.5 md:w-3 mx-1" src={logo} alt="logo" />
+			<img src={logo} alt="logo" />
 		</a>
 	</footer>
 </div>
 
 {#if api_docs_visible && ready}
-	<div class="h-screen w-screen fixed z-50 bg-black/50 flex top-0">
+	<div class="api-docs">
 		<div
-			class="flex-1 backdrop-blur-sm"
+			class="backdrop"
 			on:click={() => {
 				set_api_docs_visible(false);
 			}}
 		/>
-		<div
-			class="md:w-[950px] 2xl:w-[1150px] bg-white md:rounded-l-xl shadow-2xl overflow-hidden overflow-y-auto"
-		>
+		<div class="api-docs-wrap ">
 			<ApiDocs
 				on:close={() => {
 					set_api_docs_visible(false);
@@ -474,3 +468,122 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.wrap {
+		width: var(--size-full);
+		display: flex;
+		flex-direction: column;
+	}
+
+	.contain {
+		margin-left: auto;
+		margin-right: auto;
+		padding: var(--size-6) var(--size-4);
+		background: var(--color-background-primary);
+		width: 100%;
+	}
+
+	@media (--screen-sm) {
+		.contain {
+			max-width: 640px;
+		}
+	}
+	@media (--screen-md) {
+		.contain {
+			max-width: 768px;
+		}
+	}
+	@media (--screen-lg) {
+		.contain {
+			max-width: 1024px;
+		}
+	}
+	@media (--screen-xl) {
+		.contain {
+			max-width: 1280px;
+		}
+	}
+	@media (--screen-xxl) {
+		.contain {
+			max-width: 1536px;
+		}
+	}
+
+	footer {
+		color: var(--color-text-subdued);
+		display: flex;
+		justify-content: center;
+		padding-bottom: var(--size-6);
+		font-size: var(--scale-00);
+	}
+
+	footer > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.show-api {
+		display: flex;
+		align-items: center;
+	}
+	.show-api:hover {
+		color: var(--color-text-body);
+	}
+
+	.show-api img {
+		width: var(--size-3);
+		margin-left: var(--size-2);
+		margin-right: var(--size-1);
+	}
+
+	.built-with {
+		display: flex;
+		align-items: center;
+	}
+
+	.built-with:hover {
+		color: var(--color-text-body);
+	}
+
+	.built-with img {
+		width: var(--size-3);
+		margin-left: var(--size-2);
+		margin-right: var(--size-1);
+	}
+
+	.api-docs {
+		height: var(--size-screen-h);
+		width: var(--size-screen);
+		position: fixed;
+		z-index: var(--layer-5);
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		top: 0;
+	}
+
+	.backdrop {
+		flex: 1 1 0%;
+		backdrop-filter: blur(4px);
+	}
+
+	.api-docs-wrap {
+		background: var(--color-background-primary);
+		overflow-x: hidden;
+		overflow-y: auto;
+		box-shadow: var(--shadow-drop-lg);
+	}
+
+	@media (--screen-md) {
+		.api-docs-wrap {
+			width: 950px;
+			border-top-left-radius: var(--radius-lg);
+			border-bottom-left-radius: var(--radius-lg);
+		}
+	}
+
+	@media (--screen-xxl) {
+		.api-docs-wrap {
+			width: 1150px;
+		}
+	}
+</style>

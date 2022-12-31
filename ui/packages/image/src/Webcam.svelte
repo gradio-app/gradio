@@ -160,8 +160,18 @@
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg);
 		background-color: rgba(0, 0, 0, 0.9);
-		/* TODO: */
-		/*  md:bottom-4 xl:bottom-8 */
+	}
+
+	@media (--screen-md) {
+		button {
+			bottom: var(--size-4);
+		}
+	}
+
+	@media (--screen-xl) {
+		button {
+			bottom: var(--size-8);
+		}
 	}
 
 	.icon {

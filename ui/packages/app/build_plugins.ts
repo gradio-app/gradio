@@ -108,24 +108,10 @@ make_script("${script}");
 export function handle_ce_css(): Plugin {
 	return {
 		enforce: "post",
-		name: "custome-element-css",
+		name: "custom-element-css",
 
 		transform(code, id) {
-			console.log(id);
-			if (id.trim().startsWith("vite")) {
-				console.log(id.startsWith("vite"));
-				console.log("===");
-				console.log("===");
-				console.log("HELLO");
-				console.log("===");
-				console.log("===");
-			}
 			if (id === "vite/preload-helper") {
-				console.log("===");
-				console.log("===");
-				console.log("HELLO");
-				console.log("===");
-				console.log("===");
 				return {
 					code: code.replace(
 						"document.head.appendChild(link);",

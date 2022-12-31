@@ -63,6 +63,7 @@
 		box-shadow: var(--shadow-drop);
 		background: var(--block-background);
 		border-width: 1px;
+		margin: 0;
 	}
 
 	.padded {

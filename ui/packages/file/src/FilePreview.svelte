@@ -64,6 +64,16 @@
 		text-decoration: underline;
 	}
 	.download > a {
-		color: var(--color-text-link);
+		color: var(--color-text-link-base);
+	}
+
+	.download > a:hover {
+		color: var(--color-text-link-hover);
+	}
+	.download > a:visited {
+		color: var(--color-text-link-visited);
+	}
+	.download > a:active {
+		color: var(--color-text-link-active);
 	}
 </style>

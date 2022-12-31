@@ -24,7 +24,6 @@
 
 <style>
 	div {
-		/* overflow-hidden flex flex-col relative col  */
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;

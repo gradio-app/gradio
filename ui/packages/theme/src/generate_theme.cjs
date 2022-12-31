@@ -21,7 +21,17 @@ const foundation_light = {
 			label: "var(--color-grey)",
 			placeholder: "var(--color-grey-400)",
 			subdued: "var(--color-grey-400)",
-			link: "var(--color-blue-600)"
+			// link: "var(--color-blue-600)",
+			link: {
+				base: "var(--color-blue-600)",
+				hover: "var(--color-blue-700)",
+				visited: "var(--color-blue-500)",
+				active: "var(--color-blue-600)"
+			},
+			code: {
+				background: "var(--color-grey-200)",
+				border: "color.border-primary"
+			}
 		},
 		border: {
 			primary: "var(--color-grey-200)",
@@ -63,7 +73,16 @@ const foundation_dark = {
 			label: "var(--color-grey-200)",
 			placeholder: "var(--color-grey)",
 			subdued: "var(--color-grey-400)", // i dont know what this is for? upload text?
-			link: "var(--color-blue-300)"
+			link: {
+				base: "var(--color-blue-600)",
+				hover: "var(--color-blue-700)",
+				visited: "var(--color-blue-500)",
+				active: "var(--color-blue-600)"
+			},
+			code: {
+				background: "var(--color-grey-800)",
+				border: "color.border-primary"
+			}
 		},
 		border: {
 			primary: "var(--color-grey-700)",
@@ -693,8 +712,6 @@ const theme_dark = {
 	}
 };
 
-// console.log(theme);
-
 const RE_PATH = /^(([a-z]+|[0-9])+\.)+([a-z]+|[0-9]+)$/;
 
 function get_path(object, paths = [], current_node = object) {
@@ -712,12 +729,9 @@ function get_path(object, paths = [], current_node = object) {
 				: object[key];
 		}
 	}
-	// }
 
 	return _paths;
 }
-
-// console.log(get_path({ ...foundation_dark, ...theme }));
 
 function generate_theme() {
 	const light_props = get_path({ ...foundation_light, ...theme_light });
