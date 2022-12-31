@@ -40,12 +40,11 @@ import aiohttp
 import fsspec.asyn
 import httpx
 import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
+from gradio.strings import en
 from gradio.context import Context
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -195,7 +194,7 @@ def readme_to_html(article: str) -> str:
 
 def show_tip(interface: gradio.Blocks) -> None:
     if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(gradio.strings.en["TIPS"])
+        tip: str = random.choice(en["TIPS"])
         print(f"Tip: {tip}")
 
 
@@ -210,7 +209,7 @@ def launch_counter() -> None:
                 launches = json.load(j)
             launches["launches"] += 1
             if launches["launches"] in [25, 50, 150, 500, 1000]:
-                print(gradio.strings.en["BETA_INVITE"])
+                print(en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
     except:
