@@ -3800,7 +3800,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent, FileSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.temp_dir = tempfile.mkdtemp()
-        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        self.clear_color = clear_color or [0, 0, 0, 0]
         IOComponent.__init__(
             self,
             label=label,

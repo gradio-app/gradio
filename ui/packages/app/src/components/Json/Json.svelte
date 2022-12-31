@@ -37,11 +37,5 @@
 
 	<StatusTracker {...loading_status} />
 
-	{#if value && value !== '""'}
-		<JSON {value} copy_to_clipboard={$_("interface.copy_to_clipboard")} />
-	{:else}
-		<div class="h-full min-h-[6rem] flex justify-center items-center">
-			<div class="h-7 dark:text-white opacity-50"><JSONIcon /></div>
-		</div>
-	{/if}
+	<JSON {value} copy_to_clipboard={$_("interface.copy_to_clipboard")} />
 </Block>

@@ -34,9 +34,9 @@ const foundation_light = {
 			dark: "var(--color-orange-700)"
 		},
 		functional: {
-			error: "var(--color-red)", //red
-			info: "var(--color-yellow-300)", //yellow
-			success: "var(--color-green)" //green
+			error: { base: "var(--color-red)", subdued: "var(--color-red-300)" }, //red
+			info: { base: "var(--color-yellow)", subdued: "var(--color-yellow-300)" }, //yellow
+			success: { base: "var(--color-green)", subdued: "var(--color-green-300)" }
 		}
 	},
 	shadow: {
@@ -77,9 +77,9 @@ const foundation_dark = {
 		},
 
 		functional: {
-			error: "var(--color-red)", //red
-			info: "var(--color-yellow-300)", //yellow
-			success: "var(--color-green)" //green
+			error: { base: "var(--color-red-400)", subdued: "var(--color-red-300)" }, //red
+			info: { base: "var(--color-yellow)", subdued: "var(--color-yellow-300)" }, //yellow
+			success: { base: "var(--color-green)", subdued: "var(--color-green-300)" }
 		}
 	}
 };
@@ -384,7 +384,7 @@ const theme_light = {
 	},
 	table: {
 		even: {
-			background: "transparent"
+			background: "white"
 		},
 
 		odd: {
@@ -392,6 +392,30 @@ const theme_light = {
 		},
 		background: {
 			edit: "var(--color-orange-50)"
+		}
+	},
+	dataset: {
+		gallery: {
+			background: {
+				base: "white",
+				hover: "var(--color-grey-50)"
+			}
+		},
+		dataframe: {
+			border: {
+				base: "var(--color-grey-300)",
+				hover: "var(--color-grey-300)"
+			}
+		},
+		table: {
+			background: {
+				base: "transparent",
+				hover: "var(--color-orange-50)"
+			},
+			border: {
+				base: "var(--color-border-primary)",
+				hover: "var(--color-orange-100)"
+			}
 		}
 	}
 };
@@ -635,8 +659,36 @@ const theme_dark = {
 		odd: {
 			background: "var(--color-grey-900)"
 		},
+		even: {
+			background: "var(--color-grey-950)"
+		},
 		background: {
 			edit: "transparent"
+		}
+	},
+	dataset: {
+		gallery: {
+			background: {
+				base: "transparent",
+
+				hover: "var(--color-grey-800)"
+			}
+		},
+		dataframe: {
+			border: {
+				base: "var(--color-border-primary)",
+				hover: "var(--color-border-secondary)"
+			}
+		},
+		table: {
+			background: {
+				base: "transparent",
+				hover: "var(--color-grey-700)"
+			},
+			border: {
+				base: "var(--color-grey-800)",
+				hover: "var(--color-grey-800)"
+			}
 		}
 	}
 };

@@ -1,8 +1,19 @@
 <script lang="ts">
 	export let value: string;
+	export let type: "gallery" | "table";
+	export let selected: boolean = false;
 </script>
 
 <div
-	class="w-10 h-10 border dark:border-slate-300"
 	style="background-color: {value}"
+	class:table={type === "table"}
+	class:gallery={type === "gallery"}
+	class:selected
 />
+
+<style>
+	div {
+		width: var(--size-10);
+		height: var(--size-10);
+	}
+</style>

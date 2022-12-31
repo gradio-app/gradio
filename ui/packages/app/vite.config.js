@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 
+import custom_media from "postcss-custom-media";
+
 import {
 	inject_ejs,
 	patch_dynamic_import,
@@ -63,7 +65,23 @@ export default defineConfig(({ mode }) => {
 		},
 		css: {
 			postcss: {
-				plugins: [nested, tailwind]
+				plugins: [
+					nested,
+					tailwind,
+					custom_media({
+						importFrom: [
+							{
+								customMedia: {
+									"--screen-sm": "(min-width: 640px)",
+									"--screen-md": "(min-width: 768px)",
+									"--screen-lg": "(min-width: 1024px)",
+									"--screen-xl": "(min-width: 1280px)",
+									"--screen-xxl": "(min-width: 1536px)"
+								}
+							}
+						]
+					})
+				]
 			}
 		},
 		plugins: [
@@ -76,7 +94,7 @@ export default defineConfig(({ mode }) => {
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [tailwind, nested] }
+					postcss: { plugins: [tailwind, nested, custom_media()] }
 				})
 			}),
 			inject_ejs(),

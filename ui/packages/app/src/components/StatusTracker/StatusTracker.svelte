@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
+	import { Clear } from "@gradio/icons";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -49,7 +50,7 @@
 	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
 
-	export let eta: number | null = null;
+	export let eta: number | null = 99;
 	export let queue: boolean = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
@@ -78,7 +79,6 @@
 		timer_diff = 0;
 		_timer = true;
 		run();
-		// timer = setInterval(, 100);
 	};
 
 	function run() {
@@ -141,23 +141,21 @@
 </script>
 
 <div
-	class="wrap"
-	class:inset-0={variant === "default"}
-	class:inset-x-0={variant === "center"}
-	class:top-0={variant === "center"}
-	class:opacity-0={!status || status === "complete"}
-	class:cover-bg={variant === "default" &&
+	class="wrap {variant}"
+	class:hide={!status || status === "complete" || !visible}
+	class:translucent={variant === "center" &&
 		(status === "pending" || status === "error")}
 	class:generating={status === "generating"}
-	class:!hidden={!visible}
 	bind:this={el}
 >
 	{#if status === "pending"}
 		{#if variant === "default"}
-			<div class="progress-bar" style:transform="scaleX({progress || 0})" />
+			<div
+				class="progress-bar"
+				style:transform="translateX({(progress || 0) * 100}%)"
+			/>
 		{/if}
 		<div
-			class="dark:text-gray-400"
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
 		>
@@ -180,26 +178,37 @@
 	{:else if status === "error"}
 		<span class="error">Error</span>
 		{#if message_visible}
-			<div class="fixed inset-0 z-[100]">
+			<div class="toast">
 				<div
-					class="absolute left-0 md:left-auto border-black right-0 top-0 h-96 md:w-1/2 bg-gradient-to-b md:bg-gradient-to-bl from-red-500/5 via-transparent to-transparent"
-				/>
-				<div
-					class="absolute bg-white top-7 left-4 right-4 md:right-8 md:left-auto rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden shadow-2xl shadow-red-500/10 md:w-96 pointer-events-auto"
+					class="toast-body"
 					on:click|stopPropagation
 					in:fade={{ duration: 100 }}
 				>
-					<div
-						class="flex items-center bg-gradient-to-r from-red-500/10 to-red-200/10 px-3 py-1 text-lg font-bold text-red-500"
+					<button on:click={close_message} class="toast-close"
+						><svg
+							width="100%"
+							height="100%"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="feather feather-x"
+							><line x1="18" y1="6" x2="6" y2="18" /><line
+								x1="6"
+								y1="6"
+								x2="18"
+								y2="18"
+							/></svg
+						></button
 					>
-						Error
-						<button
-							on:click={close_message}
-							class="ml-auto text-gray-900 text-2xl pr-1">×</button
-						>
-					</div>
-					<div class="px-3 py-3 text-base font-mono">
-						{message}
+
+					<div class="toast-details">
+						<div class="toast-title">Something went wrong</div>
+						<div class="toast-text">
+							{message}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -209,42 +218,186 @@
 
 <style lang="postcss">
 	.wrap {
-		@apply absolute  z-50 flex flex-col justify-center items-center dark:bg-gray-800 pointer-events-none transition-opacity max-h-screen;
+		position: absolute;
+		z-index: var(--layer-5);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		pointer-events: none;
+		max-height: var(--size-screen);
+		background-color: var(--color-background-tertiary);
 	}
 
-	:global(.dark) .cover-bg {
-		@apply bg-gray-800;
+	.wrap.center {
+		left: 0px;
+		right: 0px;
+		top: 0;
 	}
 
-	.cover-bg {
-		@apply bg-white;
+	.wrap.default {
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+	}
+
+	.hide {
+		opacity: 0;
 	}
 
 	.generating {
-		@apply border-2 border-orange-500 animate-pulse;
+		border: 2px solid var(--color-accent-base);
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	.translucent {
+		background: none;
+	}
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
 	}
 
 	.progress-bar {
-		@apply absolute inset-0  origin-left bg-slate-100 dark:bg-gray-700 top-0 left-0 z-10 opacity-80;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		transform-origin: left;
+		z-index: var(--layer-1);
+		opacity: 0.8;
+		background: var(--color-background-secondary);
+		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
+		transition: 0.5s;
 	}
 
 	.meta-text {
-		@apply absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs;
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: var(--size-1) var(--size-2);
+		font-family: var(--font-mono);
+		z-index: var(--layer-2);
+		font-size: var(--scale-000);
 	}
 
 	.meta-text-center {
-		@apply absolute inset-0 font-mono z-20 text-xs text-center flex justify-center items-center translate-y-6;
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding: var(--size-1) var(--size-2);
+		font-family: var(--font-mono);
+		z-index: var(--layer-2);
+		font-size: var(--scale-000);
+		text-align: center;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		transform: translateY(var(--size-6));
 	}
 
 	.timer {
-		@apply -translate-y-16;
-	}
-
-	:global(.dark) .error {
-		@apply bg-red-500/10 text-red-600;
+		transform: translateY(var(--size-16));
 	}
 
 	.error {
-		@apply text-red-400 font-sans font-semibold text-lg bg-red-500/5 rounded-full px-4;
+		color: var(--color-functional-error-base);
+		background-color: var(--color-background-primary);
+		background: rgba(255, 0, 0, 0.2);
+		border-radius: var(--radius-full);
+		font-family: var(--font-sans);
+		font-weight: var(--weight-semibold);
+		font-size: var(--scale-1);
+		line-height: var(--line-lg);
+		padding-left: var(--size-4);
+		padding-right: var(--size-4);
+		box-shadow: var(--shadow-drop);
+	}
+
+	.toast {
+		/* fixed inset-0 z-[100] */
+		position: fixed;
+		top: 0;
+		left: var(--size-4);
+		right: var(--size-4);
+		bottom: 0;
+		z-index: var(--layer-top);
+		padding: var(--size-4);
+	}
+
+	.toast-body {
+		/*  md:right-8 md:left-auto   md:w-96 */
+		position: absolute;
+		background: var(--color-background-secondary);
+		top: var(--size-8);
+		left: 0;
+		right: 0;
+		border: 1px solid var(--color-border-primary);
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		pointer-events: auto;
+		box-shadow: var(--shadow-drop-lg-xl);
+		padding: var(--size-4) var(--size-6);
+		display: flex;
+		align-items: center;
+		max-width: 1200px;
+		margin: var(--size-6) var(--size-4);
+		max-width: 610px;
+		margin: auto;
+	}
+
+	.toast-title {
+		display: flex;
+		align-items: center;
+		padding: var(--size-1) var(--size-3);
+		font-size: var(--scale-0);
+		font-weight: var(--weight-bold);
+		line-height: var(--line-xs);
+
+		color: var(--color-functional-error-base);
+		color: var(--color-red-500);
+	}
+
+	.toast-close {
+		height: var(--size-10);
+		width: var(--size-10);
+		font-size: var(--scale-5);
+		border-radius: var(--radius-full);
+		background: var(--color-red-600);
+		color: var(--color-text-body);
+		text-align: center;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: var(--size-2);
+		padding-left: calc(var(--size-2) - 1px);
+		font-weight: var(--weight-bold);
+		flex-shrink: 0;
+	}
+
+	.toast-text {
+		font-size: var(--scale-00);
+		padding: var(--size-1) var(--size-3);
+		font-family: var(--font-mono);
+	}
+
+	.toast-details {
+		width: 100%;
+		padding-left: var(--size-3);
+	}
+
+	@media (--screen-md) {
+		.toast-body {
+			left: auto;
+			right: var(--size-4);
+		}
 	}
 </style>

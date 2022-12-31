@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { Styles } from "@gradio/utils";
-
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 </script>
@@ -11,18 +9,20 @@
 
 <style>
 	div > :global(*:not(.absolute)) {
-		@apply !rounded-none;
+		border-radius: 0px !important;
 	}
 
 	div > :global(*:first-child) {
-		@apply !rounded-tl-lg !rounded-tr-lg;
+		border-top-left-radius: var(--radius-lg) !important;
+		border-top-right-radius: var(--radius-lg) !important;
 	}
 
 	div > :global(*:last-child) {
-		@apply !rounded-bl-lg !rounded-br-lg;
+		border-top-left-radius: var(--radius-lg) !important;
+		border-top-right-radius: var(--radius-lg) !important;
 	}
 
 	div > :global(* + *:not(.absolute)) {
-		@apply !border-t-0;
+		border-top: none !important;
 	}
 </style>

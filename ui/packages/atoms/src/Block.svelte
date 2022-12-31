@@ -15,12 +15,9 @@
 	export let explicit_call: boolean = false;
 	export let visible = true;
 
-	const styles = {
-		dashed: "border-dashed border border-gray-300",
-		solid: "border-solid border",
-		grey: "border-gray-200",
-		green: "border-green-400",
-		none: "!border-0"
+	const color_style = {
+		grey: "var(--color-border-primary)",
+		green: "var(--color-functional-success)"
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
@@ -40,22 +37,22 @@
 		(typeof style.width === "number" ? `width: ${style.width}px;` : "");
 </script>
 
-<div>
-	<svelte:element
-		this={tag}
-		data-testid={test_id}
-		id={elem_id}
-		class:hidden={visible === false}
-		class="{styles[variant]} {styles[color]} {classes}"
-		class:padded={padding}
-		style={size_style || null}
-	>
-		<slot />
-	</svelte:element>
-</div>
+<svelte:element
+	this={tag}
+	data-testid={test_id}
+	id={elem_id}
+	class:hidden={visible === false}
+	class="block {classes}"
+	class:padded={padding}
+	style={size_style || null}
+	style:border-style={variant}
+	style:border-color={color_style[color]}
+>
+	<slot />
+</svelte:element>
 
 <style>
-	div > * {
+	.block {
 		position: relative;
 		overflow: hidden;
 		width: 100%;
@@ -65,6 +62,7 @@
 		border-radius: var(--block-border-radius);
 		box-shadow: var(--shadow-drop);
 		background: var(--block-background);
+		border-width: 1px;
 	}
 
 	.padded {

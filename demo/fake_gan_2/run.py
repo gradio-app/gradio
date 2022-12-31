@@ -12,7 +12,7 @@ def fake_gan(desc):
         raise gr.Error("NSFW - banned content.")
     if desc == "error":
         raise ValueError("error")
-    time.sleep(2)
+    time.sleep(9999)
     image = random.choice(
         [
             "files/cheetah1.jpg",

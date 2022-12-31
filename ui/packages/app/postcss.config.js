@@ -1,4 +1,8 @@
 module.exports = {
 	extract: "themes.css",
-	plugins: [require("tailwindcss/nesting"), require("tailwindcss")]
+	plugins: [
+		custom_media,
+		require("tailwindcss/nesting"),
+		require("tailwindcss")
+	]
 };

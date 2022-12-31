@@ -19,13 +19,10 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let show_label: boolean = true;
-	export let name: string;
+	export let name: string = "";
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
-	export let drop_text: string = "Drop an audio file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -274,11 +271,7 @@
 		</div>
 	{:else if source === "upload"}
 		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-			<div class="upload-text">
-				{drop_text}
-				<span class="delim">- {or_text} -</span>
-				{upload_text}
-			</div>
+			<slot />
 		</Upload>
 	{/if}
 {:else}

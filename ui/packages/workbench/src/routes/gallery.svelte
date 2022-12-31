@@ -15,6 +15,10 @@
 	<Block padding={false}>
 		<Gallery label="Image gallery" {value} />
 	</Block>
+
+	<Block padding={false}>
+		<Gallery label="Image gallery" value={null} />
+	</Block>
 </div>
 
 <style>

@@ -4,6 +4,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
+	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -118,7 +119,6 @@
 
 	function handle_load(v: string | FileData | (string | FileData)[] | null) {
 		value = { data: v as string };
-		// setValue({ data: v as string });
 		return v;
 	}
 
@@ -173,9 +173,7 @@
 				on:load={({ detail }) => handle_load(detail)}
 				include_file_metadata={false}
 			>
-				{$_("interface.drop_csv")}
-				<br />- {$_("or")} -<br />
-				{$_("interface.click_to_upload")}
+				<UploadText type="csv" />
 			</Upload>
 		</div>
 	{/if}

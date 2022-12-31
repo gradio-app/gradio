@@ -22,6 +22,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@gradio/accordion": "workspace:^0.0.1",
 		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/audio": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
