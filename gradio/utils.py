@@ -459,7 +459,7 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Optional[Type[BaseModel]] = None,
+        validation_model: Type[BaseModel] = None,
         validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
@@ -539,7 +539,7 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(self, response: ResponseJson) -> ResponseJson:
+    def _validate_response_data(self, response: ResponseJson) -> Union[BaseModel, Optional[ResponseJson]]:
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -556,12 +556,12 @@ class AsyncRequest:
             # If a validation model is provided, validate response using the validation model.
             if self._validation_model:
                 validated_response = self._validate_response_by_model(
-                    validated_response
+                    response
                 )
             # Then, If a validation function is provided, validate response using the validation function.
             if self._validation_function:
                 validated_response = self._validate_response_by_validation_function(
-                    validated_response
+                    response
                 )
         except Exception as exception:
             # If one of the validation methods does not confirm, raised exception will be silently handled.
@@ -570,7 +570,7 @@ class AsyncRequest:
 
         return validated_response
 
-    def _validate_response_by_model(self, response: ResponseJson) -> ResponseJson:
+    def _validate_response_by_model(self, response: ResponseJson) -> BaseModel:
         """
         Validate response json using the validation model.
         Args:
