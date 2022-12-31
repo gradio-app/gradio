@@ -66,9 +66,12 @@ T = TypeVar("T")
 
 def version_check():
     try:
+        version_data = pkgutil.get_data(__name__, "version.txt")
+        if not version_data:
+            raise FileNotFoundError
         current_pkg_version = (
-            pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
-        )
+                version_data.decode("ascii").strip()
+            )
         latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
             "version"
         ]
