@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { fade } from "svelte/transition";
+	import { JSON as JSONIcon } from "@gradio/icons";
+	import { Empty } from "@gradio/atoms";
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
@@ -24,23 +26,38 @@
 		}
 	}
 
+	function is_empty(obj: object) {
+		console.log("IS_EMPTY", obj);
+		return (
+			obj &&
+			Object.keys(obj).length === 0 &&
+			Object.getPrototypeOf(obj) === Object.prototype
+		);
+	}
+
 	onDestroy(() => {
 		if (timer) clearTimeout(timer);
 	});
 </script>
 
-<button on:click={handle_copy}>
-	<span class="copy-text">{copy_to_clipboard}</span>
-	{#if copied}
-		<span
-			in:fade={{ duration: 100 }}
-			out:fade={{ duration: 350 }}
-			class="copy-success ">COPIED</span
-		>
-	{/if}
-</button>
+{#if value && value !== '""' && !is_empty(value)}
+	<button on:click={handle_copy}>
+		<span class="copy-text">{copy_to_clipboard}</span>
+		{#if copied}
+			<span
+				in:fade={{ duration: 100 }}
+				out:fade={{ duration: 350 }}
+				class="copy-success ">COPIED</span
+			>
+		{/if}
+	</button>
 
-<JSONNode {value} depth={0} />
+	<JSONNode {value} depth={0} />
+{:else}
+	<Empty>
+		<JSONIcon />
+	</Empty>
+{/if}
 
 <style>
 	button {

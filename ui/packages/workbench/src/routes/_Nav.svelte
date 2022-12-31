@@ -10,10 +10,11 @@
 		["Content", ["Markdown", "HTML", "JSON"]],
 		["Data Science", ["Chart", "ScatterPlot", "Table"]],
 		["Design", ["Atoms", "Theme"]],
-		["Layout", ["Tabs"]],
+		["Layout", ["Tabs", "Accordion"]],
 		["Misc", ["Chatbot", "HighlightedText", "Label", "Dataset"]]
 	].map((section) => [
 		section[0],
+		// @ts-ignore
 		section[1].map((comp) => [comp, comp.toLowerCase()])
 	]) as Array<[string, [string, string]]>;
 </script>

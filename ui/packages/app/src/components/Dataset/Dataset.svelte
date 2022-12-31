@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { hover } from "@testing-library/user-event/dist/hover";
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
@@ -24,6 +25,15 @@
 	let selected_samples: Array<Array<any>>;
 	let page_count: number;
 	let visible_pages: Array<number> = [];
+
+	let current_hover = -1;
+
+	function handle_mouseenter(i: number) {
+		current_hover = i;
+	}
+	function handle_mouseleave() {
+		current_hover = -1;
+	}
 
 	$: {
 		if (paginate) {
@@ -61,12 +71,8 @@
 	);
 </script>
 
-<div
-	id={elem_id}
-	class="mt-4 inline-block max-w-full text-gray-700 w-full"
-	class:!hidden={!visible}
->
-	<div class="text-xs mb-2 flex items-center text-gray-500">
+<div id={elem_id} class="wrap" class:hide={!visible}>
+	<div class="label">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -85,12 +91,10 @@
 		{label}
 	</div>
 	{#if gallery}
-		<div class="gr-samples-gallery">
+		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				<!-- {@const x = component_map[]} -->
-
 				<button
-					class="group rounded-lg"
+					class="button"
 					on:click={() => {
 						value = i + page * samples_per_page;
 						dispatch("click", value);
@@ -101,20 +105,21 @@
 							this={component_meta[0][0].component}
 							value={sample_row[0]}
 							{samples_dir}
+							type="table"
+							selected={current_hover === i}
+							index={i}
 						/>
 					{/if}
 				</button>
 			{/each}
 		</div>
 	{:else}
-		<div class="overflow-x-auto border table-auto rounded-lg w-full text-sm">
-			<table class="gr-samples-table">
+		<div class="table-wrap">
+			<table>
 				<thead>
-					<tr
-						class="border-b dark:border-gray-800 divide-x dark:divide-gray-800 shadow-sm"
-					>
+					<tr class="tr-head">
 						{#each headers as header}
-							<th class="p-2 whitespace-nowrap min-w-lg text-left">
+							<th>
 								{header}
 							</th>
 						{/each}
@@ -123,16 +128,25 @@
 				<tbody>
 					{#each component_meta as sample_row, i}
 						<tr
-							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
+							class="tr-body"
 							on:click={() => {
 								value = i + page * samples_per_page;
 								dispatch("click", value);
 							}}
+							on:mouseenter={() => handle_mouseenter(i)}
+							on:mouseleave={() => handle_mouseleave()}
 						>
 							{#each sample_row as { value, component }, j}
 								{#if components[j] !== undefined && component_map[components[j]] !== undefined}
-									<td class="p-2">
-										<svelte:component this={component} {value} {samples_dir} />
+									<td>
+										<svelte:component
+											this={component}
+											{value}
+											{samples_dir}
+											type="table"
+											selected={current_hover === i}
+											index={i}
+										/>
 									</td>
 								{/if}
 							{/each}
@@ -144,14 +158,14 @@
 	{/if}
 </div>
 {#if paginate}
-	<div class="flex gap-2 items-center justify-center text-sm">
+	<div class="paginate">
 		Pages:
 		{#each visible_pages as visible_page}
 			{#if visible_page === -1}
 				<div>...</div>
 			{:else}
 				<button
-					class:font-bold={page === visible_page}
+					class:current-page={page === visible_page}
 					on:click={() => (page = visible_page)}
 				>
 					{visible_page + 1}
@@ -160,3 +174,113 @@
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.wrap {
+		margin-top: var(--size-4);
+		display: inline-block;
+		max-width: var(--size-full);
+		color: var(--color-text-body);
+		width: var(--size-full);
+	}
+
+	.hide {
+		display: none;
+	}
+
+	.label {
+		display: flex;
+		font-size: var(--scale-000);
+		line-height: var(--line-sm);
+		margin-bottom: var(--size-2);
+		align-items: center;
+		color: var(--color-text-label);
+	}
+
+	svg {
+		margin-right: var(--size-1);
+	}
+
+	.gallery {
+		display: flex;
+		gap: var(--size-2);
+		flex-wrap: wrap;
+	}
+
+	.button {
+		border-radius: var(--radius-lg);
+	}
+
+	.table-wrap {
+		overflow-x: auto;
+		table-layout: auto;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+		width: var(--size-full);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+	table {
+		width: var(--size-full);
+	}
+
+	.tr-head {
+		border-bottom: 1px solid var(--color-border-primary);
+		box-shadow: var(--shadow-drop-lg);
+	}
+
+	.tr-head > * + * {
+		border-right-width: 0px;
+		border-left-width: 1px;
+		border-color: var(--dataset-table-border-base);
+	}
+
+	th {
+		padding: var(--size-2);
+		white-space: nowrap;
+	}
+
+	.tr-body {
+		cursor: pointer;
+		border-bottom: 1px solid var(--dataset-table-border-base);
+		background: var(--table-even-background);
+	}
+
+	.tr-body:last-child {
+		border: none;
+	}
+
+	.tr-body:nth-child(odd) {
+		background: var(--table-odd-background);
+	}
+
+	.tr-body:hover {
+		background: var(--dataset-table-background-hover);
+	}
+
+	.tr-body > * + * {
+		border-right-width: 0px;
+		border-left-width: 1px;
+		border-color: var(--dataset-table-border-base);
+	}
+
+	.tr-body:hover > * + * {
+		border-color: var(--dataset-table-border-hover);
+	}
+
+	td {
+		padding: var(--size-2);
+	}
+
+	.paginate {
+		display: flex;
+		gap: var(--size-2);
+		align-items: center;
+		justify-content: center;
+		font-size: var(--scale-000);
+	}
+
+	button.current-page {
+		font-weight: var(--weight-bold);
+	}
+</style>

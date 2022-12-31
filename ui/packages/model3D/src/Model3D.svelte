@@ -4,7 +4,7 @@
 	import { File } from "@gradio/icons";
 
 	export let value: FileData | null;
-	export let clearColor: Array<number>;
+	export let clearColor: Array<number> = [0, 0, 0, 0];
 	export let label: string = "";
 	export let show_label: boolean;
 
@@ -26,7 +26,7 @@
 	});
 
 	afterUpdate(() => {
-		if (scene) {
+		if (scene && !scene.isDisposed) {
 			scene.dispose();
 			engine?.stopRenderLoop();
 			engine?.dispose();
@@ -40,16 +40,11 @@
 	});
 
 	function addNewModel() {
+		console.log(clearColor);
 		scene = new BABYLON.Scene(engine!);
 		scene.createDefaultCameraOrLight();
-		scene.clearColor = clearColor
-			? (scene.clearColor = new BABYLON.Color4(
-					clearColor[0],
-					clearColor[1],
-					clearColor[2],
-					clearColor[3]
-			  ))
-			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+
+		scene.clearColor = new BABYLON.Color4(...clearColor);
 
 		engine?.runRenderLoop(() => {
 			scene.render();
@@ -83,32 +78,12 @@
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
-{#if value}
-	<canvas bind:this={canvas} />
-{:else}
-	<div class="empty">
-		<div class="icon"><File /></div>
-	</div>
-{/if}
+<canvas bind:this={canvas} />
 
 <style>
 	canvas {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
-	}
-
-	.empty {
-		height: var(--size-full);
-		min-height: var(--size-64);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.icon {
-		height: var(--size-5);
-		color: var(--color-text-body);
-		opacity: 0.5;
 	}
 </style>

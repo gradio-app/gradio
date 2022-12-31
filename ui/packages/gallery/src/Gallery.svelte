@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import { tick } from "svelte";
 
@@ -100,9 +100,7 @@
 	/>
 {/if}
 {#if value === null || _value === null || _value.length === 0}
-	<div class="placeholder">
-		<div><Image /></div>
-	</div>
+	<Empty size="large"><Image /></Empty>
 {:else}
 	{#if selected_image !== null}
 		<div
@@ -174,20 +172,6 @@
 {/if}
 
 <style lang="postcss">
-	.placeholder {
-		height: var(--size-full);
-		min-height: var(--size-60);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.placeholder > div {
-		height: var(--size-5);
-		color: var(--color-text-body);
-		opacity: 0.5;
-	}
-
 	.preview {
 		position: absolute;
 		top: 0px;

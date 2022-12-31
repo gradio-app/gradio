@@ -1,8 +1,13 @@
 <script lang="ts">
 	//@ts-ignore
 	import { csvParseRows, tsvParseRows } from "d3-dsv";
+
 	export let value: Array<Array<string | number>> | string;
 	export let samples_dir: string;
+	export let type: "gallery" | "table";
+	export let selected: boolean = false;
+	export let index: number;
+
 	let hovered = false;
 	let loaded = Array.isArray(value);
 
@@ -43,38 +48,100 @@
 
 {#if loaded}
 	<div
-		class="gr-sample-dataframe"
+		class:table={type === "table"}
+		class:gallery={type === "gallery"}
+		class:selected
 		on:mouseenter={() => (hovered = true)}
 		on:mouseleave={() => (hovered = false)}
 	>
-		<table class="gr-sample-dataframe relative">
+		<table class="">
 			{#each value.slice(0, 3) as row, i}
 				<tr>
 					{#each row.slice(0, 3) as cell, j}
-						<td
-							class="p-2 {i < 3
-								? 'border-b border-b-slate-300 dark:border-b-slate-700'
-								: ''} 
-							{j < 3 ? 'border-r border-r-slate-300 dark:border-r-slate-700 ' : ''}"
-							>{cell}</td
-						>
+						<td>{cell}</td>
 					{/each}
 					{#if row.length > 3}
-						<td
-							class="p-2  border-r border-b  border-r-slate-300 dark:border-r-slate-700 border-b-slate-300 dark:border-b-slate-700"
-							>…</td
-						>
+						<td>…</td>
 					{/if}
 				</tr>
 			{/each}
 			{#if value.length > 3}
 				<div
-					class="absolute w-full h-[50%] bottom-0 bg-gradient-to-b from-[rgba(255,255,255,0)] dark:from-[rgba(0,0,0,0)] to-white"
-					class:dark:to-gray-950={!hovered}
-					class:dark:to-gray-800={hovered}
-					class:to-gray-50={hovered}
+					class="overlay"
+					class:even={index % 2 == 0}
+					class:odd={index % 2 != 0}
 				/>
 			{/if}
 		</table>
 	</div>
 {/if}
+
+<style>
+	.gallery {
+		overflow: hidden;
+		align-items: center;
+		border: 1px solid var(--color-border-primary);
+		border-collapse: collapse;
+		cursor: pointer;
+		padding: var(--size-2);
+		border-radius: var(--radius-lg);
+		background: transparent;
+		font-size: var(--scale-000);
+		line-height: var(--line-sm);
+		text-align: left;
+	}
+
+	table {
+		position: relative;
+	}
+
+	td {
+		border: 1px solid var(--dataset-dataframe-border-base);
+		font-family: var(--font-mono);
+		font-size: var(--scale-000);
+		padding: var(--size-2);
+	}
+
+	.selected td {
+		border-color: var(--dataset-dataframe-border-hover);
+	}
+
+	td:first-child {
+		border-left: none;
+	}
+
+	tr:first-child td {
+		border-top: none;
+	}
+
+	td:last-child {
+		border-right: none;
+	}
+
+	tr:last-child td {
+		border-bottom: none;
+	}
+
+	.overlay {
+		--gradient-to: transparent;
+		position: absolute;
+		width: var(--size-full);
+		height: 50%;
+		bottom: 0;
+		background: linear-gradient(to bottom, transparent, var(--gradient-to));
+	}
+
+	/* i dont know what i've done here but it is what it is */
+	.odd {
+		--gradient-to: var(--table-even-background);
+	}
+
+	.even {
+		--gradient-to: var(--table-odd-background);
+	}
+
+	.selected .even,
+	.selected .odd {
+		--gradient-to: var(--dataset-table-background-hover);
+	}
+</style>

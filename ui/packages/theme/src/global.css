@@ -42,28 +42,25 @@
 		@apply bg-gray-800;
 	}
 
-	.unequal-height {
+	/* .unequal-height {
 		@apply items-start;
-	}
+	} */
 }
 
 @layer components {
-	.gr-form .gr-block {
-		@apply border-0 !rounded-none !shadow-none;
-	}
 	.row > *,
 	.row > .gr-form > * {
 		min-width: min(160px, 100%);
 		@apply flex-1;
 	}
-	.col > *,
+	/* .col > *,
 	.col > .gr-form > * {
 		@apply w-full;
 	}
 	.gr-compact > *,
 	.gr-compact .gr-box {
 		@apply !rounded-none !border-0;
-	}
+	} */
 
 	.scroll-hide {
 		-ms-overflow-style: none;

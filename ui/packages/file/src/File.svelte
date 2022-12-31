@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import FilePreview from "./FilePreview.svelte";
 
@@ -16,22 +16,5 @@
 		<FilePreview {value} />
 	</div>
 {:else}
-	<div class="empty">
-		<div><File /></div>
-	</div>
+	<Empty size="large"><File /></Empty>
 {/if}
-
-<style>
-	.empty {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: var(--size-full);
-		min-height: var(--size-60);
-	}
-
-	.empty > div {
-		height: var(--size-5);
-		color: var(--color-text-subdued);
-	}
-</style>

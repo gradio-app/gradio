@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, Empty } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
 	import { Video } from "@gradio/icons";
 
@@ -22,9 +22,7 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<div class="empty">
-		<div class="icon"><Video /></div>
-	</div>
+	<Empty size="large"><Video /></Empty>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<Player src={value.data} on:play on:pause on:ended mirror={false} />

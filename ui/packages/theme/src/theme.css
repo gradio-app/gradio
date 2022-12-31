@@ -16,9 +16,12 @@
 	--color-accent-base: var(--color-orange-500);
 	--color-accent-light: var(--color-orange-300);
 	--color-accent-dark: var(--color-orange-700);
-	--color-functional-error: var(--color-red);
-	--color-functional-info: var(--color-yellow-300);
-	--color-functional-success: var(--color-green);
+	--color-functional-error-base: var(--color-red);
+	--color-functional-error-subdued: var(--color-red-300);
+	--color-functional-info-base: var(--color-yellow);
+	--color-functional-info-subdued: var(--color-yellow-300);
+	--color-functional-success-base: var(--color-green);
+	--color-functional-success-subdued: var(--color-green-300);
 	--shadow-drop: rgba(0,0,0,0.05) 0px 1px 2px 0px;
 	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 	--shadow-inset: rgba(0,0,0,0.05) 0px 2px 4px 0px inset;
@@ -158,9 +161,17 @@
 	--chatbot-bot-border-color-latest: transparent;
 	--label-gradient-from: var(--color-orange-400);
 	--label-gradient-to: var(--color-orange-200);
-	--table-even-background: transparent;
+	--table-even-background: white;
 	--table-odd-background: var(--color-grey-50);
 	--table-background-edit: var(--color-orange-50);
+	--dataset-gallery-background-base: white;
+	--dataset-gallery-background-hover: var(--color-grey-50);
+	--dataset-dataframe-border-base: var(--color-grey-300);
+	--dataset-dataframe-border-hover: var(--color-grey-300);
+	--dataset-table-background-base: transparent;
+	--dataset-table-background-hover: var(--color-orange-50);
+	--dataset-table-border-base: var(--color-border-primary);
+	--dataset-table-border-hover: var(--color-orange-100);
 
 }
 
@@ -182,9 +193,12 @@
 	--color-accent-base: var(--color-orange-500);
 	--color-accent-light: var(--color-orange-300);
 	--color-accent-dark: var(--color-orange-700);
-	--color-functional-error: var(--color-red);
-	--color-functional-info: var(--color-yellow-300);
-	--color-functional-success: var(--color-green);
+	--color-functional-error-base: var(--color-red-400);
+	--color-functional-error-subdued: var(--color-red-300);
+	--color-functional-info-base: var(--color-yellow);
+	--color-functional-info-subdued: var(--color-yellow-300);
+	--color-functional-success-base: var(--color-green);
+	--color-functional-success-subdued: var(--color-green-300);
 	--block-border-color: var(--color-border-primary);
 	--block-background: var(--color-background-tertiary);
 	--uploadable-border-color-hover: var(--color-border-primary);
@@ -282,6 +296,15 @@
 	--label-gradient-from: var(--color-orange-400);
 	--label-gradient-to: var(--color-orange-600);
 	--table-odd-background: var(--color-grey-900);
+	--table-even-background: var(--color-grey-950);
 	--table-background-edit: transparent;
+	--dataset-gallery-background-base: transparent;
+	--dataset-gallery-background-hover: var(--color-grey-800);
+	--dataset-dataframe-border-base: var(--color-border-primary);
+	--dataset-dataframe-border-hover: var(--color-border-secondary);
+	--dataset-table-background-base: transparent;
+	--dataset-table-background-hover: var(--color-grey-700);
+	--dataset-table-border-base: var(--color-grey-800);
+	--dataset-table-border-hover: var(--color-grey-800);
 	
 }

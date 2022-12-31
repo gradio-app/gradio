@@ -7,6 +7,7 @@
 	import { Vega } from "svelte-vega";
 	import { afterUpdate, onDestroy } from "svelte";
 	import { create_config } from "./utils";
+	import { Empty } from "@gradio/atoms";
 
 	export let value;
 	export let target;
@@ -172,9 +173,7 @@
 		<img src={value["plot"]} />
 	</div>
 {:else}
-	<div class="empty">
-		<div class="icon"><PlotIcon /></div>
-	</div>
+	<Empty size="large"><PlotIcon /></Empty>
 {/if}
 
 <style>
@@ -204,19 +203,5 @@
 		width: var(--size-full);
 		max-height: var(--size-32);
 		object-fit: contain;
-	}
-
-	.empty {
-		height: var(--size-full);
-		min-height: var(--size-60);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.icon {
-		height: var(--size-5);
-		color: var(--color-text-body);
-		opacity: 0.5;
 	}
 </style>

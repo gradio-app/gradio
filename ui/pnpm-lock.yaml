@@ -23,6 +23,7 @@ importers:
       polka: ^1.0.0-next.22
       pollen-css: ^4.6.1
       postcss: ^8.4.5
+      postcss-custom-media: '8'
       postcss-nested: ^5.0.6
       prettier: ^2.6.2
       prettier-plugin-svelte: ^2.7.0
@@ -56,6 +57,7 @@ importers:
       polka: 1.0.0-next.22
       pollen-css: 4.6.1
       postcss: 8.4.6
+      postcss-custom-media: 8.0.2_postcss@8.4.6
       postcss-nested: 5.0.6_postcss@8.4.6
       prettier: 2.6.2
       prettier-plugin-svelte: 2.7.0_3cyj5wbackxvw67rnaarcmbw7y
@@ -81,6 +83,7 @@ importers:
 
   packages/app:
     specifiers:
+      '@gradio/accordion': workspace:^0.0.1
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
@@ -110,6 +113,7 @@ importers:
       svelte: ^3.25.1
       svelte-i18n: ^3.3.13
     dependencies:
+      '@gradio/accordion': link:../accordion
       '@gradio/atoms': link:../atoms
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
@@ -265,7 +269,12 @@ importers:
       resize-observer-polyfill: 1.5.1
 
   packages/json:
-    specifiers: {}
+    specifiers:
+      '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
+    dependencies:
+      '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
 
   packages/label:
     specifiers:
@@ -292,6 +301,7 @@ importers:
 
   packages/plot:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/icons': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
@@ -301,6 +311,7 @@ importers:
       vega: ^5.22.1
       vega-lite: '*'
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/icons': link:../icons
       '@gradio/theme': link:../theme
       '@gradio/utils': link:../utils
@@ -374,6 +385,7 @@ importers:
 
   packages/workbench:
     specifiers:
+      '@gradio/accordion': workspace:^0.0.1
       '@gradio/atoms': workspace:^0.0.1
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
@@ -409,6 +421,7 @@ importers:
       tslib: ^2.3.1
       typescript: ~4.5.4
     dependencies:
+      '@gradio/accordion': link:../accordion
       '@gradio/atoms': link:../atoms
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
@@ -2621,6 +2634,16 @@ packages:
       lilconfig: 2.0.6
       map-obj: 5.0.2
       prettier: 2.8.1
+    dev: false
+
+  /postcss-custom-media/8.0.2_postcss@8.4.6:
+    resolution: {integrity: sha512-7yi25vDAoHAkbhAzX9dHx2yc6ntS4jQvejrNcC+csQJAXjj15e7VcWfMgLqBNAbOvqi5uIa9huOVwdHbf+sKqg==}
+    engines: {node: ^12 || ^14 || >=16}
+    peerDependencies:
+      postcss: ^8.3
+    dependencies:
+      postcss: 8.4.6
+      postcss-value-parser: 4.2.0
     dev: false
 
   /postcss-import/14.1.0_postcss@8.4.6:

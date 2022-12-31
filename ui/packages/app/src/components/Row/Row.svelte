@@ -8,13 +8,50 @@
 </script>
 
 <div
-	class="flex row w-full flex-wrap gap-4"
-	class:gr-compact={variant === "compact"}
-	class:gr-panel={variant === "panel"}
+	class="flex"
+	class:compact={variant === "compact"}
+	class:panel={variant === "panel"}
 	class:unequal-height={style.equal_height === false}
-	class:items-stretch={style.equal_height}
-	class:!hidden={!visible}
+	class:stretch={style.equal_height}
+	class:hide={!visible}
 	id={elem_id}
 >
 	<slot />
 </div>
+
+<style>
+	div {
+		display: flex;
+		width: var(--size-full);
+		gap: var(--size-4);
+	}
+
+	.hide {
+		display: none;
+	}
+	.compact > :global(*),
+	.compact :global(.box) {
+		border-radius: 0;
+	}
+	.compact,
+	.panel {
+		padding: var(--size-2);
+		background: var(--color-background-secondary);
+		border-radius: var(--radius-lg);
+	}
+	.unequal-height {
+		/* items-start */
+		align-items: flex-start;
+	}
+
+	.stretch {
+		/* items-start */
+		align-items: stretch;
+	}
+
+	div > :global(*),
+	div > :global(.form > *) {
+		min-width: min(160px, 100%);
+		flex: 1 1 0%;
+	}
+</style>
