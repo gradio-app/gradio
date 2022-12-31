@@ -356,7 +356,7 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     for name, cls in components + templates + layouts:
         if name.lower() == cls_name.replace("_", "") and (
             issubclass(cls, gradio.components.Component)
-            or issubclass(cls, gradio.blocks.BlockContext)
+            or issubclass(cls, BlockContext)
         ):
             return cls
     raise ValueError(f"No such component or layout: {cls_name}")
