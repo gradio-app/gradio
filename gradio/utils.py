@@ -459,7 +459,7 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Type[BaseModel] = None,
+        validation_model: Optional[Type[BaseModel]] = None,
         validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
@@ -577,7 +577,9 @@ class AsyncRequest:
         Returns:
             ResponseJson: Validated Json object.
         """
-        validated_data = parse_obj_as(self._validation_model, response)
+        validated_data = BaseModel()
+        if self._validation_model:
+            validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
     def _validate_response_by_validation_function(
