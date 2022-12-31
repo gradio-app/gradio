@@ -476,7 +476,6 @@ class AsyncRequest:
             exception_class(Type[Exception]): a exception type to throw with its type
             raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
         """
-        self._response = None
         self._exception: Union[Exception, None] = None
         self._status = None
         self._raise_for_status = raise_for_status
