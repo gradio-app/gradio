@@ -285,6 +285,7 @@ def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
         return [(input_string, None)]
 
     output = []
+    end = 0
     prev_end = 0
 
     for group in ner_groups:
