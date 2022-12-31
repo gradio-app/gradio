@@ -27,7 +27,6 @@
 	}
 
 	function is_empty(obj: object) {
-		console.log("IS_EMPTY", obj);
 		return (
 			obj &&
 			Object.keys(obj).length === 0 &&

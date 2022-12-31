@@ -187,11 +187,14 @@
 	}
 
 	.fixed-height {
-		/* 
-			TODO: class:xl:min-h-[450px] media query */
-
 		min-height: var(--size-80);
 		max-height: 55vh;
+	}
+
+	@media (--screen-xl) {
+		.fixed-height {
+			min-height: 450px;
+		}
 	}
 
 	.preview img {

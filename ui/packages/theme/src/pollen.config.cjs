@@ -1,7 +1,6 @@
 const { defineConfig } = require("pollen-css/utils");
 
 module.exports = defineConfig((pollen) => {
-	console.log(pollen);
 	return {
 		selector: ":host, :root",
 		output: "./src/pollen.css",
@@ -30,7 +29,8 @@ module.exports = defineConfig((pollen) => {
 				...pollen.size,
 				0.5: "2px",
 				1.5: "6px",
-				2.5: "10px"
+				2.5: "10px",
+				"screen-h": "100vh"
 			},
 			color: {
 				...pollen.color,

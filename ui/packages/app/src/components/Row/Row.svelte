@@ -40,12 +40,10 @@
 		border-radius: var(--radius-lg);
 	}
 	.unequal-height {
-		/* items-start */
 		align-items: flex-start;
 	}
 
 	.stretch {
-		/* items-start */
 		align-items: stretch;
 	}
 
@@ -53,5 +51,6 @@
 	div > :global(.form > *) {
 		min-width: min(160px, 100%);
 		flex: 1 1 0%;
+		flex-wrap: wrap;
 	}
 </style>

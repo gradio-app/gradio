@@ -9,7 +9,12 @@
 	--color-text-label: var(--color-grey);
 	--color-text-placeholder: var(--color-grey-400);
 	--color-text-subdued: var(--color-grey-400);
-	--color-text-link: var(--color-blue-600);
+	--color-text-link-base: var(--color-blue-600);
+	--color-text-link-hover: var(--color-blue-700);
+	--color-text-link-visited: var(--color-blue-500);
+	--color-text-link-active: var(--color-blue-600);
+	--color-text-code-background: var(--color-grey-200);
+	--color-text-code-border: color.border-primary;
 	--color-border-primary: var(--color-grey-200);
 	--color-border-secondary: var(--color-grey-600);
 	--color-border-highlight: var(--color-accent-base);
@@ -186,7 +191,12 @@
 	--color-text-label: var(--color-grey-200);
 	--color-text-placeholder: var(--color-grey);
 	--color-text-subdued: var(--color-grey-400);
-	--color-text-link: var(--color-blue-300);
+	--color-text-link-base: var(--color-blue-600);
+	--color-text-link-hover: var(--color-blue-700);
+	--color-text-link-visited: var(--color-blue-500);
+	--color-text-link-active: var(--color-blue-600);
+	--color-text-code-background: var(--color-grey-800);
+	--color-text-code-border: color.border-primary;
 	--color-border-primary: var(--color-grey-700);
 	--color-border-secondary: var(--color-grey-600);
 	--color-border-highlight: var(--color-accent-base);

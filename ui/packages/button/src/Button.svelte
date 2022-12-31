@@ -13,7 +13,7 @@
 
 <button
 	on:click
-	class:!hidden={!visible}
+	class:hide={!visible}
 	class="{size} {variant} {classes}"
 	id={elem_id}
 >
@@ -34,7 +34,7 @@
 		box-shadow: var(--shadow-drop-lg);
 	}
 
-	.hidden {
+	.hide {
 		display: none;
 	}
 

@@ -202,7 +202,6 @@ function create_custom_element() {
 			this.root = this.attachShadow({ mode: "open" });
 
 			window.scoped_css_attach = (link) => {
-				console.log(link);
 				this.root.append(link);
 			};
 

@@ -26,8 +26,6 @@
 	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging = false;
-
-	$: console.log(clearColor);
 </script>
 
 <Block

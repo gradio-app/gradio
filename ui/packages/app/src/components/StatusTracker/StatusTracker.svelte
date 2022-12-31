@@ -323,7 +323,6 @@
 	}
 
 	.toast {
-		/* fixed inset-0 z-[100] */
 		position: fixed;
 		top: 0;
 		left: var(--size-4);
@@ -334,7 +333,6 @@
 	}
 
 	.toast-body {
-		/*  md:right-8 md:left-auto   md:w-96 */
 		position: absolute;
 		background: var(--color-background-secondary);
 		top: var(--size-8);

@@ -31,4 +31,10 @@
 	.or {
 		color: var(--color-text-subdued);
 	}
+
+	@media (--screen-md) {
+		.wrap {
+			font-size: var(--scale-0);
+		}
+	}
 </style>
