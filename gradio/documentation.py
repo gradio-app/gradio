@@ -58,8 +58,8 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            assert line.startswith(
-                "    "
+            assert (
+                line.startswith("    ") or line.strip() == ""
             ), f"Documentation format for {fn.__name__} has format error in line: {line}"
             line = line[4:]
             if mode == "parameter":
