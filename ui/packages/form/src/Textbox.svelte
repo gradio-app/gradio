@@ -162,16 +162,16 @@
 		--ring-color: transparent;
 		display: block;
 		position: relative;
-		width: 100%;
-		padding: var(--size-2-5);
+		outline: none !important;
 		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
-		font-size: var(--scale-00);
-		line-height: var(--line-sm);
+		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--input-border-radius);
 		background: var(--input-background-base);
+		padding: var(--size-2-5);
+		width: 100%;
 		color: var(--color-text-body);
-		border: 1px solid var(--input-border-color-base);
-		outline: none !important;
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
 	}
 
 	input:focus,

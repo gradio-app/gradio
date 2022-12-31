@@ -5,9 +5,9 @@
 
 <div on:click={() => (open = !open)} class="label-wrap">
 	<span>{label}</span>
-	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon"
-		>▼</span
-	>
+	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
+		▼
+	</span>
 </div>
 {#if open}
 	<slot />
@@ -18,18 +18,18 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-3);
-		padding: var(--size-3);
-		border-width: 1px;
 		transition: 150ms;
-		border-radius: var(--radius-lg);
+		border-width: 1px;
 		border: 1px solid;
+		border-radius: var(--radius-lg);
+		padding: var(--size-3);
 	}
 
 	.label-wrap {
-		width: var(--size-full);
 		display: flex;
 		justify-content: space-between;
 		cursor: pointer;
+		width: var(--size-full);
 	}
 
 	.icon {

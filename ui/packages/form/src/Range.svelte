@@ -51,9 +51,9 @@
 
 <style>
 	.wrap {
-		width: 100%;
 		display: flex;
 		flex-direction: column;
+		width: 100%;
 	}
 
 	.head {
@@ -62,20 +62,20 @@
 	}
 	input[type="number"] {
 		--ring-color: transparent;
-		height: var(--size-6);
-		text-align: left;
 		display: block;
 		position: relative;
-		padding: var(--size-3) var(--size-1);
-		padding-right: 0;
+		outline: none !important;
 		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
-		font-size: var(--scale-00);
-		line-height: var(--line-sm);
+		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-xs);
 		background: var(--input-background-base);
+		padding: var(--size-3) var(--size-1);
+		padding-right: 0;
+		height: var(--size-6);
 		color: var(--color-text-body);
-		border: 1px solid var(--input-border-color-base);
-		outline: none !important;
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		text-align: left;
 	}
 
 	input:focus {
@@ -92,7 +92,7 @@
 	}
 
 	input[disabled] {
-		box-shadow: none;
 		cursor: not-allowed;
+		box-shadow: none;
 	}
 </style>

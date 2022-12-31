@@ -173,17 +173,17 @@
 
 <style lang="postcss">
 	.preview {
+		display: flex;
 		position: absolute;
 		top: 0px;
 		right: 0px;
 		bottom: 0px;
 		left: 0px;
-		height: var(--size-full);
-		z-index: var(--layer-2);
-		display: flex;
 		flex-direction: column;
-		background: var(--color-background-primary);
+		z-index: var(--layer-2);
 		backdrop-filter: blur(8px);
+		background: var(--color-background-primary);
+		height: var(--size-full);
 	}
 
 	.fixed-height {
@@ -199,8 +199,8 @@
 
 	.preview img {
 		width: var(--size-full);
-		object-fit: contain;
 		height: calc(var(--size-full) - 60px);
+		object-fit: contain;
 	}
 
 	.preview img.with-caption {
@@ -208,47 +208,47 @@
 	}
 
 	.caption {
-		text-align: center;
-		color: var(--color-text-label);
-		font-weight: var(--weight-semibold);
 		padding: var(--size-2) var(--size-3);
 		overflow: hidden;
+		color: var(--color-text-label);
+		font-weight: var(--weight-semibold);
+		text-align: center;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
 	.thumbnails {
+		display: flex;
 		position: absolute;
+		bottom: 0;
+		justify-content: center;
+		align-items: center;
+		gap: var(--size-2);
+		width: var(--size-full);
 		height: var(--size-14);
 		overflow-x: scroll;
-		width: var(--size-full);
-		bottom: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--size-2);
 		font-size: var(--scale-00);
 	}
 
 	.thumbnail-item {
 		--ring-color: transparent;
-		border-radius: var(--gallery-thumb-border-radius);
-		box-shadow: var(--shadow-drop);
 		position: relative;
-		aspect-ratio: var(--ratio-square);
-		height: var(--size-full);
-		width: var(--size-full);
-		overflow: hidden;
-		background-color: var(--gallery-thumb-background-base);
+		outline: none;
+		box-shadow: var(--shadow-drop);
 		box-shadow: 0 0 0 2px var(--ring-color);
 		border: 1px solid var(--gallery-thumb-border-color-base);
-		outline: none;
+		border-radius: var(--gallery-thumb-border-radius);
+		background-color: var(--gallery-thumb-background-base);
+		aspect-ratio: var(--ratio-square);
+		width: var(--size-full);
+		height: var(--size-full);
+		overflow: hidden;
 	}
 
 	.thumbnail-item:hover {
 		--ring-color: var(--gallery-thumb-border-color-hover);
-		border-color: var(--gallery-thumb-border-color-hover);
 		filter: brightness(1.1);
+		border-color: var(--gallery-thumb-border-color-hover);
 	}
 
 	.thumbnail-item:focus {
@@ -258,16 +258,16 @@
 
 	.thumbnail-small {
 		flex: none;
-		height: var(--size-9);
-		width: var(--size-9);
-		transition: 0.075s;
 		transform: scale(0.9);
+		transition: 0.075s;
+		width: var(--size-9);
+		height: var(--size-9);
 	}
 
 	.thumbnail-small.selected {
 		--ring-color: var(--gallery-thumb-border-color-selected);
-		border-color: var(--gallery-thumb-border-color-selected);
 		transform: scale(1);
+		border-color: var(--gallery-thumb-border-color-selected);
 	}
 
 	.thumbnail-small.selected:focus {
@@ -276,16 +276,16 @@
 	}
 
 	.thumbnail-small > img {
-		height: var(--size-full);
 		width: var(--size-full);
+		height: var(--size-full);
 		overflow: hidden;
 		object-fit: cover;
 	}
 
 	.grid-wrap {
-		overflow-y: auto;
-		height: var(--size-full);
 		padding: var(--size-2);
+		height: var(--size-full);
+		overflow-y: auto;
 	}
 
 	.grid-container {
@@ -294,8 +294,8 @@
 	}
 
 	.thumbnail-lg > img {
-		height: var(--size-full);
 		width: var(--size-full);
+		height: var(--size-full);
 		overflow: hidden;
 		object-fit: cover;
 	}
@@ -306,20 +306,20 @@
 
 	.caption-label {
 		position: absolute;
-		bottom: 0;
 		right: 0;
-		max-width: 80%;
+		bottom: 0;
 		z-index: var(--layer-1);
-		background: var(--gallery-thumb-background-base);
-		border-top-left-radius: var(--gallery-label-border-radius);
 		border-top: 1px solid var(--gallery-label-border-color-base);
 		border-left: 1px solid var(--gallery-label-border-color-base);
-		font-size: var(--scale-000);
-		font-weight: var(--weight-semibold);
+		border-top-left-radius: var(--gallery-label-border-radius);
+		background: var(--gallery-thumb-background-base);
 		padding: var(--size-1) var(--size-3);
+		max-width: 80%;
 		overflow: hidden;
+		font-weight: var(--weight-semibold);
+		font-size: var(--scale-000);
+		text-align: left;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		text-align: left;
 	}
 </style>

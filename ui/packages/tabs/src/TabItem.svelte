@@ -32,10 +32,10 @@
 
 <style>
 	div {
-		padding: var(--size-2);
+		display: flex;
+		position: relative;
 		border: 2px solid var(--color-border-primary);
 		border-top: none;
-		position: relative;
-		display: flex;
+		padding: var(--size-2);
 	}
 </style>

@@ -46,8 +46,10 @@
 			<span
 				in:fade={{ duration: 100 }}
 				out:fade={{ duration: 350 }}
-				class="copy-success ">COPIED</span
+				class="copy-success "
 			>
+				COPIED
+			</span>
 		{/if}
 	</button>
 
@@ -60,23 +62,23 @@
 
 <style>
 	button {
-		font: var(--font-sans);
 		display: flex;
-		align-items: center;
 		position: absolute;
-		right: 0;
 		top: 0;
-		overflow: hidden;
-		background: var(--block_label-background);
+		right: 0;
+		align-items: center;
+		transition: 150ms;
+		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--block_label-border-color);
-		border-bottom-left-radius: var(--block_label-border-radius);
 		border-top: none;
 		border-right: none;
 		border-bottom-left-radius: var(--block_label-border-radius);
-		box-shadow: var(--shadow-drop);
-		font-size: var(--scale-000);
+		border-bottom-left-radius: var(--block_label-border-radius);
+		background: var(--block_label-background);
+		overflow: hidden;
 		color: var(--color-text-label);
-		transition: 150ms;
+		font: var(--font-sans);
+		font-size: var(--scale-000);
 	}
 
 	.copy-text {
@@ -84,13 +86,13 @@
 	}
 
 	.copy-success {
-		font-weight: bold;
-		color: var(--color-functional-success);
-		padding: var(--size-1) var(--size-2);
-		position: absolute;
 		display: block;
-		width: var(--size-full);
-		text-align: left;
+		position: absolute;
 		background: var(--block_label-background);
+		padding: var(--size-1) var(--size-2);
+		width: var(--size-full);
+		color: var(--color-functional-success);
+		font-weight: bold;
+		text-align: left;
 	}
 </style>

@@ -598,11 +598,13 @@
 							height="1em"
 							preserveAspectRatio="xMidYMid meet"
 							viewBox="0 0 32 32"
-							><path
+						>
+							<path
 								fill="currentColor"
 								d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
-							/></svg
-						>New row
+							/>
+						</svg>
+						New row
 					</Button>
 				</span>
 			{/if}
@@ -619,11 +621,12 @@
 							height="1em"
 							preserveAspectRatio="xMidYMid meet"
 							viewBox="0 0 32 32"
-							><path
+						>
+							<path
 								fill="currentColor"
 								d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
-							/></svg
-						>
+							/>
+						</svg>
 						New column
 					</Button>
 				</span>
@@ -638,28 +641,28 @@
 	}
 
 	.button-wrap svg {
-		margin-left: -5px;
 		margin-right: var(--size-1);
+		margin-left: -5px;
 	}
 	.label {
 		margin-top: var(--size-6);
 	}
 
 	.label p {
-		color: var(--color-text-label);
-		font-size: var(--scale-00);
-		margin-bottom: var(--size-2);
 		position: relative;
 		z-index: var(--layer-4);
+		margin-bottom: var(--size-2);
+		color: var(--color-text-label);
+		font-size: var(--scale-00);
 	}
 
 	.table-wrap {
 		position: relative;
-		border-radius: var(--block-border-radius);
-		border: 1px solid var(--color-border-primary);
 		transition: 150ms;
-		overflow-y: hidden;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--block-border-radius);
 		overflow-x: scroll;
+		overflow-y: hidden;
 	}
 
 	.dragging {
@@ -671,14 +674,14 @@
 	}
 
 	table {
-		table-layout: auto;
-		font-family: var(--font-mono);
+		transition: 150ms;
 		width: var(--size-full);
+		table-layout: auto;
+		overflow: hidden;
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		line-height: var(--line-md);
-		transition: 150ms;
-		overflow: hidden;
+		font-family: var(--font-mono);
 	}
 
 	table.dragging {
@@ -689,8 +692,8 @@
 		position: sticky;
 		top: 0;
 		left: 0;
-		box-shadow: var(--shadow-drop);
 		z-index: var(--layer-1);
+		box-shadow: var(--shadow-drop);
 	}
 
 	tr {
@@ -699,19 +702,19 @@
 	}
 
 	tr > * + * {
-		border-style: solid;
 		border-right-width: 0px;
 		border-left-width: 1px;
+		border-style: solid;
 		border-color: var(--color-border-primary);
 	}
 
 	th,
 	td {
 		--ring-color: transparent;
-		padding: 0;
 		position: relative;
 		outline: none;
 		box-shadow: inset 0 0 0 1px var(--ring-color);
+		padding: 0;
 	}
 
 	th:first-child {
@@ -743,13 +746,13 @@
 	.sort-button {
 		display: flex;
 		flex: none;
-		align-items: center;
 		justify-content: center;
-		padding: var(--size-2);
-		cursor: pointer;
+		align-items: center;
 		transition: 150ms;
-		line-height: var(--scale-0);
+		cursor: pointer;
+		padding: var(--size-2);
 		color: var(--color-text-subdued);
+		line-height: var(--scale-0);
 	}
 
 	.sort-button:hover {
@@ -791,9 +794,9 @@
 	.cell-wrap {
 		display: flex;
 		align-items: center;
-		min-height: var(--size-10);
 		outline: none;
 		height: var(--size-full);
+		min-height: var(--size-10);
 	}
 
 	.controls-wrap {

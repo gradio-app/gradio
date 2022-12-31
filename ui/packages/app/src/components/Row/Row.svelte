@@ -22,8 +22,8 @@
 <style>
 	div {
 		display: flex;
-		width: var(--size-full);
 		gap: var(--size-4);
+		width: var(--size-full);
 	}
 
 	.hide {
@@ -35,9 +35,9 @@
 	}
 	.compact,
 	.panel {
-		padding: var(--size-2);
-		background: var(--color-background-secondary);
 		border-radius: var(--radius-lg);
+		background: var(--color-background-secondary);
+		padding: var(--size-2);
 	}
 	.unequal-height {
 		align-items: flex-start;
@@ -49,8 +49,8 @@
 
 	div > :global(*),
 	div > :global(.form > *) {
-		min-width: min(160px, 100%);
 		flex: 1 1 0%;
 		flex-wrap: wrap;
+		min-width: min(160px, 100%);
 	}
 </style>

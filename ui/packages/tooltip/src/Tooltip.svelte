@@ -15,28 +15,29 @@
 		top: {y - h / 2}px;
 		left: {x - w - 7}px;"
 >
-	<span style="background: {color}" />{text}
+	<span style="background: {color}" />
+	{text}
 </div>
 
 <style>
 	div {
-		background-color: rgba(0, 0, 0, 0.8);
-		color: white;
-		padding: var(--size-1) 0.4rem;
-		position: absolute;
-		font-size: var(--scale-000);
 		display: flex;
+		position: absolute;
 		justify-content: center;
-		border-radius: var(--radius-sm);
 		align-items: center;
+		border-radius: var(--radius-sm);
+		background-color: rgba(0, 0, 0, 0.8);
+		padding: var(--size-1) 0.4rem;
+		color: white;
+		font-size: var(--scale-000);
 	}
 
 	span {
 		/* inline-block w-3 h-3 mr-1 rounded-sm */
 		display: inline-block;
+		margin-right: var(--size-1);
+		border-radius: var(--radius-xs);
 		width: var(--size-3);
 		height: var(--size-3);
-		border-radius: var(--radius-xs);
-		margin-right: var(--size-1);
 	}
 </style>

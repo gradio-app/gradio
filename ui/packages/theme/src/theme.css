@@ -1,4 +1,5 @@
-:root, :host {
+:root,
+:host {
 	--color-focus-primary: var(--color-blue-300);
 	--color-focus-secondary: var(--color-blue-500);
 	--color-focus-ring: rgb(191 219 254 / 0.5);
@@ -27,9 +28,18 @@
 	--color-functional-info-subdued: var(--color-yellow-300);
 	--color-functional-success-base: var(--color-green);
 	--color-functional-success-subdued: var(--color-green-300);
-	--shadow-drop: rgba(0,0,0,0.05) 0px 1px 2px 0px;
-	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-	--shadow-inset: rgba(0,0,0,0.05) 0px 2px 4px 0px inset;
+	--shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+	--shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+		0 1px 2px -1px rgb(0 0 0 / 0.1);
+	--shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
+	--api-background: linear-gradient(
+		to bottom,
+		rgba(255, 216, 180, 0.2),
+		transparent
+	);
+	--api-pill-background: var(--color-orange-100);
+	--api-pill-border: var(--color-orange-200);
+	--api-pill-text: var(--color-orange-600);
 	--block-border-radius: var(--radius-lg);
 	--block-border-color: var(--color-border-primary);
 	--block-border-width: 1px;
@@ -79,9 +89,21 @@
 	--checkbox-label-border-color-base: var(--color-border-primary);
 	--checkbox-label-border-color-hover: var(--color-border-primary);
 	--checkbox-label-border-color-focus: var(--color-focus-secondary);
-	--checkbox-label-background-base: linear-gradient(to top, var(--color-grey-50), white);
-	--checkbox-label-background-hover: linear-gradient(to top, var(--color-grey-100), white);
-	--checkbox-label-background-focus: linear-gradient(to top, var(--color-grey-100), white);
+	--checkbox-label-background-base: linear-gradient(
+		to top,
+		var(--color-grey-50),
+		white
+	);
+	--checkbox-label-background-hover: linear-gradient(
+		to top,
+		var(--color-grey-100),
+		white
+	);
+	--checkbox-label-background-focus: linear-gradient(
+		to top,
+		var(--color-grey-100),
+		white
+	);
 	--checkbox-label-shadow: var(--shadow-drop);
 	--form-seperator-style: solid;
 	--form-seperator-width: var(--border-width-default);
@@ -98,27 +120,63 @@
 	--button-primary-text-color-base: var(--color-orange-600);
 	--button-primary-text-color-hover: var(--color-orange-600);
 	--button-primary-text-color-focus: var(--color-orange-600);
-	--button-primary-background-base: linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 176 102 / 0.8));
-	--button-primary-background-hover: linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 216 180 / 0.9));
-	--button-primary-background-focus: linear-gradient(to bottom right, rgb(255 216 180 / 0.7), rgb(255 216 180 / 0.9));
+	--button-primary-background-base: linear-gradient(
+		to bottom right,
+		rgb(255 216 180 / 0.7),
+		rgb(255 176 102 / 0.8)
+	);
+	--button-primary-background-hover: linear-gradient(
+		to bottom right,
+		rgb(255 216 180 / 0.7),
+		rgb(255 216 180 / 0.9)
+	);
+	--button-primary-background-focus: linear-gradient(
+		to bottom right,
+		rgb(255 216 180 / 0.7),
+		rgb(255 216 180 / 0.9)
+	);
 	--button-secondary-border-color-base: var(--color-grey-200);
 	--button-secondary-border-color-hover: var(--color-grey-200);
 	--button-secondary-border-color-focus: var(--color-grey-200);
 	--button-secondary-text-color-base: var(--border-grey-700);
 	--button-secondary-text-color-hover: var(--border-grey-700);
 	--button-secondary-text-color-focus: var(--border-grey-700);
-	--button-secondary-background-base: linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(229 231 235 / .8));
-	--button-secondary-background-hover: linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(243 244 246 / .9));
-	--button-secondary-background-focus: linear-gradient(to bottom right, rgb(243 244 246 / .7), rgb(243 244 246 / .9));
+	--button-secondary-background-base: linear-gradient(
+		to bottom right,
+		rgb(243 244 246 / 0.7),
+		rgb(229 231 235 / 0.8)
+	);
+	--button-secondary-background-hover: linear-gradient(
+		to bottom right,
+		rgb(243 244 246 / 0.7),
+		rgb(243 244 246 / 0.9)
+	);
+	--button-secondary-background-focus: linear-gradient(
+		to bottom right,
+		rgb(243 244 246 / 0.7),
+		rgb(243 244 246 / 0.9)
+	);
 	--button-cancel-border-color-base: var(--color-red-200);
 	--button-cancel-border-color-hover: var(--color-red-200);
 	--button-cancel-border-color-focus: var(--color-red-200);
 	--button-cancel-text-color-base: var(--color-red-600);
 	--button-cancel-text-color-hover: var(--color-red-600);
 	--button-cancel-text-color-focus: var(--color-red-600);
-	--button-cancel-background-base: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(252 165 165 / 0.8));
-	--button-cancel-background-hover: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9));
-	--button-cancel-background-focus: linear-gradient(to bottom right, rgb(254 202 202 / 0.7), rgb(254 202 202 / 0.9));
+	--button-cancel-background-base: linear-gradient(
+		to bottom right,
+		rgb(254 202 202 / 0.7),
+		rgb(252 165 165 / 0.8)
+	);
+	--button-cancel-background-hover: linear-gradient(
+		to bottom right,
+		rgb(254 202 202 / 0.7),
+		rgb(254 202 202 / 0.9)
+	);
+	--button-cancel-background-focus: linear-gradient(
+		to bottom right,
+		rgb(254 202 202 / 0.7),
+		rgb(254 202 202 / 0.9)
+	);
 	--button-plain-border-color-base: var(--color-border-primary);
 	--button-plain-border-color-hover: var(--color-border-primary);
 	--button-plain-border-color-focus: var(--color-border-primary);
@@ -177,7 +235,6 @@
 	--dataset-table-background-hover: var(--color-orange-50);
 	--dataset-table-border-base: var(--color-border-primary);
 	--dataset-table-border-hover: var(--color-orange-100);
-
 }
 
 .dark {
@@ -187,7 +244,7 @@
 	--color-background-primary: var(--color-grey-950);
 	--color-background-secondary: var(--color-grey-900);
 	--color-background-tertiary: var(--color-grey-800);
-	--color-text-body: var(--color-grey-300);
+	--color-text-body: var(--color-grey-100);
 	--color-text-label: var(--color-grey-200);
 	--color-text-placeholder: var(--color-grey);
 	--color-text-subdued: var(--color-grey-400);
@@ -209,6 +266,14 @@
 	--color-functional-info-subdued: var(--color-yellow-300);
 	--color-functional-success-base: var(--color-green);
 	--color-functional-success-subdued: var(--color-green-300);
+	--api-background: linear-gradient(
+		to bottom,
+		rgba(255, 216, 180, 0.05),
+		transparent
+	);
+	--api-pill-background: var(--color-orange-400);
+	--api-pill-border: var(--color-orange-600);
+	--api-pill-text: var(--color-orange-900);
 	--block-border-color: var(--color-border-primary);
 	--block-background: var(--color-background-tertiary);
 	--uploadable-border-color-hover: var(--color-border-primary);
@@ -243,9 +308,21 @@
 	--checkbox-label-border-color-base: var(--color-border-primary);
 	--checkbox-label-border-color-hover: var(--color-border-primary);
 	--checkbox-label-border-color-focus: var(--color-border-secondary);
-	--checkbox-label-background-base: linear-gradient(to top, var(--color-grey-900), var(--color-grey-800));
-	--checkbox-label-background-hover: linear-gradient(to top, var(--color-grey-900), var(--color-grey-800));
-	--checkbox-label-background-focus: linear-gradient(to top, var(--color-grey-900), var(--color-grey-800));
+	--checkbox-label-background-base: linear-gradient(
+		to top,
+		var(--color-grey-900),
+		var(--color-grey-800)
+	);
+	--checkbox-label-background-hover: linear-gradient(
+		to top,
+		var(--color-grey-900),
+		var(--color-grey-800)
+	);
+	--checkbox-label-background-focus: linear-gradient(
+		to top,
+		var(--color-grey-900),
+		var(--color-grey-800)
+	);
 	--form-seperator-color: var(--color-border-primary);
 	--button-primary-border-color-base: var(--color-orange-600);
 	--button-primary-border-color-hover: var(--color-orange-600);
@@ -253,27 +330,63 @@
 	--button-primary-text-color-base: white;
 	--button-primary-text-color-hover: white;
 	--button-primary-text-color-focus: white;
-	--button-primary-background-base: linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-700));
-	--button-primary-background-hover: linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-500));
-	--button-primary-background-focus: linear-gradient(to bottom right, var(--color-orange-700), var(--color-orange-500));
+	--button-primary-background-base: linear-gradient(
+		to bottom right,
+		var(--color-orange-700),
+		var(--color-orange-700)
+	);
+	--button-primary-background-hover: linear-gradient(
+		to bottom right,
+		var(--color-orange-700),
+		var(--color-orange-500)
+	);
+	--button-primary-background-focus: linear-gradient(
+		to bottom right,
+		var(--color-orange-700),
+		var(--color-orange-500)
+	);
 	--button-secondary-border-color-base: var(--color-grey-600);
 	--button-secondary-border-color-hover: var(--color-grey-600);
 	--button-secondary-border-color-focus: var(--color-grey-600);
 	--button-secondary-text-color-base: white;
 	--button-secondary-text-color-hover: white;
 	--button-secondary-text-color-focus: white;
-	--button-secondary-background-base: linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-700));
-	--button-secondary-background-hover: linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-600));
-	--button-secondary-background-focus: linear-gradient(to bottom right, var(--color-grey-600), var(--color-grey-600));
+	--button-secondary-background-base: linear-gradient(
+		to bottom right,
+		var(--color-grey-600),
+		var(--color-grey-700)
+	);
+	--button-secondary-background-hover: linear-gradient(
+		to bottom right,
+		var(--color-grey-600),
+		var(--color-grey-600)
+	);
+	--button-secondary-background-focus: linear-gradient(
+		to bottom right,
+		var(--color-grey-600),
+		var(--color-grey-600)
+	);
 	--button-cancel-border-color-base: var(--color-red-600);
 	--button-cancel-border-color-hover: var(--color-red-600);
 	--button-cancel-border-color-focus: var(--color-red-600);
 	--button-cancel-text-color-base: white;
 	--button-cancel-text-color-hover: white;
 	--button-cancel-text-color-focus: white;
-	--button-cancel-background-base: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-700));
-	--button-cancel-background-focus: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500));
-	--button-cancel-background-hover: linear-gradient(to bottom right, var(--color-red-700), var(--color-red-500));
+	--button-cancel-background-base: linear-gradient(
+		to bottom right,
+		var(--color-red-700),
+		var(--color-red-700)
+	);
+	--button-cancel-background-focus: linear-gradient(
+		to bottom right,
+		var(--color-red-700),
+		var(--color-red-500)
+	);
+	--button-cancel-background-hover: linear-gradient(
+		to bottom right,
+		var(--color-red-700),
+		var(--color-red-500)
+	);
 	--button-plain-border-color-base: var(--color-grey-600);
 	--button-plain-border-color-hover: var(--color-grey-500);
 	--button-plain-border-color-focus: var(--color-grey-500);
@@ -316,5 +429,4 @@
 	--dataset-table-background-hover: var(--color-grey-700);
 	--dataset-table-border-base: var(--color-grey-800);
 	--dataset-table-border-hover: var(--color-grey-800);
-	
 }

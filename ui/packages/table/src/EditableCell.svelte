@@ -34,21 +34,21 @@
 <style>
 	input {
 		position: absolute;
-		outline: none;
 		top: var(--size-2);
+		right: var(--size-2);
 		bottom: var(--size-2);
 		left: var(--size-2);
-		right: var(--size-2);
-		background: transparent;
-		border: none;
-		transform: translateX(-0.1px);
 		flex: 1 1 0%;
+		transform: translateX(-0.1px);
+		outline: none;
+		border: none;
+		background: transparent;
 	}
 
 	span {
-		padding: var(--size-2);
 		flex: 1 1 0%;
 		outline: none;
+		padding: var(--size-2);
 	}
 
 	.header {

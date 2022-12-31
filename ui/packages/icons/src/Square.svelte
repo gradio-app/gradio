@@ -9,5 +9,6 @@
 	stroke-linecap="round"
 	stroke-linejoin="round"
 	class="feather feather-square"
-	><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /></svg
 >
+	<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+</svg>

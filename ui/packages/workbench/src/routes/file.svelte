@@ -8,18 +8,22 @@
 <Block padding={false}>
 	<FileUpload label="File upload - single" value={null}>
 		drop file
-		<br />- or -<br />
-		click to upload</FileUpload
-	>
+		<br />
+		- or -
+		<br />
+		click to upload
+	</FileUpload>
 </Block>
 <span />
 
 <Block padding={false}>
 	<FileUpload label="File upload - multiple" value={null} file_count="multiple">
 		drop file
-		<br />- or -<br />
-		click to upload</FileUpload
-	>
+		<br />
+		- or -
+		<br />
+		click to upload
+	</FileUpload>
 </Block>
 <span />
 

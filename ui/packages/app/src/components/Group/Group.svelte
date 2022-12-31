@@ -13,13 +13,13 @@
 	}
 
 	div > :global(*:first-child) {
-		border-top-left-radius: var(--radius-lg) !important;
 		border-top-right-radius: var(--radius-lg) !important;
+		border-top-left-radius: var(--radius-lg) !important;
 	}
 
 	div > :global(*:last-child) {
-		border-top-left-radius: var(--radius-lg) !important;
 		border-top-right-radius: var(--radius-lg) !important;
+		border-top-left-radius: var(--radius-lg) !important;
 	}
 
 	div > :global(* + *:not(.absolute)) {

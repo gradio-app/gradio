@@ -80,24 +80,24 @@
 <style>
 	.spacer {
 		display: inline-block;
-		height: 0;
 		width: 0;
+		height: 0;
 	}
 
 	.json-node {
 		display: inline;
-		font-size: var(--scale-00);
-		font-family: var(--font-mono);
-		line-height: var(--line-sm);
 		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+		font-family: var(--font-mono);
 	}
 
 	.expand-array {
-		background-color: vSar(--color-background-secondary);
 		border: 1px solid var(--color-border-primary);
-		color: var(--color-text-body);
 		border-radius: var(--radius-sm);
+		background-color: vSar(--color-background-secondary);
 		padding: 0 var(--size-1);
+		color: var(--color-text-body);
 	}
 
 	.expand-array:hover {

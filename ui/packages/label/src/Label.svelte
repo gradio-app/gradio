@@ -39,24 +39,24 @@
 
 <style>
 	.output-class {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: var(--size-6) var(--size-4);
+		color: var(--color-text-body);
 		font-weight: var(--weight-bold);
 		font-size: var(--scale-3);
-		padding: var(--size-6) var(--size-4);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--color-text-body);
 	}
 
 	.confidence-set {
 		display: flex;
-		align-items: flex-start;
 		justify-content: space-between;
-		font-family: var(--font-mono);
-		font-size: var(--scale-00);
-		line-height: var(--line-none);
+		align-items: flex-start;
 		margin-bottom: var(--size-2);
 		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-none);
+		font-family: var(--font-mono);
 	}
 
 	.confidence-set:last-child {
@@ -68,7 +68,6 @@
 	}
 
 	.bar {
-		height: var(--size-1);
 		margin-bottom: var(--size-1);
 		border-radius: var(--radius-md);
 		background: linear-gradient(
@@ -76,6 +75,7 @@
 			var(--label-gradient-from),
 			var(--label-gradient-to)
 		);
+		height: var(--size-1);
 	}
 
 	.confidence-set:hover .bar {
@@ -105,12 +105,12 @@
 	.line {
 		flex: 1 1 0%;
 		border: 1px dashed var(--color-border-primary);
-		padding-left: var(--size-4);
 		padding-right: var(--size-4);
+		padding-left: var(--size-4);
 	}
 
 	.confidence {
-		text-align: right;
 		margin-left: auto;
+		text-align: right;
 	}
 </style>

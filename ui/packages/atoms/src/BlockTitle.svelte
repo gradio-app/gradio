@@ -8,17 +8,17 @@
 
 <style>
 	span {
-		position: relative;
 		display: block;
-		margin-bottom: var(--size-2);
+		position: relative;
 		z-index: var(--layer-4);
+		margin-bottom: var(--size-2);
 		color: var(--color-text-label);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
 	}
 
 	.hide {
-		height: 0;
 		margin: 0;
+		height: 0;
 	}
 </style>

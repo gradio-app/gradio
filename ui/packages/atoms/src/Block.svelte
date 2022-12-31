@@ -54,16 +54,16 @@
 <style>
 	.block {
 		position: relative;
-		overflow: hidden;
+		margin: 0;
+		box-shadow: var(--shadow-drop);
+		border-width: 1px;
+		border-radius: var(--block-border-radius);
+		background: var(--block-background);
 		width: 100%;
+		overflow: hidden;
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
-		border-radius: var(--block-border-radius);
-		box-shadow: var(--shadow-drop);
-		background: var(--block-background);
-		border-width: 1px;
-		margin: 0;
 	}
 
 	.padded {

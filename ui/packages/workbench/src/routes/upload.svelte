@@ -20,12 +20,13 @@
 	<Upload
 		on:load={({ detail }) => console.log("change", detail)}
 		filetype="file"
-		><div>
+	>
+		<div>
 			<pre>filetype="file"</pre>
 			<br />
 			drag or click
-		</div></Upload
-	>
+		</div>
+	</Upload>
 </Block>
 <span />
 <Block>

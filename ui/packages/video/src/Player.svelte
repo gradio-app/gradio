@@ -128,10 +128,10 @@
 	}
 
 	progress {
-		border-radius: var(--radius-md);
-		height: var(--size-2);
-		width: var(--size-full);
 		margin-right: var(--size-3);
+		border-radius: var(--radius-md);
+		width: var(--size-full);
+		height: var(--size-2);
 	}
 
 	progress::-webkit-progress-bar {
@@ -145,10 +145,10 @@
 	}
 
 	video {
+		background-color: black;
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
-		background-color: black;
 	}
 
 	.mirror {
@@ -156,41 +156,41 @@
 	}
 
 	.controls {
-		width: calc(100% - 0.375rem * 2);
-		width: calc(100% - var(--size-2) * 2);
 		position: absolute;
 		bottom: 0;
 		transition: 500ms;
 		margin: var(--size-2);
+		border-radius: var(--radius-md);
 		background: var(--color-grey-800);
 		padding: var(--size-2) var(--size-1);
-		border-radius: var(--radius-md);
+		width: calc(100% - 0.375rem * 2);
+		width: calc(100% - var(--size-2) * 2);
 	}
 
 	.inner {
 		display: flex;
-		width: var(--size-full);
 		justify-content: space-between;
-		height: var(--size-full);
 		align-items: center;
-		padding-left: var(--size-2);
 		padding-right: var(--size-2);
+		padding-left: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-full);
 	}
 
 	.icon {
-		width: var(--size-6);
-		cursor: pointer;
-		color: white;
 		display: flex;
 		justify-content: center;
+		cursor: pointer;
+		width: var(--size-6);
+		color: white;
 	}
 
 	.time {
-		font-family: var(--font-mono);
 		flex-shrink: 0;
-		font-size: var(--scale-000);
-		margin-left: var(--size-3);
 		margin-right: var(--size-3);
+		margin-left: var(--size-3);
 		color: white;
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
 	}
 </style>

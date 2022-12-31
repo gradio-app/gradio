@@ -574,24 +574,24 @@
 	}
 
 	.wrap {
-		touch-action: none;
 		position: relative;
-		height: var(--size-full);
 		width: var(--size-full);
+		height: var(--size-full);
+		touch-action: none;
 	}
 
 	.start-prompt {
+		display: flex;
 		position: absolute;
 		top: 0px;
 		right: 0px;
 		bottom: 0px;
 		left: 0px;
-		display: flex;
-		align-items: center;
 		justify-content: center;
+		align-items: center;
 		z-index: var(--layer-4);
-		pointer-events: none;
 		touch-action: none;
+		pointer-events: none;
 		color: var(--color-text-subdued);
 	}
 </style>

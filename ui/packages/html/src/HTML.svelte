@@ -11,7 +11,7 @@
 	$: value, dispatch("change");
 </script>
 
-<div class:min={min_height} id={elem_id} class:hide={!visible}>
+<div class="prose" class:min={min_height} id={elem_id} class:hide={!visible}>
 	{@html value}
 </div>
 

@@ -101,9 +101,9 @@
 
 <style>
 	div {
+		cursor: pointer;
 		width: var(--size-full);
 		height: var(--size-full);
-		cursor: pointer;
 	}
 
 	.center {

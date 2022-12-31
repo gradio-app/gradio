@@ -114,7 +114,8 @@
 			>
 				<span class:no-label={!_color_map[category]} class="text">{text}</span>
 				{#if !show_legend && category !== null}
-					&nbsp;<span
+					&nbsp;
+					<span
 						class="label"
 						style:background-color={category === null ||
 						(active && active !== category)
@@ -162,68 +163,68 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--size-1);
-		margin-bottom: var(--size-2);
 		margin-top: var(--size-7);
+		margin-bottom: var(--size-2);
 		color: black;
 	}
 
 	.category-label {
+		cursor: pointer;
+		border-radius: var(--highlighted_text-outer-border-radius);
 		padding-right: var(--size-2);
 		padding-left: var(--size-2);
-		border-radius: var(--highlighted_text-outer-border-radius);
-		cursor: pointer;
 		font-weight: var(--weight-semibold);
 	}
 
 	.color-legend {
+		display: flex;
+		justify-content: space-between;
+		margin-top: var(--size-7);
+		margin-bottom: var(--size-3);
+		border-radius: var(--highlighted_text-outer-border-radius);
 		background: linear-gradient(
 			to right,
 			var(--color-purple),
 			rgba(255, 255, 255, 0),
 			var(--color-red)
 		);
-		display: flex;
-		justify-content: space-between;
-		border-radius: var(--highlighted_text-outer-border-radius);
-		margin-bottom: var(--size-3);
-		margin-top: var(--size-7);
-		font-weight: var(--weight-semibold);
 		padding: var(--size-1) var(--size-2);
+		font-weight: var(--weight-semibold);
 	}
 
 	.textfield {
+		box-sizing: border-box;
+		margin-top: var(--size-7);
+		border-radius: var(--highlighted_text-outer-border-radius);
 		background: var(--color-background-primary);
 		background-color: transparent;
-		box-sizing: border-box;
-		border-radius: var(--highlighted_text-outer-border-radius);
 		max-width: var(--size-full);
-		word-break: break-all;
-		line-height: var(--scale-4);
-		margin-top: var(--size-7);
 		font-size: var(--scale-00);
+		line-height: var(--scale-4);
+		word-break: break-all;
 	}
 
 	.textspan {
-		border-radius: var(--highlighted_text-outer-border-radius);
-		padding-left: var(--size-1);
-		padding-right: var(--size-1);
 		transition: 150ms;
-		padding-bottom: 3.5px;
+		border-radius: var(--highlighted_text-outer-border-radius);
 		padding-top: 2.5px;
+		padding-right: var(--size-1);
+		padding-bottom: 3.5px;
+		padding-left: var(--size-1);
 		color: black;
 	}
 
 	.label {
+		transition: 150ms;
+		margin-top: 1px;
 		margin-right: calc(var(--size-1) * -1);
-		font-weight: var(--weight-bold);
-		text-transform: uppercase;
-		font-size: var(--scale-000);
-		color: var(--color-text-body);
 		border-radius: var(--highlighted_text-inner-border-radius);
 		padding: 1px 5px;
-		margin-top: 1px;
-		transition: 150ms;
+		color: var(--color-text-body);
 		color: white;
+		font-weight: var(--weight-bold);
+		font-size: var(--scale-000);
+		text-transform: uppercase;
 	}
 
 	.text {
@@ -235,8 +236,8 @@
 	}
 
 	.score-text {
-		padding: var(--size-1);
 		margin-right: var(--size-1);
+		padding: var(--size-1);
 	}
 
 	.no-cat {

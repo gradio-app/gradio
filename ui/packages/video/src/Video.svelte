@@ -81,13 +81,13 @@
 
 <style>
 	.file-name {
-		font-size: var(--scale-6);
 		padding: var(--size-6);
+		font-size: var(--scale-6);
 		word-break: break-all;
 	}
 
 	.file-size {
-		font-size: var(--scale-4);
 		padding: var(--size-2);
+		font-size: var(--scale-4);
 	}
 </style>

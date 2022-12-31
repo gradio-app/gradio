@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import "./typography.css";
 	import "./latex.css";
 	export let elem_id: string = "";
 	export let visible: boolean = true;
@@ -17,7 +16,7 @@
 <div
 	id={elem_id}
 	class:min={min_height}
-	class="gr-prose"
+	class="prose"
 	class:hide={!visible}
 	bind:this={target}
 >

@@ -66,8 +66,8 @@
 
 <style>
 	.wrap {
-		overflow-y: auto;
 		height: var(--size-56);
+		overflow-y: auto;
 	}
 
 	.message-wrap {
@@ -86,38 +86,38 @@
 	}
 
 	.message {
-		padding: var(--size-2) var(--size-3);
-		border-radius: var(--chatbot-border-radius);
 		border-width: var(--chatbot-border-width);
 		border-style: solid;
+		border-radius: var(--chatbot-border-radius);
+		padding: var(--size-2) var(--size-3);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
 	}
 
 	.user {
+		border-color: var(--chatbot-user-border-color-base);
 		border-bottom-right-radius: 0;
 		background: var(--chatbot-user-background-base);
-		border-color: var(--chatbot-user-border-color-base);
 		color: var(--chatbot-user-text-color-base);
 	}
 
 	.user.latest {
-		background: var(--chatbot-user-background-latest);
 		border-color: var(--chatbot-user-border-color-latest);
+		background: var(--chatbot-user-background-latest);
 		color: var(--chatbot-user-text-color-latest);
 	}
 
 	.bot {
+		place-self: start;
+		border-color: var(--chatbot-bot-border-color-base);
 		border-bottom-left-radius: 0;
 		background: var(--chatbot-bot-background-base);
-		border-color: var(--chatbot-bot-border-color-base);
 		color: var(--chatbot-bot-text-color-base);
-		place-self: start;
 	}
 
 	.bot.latest {
-		background: var(--chatbot-bot-background-latest);
 		border-color: var(--chatbot-bot-border-color-latest);
+		background: var(--chatbot-bot-background-latest);
 		color: var(--chatbot-bot-text-color-latest);
 	}
 </style>

@@ -1,6 +1,4 @@
 // @ts-nocheck
-const tw_theme = require("tailwindcss/defaultTheme");
-
 const fs = require("fs");
 const path = require("path");
 
@@ -21,7 +19,6 @@ const foundation_light = {
 			label: "var(--color-grey)",
 			placeholder: "var(--color-grey-400)",
 			subdued: "var(--color-grey-400)",
-			// link: "var(--color-blue-600)",
 			link: {
 				base: "var(--color-blue-600)",
 				hover: "var(--color-blue-700)",
@@ -69,7 +66,7 @@ const foundation_dark = {
 			tertiary: "var(--color-grey-800)"
 		},
 		text: {
-			body: "var(--color-grey-300)",
+			body: "var(--color-grey-100)",
 			label: "var(--color-grey-200)",
 			placeholder: "var(--color-grey)",
 			subdued: "var(--color-grey-400)", // i dont know what this is for? upload text?
@@ -104,6 +101,15 @@ const foundation_dark = {
 };
 
 const theme_light = {
+	api: {
+		background:
+			"linear-gradient(to bottom, rgba(255, 216, 180, 0.2), transparent)",
+		pill: {
+			background: "var(--color-orange-100)",
+			border: "var(--color-orange-200)",
+			text: "var(--color-orange-600)"
+		}
+	},
 	block: {
 		border: {
 			radius: "var(--radius-lg)",
@@ -440,6 +446,15 @@ const theme_light = {
 };
 
 const theme_dark = {
+	api: {
+		background:
+			"linear-gradient(to bottom, rgba(255, 216, 180, 0.05), transparent)",
+		pill: {
+			background: "var(--color-orange-400)",
+			border: "var(--color-orange-600)",
+			text: "var(--color-orange-900)"
+		}
+	},
 	block: {
 		border: {
 			color: "color.border.primary"

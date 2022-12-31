@@ -26,8 +26,9 @@
 						href={download_files(file)}
 						target={window.__is_colab__ ? "_blank" : null}
 						download={window.__is_colab__ ? null : display_file_name(file)}
-						>Download</a
 					>
+						Download
+					</a>
 				</td>
 			</tr>
 		{/each}
@@ -40,16 +41,16 @@
 	}
 
 	td:last-child {
-		text-align: right;
 		width: 10%;
+		text-align: right;
 	}
 
 	.file-preview {
 		margin-top: var(--size-7);
 		margin-bottom: var(--size-7);
-		overflow-y: scroll;
 		width: var(--size-full);
 		max-height: var(--size-60);
+		overflow-y: scroll;
 		color: var(--color-text-body);
 	}
 	.file {

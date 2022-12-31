@@ -135,31 +135,31 @@
 
 <style>
 	.wrap {
-		height: var(--size-full);
-		width: var(--size-full);
-		min-height: var(--size-60);
 		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+		min-height: var(--size-60);
 	}
 
 	video {
-		height: var(--size-full);
 		width: var(--size-full);
+		height: var(--size-full);
 	}
 
 	button {
-		border-radius: var(--radius-xl);
-		width: var(--size-10);
-		height: var(--size-10);
 		display: flex;
-		justify-content: center;
-		align-items: center;
 		position: absolute;
-		left: 0px;
 		right: 0px;
 		bottom: var(--size-2);
+		left: 0px;
+		justify-content: center;
+		align-items: center;
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-xl);
 		background-color: rgba(0, 0, 0, 0.9);
+		width: var(--size-10);
+		height: var(--size-10);
 	}
 
 	@media (--screen-md) {
@@ -175,9 +175,9 @@
 	}
 
 	.icon {
+		opacity: 0.8;
 		width: 50%;
 		height: 50%;
-		opacity: 0.8;
 		color: white;
 	}
 </style>

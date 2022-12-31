@@ -44,9 +44,9 @@
 
 <style>
 	div {
-		height: 200px;
 		display: flex;
 		gap: 1rem;
+		height: 200px;
 	}
 	span {
 		display: block;

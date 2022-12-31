@@ -7,11 +7,11 @@
 }
 
 html {
-	line-height: 1.5;
 	-webkit-text-size-adjust: 100%;
+	line-height: 1.5;
+	font-family: -var(--font-sans);
 	-moz-tab-size: 4;
 	tab-size: 4;
-	font-family: -var(--font-sans);
 }
 
 body {
@@ -20,9 +20,9 @@ body {
 }
 
 hr {
+	border-top-width: 1px;
 	height: 0;
 	color: inherit;
-	border-top-width: 1px;
 }
 
 abbr:where([title]) {
@@ -35,8 +35,8 @@ h3,
 h4,
 h5,
 h6 {
-	font-size: inherit;
 	font-weight: inherit;
+	font-size: inherit;
 }
 
 a {
@@ -53,8 +53,8 @@ code,
 kbd,
 samp,
 pre {
-	font-family: -var(--font-mono);
 	font-size: 1em;
+	font-family: -var(--font-mono);
 }
 
 small {
@@ -63,10 +63,10 @@ small {
 
 sub,
 sup {
-	font-size: 75%;
-	line-height: 0;
 	position: relative;
 	vertical-align: baseline;
+	font-size: 75%;
+	line-height: 0;
 }
 
 sub {
@@ -78,9 +78,9 @@ sup {
 }
 
 table {
-	text-indent: 0;
 	border-color: inherit;
 	border-collapse: collapse;
+	text-indent: 0;
 }
 
 button,
@@ -88,13 +88,13 @@ input,
 optgroup,
 select,
 textarea {
-	font-family: inherit;
-	font-size: 100%;
-	font-weight: inherit;
-	line-height: inherit;
-	color: inherit;
 	margin: 0;
 	padding: 0;
+	color: inherit;
+	font-weight: inherit;
+	font-size: 100%;
+	line-height: inherit;
+	font-family: inherit;
 }
 
 button,
@@ -107,8 +107,8 @@ button,
 [type="reset"],
 [type="submit"] {
 	-webkit-appearance: button;
-	background-color: transparent;
 	background-image: none;
+	background-color: transparent;
 }
 
 :-moz-focusring {
@@ -174,9 +174,9 @@ legend {
 ol,
 ul,
 menu {
-	list-style: none;
 	margin: 0;
 	padding: 0;
+	list-style: none;
 }
 
 textarea {
