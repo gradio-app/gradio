@@ -4,7 +4,7 @@ import typing
 from typing import Any, Callable, Optional, Tuple
 
 import numpy as np
-import PIL
+from PIL.Image import Image
 
 from gradio import components
 
@@ -53,7 +53,7 @@ class Webcam(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.ndarray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -98,7 +98,7 @@ class Sketchpad(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = (28, 28),
         image_mode: str = "L",
@@ -143,7 +143,7 @@ class Paint(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -188,7 +188,7 @@ class ImageMask(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -233,7 +233,7 @@ class ImagePaint(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -278,7 +278,7 @@ class Pil(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | PIL.Image | np.narray] = None,
+        value: Optional[str | Image | np.narray] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
