@@ -6,12 +6,12 @@
 	export let show_label: boolean = true;
 	export let disable: boolean = false;
 
-	$: ({ classes } = get_styles({ label_container: !disable }, [
+	$: ({ styles } = get_styles({ label_container: !disable }, [
 		"label_container"
 	]));
 </script>
 
-<div class:hide={!show_label} class:sr-only={!show_label} class={classes}>
+<div class:hide={!show_label} class:sr-only={!show_label} style={styles}>
 	<span>
 		<Icon />
 	</span>

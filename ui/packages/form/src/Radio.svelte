@@ -23,7 +23,7 @@
 
 <div class="wrap">
 	{#each choices as choice, i (i)}
-		<label class:disabled class={item_container}>
+		<label class:disabled style={item_container}>
 			<input
 				{disabled}
 				bind:group={value}
@@ -78,14 +78,29 @@
 		line-height: var(--line-sm);
 	}
 
+	input:checked {
+		border-color: var(--checkbox-border-color-selected);
+		background-color: var(--checkbox-background-selected);
+	}
+
+	input:hover {
+		border-color: var(--checkbox-border-color-hover);
+		background-color: var(--checkbox-background-hover);
+	}
+
 	input:focus {
 		--ring-color: var(--color-focus-ring);
 		border-color: var(--checkbox-border-color-focus);
-		background-color: var(--checkbox-background-color-focus);
+		background-color: var(--checkbox-background-focus);
 	}
 
-	input:checked {
-		border-color: var(--checkbox-border-color-selected);
+	input:checked:focus {
+		border-color: var(--checkbox-background-selected);
+		background-color: var(--checkbox-background-selected);
+	}
+
+	input:checked:hover {
+		border-color: var(--checkbox-background-selected);
 		background-color: var(--checkbox-background-selected);
 	}
 

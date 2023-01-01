@@ -22,6 +22,7 @@
 <style>
 	div {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--size-4);
 		width: var(--size-full);
 	}

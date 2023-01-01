@@ -8,13 +8,14 @@
 	export let variant: "primary" | "secondary" | "stop" | "plain" = "secondary";
 	export let size: "sm" | "lg" = "lg";
 
-	$: ({ classes } = get_styles(style, ["full_width"]));
+	$: ({ styles } = get_styles(style, ["full_width"]));
 </script>
 
 <button
 	on:click
 	class:hide={!visible}
-	class="{size} {variant} {classes}"
+	class="{size} {variant}"
+	style={styles}
 	id={elem_id}
 >
 	<slot />

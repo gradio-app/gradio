@@ -188,8 +188,9 @@ const theme_light = {
 			color: {
 				base: "var(--color-grey-300)",
 				hover: "var(--color-grey-300)",
-				focus: "var(--color-grey-300)",
-				selected: "transparent"
+				focus: "var(--color-blue-500)",
+				// selected: "transparent"
+				selected: "color.border.secondary"
 			}
 		},
 		background: {
@@ -505,7 +506,7 @@ const theme_dark = {
 			color: {
 				base: "color.border.primary",
 				hover: "color.border.primary",
-				focus: "color.focus.primary"
+				focus: "color.border.primary"
 			}
 		},
 		background: {
@@ -519,9 +520,9 @@ const theme_dark = {
 		border: {
 			color: {
 				base: "color.border.primary",
-				hover: "color.border.primary",
-				focus: "color.focus.primary",
-				selected: "transparent"
+				hover: "color.focus.primary",
+				focus: "var(--color-blue-500)"
+				// selected: "color.border.secondary"
 			}
 		},
 		background: {

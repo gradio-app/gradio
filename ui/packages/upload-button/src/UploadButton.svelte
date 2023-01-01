@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from "@gradio/button";
-	import { get_styles } from "@gradio/utils";
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "./types";

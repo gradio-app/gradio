@@ -738,6 +738,10 @@
 		border-bottom-right-radius: var(--block-border-radius);
 	}
 
+	tr th {
+		background: var(--table-even-background);
+	}
+
 	th svg {
 		fill: currentColor;
 		font-size: 10px;
@@ -796,7 +800,7 @@
 		align-items: center;
 		outline: none;
 		height: var(--size-full);
-		min-height: var(--size-10);
+		min-height: var(--size-9);
 	}
 
 	.controls-wrap {
