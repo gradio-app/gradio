@@ -284,7 +284,7 @@ class Pil(components.Image):
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "upload",
-        tool: str = None,
+        tool: str | None = None,
         type: str = "pil",
         label: Optional[str] = None,
         show_label: bool = True,
