@@ -1,7 +1,13 @@
 .output-markdown .math.inline {
-	/* TODO: */
-	@apply inline-block dark:invert align-middle pb-1.5 px-1;
+	display: inline-block;
+	vertical-align: middle;
+	padding: var(--size-1-5) -var(--size-1);
 }
+
+.dark .output-markdown .math.inline {
+	filter: invert(100%);
+}
+
 .output-markdown .math.inline svg {
 	display: inline;
 }
