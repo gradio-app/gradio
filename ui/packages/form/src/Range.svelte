@@ -67,15 +67,15 @@
 		outline: none !important;
 		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
 		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-xs);
+		border-radius: var(--radius-lg);
 		background: var(--input-background-base);
-		padding: var(--size-3) var(--size-1);
-		padding-right: 0;
+		padding: var(--size-2) var(--size-2);
+		/* padding-right: 0; */
 		height: var(--size-6);
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);
-		text-align: left;
+		text-align: center;
 	}
 
 	input:focus {
