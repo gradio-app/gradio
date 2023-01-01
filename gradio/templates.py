@@ -360,7 +360,7 @@ class Microphone(components.Audio):
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.array] | Callable] = None,
+        value: Optional[str | Tuple[int, np.ndarray] | Callable] = None,
         *,
         source: str = "microphone",
         type: str = "numpy",
