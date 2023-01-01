@@ -98,13 +98,13 @@ class Sketchpad(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.narray] = None,
+        value: Optional[str | Image | np.ndarray] = None,
         *,
         shape: Tuple[int, int] = (28, 28),
         image_mode: str = "L",
         invert_colors: bool = True,
         source: str = "canvas",
-        tool: str = None,
+        tool: str | None = None,
         type: str = "numpy",
         label: Optional[str] = None,
         show_label: bool = True,
