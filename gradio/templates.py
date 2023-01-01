@@ -143,9 +143,9 @@ class Paint(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.narray] = None,
+        value: Optional[str | Image | np.ndarray] = None,
         *,
-        shape: Tuple[int, int] = None,
+        shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
         invert_colors: bool = False,
         source: str = "canvas",
