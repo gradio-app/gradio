@@ -24,7 +24,15 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 
 Make sure you have at least one of these installed so that you can follow along the tutorial. You will also need `ffmpeg` [installed on your system](https://www.ffmpeg.org/download.html), if you do not already have it, to process files from the microphone.
 
-## Step 1 — Setting up the Transformers ASR Model
+Here's how to build a real time speech recognition (ASR) app: 
+
+1. [Set up the Transformers ASR Model](#1-set-up-the-transformers-asr-model)
+2. [Create a Full-Context ASR Demo with Transformers](#2-create-a-full-context-asr-demo-with-transformers) 
+3. [Create a Streaming ASR Demo  with Transformers](#3-create-a-streaming-asr-demo-with-transformers)
+4. [Create a Streaming ASR Demo with DeepSpeech](#4-create-a-streaming-asr-demo-with-deepspeech)
+
+
+## 1. Set up the Transformers ASR Model
 
 First, you will need to have an ASR model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will start by using a pretrained ASR model from the Hugging Face model, `Wav2Vec2`. 
 
@@ -38,7 +46,7 @@ p = pipeline("automatic-speech-recognition")
 
 That's it! By default, the automatic speech recognition model pipeline loads Facebook's `facebook/wav2vec2-base-960h` model.
 
-## Step 2 — Creating a Full-Context ASR Demo with Transformers 
+## 2. Create a Full-Context ASR Demo with Transformers 
 
 We will start by creating a *full-context* ASR demo, in which the user speaks the full audio before using the ASR model to run inference. This is very easy with Gradio -- we simply create a function around the `pipeline` object above.
 
@@ -63,7 +71,7 @@ Let's see it in action! (Record a short audio clip and then click submit, or [op
 
 <iframe src="https://abidlabs-full-context-asr.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-## Step 3 — Creating a Streaming ASR Demo  with Transformers
+## 3. Create a Streaming ASR Demo  with Transformers
 
 Ok great! We've built an ASR model that works well for short audio clips. However, if you are recording longer audio clips, you probably want a *streaming* interface, one that transcribes audio as the user speaks instead of just all-at-once at the end.
 
@@ -140,7 +148,7 @@ Try the demo below to see the difference (or [open in a new tab](https://hugging
 <iframe src="https://abidlabs-streaming-asr-paused.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
-## Step 4 — Creating a Streaming ASR Demo with DeepSpeech
+## 4. Create a Streaming ASR Demo with DeepSpeech
 
 You're not restricted to ASR models from the `transformers` library -- you can use your own models or models from other libraries. The `DeepSpeech` library contains models that are specifically designed to handle streaming audio data. These models perform really well with  streaming data as they are able to account for previous chunks of audio data when making predictions.
 

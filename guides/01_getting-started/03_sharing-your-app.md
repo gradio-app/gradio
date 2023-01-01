@@ -1,5 +1,18 @@
 # Sharing Your App
 
+This guide will cover how sharing works with Gradio. 
+
+How to share your Gradio app: 
+
+1. [Sharing demos with the share parameter](#sharing-demos)
+2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
+3. [Embedding hosted spaces](#embedding-hosted-spaces)
+4. [Embedding with web components](#embedding-with-web-components)
+5. [Using the API page](#api-page)
+6. [Adding authentication to the page](#authentication)
+7. [Accessing Network Requests](#accessing-the-network-request-directly)
+8. [Mounting within FastAPI](#mounting-within-another-fastapi-app)
+
 ## Sharing Demos
 
 Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
