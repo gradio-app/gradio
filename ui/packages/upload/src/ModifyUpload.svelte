@@ -17,11 +17,12 @@
 	style:position={absolute ? "absolute" : "static"}
 >
 	{#if editable}
-		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
+		<IconButton Icon={Edit} label="Edit" on:click={() => dispatch("edit")} />
 	{/if}
 
 	<IconButton
 		Icon={Clear}
+		label="Clear"
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

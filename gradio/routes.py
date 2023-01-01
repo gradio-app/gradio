@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
+import markupsafe
 import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
@@ -36,10 +37,10 @@ from starlette.websockets import WebSocketState
 
 import gradio
 from gradio import encryptor, utils
-from gradio.dataclasses import PredictBody, ResetBody
+from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
-from gradio.queue import Estimation, Event
+from gradio.queueing import Estimation, Event
 from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
 
 mimetypes.init()
@@ -55,11 +56,34 @@ with open(VERSION_FILE) as version_file:
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
 
+    @staticmethod
+    def _render(content: Any) -> bytes:
+        return orjson.dumps(
+            content,
+            option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+            default=str,
+        )
+
     def render(self, content: Any) -> bytes:
-        return orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY)
+        return ORJSONResponse._render(content)
+
+    @staticmethod
+    def _render_str(content: Any) -> str:
+        return ORJSONResponse._render(content).decode("utf-8")
+
+
+def toorjson(value):
+    return markupsafe.Markup(
+        ORJSONResponse._render_str(value)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("&", "\\u0026")
+        .replace("'", "\\u0027")
+    )
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+templates.env.filters["toorjson"] = toorjson
 
 
 ###########
@@ -101,7 +125,7 @@ class App(FastAPI):
         self.tokens = {}
 
     @staticmethod
-    def create_app(blocks: gradio.Blocks) -> FastAPI:
+    def create_app(blocks: gradio.Blocks) -> App:
         app = App(default_response_class=ORJSONResponse)
         app.configure_app(blocks)
 
@@ -236,17 +260,17 @@ class App(FastAPI):
                 return FileResponse(
                     io.BytesIO(file_data), attachment_filename=os.path.basename(path)
                 )
-            elif Path(app.cwd).resolve() in Path(path).resolve().parents or any(
-                Path(temp_dir).resolve() in Path(path).resolve().parents
-                for temp_dir in app.blocks.temp_dirs
-            ):
+            if Path(app.cwd).resolve() in Path(
+                path
+            ).resolve().parents or os.path.abspath(path) in set().union(
+                *app.blocks.temp_file_sets
+            ):  # Need to use os.path.abspath in the second condition to be consistent with usage in TempFileManager
                 return FileResponse(
                     Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
                 )
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}, perhaps because "
-                    f"it is not in any of {app.blocks.temp_dirs}"
+                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -288,6 +312,7 @@ class App(FastAPI):
             else:
                 session_state = {}
                 iterators = {}
+            event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
             batch = app.blocks.dependencies[fn_index]["batch"]
@@ -298,9 +323,9 @@ class App(FastAPI):
                     fn_index=fn_index,
                     inputs=raw_input,
                     request=request,
-                    username=username,
                     state=session_state,
                     iterators=iterators,
+                    event_id=event_id,
                 )
                 iterator = output.pop("iterator", None)
                 if hasattr(body, "session_hash"):
@@ -380,16 +405,15 @@ class App(FastAPI):
                 app_url = get_server_url_from_ws_url(str(websocket.url))
                 app.blocks._queue.set_url(app_url)
             await websocket.accept()
-            event = Event(websocket)
-            # set the token into Event to allow using the same token for call_prediction
-            event.token = token
-
             # In order to cancel jobs, we need the session_hash and fn_index
             # to create a unique id for each job
             await websocket.send_json({"msg": "send_hash"})
-            session_hash = await websocket.receive_json()
-            event.session_hash = session_hash["session_hash"]
-            event.fn_index = session_hash["fn_index"]
+            session_info = await websocket.receive_json()
+            event = Event(
+                websocket, session_info["session_hash"], session_info["fn_index"]
+            )
+            # set the token into Event to allow using the same token for call_prediction
+            event.token = token
 
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
@@ -513,7 +537,6 @@ class Request:
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
     of this class include: `headers`, `client`, `query_params`, and `path_params`,
-
     Example:
         import gradio as gr
         def echo(name, request: gr.Request):
@@ -527,6 +550,8 @@ class Request:
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
         attributes (needed for websocket-based queueing).
+        Parameters:
+            request: A fastapi.Request
         """
         self.request: fastapi.Request = request
         self.kwargs: Dict = kwargs

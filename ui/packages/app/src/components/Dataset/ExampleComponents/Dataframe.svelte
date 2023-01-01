@@ -9,7 +9,8 @@
 	export let index: number;
 
 	let hovered = false;
-	let loaded = Array.isArray(value);
+	let loaded_value: Array<Array<string | number>> | string = value;
+	let loaded = Array.isArray(loaded_value);
 
 	$: if (!loaded && typeof value === "string" && /\.[a-zA-Z]+$/.test(value)) {
 		fetch(samples_dir + value)
@@ -23,7 +24,7 @@
 							.map((v) => v.split(",").slice(0, 4).join(","))
 							.join("\n");
 
-						value = csvParseRows(small_df);
+						loaded_value = csvParseRows(small_df);
 					} else if ((value as string).endsWith("tsv")) {
 						const small_df = v
 							.split("\n")
@@ -31,7 +32,7 @@
 							.map((v) => v.split("\t").slice(0, 4).join("\t"))
 							.join("\n");
 
-						value = tsvParseRows(small_df);
+						loaded_value = tsvParseRows(small_df);
 					} else {
 						throw new Error(
 							"Incorrect format, only CSV and TSV files are supported"
@@ -55,7 +56,7 @@
 		on:mouseleave={() => (hovered = false)}
 	>
 		<table class="">
-			{#each value.slice(0, 3) as row, i}
+			{#each loaded_value.slice(0, 3) as row, i}
 				<tr>
 					{#each row.slice(0, 3) as cell, j}
 						<td>{cell}</td>

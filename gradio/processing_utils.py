@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -8,9 +9,11 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 import warnings
 from io import BytesIO
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Tuple
 
 import numpy as np
 import requests
@@ -108,15 +111,6 @@ def encode_plot_to_base64(plt):
     return "data:image/png;base64," + base64_str
 
 
-def download_to_file(url, dir=None):
-    file_suffix = os.path.splitext(url)[1]
-    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix, dir=dir)
-    with requests.get(url, stream=True) as r:
-        with open(file_obj.name, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-    return file_obj
-
-
 def save_array_to_file(image_array, dir=None):
     pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
     file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
@@ -194,11 +188,15 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        error_message = str(e)
-        if "ffprobe" in error_message:
-            print(
-                "Please install `ffmpeg` in your system to use non-WAV audio file formats."
-            )
+        isfile = os.path.isfile(filename)
+        msg = (
+            f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
+            + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
+            " and make sure `ffprobe` is in your PATH."
+            if isfile
+            else ""
+        )
+        raise RuntimeError(msg) from e
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100
@@ -255,7 +253,7 @@ def convert_to_16_bit_wav(data):
 ##################
 
 
-def decode_base64_to_binary(encoding):
+def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
     data = encoding.split(",")[1]
     return base64.b64decode(data), extension
@@ -293,20 +291,6 @@ def decode_base64_to_file(
     return file_obj
 
 
-def create_tmp_copy_of_file_or_url(file_path_or_url: str, dir=None):
-    try:
-        response = requests.get(file_path_or_url, stream=True)
-        if file_path_or_url.find("/"):
-            new_file_path = file_path_or_url.rsplit("/", 1)[1]
-        else:
-            new_file_path = "file.txt"
-        with open(new_file_path, "wb") as out_file:
-            shutil.copyfileobj(response.raw, out_file)
-        del response
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return create_tmp_copy_of_file(file_path_or_url, dir)
-
-
 def dict_or_str_to_json_file(jsn, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
@@ -321,14 +305,100 @@ def dict_or_str_to_json_file(jsn, dir=None):
     return file_obj
 
 
-def file_to_json(file_path):
-    return json.load(open(file_path))
+def file_to_json(file_path: str | Path) -> Dict:
+    with open(file_path) as f:
+        return json.load(f)
+
+
+class TempFileManager:
+    """
+    A class that should be inherited by any Component that needs to manage temporary files.
+    It should be instantiated in the __init__ method of the component.
+    """
+
+    def __init__(self) -> None:
+        # Set stores all the temporary files created by this component.
+        self.temp_files = set()
+
+    def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(chunk_num_blocks * sha1.block_size), b""):
+                sha1.update(chunk)
+        return sha1.hexdigest()
+
+    def hash_url(self, url: str, chunk_num_blocks: int = 128) -> str:
+        sha1 = hashlib.sha1()
+        remote = urllib.request.urlopen(url)
+        max_file_size = 100 * 1024 * 1024  # 100MB
+        total_read = 0
+        while True:
+            data = remote.read(chunk_num_blocks * sha1.block_size)
+            total_read += chunk_num_blocks * sha1.block_size
+            if not data or total_read > max_file_size:
+                break
+            sha1.update(data)
+        return sha1.hexdigest()
+
+    def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
+        file_name = os.path.basename(file_path_or_url)
+        prefix, extension = file_name, None
+        if "." in file_name:
+            prefix = file_name[0 : file_name.index(".")]
+            extension = "." + file_name[file_name.index(".") + 1 :]
+        else:
+            extension = ""
+        prefix = utils.strip_invalid_filename_characters(prefix)
+        return prefix, extension
+
+    def get_temp_file_path(self, file_path: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(file_path)
+        file_hash = self.hash_file(file_path)
+        return prefix + file_hash + extension
+
+    def get_temp_url_path(self, url: str) -> str:
+        prefix, extension = self.get_prefix_and_extension(url)
+        file_hash = self.hash_url(url)
+        return prefix + file_hash + extension
+
+    def make_temp_copy_if_needed(self, file_path: str) -> str:
+        """Returns a temporary file path for a copy of the given file path if it does
+        not already exist. Otherwise returns the path to the existing temp file."""
+        f = tempfile.NamedTemporaryFile()
+        temp_dir, _ = os.path.split(f.name)
+
+        temp_file_path = self.get_temp_file_path(file_path)
+        f.name = os.path.join(temp_dir, temp_file_path)
+        full_temp_file_path = os.path.abspath(f.name)
+
+        if not os.path.exists(full_temp_file_path):
+            shutil.copy2(file_path, full_temp_file_path)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
+
+    def download_temp_copy_if_needed(self, url: str) -> str:
+        """Downloads a file and makes a temporary file path for a copy if does not already
+        exist. Otherwise returns the path to the existing temp file."""
+        f = tempfile.NamedTemporaryFile()
+        temp_dir, _ = os.path.split(f.name)
+
+        temp_file_path = self.get_temp_url_path(url)
+        f.name = os.path.join(temp_dir, temp_file_path)
+        full_temp_file_path = os.path.abspath(f.name)
+
+        if not os.path.exists(full_temp_file_path):
+            with requests.get(url, stream=True) as r:
+                with open(full_temp_file_path, "wb") as f:
+                    shutil.copyfileobj(r.raw, f)
+
+        self.temp_files.add(full_temp_file_path)
+        return full_temp_file_path
 
 
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:

@@ -14,6 +14,7 @@
 	export let label: string | undefined = undefined;
 	export let show_label: boolean = true;
 	export let mirror_webcam: boolean = false;
+	export let include_audio: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -55,6 +56,7 @@
 	{:else if source === "webcam"}
 		<Webcam
 			{mirror_webcam}
+			{include_audio}
 			mode="video"
 			on:error
 			on:capture={({ detail }) => dispatch("change", detail)}

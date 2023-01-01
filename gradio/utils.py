@@ -31,6 +31,7 @@ from typing import (
     NewType,
     Tuple,
     Type,
+    TypeVar,
 )
 
 import aiohttp
@@ -50,6 +51,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
+
+T = TypeVar("T")
 
 
 def version_check():
@@ -78,8 +81,11 @@ def version_check():
 
 
 def get_local_ip_address() -> str:
+    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it."""
     try:
-        ip_address = requests.get("https://api.ipify.org", timeout=3).text
+        ip_address = requests.get(
+            "https://checkip.amazonaws.com/", timeout=3
+        ).text.strip()
     except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         ip_address = "No internet connection"
     return ip_address
@@ -282,7 +288,7 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
     return output
 
 
-def delete_none(_dict, skip_value=False):
+def delete_none(_dict: T, skip_value: bool = False) -> T:
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
     Credit: https://stackoverflow.com/a/66127889/5209347
@@ -309,7 +315,7 @@ def resolve_singleton(_list: List[Any] | Any) -> Any:
         return _list
 
 
-def component_or_layout_class(cls_name: str) -> Component | BlockContext:
+def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockContext]:
     """
     Returns the component, template, or layout class with the given class name, or
     raises a ValueError if not found.
@@ -347,7 +353,7 @@ def component_or_layout_class(cls_name: str) -> Component | BlockContext:
     raise ValueError(f"No such component or layout: {cls_name}")
 
 
-def synchronize_async(func: Callable, *args, **kwargs):
+def synchronize_async(func: Callable, *args, **kwargs) -> Any:
     """
     Runs async functions in sync scopes.
 
@@ -621,7 +627,7 @@ class AsyncRequest:
 
 
 @contextmanager
-def set_directory(path: Path):
+def set_directory(path: Path | str):
     """Context manager that sets the working directory to the given path."""
     origin = Path().absolute()
     try:
@@ -660,9 +666,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(
-    values: List[str | Number] | List[List[str | Number]],
-) -> List[str | Number] | List[List[str | Number]]:
+def sanitize_list_for_csv(values: T) -> T:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
@@ -701,10 +705,10 @@ def validate_url(possible_url: str) -> bool:
 
 
 def is_update(val):
-    return type(val) is dict and "update" in val.get("__type__", "")
+    return isinstance(val, dict) and "update" in val.get("__type__", "")
 
 
-def get_continuous_fn(fn, every):
+def get_continuous_fn(fn: Callable, every: float) -> Callable:
     def continuous_fn(*args):
         while True:
             output = fn(*args)

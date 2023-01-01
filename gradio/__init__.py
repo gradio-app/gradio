@@ -5,7 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
-from gradio.blocks import Blocks, skip, update
+from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
@@ -30,6 +30,7 @@ from gradio.components import (
     Interpretation,
     Json,
     Label,
+    LinePlot,
     Markdown,
     Model3D,
     Number,
@@ -48,7 +49,6 @@ from gradio.components import (
     Video,
     component,
 )
-from gradio.examples import create_examples as Examples
 from gradio.exceptions import Error
 from gradio.flagging import (
     CSVLogger,
@@ -57,6 +57,9 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
+from gradio.helpers import Progress
+from gradio.helpers import create_examples as Examples
+from gradio.helpers import make_waveform, skip, update
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Box, Column, Group, Row, Tab, TabItem, Tabs

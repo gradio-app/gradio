@@ -20,9 +20,14 @@
 
 <div class="wrap">
 	<span class="brush">
-		<IconButton Icon={Brush} on:click={() => (show_size = !show_size)} />
+		<IconButton
+			Icon={Brush}
+			label="Use brush"
+			on:click={() => (show_size = !show_size)}
+		/>
 		{#if show_size}
 			<input
+				aria-label="Brush radius"
 				bind:value={brush_radius}
 				type="range"
 				min={0.5 * (img_width / width)}
@@ -33,9 +38,13 @@
 
 	{#if mode !== "mask"}
 		<span class="col">
-			<IconButton Icon={Color} on:click={() => (show_col = !show_col)} />
+			<IconButton
+				Icon={Color}
+				label="Select brush color"
+				on:click={() => (show_col = !show_col)}
+			/>
 			{#if show_col}
-				<input bind:value={brush_color} type="color" />
+				<input aria-label="Brush color" bind:value={brush_color} type="color" />
 			{/if}
 		</span>
 	{/if}

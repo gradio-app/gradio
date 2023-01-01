@@ -69,15 +69,6 @@ class TestInterface:
         )
         assert dataset_check
 
-    def test_test_launch(self):
-        with captured_output() as (out, err):
-            prediction_fn = lambda x: x
-            prediction_fn.__name__ = "prediction_fn"
-            interface = Interface(prediction_fn, "textbox", "label")
-            interface.test_launch()
-            output = out.getvalue().strip()
-            assert output == "Test launch: prediction_fn()... PASSED"
-
     @mock.patch("time.sleep")
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
@@ -132,10 +123,13 @@ class TestInterface:
 
     def test_examples_list(self):
         examples = ["test1", "test2"]
-        interface = Interface(lambda x: x, "textbox", "label", examples=examples)
+        interface = Interface(
+            lambda x: x, "textbox", "label", examples=examples, examples_per_page=2
+        )
         interface.launch(prevent_thread_lock=True)
         assert len(interface.examples_handler.examples) == 2
         assert len(interface.examples_handler.examples[0]) == 1
+        assert interface.examples_handler.dataset.get_config()["samples_per_page"] == 2
         interface.close()
 
     @mock.patch("IPython.display.display")

@@ -7,9 +7,10 @@
 </script>
 
 <div>
-	<IconButton Icon={Undo} on:click={() => dispatch("undo")} />
+	<IconButton Icon={Undo} label="Undo" on:click={() => dispatch("undo")} />
 	<IconButton
 		Icon={Clear}
+		label="Clear"
 		on:click={(event) => {
 			dispatch("clear");
 			event.stopPropagation();

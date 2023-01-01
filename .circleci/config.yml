@@ -58,6 +58,10 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
+            bash scripts/type_check_backend.sh
+      - run:
+          command: |
+            . venv/bin/activate
             coverage run -m pytest -m "<< parameters.test-type >>"
             coverage xml
       - codecov/upload:
