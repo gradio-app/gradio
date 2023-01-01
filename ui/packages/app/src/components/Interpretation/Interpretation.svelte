@@ -18,7 +18,3 @@
 		interpretation={value.interpretation}
 	/>
 {/if}
-
-<!-- TODO: -->
-<style lang="postcss" global>
-</style>
