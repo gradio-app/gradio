@@ -8,15 +8,12 @@
 	export let label: string = "";
 </script>
 
-<div class="input-radio flex flex-wrap gap-2">
+<div class="input-radio">
 	<BlockTitle>{label}</BlockTitle>
 	{#each choices as choice, i}
-		<button
-			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
-			class:selected={original === choice}
-		>
+		<button class="radio-item" class:selected={original === choice}>
 			<div
-				class="radio-circle w-4 h-4 rounded-full box-border"
+				class="radio-circle"
 				style={"background-color: " + getSaliencyColor(interpretation[i])}
 			/>
 			{choice}
@@ -24,16 +21,38 @@
 	{/each}
 </div>
 
-<style lang="postcss">
+<style>
 	.input-radio {
-		.radio-item {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.radio-circle {
-			@apply w-4 h-4  rounded-full box-border;
-		}
-		.radio-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white shadow;
-		}
+		/*  flex flex-wrap gap-2 */
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+	}
+
+	.radio-item {
+		display: flex;
+		align-items: center;
+		gap: var(--size-2);
+		transition: 150ms;
+		cursor: pointer;
+		border-radius: var(--radius-md);
+		background: var(--color-background-primary);
+		padding: var(--size-2) var(--size-3);
+		font-weight: var(--weight-semibold);
+	}
+
+	.radio-item:hover {
+		box-shadow: var(--shadow-drop-lg);
+	}
+	.radio-circle {
+		box-sizing: border-box;
+		border-radius: var(--radius-full);
+		width: var(--size-4);
+		height: var(--size-4);
+	}
+	.radio-item.selected {
+		box-shadow: var(--shadow-drop);
+		background: var(--color-accent-base);
+		color: white;
 	}
 </style>

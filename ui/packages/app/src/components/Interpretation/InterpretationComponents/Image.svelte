@@ -63,20 +63,46 @@
 
 <div class="input-image">
 	<BlockTitle>{label}</BlockTitle>
-	<div
-		class="image-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-	>
+	<div class="image-preview">
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<div
-			class="interpretation w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition"
-		>
+		<div class="interpretation">
 			<canvas bind:this={saliency_layer} />
 		</div>
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img
-			class="w-full h-full object-contain"
-			bind:this={image}
-			src={original}
-		/>
+		<img bind:this={image} src={original} />
 	</div>
 </div>
+
+<style>
+	.image-preview {
+		display: flex;
+		position: relative;
+		justify-content: center;
+		align-items: center;
+		background: var(--color-background-primary);
+		width: var(--size-full);
+		height: var(--size-60);
+	}
+
+	.interpretation {
+		display: flex;
+		position: absolute;
+		top: 0;
+		left: 0;
+		justify-content: center;
+		align-items: center;
+		opacity: 0.9;
+		transition: 150ms;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.interpretation:hover {
+		opacity: 0.2;
+	}
+	img {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+</style>

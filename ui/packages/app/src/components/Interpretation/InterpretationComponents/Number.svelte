@@ -8,10 +8,10 @@
 
 <div class="input-number">
 	<BlockTitle>{label}</BlockTitle>
-	<div class="interpret_range flex">
+	<div class="range">
 		{#each interpretation as interpret_value}
 			<div
-				class="flex-1"
+				class="item"
 				style={"background-color: " + getSaliencyColor(interpret_value[1])}
 			>
 				{interpret_value[0]}
@@ -20,16 +20,21 @@
 	</div>
 </div>
 
-<style lang="postcss" global>
-	input::-webkit-outer-spin-button,
-	input::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-	input {
-		-moz-appearance: textfield;
-	}
+<style>
 	.input-number {
-		@apply shadow transition hover:shadow-md dark:bg-gray-800;
+		transition: 150ms;
+		box-shadow: var(--shadow-drop);
+		background: var(--color-background-secondary);
+	}
+
+	.input-number:hover {
+		box-shadow: var(--shadow-drop-lg);
+	}
+	.range {
+		display: flex;
+	}
+
+	.item {
+		flex: 1 1 0%;
 	}
 </style>
