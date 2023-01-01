@@ -10,15 +10,15 @@
 	};
 	export let run: (id: number) => Promise<void>;
 	export let dependency_inputs: string[][];
+
+	function format_label(label: unknown) {
+		return label ? "'" + label + "'" : "the";
+	}
 </script>
 
-<h4 class="font-bold mt-6 mb-3 flex items-center">
-	<div
-		class="toggle-icon flex items-center h-1 w-3 bg-gray-300 dark:bg-gray-500 rounded-full mr-2"
-	>
-		<div
-			class="toggle-dot rounded-full h-1.5 w-1.5 bg-gray-700 dark:bg-gray-400"
-		/>
+<h4>
+	<div class="toggle-icon">
+		<div class="toggle-dot" />
 	</div>
 	Input Payload
 </h4>
@@ -32,23 +32,21 @@
 	{#each dependency.inputs as component_id, component_index}
 		&nbsp;&nbsp;&nbsp;&nbsp;
 		<input
-			class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
+			class=""
 			type="text"
 			bind:value={dependency_inputs[dependency_index][component_index]}
 		/>
 		{#if dependency_failures[dependency_index][component_index]}
-			<span class="error text-red-600">ERROR</span>
+			<span class="error">ERROR</span>
 		{/if}
-		<span class="type text-gray-500">
+		<span class="type">
 			: {instance_map[component_id].documentation?.type},
 		</span>
-		<span class="desc text-gray-400">
+		<span class="desc">
 			// represents {instance_map[component_id].documentation?.description} of
-			{((label) => {
-				return label ? "'" + label + "'" : "the";
-			})(instance_map[component_id].props.label)}
+			{format_label(instance_map[component_id].props.label)}
 
-			<span class="name capitalize">
+			<span class="name">
 				{instance_map[component_id].props.name}
 			</span>
 			component
@@ -97,6 +95,7 @@
 	.toggle-dot {
 		border-radius: var(--radius-full);
 		background: var(--color-grey-700);
+		width: 6px;
 		height: 6px;
 	}
 
@@ -109,33 +108,45 @@
 	}
 
 	.payload-details {
-		/* p-4 font-mono text-sm rounded-lg */
 		display: block;
 		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
 		background: var(--color-background-tertiary);
 		padding: var(--size-4);
+		font-size: var(--scale-00);
 		font-family: var(--font-mono);
-		/* font-size: ; */
 	}
 
 	input {
-		/* bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500 */
+		--ring-color: var(--color-border-primary);
+		margin-top: var(--size-0-5);
+		margin-bottom: var(--size-0-5);
+		box-shadow: 0 0 0 1px var(--ring-color);
+		border: none;
+		border-radius: var(--radius-sm);
+		background: var(--color-background-secondary);
+		padding: var(--size-0-5) var(--size-1);
+		width: var(--size-40);
+		font-size: var(--scale-00);
+	}
+
+	input:focus {
+		--ring-color: var(--color-focus-ring);
 	}
 
 	.error {
-		/* text-red-600 */
+		color: var(--color-functional-error-base);
 	}
 
 	.type {
-		/* text-gray-500 */
+		color: var(--color-text-label);
 	}
 
 	.desc {
-		/* text-gray-400 */
+		color: var(--color-text-subdued);
 	}
 
 	.name {
-		/* capitalize */
 		text-transform: capitalize;
 	}
 </style>
