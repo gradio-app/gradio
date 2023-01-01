@@ -83,7 +83,7 @@
 
 	$: can_zoom = window_height >= height;
 
-	$: ({ classes } = get_styles(style, ["grid"]));
+	$: ({ styles } = get_styles(style, ["grid"]));
 
 	let height = 0;
 	let window_height = 0;
@@ -149,7 +149,7 @@
 		class="grid-wrap"
 		class:fixed-height={style.height !== "auto"}
 	>
-		<div class="grid-container {classes}" class:pt-6={show_label}>
+		<div class="grid-container" style={styles} class:pt-6={show_label}>
 			{#each _value as [image, caption], i}
 				<button
 					class="thumbnail-item thumbnail-lg"

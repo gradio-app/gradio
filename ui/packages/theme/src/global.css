@@ -1,63 +1,26 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
-@layer base {
-	.bg-gray-950 {
-		background-color: #0b0f19;
-	}
-	.dark:bg-gray-950 {
-	}
-
-	.dark {
-		@apply text-gray-300 bg-gray-950;
-	}
-	.dark .text-gray-500,
-	.dark .text-gray-600 {
-		@apply text-gray-300;
-	}
-
-	.dark .text-gray-700,
-	.dark .text-gray-800,
-	.dark .text-gray-900 {
-		@apply text-gray-200;
-	}
-
-	.dark .border,
-	.dark .border-gray-100,
-	.dark .border-gray-200,
-	.dark .border-gray-300 {
-		@apply border-gray-700;
-	}
-
-	.dark .bg-white {
-		@apply bg-gray-950;
-	}
-
-	.dark .bg-gray-50 {
-		@apply bg-gray-900;
-	}
-
-	.dark .bg-gray-200 {
-		@apply bg-gray-800;
-	}
+.scroll-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
 }
 
-@layer components {
-	.row > *,
-	.row > .gr-form > * {
-		min-width: min(160px, 100%);
-		@apply flex-1;
-	}
+.sr-only {
+	clip: rect(0, 0, 0, 0);
+	position: absolute;
+	margin: -1px;
+	border-width: 0;
+	padding: 0;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	white-space: nowrap;
+}
 
-	.scroll-hide {
-		-ms-overflow-style: none;
-		scrollbar-width: none;
-	}
-
-	.scroll-hide::-webkit-scrollbar {
-		display: none;
-	}
+.scroll-hide::-webkit-scrollbar {
+	display: none;
 }
 
 .gradio-container {

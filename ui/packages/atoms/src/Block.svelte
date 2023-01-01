@@ -26,11 +26,11 @@
 
 	$: _parent = parent === "column" || parent == "row" ? parent : "column";
 
-	$: ({ classes } = explicit_call
+	$: ({ styles } = explicit_call
 		? get_styles(style, [])
 		: disable
 		? get_styles({ container: false }, ["container"])
-		: { classes: "" });
+		: { styles: "" });
 	$: size_style =
 		"" +
 		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
@@ -42,9 +42,9 @@
 	data-testid={test_id}
 	id={elem_id}
 	class:hidden={visible === false}
-	class="block {classes}"
+	class="block"
 	class:padded={padding}
-	style={size_style || null}
+	style="{styles} {size_style || null}"
 	style:border-style={variant}
 	style:border-color={color_style[color]}
 >
