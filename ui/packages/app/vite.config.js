@@ -11,11 +11,6 @@ import {
 	handle_ce_css
 } from "./build_plugins";
 
-// this is dupe config, gonna try fix this
-import tailwind from "tailwindcss";
-// @ts-ignore
-import nested from "tailwindcss/nesting/index.js";
-
 const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
 const TEST_CDN = !!process.env.TEST_CDN;
 const CDN = TEST_CDN
@@ -53,8 +48,6 @@ export default defineConfig(({ mode }) => {
 		css: {
 			postcss: {
 				plugins: [
-					nested,
-					tailwind,
 					custom_media({
 						importFrom: [
 							{
@@ -81,7 +74,7 @@ export default defineConfig(({ mode }) => {
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [tailwind, nested, custom_media()] }
+					postcss: { plugins: [custom_media()] }
 				})
 			}),
 			inject_ejs(),
