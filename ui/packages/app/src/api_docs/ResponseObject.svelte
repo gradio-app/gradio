@@ -58,7 +58,7 @@
 		&#125;
 	</div>
 	{#if is_running}
-		<div>
+		<div class="load-wrap">
 			<Loader margin={false} />
 		</div>
 	{/if}
@@ -117,10 +117,6 @@
 		padding: var(--size-0-5) var(--size-1);
 		width: var(--size-40);
 		font-size: var(--scale-00);
-	}
-
-	.error {
-		color: var(--color-functional-error-base);
 	}
 
 	.type {
