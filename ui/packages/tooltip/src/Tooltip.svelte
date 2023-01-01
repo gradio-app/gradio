@@ -33,7 +33,6 @@
 	}
 
 	span {
-		/* inline-block w-3 h-3 mr-1 rounded-sm */
 		display: inline-block;
 		margin-right: var(--size-1);
 		border-radius: var(--radius-xs);
