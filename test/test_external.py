@@ -280,7 +280,7 @@ class TestLoadInterface:
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
@@ -289,7 +289,7 @@ class TestLoadInterfaceWithExamples:
 
     def test_interface_load_cache_examples(self, tmp_path):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        with patch("gradio.examples.CACHED_FOLDER", tmp_path):
+        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
@@ -382,6 +382,20 @@ def check_dataset(config, readme_examples):
         assert dataset["props"]["samples"] == [
             [utils.delete_none(cols_to_rows(readme_examples)[1])]
         ]
+
+
+def test_load_blocks_with_default_values():
+    io = gr.Interface.load("spaces/abidlabs/min-dalle")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/abidlabs/min-dalle-later")
+    assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
+
+    io = gr.Interface.load("spaces/freddyaboulton/dataframe_load")
+    assert io.get_config_file()["components"][0]["props"]["value"] == {
+        "headers": ["a", "b"],
+        "data": [[1, 4], [2, 5], [3, 6]],
+    }
 
 
 @pytest.mark.parametrize(

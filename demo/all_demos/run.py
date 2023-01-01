@@ -32,4 +32,4 @@ with gr.Blocks() as mega_demo:
         with gr.Tab(demo_name):
             demo.render()
 
-mega_demo.launch()
+mega_demo.queue().launch()

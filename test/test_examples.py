@@ -9,7 +9,7 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:
     def test_handle_single_input(self):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
@@ -44,6 +44,10 @@ class TestExamples:
         ]
         for sample in examples.dataset.samples:
             assert os.path.isabs(sample[0])
+
+    def test_examples_per_page(self):
+        examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
+        assert examples.dataset.get_config()["samples_per_page"] == 2
 
     @pytest.mark.asyncio
     async def test_no_preprocessing(self):
@@ -82,10 +86,10 @@ class TestExamples:
             )
 
         prediction = await examples.load_from_cache(0)
-        assert prediction[0][0]["data"] == gr.media_data.BASE64_IMAGE
+        assert prediction[0][0][0]["data"] == gr.media_data.BASE64_IMAGE
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
     def test_no_headers(self):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
@@ -105,7 +109,7 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching(self):

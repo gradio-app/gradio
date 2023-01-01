@@ -12,7 +12,7 @@ import shutil
 import tempfile
 from copy import deepcopy
 from difflib import SequenceMatcher
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -288,7 +288,7 @@ class TestNumber:
             (1.94, -0.23640000000000017),
             (1.96, -0.15840000000000032),
             (1.98, -0.07960000000000012),
-            [2, None],
+            (2, None),
             (2.02, 0.08040000000000003),
             (2.04, 0.16159999999999997),
             (2.06, 0.24359999999999982),
@@ -310,7 +310,7 @@ class TestNumber:
             (1.94, 0.0),
             (1.96, 0.0),
             (1.98, 0.0),
-            [2, None],
+            (2, None),
             (2.02, 0.0),
             (2.04, 0.0),
             (2.06, 0.0),
@@ -331,7 +331,7 @@ class TestNumber:
             (1.94, -0.23640000000000017),
             (1.96, -0.15840000000000032),
             (1.98, -0.07960000000000012),
-            [2, None],
+            (2, None),
             (2.02, 0.08040000000000003),
             (2.04, 0.16159999999999997),
             (2.06, 0.24359999999999982),
@@ -378,7 +378,7 @@ class TestSlider:
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
-        """
+        """ "
         Interface, process, interpret
         """
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
@@ -398,17 +398,6 @@ class TestSlider:
             9996.0,
         ]
 
-    def test_slider_invalid_values(self):
-        """
-        Preprocesses invalid values for slider
-        """
-        slider = gr.Slider(minimum=20, maximum=30)
-        assert slider.preprocess(25) == 25.0
-        with pytest.raises(ValueError):
-            slider.preprocess(10)
-        with pytest.raises(ValueError):
-            slider.preprocess(40)
-
     def test_static(self):
         """
         postprocess
@@ -421,9 +410,9 @@ class TestSlider:
     @patch("gradio.Slider.get_random_value", return_value=7)
     def test_slider_get_random_value_on_load(self, mock_get_random_value):
         slider = gr.Slider(minimum=-5, maximum=10, randomize=True)
-        assert slider.attach_load_event
         assert slider.value == 7
-        assert slider.load_fn() == 7
+        assert slider.load_event_to_attach[0]() == 7
+        assert slider.load_event_to_attach[1] is None
 
     @patch("random.randint", return_value=3)
     def test_slider_rounds_when_using_default_randomizer(self, mock_randint):
@@ -504,6 +493,10 @@ class TestCheckboxGroup:
         with pytest.raises(ValueError):
             gr.CheckboxGroup(["a"], type="unknown")
 
+        cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
+        assert cbox.get_config()["value"] == ["c"]
+        assert cbox.postprocess("a") == ["a"]
+
     def test_in_interface(self):
         """
         Interface, process
@@ -513,26 +506,6 @@ class TestCheckboxGroup:
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
         _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
-
-    def test_checkboxgroup_invalid_values(self):
-        """
-        tests handling of invalid checkbox group inputs
-        """
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="index")
-        assert checkboxes_input.preprocess(["c"]) == [2]
-        assert checkboxes_input.preprocess(["a", "c"]) == [0, 2]
-        with pytest.raises(ValueError):
-            checkboxes_input.preprocess(["d"])
-        with pytest.raises(ValueError):
-            checkboxes_input.preprocess(["a", "b", "d"])
-
-        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"], type="value")
-        assert checkboxes_input.preprocess(["c"]) == ["c"]
-        assert checkboxes_input.preprocess(["a", "c"]) == ["a", "c"]
-        with pytest.raises(ValueError):
-            checkboxes_input.preprocess(["d"])
-        with pytest.raises(ValueError):
-            checkboxes_input.preprocess(["a", "b", "d"])
 
 
 class TestRadio:
@@ -580,24 +553,9 @@ class TestRadio:
         scores = (await iface.interpret(["b"]))[0]["interpretation"]
         assert scores == [-2.0, None, 2.0]
 
-    def test_radio_invalid_values(self):
-        """
-        tests handling of invalid radio inputs
-        """
-        radio_input = gr.Radio(["a", "b", "c"], type="index")
-        assert radio_input.preprocess("c") == 2
-        with pytest.raises(ValueError):
-            radio_input.preprocess("d")
-
-        radio_input = gr.Radio(["a", "b", "c"], type="value")
-        assert radio_input.preprocess("c") == "c"
-        with pytest.raises(ValueError):
-            radio_input.preprocess("d")
-
 
 class TestImage:
-    @pytest.mark.asyncio
-    async def test_component_functions(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -637,9 +595,6 @@ class TestImage:
         image_input = gr.Image(invert_colors=True)
         assert image_input.preprocess(img) is not None
         image_input.preprocess(img)
-        with pytest.warns(Warning):
-            file_image = gr.Image(type="file")
-            file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
         assert isinstance(file_image.preprocess(img), str)
         with pytest.raises(ValueError):
@@ -663,8 +618,7 @@ class TestImage:
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_input(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process, interpret
         type: file
@@ -674,7 +628,7 @@ class TestImage:
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
-            gr.Image(shape=(30, 10), type="file"),
+            gr.Image(shape=(30, 10), type="filepath"),
             "image",
         )
         output = iface(img)
@@ -683,8 +637,7 @@ class TestImage:
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -718,7 +671,7 @@ class TestPlot:
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        output = await iface.process_api(fn_index=0, inputs=[10])
+        output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/png;base64")
 
@@ -799,7 +752,7 @@ class TestAudio:
         y_audio = gr.processing_utils.decode_base64_to_file(
             deepcopy(media_data.BASE64_AUDIO)["data"]
         )
-        audio_output = gr.Audio(type="file")
+        audio_output = gr.Audio(type="filepath")
         assert filecmp.cmp(y_audio.name, audio_output.postprocess(y_audio.name)["name"])
         assert audio_output.get_config() == {
             "name": "audio",
@@ -822,6 +775,10 @@ class TestAudio:
             }
         ).endswith(".wav")
 
+        output1 = audio_output.postprocess(y_audio.name)
+        output2 = audio_output.postprocess(y_audio.name)
+        assert output1 == output2
+
     def test_tokenize(self):
         """
         Tokenize, get_masked_inputs
@@ -834,8 +791,7 @@ class TestAudio:
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         assert similarity > 0.9
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         def reverse_audio(audio):
             sr, data = audio
             return (sr, np.flipud(data))
@@ -851,8 +807,7 @@ class TestAudio:
         ).ratio()
         assert similarity > 0.99
 
-    @pytest.mark.asyncio
-    async def test_in_interface_as_output(self):
+    def test_in_interface_as_output(self):
         """
         Interface, process
         """
@@ -887,6 +842,11 @@ class TestFile:
         assert serialized["orig_name"] == "sample_file.pdf"
         assert output.orig_name == "test/test_files/sample_file.pdf"
 
+        x_file["is_file"] = True
+        input1 = file_input.preprocess(x_file)
+        input2 = file_input.preprocess(x_file)
+        assert input1.name == input2.name
+
         assert isinstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         assert file_input.get_config() == {
@@ -909,6 +869,10 @@ class TestFile:
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
         assert type(output) == bytes
+
+        output1 = file_input.postprocess("test/test_files/sample_file.pdf")
+        output2 = file_input.postprocess("test/test_files/sample_file.pdf")
+        assert output1 == output2
 
     def test_in_interface_as_input(self):
         """
@@ -934,6 +898,22 @@ class TestFile:
 
         iface = gr.Interface(write_file, "text", "file")
         assert iface("hello world").endswith(".txt")
+
+
+class TestUploadButton:
+    def test_component_functions(self):
+        """
+        preprocess
+        """
+        x_file = deepcopy(media_data.BASE64_FILE)
+        upload_input = gr.UploadButton()
+        input = upload_input.preprocess(x_file)
+        assert isinstance(input, tempfile._TemporaryFileWrapper)
+
+        x_file["is_file"] = True
+        input1 = upload_input.preprocess(x_file)
+        input2 = upload_input.preprocess(x_file)
+        assert input1.name == input2.name
 
 
 class TestDataframe:
@@ -1052,7 +1032,7 @@ class TestDataframe:
                     "%B %d, %Y, %r"
                 ),
                 "number": np.array([0.2233, 0.57281]),
-                "number_2": np.array([84, 23]).astype(np.int),
+                "number_2": np.array([84, 23]).astype(np.int64),
                 "bool": [True, False],
                 "markdown": ["# Hello", "# Goodbye"],
             }
@@ -1170,8 +1150,10 @@ class TestVideo:
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
-        output = video_input.preprocess(x_video)
-        assert isinstance(output, str)
+        output1 = video_input.preprocess(x_video)
+        assert isinstance(output1, str)
+        output2 = video_input.preprocess(x_video)
+        assert output1 == output2
 
         assert isinstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
@@ -1187,6 +1169,7 @@ class TestVideo:
             "interactive": None,
             "root_url": None,
             "mirror_webcam": True,
+            "include_audio": True,
         }
         assert video_input.preprocess(None) is None
         x_video["is_example"] = True
@@ -1203,7 +1186,11 @@ class TestVideo:
         # Output functionalities
         y_vid_path = "test/test_files/video_sample.mp4"
         video_output = gr.Video()
-        assert video_output.postprocess(y_vid_path)["name"].endswith("mp4")
+        output1 = video_output.postprocess(y_vid_path)["name"]
+        assert output1.endswith("mp4")
+        output2 = video_output.postprocess(y_vid_path)["name"]
+        assert output1 == output2
+
         assert video_output.deserialize(
             {
                 "name": None,
@@ -1212,8 +1199,7 @@ class TestVideo:
             }
         ).endswith(".mp4")
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1221,11 +1207,19 @@ class TestVideo:
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         assert iface(x_video).endswith(".mp4")
 
+    def test_with_waveform(self):
+        """
+        Interface, process
+        """
+        x_audio = media_data.BASE64_AUDIO["name"]
+        iface = gr.Interface(lambda x: gr.make_waveform(x), "audio", "video")
+        assert iface(x_audio).endswith(".mp4")
+
     def test_video_postprocess_converts_to_playable_format(self):
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         # This file has a playable container but not playable codec
         with tempfile.NamedTemporaryFile(
-            suffix="bad_video.mp4"
+            suffix="bad_video.mp4", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "bad_video_sample.mp4")
             assert not processing_utils.video_is_playable(bad_vid)
@@ -1239,7 +1233,7 @@ class TestVideo:
 
         # This file has a playable codec but not a playable container
         with tempfile.NamedTemporaryFile(
-            suffix="playable_but_bad_container.mkv"
+            suffix="playable_but_bad_container.mkv", delete=False
         ) as tmp_not_playable_vid:
             bad_vid = str(test_file_dir / "playable_but_bad_container.mkv")
             assert not processing_utils.video_is_playable(bad_vid)
@@ -1250,8 +1244,10 @@ class TestVideo:
             )
             assert processing_utils.video_is_playable(str(full_path_to_output))
 
+    @patch("pathlib.Path.exists", MagicMock(return_value=False))
     @patch("gradio.components.FFmpeg")
     def test_video_preprocessing_flips_video_for_webcam(self, mock_ffmpeg):
+        # Ensures that the cached temp video file is not used so that ffmpeg is called for each test
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video(source="webcam")
         _ = video_input.preprocess(x_video)
@@ -1262,11 +1258,15 @@ class TestVideo:
         assert "flip" in list(output_params.keys())[0]
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="webcam", mirror_webcam=False).preprocess(x_video)
+        _ = gr.Video(
+            source="webcam", mirror_webcam=False, include_audio=True
+        ).preprocess(x_video)
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
-        _ = gr.Video(source="upload", format="mp4").preprocess(x_video)
+        _ = gr.Video(source="upload", format="mp4", include_audio=True).preprocess(
+            x_video
+        )
         mock_ffmpeg.assert_not_called()
 
         mock_ffmpeg.reset_mock()
@@ -1281,10 +1281,10 @@ class TestVideo:
 
         mock_ffmpeg.reset_mock()
         output_file = gr.Video(
-            source="webcam", mirror_webcam=False, format="avi"
+            source="webcam", mirror_webcam=False, format="avi", include_audio=False
         ).preprocess(x_video)
         output_params = mock_ffmpeg.call_args_list[0][1]["outputs"]
-        assert list(output_params.values())[0] is None
+        assert list(output_params.values())[0] == ["-an"]
         assert "flip" not in list(output_params.keys())[0]
         assert ".avi" in list(output_params.keys())[0]
         assert ".avi" in output_file
@@ -1402,8 +1402,8 @@ class TestLabel:
 
         test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         path = str(pathlib.Path(test_file_dir, "test_label_json.json"))
-        label = label_output.postprocess(path)
-        assert label["label"] == "web site"
+        label_dict = label_output.postprocess(path)
+        assert label_dict["label"] == "web site"
 
         assert label_output.get_config() == {
             "name": "label",
@@ -1441,8 +1441,7 @@ class TestLabel:
         )
         assert update_5["color"] == "transparent"
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1659,7 +1658,9 @@ class TestJSON:
             ["F", 30],
         ]
         assert (
-            await iface.process_api(0, [{"data": y_data, "headers": ["gender", "age"]}])
+            await iface.process_api(
+                0, [{"data": y_data, "headers": ["gender", "age"]}], state={}
+            )
         )["data"][0] == {
             "M": 35,
             "F": 25,
@@ -1685,8 +1686,7 @@ class TestHTML:
             "root_url": None,
         } == html_component.get_config()
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1705,8 +1705,7 @@ class TestMarkdown:
             """<h1>Let\'s learn about <span class="math inline"><span style=\'font-size: 0px\'>x</span><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="11.6pt" height="19.35625pt" viewBox="0 0 11.6 19.35625" xmlns="http://www.w3.org/2000/svg" version="1.1">\n \n <defs>\n  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>\n </defs>\n <g id="figure_1">\n  <g id="patch_1">\n   <path d="M 0 19.35625"""
         )
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1738,8 +1737,12 @@ class TestModel3D:
             "style": {},
         } == component.get_config()
 
-    @pytest.mark.asyncio
-    async def test_in_interface(self):
+        file = "test/test_files/Box.gltf"
+        output1 = component.postprocess(file)
+        output2 = component.postprocess(file)
+        assert output1 == output2
+
+    def test_in_interface(self):
         """
         Interface, process
         """
@@ -1834,7 +1837,8 @@ class TestGallery:
             path = gallery.deserialize(data, tmpdir)
             assert path.endswith("my-uuid")
             data_restored = gallery.serialize(path)
-            assert sorted(data) == sorted([d["data"] for d in data_restored])
+            data_restored = [d[0]["data"] for d in data_restored]
+            assert sorted(data) == sorted(data_restored)
 
 
 class TestState:
@@ -1920,6 +1924,7 @@ def test_dataset_calls_as_example(*mocks):
 
 
 cars = vega_datasets.data.cars()
+stocks = vega_datasets.data.stocks()
 
 
 class TestScatterPlot:
@@ -1981,6 +1986,15 @@ class TestScatterPlot:
         assert config["height"] == 100
         assert config["width"] == 200
 
+    def test_xlim_ylim(self):
+        plot = gr.ScatterPlot(
+            x="Horsepower", y="Miles_per_Gallon", x_lim=[200, 400], y_lim=[300, 500]
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["x"]["scale"] == {"domain": [200, 400]}
+        assert config["encoding"]["y"]["scale"] == {"domain": [300, 500]}
+
     def test_color_encoding(self):
         plot = gr.ScatterPlot(
             x="Horsepower",
@@ -2019,6 +2033,49 @@ class TestScatterPlot:
         assert config["encoding"]["shape"]["field"] == "Origin"
         assert config["encoding"]["shape"]["type"] == "nominal"
 
+    def test_legend_position(self):
+        plot = gr.ScatterPlot(
+            show_label=False,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            color_legend_position="none",
+            color_legend_title="Foo",
+            shape="Origin",
+            shape_legend_position="none",
+            shape_legend_title="Bar",
+            size="Acceleration",
+            size_legend_title="Accel",
+            size_legend_position="none",
+        )
+        output = plot.postprocess(cars)
+        config = json.loads(output["plot"])
+        assert config["encoding"]["color"]["legend"] is None
+        assert config["encoding"]["shape"]["legend"] is None
+        assert config["encoding"]["size"]["legend"] is None
+
+        output = gr.ScatterPlot.update(
+            value=cars,
+            title="Two encodings",
+            x="Horsepower",
+            y="Miles_per_Gallon",
+            color="Acceleration",
+            color_legend_position="top",
+            color_legend_title="Foo",
+            shape="Origin",
+            shape_legend_position="bottom",
+            shape_legend_title="Bar",
+            size="Acceleration",
+            size_legend_title="Accel",
+            size_legend_position="left",
+        )
+
+        config = json.loads(output["value"]["plot"])
+        assert config["encoding"]["color"]["legend"]["orient"] == "top"
+        assert config["encoding"]["shape"]["legend"]["orient"] == "bottom"
+        assert config["encoding"]["size"]["legend"]["orient"] == "left"
+
     def test_update(self):
         output = gr.ScatterPlot.update(value=cars, x="Horsepower", y="Miles_per_Gallon")
         postprocessed = gr.ScatterPlot().postprocess(output["value"])
@@ -2047,6 +2104,167 @@ class TestScatterPlot:
             x="Horsepower",
             y="Miles_per_Gallon",
             color="Origin",
+        )
+        assert isinstance(plot.value, dict)
+        assert isinstance(plot.value["plot"], str)
+
+
+class TestLinePlot:
+    def test_get_config(self):
+        assert gr.LinePlot().get_config() == {
+            "caption": None,
+            "elem_id": None,
+            "interactive": None,
+            "label": None,
+            "name": "plot",
+            "root_url": None,
+            "show_label": True,
+            "style": {},
+            "value": None,
+            "visible": True,
+        }
+
+    def test_no_color(self):
+        plot = gr.LinePlot(
+            x="date",
+            y="price",
+            tooltip=["symbol", "price"],
+            title="Stock Performance",
+            x_title="Trading Day",
+        )
+        output = plot.postprocess(stocks)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["mark"]["type"] in ["line", "point"]
+            assert layer["encoding"]["x"]["field"] == "date"
+            assert layer["encoding"]["x"]["title"] == "Trading Day"
+            assert layer["encoding"]["y"]["field"] == "price"
+
+        assert config["title"] == "Stock Performance"
+        assert "height" not in config
+        assert "width" not in config
+
+    def test_height_width(self):
+        plot = gr.LinePlot(x="date", y="price", height=100, width=200)
+        output = plot.postprocess(stocks)
+        assert sorted(list(output.keys())) == ["chart", "plot", "type"]
+        config = json.loads(output["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+        output = gr.LinePlot.update(stocks, x="date", y="price", height=100, width=200)
+        config = json.loads(output["value"]["plot"])
+        assert config["height"] == 100
+        assert config["width"] == 200
+
+    def test_xlim_ylim(self):
+        plot = gr.LinePlot(x="date", y="price", x_lim=[200, 400], y_lim=[300, 500])
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["encoding"]["x"]["scale"] == {"domain": [200, 400]}
+            assert layer["encoding"]["y"]["scale"] == {"domain": [300, 500]}
+
+    def test_color_encoding(self):
+        plot = gr.LinePlot(
+            x="date", y="price", tooltip="symbol", color="symbol", overlay_point=True
+        )
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            assert layer["encoding"]["color"]["field"] == "symbol"
+            assert layer["encoding"]["color"]["scale"] == {
+                "domain": ["MSFT", "AMZN", "IBM", "GOOG", "AAPL"],
+                "range": [0, 1, 2, 3, 4],
+            }
+            assert layer["encoding"]["color"]["type"] == "nominal"
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["opacity"] == {}
+
+    def test_two_encodings(self):
+        output = gr.LinePlot.update(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_title="Color",
+            stroke_dash_legend_title="Stroke Dash",
+        )
+        config = json.loads(output["value"]["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["opacity"] == {"value": 0}
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["field"] == "symbol"
+                assert (
+                    layer["encoding"]["strokeDash"]["legend"]["title"] == "Stroke Dash"
+                )
+
+    def test_legend_position(self):
+        plot = gr.LinePlot(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_position="none",
+            stroke_dash_legend_position="none",
+        )
+        output = plot.postprocess(stocks)
+        config = json.loads(output["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["color"]["legend"] is None
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["legend"] is None
+                assert layer["encoding"]["color"]["legend"] is None
+
+        output = gr.LinePlot.update(
+            value=stocks,
+            title="Two encodings",
+            x="date",
+            y="price",
+            color="symbol",
+            stroke_dash="symbol",
+            color_legend_position="top-right",
+            stroke_dash_legend_position="top-left",
+        )
+
+        config = json.loads(output["value"]["plot"])
+        for layer in config["layer"]:
+            if layer["mark"]["type"] == "point":
+                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
+            if layer["mark"]["type"] == "line":
+                assert layer["encoding"]["strokeDash"]["legend"]["orient"] == "top-left"
+                assert layer["encoding"]["color"]["legend"]["orient"] == "top-right"
+
+    def test_update_visibility(self):
+        output = gr.LinePlot.update(visible=False)
+        assert not output["visible"]
+        assert output["value"] is gr.components._Keywords.NO_VALUE
+
+    def test_update_errors(self):
+        with pytest.raises(
+            ValueError, match="In order to update plot properties the value parameter"
+        ):
+            gr.LinePlot.update(x="foo", y="bar")
+
+        with pytest.raises(
+            ValueError,
+            match="In order to update plot properties, the x and y axis data",
+        ):
+            gr.LinePlot.update(value=stocks, x="foo")
+
+    def test_lineplot_accepts_fn_as_value(self):
+        plot = gr.LinePlot(
+            value=lambda: stocks.sample(frac=0.1, replace=False),
+            x="date",
+            y="price",
+            color="symbol",
         )
         assert isinstance(plot.value, dict)
         assert isinstance(plot.value["plot"], str)

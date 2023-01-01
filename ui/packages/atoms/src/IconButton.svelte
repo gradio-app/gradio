@@ -1,8 +1,9 @@
 <script lang="ts">
 	export let Icon: any;
+	export let label = "";
 </script>
 
-<button on:click>
+<button on:click aria-label={label}>
 	<div><Icon /></div>
 </button>
 

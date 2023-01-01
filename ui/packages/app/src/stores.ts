@@ -10,6 +10,13 @@ export interface LoadingStatus {
 	message?: string | null;
 	scroll_to_output?: boolean;
 	visible?: boolean;
+	progress?: Array<{
+		progress: number | null;
+		index: number | null;
+		length: number | null;
+		unit: string | null;
+		desc: string | null;
+	}>;
 }
 
 export type LoadingStatusCollection = Record<number, LoadingStatus>;
@@ -32,7 +39,8 @@ export function create_loading_status_store() {
 		size: LoadingStatus["queue_size"],
 		position: LoadingStatus["queue_position"],
 		eta: LoadingStatus["eta"],
-		message: LoadingStatus["message"]
+		message: LoadingStatus["message"],
+		progress?: LoadingStatus["progress"]
 	) {
 		const outputs = fn_outputs[fn_index];
 		const inputs = fn_inputs[fn_index];
@@ -69,7 +77,8 @@ export function create_loading_status_store() {
 				queue_size: size,
 				eta: eta,
 				status: new_status,
-				message: message
+				message: message,
+				progress: progress
 			};
 		});
 
@@ -91,13 +100,22 @@ export function create_loading_status_store() {
 
 		store.update((outputs) => {
 			outputs_to_update.forEach(
-				({ id, queue_position, queue_size, eta, status, message }) => {
+				({
+					id,
+					queue_position,
+					queue_size,
+					eta,
+					status,
+					message,
+					progress
+				}) => {
 					outputs[id] = {
 						queue: queue,
 						queue_size: queue_size,
 						queue_position: queue_position,
 						eta: eta,
 						message,
+						progress,
 						status,
 						fn_index
 					};

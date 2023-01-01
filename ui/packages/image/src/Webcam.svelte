@@ -9,6 +9,7 @@
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
+	export let include_audio: boolean;
 
 	const dispatch = createEventDispatcher();
 
@@ -17,9 +18,11 @@
 	async function access_webcam() {
 		try {
 			stream = await navigator.mediaDevices.getUserMedia({
-				video: true
+				video: true,
+				audio: include_audio
 			});
 			video_source.srcObject = stream;
+			video_source.muted = true;
 			video_source.play();
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {

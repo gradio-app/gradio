@@ -2,6 +2,7 @@
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
 	import { Clear } from "@gradio/icons";
+	import { prettySI } from "../utils/helpers";
 
 	let items: Array<HTMLDivElement> = [];
 
@@ -49,6 +50,7 @@
 	import { onDestroy } from "svelte";
 	import { app_state } from "../../stores";
 	import Loader from "./Loader.svelte";
+	import type { LoadingStatus } from "./types";
 
 	export let eta: number | null = 99;
 	export let queue: boolean = false;
@@ -59,6 +61,7 @@
 	export let timer: boolean = true;
 	export let visible: boolean = true;
 	export let message: string | null = null;
+	export let progress: LoadingStatus["progress"] | null | undefined = null;
 	export let variant: "default" | "center" = "default";
 
 	let el: HTMLDivElement;
@@ -68,11 +71,48 @@
 	let timer_diff = 0;
 	let old_eta: number | null = null;
 	let message_visible: boolean = false;
+	let eta_level: number | null = 0;
+	let progress_level: Array<number | undefined> | null = null;
+	let last_progress_level: number | undefined = undefined;
+	let progress_bar: HTMLElement | null = null;
+	let show_eta_bar: boolean = true;
 
-	$: progress =
+	$: eta_level =
 		eta === null || eta <= 0 || !timer_diff
 			? null
 			: Math.min(timer_diff / eta, 1);
+	$: if (progress != null) {
+		show_eta_bar = false;
+	}
+
+	$: {
+		if (progress != null) {
+			progress_level = progress.map((p) => {
+				if (p.index != null && p.length != null) {
+					return p.index / p.length;
+				} else if (p.progress != null) {
+					return p.progress;
+				} else {
+					return undefined;
+				}
+			});
+		} else {
+			progress_level = null;
+		}
+
+		if (progress_level) {
+			last_progress_level = progress_level[progress_level.length - 1];
+			if (progress_bar) {
+				if (last_progress_level === 0) {
+					progress_bar.classList.remove("transition-transform");
+				} else {
+					progress_bar.classList.add("transition-transform");
+				}
+			}
+		} else {
+			last_progress_level = undefined;
+		}
+	}
 
 	const start_timer = () => {
 		timer_start = performance.now();
@@ -149,28 +189,72 @@
 	bind:this={el}
 >
 	{#if status === "pending"}
-		{#if variant === "default"}
+		{#if variant === "default" && show_eta_bar}
 			<div
 				class="progress-bar"
-				style:transform="translateX({(progress || 0) * 100}%)"
+				style:transform="translateX({(eta_level || 0) * 100}%)"
 			/>
 		{/if}
 		<div
 			class:meta-text-center={variant === "center"}
 			class:meta-text={variant === "default"}
 		>
-			{#if queue_position !== null && queue_size !== undefined && queue_position >= 0}
+			{#if progress}
+				{#each progress as p}
+					{#if p.index != null}
+						{#if p.length != null}
+							{prettySI(p.index || 0)}/{prettySI(p.length)}
+						{:else}
+							{prettySI(p.index || 0)}
+						{/if}
+						{p.unit} | {" "}
+					{/if}
+				{/each}
+			{:else if queue_position !== null && queue_size !== undefined && queue_position >= 0}
 				queue: {queue_position + 1}/{queue_size} |
 			{:else if queue_position === 0}
 				processing |
 			{/if}
 
 			{#if timer}
-				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}s
 			{/if}
 		</div>
 
-		<Loader margin={variant === "default"} />
+		{#if last_progress_level != null}
+			<div class="progress-level">
+				<div class="progress-level-inner">
+					{#if progress != null}
+						{#each progress as p, i}
+							{#if p.desc != null || (progress_level && progress_level[i] != null)}
+								{#if i !== 0}
+									&nbsp;/
+								{/if}
+								{#if p.desc != null}
+									{p.desc}
+								{/if}
+								{#if p.desc != null && progress_level && progress_level[i] != null}
+									-
+								{/if}
+								{#if progress_level != null}
+									{(100 * (progress_level[i] || 0)).toFixed(1)}%
+								{/if}
+							{/if}
+						{/each}
+					{/if}
+				</div>
+
+				<div class="progress-bar-wrap">
+					<div
+						bind:this={progress_bar}
+						class="progress-bar"
+						style:transform="scaleX({last_progress_level})"
+					/>
+				</div>
+			</div>
+		{:else}
+			<Loader margin={variant === "default"} />
+		{/if}
 
 		{#if !timer}
 			<p class="timer">Loading...</p>
@@ -204,7 +288,7 @@
 					<div class="toast-details">
 						<div class="toast-title">Something went wrong</div>
 						<div class="toast-text">
-							{message}
+							{message || ""}
 						</div>
 					</div>
 				</div>
@@ -213,7 +297,7 @@
 	{/if}
 </div>
 
-<style lang="postcss">
+<style>
 	.wrap {
 		display: flex;
 		position: absolute;
@@ -262,7 +346,7 @@
 		}
 	}
 
-	.progress-bar {
+	.eta-bar {
 		position: absolute;
 		top: 0;
 		right: 0;
@@ -274,6 +358,41 @@
 		transition: 0.5s;
 		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
 		background: var(--color-background-secondary);
+	}
+	.progress-bar-wrap {
+		border: 1px sold var(--color-border-primary);
+		border-radius: var(--radius-md);
+		background: white;
+		width: 55.5%;
+		height: var(--size-4);
+	}
+	.progress-bar {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		transform-origin: left;
+		border-radius: var(--radius-md);
+		background-color: var(--color-accent-base);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.progress-level {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1;
+		z-index: var(--layer-2);
+		width: var(--size-full);
+	}
+
+	.progress-level-inner {
+		margin: var(--size-2) auto;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		font-family: var(--font-mono);
 	}
 
 	.meta-text {

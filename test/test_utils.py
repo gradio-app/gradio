@@ -103,14 +103,12 @@ class TestUtils:
 
 
 class TestIPAddress:
+    @pytest.mark.flaky
     def test_get_ip(self):
         ip = get_local_ip_address()
         if ip == "No internet connection":
             return
-        try:  # check whether ip is valid
-            ipaddress.ip_address(ip)
-        except ValueError:
-            self.fail("Invalid IP address")
+        ipaddress.ip_address(ip)
 
     @mock.patch("requests.get")
     def test_get_ip_without_internet(self, mock_get):
