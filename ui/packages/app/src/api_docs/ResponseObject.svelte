@@ -13,58 +13,129 @@
 	export let is_running: boolean;
 </script>
 
-<h4 class="font-bold mt-6 mb-3 flex items-center">
-	<div
-		class="flex items-center h-1 w-3 bg-gray-300 dark:bg-gray-500 rounded-full mr-2"
-	>
-		<div
-			class="rounded-full h-1.5 w-1.5 bg-gray-700 dark:bg-gray-400 ml-auto"
-		/>
+<h4>
+	<div class="toggle-icon">
+		<div class="toggle-dot" />
 	</div>
 	Response Object
 </h4>
-<div
-	class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col"
->
-	<div class={is_running ? "hidden" : ""}>
+<div class="response-wrap">
+	<div class:hide={is_running}>
 		&#123;
 		<br />
 		&nbsp;&nbsp;"data": [
 		<br />
 		{#each dependency.outputs as component_id, component_index}
-			&nbsp;&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
+			&nbsp;&nbsp;&nbsp;{#if dependency_outputs[dependency_index][component_index] !== undefined}
 				<input
 					disabled
-					class="bg-gray-100 dark:bg-gray-600 border-none w-40 px-1 py-0.5 my-0.5 text-sm rounded ring-1 ring-gray-300 dark:ring-gray-500"
 					type="text"
 					bind:value={dependency_outputs[dependency_index][component_index]}
 				/>
 				:
 			{/if}
-			<span class="text-gray-500">
+			<span class="type">
 				{instance_map[component_id].documentation?.type},
 			</span>
-			<span class="text-gray-400">
+			<span class="desc">
 				// represents {instance_map[component_id].documentation?.description} of
 				{((label) => {
 					return label ? "'" + label + "'" : "the";
 				})(instance_map[component_id].props.label)}
 
-				<span class="capitalize">{instance_map[component_id].props.name}</span>
+				<span class="name capitalize">
+					{instance_map[component_id].props.name}
+				</span>
 				component
 			</span>
 			<br />
 		{/each}
-		&nbsp;&nbsp;&nbsp;&nbsp;],
+		&nbsp;&nbsp;],
 		<br />
-		&nbsp;&nbsp;&nbsp;&nbsp;"duration": (float)
-		<span class="text-gray-400">// number of seconds to run function call</span>
+		&nbsp;&nbsp;"duration": (float)
+		<span class="desc">// number of seconds to run function call</span>
 		<br />
 		&#125;
 	</div>
 	{#if is_running}
-		<div class="self-center justify-self-center">
+		<div>
 			<Loader margin={false} />
 		</div>
 	{/if}
 </div>
+
+<style>
+	.load-wrap {
+		align-self: center;
+		justify-self: center;
+	}
+	h4 {
+		display: flex;
+		align-items: center;
+		margin-top: var(--size-6);
+		margin-bottom: var(--size-3);
+		font-weight: var(--weight-bold);
+	}
+
+	.toggle-icon {
+		display: flex;
+		align-items: center;
+		margin-right: var(--size-2);
+		border-radius: var(--radius-full);
+		background: var(--color-grey-300);
+		width: 12px;
+		height: 4px;
+	}
+
+	.toggle-dot {
+		margin-left: auto;
+		border-radius: var(--radius-full);
+		background: var(--color-grey-700);
+		width: 6px;
+		height: 6px;
+	}
+
+	.response-wrap {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+		background: var(--color-background-primary);
+		padding: var(--size-4);
+		font-size: var(--scale-00);
+		font-family: var(--font-mono);
+	}
+
+	input {
+		--ring-color: var(--color-border-primary);
+		margin-top: var(--size-0-5);
+		margin-bottom: var(--size-0-5);
+		box-shadow: 0 0 0 1px var(--ring-color);
+		border: none;
+		border-radius: var(--radius-sm);
+		background: var(--color-background-secondary);
+		padding: var(--size-0-5) var(--size-1);
+		width: var(--size-40);
+		font-size: var(--scale-00);
+	}
+
+	.error {
+		color: var(--color-functional-error-base);
+	}
+
+	.type {
+		color: var(--color-text-label);
+	}
+
+	.desc {
+		color: var(--color-text-subdued);
+	}
+
+	.name {
+		text-transform: capitalize;
+	}
+
+	.hide {
+		display: none;
+	}
+</style>

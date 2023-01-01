@@ -113,10 +113,7 @@
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<video bind:this={video_source} class:scale-x-[-1]={mirror_webcam} />
 	{#if !streaming}
-		<button
-			on:click={mode === "image" ? take_picture : take_recording}
-			class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
-		>
+		<button on:click={mode === "image" ? take_picture : take_recording}>
 			{#if mode === "video"}
 				{#if recording}
 					<div class="icon">

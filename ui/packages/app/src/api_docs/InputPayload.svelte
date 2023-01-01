@@ -22,9 +22,7 @@
 	</div>
 	Input Payload
 </h4>
-<div
-	class="payload-details block bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg"
->
+<div class="payload-details">
 	&#123;
 	<br />
 	&nbsp;&nbsp;"data": [
