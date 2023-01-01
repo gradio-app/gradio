@@ -22,7 +22,7 @@
 	] as const;
 </script>
 
-<h4 class="font-bold mt-8 mb-3 flex items-center">
+<h4>
 	<svg width="1em" height="1em" viewBox="0 0 24 24" class="mr-1.5">
 		<path
 			fill="currentColor"
@@ -31,60 +31,133 @@
 	</svg>
 	Code snippets
 </h4>
-<div class="flex space-x-2 items-center mb-3">
+<div class="snippets">
 	{#each langs as [language, img]}
 		<li
-			class="flex items-center border rounded-lg px-1.5 py-1 leading-none select-none text-smd capitalize
-  {current_language === language
-				? 'border-gray-400 text-gray-800 dark:bg-gray-700'
-				: 'text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 hover:shadow-sm'}"
+			class="snippet
+  {current_language === language ? 'current-lang' : 'inactive-lang'}"
 			on:click={() => (current_language = language)}
 		>
-			<img src={img} class="mr-1.5 w-3" alt="" />
+			<img src={img} alt="" />
 			{language}
 		</li>
 	{/each}
 </div>
-<code
-	class="bg-white border dark:bg-gray-800 p-4 font-mono text-sm rounded-lg flex flex-col overflow-x-auto"
->
+<code>
 	{#if current_language === "python"}
 		<pre>import requests
 
 response = requests.post("{root + "run/" + dependency.api_name}", json=&lbrace;
-"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
+	"data": [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
 				/><!--
-        -->    {represent_value(
+        -->		{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type,
 					"py"
 				)},{/each}
-]&rbrace;).json()
+	]
+&rbrace;).json()
 
 data = response["data"]</pre>
 	{:else if current_language === "javascript"}
-		<pre>fetch("{root + "run/" + dependency.api_name}", &lbrace;
-method: "POST",
-headers: &lbrace; "Content-Type": "application/json" &rbrace;,
-body: JSON.stringify(&lbrace;
-data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
+		<pre>const response = await fetch("{root +
+				"run/" +
+				dependency.api_name}", &lbrace;
+	method: "POST",
+	headers: &lbrace; "Content-Type": "application/json" &rbrace;,
+	body: JSON.stringify(&lbrace;
+		data: [{#each dependency_inputs[dependency_index] as component_value, component_index}<br
 				/><!--
--->      {represent_value(
+-->			{represent_value(
 					component_value,
 					instance_map[dependencies[dependency_index].inputs[component_index]]
 						.documentation?.type,
 					"js"
 				)},{/each}
-]
-&rbrace;)&rbrace;)
-.then(r =&gt; r.json())
-.then(
-r =&gt; &lbrace;
-let data = r.data;
-&rbrace;
-)</pre>
+		]
+	&rbrace;)
+&rbrace;);
+
+const data = await data.json();
+</pre>
 	{:else if current_language === "gradio client"}
-		<pre class="break-words whitespace-pre-wrap">Hello World</pre>
+		<pre class="client">Hello World</pre>
 	{/if}
 </code>
+
+<style>
+	h4 {
+		display: flex;
+		align-items: center;
+		margin-top: var(--size-8);
+		margin-bottom: var(--size-3);
+		font-weight: var(--weight-bold);
+	}
+
+	h4 svg {
+		margin-right: var(--size-1-5);
+	}
+
+	.snippets {
+		display: flex;
+		align-items: center;
+		margin-bottom: var(--size-3);
+	}
+
+	.snippets > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.snippet {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--color-border-primary);
+
+		border-radius: var(--radius-md);
+		padding: var(--size-1) var(--size-1-5);
+		color: var(--color-text-subdued);
+		font-size: var(--scale-0);
+		line-height: 1;
+		user-select: none;
+		text-transform: capitalize;
+	}
+
+	.current-lang {
+		border: 1px solid var(--color-text-subdued);
+		color: var(--color-text-body);
+	}
+
+	.inactive-lang {
+		cursor: pointer;
+		color: var(--color-text-subdued);
+	}
+
+	.inactive-lang:hover,
+	.inactive-lang:focus {
+		box-shadow: var(--shadow-drop);
+		color: var(--color-text-body);
+	}
+
+	.snippet img {
+		margin-right: var(--size-1-5);
+		width: var(--size-3);
+	}
+
+	code pre {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-md);
+		background-color: var(--color-background-primary);
+		padding: var(--size-4);
+		overflow-x: auto;
+		font-size: var(--scale-00);
+		tab-size: 2;
+	}
+
+	.client {
+		white-space: pre-wrap;
+		overflow-wrap: break-word;
+	}
+</style>

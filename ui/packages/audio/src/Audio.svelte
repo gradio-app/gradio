@@ -366,15 +366,6 @@
 		}
 	}
 
-	.upload-text {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.delim {
-		color: var(--color-grey-300);
-	}
-
 	audio {
 		padding: var(--size-2);
 		width: var(--size-full);

@@ -19,7 +19,7 @@
 	<span class="post">POST</span>
 	/run/{api_name}
 </h3>
-<div class="endpoint prose text-sm mb-6 text-gray-500">
+<div class="endpoint prose">
 	Endpoint: <code>{root}run/{api_name}</code>
 	<Button size="sm" on:click={copy}>
 		{#if just_copied === dependency_index}

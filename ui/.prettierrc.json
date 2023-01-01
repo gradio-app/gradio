@@ -3,5 +3,6 @@
 	"singleQuote": false,
 	"trailingComma": "none",
 	"printWidth": 80,
-	"htmlWhitespaceSensitivity": "ignore"
+	"htmlWhitespaceSensitivity": "ignore",
+	"pluginSearchDirs": ["."]
 }
