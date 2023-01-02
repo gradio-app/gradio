@@ -32,7 +32,6 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Optional,
     Union
 )
 
@@ -458,7 +457,7 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Optional[Type[BaseModel]] = None,
+        validation_model: Type[BaseModel] | None = None,
         validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
@@ -537,7 +536,7 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(self, response: ResponseJson) -> Union[BaseModel, Optional[ResponseJson]]:
+    def _validate_response_data(self, response: ResponseJson) -> Union[BaseModel, ResponseJson | None]:
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -583,7 +582,7 @@ class AsyncRequest:
 
     def _validate_response_by_validation_function(
         self, response: ResponseJson
-    ) -> Optional[ResponseJson]:
+    ) -> ResponseJson | None:
         """
         Validate response json using the validation function.
         Args:
