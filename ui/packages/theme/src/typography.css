@@ -130,7 +130,7 @@ p {
 
 /* Spacing
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-.prose button +,
+.prose button,
 .prose .button {
 	margin-bottom: 0rem;
 }

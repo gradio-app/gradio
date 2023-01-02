@@ -53,9 +53,11 @@
 			case "line":
 				spec.layer.forEach((d) => {
 					if (d.encoding.color) {
-						d.encoding.color.scale.range = d.encoding.color.scale.range.map((e, i) => get_color(i))
+						d.encoding.color.scale.range = d.encoding.color.scale.range.map(
+							(e, i) => get_color(i)
+						);
 					}
-				})
+				});
 				console.log(spec);
 			default:
 				break;
@@ -180,26 +182,26 @@
 		<img src={value["plot"]} />
 	</div>
 {:else}
-	<Empty size="large"><PlotIcon /></Empty>
+	<Empty size="large" unpadded_box={true}><PlotIcon /></Empty>
 {/if}
 
 <style>
 	.layout {
 		display: flex;
-		height: var(--size-full);
-		width: var(--size-full);
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		width: var(--size-full);
+		height: var(--size-full);
 		color: var(--color-text-body);
 	}
 	.altair {
 		display: flex;
-		height: var(--size-full);
-		width: var(--size-full);
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		width: var(--size-full);
+		height: var(--size-full);
 	}
 
 	.caption {

@@ -17,7 +17,7 @@
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 {#if value === null}
-	<Empty size="large"><Image /></Empty>
+	<Empty size="large" unpadded_box={true}><Image /></Empty>
 {:else}
 	<img src={value} alt="" />
 {/if}

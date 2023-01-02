@@ -14,7 +14,7 @@
 {/if}
 
 <style>
-	.container {
+	/* .container {
 		display: flex;
 		flex-direction: column;
 		gap: var(--size-3);
@@ -23,7 +23,7 @@
 		border: 1px solid;
 		border-radius: var(--radius-lg);
 		padding: var(--size-3);
-	}
+	} */
 
 	.label-wrap {
 		display: flex;

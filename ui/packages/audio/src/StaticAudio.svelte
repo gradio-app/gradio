@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Empty } from "@gradio/atoms";
 	export interface AudioData extends FileData {
 		crop_min?: number;
 		crop_max?: number;
@@ -33,9 +34,9 @@
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
 {#if value === null}
-	<div class="placeholder-wrap">
-		<div class="icon"><Music /></div>
-	</div>
+	<Empty size="small" unpadded_box={true}>
+		<Music />
+	</Empty>
 {:else}
 	<audio
 		controls

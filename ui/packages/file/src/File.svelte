@@ -16,5 +16,5 @@
 		<FilePreview {value} />
 	</div>
 {:else}
-	<Empty size="large"><File /></Empty>
+	<Empty size="large" unpadded_box={true}><File /></Empty>
 {/if}
