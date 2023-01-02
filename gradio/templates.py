@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Tuple
 
 import numpy as np
 from PIL.Image import Image
@@ -53,7 +53,7 @@ class Webcam(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
@@ -61,12 +61,12 @@ class Webcam(components.Image):
         source: str = "webcam",
         tool: str | None = None,
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = True,
+        interactive: bool | None = True,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -98,7 +98,7 @@ class Sketchpad(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] = (28, 28),
         image_mode: str = "L",
@@ -106,12 +106,12 @@ class Sketchpad(components.Image):
         source: str = "canvas",
         tool: str | None = None,
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = True,
+        interactive: bool | None = True,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -143,7 +143,7 @@ class Paint(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
@@ -151,12 +151,12 @@ class Paint(components.Image):
         source: str = "canvas",
         tool: str = "color-sketch",
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = True,
+        interactive: bool | None = True,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -188,7 +188,7 @@ class ImageMask(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
@@ -196,12 +196,12 @@ class ImageMask(components.Image):
         source: str = "upload",
         tool: str = "sketch",
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = True,
+        interactive: bool | None = True,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -233,7 +233,7 @@ class ImagePaint(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
@@ -241,12 +241,12 @@ class ImagePaint(components.Image):
         source: str = "upload",
         tool: str = "color-sketch",
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = True,
+        interactive: bool | None = True,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -278,7 +278,7 @@ class Pil(components.Image):
 
     def __init__(
         self,
-        value: Optional[str | Image | np.ndarray] = None,
+        value: str | Image | np.ndarray | None = None,
         *,
         shape: Tuple[int, int] | None = None,
         image_mode: str = "RGB",
@@ -286,12 +286,12 @@ class Pil(components.Image):
         source: str = "upload",
         tool: str | None = None,
         type: str = "pil",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
         **kwargs,
     ):
@@ -323,17 +323,17 @@ class PlayableVideo(components.Video):
 
     def __init__(
         self,
-        value: Optional[str | Callable] = None,
+        value: str | Callable | None = None,
         *,
-        format: Optional[str] = "mp4",
+        format: str | None = "mp4",
         source: str = "upload",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         mirror_webcam: bool = True,
-        include_audio: Optional[bool] = None,
+        include_audio: bool | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -360,16 +360,16 @@ class Microphone(components.Audio):
 
     def __init__(
         self,
-        value: Optional[str | Tuple[int, np.ndarray] | Callable] = None,
+        value: str | Tuple[int, np.ndarray] | Callable | None = None,
         *,
         source: str = "microphone",
         type: str = "numpy",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
         streaming: bool = False,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -395,15 +395,15 @@ class Files(components.File):
 
     def __init__(
         self,
-        value: Optional[str | typing.List[str] | Callable] = None,
+        value: str | typing.List[str] | Callable | None = None,
         *,
         file_count: str = "multiple",
         type: str = "file",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -428,21 +428,21 @@ class Numpy(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
+        value: typing.List[typing.List[Any]] | Callable | None = None,
         *,
-        headers: Optional[typing.List[str]] = None,
+        headers: typing.List[str] | None = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
-        col_count: Optional[int | Tuple[int, str]] = None,
+        col_count: int | Tuple[int, str] | None = None,
         datatype: str | typing.List[str] = "str",
         type: str = "numpy",
-        max_rows: Optional[int] = 20,
-        max_cols: Optional[int] = None,
+        max_rows: int | None = 20,
+        max_cols: int | None = None,
         overflow_row_behaviour: str = "paginate",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         wrap: bool = False,
         **kwargs,
     ):
@@ -475,21 +475,21 @@ class Matrix(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
+        value: typing.List[typing.List[Any]] | Callable | None = None,
         *,
-        headers: Optional[typing.List[str]] = None,
+        headers: typing.List[str] | None = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
-        col_count: Optional[int | Tuple[int, str]] = None,
+        col_count: int | Tuple[int, str] | None = None,
         datatype: str | typing.List[str] = "str",
         type: str = "array",
-        max_rows: Optional[int] = 20,
-        max_cols: Optional[int] = None,
+        max_rows: int | None = 20,
+        max_cols: int | None = None,
         overflow_row_behaviour: str = "paginate",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         wrap: bool = False,
         **kwargs,
     ):
@@ -522,21 +522,21 @@ class List(components.Dataframe):
 
     def __init__(
         self,
-        value: Optional[typing.List[typing.List[Any]] | Callable] = None,
+        value: typing.List[typing.List[Any]] | Callable | None = None,
         *,
-        headers: Optional[typing.List[str]] = None,
+        headers: typing.List[str] | None = None,
         row_count: int | Tuple[int, str] = (1, "dynamic"),
-        col_count: Optional[int | Tuple[int, str]] = 1,
+        col_count: int | Tuple[int, str] = 1,
         datatype: str | typing.List[str] = "str",
         type: str = "array",
-        max_rows: Optional[int] = 20,
-        max_cols: Optional[int] = None,
+        max_rows: int | None = 20,
+        max_cols: int | None = None,
         overflow_row_behaviour: str = "paginate",
-        label: Optional[str] = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         wrap: bool = False,
         **kwargs,
     ):
