@@ -18,16 +18,16 @@ class TextArea(components.Textbox):
 
     def __init__(
         self,
-        value: Optional[str | Callable] = "",
+        value: str | Callable | None = "",
         *,
         lines: int = 7,
         max_lines: int = 20,
-        placeholder: Optional[str] = None,
-        label: Optional[str] = None,
+        placeholder: str | None = None,
+        label: str | None = None,
         show_label: bool = True,
-        interactive: Optional[bool] = None,
+        interactive: bool | None = None,
         visible: bool = True,
-        elem_id: Optional[str] = None,
+        elem_id: str | None = None,
         **kwargs,
     ):
         super().__init__(
