@@ -58,6 +58,6 @@
 
 		<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
 
-		<Empty size="large"><File /></Empty>
+		<Empty size="large" unpadded_box={true}><File /></Empty>
 	{/if}
 </Block>

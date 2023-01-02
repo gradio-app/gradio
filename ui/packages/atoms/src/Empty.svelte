@@ -1,11 +1,13 @@
 <script lang="ts">
 	export let size: "small" | "large" = "small";
+	export let unpadded_box = false;
 </script>
 
 <div
 	class="empty"
 	class:small={size === "small"}
 	class:large={size === "large"}
+	class:unpadded_box
 >
 	<div class="icon">
 		<slot />
@@ -27,10 +29,18 @@
 	}
 
 	.small {
-		min-height: var(--size-32);
+		height: calc(var(--size-32) - 20px);
 	}
 
 	.large {
+		height: calc(var(--size-64) - 20px);
+	}
+
+	.unpadded_box.small {
+		min-height: var(--size-32);
+	}
+
+	.unpadded_box.large {
 		min-height: var(--size-64);
 	}
 </style>

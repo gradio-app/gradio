@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { fade } from "svelte/transition";
-	import { Clear } from "@gradio/icons";
 	import { prettySI } from "../utils/helpers";
 
 	let items: Array<HTMLDivElement> = [];
@@ -52,7 +51,7 @@
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 
-	export let eta: number | null = 99;
+	export let eta: number | null = null;
 	export let queue: boolean = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
@@ -104,9 +103,9 @@
 			last_progress_level = progress_level[progress_level.length - 1];
 			if (progress_bar) {
 				if (last_progress_level === 0) {
-					progress_bar.classList.remove("transition-transform");
+					progress_bar.style.transition = "0";
 				} else {
-					progress_bar.classList.add("transition-transform");
+					progress_bar.style.transition = "150ms";
 				}
 			}
 		} else {
@@ -178,6 +177,8 @@
 		}
 	}
 	$: formatted_timer = timer_diff.toFixed(1);
+
+	$: console.log(eta_level);
 </script>
 
 <div
@@ -191,7 +192,7 @@
 	{#if status === "pending"}
 		{#if variant === "default" && show_eta_bar}
 			<div
-				class="progress-bar"
+				class="eta-bar"
 				style:transform="translateX({(eta_level || 0) * 100}%)"
 			/>
 		{/if}
@@ -248,7 +249,7 @@
 					<div
 						bind:this={progress_bar}
 						class="progress-bar"
-						style:transform="scaleX({last_progress_level})"
+						style:width="{last_progress_level * 100}%"
 					/>
 				</div>
 			</div>
@@ -273,12 +274,11 @@
 							width="100%"
 							height="100%"
 							viewBox="0 0 24 24"
-							fill="none"
+							fill="currentColor"
 							stroke="currentColor"
 							stroke-width="3"
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							class="feather feather-x"
 						>
 							<line x1="18" y1="6" x2="6" y2="18" />
 							<line x1="6" y1="6" x2="18" y2="18" />
@@ -355,25 +355,20 @@
 		transform-origin: left;
 		opacity: 0.8;
 		z-index: var(--layer-1);
-		transition: 0.5s;
+		transition: 10ms;
 		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
 		background: var(--color-background-secondary);
 	}
 	.progress-bar-wrap {
-		border: 1px sold var(--color-border-primary);
-		border-radius: var(--radius-md);
-		background: white;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-sm);
+		background: var(--color-background-primary);
 		width: 55.5%;
 		height: var(--size-4);
 	}
 	.progress-bar {
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
 		transform-origin: left;
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-sm);
 		background-color: var(--color-accent-base);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -391,7 +386,7 @@
 	.progress-level-inner {
 		margin: var(--size-2) auto;
 		color: var(--color-text-body);
-		font-size: var(--scale-00);
+		font-size: var(--scale-000);
 		font-family: var(--font-mono);
 	}
 
@@ -490,7 +485,7 @@
 		padding-left: calc(var(--size-2) - 1px);
 		width: var(--size-10);
 		height: var(--size-10);
-		color: var(--color-text-body);
+		color: white;
 		font-weight: var(--weight-bold);
 		font-size: var(--scale-5);
 		text-align: center;
