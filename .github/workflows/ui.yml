@@ -35,6 +35,8 @@ jobs:
           cache-dependency-path: ui/pnpm-lock.yaml
       - name: install dependencies
         run: pnpm i --frozen-lockfile
+      - name: build css
+        run: pnpm css
       - name: formatting check
         run: pnpm format:check
       - name: typecheck
