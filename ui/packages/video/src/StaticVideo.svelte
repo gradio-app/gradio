@@ -27,19 +27,3 @@
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<Player src={value.data} on:play on:pause on:ended mirror={false} />
 {/if}
-
-<style>
-	.empty {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: var(--size-full);
-		min-height: var(--size-60);
-	}
-
-	.icon {
-		opacity: 0.5;
-		height: var(--size-5);
-		color: var(--color-text-body);
-	}
-</style>
