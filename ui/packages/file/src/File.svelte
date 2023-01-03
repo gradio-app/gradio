@@ -18,3 +18,9 @@
 {:else}
 	<Empty size="large" unpadded_box={true}><File /></Empty>
 {/if}
+
+<style>
+	.file-preview {
+		overflow-x: scroll;
+	}
+</style>
