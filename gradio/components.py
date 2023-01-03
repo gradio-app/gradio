@@ -2638,7 +2638,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.x = x
-        if isinstance(y, str) or y is None:
+        if isinstance(y, str):
             y = [y]
         self.y = y
         self.colors = colors
