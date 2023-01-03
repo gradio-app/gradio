@@ -40,7 +40,6 @@
 	});
 
 	function addNewModel() {
-		console.log(clearColor);
 		scene = new BABYLON.Scene(engine!);
 		scene.createDefaultCameraOrLight();
 

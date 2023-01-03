@@ -177,8 +177,6 @@
 		}
 	}
 	$: formatted_timer = timer_diff.toFixed(1);
-
-	$: console.log(eta_level);
 </script>
 
 <div
