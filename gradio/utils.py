@@ -330,10 +330,10 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     Returns:
     cls: the component class
     """
+    import gradio.blocks
     import gradio.components
     import gradio.layouts
     import gradio.templates
-    import gradio.blocks
 
     components = [
         (name, cls)
