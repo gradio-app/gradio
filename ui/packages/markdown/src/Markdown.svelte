@@ -19,6 +19,7 @@
 	class="prose"
 	class:hide={!visible}
 	bind:this={target}
+	data-testid="markdown"
 >
 	{@html value}
 </div>

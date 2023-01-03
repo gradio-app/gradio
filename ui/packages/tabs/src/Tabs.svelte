@@ -13,7 +13,7 @@
 
 	export let visible: boolean = true;
 	export let elem_id: string = "id";
-	export let selected: number | string | object = 0;
+	export let selected: number | string | object;
 
 	let tabs: Array<Tab> = [];
 
@@ -43,13 +43,15 @@
 	}
 
 	$: selected !== null && change_tab(selected);
+
+	$: console.log($selected_tab, tabs);
 </script>
 
 <div class="tabs" class:hide={!visible} id={elem_id}>
 	<div class="tab-nav ">
 		{#each tabs as t (t.id)}
 			{#if t.id === $selected_tab}
-				<button class="selected ">
+				<button class="selected">
 					{t.name}
 				</button>
 			{:else}

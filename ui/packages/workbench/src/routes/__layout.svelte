@@ -87,7 +87,10 @@
 	<div class="flex pt-6 {mode}">
 		<Nav />
 
-		<main class="gradio-bg px-6 w-full ">
+		<main
+			class="gradio-bg px-6 w-full"
+			style="background: var(--color-background-primary)"
+		>
 			<div class="gradio-interface">
 				<slot />
 			</div>
