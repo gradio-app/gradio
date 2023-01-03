@@ -69,8 +69,9 @@
 			{#if value.length > 3}
 				<div
 					class="overlay"
-					class:even={index % 2 == 0}
 					class:odd={index % 2 != 0}
+					class:even={index % 2 == 0}
+					class:button={type === "gallery"}
 				/>
 			{/if}
 		</table>
@@ -81,10 +82,7 @@
 	.gallery {
 		align-items: center;
 		cursor: pointer;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
 		border-collapse: collapse;
-		background: transparent;
 		padding: var(--size-2);
 		overflow: hidden;
 		font-size: var(--scale-000);
@@ -103,7 +101,11 @@
 		font-family: var(--font-mono);
 	}
 
-	.selected td {
+	.table.selected td {
+		border-color: var(--dataset-dataframe-border-hover);
+	}
+
+	.gallery.selected td {
 		border-color: var(--dataset-dataframe-border-hover);
 	}
 
@@ -141,8 +143,16 @@
 		--gradient-to: var(--table-odd-background);
 	}
 
+	.button {
+		--gradient-to: var(--dataset-gallery-background-base);
+	}
+
 	.selected .even,
 	.selected .odd {
 		--gradient-to: var(--dataset-table-background-hover);
+	}
+
+	.selected .button {
+		--gradient-to: var(--dataset-gallery-background-hover);
 	}
 </style>

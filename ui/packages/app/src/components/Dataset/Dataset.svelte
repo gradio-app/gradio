@@ -99,13 +99,15 @@
 						value = i + page * samples_per_page;
 						dispatch("click", value);
 					}}
+					on:mouseenter={() => handle_mouseenter(i)}
+					on:mouseleave={() => handle_mouseleave()}
 				>
 					{#if Object.keys(component_map).includes(components[0]) && component_map[components[0]]}
 						<svelte:component
 							this={component_meta[0][0].component}
 							value={sample_row[0]}
 							{samples_dir}
-							type="table"
+							type="gallery"
 							selected={current_hover === i}
 							index={i}
 						/>
@@ -208,7 +210,14 @@
 	}
 
 	.button {
+		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
+		overflow: hidden;
+		overflow: hidden;
+	}
+
+	.button:hover {
+		background: var(--dataset-gallery-background-hover);
 	}
 
 	.table-wrap {

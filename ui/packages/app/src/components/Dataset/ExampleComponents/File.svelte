@@ -24,11 +24,9 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
 		background: var(--dataset-gallery-background-base);
-		padding: var(--size-2);
-		font-size: var(--scale-000);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--scale-00);
 		text-align: left;
 	}
 
