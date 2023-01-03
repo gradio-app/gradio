@@ -1,5 +1,9 @@
+"""Contains methods that generate documentation for Gradio functions and classes."""
+
+from __future__ import annotations
+
 import inspect
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Tuple
 
 classes_to_document = {}
 documentation_group = None
@@ -30,7 +34,7 @@ def document(*fns):
     return inner_doc
 
 
-def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
+def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, str | None]:
     """
     Generates documentation for any function.
     Parameters:
@@ -58,8 +62,8 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            assert line.startswith(
-                "    "
+            assert (
+                line.startswith("    ") or line.strip() == ""
             ), f"Documentation format for {fn.__name__} has format error in line: {line}"
             line = line[4:]
             if mode == "parameter":

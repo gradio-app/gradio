@@ -9,7 +9,7 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamples:
     def test_handle_single_input(self):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
@@ -89,7 +89,7 @@ class TestExamples:
         assert prediction[0][0][0]["data"] == gr.media_data.BASE64_IMAGE
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
     def test_no_headers(self):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
@@ -109,7 +109,7 @@ class TestExamplesDataset:
         assert examples.dataset.headers == ["im", ""]
 
 
-@patch("gradio.examples.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestProcessExamples:
     @pytest.mark.asyncio
     async def test_caching(self):

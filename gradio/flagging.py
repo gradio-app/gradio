@@ -53,7 +53,7 @@ def _get_dataset_features_info(is_new, components):
                 for _component, _type in file_preview_types.items():
                     if isinstance(component, _component):
                         infos["flagged"]["features"][
-                            component.label or "" + " file"
+                            (component.label or "") + " file"
                         ] = {"_type": _type}
                         break
 
@@ -273,7 +273,7 @@ class CSVLogger(FlaggingCallback):
                 with open(
                     log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(utils.sanitize_list_for_csv(file_content))
+                    csvfile.write(file_content)
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count

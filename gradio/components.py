@@ -1402,6 +1402,7 @@ class Image(
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
+        assert isinstance(x, str)
         im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -2317,10 +2318,11 @@ class File(
             }
 
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict:
+        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> Dict | None:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
-        assert serialized is not None
+        if serialized is None:
+            return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 
@@ -2634,7 +2636,7 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         value: str | Callable | None = None,
         *,
         x: str | None = None,
-        y: str | List[str | None] | None = None,
+        y: str | List[str] | None = None,
         colors: List[str] | None = None,
         label: str | None = None,
         every: float | None = None,
@@ -2722,7 +2724,10 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
         return dataframe
 
     def generate_sample(self):
-        return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
+        return {
+            "data": [[1] + [2] * len(self.y or [])] * 4,
+            "headers": [self.x] + (self.y or []),
+        }
 
     def postprocess(self, y: str | pd.DataFrame | None) -> Dict | None:
         """
@@ -2984,10 +2989,11 @@ class UploadButton(
         return deepcopy(media_data.BASE64_FILE)
 
     def serialize(
-        self, x: str, load_dir: str = "", encryption_key: bytes | None = None
-    ) -> Dict:
+        self, x: str | None, load_dir: str = "", encryption_key: bytes | None = None
+    ) -> Dict | None:
         serialized = FileSerializable.serialize(self, x, load_dir, encryption_key)
-        assert serialized is not None
+        if serialized is None:
+            return None
         serialized["size"] = Path(serialized["name"]).stat().st_size
         return serialized
 

@@ -9,7 +9,6 @@ import pkgutil
 import random
 import sys
 import time
-import typing
 import warnings
 import webbrowser
 from abc import abstractmethod
@@ -36,6 +35,7 @@ from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
+from gradio.helpers import create_tracker, skip, special_args
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -357,58 +357,6 @@ class class_or_instancemethod(classmethod):
         return descr_get(instance, type_)
 
 
-set_documentation_group("component-helpers")
-
-
-@document()
-def update(**kwargs) -> dict:
-    """
-    Updates component properties. When a function passed into a Gradio Interface or a Blocks events returns a typical value, it updates the value of the output component. But it is also possible to update the properties of an output component (such as the number of lines of a `Textbox` or the visibility of an `Image`) by returning the component's `update()` function, which takes as parameters any of the constructor parameters for that component.
-    This is a shorthand for using the update method on a component.
-    For example, rather than using gr.Number.update(...) you can just use gr.update(...).
-    Note that your editor's autocompletion will suggest proper parameters
-    if you use the update method on the component.
-    Demos: blocks_essay, blocks_update, blocks_essay_update
-
-    Parameters:
-        kwargs: Key-word arguments used to update the component's properties.
-    Example:
-        # Blocks Example
-        import gradio as gr
-        with gr.Blocks() as demo:
-            radio = gr.Radio([1, 2, 4], label="Set the value of the number")
-            number = gr.Number(value=2, interactive=True)
-            radio.change(fn=lambda value: gr.update(value=value), inputs=radio, outputs=number)
-        demo.launch()
-        # Interface example
-        import gradio as gr
-        def change_textbox(choice):
-          if choice == "short":
-              return gr.Textbox.update(lines=2, visible=True)
-          elif choice == "long":
-              return gr.Textbox.update(lines=8, visible=True)
-          else:
-              return gr.Textbox.update(visible=False)
-        gr.Interface(
-          change_textbox,
-          gr.Radio(
-              ["short", "long", "none"], label="What kind of essay would you like to write?"
-          ),
-          gr.Textbox(lines=2),
-          live=True,
-        ).launch()abstrac
-    """
-    kwargs["__type__"] = "generic_update"
-    return kwargs
-
-
-set_documentation_group("blocks")
-
-
-def skip() -> dict:
-    return update()
-
-
 def postprocess_update_dict(block: Block, update_dict: Dict, postprocess: bool = True):
     """
     Converts a dictionary of updates into a format that can be sent to the frontend.
@@ -458,25 +406,6 @@ def convert_component_dict_to_list(
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
-
-
-def add_request_to_inputs(
-    fn: Callable,
-    inputs: List[Any],
-    request: routes.Request | List[routes.Request] | None,
-):
-    """
-    Adds the FastAPI Request object to the inputs of a function if the type of the parameter is FastAPI.Request.
-    """
-    param_names = inspect.getfullargspec(fn)[0]
-    try:
-        parameter_types = typing.get_type_hints(fn)
-        for idx, param_name in enumerate(param_names):
-            if parameter_types.get(param_name, "") == routes.Request:
-                inputs.insert(idx, request)
-    except TypeError:  # A TypeError is raised if the function is a partial or other rare cases.
-        pass
-    return inputs
 
 
 @document("load")
@@ -850,9 +779,18 @@ class Blocks(BlockContext):
         fn_index: int,
         processed_input: List[Any],
         iterator: Iterator[Any] | None = None,
-        request: routes.Request | List[routes.Request] | None = None,
+        requests: routes.Request | List[routes.Request] | None = None,
+        event_id: str | None = None,
     ):
-        """Calls and times function with given index and preprocessed input."""
+        """
+        Calls function with given index and preprocessed input, and measures process time.
+        Parameters:
+            fn_index: index of function to call
+            processed_input: preprocessed input to pass to function
+            iterator: iterator to use if function is a generator
+            requests: requests to pass to function
+            event_id: id of event in queue
+        """
         block_fn = self.fns[fn_index]
         assert block_fn.fn, f"function with index {fn_index} not defined."
         is_generating = False
@@ -864,18 +802,36 @@ class Blocks(BlockContext):
                     for input_component, data in zip(block_fn.inputs, processed_input)
                 }
             ]
-        processed_input = add_request_to_inputs(
-            block_fn.fn, list(processed_input), request
+
+        if isinstance(requests, list):
+            request = requests[0]
+        else:
+            request = requests
+        processed_input, progress_index = special_args(
+            block_fn.fn,
+            processed_input,
+            request,
+        )
+        progress_tracker = (
+            processed_input[progress_index] if progress_index is not None else None
         )
 
         start = time.time()
 
         if iterator is None:  # If not a generator function that has already run
-            if inspect.iscoroutinefunction(block_fn.fn):
-                prediction = await block_fn.fn(*processed_input)
+            if progress_tracker is not None and progress_index is not None:
+                progress_tracker, fn = create_tracker(
+                    self, event_id, block_fn.fn, progress_tracker.track_tqdm
+                )
+                processed_input[progress_index] = progress_tracker
+            else:
+                fn = block_fn.fn
+
+            if inspect.iscoroutinefunction(fn):
+                prediction = await fn(*processed_input)
             else:
                 prediction = await anyio.to_thread.run_sync(
-                    block_fn.fn, *processed_input, limiter=self.limiter
+                    fn, *processed_input, limiter=self.limiter
                 )
         else:
             prediction = None
@@ -1008,6 +964,7 @@ class Blocks(BlockContext):
         state: Dict[int, Any],
         request: routes.Request | List[routes.Request] | None = None,
         iterators: Dict[int, Any] | None = None,
+        event_id: str | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1055,7 +1012,9 @@ class Blocks(BlockContext):
         else:
             inputs = self.preprocess_data(fn_index, inputs, state)
             iterator = iterators.get(fn_index, None) if iterators else None
-            result = await self.call_function(fn_index, inputs, iterator, request)
+            result = await self.call_function(
+                fn_index, inputs, iterator, request, event_id
+            )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
 
@@ -1354,6 +1313,11 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.progress_tracking = any(
+            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
+            for block_fn in self.fns
+        )
+
         if enable_queue is not None:
             self.enable_queue = enable_queue
             warnings.warn(
@@ -1368,6 +1332,9 @@ class Blocks(BlockContext):
         if self.enable_queue and not hasattr(self, "_queue"):
             self.queue()
         self.show_api = self.api_open if self.enable_queue else show_api
+
+        if not self.enable_queue and self.progress_tracking:
+            raise ValueError("Progress tracking requires queuing to be enabled.")
 
         for dep in self.dependencies:
             for i in dep["cancels"]:
@@ -1695,8 +1662,9 @@ class Blocks(BlockContext):
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
+
         if self.enable_queue:
-            utils.run_coro_in_background(self._queue.start)
+            utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):

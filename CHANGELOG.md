@@ -1,9 +1,28 @@
 # Upcoming Release 
 
 ## New Features:
+
+* Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
+
+```python
+def reverse(word, progress=gr.Progress()):
+    progress(0, desc="Starting")
+    time.sleep(1)
+    new_string = ""
+    for letter in progress.tqdm(word, desc="Reversing"):
+        time.sleep(0.25)
+        new_string = letter + new_string
+    return new_string
+
+demo = gr.Interface(reverse, gr.Text(), gr.Text())
+```
+
+Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750](https://github.com/gradio-app/gradio/pull/2750).
+
 * Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 
 ## Bug Fixes:
+* Fixed bug where an error opening an audio file led to a crash by [@FelixDombek](https://github.com/FelixDombek) in [PR 2898](https://github.com/gradio-app/gradio/pull/2898)
 * Fixed bug where setting `default_enabled=False` made it so that the entire queue did not start by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876)  
 * Fixed bug where csv preview for DataFrame examples would show filename instead of file contents by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2877](https://github.com/gradio-app/gradio/pull/2877)
 * Fixed bug where an error raised after yielding iterative output would not be displayed in the browser by 
@@ -12,6 +31,7 @@
 
 ## Documentation Changes:
 * Added a Guide on using Google Sheets to create a real-time dashboard with Gradio's `DataFrame` and `LinePlot` component, by [@abidlabs](https://github.com/abidlabs) in [PR 2816](https://github.com/gradio-app/gradio/pull/2816) 
+* Add a components - events matrix on the docs by [@aliabd](https://github.com/aliabd) in [PR 2921](https://github.com/gradio-app/gradio/pull/2921)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
@@ -22,11 +42,12 @@ No changes to highlight.
 ## Full Changelog:
 * The `default_enabled` parameter of the `Blocks.queue` method has no effect by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876) 
 * Added typing to several Python files in codebase by [@abidlabs](https://github.com/abidlabs) in [PR 2887](https://github.com/gradio-app/gradio/pull/2887) 
+* Excluding untracked files from demo notebook check action by [@aliabd](https://github.com/aliabd) in [PR 2897](https://github.com/gradio-app/gradio/pull/2897)
+* Updated typing by [@1nF0rmed](https://github.com/1nF0rmed) in [PR 2904](https://github.com/gradio-app/gradio/pull/2904)
 
 ## Contributors Shoutout:
 * @JaySmithWpg for making their first contribution to gradio!
 * @MohamedAliRashad for making their first contribution to gradio!
-
 
 # Version 3.15.0
 

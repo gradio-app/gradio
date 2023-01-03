@@ -11,9 +11,7 @@ import os
 import pkgutil
 import random
 import re
-import subprocess
 import sys
-import tempfile
 import time
 import typing
 import warnings
@@ -34,22 +32,19 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
 
 import aiohttp
 import fsspec.asyn
 import httpx
-import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-import PIL
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
-from gradio import processing_utils
 from gradio.context import Context
-from gradio.documentation import document, set_documentation_group
+from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -64,9 +59,10 @@ T = TypeVar("T")
 
 def version_check():
     try:
-        current_pkg_version = (
-            pkgutil.get_data(__name__, "version.txt").decode("ascii").strip()
-        )
+        version_data = pkgutil.get_data(__name__, "version.txt")
+        if not version_data:
+            raise FileNotFoundError
+        current_pkg_version = version_data.decode("ascii").strip()
         latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
             "version"
         ]
@@ -98,7 +94,7 @@ def get_local_ip_address() -> str:
     return ip_address
 
 
-def initiated_analytics(data: Dict[str:Any]) -> None:
+def initiated_analytics(data: Dict[str, Any]) -> None:
     try:
         requests.post(
             analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
@@ -128,7 +124,8 @@ def integration_analytics(data: Dict[str, Any]) -> None:
 def error_analytics(ip_address: str, message: str) -> None:
     """
     Send error analytics if there is network
-    :param type: RuntimeError or NameError
+    :param ip_address: IP address where error occurred
+    :param message: Details about error
     """
     data = {"ip_address": ip_address, "error": message}
     try:
@@ -194,7 +191,7 @@ def readme_to_html(article: str) -> str:
 
 def show_tip(interface: gradio.Blocks) -> None:
     if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(gradio.strings.en["TIPS"])
+        tip: str = random.choice(en["TIPS"])
         print(f"Tip: {tip}")
 
 
@@ -209,7 +206,7 @@ def launch_counter() -> None:
                 launches = json.load(j)
             launches["launches"] += 1
             if launches["launches"] in [25, 50, 150, 500, 1000]:
-                print(gradio.strings.en["BETA_INVITE"])
+                print(en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
     except:
@@ -278,11 +275,12 @@ def assert_configs_are_equivalent_besides_ids(
     return True
 
 
-def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
+def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
 
     output = []
+    end = 0
     prev_end = 0
 
     for group in ner_groups:
@@ -332,6 +330,7 @@ def component_or_layout_class(cls_name: str) -> Type[Component] | Type[BlockCont
     Returns:
     cls: the component class
     """
+    import gradio.blocks
     import gradio.components
     import gradio.layouts
     import gradio.templates
@@ -457,8 +456,8 @@ class AsyncRequest:
         method: Method,
         url: str,
         *,
-        validation_model: Type[BaseModel] = None,
-        validation_function: Callable = None,
+        validation_model: Type[BaseModel] | None = None,
+        validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
         **kwargs,
@@ -474,8 +473,7 @@ class AsyncRequest:
             exception_class(Type[Exception]): a exception type to throw with its type
             raise_for_status(bool): a flag that determines to raise httpx.Request.raise_for_status() exceptions.
         """
-        self._response = None
-        self._exception = None
+        self._exception: Union[Exception, None] = None
         self._status = None
         self._raise_for_status = raise_for_status
         self._validation_model = validation_model
@@ -524,7 +522,7 @@ class AsyncRequest:
         return self
 
     @staticmethod
-    def _create_request(method: Method, url: str, **kwargs) -> AsyncRequest:
+    def _create_request(method: Method, url: str, **kwargs) -> httpx.Request:
         """
         Create a request. This is a httpx request wrapper function.
         Args:
@@ -537,7 +535,9 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(self, response: ResponseJson) -> ResponseJson:
+    def _validate_response_data(
+        self, response: ResponseJson
+    ) -> Union[BaseModel, ResponseJson | None]:
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -553,13 +553,11 @@ class AsyncRequest:
         try:
             # If a validation model is provided, validate response using the validation model.
             if self._validation_model:
-                validated_response = self._validate_response_by_model(
-                    validated_response
-                )
+                validated_response = self._validate_response_by_model(response)
             # Then, If a validation function is provided, validate response using the validation function.
             if self._validation_function:
                 validated_response = self._validate_response_by_validation_function(
-                    validated_response
+                    response
                 )
         except Exception as exception:
             # If one of the validation methods does not confirm, raised exception will be silently handled.
@@ -568,7 +566,7 @@ class AsyncRequest:
 
         return validated_response
 
-    def _validate_response_by_model(self, response: ResponseJson) -> ResponseJson:
+    def _validate_response_by_model(self, response: ResponseJson) -> BaseModel:
         """
         Validate response json using the validation model.
         Args:
@@ -576,12 +574,14 @@ class AsyncRequest:
         Returns:
             ResponseJson: Validated Json object.
         """
-        validated_data = parse_obj_as(self._validation_model, response)
+        validated_data = BaseModel()
+        if self._validation_model:
+            validated_data = parse_obj_as(self._validation_model, response)
         return validated_data
 
     def _validate_response_by_validation_function(
         self, response: ResponseJson
-    ) -> ResponseJson:
+    ) -> ResponseJson | None:
         """
         Validate response json using the validation function.
         Args:
@@ -589,7 +589,11 @@ class AsyncRequest:
         Returns:
             ResponseJson: Validated Json object.
         """
-        validated_data = self._validation_function(response)
+        validated_data = None
+
+        if self._validation_function:
+            validated_data = self._validation_function(response)
+
         return validated_data
 
     def is_valid(self, raise_exceptions: bool = False) -> bool:
@@ -600,7 +604,7 @@ class AsyncRequest:
         Returns:
             bool: validity of the data
         """
-        if self.has_exception:
+        if self.has_exception and self._exception:
             if raise_exceptions:
                 raise self._exception
             return False
@@ -625,7 +629,7 @@ class AsyncRequest:
 
     @property
     def raise_exceptions(self):
-        if self.has_exception:
+        if self.has_exception and self._exception:
             raise self._exception
 
     @property
@@ -673,7 +677,7 @@ def sanitize_value_for_csv(value: str | Number) -> str | Number:
     return value
 
 
-def sanitize_list_for_csv(values: T) -> T:
+def sanitize_list_for_csv(values: List[Any]) -> List[Any]:
     """
     Sanitizes a list of values (or a list of list of values) that is being written to a
     CSV file to prevent CSV injection attacks.
@@ -691,13 +695,13 @@ def sanitize_list_for_csv(values: T) -> T:
 
 def append_unique_suffix(name: str, list_of_names: List[str]):
     """Appends a numerical suffix to `name` so that it does not appear in `list_of_names`."""
-    list_of_names = set(list_of_names)  # for O(1) lookup
-    if name not in list_of_names:
+    set_of_names: set[str] = set(list_of_names)  # for O(1) lookup
+    if name not in set_of_names:
         return name
     else:
         suffix_counter = 1
         new_name = name + f"_{suffix_counter}"
-        while new_name in list_of_names:
+        while new_name in set_of_names:
             suffix_counter += 1
             new_name = name + f"_{suffix_counter}"
         return new_name
@@ -725,7 +729,7 @@ def get_continuous_fn(fn: Callable, every: float) -> Callable:
     return continuous_fn
 
 
-async def cancel_tasks(task_ids: List[str]):
+async def cancel_tasks(task_ids: set[str]):
     if sys.version_info < (3, 8):
         return None
 
@@ -749,10 +753,13 @@ def get_cancel_function(
 ) -> Tuple[Callable, List[int]]:
     fn_to_comp = {}
     for dep in dependencies:
-        fn_index = next(
-            i for i, d in enumerate(Context.root_block.dependencies) if d == dep
-        )
-        fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+        if Context.root_block:
+            fn_index = next(
+                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+            )
+            fn_to_comp[fn_index] = [
+                Context.root_block.blocks[o] for o in dep["outputs"]
+            ]
 
     async def cancel(session_hash: str) -> None:
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
@@ -780,6 +787,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
     parameter_types = typing.get_type_hints(fn) if inspect.isfunction(fn) else {}
     min_args = 0
     max_args = 0
+    infinity = -1
     for name, param in signature.parameters.items():
         has_default = param.default != param.empty
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD]:
@@ -788,7 +796,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
                     min_args += 1
                 max_args += 1
         elif param.kind == param.VAR_POSITIONAL:
-            max_args = "infinity"
+            max_args = infinity
         elif param.kind == param.KEYWORD_ONLY:
             if not has_default:
                 return f"Keyword-only args must have default values for function {fn}"
@@ -801,7 +809,7 @@ def check_function_inputs_match(fn: Callable, inputs: List, inputs_as_dict: bool
         warnings.warn(
             f"Expected at least {min_args} arguments for function {fn}, received {arg_count}."
         )
-    if max_args != "infinity" and arg_count > max_args:
+    if max_args != infinity and arg_count > max_args:
         warnings.warn(
             f"Expected maximum {max_args} arguments for function {fn}, received {arg_count}."
         )
@@ -814,129 +822,6 @@ class TupleNoPrint(tuple):
 
     def __str__(self):
         return ""
-
-
-set_documentation_group("component-helpers")
-
-
-@document()
-def make_waveform(
-    audio: str | Tuple[int, np.ndarray],
-    *,
-    bg_color: str = "#f3f4f6",
-    bg_image: str = None,
-    fg_alpha: float = 0.75,
-    bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
-    bar_count: int = 50,
-    bar_width: float = 0.6,
-):
-    """
-    Generates a waveform video from an audio file. Useful for creating an easy to share audio visualization. The output should be passed into a `gr.Video` component.
-    Parameters:
-        audio: Audio file path or tuple of (sample_rate, audio_data)
-        bg_color: Background color of waveform (ignored if bg_image is provided)
-        bg_image: Background image of waveform
-        fg_alpha: Opacity of foreground waveform
-        bars_color: Color of waveform bars. Can be a single color or a tuple of (start_color, end_color) of gradient
-        bar_count: Number of bars in waveform
-        bar_width: Width of bars in waveform. 1 represents full width, 0.5 represents half width, etc.
-    Returns:
-        A filepath to the output video.
-    """
-    if isinstance(audio, str):
-        audio_file = audio
-        audio = processing_utils.audio_from_file(audio)
-    else:
-        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        processing_utils.audio_to_file(audio[0], audio[1], tmp_wav.name)
-        audio_file = tmp_wav.name
-    duration = round(len(audio[1]) / audio[0], 4)
-
-    # Helper methods to create waveform
-    def hex_to_RGB(hex_str):
-        return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
-
-    def get_color_gradient(c1, c2, n):
-        assert n > 1
-        c1_rgb = np.array(hex_to_RGB(c1)) / 255
-        c2_rgb = np.array(hex_to_RGB(c2)) / 255
-        mix_pcts = [x / (n - 1) for x in range(n)]
-        rgb_colors = [((1 - mix) * c1_rgb + (mix * c2_rgb)) for mix in mix_pcts]
-        return [
-            "#" + "".join([format(int(round(val * 255)), "02x") for val in item])
-            for item in rgb_colors
-        ]
-
-    # Reshape audio to have a fixed number of bars
-    samples = audio[1]
-    if len(samples.shape) > 1:
-        samples = np.mean(samples, 1)
-    bins_to_pad = bar_count - (len(samples) % bar_count)
-    samples = np.pad(samples, [(0, bins_to_pad)])
-    samples = np.reshape(samples, (bar_count, -1))
-    samples = np.abs(samples)
-    samples = np.max(samples, 1)
-
-    matplotlib.use("Agg")
-    plt.clf()
-    # Plot waveform
-    color = (
-        bars_color
-        if isinstance(bars_color, str)
-        else get_color_gradient(bars_color[0], bars_color[1], bar_count)
-    )
-    plt.bar(
-        np.arange(0, bar_count),
-        samples * 2,
-        bottom=(-1 * samples),
-        width=bar_width,
-        color=color,
-    )
-    plt.axis("off")
-    plt.margins(x=0)
-    tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    savefig_kwargs = {"bbox_inches": "tight"}
-    if bg_image is not None:
-        savefig_kwargs["transparent"] = True
-    else:
-        savefig_kwargs["facecolor"] = bg_color
-    plt.savefig(tmp_img.name, **savefig_kwargs)
-    waveform_img = PIL.Image.open(tmp_img.name)
-    waveform_img = waveform_img.resize((1000, 200))
-
-    # Composite waveform with background image
-    if bg_image is not None:
-        waveform_array = np.array(waveform_img)
-        waveform_array[:, :, 3] = waveform_array[:, :, 3] * fg_alpha
-        waveform_img = PIL.Image.fromarray(waveform_array)
-
-        bg_img = PIL.Image.open(bg_image)
-        waveform_width, waveform_height = waveform_img.size
-        bg_width, bg_height = bg_img.size
-        if waveform_width != bg_width:
-            bg_img = bg_img.resize(
-                (waveform_width, 2 * int(bg_height * waveform_width / bg_width / 2))
-            )
-            bg_width, bg_height = bg_img.size
-        composite_height = max(bg_height, waveform_height)
-        composite = PIL.Image.new("RGBA", (waveform_width, composite_height), "#FFFFFF")
-        composite.paste(bg_img, (0, composite_height - bg_height))
-        composite.paste(
-            waveform_img, (0, composite_height - waveform_height), waveform_img
-        )
-        composite.save(tmp_img.name)
-        img_width, img_height = composite.size
-    else:
-        img_width, img_height = waveform_img.size
-        waveform_img.save(tmp_img.name)
-
-    # Convert waveform to video with ffmpeg
-    output_mp4 = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
-
-    ffmpeg_cmd = f"""ffmpeg -loop 1 -i {tmp_img.name} -i {audio_file} -vf "color=c=#FFFFFF77:s={img_width}x{img_height}[bar];[0][bar]overlay=-w+(w/{duration})*t:H-h:shortest=1" -t {duration} -y {output_mp4.name}"""
-
-    subprocess.call(ffmpeg_cmd, shell=True)
-    return output_mp4.name
 
 
 def tex2svg(formula, *args):
