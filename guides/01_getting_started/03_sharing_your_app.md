@@ -22,7 +22,9 @@ If you'd like to have a permanent link to your Gradio demo on the internet, use 
 
 You can either drag and drop a folder containing your Gradio model and all related files, or you can point Spaces to your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information. 
 
-![Hosting Demo](/assets/guides/hf_demo.gif)
+<video autoplay muted loop>
+  <source src="/assets/guides/hf_demo.mp4" type="video/mp4" />
+</video>
 
 ## Embedding Hosted Spaces
 
