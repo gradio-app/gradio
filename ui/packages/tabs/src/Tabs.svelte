@@ -43,53 +43,13 @@
 	}
 
 	$: selected !== null && change_tab(selected);
-	let h = 0;
-
-	let bar: HTMLSpanElement;
-	let active: HTMLButtonElement;
-	let parent: HTMLDivElement;
-	let scroll_container: HTMLDivElement;
-
-	$: h && active && move_bar();
-
-	async function move_bar() {
-		await tick();
-		const button = active.getBoundingClientRect();
-		const parent_box = parent.getBoundingClientRect();
-
-		bar.style.width = `${button.width - 4}px`;
-		bar.style.left = `${button.left - parent_box.left + scroll_pos + 2}px`;
-		bar.style.top = `${button.top - parent_box.top + button.height}px`;
-	}
-
-	let scroll_pos = 0;
-
-	function handle_scroll(e: Event & { currentTarget: HTMLDivElement }) {
-		scroll_pos = e.currentTarget.scrollLeft;
-	}
 </script>
 
-<div
-	class="tabs"
-	class:hide={!visible}
-	id={elem_id}
-	bind:this={parent}
-	bind:clientHeight={h}
->
-	<span
-		class="bar"
-		bind:this={bar}
-		style:transform="translateX(-{scroll_pos}px)"
-	/>
-
-	<div
-		class="tab-nav scroll-hide"
-		on:scroll={handle_scroll}
-		bind:this={scroll_container}
-	>
+<div class="tabs" class:hide={!visible} id={elem_id}>
+	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}
-				<button class="selected" bind:this={active}>
+				<button class="selected">
 					{t.name}
 				</button>
 			{:else}
@@ -118,13 +78,13 @@
 	.tab-nav {
 		display: flex;
 		position: relative;
+		flex-wrap: wrap;
 		border-bottom: 2px solid var(--color-border-primary);
-		overflow-x: scroll;
 		white-space: nowrap;
 	}
 
 	button {
-		position: relative;
+		margin-bottom: -2px;
 		border: 2px solid transparent;
 		border-color: transparent;
 		border-bottom: none;
@@ -138,7 +98,6 @@
 		color: var(--color-text-body);
 	}
 	.selected {
-		position: sticky;
 		border-color: var(--color-border-primary);
 		background-color: var(--color-background-primary);
 		color: var(--color-text-body);
