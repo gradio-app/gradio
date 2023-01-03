@@ -1,3 +1,7 @@
+.prose {
+	font-size: var(--scale-0);
+}
+
 .prose * {
 	color: var(--color-text-body);
 }
@@ -106,7 +110,8 @@ p {
 }
 .prose pre > code {
 	display: block;
-	padding: 1rem 1.5rem;
+	padding: 0.5rem 0.7rem;
+	/* font-size: 100%; */
 	white-space: pre;
 }
 
@@ -180,6 +185,7 @@ p {
 }
 
 blockquote {
+	margin: var(--size-6) 0 !important;
 	border-left: 5px solid var(--color-border-primary);
 	padding-left: var(--size-2);
 }
