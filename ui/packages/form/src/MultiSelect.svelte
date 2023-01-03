@@ -29,6 +29,9 @@
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
+	const iconCheckMarkPath =
+		"M 2.328125 4.222656 L 27.734375 4.222656 L 27.734375 24.542969 L 2.328125 24.542969 Z M 2.328125 4.222656";
+
 	function add(option: string) {
 		if (Array.isArray(value)) {
 			value.push(option);
@@ -57,6 +60,7 @@
 	}
 
 	function handleKeyup(e: any) {
+		// enter key
 		if (e.keyCode === 13) {
 			if (Array.isArray(value)) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
@@ -92,6 +96,7 @@
 
 	function handleOptionMousedown(e: any) {
 		const option = e.target.dataset.value;
+		inputValue = "";
 		if (option !== undefined) {
 			if (value?.includes(option)) {
 				remove(option);
@@ -115,14 +120,14 @@
 				>
 					<div
 						class:hidden={disabled}
-						class="token-remove items-center bg-gray-500 rounded-full fill-white flex justify-center min-w-min"
+						class="token-remove items-center bg-gray-700 rounded-full fill-white flex justify-center min-w-min p-0.5"
 						title="Remove {s}"
 					>
 						<svg
 							class="icon-clear"
 							xmlns="http://www.w3.org/2000/svg"
-							width="18"
-							height="18"
+							width="16"
+							height="16"
 							viewBox="0 0 24 24"
 						>
 							<path d={iconClearPath} />
@@ -136,7 +141,7 @@
 			<input
 				class="border-none bg-inherit text-2xl w-full outline-none text-white disabled:cursor-not-allowed"
 				{disabled}
-				autocomplete="off"
+				autocomplete="on"
 				bind:value={inputValue}
 				on:blur={handleBlur}
 				on:keyup={handleKeyup}
@@ -144,14 +149,14 @@
 			/>
 			<div
 				class:hidden={!value?.length || disabled}
-				class="remove-all items-center bg-gray-500 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden"
+				class="remove-all items-center bg-gray-700 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden p-0.5"
 				title="Remove All"
 			>
 				<svg
 					class="icon-clear"
 					xmlns="http://www.w3.org/2000/svg"
-					width="18"
-					height="18"
+					width="16"
+					height="16"
 					viewBox="0 0 24 24"
 				>
 					<path d={iconClearPath} />
@@ -169,17 +174,18 @@
 
 	{#if showOptions && !disabled}
 		<ul
-			class="z-50 text-white shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-gray-100 dark:bg-gray-700"
+			class="z-50 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-md"
 			transition:fly={{ duration: 200, y: 5 }}
 			on:mousedown|preventDefault={handleOptionMousedown}
 		>
 			{#each filtered as choice}
 				<li
-					class="cursor-pointer p-2 hover:bg-gray-300"
+					class="cursor-pointer flex p-2"
 					class:selected={value?.includes(choice)}
 					class:active={activeOption === choice}
 					data-value={choice}
 				>
+					<span class:invisible={!value?.includes(choice)} class="pr-1">✓</span>
 					{choice}
 				</li>
 			{/each}
@@ -188,23 +194,7 @@
 </div>
 
 <style lang="postcss">
-	li:last-child {
-		@apply rounded-b;
-	}
-	li:not(.selected):hover {
+	li:hover {
 		@apply bg-gray-400;
-	}
-	li.selected {
-		@apply bg-orange-400 text-white;
-	}
-	li.selected:nth-child(even) {
-		@apply bg-orange-300 text-white;
-	}
-	li.active {
-		@apply bg-gray-400;
-	}
-	li.selected.active,
-	li.selected:hover {
-		@apply bg-orange-200 text-white;
 	}
 </style>
