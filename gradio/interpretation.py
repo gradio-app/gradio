@@ -1,34 +1,55 @@
-from abc import ABC, abstractmethod
 import copy
 import math
-from typing import Any, Dict, TYPE_CHECKING, List, Tuple
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import numpy as np
 
 from gradio import utils
 from gradio.components import Label, Number
 
-
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
 
 class Interpretable(ABC):
-    def __init__(self, interpret_by_tokens: bool = False):
-        """
-        Initialize the interpretation-related features. 
-        Parameters:
-            interpret_by_tokens: If True, the input will be tokenized (e.g. a sentence will be divided into words; an image into superpixels, etc.) and the interpretation will be done on the tokens.
-        """
-        self.interpret_by_tokens = interpret_by_tokens
-        
     def set_interpret_parameters(self):
         """
-        Set any parameters for interpretation. Properties can be set here to be 
+        Set any parameters for interpretation. Properties can be set here to be
         used in get_interpretation_neighbors and get_interpretation_scores.
         """
         pass
 
+    def get_interpretation_scores(
+        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
+    ) -> List:
+        """
+        Arrange the output values from the neighbors into interpretation scores for the interface to render.
+        Parameters:
+            x: Input to interface
+            neighbors: Neighboring values to input x used for interpretation.
+            scores: Output value corresponding to each neighbor in neighbors
+        Returns:
+            Arrangement of interpretation scores for interfaces to render.
+        """
+        return scores
+
+
+class TokenInterpretable(Interpretable, ABC):
+    @abstractmethod
+    def tokenize(self, x: Any) -> Tuple[List, List, None]:
+        """
+        Interprets an input data point x by splitting it into a list of tokens (e.g
+        a string into words or an image into super-pixels).
+        """
+        return [], [], None
+
+    @abstractmethod
+    def get_masked_inputs(self, tokens: List, binary_mask_matrix: List[List]) -> List:
+        return []
+
+
+class NeighborInterpretable(Interpretable, ABC):
     @abstractmethod
     def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict, bool]:
         """
@@ -42,22 +63,6 @@ class Interpretable(ABC):
         """
         return [], {}, True
 
-    @abstractmethod
-    def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
-    ) -> List:
-        """
-        Arrange the output values from the neighbors into interpretation scores for the interface to render.
-        Parameters:
-            x: Input to interface
-            neighbors: Neighboring values to input x used for interpretation.
-            scores: Output value corresponding to each neighbor in neighbors
-        Returns:
-            Arrangement of interpretation scores for interfaces to render.
-        """
-        return []
-
-    
 
 async def run_interpret(interface: Interface, raw_input: List):
     """
@@ -83,7 +88,7 @@ async def run_interpret(interface: Interface, raw_input: List):
             if interp == "default":
                 input_component = interface.input_components[i]
                 neighbor_raw_input = list(raw_input)
-                if input_component.interpret_by_tokens:
+                if isinstance(input_component, TokenInterpretable):
                     tokens, neighbor_values, masks = input_component.tokenize(x)
                     interface_scores = []
                     alternative_output = []
@@ -125,7 +130,7 @@ async def run_interpret(interface: Interface, raw_input: List):
                             tokens=tokens,
                         )
                     )
-                else:
+                elif isinstance(input_component, NeighborInterpretable):
                     (
                         neighbor_values,
                         interpret_kwargs,
@@ -166,8 +171,12 @@ async def run_interpret(interface: Interface, raw_input: List):
                             raw_input[i],
                             neighbor_values,
                             interface_scores,
-                            **interpret_kwargs
+                            **interpret_kwargs,
                         )
+                    )
+                else:
+                    raise ValueError(
+                        f"Component {input_component} does not support interpretation"
                     )
             elif interp == "shap" or interp == "shapley":
                 try:
@@ -177,7 +186,7 @@ async def run_interpret(interface: Interface, raw_input: List):
                         "The package `shap` is required for this interpretation method. Try: `pip install shap`"
                     )
                 input_component = interface.input_components[i]
-                if not (input_component.interpret_by_tokens):
+                if not isinstance(input_component, TokenInterpretable):
                     raise ValueError(
                         "Input component {} does not support `shap` interpretation".format(
                             input_component

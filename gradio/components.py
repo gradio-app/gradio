@@ -46,7 +46,7 @@ from gradio.events import (
     Submittable,
     Uploadable,
 )
-from gradio.interpretation import Interpretable
+from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
 from gradio.serializing import (
@@ -242,7 +242,13 @@ class FormComponent:
 
 @document("change", "submit", "blur", "style")
 class Textbox(
-    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable, Interpretable
+    FormComponent,
+    Changeable,
+    Submittable,
+    Blurrable,
+    IOComponent,
+    SimpleSerializable,
+    TokenInterpretable,
 ):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -302,7 +308,6 @@ class Textbox(
             value=value,
             **kwargs,
         )
-        Interpretable.__init__(self, interpret_by_tokens=True)
         self.cleared_value = ""
         self.test_input = value
         self.type = type
@@ -423,7 +428,13 @@ class Textbox(
 
 @document("change", "submit", "style")
 class Number(
-    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
+    FormComponent,
+    Changeable,
+    Submittable,
+    Blurrable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -459,7 +470,6 @@ class Number(
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -594,7 +604,9 @@ class Number(
 
 
 @document("change", "style")
-class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Slider(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -658,7 +670,6 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
         )
         self.cleared_value = self.value
         self.test_input = self.value
-        self.interpret_by_tokens = False
 
     def get_config(self):
         return {
@@ -731,15 +742,6 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
             {},
         )
 
-    def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], **kwargs
-    ) -> List[float]:
-        """
-        Returns:
-            Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
-        """
-        return scores
-
     def style(
         self,
         *,
@@ -757,7 +759,9 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Checkbox(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -790,7 +794,6 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -830,12 +833,6 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
     def generate_sample(self):
         return True
 
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of the input by comparing the output against the output when the input is the inverse boolean value of x.
-        """
-        return self
-
     def get_interpretation_neighbors(self, x):
         return [not x], {}
 
@@ -851,7 +848,9 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -895,7 +894,6 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
             )
         self.type = type
         self.test_input = self.choices
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -973,12 +971,6 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
             y = [y]
         return y
 
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice in the input by comparing the output against the outputs when each choice in the input is independently either removed or added.
-        """
-        return self
-
     def get_interpretation_neighbors(self, x):
         leave_one_out_sets = []
         for choice in self.choices:
@@ -1024,7 +1016,9 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Radio(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1068,7 +1062,6 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
             )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -1132,12 +1125,6 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
                 + str(self.type)
                 + ". Please choose from: 'value', 'index'."
             )
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
 
     def get_interpretation_neighbors(self, x):
         choices = list(self.choices)
@@ -1241,6 +1228,7 @@ class Image(
     Uploadable,
     IOComponent,
     ImgSerializable,
+    TokenInterpretable,
 ):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1310,7 +1298,6 @@ class Image(
             self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
-        self.interpret_by_tokens = True
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
@@ -1827,6 +1814,7 @@ class Audio(
     IOComponent,
     FileSerializable,
     TempFileManager,
+    TokenInterpretable,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -1878,7 +1866,6 @@ class Audio(
             )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
-        self.interpret_by_tokens = True
         self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
@@ -2046,15 +2033,6 @@ class Audio(
             Path(file.name).unlink()
             masked_inputs.append(masked_data)
         return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores, masks=None, tokens=None
-    ) -> List[float]:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
-        """
-        return list(scores)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
