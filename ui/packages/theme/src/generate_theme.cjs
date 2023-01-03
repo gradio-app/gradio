@@ -71,10 +71,10 @@ const foundation_dark = {
 			placeholder: "var(--color-grey)",
 			subdued: "var(--color-grey-400)", // i dont know what this is for? upload text?
 			link: {
-				base: "var(--color-blue-600)",
-				hover: "var(--color-blue-700)",
-				visited: "var(--color-blue-500)",
-				active: "var(--color-blue-600)"
+				base: "var(--color-blue-500)",
+				hover: "var(--color-blue-400)",
+				visited: "var(--color-blue-600)",
+				active: "var(--color-blue-500)"
 			},
 			code: {
 				background: "var(--color-grey-800)",

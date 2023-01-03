@@ -11,7 +11,7 @@ html {
 	line-height: 1.5;
 	font-family: -var(--font-sans);
 	-moz-tab-size: 4;
-	tab-size: 4;
+	tab-size: 2;
 }
 
 body {
