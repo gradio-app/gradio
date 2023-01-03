@@ -25,11 +25,11 @@ jobs:
         run: echo $(git status) && echo $(git diff)
       - name: Get PR Number
         run: |
-        python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-        echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
       - name: Upload PR Number
         run: |
-        python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
+          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
       - name: Upload metadata
         uses: actions/upload-artifact@v3
         with:
