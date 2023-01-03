@@ -400,11 +400,12 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
-<div class="wrap" style:min-height={app_mode ? "var(--size-screen)" : "auto"}>
+<div class="wrap" style:min-height={app_mode ? "var(--size-screen-h)" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
 		{#if ready}
 			<Render
