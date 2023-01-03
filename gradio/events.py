@@ -4,7 +4,7 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, AnyStr, Callable, Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Set
 
 from gradio.blocks import Block
 from gradio.utils import get_cancel_function
@@ -31,24 +31,28 @@ def set_cancel_events(
         )
 
 
-class Changeable(Block):
+class EventListener(Block):
+    pass
+
+
+class Changeable(EventListener):
     def change(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the component's input value changes (e.g. when the user types in a textbox
@@ -94,14 +98,14 @@ class Changeable(Block):
         return dep
 
 
-class Clickable(Block):
+class Clickable(EventListener):
     def click(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
         queue=None,
@@ -111,7 +115,7 @@ class Clickable(Block):
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the component (e.g. a button) is clicked.
@@ -158,24 +162,24 @@ class Clickable(Block):
         return dep
 
 
-class Submittable(Block):
+class Submittable(EventListener):
     def submit(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user presses the Enter key while the component (e.g. a textbox) is focused.
@@ -223,24 +227,24 @@ class Submittable(Block):
         return dep
 
 
-class Editable(Block):
+class Editable(EventListener):
     def edit(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user edits the component (e.g. image) using the
@@ -287,24 +291,24 @@ class Editable(Block):
         return dep
 
 
-class Clearable(Block):
+class Clearable(EventListener):
     def clear(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user clears the component (e.g. image or audio)
@@ -351,24 +355,24 @@ class Clearable(Block):
         return dep
 
 
-class Playable(Block):
+class Playable(EventListener):
     def play(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user plays the component (e.g. audio or video).
@@ -416,21 +420,21 @@ class Playable(Block):
 
     def pause(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: Optional[AnyStr] = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user pauses the component (e.g. audio or video).
@@ -478,21 +482,21 @@ class Playable(Block):
 
     def stop(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user stops the component (e.g. audio or video).
@@ -539,24 +543,24 @@ class Playable(Block):
         return dep
 
 
-class Streamable(Block):
+class Streamable(EventListener):
     def stream(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
-        status_tracker: Optional[StatusTracker] = None,
+        api_name: str | None = None,
+        status_tracker: StatusTracker | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = False,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user streams the component (e.g. a live webcam
@@ -605,23 +609,23 @@ class Streamable(Block):
         return dep
 
 
-class Blurrable(Block):
+class Blurrable(EventListener):
     def blur(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: Component | List[Component] | Set[Component] | None = None,
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
+        api_name: str | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: Dict[str, Any] | List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the component's is unfocused/blurred (e.g. when the user clicks outside of a textbox). This method can be used when this component is in a Gradio Blocks.
@@ -662,23 +666,23 @@ class Blurrable(Block):
         set_cancel_events(self, "blur", cancels)
 
 
-class Uploadable(Block):
+class Uploadable(EventListener):
     def upload(
         self,
-        fn: Callable,
+        fn: Callable | None,
         inputs: List[Component],
         outputs: Component | List[Component] | None = None,
-        api_name: AnyStr = None,
+        api_name: str | None = None,
         scroll_to_output: bool = False,
         show_progress: bool = True,
-        queue: Optional[bool] = None,
+        queue: bool | None = None,
         batch: bool = False,
         max_batch_size: int = 4,
         preprocess: bool = True,
         postprocess: bool = True,
         cancels: List[Dict[str, Any]] | None = None,
         every: float | None = None,
-        _js: Optional[str] = None,
+        _js: str | None = None,
     ):
         """
         This event is triggered when the user uploads a file into the component (e.g. when the user uploads a video into a video component). This method can be used when this component is in a Gradio Blocks.

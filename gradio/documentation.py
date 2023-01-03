@@ -41,7 +41,7 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
         return: A dict storing data for the returned annotation and doc
         example: Code for an example use of the fn
     """
-    doc_str = inspect.getdoc(fn)
+    doc_str = inspect.getdoc(fn) or ""
     doc_lines = doc_str.split("\n")
     signature = inspect.signature(fn)
     description, parameters, returns, examples = [], {}, [], []
@@ -58,8 +58,8 @@ def document_fn(fn: Callable) -> Tuple[str, List[Dict], Dict, Optional[str]]:
             if mode == "description":
                 description.append(line if line.strip() else "<br>")
                 continue
-            assert line.startswith(
-                "    "
+            assert (
+                line.startswith("    ") or line.strip() == ""
             ), f"Documentation format for {fn.__name__} has format error in line: {line}"
             line = line[4:]
             if mode == "parameter":
