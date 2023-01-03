@@ -21,9 +21,7 @@ jobs:
     - name: Install pip
       run: python -m pip install build requests
     - name: Download metadata
-      run: python scripts/download_artifacts.py ${{github.event.workflow_run.id }} metadata.json ${{ secrets.COMMENT_TOKEN }} --owner freddyaboulton
-    - run: echo $(ls)
-    - run: echo $(ls scripts/)
+      run: python scripts/download_artifacts.py ${{github.event.workflow_run.id }} metadata.json ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
     - run: unzip metadata.json.zip
     - name: Pipe metadata to env
       run: |
@@ -32,9 +30,7 @@ jobs:
         echo "gradio_version=$(python -c 'import json; print(json.load(open("metadata.json"))["version"])')" >> $GITHUB_ENV
         echo "pr_number=$(python -c 'import json; print(json.load(open("metadata.json"))["pr_number"])')" >> $GITHUB_ENV
     - name: 'Download wheel'
-      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} ${{ env.wheel_name }} ${{ secrets.COMMENT_TOKEN }} --owner freddyaboulton
-    - run: echo $(ls)
-    - run: echo $(ls scripts/)
+      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} ${{ env.wheel_name }} ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
     - run: unzip ${{ env.wheel_name }}.zip
     - name: Upload wheel
       run: |
@@ -45,7 +41,7 @@ jobs:
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: 'Download all_demos'
-      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} all_demos  ${{ secrets.COMMENT_TOKEN }} --owner freddyaboulton
+      run: python scripts/download_artifacts.py ${{ github.event.workflow_run.id }} all_demos  ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
     - run: unzip all_demos.zip -d all_demos
     - run: cp -R all_demos/* demo/all_demos
     - name: Upload demo to spaces
