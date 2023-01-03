@@ -19,7 +19,7 @@
 	export let label: string = "";
 	export let show_label: boolean;
 	export let file_count: string;
-	export let file_types: Array<string> = ["file"];
+	export let file_types: string[] | null = null;
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -42,21 +42,18 @@
 		error: string;
 	}>();
 
-	let accept_file_types = "";
-	try {
-		for (const type of file_types) {
-			if (type.includes(".")) {
-				accept_file_types += type + ", ";
+	let accept_file_types: string | null;
+	if (file_types == null) {
+		accept_file_types = null;
+	} else {
+		file_types = file_types.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
 			} else {
-				accept_file_types += type + "/*, ";
+				return x + "/*";
 			}
-		}
-	} catch (err) {
-		if (err instanceof TypeError) {
-			dispatch("error", "Please set file_types to a list.");
-		} else {
-			throw err;
-		}
+		});
+		accept_file_types = file_types.join(", ");
 	}
 
 	let dragging = false;

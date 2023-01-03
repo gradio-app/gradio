@@ -3,6 +3,7 @@
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "./types";
+	import { type } from "@testing-library/user-event/dist/type";
 
 	export let style: Styles = {};
 	export let elem_id: string = "";
@@ -16,21 +17,18 @@
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
-	let accept_file_types = "";
-	try {
-		for (const type of file_types) {
-			if (type.includes(".")) {
-				accept_file_types += type + ", ";
+	let accept_file_types: string | null;
+	if (file_types == null) {
+		accept_file_types = null;
+	} else {
+		file_types = file_types.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
 			} else {
-				accept_file_types += type + "/*, ";
+				return x + "/*";
 			}
-		}
-	} catch (err) {
-		if (err instanceof TypeError) {
-			dispatch("error", "Please set file_types to a list.");
-		} else {
-			throw err;
-		}
+		});
+		accept_file_types = file_types.join(", ");
 	}
 
 	const openFileUpload = () => {
