@@ -27,7 +27,7 @@ With `multiselect` set to `true` a user can now select multiple options from the
 ```python
 gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"])
 ```
-![Screenshot 2022-12-28 at 4 51 02 AM](https://user-images.githubusercontent.com/12725292/209794298-57346404-8408-42f2-8fb4-b30aece460a8.png)
+<img width="610" alt="Screenshot 2023-01-03 at 4 14 36 PM" src="https://user-images.githubusercontent.com/12725292/210442547-c86975c9-4b4f-4b8e-8803-9d96e6a8583a.png">
 
 ## Bug Fixes:
 * Fixed bug where an error opening an audio file led to a crash by [@FelixDombek](https://github.com/FelixDombek) in [PR 2898](https://github.com/gradio-app/gradio/pull/2898)
