@@ -62,7 +62,7 @@
 	function handleKeyup(e: any) {
 		// enter key
 		if (e.keyCode === 13) {
-			if (Array.isArray(value)) {
+			if (Array.isArray(value) && activeOption != undefined) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
@@ -120,7 +120,7 @@
 				>
 					<div
 						class:hidden={disabled}
-						class="token-remove items-center bg-gray-700 rounded-full fill-white flex justify-center min-w-min p-0.5"
+						class="token-remove items-center bg-gray-400 dark:bg-gray-700 rounded-full fill-white flex justify-center min-w-min p-0.5"
 						title="Remove {s}"
 					>
 						<svg
@@ -139,7 +139,7 @@
 		{/if}
 		<div class="items-center flex flex-1 min-w-min border-none">
 			<input
-				class="border-none bg-inherit text-2xl w-full outline-none text-white disabled:cursor-not-allowed"
+				class="border-none bg-inherit ml-2 text-lg w-full outline-none text-gray-700 dark:text-white disabled:cursor-not-allowed"
 				{disabled}
 				autocomplete="on"
 				bind:value={inputValue}
@@ -149,7 +149,7 @@
 			/>
 			<div
 				class:hidden={!value?.length || disabled}
-				class="remove-all items-center bg-gray-700 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden p-0.5"
+				class="remove-all items-center bg-gray-400 dark:bg-gray-700 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden p-0.5"
 				title="Remove All"
 			>
 				<svg
@@ -163,7 +163,7 @@
 				</svg>
 			</div>
 			<svg
-				class="dropdown-arrow fill-white"
+				class="dropdown-arrow mr-2 min-w-min fill-gray-500 dark:fill-white"
 				xmlns="http://www.w3.org/2000/svg"
 				width="18"
 				height="18"
@@ -174,13 +174,13 @@
 
 	{#if showOptions && !disabled}
 		<ul
-			class="z-50 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-md"
+			class="z-50 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-white dark:bg-gray-700 dark:text-white rounded-md"
 			transition:fly={{ duration: 200, y: 5 }}
 			on:mousedown|preventDefault={handleOptionMousedown}
 		>
 			{#each filtered as choice}
 				<li
-					class="cursor-pointer flex p-2"
+					class="cursor-pointer flex p-2 hover:bg-gray-100 dark:md:hover:bg-gray-600"
 					class:selected={value?.includes(choice)}
 					class:active={activeOption === choice}
 					data-value={choice}
@@ -192,9 +192,3 @@
 		</ul>
 	{/if}
 </div>
-
-<style lang="postcss">
-	li:hover {
-		@apply bg-gray-400;
-	}
-</style>

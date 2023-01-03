@@ -9,9 +9,10 @@
 	export let show_label: boolean;
 </script>
 
-{#if !multiselect}
-	<label>
-		<BlockTitle {show_label}>{label}</BlockTitle>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label>
+	<BlockTitle {show_label}>{label}</BlockTitle>
+	{#if !multiselect}
 		<select
 			class="gr-box gr-input w-full disabled:cursor-not-allowed"
 			bind:value
@@ -21,15 +22,15 @@
 				<option>{choice}</option>
 			{/each}
 		</select>
-	</label>
-{:else}
-	<MultiSelect
-		bind:value
-		{choices}
-		{multiselect}
-		{label}
-		{show_label}
-		on:change
-		{disabled}
-	/>
-{/if}
+	{:else}
+		<MultiSelect
+			bind:value
+			{choices}
+			{multiselect}
+			{label}
+			{show_label}
+			on:change
+			{disabled}
+		/>
+	{/if}
+</label>
