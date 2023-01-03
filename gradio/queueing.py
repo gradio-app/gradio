@@ -5,7 +5,7 @@ import copy
 import sys
 import time
 from collections import deque
-from typing import Any, Deque, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Tuple
 
 import fastapi
 
@@ -31,7 +31,7 @@ class Event:
         self.progress: Progress | None = None
         self.progress_pending: bool = False
 
-    async def disconnect(self, code=1000):
+    async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
 
 
@@ -41,7 +41,7 @@ class Queue:
         live_updates: bool,
         concurrency_count: int,
         update_intervals: float,
-        max_size: Optional[int],
+        max_size: int | None,
         blocks_dependencies: List,
     ):
         self.event_queue: Deque[Event] = deque()
@@ -54,7 +54,7 @@ class Queue:
         self.server_path = None
         self.duration_history_total = 0
         self.duration_history_count = 0
-        self.avg_process_time = None
+        self.avg_process_time = 0
         self.avg_concurrent_process_time = None
         self.queue_duration = 1
         self.live_updates = live_updates
@@ -139,7 +139,7 @@ class Queue:
                 if job is None:
                     continue
                 for event in job:
-                    if event.progress_pending:
+                    if event.progress_pending and event.progress:
                         event.progress_pending = False
                         client_awake = await self.send_message(
                             event, event.progress.dict()
@@ -290,11 +290,12 @@ class Queue:
             "headers": dict(websocket.headers),
             "query_params": dict(websocket.query_params),
             "path_params": dict(websocket.path_params),
-            "client": dict(host=websocket.client.host, port=websocket.client.port),
+            "client": dict(host=websocket.client.host, port=websocket.client.port),  # type: ignore
         }
 
     async def call_prediction(self, events: List[Event], batch: bool):
         data = events[0].data
+        assert data is not None, "No event data"
         token = events[0].token
         data.event_id = events[0]._id if not batch else None
         try:
@@ -346,6 +347,7 @@ class Queue:
                         },
                     )
             elif response.json.get("is_generating", False):
+                old_response = response
                 while response.json.get("is_generating", False):
                     # Python 3.7 doesn't have named tasks.
                     # In order to determine if a task was cancelled, we
@@ -425,7 +427,7 @@ class Queue:
             await self.clean_event(event)
             return False
 
-    async def get_message(self, event) -> Optional[PredictBody]:
+    async def get_message(self, event) -> PredictBody | None:
         try:
             data = await event.websocket.receive_json()
             return PredictBody(**data)
