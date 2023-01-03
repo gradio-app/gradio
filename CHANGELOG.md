@@ -22,7 +22,7 @@ Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750
 * Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 * Added `multiselect` option to `Dropdown` by @dawoodkhan82 in [#2871](https://github.com/gradio-app/gradio/pull/2871)
 
-With `multiselect` set to `true` a user can now select multiple options from the dropdown menu.
+* With `multiselect` set to `true` a user can now select multiple options from the dropdown menu.
 
 ```python
 gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"])
