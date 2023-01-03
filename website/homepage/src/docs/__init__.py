@@ -53,19 +53,20 @@ def add_demos():
 
 add_demos()
 
+ordered_events = ["Change()", "Click()", "Submit()", "Edit()", "Clear()", "Play()", "Pause()", "Stream()", "Blur()", "Upload()"]
 
 def add_supported_events():
     for component in docs["component"]:
-        component["events"] = []
+        component["events-list"] = []
         event_listener_props = dir(EventListener)
         for listener in EventListener.__subclasses__():
             if not issubclass(component["class"], listener):
                 continue
             for prop in dir(listener):
                 if prop not in event_listener_props:
-                    component["events"].append(prop + "()")
-        if component["events"]:
-            component["events"] = ", ".join(component["events"])
+                    component["events-list"].append(prop + "()")
+        if component["events-list"]:
+            component["events"] = ", ".join(component["events-list"])
 
 
 add_supported_events()
@@ -142,6 +143,7 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     template = jinja_env.get_template("docs/template.html")
     output = template.render(
         docs=docs,
+        ordered_events=ordered_events,
         find_cls=find_cls,
         version="main",
         gradio_version=gradio_version,
@@ -165,7 +167,7 @@ def build_pip_template(version, jinja_env):
     docs_files = os.listdir("src/docs")
     template = jinja_env.get_template("docs/template.html")
     output = template.render(
-        docs=docs, find_cls=find_cls, version="pip", gradio_version=version
+        docs=docs, find_cls=find_cls, version="pip", gradio_version=version, ordered_events=ordered_events
     )
     with open(f"src/docs/v{version}_template.html", "w+") as template_file:
         template_file.write(output)
