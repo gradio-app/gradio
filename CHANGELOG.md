@@ -49,7 +49,6 @@ No changes to highlight.
 * @JaySmithWpg for making their first contribution to gradio!
 * @MohamedAliRashad for making their first contribution to gradio!
 
-
 # Version 3.15.0
 
 ## New Features:
