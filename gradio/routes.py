@@ -427,7 +427,7 @@ class App(FastAPI):
             # Continuous events are not put in the queue  so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
-                await cancel_tasks([f"{event.session_hash}_{event.fn_index}"])
+                await cancel_tasks(set([f"{event.session_hash}_{event.fn_index}"]))
                 await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
