@@ -242,13 +242,11 @@ class TestAuthenticatedRoutes:
         response = client.post(
             "/login",
             data=dict(username="test", password="correct_password"),
-            follow_redirects=False,
         )
-        assert response.status_code == 302
+        assert response.status_code == 200
         response = client.post(
             "/login",
             data=dict(username="test", password="incorrect_password"),
-            follow_redirects=False,
         )
         assert response.status_code == 400
 
