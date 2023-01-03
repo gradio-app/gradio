@@ -92,6 +92,7 @@ const data = await data.json();
 		align-items: center;
 		margin-top: var(--size-8);
 		margin-bottom: var(--size-3);
+		color: var(--color-text-body);
 		font-weight: var(--weight-bold);
 	}
 
@@ -117,6 +118,7 @@ const data = await data.json();
 		border-radius: var(--radius-md);
 		padding: var(--size-1) var(--size-1-5);
 		color: var(--color-text-subdued);
+		color: var(--color-text-body);
 		font-size: var(--scale-0);
 		line-height: 1;
 		user-select: none;
@@ -149,9 +151,10 @@ const data = await data.json();
 		flex-direction: column;
 		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-md);
-		background-color: var(--color-background-primary);
+		background-color: var(--color-background-tertiary);
 		padding: var(--size-4);
 		overflow-x: auto;
+		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		tab-size: 2;
 	}

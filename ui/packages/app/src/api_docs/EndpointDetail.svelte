@@ -33,6 +33,7 @@
 <style>
 	h3 {
 		margin-bottom: var(--size-2);
+		color: var(--color-text-body);
 		font-weight: var(--weight-bold);
 		font-size: var(--scale-1);
 	}

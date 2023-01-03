@@ -29,6 +29,7 @@
 <style>
 	h2 {
 		display: flex;
+		color: var(--color-text-body);
 		font-weight: var(--weight-semibold);
 	}
 
