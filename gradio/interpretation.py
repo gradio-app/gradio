@@ -1,3 +1,7 @@
+"""Contains classes and methods related to interpretation for components in Gradio."""
+
+from __future__ import annotations
+
 import copy
 import math
 from abc import ABC, abstractmethod
@@ -21,7 +25,7 @@ class Interpretable(ABC):
         pass
 
     def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
+        self, x: Any, neighbors: List[Any] | None, scores: List[float], **kwargs
     ) -> List:
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
@@ -197,6 +201,7 @@ async def run_interpret(interface: Interface, raw_input: List):
 
                 # construct a masked version of the input
                 def get_masked_prediction(binary_mask):
+                    assert isinstance(input_component, TokenInterpretable)
                     masked_xs = input_component.get_masked_inputs(tokens, binary_mask)
                     preds = []
                     for masked_x in masked_xs:
@@ -236,7 +241,7 @@ async def run_interpret(interface: Interface, raw_input: List):
             else:
                 raise ValueError("Unknown intepretation method: {}".format(interp))
         return scores, alternative_outputs
-    else:  # custom interpretation function
+    elif interface.interpretation:  # custom interpretation function
         processed_input = [
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(interface.input_components)
@@ -246,9 +251,11 @@ async def run_interpret(interface: Interface, raw_input: List):
         if len(raw_input) == 1:
             interpretation = [interpretation]
         return interpretation, []
+    else:
+        raise ValueError("No interpretation method specified.")
 
 
-def diff(original, perturbed):
+def diff(original: Any, perturbed: Any) -> int | float:
     try:  # try computing numerical difference
         score = float(original) - float(perturbed)
     except ValueError:  # otherwise, look at strict difference in label
@@ -256,7 +263,9 @@ def diff(original, perturbed):
     return score
 
 
-def quantify_difference_in_label(interface, original_output, perturbed_output):
+def quantify_difference_in_label(
+    interface: Interface, original_output: List, perturbed_output: List
+) -> int | float:
     output_component = interface.output_components[0]
     post_original_output = output_component.postprocess(original_output[0])
     post_perturbed_output = output_component.postprocess(perturbed_output[0])
@@ -287,8 +296,8 @@ def quantify_difference_in_label(interface, original_output, perturbed_output):
 
 
 def get_regression_or_classification_value(
-    interface, original_output, perturbed_output
-):
+    interface: Interface, original_output: List, perturbed_output: List
+) -> int | float:
     """Used to combine regression/classification for Shap interpretation method."""
     output_component = interface.output_components[0]
     post_original_output = output_component.postprocess(original_output[0])
