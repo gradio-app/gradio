@@ -704,7 +704,7 @@ const theme_dark = {
 	dataset: {
 		gallery: {
 			background: {
-				base: "transparent",
+				base: "var(--color-background-primary)",
 
 				hover: "var(--color-grey-800)"
 			}
