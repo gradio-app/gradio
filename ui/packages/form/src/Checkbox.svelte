@@ -25,6 +25,7 @@
 		checked={value}
 		type="checkbox"
 		name="test"
+		data-testid="checkbox"
 	/>
 	<span class="ml-2">{label}</span>
 </label>

@@ -55,17 +55,4 @@
 		width: var(--size-full);
 		height: var(--size-14);
 	}
-
-	.placeholder-wrap {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: var(--size-full);
-		min-height: var(--size-32);
-	}
-
-	.icon {
-		opacity: 0.5;
-		height: var(--size-5);
-	}
 </style>
