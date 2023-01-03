@@ -304,7 +304,7 @@
 		align-items: center;
 		z-index: var(--layer-5);
 		background-color: var(--color-background-tertiary);
-		max-height: var(--size-screen);
+		max-height: var(--size-screen-h);
 		pointer-events: none;
 	}
 
