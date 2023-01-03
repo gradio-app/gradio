@@ -51,7 +51,7 @@
 	let parent: HTMLDivElement;
 	let scroll_container: HTMLDivElement;
 
-	$: active && move_bar();
+	$: visible && active && move_bar();
 
 	async function move_bar() {
 		const button = active.getBoundingClientRect();
