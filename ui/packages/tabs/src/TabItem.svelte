@@ -18,8 +18,6 @@
 	});
 
 	$: $selected_tab === id && tick().then(() => dispatch("select"));
-
-	$: console.log($selected_tab, id);
 </script>
 
 <div

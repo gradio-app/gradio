@@ -78,11 +78,7 @@
 			dependency_outputs[index] = response.data.map(
 				(output_val: any, i: number) => {
 					let component = instance_map[dependency.outputs[i]];
-					console.log(
-						component.documentation?.type,
-						output_val,
-						represent_value(output_val, component.documentation?.type, "js")
-					);
+
 					return represent_value(
 						output_val,
 						component.documentation?.type,

@@ -58,7 +58,6 @@
 						);
 					}
 				});
-				console.log(spec);
 			default:
 				break;
 		}

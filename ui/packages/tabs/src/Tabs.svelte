@@ -43,21 +43,19 @@
 	}
 
 	$: selected !== null && change_tab(selected);
-
-	$: console.log($selected_tab, tabs);
+	let h = 0;
 
 	let bar: HTMLSpanElement;
 	let active: HTMLButtonElement;
 	let parent: HTMLDivElement;
 	let scroll_container: HTMLDivElement;
 
-	$: visible && active && move_bar();
+	$: h && active && move_bar();
 
 	async function move_bar() {
+		await tick();
 		const button = active.getBoundingClientRect();
 		const parent_box = parent.getBoundingClientRect();
-
-		console.log(button, parent_box);
 
 		bar.style.width = `${button.width - 4}px`;
 		bar.style.left = `${button.left - parent_box.left + scroll_pos + 2}px`;
@@ -68,11 +66,16 @@
 
 	function handle_scroll(e: Event & { currentTarget: HTMLDivElement }) {
 		scroll_pos = e.currentTarget.scrollLeft;
-		console.log(e.currentTarget.scrollLeft);
 	}
 </script>
 
-<div class="tabs" class:hide={!visible} id={elem_id} bind:this={parent}>
+<div
+	class="tabs"
+	class:hide={!visible}
+	id={elem_id}
+	bind:this={parent}
+	bind:clientHeight={h}
+>
 	<span
 		class="bar"
 		bind:this={bar}
