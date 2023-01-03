@@ -41,9 +41,17 @@ const foundation_light = {
 			dark: "var(--color-orange-700)"
 		},
 		functional: {
-			error: { base: "var(--color-red)", subdued: "var(--color-red-300)" }, //red
+			error: {
+				base: "var(--color-red)",
+				subdued: "var(--color-red-300)",
+				background:
+					"linear-gradient(to right,var(--color-red-100),var(--color-background-secondary))"
+			}, //red
 			info: { base: "var(--color-yellow)", subdued: "var(--color-yellow-300)" }, //yellow
-			success: { base: "var(--color-green)", subdued: "var(--color-green-300)" }
+			success: {
+				base: "var(--color-green)",
+				subdued: "var(--color-green-300)"
+			}
 		}
 	},
 	shadow: {
@@ -93,9 +101,16 @@ const foundation_dark = {
 		},
 
 		functional: {
-			error: { base: "var(--color-red-400)", subdued: "var(--color-red-300)" }, //red
+			error: {
+				base: "var(--color-red-400)",
+				subdued: "var(--color-red-300)",
+				background: "var(--color-background-primary)"
+			}, //red
 			info: { base: "var(--color-yellow)", subdued: "var(--color-yellow-300)" }, //yellow
-			success: { base: "var(--color-green)", subdued: "var(--color-green-300)" }
+			success: {
+				base: "var(--color-green)",
+				subdued: "var(--color-green-300)"
+			}
 		}
 	}
 };
