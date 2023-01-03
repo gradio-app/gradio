@@ -55,7 +55,7 @@ class TokenInterpretable(Interpretable, ABC):
 
 class NeighborInterpretable(Interpretable, ABC):
     @abstractmethod
-    def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict, bool]:
+    def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict]:
         """
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
@@ -63,9 +63,8 @@ class NeighborInterpretable(Interpretable, ABC):
         Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
             neighbor_values: Neighboring values to input x to compute for interpretation
             interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
-            interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
         """
-        return [], {}, True
+        return [], {}
 
 
 async def run_interpret(interface: Interface, raw_input: List):
