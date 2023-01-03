@@ -243,7 +243,7 @@ class TestAuthenticatedRoutes:
             "/login",
             data=dict(username="test", password="correct_password"),
         )
-        assert response.status_code == 302
+        assert response.status_code == 200
         response = client.post(
             "/login",
             data=dict(username="test", password="incorrect_password"),
