@@ -30,11 +30,11 @@ jobs:
       - name: Upload PR Number
         run: |
         python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
-    - name: Upload metadata
-      uses: actions/upload-artifact@v3
-      with:
-        name: metadata.json
-        path: metadata.json
+      - name: Upload metadata
+        uses: actions/upload-artifact@v3
+        with:
+          name: metadata.json
+          path: metadata.json
       - name: Assert Notebooks Match 
         id: assertNotebooksMatch
         run: git status | grep "nothing to commit, working tree clean"
