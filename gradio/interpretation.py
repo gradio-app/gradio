@@ -231,7 +231,11 @@ async def run_interpret(interface: Interface, raw_input: List):
                 assert shap_values is not None, "SHAP values could not be calculated"
                 scores.append(
                     input_component.get_interpretation_scores(
-                        raw_input[i], None, shap_values[0], masks=masks, tokens=tokens
+                        raw_input[i],
+                        None,
+                        shap_values[0].tolist(),
+                        masks=masks,
+                        tokens=tokens,
                     )
                 )
                 alternative_outputs.append([])
