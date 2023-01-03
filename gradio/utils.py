@@ -32,7 +32,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union
+    Union,
 )
 
 import aiohttp
@@ -43,8 +43,8 @@ import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
 import gradio
-from gradio.strings import en
 from gradio.context import Context
+from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
@@ -62,9 +62,7 @@ def version_check():
         version_data = pkgutil.get_data(__name__, "version.txt")
         if not version_data:
             raise FileNotFoundError
-        current_pkg_version = (
-                version_data.decode("ascii").strip()
-            )
+        current_pkg_version = version_data.decode("ascii").strip()
         latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
             "version"
         ]
@@ -536,7 +534,9 @@ class AsyncRequest:
         request = httpx.Request(method, url, **kwargs)
         return request
 
-    def _validate_response_data(self, response: ResponseJson) -> Union[BaseModel, ResponseJson | None]:
+    def _validate_response_data(
+        self, response: ResponseJson
+    ) -> Union[BaseModel, ResponseJson | None]:
         """
         Validate response using given validation methods. If there is a validation method and response is not valid,
         validation functions will raise an exception for them.
@@ -552,9 +552,7 @@ class AsyncRequest:
         try:
             # If a validation model is provided, validate response using the validation model.
             if self._validation_model:
-                validated_response = self._validate_response_by_model(
-                    response
-                )
+                validated_response = self._validate_response_by_model(response)
             # Then, If a validation function is provided, validate response using the validation function.
             if self._validation_function:
                 validated_response = self._validate_response_by_validation_function(
@@ -758,7 +756,9 @@ def get_cancel_function(
             fn_index = next(
                 i for i, d in enumerate(Context.root_block.dependencies) if d == dep
             )
-            fn_to_comp[fn_index] = [Context.root_block.blocks[o] for o in dep["outputs"]]
+            fn_to_comp[fn_index] = [
+                Context.root_block.blocks[o] for o in dep["outputs"]
+            ]
 
     async def cancel(session_hash: str) -> None:
         task_ids = set([f"{session_hash}_{fn}" for fn in fn_to_comp])
