@@ -1,6 +1,24 @@
 # Upcoming Release 
 
 ## New Features:
+
+* Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
+
+```python
+def reverse(word, progress=gr.Progress()):
+    progress(0, desc="Starting")
+    time.sleep(1)
+    new_string = ""
+    for letter in progress.tqdm(word, desc="Reversing"):
+        time.sleep(0.25)
+        new_string = letter + new_string
+    return new_string
+
+demo = gr.Interface(reverse, gr.Text(), gr.Text())
+```
+
+Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750](https://github.com/gradio-app/gradio/pull/2750).
+
 * Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 
 ## Bug Fixes:
@@ -13,6 +31,7 @@
 
 ## Documentation Changes:
 * Added a Guide on using Google Sheets to create a real-time dashboard with Gradio's `DataFrame` and `LinePlot` component, by [@abidlabs](https://github.com/abidlabs) in [PR 2816](https://github.com/gradio-app/gradio/pull/2816) 
+* Add a components - events matrix on the docs by [@aliabd](https://github.com/aliabd) in [PR 2921](https://github.com/gradio-app/gradio/pull/2921)
 
 ## Testing and Infrastructure Changes:
 * Deployed PRs from forks to spaces by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2895](https://github.com/gradio-app/gradio/pull/2895)   

@@ -1047,6 +1047,146 @@ class TestEvery:
         assert "At step 9" not in captured.out
 
 
+class TestProgressBar:
+    @pytest.mark.asyncio
+    async def test_progress_bar(self):
+        from tqdm import tqdm
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+
+            def greet(s, prog=gr.Progress()):
+                prog(0, desc="start")
+                time.sleep(0.25)
+                for _ in prog.tqdm(range(4), unit="iter"):
+                    time.sleep(0.25)
+                time.sleep(1)
+                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                    time.sleep(0.25)
+                return f"Hello, {s}!"
+
+            button.click(greet, name, greeting)
+        demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            progress_updates = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "progress":
+                    progress_updates.append(msg["progress_data"])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        print(progress_updates)
+        assert progress_updates == [
+            [
+                {
+                    "index": None,
+                    "length": None,
+                    "unit": "steps",
+                    "progress": 0.0,
+                    "desc": "start",
+                }
+            ],
+            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+        ]
+
+    @pytest.mark.asyncio
+    async def test_progress_bar_track_tqdm(self):
+        from tqdm import tqdm
+
+        with gr.Blocks() as demo:
+            name = gr.Textbox()
+            greeting = gr.Textbox()
+            button = gr.Button(value="Greet")
+
+            def greet(s, prog=gr.Progress(track_tqdm=True)):
+                prog(0, desc="start")
+                time.sleep(0.25)
+                for _ in prog.tqdm(range(4), unit="iter"):
+                    time.sleep(0.25)
+                time.sleep(1)
+                for i in tqdm(["a", "b", "c"], desc="alphabet"):
+                    time.sleep(0.25)
+                return f"Hello, {s}!"
+
+            button.click(greet, name, greeting)
+        demo.queue(max_size=1).launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{demo.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            progress_updates = []
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "progress":
+                    progress_updates.append(msg["progress_data"])
+                if msg["msg"] == "process_completed":
+                    completed = True
+                    break
+        assert progress_updates == [
+            [
+                {
+                    "index": None,
+                    "length": None,
+                    "unit": "steps",
+                    "progress": 0.0,
+                    "desc": "start",
+                }
+            ],
+            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+            [
+                {
+                    "index": 0,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 1,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+            [
+                {
+                    "index": 2,
+                    "length": 3,
+                    "unit": "steps",
+                    "progress": None,
+                    "desc": "alphabet",
+                }
+            ],
+        ]
+
+
 class TestAddRequests:
     def test_no_type_hints(self):
         def moo(a, b):
@@ -1054,12 +1194,12 @@ class TestAddRequests:
 
         inputs = [1, 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a=1)
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_no_type_hints_with_request(self):
@@ -1068,12 +1208,12 @@ class TestAddRequests:
 
         inputs = ["abc", 2]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
         boo = partial(moo, a="def")
         inputs = [2]
-        inputs_ = gr.blocks.add_request_to_inputs(boo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(boo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs
 
     def test_type_hints_with_request(self):
@@ -1082,7 +1222,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request]
 
         def moo(a: gr.Request, b, c: int):
@@ -1090,7 +1230,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs
 
     def test_type_hints_with_multiple_requests(self):
@@ -1099,7 +1239,7 @@ class TestAddRequests:
 
         inputs = ["abc"]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == inputs + [request, request]
 
         def moo(a: gr.Request, b, c: int, d: gr.Request):
@@ -1107,7 +1247,7 @@ class TestAddRequests:
 
         inputs = ["abc", 5]
         request = gr.Request()
-        inputs_ = gr.blocks.add_request_to_inputs(moo, copy.deepcopy(inputs), request)
+        inputs_ = gr.helpers.special_args(moo, copy.deepcopy(inputs), request)[0]
         assert inputs_ == [request] + inputs + [request]
 
 
@@ -1195,7 +1335,7 @@ async def test_queue_when_using_auth():
     loop = asyncio.get_event_loop()
     tm = loop.time()
     group = asyncio.gather(
-        *[run_ws(loop, tm + sleep_time * (i + 1) - 0.3, i) for i in range(3)]
+        *[run_ws(loop, tm + sleep_time * (i + 1) - 1, i) for i in range(3)]
     )
     await group
 
