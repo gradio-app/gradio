@@ -66,7 +66,7 @@
 
 <style>
 	.wrap {
-		height: var(--size-56);
+		height: var(--size-80);
 		overflow-y: auto;
 	}
 
@@ -91,7 +91,7 @@
 		border-radius: var(--chatbot-border-radius);
 		padding: var(--size-2) var(--size-3);
 		font-size: var(--scale-00);
-		line-height: var(--line-sm);
+		line-height: var(--line-xs);
 	}
 
 	.user {

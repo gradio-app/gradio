@@ -6,7 +6,7 @@
 	color: var(--color-text-body);
 }
 
-p {
+.prose p {
 	margin-bottom: 1rem;
 	font-size: var(--scale-0);
 	line-height: var(--line-lg);
@@ -184,7 +184,7 @@ p {
 	border-top: 1px solid #e1e1e1;
 }
 
-blockquote {
+.prose blockquote {
 	margin: var(--size-6) 0 !important;
 	border-left: 5px solid var(--color-border-primary);
 	padding-left: var(--size-2);
