@@ -4,9 +4,8 @@ on:
     types: [completed]
 
 jobs:
-  on-nb-failure:
+  comment-on-failure:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.name == 'Check Demos Match Notebooks'}}
     steps:
       - uses: actions/checkout@v3
       - name: Install Python
@@ -20,7 +19,8 @@ jobs:
       - run: unzip metadata.json.zip
       - name: Pipe metadata to env
         run: echo "pr_number=$(python -c 'import json; print(json.load(open("metadata.json"))["pr_number"])')" >> $GITHUB_ENV
-      - name: Comment On PR
+      - name: Comment On Notebook check fail
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.name == 'Check Demos Match Notebooks'}}
         uses: thollander/actions-comment-pull-request@v1
         with:
           message: |
