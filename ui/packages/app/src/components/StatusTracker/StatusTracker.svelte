@@ -454,6 +454,7 @@
 		border: 1px solid var(--color-border-primary);
 		border-radius: var(--radius-lg);
 		background: var(--color-background-secondary);
+		background: var(--color-functional-error-background);
 		padding: var(--size-4) var(--size-6);
 		max-width: 1200px;
 		max-width: 610px;
