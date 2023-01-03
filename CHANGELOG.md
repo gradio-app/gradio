@@ -35,7 +35,7 @@ Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750
 * Add a components - events matrix on the docs by [@aliabd](https://github.com/aliabd) in [PR 2921](https://github.com/gradio-app/gradio/pull/2921)
 
 ## Testing and Infrastructure Changes:
-No changes to highlight.
+* Deployed PRs from forks to spaces by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2895](https://github.com/gradio-app/gradio/pull/2895)   
 
 ## Breaking Changes:
 No changes to highlight.
@@ -44,11 +44,11 @@ No changes to highlight.
 * The `default_enabled` parameter of the `Blocks.queue` method has no effect by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876) 
 * Added typing to several Python files in codebase by [@abidlabs](https://github.com/abidlabs) in [PR 2887](https://github.com/gradio-app/gradio/pull/2887) 
 * Excluding untracked files from demo notebook check action by [@aliabd](https://github.com/aliabd) in [PR 2897](https://github.com/gradio-app/gradio/pull/2897)
+* Updated typing by [@1nF0rmed](https://github.com/1nF0rmed) in [PR 2904](https://github.com/gradio-app/gradio/pull/2904)
 
 ## Contributors Shoutout:
 * @JaySmithWpg for making their first contribution to gradio!
 * @MohamedAliRashad for making their first contribution to gradio!
-
 
 # Version 3.15.0
 
