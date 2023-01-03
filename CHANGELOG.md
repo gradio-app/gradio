@@ -39,6 +39,7 @@ gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"]
 
 ## Documentation Changes:
 * Added a Guide on using Google Sheets to create a real-time dashboard with Gradio's `DataFrame` and `LinePlot` component, by [@abidlabs](https://github.com/abidlabs) in [PR 2816](https://github.com/gradio-app/gradio/pull/2816) 
+* Add a components - events matrix on the docs by [@aliabd](https://github.com/aliabd) in [PR 2921](https://github.com/gradio-app/gradio/pull/2921)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
