@@ -1282,7 +1282,6 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     def update(
         value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         choices: str | List[str] | None = None,
-        multiselect: bool = False,
         label: str | None = None,
         show_label: bool | None = None,
         interactive: bool | None = None,
@@ -1295,7 +1294,6 @@ class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
             "interactive": interactive,
             "visible": visible,
             "value": value,
-            "multiselect": multiselect,
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)

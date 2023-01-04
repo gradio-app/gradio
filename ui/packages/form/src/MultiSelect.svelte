@@ -60,16 +60,14 @@
 	}
 
 	function handleKeyup(e: any) {
-		// enter key
-		if (e.keyCode === 13) {
+		if (e.key === "Enter") {
 			if (Array.isArray(value) && activeOption != undefined) {
 				value.includes(activeOption) ? remove(activeOption) : add(activeOption);
 				inputValue = "";
 			}
 		}
-		if ([38, 40].includes(e.keyCode)) {
-			// up and down arrows
-			const increment = e.keyCode === 38 ? -1 : 1;
+		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+			const increment = e.key === "ArrowUp" ? -1 : 1;
 			const calcIndex = filtered.indexOf(activeOption) + increment;
 			activeOption =
 				calcIndex < 0
@@ -181,7 +179,7 @@
 		>
 			{#each filtered as choice}
 				<li
-					class="cursor-pointer flex p-2 hover:bg-gray-100 dark:md:hover:bg-gray-600"
+					class="cursor-pointer flex p-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 					class:selected={value?.includes(choice)}
 					class:active={activeOption === choice}
 					data-value={choice}
@@ -193,3 +191,9 @@
 		</ul>
 	{/if}
 </div>
+
+<style lang="postcss">
+	li.active {
+		@apply bg-gray-100 dark:bg-gray-600;
+	}
+</style>
