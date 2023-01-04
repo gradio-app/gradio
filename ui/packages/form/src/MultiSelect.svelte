@@ -182,6 +182,8 @@
 					class="cursor-pointer flex p-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 					class:selected={value?.includes(choice)}
 					class:active={activeOption === choice}
+					class:bg-gray-100={activeOption === choice}
+					class:dark:bg-gray-600={activeOption === choice}
 					data-value={choice}
 				>
 					<span class:invisible={!value?.includes(choice)} class="pr-1">✓</span>
@@ -191,9 +193,3 @@
 		</ul>
 	{/if}
 </div>
-
-<style lang="postcss">
-	li.active {
-		@apply bg-gray-100 dark:bg-gray-600;
-	}
-</style>
