@@ -498,7 +498,7 @@
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap" class:dragging class:no-wrap={!wrap}>
+	<div class="table-wrap scroll-hide" class:dragging class:no-wrap={!wrap}>
 		<Upload
 			flex={false}
 			center={false}
