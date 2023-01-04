@@ -28,5 +28,6 @@ jobs:
               ```bash
               pip install nbformat && cd demo && python generate_notebooks.py
               ```
+          comment_includes: The demo notebooks don't match the run.py files
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           pr_number: ${{ env.pr_number }}
