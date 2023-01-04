@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple
 
 import numpy as np
 
-from gradio import utils
-from gradio.components import Label, Number
+from gradio import components, utils
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -273,7 +272,7 @@ def quantify_difference_in_label(
     post_original_output = output_component.postprocess(original_output[0])
     post_perturbed_output = output_component.postprocess(perturbed_output[0])
 
-    if isinstance(output_component, Label):
+    if isinstance(output_component, components.Label):
         original_label = post_original_output["label"]
         perturbed_label = post_perturbed_output["label"]
 
@@ -286,7 +285,7 @@ def quantify_difference_in_label(
             score = diff(original_label, perturbed_label)
         return score
 
-    elif isinstance(output_component, Number):
+    elif isinstance(output_component, components.Number):
         score = diff(post_original_output, post_perturbed_output)
         return score
 
@@ -306,7 +305,7 @@ def get_regression_or_classification_value(
     post_original_output = output_component.postprocess(original_output[0])
     post_perturbed_output = output_component.postprocess(perturbed_output[0])
 
-    if type(output_component) == Label:
+    if isinstance(output_component, components.Label):
         original_label = post_original_output["label"]
         perturbed_label = post_perturbed_output["label"]
 
