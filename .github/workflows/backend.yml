@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         test-type: ["not flaky", "flaky"]
-        python-version: ["3.9.2", "3.7.13"]
+        python-version: ["3.9", "3.7"]
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
