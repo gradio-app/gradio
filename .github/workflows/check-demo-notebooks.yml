@@ -3,7 +3,7 @@
 name: Check Demos Match Notebooks
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
     paths:
         - 'demo/**'
@@ -26,13 +26,18 @@ jobs:
       - name: Assert Notebooks Match 
         id: assertNotebooksMatch
         run: git status | grep "nothing to commit, working tree clean"
-      - name: Comment On PR
-        uses: thollander/actions-comment-pull-request@v1
-        if: always() && (steps.assertNotebooksMatch.outcome == 'failure')
+      - name: Get PR Number
+        if: always()
+        run: |
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+          echo "PR_NUMBER=$(cat pr_number.txt)" >> $GITHUB_ENV
+      - name: Upload PR Number
+        if: always()
+        run: |
+          python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
+      - name: Upload metadata
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          message: |
-            The demo notebooks don't match the run.py files. Please run this command from the root of the repo and then commit the changes:
-            ```bash
-            pip install nbformat && cd demo && python generate_notebooks.py
-            ```
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: metadata.json
+          path: metadata.json
