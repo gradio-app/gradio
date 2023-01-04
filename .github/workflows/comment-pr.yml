@@ -31,3 +31,14 @@ jobs:
           comment_includes: The demo notebooks don't match the run.py files
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
           pr_number: ${{ env.pr_number }}
+          comment_tag: notebook-check
+      - name: Comment On Notebook check fail
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.name == 'Check Demos Match Notebooks'}}
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+              🎉 The demo notebooks match the run.py files! 🎉
+          comment_includes: The demo notebooks match the run.py files!
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          pr_number: ${{ env.pr_number }}
+          comment_tag: notebook-check
