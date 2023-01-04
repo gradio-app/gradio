@@ -81,6 +81,7 @@
 	}
 
 	function handleTokenClick(e: any) {
+		e.preventDefault();
 		if (e.target.closest(".token-remove")) {
 			e.stopPropagation();
 			remove(
@@ -107,7 +108,7 @@
 	}
 </script>
 
-<div class="relative border rounded-md" readonly>
+<div class="relative border rounded-md">
 	<div
 		class="items-center flex flex-wrap relative"
 		class:showOptions
@@ -141,7 +142,7 @@
 			<input
 				class="border-none bg-inherit ml-2 text-lg w-full outline-none text-gray-700 dark:text-white disabled:cursor-not-allowed"
 				{disabled}
-				autocomplete="on"
+				autocomplete="off"
 				bind:value={inputValue}
 				on:blur={handleBlur}
 				on:keyup={handleKeyup}
