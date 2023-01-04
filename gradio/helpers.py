@@ -439,7 +439,6 @@ class Progress(Iterable):
             unit: unit of iterations.
         """
         if self._callback:
-            assert self._callback is not None, "Callback not set."
             if isinstance(progress, tuple):
                 index, total = progress
                 progress = None
