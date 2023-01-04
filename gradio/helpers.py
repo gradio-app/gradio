@@ -379,8 +379,7 @@ class Progress(Iterable):
     def __init__(
         self,
         track_tqdm: bool = False,
-        _active: bool = False,
-        _callback: Callable | None = None,
+        _callback: Callable | None = None,  # for internal use only
         _event_id: str | None = None,
     ):
         """
@@ -388,7 +387,6 @@ class Progress(Iterable):
             track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
         self.track_tqdm = track_tqdm
-        self._active = _active
         self._callback = _callback
         self._event_id = _event_id
         self.iterables: List[TrackedIterable] = []
@@ -403,7 +401,7 @@ class Progress(Iterable):
         """
         Updates progress tracker with next item in iterable.
         """
-        if self._active:
+        if self._callback:
             current_iterable = self.iterables[-1]
             while (
                 not hasattr(current_iterable.iterable, "__next__")
@@ -414,9 +412,10 @@ class Progress(Iterable):
                 event_id=self._event_id,
                 iterables=self.iterables,
             )
+            assert current_iterable.index is not None, "Index not set."
             current_iterable.index += 1
             try:
-                return next(current_iterable.iterable)
+                return next(current_iterable.iterable)  # type: ignore
             except StopIteration:
                 self.iterables.pop()
                 raise StopIteration
@@ -439,7 +438,7 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._active:
+        if self._callback:
             assert self._callback is not None, "Callback not set."
             if isinstance(progress, tuple):
                 index, total = progress
@@ -472,15 +471,16 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if iterable is None:
-            new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
-            self.iterables.append(new_iterable)
-            self._callback(event_id=self._event_id, iterables=self.iterables)
-            return
-        length = len(iterable) if hasattr(iterable, "__len__") else None
-        self.iterables.append(
-            TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
-        )
+        if self._callback:
+            if iterable is None:
+                new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
+                self.iterables.append(new_iterable)
+                self._callback(event_id=self._event_id, iterables=self.iterables)
+                return self
+            length = getattr(iterable, "__len__", None)
+            self.iterables.append(
+                TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
+            )
         return self
 
     def update(self, n=1):
@@ -489,8 +489,9 @@ class Progress(Iterable):
         Parameters:
             n: number of steps completed.
         """
-        if self._active and len(self.iterables) > 0:
+        if self._callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
+            assert current_iterable.index is not None, "Index not set."
             current_iterable.index += n
             self._callback(
                 event_id=self._event_id,
@@ -503,7 +504,7 @@ class Progress(Iterable):
         """
         Removes iterable with given _tqdm.
         """
-        if self._active:
+        if self._callback:
             for i in range(len(self.iterables)):
                 if id(self.iterables[i]._tqdm) == id(_tqdm):
                     self.iterables.pop(i)
@@ -518,9 +519,7 @@ class Progress(Iterable):
 
 def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
-    progress = Progress(
-        _active=True, _callback=root_blocks._queue.set_progress, _event_id=event_id
-    )
+    progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
     if not track_tqdm:
         return progress, fn
 
