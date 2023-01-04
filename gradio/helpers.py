@@ -12,14 +12,15 @@ import tempfile
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
+import PIL.Image
 
-from gradio import processing_utils, routes, utils
+from gradio import components, processing_utils, routes, utils
 from gradio.context import Context
 from gradio.documentation import document, set_documentation_group
 from gradio.flagging import CSVLogger
@@ -85,13 +86,13 @@ class Examples:
         self,
         examples: List[Any] | List[List[Any]] | str,
         inputs: IOComponent | List[IOComponent],
-        outputs: Optional[IOComponent | List[IOComponent]] = None,
-        fn: Optional[Callable] = None,
+        outputs: IOComponent | List[IOComponent] | None = None,
+        fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
         _api_mode: bool = False,
-        label: str = "Examples",
-        elem_id: Optional[str] = None,
+        label: str | None = "Examples",
+        elem_id: str | None = None,
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
@@ -123,7 +124,7 @@ class Examples:
 
         if not isinstance(inputs, list):
             inputs = [inputs]
-        if not isinstance(outputs, list):
+        if outputs and not isinstance(outputs, list):
             outputs = [outputs]
 
         working_directory = Path().absolute()
@@ -139,12 +140,12 @@ class Examples:
         ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
             examples = [[e] for e in examples]
         elif isinstance(examples, str):
-            if not os.path.exists(examples):
+            if not Path(examples).exists():
                 raise FileNotFoundError(
                     "Could not find examples directory: " + examples
                 )
             working_directory = examples
-            if not os.path.exists(os.path.join(examples, LOG_FILE)):
+            if not (Path(examples) / LOG_FILE).exists():
                 if len(inputs) == 1:
                     examples = [[e] for e in os.listdir(examples)]
                 else:
@@ -153,7 +154,7 @@ class Examples:
                         + LOG_FILE
                     )
             else:
-                with open(os.path.join(examples, LOG_FILE)) as logs:
+                with open(Path(examples) / LOG_FILE) as logs:
                     examples = list(csv.reader(logs))
                     examples = [
                         examples[i][: len(inputs)] for i in range(1, len(examples))
@@ -219,10 +220,8 @@ class Examples:
                     )
                     break
 
-        from gradio.components import Dataset
-
         with utils.set_directory(working_directory):
-            self.dataset = Dataset(
+            self.dataset = components.Dataset(
                 components=inputs_with_examples,
                 samples=non_none_examples,
                 type="index",
@@ -231,8 +230,8 @@ class Examples:
                 elem_id=elem_id,
             )
 
-        self.cached_folder = os.path.join(CACHED_FOLDER, str(self.dataset._id))
-        self.cached_file = os.path.join(self.cached_folder, "log.csv")
+        self.cached_folder = Path(CACHED_FOLDER) / str(self.dataset._id)
+        self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
@@ -250,19 +249,24 @@ class Examples:
             return utils.resolve_singleton(processed_example)
 
         if Context.root_block:
+            if self.cache_examples and self.outputs:
+                targets = self.inputs_with_examples
+            else:
+                targets = self.inputs
             self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
-                outputs=self.inputs_with_examples
-                + (self.outputs if self.cache_examples else []),
+                outputs=targets,  # type: ignore
                 postprocess=False,
                 queue=False,
             )
             if self.run_on_click and not self.cache_examples:
+                if self.fn is None:
+                    raise ValueError("Cannot run_on_click if no function is provided")
                 self.dataset.click(
                     self.fn,
-                    inputs=self.inputs,
-                    outputs=self.outputs,
+                    inputs=self.inputs,  # type: ignore
+                    outputs=self.outputs,  # type: ignore
                 )
 
         if self.cache_examples:
@@ -272,29 +276,30 @@ class Examples:
         """
         Caches all of the examples so that their predictions can be shown immediately.
         """
-        if os.path.exists(self.cached_file):
+        if Path(self.cached_file).exists():
             print(
-                f"Using cache from '{os.path.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{Path(self.cached_folder).resolve()}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
             if Context.root_block is None:
                 raise ValueError("Cannot cache examples if not in a Blocks context")
 
-            print(f"Caching examples at: '{os.path.abspath(self.cached_file)}'")
+            print(f"Caching examples at: '{Path(self.cached_file).resolve()}'")
             cache_logger = CSVLogger()
 
             # create a fake dependency to process the examples and get the predictions
             dependency = Context.root_block.set_event_trigger(
                 event_name="fake_event",
                 fn=self.fn,
-                inputs=self.inputs_with_examples,
-                outputs=self.outputs,
+                inputs=self.inputs_with_examples,  # type: ignore
+                outputs=self.outputs,  # type: ignore
                 preprocess=self.preprocess and not self._api_mode,
                 postprocess=self.postprocess and not self._api_mode,
                 batch=self.batch,
             )
 
             fn_index = Context.root_block.dependencies.index(dependency)
+            assert self.outputs is not None
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 processed_input = self.processed_examples[example_id]
@@ -320,6 +325,7 @@ class Examples:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
+        assert self.outputs is not None
         for component, value in zip(self.outputs, example):
             try:
                 value_as_dict = ast.literal_eval(value)
@@ -333,13 +339,13 @@ class Examples:
 class TrackedIterable:
     def __init__(
         self,
-        iterable: Iterable,
+        iterable: Iterable | None,
         index: int | None,
         length: int | None,
         desc: str | None,
         unit: str | None,
         _tqdm=None,
-        progress: float = None,
+        progress: float | None = None,
     ) -> None:
         self.iterable = iterable
         self.index = index
@@ -373,16 +379,14 @@ class Progress(Iterable):
     def __init__(
         self,
         track_tqdm: bool = False,
-        _active: bool = False,
-        _callback: Callable = None,
-        _event_id: str = None,
+        _callback: Callable | None = None,  # for internal use only
+        _event_id: str | None = None,
     ):
         """
         Parameters:
             track_tqdm: If True, the Progress object will track any tqdm.tqdm iterations with the tqdm library in the function.
         """
         self.track_tqdm = track_tqdm
-        self._active = _active
         self._callback = _callback
         self._event_id = _event_id
         self.iterables: List[TrackedIterable] = []
@@ -397,7 +401,7 @@ class Progress(Iterable):
         """
         Updates progress tracker with next item in iterable.
         """
-        if self._active:
+        if self._callback:
             current_iterable = self.iterables[-1]
             while (
                 not hasattr(current_iterable.iterable, "__next__")
@@ -408,9 +412,10 @@ class Progress(Iterable):
                 event_id=self._event_id,
                 iterables=self.iterables,
             )
+            assert current_iterable.index is not None, "Index not set."
             current_iterable.index += 1
             try:
-                return next(current_iterable.iterable)
+                return next(current_iterable.iterable)  # type: ignore
             except StopIteration:
                 self.iterables.pop()
                 raise StopIteration
@@ -421,7 +426,7 @@ class Progress(Iterable):
         self,
         progress: float | Tuple[int, int | None] | None,
         desc: str | None = None,
-        total: float | None = None,
+        total: int | None = None,
         unit: str = "steps",
         _tqdm=None,
     ):
@@ -433,7 +438,7 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if self._active:
+        if self._callback:
             if isinstance(progress, tuple):
                 index, total = progress
                 progress = None
@@ -450,8 +455,8 @@ class Progress(Iterable):
     def tqdm(
         self,
         iterable: Iterable | None,
-        desc: str = None,
-        total: float = None,
+        desc: str | None = None,
+        total: int | None = None,
         unit: str = "steps",
         _tqdm=None,
         *args,
@@ -465,15 +470,16 @@ class Progress(Iterable):
             total: estimated total number of steps.
             unit: unit of iterations.
         """
-        if iterable is None:
-            new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
-            self.iterables.append(new_iterable)
-            self._callback(event_id=self._event_id, iterables=self.iterables)
-            return
-        length = len(iterable) if hasattr(iterable, "__len__") else None
-        self.iterables.append(
-            TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
-        )
+        if self._callback:
+            if iterable is None:
+                new_iterable = TrackedIterable(None, 0, total, desc, unit, _tqdm)
+                self.iterables.append(new_iterable)
+                self._callback(event_id=self._event_id, iterables=self.iterables)
+                return self
+            length = len(iterable) if hasattr(iterable, "__len__") else None  # type: ignore
+            self.iterables.append(
+                TrackedIterable(iter(iterable), 0, length, desc, unit, _tqdm)
+            )
         return self
 
     def update(self, n=1):
@@ -482,8 +488,9 @@ class Progress(Iterable):
         Parameters:
             n: number of steps completed.
         """
-        if self._active and len(self.iterables) > 0:
+        if self._callback and len(self.iterables) > 0:
             current_iterable = self.iterables[-1]
+            assert current_iterable.index is not None, "Index not set."
             current_iterable.index += n
             self._callback(
                 event_id=self._event_id,
@@ -496,7 +503,7 @@ class Progress(Iterable):
         """
         Removes iterable with given _tqdm.
         """
-        if self._active:
+        if self._callback:
             for i in range(len(self.iterables)):
                 if id(self.iterables[i]._tqdm) == id(_tqdm):
                     self.iterables.pop(i)
@@ -511,9 +518,7 @@ class Progress(Iterable):
 
 def create_tracker(root_blocks, event_id, fn, track_tqdm):
 
-    progress = Progress(
-        _active=True, _callback=root_blocks._queue.set_progress, _event_id=event_id
-    )
+    progress = Progress(_callback=root_blocks._queue.set_progress, _event_id=event_id)
     if not track_tqdm:
         return progress, fn
 
@@ -677,7 +682,7 @@ def make_waveform(
     audio: str | Tuple[int, np.ndarray],
     *,
     bg_color: str = "#f3f4f6",
-    bg_image: str = None,
+    bg_image: str | None = None,
     fg_alpha: float = 0.75,
     bars_color: str | Tuple[str, str] = ("#fbbf24", "#ea580c"),
     bar_count: int = 50,
@@ -748,7 +753,7 @@ def make_waveform(
     plt.axis("off")
     plt.margins(x=0)
     tmp_img = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-    savefig_kwargs = {"bbox_inches": "tight"}
+    savefig_kwargs: Dict[str, Any] = {"bbox_inches": "tight"}
     if bg_image is not None:
         savefig_kwargs["transparent"] = True
     else:
