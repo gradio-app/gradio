@@ -52,7 +52,6 @@ class TestTextbox:
         Preprocess, postprocess, serialize, tokenize, generate_sample, get_config
         """
         text_input = gr.Textbox()
-        assert False
         assert text_input.preprocess("Hello World!") == "Hello World!"
         assert text_input.postprocess("Hello World!") == "Hello World!"
         assert text_input.postprocess(None) is None
