@@ -303,6 +303,7 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
+		border-radius: var(--radius-lg);
 		background-color: var(--color-background-tertiary);
 		max-height: var(--size-screen-h);
 		pointer-events: none;
@@ -328,6 +329,7 @@
 	.generating {
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 		border: 2px solid var(--color-accent-base);
+		background: transparent;
 	}
 
 	.translucent {
