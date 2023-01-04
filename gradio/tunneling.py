@@ -3,6 +3,7 @@ import os
 import platform
 import re
 import subprocess
+from pathlib import Path
 from typing import List
 
 VERSION = "0.1"
@@ -26,11 +27,11 @@ class Tunnel:
 
         # Check if the file exist
         binary_name = f"frpc_{platform.system().lower()}_{machine.lower()}"
-        binary_path = os.path.join(os.path.dirname(__file__), binary_name)
+        binary_path = str(Path(__file__).parent / binary_name)
 
         extension = ".exe" if os.name == "nt" else ""
 
-        if not os.path.exists(binary_path):
+        if not Path(binary_path).exists():
             import stat
 
             import requests
@@ -91,8 +92,14 @@ class Tunnel:
         atexit.register(self.kill)
         url = ""
         while url == "":
+            if self.proc.stdout is None:
+                continue
             line = self.proc.stdout.readline()
             line = line.decode("utf-8")
             if "start proxy success" in line:
-                url = re.search("start proxy success: (.+)\n", line).group(1)
+                result = re.search("start proxy success: (.+)\n", line)
+                if result is None:
+                    raise ValueError("Could not create share URL")
+                else:
+                    url = result.group(1)
         return url

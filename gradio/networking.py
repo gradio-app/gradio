@@ -11,7 +11,6 @@ import time
 import warnings
 from typing import TYPE_CHECKING, Tuple
 
-import fastapi
 import requests
 import uvicorn
 
@@ -69,7 +68,7 @@ def get_first_available_port(initial: int, final: int) -> int:
     )
 
 
-def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
+def configure_app(app: App, blocks: Blocks) -> App:
     auth = blocks.auth
     if auth is not None:
         if not callable(auth):
@@ -183,3 +182,4 @@ def url_ok(url: str) -> bool:
             time.sleep(0.500)
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
+    return False

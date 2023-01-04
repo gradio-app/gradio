@@ -34,11 +34,14 @@ with warnings.catch_warnings():
 
 def to_binary(x: str | Dict) -> bytes:
     """Converts a base64 string or dictionary to a binary string that can be sent in a POST."""
-    if isinstance(x, dict) and not x.get("data"):
-        x = encode_url_or_file_to_base64(x["name"])
-    elif isinstance(x, dict) and x.get("data"):
-        x = x["data"]
-    return base64.b64decode(x.split(",")[1])
+    if isinstance(x, dict):
+        if x.get("data"):
+            base64str = x["data"]
+        else:
+            base64str = encode_url_or_file_to_base64(x["name"])
+    else:
+        base64str = x
+    return base64.b64decode(base64str.split(",")[1])
 
 
 #########################
@@ -46,31 +49,33 @@ def to_binary(x: str | Dict) -> bytes:
 #########################
 
 
-def decode_base64_to_image(encoding):
+def decode_base64_to_image(encoding: str) -> Image.Image:
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_url_or_file_to_base64(path, encryption_key=None):
-    if utils.validate_url(path):
-        return encode_url_to_base64(path, encryption_key=encryption_key)
+def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
+    if utils.validate_url(str(path)):
+        return encode_url_to_base64(str(path), encryption_key=encryption_key)
     else:
-        return encode_file_to_base64(path, encryption_key=encryption_key)
+        return encode_file_to_base64(str(path), encryption_key=encryption_key)
 
 
-def get_mimetype(filename):
+def get_mimetype(filename: str) -> str | None:
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
         mimetype = mimetype.replace("x-wav", "wav").replace("x-flac", "flac")
     return mimetype
 
 
-def get_extension(encoding):
+def get_extension(encoding: str) -> str | None:
     encoding = encoding.replace("audio/wav", "audio/x-wav")
     type = mimetypes.guess_type(encoding)[0]
     if type == "audio/flac":  # flac is not supported by mimetypes
         return "flac"
+    elif type is None:
+        return None
     extension = mimetypes.guess_extension(type)
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
@@ -176,7 +181,7 @@ def resize_and_crop(img, size, crop_type="center"):
         resize[0] = img.size[0]
     if size[1] is None:
         resize[1] = img.size[1]
-    return ImageOps.fit(img, resize, centering=center)
+    return ImageOps.fit(img, resize, centering=center)  # type: ignore
 
 
 ##################
@@ -188,7 +193,7 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
     try:
         audio = AudioSegment.from_file(filename)
     except FileNotFoundError as e:
-        isfile = os.path.isfile(filename)
+        isfile = Path(filename).is_file()
         msg = (
             f"Cannot load audio from file: `{'ffprobe' if isfile else filename}` not found."
             + " Please install `ffmpeg` in your system to use non-WAV audio file formats"
@@ -215,7 +220,8 @@ def audio_to_file(sample_rate, data, filename):
         sample_width=data.dtype.itemsize,
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
-    audio.export(filename, format="wav").close()
+    file = audio.export(filename, format="wav")
+    file.close()  # type: ignore
 
 
 def convert_to_16_bit_wav(data):
@@ -266,7 +272,7 @@ def decode_base64_to_file(
         os.makedirs(dir, exist_ok=True)
     data, extension = decode_base64_to_binary(encoding)
     if file_path is not None and prefix is None:
-        filename = os.path.basename(file_path)
+        filename = Path(file_path).name
         prefix = filename
         if "." in filename:
             prefix = filename[0 : filename.index(".")]
@@ -341,7 +347,7 @@ class TempFileManager:
         return sha1.hexdigest()
 
     def get_prefix_and_extension(self, file_path_or_url: str) -> Tuple[str, str]:
-        file_name = os.path.basename(file_path_or_url)
+        file_name = Path(file_path_or_url).name
         prefix, extension = file_name, None
         if "." in file_name:
             prefix = file_name[0 : file_name.index(".")]
@@ -365,13 +371,13 @@ class TempFileManager:
         """Returns a temporary file path for a copy of the given file path if it does
         not already exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_dir, _ = os.path.split(f.name)
+        temp_dir = Path(f.name).parent
 
         temp_file_path = self.get_temp_file_path(file_path)
-        f.name = os.path.join(temp_dir, temp_file_path)
-        full_temp_file_path = os.path.abspath(f.name)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(Path(f.name).resolve())
 
-        if not os.path.exists(full_temp_file_path):
+        if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
 
         self.temp_files.add(full_temp_file_path)
@@ -381,13 +387,13 @@ class TempFileManager:
         """Downloads a file and makes a temporary file path for a copy if does not already
         exist. Otherwise returns the path to the existing temp file."""
         f = tempfile.NamedTemporaryFile()
-        temp_dir, _ = os.path.split(f.name)
+        temp_dir = Path(f.name).parent
 
         temp_file_path = self.get_temp_url_path(url)
-        f.name = os.path.join(temp_dir, temp_file_path)
-        full_temp_file_path = os.path.abspath(f.name)
+        f.name = str(temp_dir / temp_file_path)
+        full_temp_file_path = str(Path(f.name).resolve())
 
-        if not os.path.exists(full_temp_file_path):
+        if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r:
                 with open(full_temp_file_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
@@ -399,7 +405,7 @@ class TempFileManager:
 def create_tmp_copy_of_file(file_path, dir=None):
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    file_name = os.path.basename(file_path)
+    file_name = Path(file_path).name
     prefix, extension = file_name, None
     if "." in file_name:
         prefix = file_name[0 : file_name.index(".")]
@@ -602,8 +608,8 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         imin_in = np.iinfo(dtype_in).min
         imax_in = np.iinfo(dtype_in).max
     if kind_out in "ui":
-        imin_out = np.iinfo(dtype_out).min
-        imax_out = np.iinfo(dtype_out).max
+        imin_out = np.iinfo(dtype_out).min  # type: ignore
+        imax_out = np.iinfo(dtype_out).max  # type: ignore
 
     # any -> binary
     if kind_out == "b":
@@ -632,23 +638,23 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
         if not uniform:
             if kind_out == "u":
-                image_out = np.multiply(image, imax_out, dtype=computation_type)
+                image_out = np.multiply(image, imax_out, dtype=computation_type)  # type: ignore
             else:
                 image_out = np.multiply(
-                    image, (imax_out - imin_out) / 2, dtype=computation_type
+                    image, (imax_out - imin_out) / 2, dtype=computation_type  # type: ignore
                 )
                 image_out -= 1.0 / 2.0
             np.rint(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         elif kind_out == "u":
-            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)
-            np.clip(image_out, 0, imax_out, out=image_out)
+            image_out = np.multiply(image, imax_out + 1, dtype=computation_type)  # type: ignore
+            np.clip(image_out, 0, imax_out, out=image_out)  # type: ignore
         else:
             image_out = np.multiply(
-                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type
+                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type  # type: ignore
             )
             np.floor(image_out, out=image_out)
-            np.clip(image_out, imin_out, imax_out, out=image_out)
+            np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
         return image_out.astype(dtype_out)
 
     # signed/unsigned int -> float
@@ -661,13 +667,13 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         if kind_in == "u":
             # using np.divide or np.multiply doesn't copy the data
             # until the computation time
-            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)
+            image = np.multiply(image, 1.0 / imax_in, dtype=computation_type)  # type: ignore
             # DirectX uses this conversion also for signed ints
             # if imin_in:
             #     np.maximum(image, -1.0, out=image)
         else:
             image = np.add(image, 0.5, dtype=computation_type)
-            image *= 2 / (imax_in - imin_in)
+            image *= 2 / (imax_in - imin_in)  # type: ignore
 
         return np.asarray(image, dtype_out)
 
@@ -693,9 +699,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         return _scale(image, 8 * itemsize_in - 1, 8 * itemsize_out - 1)
 
     image = image.astype(_dtype_bits("i", itemsize_out * 8))
-    image -= imin_in
+    image -= imin_in  # type: ignore
     image = _scale(image, 8 * itemsize_in, 8 * itemsize_out, copy=False)
-    image += imin_out
+    image += imin_out  # type: ignore
     return image.astype(dtype_out)
 
 
