@@ -16,6 +16,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Interpretable(ABC):
+    def __init__(self) -> None:
+        self.set_interpret_parameters()
+
     def set_interpret_parameters(self):
         """
         Set any parameters for interpretation. Properties can be set here to be

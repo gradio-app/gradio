@@ -308,6 +308,7 @@ class Textbox(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
         self.cleared_value = ""
         self.test_input = value
         self.type = type
@@ -481,6 +482,7 @@ class Number(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.test_input = self.value if self.value is not None else 1
 
     @staticmethod
@@ -668,6 +670,7 @@ class Slider(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
         self.test_input = self.value
 
@@ -805,6 +808,7 @@ class Checkbox(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -905,6 +909,7 @@ class CheckboxGroup(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -1073,6 +1078,7 @@ class Radio(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
 
     def get_config(self):
@@ -1313,6 +1319,7 @@ class Image(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -1883,6 +1890,7 @@ class Audio(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
