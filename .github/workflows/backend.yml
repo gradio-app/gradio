@@ -53,7 +53,6 @@ jobs:
         cd ..
     - name: Install ffmpeg
       run: |
-        sudo apt update
         sudo apt install ffmpeg -y
     - name: Create coverage dir
       run: mkdir test-reports
