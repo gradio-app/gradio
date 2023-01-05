@@ -13,7 +13,16 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio import Blocks, Button, Interface, Number, Textbox, close_all, routes
+from gradio import (
+    Blocks,
+    Button,
+    Interface,
+    Number,
+    Textbox,
+    close_all,
+    media_data,
+    routes,
+)
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -171,6 +180,29 @@ class TestRoutes:
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
 
+    def test_get_file_created_by_app(self):
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True
+        )
+        client = TestClient(app)
+        response = client.post(
+            "/api/predict/",
+            json={
+                "data": [
+                    {
+                        "data": media_data.BASE64_IMAGE,
+                        "name": "bus.png",
+                        "size": len(media_data.BASE64_IMAGE),
+                    }
+                ],
+                "fn_index": 0,
+                "session_hash": "_",
+            },
+        ).json()
+        created_file = response["data"][0]["name"]
+        file_response = client.get(f"/file={created_file}")
+        assert file_response.is_success
+
 
 class TestGeneratorRoutes:
     def test_generator(self):
@@ -242,13 +274,11 @@ class TestAuthenticatedRoutes:
         response = client.post(
             "/login",
             data=dict(username="test", password="correct_password"),
-            follow_redirects=False,
         )
-        assert response.status_code == 302
+        assert response.status_code == 200
         response = client.post(
             "/login",
             data=dict(username="test", password="incorrect_password"),
-            follow_redirects=False,
         )
         assert response.status_code == 400
 

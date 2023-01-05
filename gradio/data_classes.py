@@ -1,3 +1,5 @@
+"""Pydantic data models and other dataclasses. This is the only file that uses Optional[]
+typing syntax instead of | None syntax to work with pydantic"""
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 
@@ -35,8 +37,8 @@ class Estimation(BaseModel):
     queue_size: int
     avg_event_process_time: Optional[float]
     avg_event_concurrent_process_time: Optional[float]
-    rank_eta: Optional[int] = None
-    queue_eta: int
+    rank_eta: Optional[float] = None
+    queue_eta: float
 
 
 class ProgressUnit(BaseModel):
