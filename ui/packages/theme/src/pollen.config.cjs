@@ -35,6 +35,8 @@ module.exports = defineConfig((pollen) => {
 			color: {
 				...pollen.color,
 				blue: "#0ea5e9",
+				"blue-50": "#eff6ff",
+				"blue-100": "#dbeafe",
 				"blue-200": "#bfdbfe",
 				"blue-300": "#93c5fd",
 				"blue-400": "#60a5fa",

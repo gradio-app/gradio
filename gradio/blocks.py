@@ -37,6 +37,8 @@ from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.tunneling import CURRENT_TUNNELS
+from gradio.theming.utils import Theme, get_theme_css
+from gradio.themes import Default as DefaultTheme
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
@@ -446,7 +448,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: str = "default",
+        theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -455,7 +457,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: which theme to use - right now, only "default" is supported.
+            theme: Theme to use, loaded from gradio.themes such as gradio.themes.MonochromeTheme.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -464,7 +466,10 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        self.theme = theme
+        if isinstance(theme, type) and issubclass(theme, Theme):
+            theme = theme()
+        self.theme = theme if isinstance(theme, Theme) else DefaultTheme()
+        self.theme_css = get_theme_css(self.theme)
         self.encrypt = False
         self.share = False
         self.enable_queue = None
