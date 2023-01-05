@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { hover } from "@testing-library/user-event/dist/hover";
 	import { createEventDispatcher } from "svelte";
 	import type { SvelteComponentDev, ComponentType } from "svelte/internal";
 	import { component_map } from "./directory";
@@ -19,7 +18,7 @@
 
 	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
-	let gallery = headers.length === 1;
+	$: gallery = headers.length < 1;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: Array<Array<any>>;

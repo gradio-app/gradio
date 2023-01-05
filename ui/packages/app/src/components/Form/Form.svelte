@@ -1,4 +1,8 @@
-<div class="form">
+<script lang="ts">
+	export let visible = true;
+</script>
+
+<div class="form" class:hidden={!visible}>
 	<slot />
 </div>
 
@@ -18,5 +22,9 @@
 		box-shadow: none !important;
 		border-width: 0px !important;
 		border-radius: 0px !important;
+	}
+
+	.hidden {
+		display: none;
 	}
 </style>

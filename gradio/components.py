@@ -2793,6 +2793,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
+
 
 @document()
 class State(IOComponent, SimpleSerializable):

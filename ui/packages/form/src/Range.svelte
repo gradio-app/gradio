@@ -70,7 +70,6 @@
 		border-radius: var(--radius-lg);
 		background: var(--input-background-base);
 		padding: var(--size-2) var(--size-2);
-		/* padding-right: 0; */
 		height: var(--size-6);
 		color: var(--color-text-body);
 		font-size: var(--scale-00);

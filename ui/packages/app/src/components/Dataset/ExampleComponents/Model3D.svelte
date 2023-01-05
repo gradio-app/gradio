@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Value } from "../../Model3D/types";
+	import type { Value } from "../../Audio/types";
 
 	export let value: Value;
 	export let type: "gallery" | "table";
@@ -21,8 +21,8 @@
 		cursor: pointer;
 		border-radius: var(--radius-lg);
 		background: var(--dataset-gallery-background-base);
-		padding: var(--size-2);
-		font-size: var(--scale-000);
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--scale-00);
 		text-align: left;
 	}
 

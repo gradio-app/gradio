@@ -13,13 +13,16 @@
 </div>
 
 <style>
+	div {
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
+	}
 	.gallery {
 		display: flex;
 		align-items: center;
 		cursor: pointer;
 		border-radius: var(--radius-lg);
-		padding: var(--size-2);
-		font-size: var(--scale-00);
+		padding: var(--size-1) var(--size-2);
 		text-align: left;
 	}
 
