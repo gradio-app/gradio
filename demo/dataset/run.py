@@ -174,15 +174,6 @@ with gr.Blocks() as demo:
         label="Video",
         samples=[[vid], [vid], [vid], [vid], [vid], [vid]],
     )
-    # gr.Dataset(components=gr.Textbox, samples=[])
-    # gr.Dataset(components=gr.TimeSeries, samples=[])
-    # gr.Dataset(components=gr.Video, samples=[])
-    btn = gr.Button("show")
-
-    def fn():
-        return c.update(visible=True)
-
-    btn.click(inputs=[], outputs=[c], fn=fn)
 
 
 if __name__ == "__main__":
