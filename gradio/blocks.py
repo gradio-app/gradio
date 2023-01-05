@@ -513,6 +513,7 @@ class Blocks(BlockContext):
         self.output_components = None
         self.__name__ = None
         self.api_mode = None
+        self.progress_tracking = None
 
         if self.analytics_enabled:
             self.ip_address = utils.get_local_ip_address()

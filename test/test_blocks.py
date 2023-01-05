@@ -63,16 +63,15 @@ class TestBlocksMethods:
         with gr.Blocks() as demo:
             # self.share is False when instantiating the class
             assert not demo.share
-        # share default is False, if share is None in colab and no queueing
-        demo.launch(prevent_thread_lock=True)
-        assert not demo.share
-        demo.close()
-        with gr.Blocks() as demo:
+            # share default is False, if share is None in colab and no queueing
+            demo.launch(prevent_thread_lock=True)
+            assert not demo.share
+            demo.close()
             # share becomes true, if share is None in colab with queueing
             demo.queue()
-        demo.launch(prevent_thread_lock=True)
-        assert demo.share
-        demo.close()
+            demo.launch(prevent_thread_lock=True)
+            assert demo.share
+            demo.close()
 
     def test_default_enabled_deprecated(self):
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
