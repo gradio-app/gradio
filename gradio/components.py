@@ -1167,9 +1167,9 @@ class Radio(
 
 
 @document("change", "style")
-class Dropdown(Radio):
+class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
-    Creates a dropdown of which only one entry can be selected.
+    Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
     Examples-format: a {str} representing the drop down value to select.
@@ -1178,10 +1178,11 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str] | None = None,
+        choices: str | List[str] | None = None,
         *,
-        value: str | Callable | None = None,
+        value: str | List[str] | Callable | None = None,
         type: str = "value",
+        multiselect: bool | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
@@ -1193,8 +1194,9 @@ class Dropdown(Radio):
         """
         Parameters:
             choices: list of options to select from.
-            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            multiselect: if True, multiple choices can be selected.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -1202,19 +1204,109 @@ class Dropdown(Radio):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Radio.__init__(
+        self.choices = choices or []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
+        self.type = type
+        self.multiselect = multiselect
+        if multiselect:
+            if isinstance(value, str):
+                value = [value]
+        self.test_input = self.choices[0] if len(self.choices) else None
+        self.interpret_by_tokens = False
+        IOComponent.__init__(
             self,
-            value=value,
-            choices=choices,
-            type=type,
             label=label,
             every=every,
             show_label=show_label,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            value=value,
             **kwargs,
         )
+        self.cleared_value = self.value
+
+    def get_config(self):
+        return {
+            "choices": self.choices,
+            "value": self.value,
+            "multiselect": self.multiselect,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        choices: str | List[str] | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "choices": choices,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    def generate_sample(self):
+        return self.choices[0]
+
+    def preprocess(
+        self, x: str | List[str]
+    ) -> str | int | List[str] | List[int] | None:
+        """
+        Parameters:
+            x: selected choice(s)
+        Returns:
+            selected choice(s) as string or index within choice list or list of string or indices
+        """
+        if self.type == "value":
+            return x
+        elif self.type == "index":
+            if x is None:
+                return None
+            elif self.multiselect:
+                return [self.choices.index(c) for c in x]
+            else:
+                if isinstance(x, str):
+                    return self.choices.index(x)
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
+            )
+
+    def set_interpret_parameters(self):
+        """
+        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
+        """
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        choices = list(self.choices)
+        choices.remove(x)
+        return choices, {}
+
+    def get_interpretation_scores(
+        self, x, neighbors, scores: List[float | None], **kwargs
+    ) -> List:
+        """
+        Returns:
+            Each value represents the interpretation score corresponding to each choice.
+        """
+        scores.insert(self.choices.index(x), None)
+        return scores
 
     def style(self, *, container: bool | None = None, **kwargs):
         """

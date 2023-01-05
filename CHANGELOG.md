@@ -2,7 +2,7 @@
 
 ## New Features:
 
-* Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
+### Send custom progress updates by adding a `gr.Progress` argument after the input arguments to any function. Example:
 
 ```python
 def reverse(word, progress=gr.Progress()):
@@ -21,6 +21,15 @@ Progress indicator bar by [@aliabid94](https://github.com/aliabid94) in [PR 2750
 
 * Added `title` argument to `TabbedInterface` by @MohamedAliRashad in [#2888](https://github.com/gradio-app/gradio/pull/2888)
 * Add support for specifying file extensions for `gr.File` and `gr.UploadButton`, using `file_types` parameter (e.g  `gr.File(file_count="multiple", file_types=["text", ".json", ".csv"])`) by @dawoodkhan82 in [#2901](https://github.com/gradio-app/gradio/pull/2901)
+* Added `multiselect` option to `Dropdown` by @dawoodkhan82 in [#2871](https://github.com/gradio-app/gradio/pull/2871)
+
+### With `multiselect` set to `true` a user can now select multiple options from the `gr.Dropdown` component.
+
+```python
+gr.Dropdown(["angola", "pakistan", "canada"], multiselect=True, value=["angola"])
+```
+<img width="610" alt="Screenshot 2023-01-03 at 4 14 36 PM" src="https://user-images.githubusercontent.com/12725292/210442547-c86975c9-4b4f-4b8e-8803-9d96e6a8583a.png">
+
 
 ## Bug Fixes:
 * Fixed bug where an error opening an audio file led to a crash by [@FelixDombek](https://github.com/FelixDombek) in [PR 2898](https://github.com/gradio-app/gradio/pull/2898)
