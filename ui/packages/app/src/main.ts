@@ -128,6 +128,10 @@ async function handle_config(
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
+	let link = document.createElement("link");
+	link.rel = "stylesheet";
+	link.href = config.root + "theme.css";
+	window.scoped_css_attach(link)
 	if (config.dev_mode) {
 		reload_check(config.root);
 	}

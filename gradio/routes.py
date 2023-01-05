@@ -463,6 +463,10 @@ class App(FastAPI):
                 return True
             return False
 
+        @app.get("/theme.css", response_class=PlainTextResponse)
+        def theme_css():
+            return PlainTextResponse(app.get_blocks().theme_css, media_type="text/css")
+
         @app.get("/robots.txt", response_class=PlainTextResponse)
         def robots_txt():
             if app.get_blocks().share:
