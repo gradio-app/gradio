@@ -46,6 +46,7 @@ from gradio.events import (
     Submittable,
     Uploadable,
 )
+from gradio.interpretation import NeighborInterpretable, TokenInterpretable
 from gradio.layouts import Column, Form, Row
 from gradio.processing_utils import TempFileManager
 from gradio.serializing import (
@@ -186,8 +187,6 @@ class IOComponent(Component, Serializable):
         if callable(load_fn):
             self.load_event = self.attach_load_event(load_fn, every)
 
-        self.set_interpret_parameters()
-
     def get_config(self):
         return {
             "label": self.label,
@@ -195,38 +194,6 @@ class IOComponent(Component, Serializable):
             "interactive": self.interactive,
             **super().get_config(),
         }
-
-    def set_interpret_parameters(self):
-        """
-        Set any parameters for interpretation.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x: Any) -> Tuple[List, Dict, bool]:
-        """
-        Generates values similar to input to be used to interpret the significance of the input in the final output.
-        Parameters:
-            x: Input to interface
-        Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
-            neighbor_values: Neighboring values to input x to compute for interpretation
-            interpret_kwargs: Keyword arguments to be passed to get_interpretation_scores
-            interpret_by_removal: If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
-        """
-        return [], {}, True
-
-    def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
-    ) -> List:
-        """
-        Arrange the output values from the neighbors into interpretation scores for the interface to render.
-        Parameters:
-            x: Input to interface
-            neighbors: Neighboring values to input x used for interpretation.
-            scores: Output value corresponding to each neighbor in neighbors
-        Returns:
-            Arrangement of interpretation scores for interfaces to render.
-        """
-        return []
 
     def generate_sample(self) -> Any:
         """
@@ -275,7 +242,13 @@ class FormComponent:
 
 @document("change", "submit", "blur", "style")
 class Textbox(
-    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
+    FormComponent,
+    Changeable,
+    Submittable,
+    Blurrable,
+    IOComponent,
+    SimpleSerializable,
+    TokenInterpretable,
 ):
     """
     Creates a textarea for user to enter string input or display string output.
@@ -324,7 +297,6 @@ class Textbox(
         self.lines = lines
         self.max_lines = max_lines if type == "text" else 1
         self.placeholder = placeholder
-        self.interpret_by_tokens = True
         IOComponent.__init__(
             self,
             label=label,
@@ -336,6 +308,7 @@ class Textbox(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
         self.cleared_value = ""
         self.test_input = value
         self.type = type
@@ -456,7 +429,13 @@ class Textbox(
 
 @document("change", "submit", "style")
 class Number(
-    FormComponent, Changeable, Submittable, Blurrable, IOComponent, SimpleSerializable
+    FormComponent,
+    Changeable,
+    Submittable,
+    Blurrable,
+    IOComponent,
+    SimpleSerializable,
+    NeighborInterpretable,
 ):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
@@ -492,7 +471,6 @@ class Number(
             precision: Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -504,6 +482,7 @@ class Number(
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.test_input = self.value if self.value is not None else 1
 
     @staticmethod
@@ -627,7 +606,9 @@ class Number(
 
 
 @document("change", "style")
-class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Slider(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
     Preprocessing: passes slider value as a {float} into the function.
@@ -689,9 +670,9 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
         self.test_input = self.value
-        self.interpret_by_tokens = False
 
     def get_config(self):
         return {
@@ -764,15 +745,6 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
             {},
         )
 
-    def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], **kwargs
-    ) -> List[float]:
-        """
-        Returns:
-            Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
-        """
-        return scores
-
     def style(
         self,
         *,
@@ -790,7 +762,9 @@ class Slider(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Checkbox(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -823,7 +797,6 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
         self.test_input = True
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -835,6 +808,7 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -863,12 +837,6 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
     def generate_sample(self):
         return True
 
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of the input by comparing the output against the output when the input is the inverse boolean value of x.
-        """
-        return self
-
     def get_interpretation_neighbors(self, x):
         return [not x], {}
 
@@ -884,7 +852,9 @@ class Checkbox(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class CheckboxGroup(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
@@ -928,7 +898,6 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
             )
         self.type = type
         self.test_input = self.choices
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -940,6 +909,7 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -1006,12 +976,6 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
             y = [y]
         return y
 
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice in the input by comparing the output against the outputs when each choice in the input is independently either removed or added.
-        """
-        return self
-
     def get_interpretation_neighbors(self, x):
         leave_one_out_sets = []
         for choice in self.choices:
@@ -1057,7 +1021,9 @@ class CheckboxGroup(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
+class Radio(
+    FormComponent, Changeable, IOComponent, SimpleSerializable, NeighborInterpretable
+):
     """
     Creates a set of radio buttons of which only one can be selected.
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
@@ -1101,7 +1067,6 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
             )
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
             label=label,
@@ -1113,6 +1078,7 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
             value=value,
             **kwargs,
         )
+        NeighborInterpretable.__init__(self)
         self.cleared_value = self.value
 
     def get_config(self):
@@ -1166,12 +1132,6 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
                 + ". Please choose from: 'value', 'index'."
             )
 
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
     def get_interpretation_neighbors(self, x):
         choices = list(self.choices)
         choices.remove(x)
@@ -1207,9 +1167,9 @@ class Radio(FormComponent, Changeable, IOComponent, SimpleSerializable):
 
 
 @document("change", "style")
-class Dropdown(Radio):
+class Dropdown(Changeable, IOComponent, SimpleSerializable, FormComponent):
     """
-    Creates a dropdown of which only one entry can be selected.
+    Creates a dropdown of choices from which entries can be selected.
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
     Examples-format: a {str} representing the drop down value to select.
@@ -1218,10 +1178,11 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        choices: List[str] | None = None,
+        choices: str | List[str] | None = None,
         *,
-        value: str | Callable | None = None,
+        value: str | List[str] | Callable | None = None,
         type: str = "value",
+        multiselect: bool | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool = True,
@@ -1233,8 +1194,9 @@ class Dropdown(Radio):
         """
         Parameters:
             choices: list of options to select from.
-            value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: default value(s) selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+            multiselect: if True, multiple choices can be selected.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -1242,19 +1204,109 @@ class Dropdown(Radio):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        Radio.__init__(
+        self.choices = choices or []
+        valid_types = ["value", "index"]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
+        self.type = type
+        self.multiselect = multiselect
+        if multiselect:
+            if isinstance(value, str):
+                value = [value]
+        self.test_input = self.choices[0] if len(self.choices) else None
+        self.interpret_by_tokens = False
+        IOComponent.__init__(
             self,
-            value=value,
-            choices=choices,
-            type=type,
             label=label,
             every=every,
             show_label=show_label,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            value=value,
             **kwargs,
         )
+        self.cleared_value = self.value
+
+    def get_config(self):
+        return {
+            "choices": self.choices,
+            "value": self.value,
+            "multiselect": self.multiselect,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+        choices: str | List[str] | None = None,
+        label: str | None = None,
+        show_label: bool | None = None,
+        interactive: bool | None = None,
+        visible: bool | None = None,
+    ):
+        updated_config = {
+            "choices": choices,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+        return IOComponent.add_interactive_to_config(updated_config, interactive)
+
+    def generate_sample(self):
+        return self.choices[0]
+
+    def preprocess(
+        self, x: str | List[str]
+    ) -> str | int | List[str] | List[int] | None:
+        """
+        Parameters:
+            x: selected choice(s)
+        Returns:
+            selected choice(s) as string or index within choice list or list of string or indices
+        """
+        if self.type == "value":
+            return x
+        elif self.type == "index":
+            if x is None:
+                return None
+            elif self.multiselect:
+                return [self.choices.index(c) for c in x]
+            else:
+                if isinstance(x, str):
+                    return self.choices.index(x)
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
+            )
+
+    def set_interpret_parameters(self):
+        """
+        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
+        """
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        choices = list(self.choices)
+        choices.remove(x)
+        return choices, {}
+
+    def get_interpretation_scores(
+        self, x, neighbors, scores: List[float | None], **kwargs
+    ) -> List:
+        """
+        Returns:
+            Each value represents the interpretation score corresponding to each choice.
+        """
+        scores.insert(self.choices.index(x), None)
+        return scores
 
     def style(self, *, container: bool | None = None, **kwargs):
         """
@@ -1274,6 +1326,7 @@ class Image(
     Uploadable,
     IOComponent,
     ImgSerializable,
+    TokenInterpretable,
 ):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
@@ -1343,7 +1396,6 @@ class Image(
             self.tool = tool
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
-        self.interpret_by_tokens = True
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
@@ -1359,6 +1411,7 @@ class Image(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -1435,6 +1488,7 @@ class Image(
             assert isinstance(x, dict)
             x, mask = x["image"], x["mask"]
 
+        assert isinstance(x, str)
         im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -1859,6 +1913,7 @@ class Audio(
     IOComponent,
     FileSerializable,
     TempFileManager,
+    TokenInterpretable,
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
@@ -1910,7 +1965,6 @@ class Audio(
             )
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
-        self.interpret_by_tokens = True
         self.streaming = streaming
         if streaming and source != "microphone":
             raise ValueError(
@@ -1928,6 +1982,7 @@ class Audio(
             value=value,
             **kwargs,
         )
+        TokenInterpretable.__init__(self)
 
     def get_config(self):
         return {
@@ -2079,15 +2134,6 @@ class Audio(
             masked_inputs.append(masked_data)
         return masked_inputs
 
-    def get_interpretation_scores(
-        self, x, neighbors, scores, masks=None, tokens=None
-    ) -> List[float]:
-        """
-        Returns:
-            Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
-        """
-        return list(scores)
-
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
 
@@ -2193,7 +2239,7 @@ class File(
         Parameters:
             value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
-            file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name and original filename can be retrieved with file_obj.orig_name, "binary" returns an bytes object.
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.

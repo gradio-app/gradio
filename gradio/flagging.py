@@ -273,7 +273,7 @@ class CSVLogger(FlaggingCallback):
                 with open(
                     log_filepath, "w", newline="", encoding="utf-8"
                 ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(utils.sanitize_list_for_csv(file_content))
+                    csvfile.write(file_content)
         with open(log_filepath, "r", encoding="utf-8") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
