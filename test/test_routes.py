@@ -216,9 +216,10 @@ class TestRoutes:
         app = gr.mount_gradio_app(app, demo, path="/ps")
         app = gr.mount_gradio_app(app, demo1, path="/py")
 
-        client = TestClient(app)
-        assert client.get("/ps").is_success
-        assert client.get("/py").is_success
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
 
 class TestGeneratorRoutes:
