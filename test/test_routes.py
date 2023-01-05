@@ -203,6 +203,23 @@ class TestRoutes:
         file_response = client.get(f"/file={created_file}")
         assert file_response.is_success
 
+    def test_mount_gradio_app(self):
+        app = FastAPI()
+
+        demo = gr.Interface(
+            lambda s: f"Hello from ps, {s}!", "textbox", "textbox"
+        ).queue()
+        demo1 = gr.Interface(
+            lambda s: f"Hello from py, {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
+
+        client = TestClient(app)
+        assert client.get("/ps").is_success
+        assert client.get("/py").is_success
+
 
 class TestGeneratorRoutes:
     def test_generator(self):
