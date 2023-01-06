@@ -11,7 +11,7 @@ export function inject_ejs(): Plugin {
 		transformIndexHtml: (html) => {
 			return html.replace(
 				/%gradio_config%/,
-				`<script>window.gradio_config = {{ config | toorjson }};</script>`
+				`<script>window.gradio_config = {{ config | tojson }};</script>`
 			);
 		}
 	};
