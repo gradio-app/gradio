@@ -16,6 +16,7 @@
 		<select
 			class="gr-box gr-input w-full disabled:cursor-not-allowed"
 			bind:value
+			on:change
 			{disabled}
 		>
 			{#each choices as choice}
