@@ -5,7 +5,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+- Fix audio file output by [@aliabid94](https://github.com/aliabid94) in [PR 2950](https://github.com/gradio-app/gradio/pull/2950).
 
 ## Documentation Changes:
 No changes to highlight.
