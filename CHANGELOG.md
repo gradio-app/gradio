@@ -6,6 +6,7 @@ No changes to highlight.
 
 ## Bug Fixes:
 - Fix audio file output by [@aliabid94](https://github.com/aliabid94) in [PR 2950](https://github.com/gradio-app/gradio/pull/2950).
+- Fix custom long CSS handling in Blocks by [@anton-l](https://github.com/anton-l) in [PR 2953](https://github.com/gradio-app/gradio/pull/2953)
 
 ## Documentation Changes:
 No changes to highlight.
