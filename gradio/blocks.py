@@ -512,6 +512,7 @@ class Blocks(BlockContext):
         self.output_components = None
         self.__name__ = None
         self.api_mode = None
+        self.progress_tracking = None
 
         if self.analytics_enabled:
             self.ip_address = utils.get_local_ip_address()
@@ -1095,6 +1096,10 @@ class Blocks(BlockContext):
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
+        self.progress_tracking = any(
+            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
+            for block_fn in self.fns
+        )
 
     @class_or_instancemethod
     def load(
@@ -1312,10 +1317,6 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        self.progress_tracking = any(
-            block_fn.fn is not None and special_args(block_fn.fn)[1] is not None
-            for block_fn in self.fns
-        )
 
         if enable_queue is not None:
             self.enable_queue = enable_queue
