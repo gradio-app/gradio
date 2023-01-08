@@ -250,9 +250,9 @@ class Examples:
 
         if Context.root_block:
             if self.cache_examples and self.outputs:
-                targets = self.inputs_with_examples
+                targets = self.inputs_with_examples + self.outputs
             else:
-                targets = self.inputs
+                targets = self.inputs_with_examples
             self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
