@@ -5,7 +5,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+- Fix audio file output
 
 ## Documentation Changes:
 No changes to highlight.
@@ -22,7 +22,7 @@ No changes to highlight.
 ## Contributors Shoutout:
 No changes to highlight.
 
-# Version 3.15.0
+# Version 3.16.0
 
 ## New Features:
 
@@ -78,6 +78,7 @@ No changes to highlight.
 * The `default_enabled` parameter of the `Blocks.queue` method has no effect by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2876](https://github.com/gradio-app/gradio/pull/2876) 
 * Added typing to several Python files in codebase by [@abidlabs](https://github.com/abidlabs) in [PR 2887](https://github.com/gradio-app/gradio/pull/2887) 
 * Excluding untracked files from demo notebook check action by [@aliabd](https://github.com/aliabd) in [PR 2897](https://github.com/gradio-app/gradio/pull/2897)
+* Optimize images and gifs by [@aliabd](https://github.com/aliabd) in [PR 2922](https://github.com/gradio-app/gradio/pull/2922)
 * Updated typing by [@1nF0rmed](https://github.com/1nF0rmed) in [PR 2904](https://github.com/gradio-app/gradio/pull/2904)
 
 ## Contributors Shoutout:
