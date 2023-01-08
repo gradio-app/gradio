@@ -12,7 +12,6 @@ import time
 import warnings
 import webbrowser
 from abc import abstractmethod
-from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Set, Tuple, Type
 
@@ -470,7 +469,7 @@ class Blocks(BlockContext):
         self.enable_queue = None
         self.max_threads = 40
         self.show_error = True
-        if css is not None and Path(css).exists():
+        if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
         else:
