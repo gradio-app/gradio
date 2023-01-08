@@ -76,10 +76,7 @@ def get_extension(encoding: str) -> str | None:
         return "flac"
     elif type is None:
         return None
-    try:
-        extension = mimetypes.guess_extension(type)
-    except:
-        return None
+    extension = mimetypes.guess_extension(type)
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
     return extension
