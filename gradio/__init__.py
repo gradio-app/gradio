@@ -47,6 +47,7 @@ from gradio.components import (
     UploadButton,
     Variable,
     Video,
+    VideoWithCaption,
     component,
 )
 from gradio.exceptions import Error
