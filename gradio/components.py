@@ -1918,7 +1918,7 @@ class VideoWithCaption(
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a list of video and caption in a {List} of (video path, caption path) tuples.
 
-    Demos:
+    Demos: video_with_caption
     """
 
     def __init__(
