@@ -10,7 +10,6 @@ with gr.Blocks(css=css) as demo:
         label="Video File Test",
         show_label=True,
         interactive=True,
-        mirror_webcam=False,
         value=["mp4/en.mp4", "tmp/en.vtt"],
     )
 
