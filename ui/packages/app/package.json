@@ -38,6 +38,7 @@
 		"@gradio/uploadbutton": "workspace:^0.0.1",
 		"@gradio/utils": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1",
+		"@gradio/videowithcaption": "workspace:^0.0.1",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
 		"svelte": "^3.25.1",
