@@ -2,7 +2,7 @@
 
 ## New Features:
 
-- Add a new component which add new feature to allow video play with caption.
+- Add a new component which add new feature to allow video play with captionby [@Greysuki](https://github.com/tomchang25).
 
 ## Bug Fixes:
 
