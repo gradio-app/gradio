@@ -276,7 +276,7 @@ class App(FastAPI):
                         return ranged_response.RangedFileResponse(
                             abs_path,
                             ranged_response.OpenRange(start, end),
-                            request.headers,
+                            dict(request.headers),
                             stat_result=os.stat(abs_path),
                         )
                 return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
@@ -287,8 +287,8 @@ class App(FastAPI):
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file_deprecated(path: str):
-            return file(path)
+        def file_deprecated(path: str, request: fastapi.Request):
+            return file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")
