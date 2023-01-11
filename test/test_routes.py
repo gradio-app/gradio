@@ -209,7 +209,7 @@ class TestRoutes:
 
         file_response_with_partial_range = client.get(f"/file={created_file}", headers={"Range": "bytes=0-10"})
         assert file_response_with_partial_range.is_success
-        assert len(file_response_with_partial_range.text) == 12
+        assert len(file_response_with_partial_range.text) == 11
 
     def test_mount_gradio_app(self):
         app = FastAPI()
