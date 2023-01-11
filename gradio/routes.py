@@ -273,12 +273,14 @@ class App(FastAPI):
                     if start.isnumeric() and end.isnumeric():
                         start = int(start)
                         end = int(end)
-                        return ranged_response.RangedFileResponse(
+                        response = ranged_response.RangedFileResponse(
                             abs_path,
                             ranged_response.OpenRange(start, end),
                             dict(request.headers),
                             stat_result=os.stat(abs_path),
                         )
+                        response.background = None
+                        return response
                 return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
             else:

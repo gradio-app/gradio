@@ -63,7 +63,6 @@ class RangedFileResponse(Response):
         self.path = path
         self.range = range
         self.filename = filename
-        self.background = None
         self.send_header_only = method is not None and method.upper() == "HEAD"
         if media_type is None:
             media_type = guess_type(filename or path)[0] or "text/plain"

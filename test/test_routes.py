@@ -201,7 +201,16 @@ class TestRoutes:
         ).json()
         created_file = response["data"][0]["name"]
         file_response = client.get(f"/file={created_file}")
+        print(">>>", type(file_response))
         assert file_response.is_success
+
+        file_response_with_full_range_header = client.get(f"/file={created_file}", headers={"Range": "bytes=0-"})
+        assert file_response_with_full_range_header.is_success
+        assert file_response.text == file_response_with_full_range_header.text
+
+        file_response_with_partial_range = client.get(f"/file={created_file}", headers={"Range": "bytes=0-10"})
+        assert file_response_with_partial_range.is_success
+        assert len(file_response_with_partial_range.text) == 11
 
     def test_mount_gradio_app(self):
         app = FastAPI()
