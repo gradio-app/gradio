@@ -36,7 +36,7 @@ from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
 import gradio
-import gradio.ranged_response
+import gradio.third_party.ranged_response as ranged_response
 from gradio import utils
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
@@ -273,9 +273,9 @@ class App(FastAPI):
                     if start.isnumeric() and end.isnumeric():
                         start = int(start)
                         end = int(end)
-                        return gradio.ranged_response.RangedFileResponse(
+                        return ranged_response.RangedFileResponse(
                             abs_path,
-                            gradio.ranged_response.OpenRange(start, end),
+                            ranged_response.OpenRange(start, end),
                             request.headers,
                             stat_result=os.stat(abs_path),
                         )
