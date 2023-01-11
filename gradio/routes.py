@@ -266,7 +266,7 @@ class App(FastAPI):
                 *blocks.temp_file_sets
             )
             if in_app_dir or created_by_app:
-                range_val = request.headers["Range"].strip()
+                range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
                     start, end = range_val.split("-")
