@@ -1,10 +1,11 @@
 # Taken from https://gist.github.com/kevinastone/a6a62db57577b3f24e8a6865ed311463
 # Context: https://github.com/encode/starlette/pull/1090
+from __future__ import annotations
 
 import os
 import re
 import stat
-import typing as t
+from typing import Dict, NamedTuple
 from urllib.parse import quote
 
 import aiofiles
@@ -18,24 +19,7 @@ from starlette.types import Receive, Scope, Send
 RANGE_REGEX = re.compile(r"^bytes=(?P<start>\d+)-(?P<end>\d*)$")
 
 
-PathLike = t.Union[str, "os.PathLike[str]"]
-
-
-class OpenRange(t.NamedTuple):
-    start: int
-    end: t.Optional[int] = None
-
-    def clamp(self, start: int, end: int) -> "ClosedRange":
-        begin = max(self.start, start)
-        end = min((x for x in (self.end, end) if x))
-
-        begin = min(begin, end)
-        end = max(begin, end)
-
-        return ClosedRange(begin, end)
-
-
-class ClosedRange(t.NamedTuple):
+class ClosedRange(NamedTuple):
     start: int
     end: int
 
@@ -46,23 +30,38 @@ class ClosedRange(t.NamedTuple):
         return len(self) > 0
 
 
+class OpenRange(NamedTuple):
+    start: int
+    end: int | None = None
+
+    def clamp(self, start: int, end: int) -> ClosedRange:
+        begin = max(self.start, start)
+        end = min((x for x in (self.end, end) if x))
+
+        begin = min(begin, end)
+        end = max(begin, end)
+
+        return ClosedRange(begin, end)
+
+
 class RangedFileResponse(Response):
     chunk_size = 4096
 
     def __init__(
         self,
-        path: PathLike,
+        path: str | os.PathLike,
         range: OpenRange,
-        headers: t.Optional[t.Dict[str, str]] = None,
-        media_type: t.Optional[str] = None,
-        filename: t.Optional[str] = None,
-        stat_result: t.Optional[os.stat_result] = None,
-        method: t.Optional[str] = None,
+        headers: Dict[str, str] | None = None,
+        media_type: str | None = None,
+        filename: str | None = None,
+        stat_result: os.stat_result | None = None,
+        method: str | None = None,
     ) -> None:
         assert aiofiles is not None, "'aiofiles' must be installed to use FileResponse"
         self.path = path
         self.range = range
         self.filename = filename
+        self.background = None
         self.send_header_only = method is not None and method.upper() == "HEAD"
         if media_type is None:
             media_type = guess_type(filename or path)[0] or "text/plain"
@@ -142,7 +141,7 @@ class RangedFileResponse(Response):
 class RangedStaticFiles(StaticFiles):
     def file_response(
         self,
-        full_path: PathLike,
+        full_path: str | os.PathLike,
         stat_result: os.stat_result,
         scope: Scope,
         status_code: int = 200,
@@ -162,7 +161,7 @@ class RangedStaticFiles(StaticFiles):
 
     def ranged_file_response(
         self,
-        full_path: PathLike,
+        full_path: str | os.PathLike,
         stat_result: os.stat_result,
         scope: Scope,
     ) -> Response:

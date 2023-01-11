@@ -36,7 +36,7 @@ from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
 import gradio
-import gradio.third_party.ranged_response as ranged_response
+import gradio.ranged_response as ranged_response
 from gradio import utils
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
@@ -279,7 +279,6 @@ class App(FastAPI):
                             dict(request.headers),
                             stat_result=os.stat(abs_path),
                         )
-                        response.background = None
                         return response
                 return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
