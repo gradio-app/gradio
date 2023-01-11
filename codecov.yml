@@ -11,7 +11,9 @@ coverage:
         target: 70%
         threshold: 0.1
     patch: off
-  
+
+ignore:
+  - "gradio/third_party"
 comment: false
 codecov:
   require_ci_to_pass: yes
