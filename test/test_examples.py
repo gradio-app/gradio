@@ -334,4 +334,4 @@ class TestProcessExamples:
         assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
 
         response = client.post("/api/predict/", json={"fn_index": 3, "data": [1]})
-        assert response.json()["data"] == ["Michael", None, "Michael Jordan"]
+        assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]
