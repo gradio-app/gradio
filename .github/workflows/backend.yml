@@ -22,14 +22,16 @@ jobs:
         python-version: ["3.9", "3.7"]
     steps:
     - uses: actions/checkout@v3
+    - name: Cache python deps
+      id: cache-python
+      uses: actions/cache@v3
+      with:
+        path: ~/venv
+        key: pythondeps-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles(test/requirements.txt }}
     - name: Install Python
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-        cache: "pip"
-        cache-dependency-path: |
-          requirements.txt
-          test/requirements.txt
     - name: Install pnpm
       uses: pnpm/action-setup@v2.2.2
       with:
@@ -40,9 +42,11 @@ jobs:
         cache: pnpm
         cache-dependency-path: ui/pnpm-lock.yaml
     - name: Install pip
-      run: python -m pip install build requests
+      run: python -m pip install build requests virtualenv
     - name: Install Gradio + Python Deps
       run: |
+        python -m virtualenv venv
+        . venv/bin/activate
         bash scripts/install_gradio.sh
         bash scripts/install_test_requirements.sh
     - name: Lint
