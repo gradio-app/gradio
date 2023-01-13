@@ -51,12 +51,12 @@ jobs:
         bash scripts/install_test_requirements.sh
     - name: Lint
       run: |
-      . venv/bin/activate
-      bash scripts/lint_backend.sh
+        . venv/bin/activate
+        bash scripts/lint_backend.sh
     - name: Typecheck
       run: |
-      . venv/bin/activate
-      bash scripts/type_check_backend.sh
+        . venv/bin/activate
+        bash scripts/type_check_backend.sh
     - name: Build frontend
       run: |
         cd ui
