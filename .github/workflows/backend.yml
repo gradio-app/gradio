@@ -26,7 +26,7 @@ jobs:
       id: cache-python
       uses: actions/cache@v3
       with:
-        path: ~/venv
+        path: ./venv
         key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
     - name: Install Python
       uses: actions/setup-python@v3
