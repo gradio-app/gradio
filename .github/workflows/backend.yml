@@ -50,9 +50,13 @@ jobs:
         bash scripts/install_gradio.sh
         bash scripts/install_test_requirements.sh
     - name: Lint
-      run: bash scripts/lint_backend.sh
+      run: |
+      . venv/bin/activate
+      bash scripts/lint_backend.sh
     - name: Typecheck
-      run: bash scripts/type_check_backend.sh
+      run: |
+      . venv/bin/activate
+      bash scripts/type_check_backend.sh
     - name: Build frontend
       run: |
         cd ui
@@ -66,6 +70,7 @@ jobs:
       run: mkdir test-reports
     - name: Run tests
       run: |
+        . venv/bin/activate
         coverage run -m pytest -m "${{ matrix.test-type }}"
         coverage xml
     - uses: codecov/codecov-action@v3
