@@ -1412,7 +1412,6 @@ class Image(
             **kwargs,
         )
         TokenInterpretable.__init__(self)
-        assert False
 
     def get_config(self):
         return {
