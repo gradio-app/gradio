@@ -64,8 +64,7 @@ jobs:
         pnpm build
         cd ..
     - name: Install ffmpeg
-      run: |
-        sudo apt install ffmpeg -y
+      uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Create coverage dir
       run: mkdir test-reports
     - name: Run tests
