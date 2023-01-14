@@ -12,7 +12,6 @@
 
 <div
 	id={elem_id}
-	class="overflow-hidden "
 	class:gap={style.gap !== false}
 	class:compact={variant === "compact"}
 	class:panel={variant === "panel"}
@@ -27,7 +26,6 @@
 		display: flex;
 		position: relative;
 		flex-direction: column;
-		overflow: hidden;
 	}
 
 	div > :global(*),

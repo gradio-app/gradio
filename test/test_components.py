@@ -554,6 +554,56 @@ class TestRadio:
         assert scores == [-2.0, None, 2.0]
 
 
+class TestDropdown:
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, generate_sample, get_config
+        """
+        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        assert dropdown_input.preprocess("a") == "a"
+        assert dropdown_input.postprocess("a") == "a"
+
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
+        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
+        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        assert isinstance(dropdown_input_multiselect.generate_sample(), str)
+        dropdown_input_multiselect = gr.Dropdown(
+            value=["a", "c"],
+            choices=["a", "b", "c"],
+            label="Select Your Inputs",
+        )
+        assert dropdown_input_multiselect.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": ["a", "c"],
+            "name": "dropdown",
+            "show_label": True,
+            "label": "Select Your Inputs",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "multiselect": None,
+        }
+        with pytest.raises(ValueError):
+            gr.Dropdown(["a"], type="unknown")
+
+        dropdown = gr.Dropdown(choices=["a", "b"], value="c")
+        assert dropdown.get_config()["value"] == "c"
+        assert dropdown.postprocess("a") == "a"
+
+    def test_in_interface(self):
+        """
+        Interface, process
+        """
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        assert iface(["a", "c"]) == "a|c"
+        assert iface([]) == ""
+        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+
 class TestImage:
     def test_component_functions(self):
         """

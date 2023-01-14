@@ -60,7 +60,6 @@
 		border-radius: var(--radius-lg);
 		background: var(--color-background-tertiary);
 		width: 100%;
-		overflow: hidden;
 		color: var(--color-text-body);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);

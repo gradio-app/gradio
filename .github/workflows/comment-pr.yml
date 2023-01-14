@@ -1,0 +1,44 @@
+on:
+  workflow_run:
+    workflows: [Check Demos Match Notebooks]
+    types: [completed]
+
+jobs:
+  comment-on-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - name: Install pip
+        run: python -m pip install requests
+      - name: Download metadata
+        run: python scripts/download_artifacts.py ${{github.event.workflow_run.id }} metadata.json ${{ secrets.COMMENT_TOKEN }} --owner ${{ github.repository_owner }}
+      - run: unzip metadata.json.zip
+      - name: Pipe metadata to env
+        run: echo "pr_number=$(python -c 'import json; print(json.load(open("metadata.json"))["pr_number"])')" >> $GITHUB_ENV
+      - name: Comment On Notebook check fail
+        if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.name == 'Check Demos Match Notebooks'}}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+              The demo notebooks don't match the run.py files. Please run this command from the root of the repo and then commit the changes:
+              ```bash
+              pip install nbformat && cd demo && python generate_notebooks.py
+              ```
+          comment_includes: The demo notebooks don't match the run.py files
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          pr_number: ${{ env.pr_number }}
+          comment_tag: notebook-check
+      - name: Comment On Notebook check fail
+        if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.name == 'Check Demos Match Notebooks'}}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+              🎉 The demo notebooks match the run.py files! 🎉
+          comment_includes: The demo notebooks match the run.py files!
+          GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
+          pr_number: ${{ env.pr_number }}
+          comment_tag: notebook-check

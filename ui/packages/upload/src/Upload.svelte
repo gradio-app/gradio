@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "./types";
 
-	export let filetype: string | undefined = undefined;
+	export let filetype: string | null = null;
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let boundedheight: boolean = true;
