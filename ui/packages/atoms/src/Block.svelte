@@ -57,8 +57,8 @@
 		margin: 0;
 		box-shadow: var(--shadow-drop);
 		border-width: 1px;
-		border-radius: var(--block-border-radius);
-		background: var(--block-background);
+		border-radius: var(--radius-lg);
+		background: var(--color-background-tertiary);
 		width: 100%;
 		overflow: hidden;
 		color: var(--color-text-body);

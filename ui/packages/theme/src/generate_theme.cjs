@@ -125,41 +125,13 @@ const theme_light = {
 			text: "var(--color-orange-600)"
 		}
 	},
-	block: {
-		border: {
-			radius: "var(--radius-lg)",
-			color: "color.border.primary",
-			width: "1px"
-		},
-		background: "color.background.tertiary"
-	},
-	uploadable: {
-		border: {
-			style: {
-				default: "dashed",
-				hover: "solid",
-				loaded: "solid"
-			},
-			color: {
-				hover: "color.border.primary",
-				loaded: "color.functional.success"
-			}
-		},
-		text: {
-			color: "color.text.subdued"
-		}
-	},
 	block_label: {
 		border: {
-			radius: "var(--radius-lg)",
-			style: "solid",
-			color: "color.border.primary",
-			width: "1px"
+			color: "color.border.primary"
 		},
 		icon: {
 			color: "color.text.label"
 		},
-		shadow: "shadow.drop", // gradient
 		background: "color.background.primary"
 	},
 	icon_button: {
@@ -171,18 +143,11 @@ const theme_light = {
 			hover: "color.background.primary"
 		},
 		border: {
-			radius: "var(--radius-sm)",
 			color: { base: "color.background.primary", hover: "color.border.primary" }
-		},
-		shadow: "shadow.drop"
+		}
 	},
 	input: {
-		text: {
-			style: "normal",
-			color: "color.text.body"
-		},
 		border: {
-			radius: "var(--radius-lg)",
 			color: {
 				base: "color.border.primary",
 				hover: "color.border.primary",
@@ -193,19 +158,16 @@ const theme_light = {
 			base: "color.background.tertiary",
 			hover: "color.background.tertiary",
 			focus: "color.focus.tertiary"
-		},
-		shadow: "shadow.inset"
+		}
 	},
 	checkbox: {
-		shadow: "shadow.drop",
 		border: {
 			radius: "var(--radius-sm)",
 			color: {
 				base: "var(--color-grey-300)",
 				hover: "var(--color-grey-300)",
 				focus: "var(--color-blue-500)",
-				// selected: "transparent"
-				selected: "color.border.secondary"
+				selected: "var(--color-blue-600)"
 			}
 		},
 		background: {
@@ -216,7 +178,6 @@ const theme_light = {
 		},
 		label: {
 			border: {
-				radius: "var(--radius-lg)",
 				color: {
 					base: "color.border.primary",
 					hover: "color.border.primary",
@@ -224,36 +185,13 @@ const theme_light = {
 				}
 			},
 			background: {
-				// hover:from-gray-100 dark:from-gray-900 dark:to-gray-800 transition;
-				base: "linear-gradient(to top, var(--color-grey-50), white)", //gradient
-				hover: "linear-gradient(to top, var(--color-grey-100), white)", //gradient
+				hover: "linear-gradient(to top, var(--color-grey-100), white)",
+				base: "linear-gradient(to top, var(--color-grey-50), white)",
 				focus: "linear-gradient(to top, var(--color-grey-100), white)"
-			},
-			shadow: "shadow.drop"
-		}
-	},
-	form: {
-		seperator: {
-			style: "solid",
-			width: "border.width.default",
-			color: "color.border.primary"
+			}
 		}
 	},
 	button: {
-		large: {
-			radius: "var(--radius-lg)",
-			text: {
-				size: "var(--scale-0)",
-				weight: "600"
-			}
-		},
-		small: {
-			radius: "var(--radius-sm)",
-			text: {
-				size: "var(--scale-00)",
-				weight: "400"
-			}
-		},
 		primary: {
 			border: {
 				color: {
@@ -345,18 +283,6 @@ const theme_light = {
 			}
 		}
 	},
-	highlighted_text: {
-		outer: {
-			border: {
-				radius: "var(--radius-xs)"
-			}
-		},
-		inner: {
-			border: {
-				radius: "var(--radius-xs)"
-			}
-		}
-	},
 	gallery: {
 		label: {
 			background: {
@@ -364,7 +290,6 @@ const theme_light = {
 				hover: "var(--color-grey-50)"
 			},
 			border: {
-				radius: "var(--radius-lg)",
 				color: {
 					base: "color.border.primary",
 					hover: "color.border.primary"
@@ -377,21 +302,13 @@ const theme_light = {
 				hover: "white"
 			},
 			border: {
-				radius: "var(--radius-sm)",
-				style: {
-					base: "solid",
-					hover: "solid",
-					focus: "solid",
-					selected: "solid"
-				},
 				color: {
 					base: "color.border.primary",
 					hover: "color.accent.light",
 					focus: "color.focus.secondary",
 					selected: "color.accent.base"
 				}
-			},
-			scale: { base: 0.9, hover: 0.9, focus: 0.9, selected: 1 }
+			}
 		}
 	},
 	chatbot: {
@@ -537,7 +454,6 @@ const theme_dark = {
 				base: "color.border.primary",
 				hover: "color.focus.primary",
 				focus: "var(--color-blue-500)"
-				// selected: "color.border.secondary"
 			}
 		},
 		background: {

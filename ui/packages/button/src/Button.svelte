@@ -109,17 +109,17 @@
 	}
 
 	.sm {
-		border-radius: var(--button-small-radius);
+		border-radius: var(--radius-sm);
 		padding: var(--size-1) var(--size-3);
-		font-weight: var(--button-small-text-weight);
-		font-size: var(--button-small-text-size);
+		font-weight: var(--weight-regular);
+		font-size: var(--scale-00);
 	}
 
 	.lg {
-		border-radius: var(--button-large-radius);
+		border-radius: var(--radius-lg);
 		padding: var(--size-2) var(--size-4);
-		font-weight: var(--button-large-text-weight);
-		font-size: var(--button-large-text-size);
+		font-weight: var(--weight-bold);
+		font-size: var(--scale-0);
 		line-height: var(--line-md);
 	}
 </style>

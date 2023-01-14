@@ -48,7 +48,7 @@
 		cursor: pointer;
 		box-shadow: var(--checkbox-label-shadow);
 		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--checkbox-label-border-radius);
+		border-radius: var(--radius-lg);
 		background: var(--checkbox-label-background-base);
 		padding: var(--size-1-5) var(--size-3);
 		color: var(--color-text-body);

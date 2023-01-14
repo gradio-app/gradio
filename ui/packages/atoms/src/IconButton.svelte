@@ -13,18 +13,18 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-1);
-		box-shadow: var(--icon_button-shadow);
+		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--icon_button-border-color-base);
-		border-radius: var(--icon_button-border-radius);
-		background: var(--icon_button-background-base);
+		border-radius: var(--radius-sm);
+		background: var(--color-background-primary);
 		width: var(--size-5);
 		height: var(--size-5);
-		color: var(--icon_button-icon-color-base);
+		color: var(--color-text-label);
 	}
 
 	button:hover {
 		border: 1px solid var(--icon_button-border-color-hover);
-		color: var(--icon_button-icon-color-hover);
+		color: var(--color-text-label);
 	}
 
 	div {

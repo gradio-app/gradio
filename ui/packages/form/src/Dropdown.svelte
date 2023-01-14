@@ -30,7 +30,7 @@
 		outline: none !important;
 		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
 		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--input-border-radius);
+		border-radius: var(--radius-lg);
 		background-color: var(--input-background-base);
 		padding: var(--size-2-5);
 		width: 100%;
