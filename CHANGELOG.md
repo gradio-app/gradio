@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes bug where interpretation event was not configured correctly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2993](https://github.com/gradio-app/gradio/pull/2993) 
 
 ## Documentation Changes:
 No changes to highlight.
