@@ -249,8 +249,22 @@ class TestInterfaceInterpretation:
             for d in iface.config["dependencies"]
             if d["targets"] == [interpretation_id]
         )
-        assert sorted(interpretation_dep["outputs"]) == [6, 8, 9, 10]
-        assert sorted(interpretation_dep["inputs"]) == [1, 2, 3]
+        interpretation_comps = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "interpretation"
+        ]
+        interpretation_columns = [
+            c["id"]
+            for c in iface.config["components"]
+            if c.get("type") == "column" and c["props"].get("variant") == "default"
+        ]
+        assert sorted(interpretation_dep["outputs"]) == sorted(
+            interpretation_comps + interpretation_columns
+        )
+        assert sorted(interpretation_dep["inputs"]) == sorted(
+            [c._id for c in iface.input_components + iface.output_components]
+        )
 
         app, _, _ = iface.launch(prevent_thread_lock=True)
         client = TestClient(app)
