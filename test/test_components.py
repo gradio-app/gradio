@@ -915,7 +915,7 @@ class TestFile:
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
-        
+
         zero_size_file = {"name": "document.txt", "size": 0, "data": "data:"}
         temp_file = file_input.preprocess(zero_size_file)
         assert os.stat(temp_file.name).st_size == 0
