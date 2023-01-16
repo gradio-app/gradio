@@ -238,6 +238,20 @@ class TestInterfaceInterpretation:
             interpretation="default",
         )
 
+        interpretation_id = None
+        for c in iface.config["components"]:
+            if c["props"].get("value") == "Interpret" and c.get("type") == "button":
+                interpretation_id = c["id"]
+
+        # Make sure the event is configured correctly.
+        interpretation_dep = next(
+            d
+            for d in iface.config["dependencies"]
+            if d["targets"] == [interpretation_id]
+        )
+        assert sorted(interpretation_dep["outputs"]) == [6, 8, 9, 10]
+        assert sorted(interpretation_dep["inputs"]) == [1, 2, 3]
+
         app, _, _ = iface.launch(prevent_thread_lock=True)
         client = TestClient(app)
 

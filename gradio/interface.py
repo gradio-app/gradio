@@ -706,8 +706,7 @@ class Interface(Blocks):
             interpretation_btn.click(
                 self.interpret_func,
                 inputs=self.input_components + self.output_components,
-                outputs=interpretation_set
-                or [] + [input_component_column, interpret_component_column],  # type: ignore
+                outputs=interpretation_set + [input_component_column, interpret_component_column],  # type: ignore
                 preprocess=False,
             )
 
