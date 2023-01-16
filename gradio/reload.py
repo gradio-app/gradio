@@ -25,10 +25,10 @@ def run_in_reload_mode():
 
     original_path = args[0]
     abs_original_path = Path(original_path).name
-    path = str(Path(original_path).resolve())
+    path = os.path.normpath(original_path)
     path = path.replace("/", ".")
     path = path.replace("\\", ".")
-    filename = Path(path).stem
+    filename = os.path.splitext(path)[0]
 
     gradio_folder = Path(inspect.getfile(gradio)).parent
 
@@ -56,4 +56,5 @@ def run_in_reload_mode():
         message += f" '{abs_parent}'"
 
     print(message + "\n")
+    print(command)
     os.system(command)
