@@ -250,9 +250,9 @@ class Examples:
 
         if Context.root_block:
             if self.cache_examples and self.outputs:
-                targets = self.inputs_with_examples
+                targets = self.inputs_with_examples + self.outputs
             else:
-                targets = self.inputs
+                targets = self.inputs_with_examples
             self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
@@ -321,7 +321,7 @@ class Examples:
         Parameters:
             example_id: The id of the example to process (zero-indexed).
         """
-        with open(self.cached_file) as cache:
+        with open(self.cached_file, encoding="utf-8") as cache:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
