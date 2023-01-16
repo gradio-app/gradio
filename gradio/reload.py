@@ -24,7 +24,7 @@ def run_in_reload_mode():
         demo_name = args[1]
 
     original_path = args[0]
-    abs_original_path = Path(original_path).name
+    abs_original_path = Path(original_path).resolve()
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
     path = path.replace("\\", ".")
@@ -48,7 +48,7 @@ def run_in_reload_mode():
         message += f" '{gradio_folder}'"
         message_change_count += 1
 
-    abs_parent = Path(abs_original_path).parent
+    abs_parent = abs_original_path.parent
     if str(abs_parent).strip():
         command += f'--reload-dir "{abs_parent}"'
         if message_change_count == 1:
@@ -56,5 +56,4 @@ def run_in_reload_mode():
         message += f" '{abs_parent}'"
 
     print(message + "\n")
-    print(command)
     os.system(command)
