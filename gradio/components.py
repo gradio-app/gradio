@@ -2152,7 +2152,7 @@ class Audio(
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
             processing_utils.audio_to_file(sample_rate, data, file.name)
-            file_path = file.name
+            file_path = str(Path(file.name).resolve())
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
@@ -3397,7 +3397,7 @@ class HighlightedText(Changeable, IOComponent, JSONSerializable):
         value: List[Tuple[str, str | float | None]]
         | Dict
         | Literal[_Keywords.NO_VALUE]
-        | None,
+        | None = _Keywords.NO_VALUE,
         color_map: Dict[str, str] | None = None,
         show_legend: bool | None = None,
         label: str | None = None,

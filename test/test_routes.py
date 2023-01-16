@@ -203,6 +203,36 @@ class TestRoutes:
         file_response = client.get(f"/file={created_file}")
         assert file_response.is_success
 
+        file_response_with_full_range = client.get(
+            f"/file={created_file}", headers={"Range": "bytes=0-"}
+        )
+        assert file_response_with_full_range.is_success
+        assert file_response.text == file_response_with_full_range.text
+
+        file_response_with_partial_range = client.get(
+            f"/file={created_file}", headers={"Range": "bytes=0-10"}
+        )
+        assert file_response_with_partial_range.is_success
+        assert len(file_response_with_partial_range.text) == 11
+
+    def test_mount_gradio_app(self):
+        app = FastAPI()
+
+        demo = gr.Interface(
+            lambda s: f"Hello from ps, {s}!", "textbox", "textbox"
+        ).queue()
+        demo1 = gr.Interface(
+            lambda s: f"Hello from py, {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
+
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
+
 
 class TestGeneratorRoutes:
     def test_generator(self):

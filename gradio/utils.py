@@ -1,4 +1,4 @@
-""" Handy utility functions."""
+""" Handy utility functions. """
 
 from __future__ import annotations
 
