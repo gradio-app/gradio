@@ -80,8 +80,10 @@ class ImgSerializable(Serializable):
         """
         if x is None or x == "":
             return None
+        is_url = utils.validate_url(x)
+        path = x if is_url else Path(load_dir) / x
         return processing_utils.encode_url_or_file_to_base64(
-             x, encryption_key=encryption_key
+            path, encryption_key=encryption_key
         )
 
     def deserialize(
