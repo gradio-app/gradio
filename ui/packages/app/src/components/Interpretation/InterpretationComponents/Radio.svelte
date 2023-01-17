@@ -23,7 +23,6 @@
 
 <style>
 	.input-radio {
-		/*  flex flex-wrap gap-2 */
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--size-2);

@@ -498,7 +498,7 @@
 			{label}
 		</p>
 	{/if}
-	<div class="table-wrap" class:dragging class:no-wrap={!wrap}>
+	<div class="table-wrap scroll-hide" class:dragging class:no-wrap={!wrap}>
 		<Upload
 			flex={false}
 			center={false}
@@ -659,7 +659,7 @@
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--block-border-radius);
+		border-radius: var(--radius-lg);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
@@ -717,11 +717,11 @@
 	}
 
 	th:first-child {
-		border-top-left-radius: var(--block-border-radius);
+		border-top-left-radius: var(--radius-lg);
 	}
 
 	th:last-child {
-		border-top-right-radius: var(--block-border-radius);
+		border-top-right-radius: var(--radius-lg);
 	}
 
 	th:focus-within,
@@ -730,11 +730,11 @@
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--block-border-radius);
+		border-bottom-left-radius: var(--radius-lg);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--block-border-radius);
+		border-bottom-right-radius: var(--radius-lg);
 	}
 
 	tr th {

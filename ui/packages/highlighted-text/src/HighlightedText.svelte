@@ -170,7 +170,7 @@
 
 	.category-label {
 		cursor: pointer;
-		border-radius: var(--highlighted_text-outer-border-radius);
+		border-radius: var(--radius-xs);
 		padding-right: var(--size-2);
 		padding-left: var(--size-2);
 		font-weight: var(--weight-semibold);
@@ -181,7 +181,7 @@
 		justify-content: space-between;
 		margin-top: var(--size-7);
 		margin-bottom: var(--size-3);
-		border-radius: var(--highlighted_text-outer-border-radius);
+		border-radius: var(--radius-xs);
 		background: linear-gradient(
 			to right,
 			var(--color-purple),
@@ -195,7 +195,7 @@
 	.textfield {
 		box-sizing: border-box;
 		margin-top: var(--size-7);
-		border-radius: var(--highlighted_text-outer-border-radius);
+		border-radius: var(--radius-xs);
 		background: var(--color-background-primary);
 		background-color: transparent;
 		max-width: var(--size-full);
@@ -206,7 +206,7 @@
 
 	.textspan {
 		transition: 150ms;
-		border-radius: var(--highlighted_text-outer-border-radius);
+		border-radius: var(--radius-xs);
 		padding-top: 2.5px;
 		padding-right: var(--size-1);
 		padding-bottom: 3.5px;
@@ -218,7 +218,7 @@
 		transition: 150ms;
 		margin-top: 1px;
 		margin-right: calc(var(--size-1) * -1);
-		border-radius: var(--highlighted_text-inner-border-radius);
+		border-radius: var(--radius-xs);
 		padding: 1px 5px;
 		color: var(--color-text-body);
 		color: white;

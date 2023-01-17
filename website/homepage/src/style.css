@@ -67,6 +67,10 @@
 .prose > p > img {
   @apply max-w-full mx-auto my-0 w-4/5;
 }
+.prose > p > video {
+  @apply max-w-full mx-auto my-0 w-4/5;
+}
+
 .prose code::before {
   display: none;
 }

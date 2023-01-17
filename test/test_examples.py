@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import patch
 
 import pytest
+from starlette.testclient import TestClient
 
 import gradio as gr
 
@@ -293,3 +294,44 @@ class TestProcessExamples:
         )
         prediction = await io.examples_handler.load_from_cache(0)
         assert prediction == ["hel", "3"]
+
+    def test_end_to_end(self):
+        def concatenate(str1, str2):
+            return str1 + str2
+
+        io = gr.Interface(
+            concatenate,
+            inputs=[gr.Textbox(), gr.Textbox()],
+            outputs=gr.Textbox(),
+            examples=[["Hello,", None], ["Michael", None]],
+        )
+
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"fn_index": 3, "data": [0]})
+        assert response.json()["data"] == ["Hello,"]
+
+        response = client.post("/api/predict/", json={"fn_index": 3, "data": [1]})
+        assert response.json()["data"] == ["Michael"]
+
+    def test_end_to_end_cache_examples(self):
+        def concatenate(str1, str2):
+            return str1 + " " + str2
+
+        io = gr.Interface(
+            concatenate,
+            inputs=[gr.Textbox(), gr.Textbox()],
+            outputs=gr.Textbox(),
+            examples=[["Hello,", "World"], ["Michael", "Jordan"]],
+            cache_examples=True,
+        )
+
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+
+        response = client.post("/api/predict/", json={"fn_index": 3, "data": [0]})
+        assert response.json()["data"] == ["Hello,", "World", "Hello, World"]
+
+        response = client.post("/api/predict/", json={"fn_index": 3, "data": [1]})
+        assert response.json()["data"] == ["Michael", "Jordan", "Michael Jordan"]

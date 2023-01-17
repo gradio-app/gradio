@@ -69,11 +69,11 @@
 		align-items: center;
 		transition: 150ms;
 		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--block_label-border-color);
+		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
-		border-bottom-left-radius: var(--block_label-border-radius);
-		border-bottom-left-radius: var(--block_label-border-radius);
+		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--radius-lg);
 		background: var(--block_label-background);
 		overflow: hidden;
 		color: var(--color-text-label);

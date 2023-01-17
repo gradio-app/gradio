@@ -11,3 +11,10 @@
 >
 	{value}
 </div>
+
+<style>
+	.gallery {
+		padding: var(--size-1) var(--size-2);
+		font-size: var(--scale-00);
+	}
+</style>

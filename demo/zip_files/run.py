@@ -12,7 +12,7 @@ def zip_files(files):
 
 demo = gr.Interface(
     zip_files,
-    gr.File(file_count="multiple"),
+    gr.File(file_count="multiple", file_types=["text", ".json", ".csv"]),
     "file",
     examples=[[[os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
     os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 

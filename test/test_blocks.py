@@ -274,6 +274,19 @@ class TestBlocksMethods:
         assert demo.show_error
         demo.close()
 
+    def test_custom_css(self):
+        css = """
+            .gr-button {
+                color: white;
+                border-color: black;
+                background: black;
+            }
+        """
+        css = css * 5  # simulate a long css string
+        block = gr.Blocks(css=css)
+
+        assert block.css == css
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):

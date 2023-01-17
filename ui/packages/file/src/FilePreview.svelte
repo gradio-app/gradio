@@ -25,7 +25,7 @@
 					<a
 						href={download_files(file)}
 						target={window.__is_colab__ ? "_blank" : null}
-						download={window.__is_colab__ ? null : display_file_name(file)}
+						download={window.__is_colab__ ? null : file.orig_name || file.name}
 					>
 						Download
 					</a>

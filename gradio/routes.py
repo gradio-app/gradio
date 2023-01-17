@@ -36,6 +36,7 @@ from starlette.responses import RedirectResponse
 from starlette.websockets import WebSocketState
 
 import gradio
+import gradio.ranged_response as ranged_response
 from gradio import utils
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
@@ -255,24 +256,40 @@ class App(FastAPI):
                 return FileResponse(blocks.favicon_path)
 
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
-        def file(path: str):
+        async def file(path: str, request: fastapi.Request):
+            abs_path = str(Path(path).resolve())
             blocks = app.get_blocks()
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            if Path(app.cwd).resolve() in Path(path).resolve().parents or Path(
-                path
-            ).resolve() in set().union(*blocks.temp_file_sets):
-                return FileResponse(
-                    Path(path).resolve(), headers={"Accept-Ranges": "bytes"}
-                )
+            in_app_dir = Path(app.cwd).resolve() in Path(path).resolve().parents
+            created_by_app = str(Path(path).resolve()) in set().union(
+                *blocks.temp_file_sets
+            )
+            if in_app_dir or created_by_app:
+                range_val = request.headers.get("Range", "").strip()
+                if range_val.startswith("bytes=") and "-" in range_val:
+                    range_val = range_val[6:]
+                    start, end = range_val.split("-")
+                    if start.isnumeric() and end.isnumeric():
+                        start = int(start)
+                        end = int(end)
+                        response = ranged_response.RangedFileResponse(
+                            abs_path,
+                            ranged_response.OpenRange(start, end),
+                            dict(request.headers),
+                            stat_result=os.stat(abs_path),
+                        )
+                        return response
+                return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
+
             else:
                 raise ValueError(
                     f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file_deprecated(path: str):
-            return file(path)
+        def file_deprecated(path: str, request: fastapi.Request):
+            return file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")

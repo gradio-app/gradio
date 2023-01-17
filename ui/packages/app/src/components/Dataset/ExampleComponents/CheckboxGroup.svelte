@@ -9,7 +9,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value.join(", ")}
+	{#each value as check, i}{check.toLocaleString()}{#if i !== value.length - 1},&nbsp;{/if}{/each}
 </div>
 
 <style>
@@ -19,8 +19,7 @@
 		cursor: pointer;
 		border-radius: var(--radius-lg);
 		background: var(--dataset-gallery-background-base);
-		padding: var(--size-2);
-		font-size: var(--scale-00);
+		padding: var(--size-1) var(--size-2);
 		text-align: left;
 	}
 

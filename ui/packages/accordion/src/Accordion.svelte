@@ -14,17 +14,6 @@
 {/if}
 
 <style>
-	/* .container {
-		display: flex;
-		flex-direction: column;
-		gap: var(--size-3);
-		transition: 150ms;
-		border-width: 1px;
-		border: 1px solid;
-		border-radius: var(--radius-lg);
-		padding: var(--size-3);
-	} */
-
 	.label-wrap {
 		display: flex;
 		justify-content: space-between;

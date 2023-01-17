@@ -8,6 +8,7 @@
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
+	class="prose"
 >
 	{@html value}
 </div>

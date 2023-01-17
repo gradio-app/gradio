@@ -13,7 +13,16 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio import Blocks, Button, Interface, Number, Textbox, close_all, routes
+from gradio import (
+    Blocks,
+    Button,
+    Interface,
+    Number,
+    Textbox,
+    close_all,
+    media_data,
+    routes,
+)
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -170,6 +179,59 @@ class TestRoutes:
         )
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
+
+    def test_get_file_created_by_app(self):
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True
+        )
+        client = TestClient(app)
+        response = client.post(
+            "/api/predict/",
+            json={
+                "data": [
+                    {
+                        "data": media_data.BASE64_IMAGE,
+                        "name": "bus.png",
+                        "size": len(media_data.BASE64_IMAGE),
+                    }
+                ],
+                "fn_index": 0,
+                "session_hash": "_",
+            },
+        ).json()
+        created_file = response["data"][0]["name"]
+        file_response = client.get(f"/file={created_file}")
+        assert file_response.is_success
+
+        file_response_with_full_range = client.get(
+            f"/file={created_file}", headers={"Range": "bytes=0-"}
+        )
+        assert file_response_with_full_range.is_success
+        assert file_response.text == file_response_with_full_range.text
+
+        file_response_with_partial_range = client.get(
+            f"/file={created_file}", headers={"Range": "bytes=0-10"}
+        )
+        assert file_response_with_partial_range.is_success
+        assert len(file_response_with_partial_range.text) == 11
+
+    def test_mount_gradio_app(self):
+        app = FastAPI()
+
+        demo = gr.Interface(
+            lambda s: f"Hello from ps, {s}!", "textbox", "textbox"
+        ).queue()
+        demo1 = gr.Interface(
+            lambda s: f"Hello from py, {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
+
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
 
 class TestGeneratorRoutes:

@@ -1,9 +1,9 @@
 import json
 import os
-import pathlib
 import sys
 import textwrap
 import warnings
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -279,20 +279,20 @@ class TestLoadInterface:
 
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
-                examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+                examples=[Path(test_file_dir, "cheetah1.jpg")],
                 cache_examples=False,
             )
 
     def test_interface_load_cache_examples(self, tmp_path):
-        test_file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        test_file_dir = Path(Path(__file__).parent, "test_files")
         with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
             gr.Interface.load(
                 name="models/google/vit-base-patch16-224",
-                examples=[pathlib.Path(test_file_dir, "cheetah1.jpg")],
+                examples=[Path(test_file_dir, "cheetah1.jpg")],
                 cache_examples=True,
             )
 
@@ -305,6 +305,11 @@ class TestLoadInterfaceWithExamples:
                 for c in demo.get_config_file()["components"]
             ]
         )
+
+    def test_root_url_deserialization(self):
+        demo = gr.Interface.load("spaces/gradio/simple_gallery")
+        path_to_files = demo("test")
+        assert (Path(path_to_files) / "captions.json").exists()
 
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
