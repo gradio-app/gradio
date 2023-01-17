@@ -3780,7 +3780,11 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         return Component.style(self, container=container, **kwargs)
 
     def deserialize(
-        self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
+        self,
+        x: Any,
+        save_dir: str = "",
+        encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> None | str:
         if x is None:
             return None
@@ -3792,7 +3796,9 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
                 img_data, caption = img_data
             else:
                 caption = None
-            name = FileSerializable.deserialize(self, img_data, gallery_path)
+            name = FileSerializable.deserialize(
+                self, img_data, gallery_path, root_url=root_url
+            )
             captions[name] = caption
             captions_file = gallery_path / "captions.json"
             with captions_file.open("w") as captions_json:
