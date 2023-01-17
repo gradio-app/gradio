@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Component as Form } from "./components/Form";
 	import { Component as Textbox } from "./components/Textbox";
+	import { Button } from "@gradio/button";
 	export let root: string;
 	export let id: number;
 	export let auth_message: string | null;
@@ -30,17 +31,14 @@
 	};
 </script>
 
-<div
-	class="dark:bg-gray-950 w-full flex flex-col items-center justify-center"
-	class:min-h-screen={app_mode}
->
-	<div class="gr-panel !p-8">
-		<h2 class="text-2xl font-semibold mb-6">Login</h2>
+<div class="wrap" class:min-h-screen={app_mode}>
+	<div class="panel">
+		<h2>Login</h2>
 		{#if auth_message}
-			<p class="my-4">{auth_message}</p>
+			<p class="auth">{auth_message}</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="my-4 text-red-600 font-semibold">Incorrect Credentials</p>
+			<p class="creds">Incorrect Credentials</p>
 		{/if}
 		<Form>
 			<Textbox
@@ -64,9 +62,47 @@
 			/>
 		</Form>
 
-		<button
-			class="gr-button gr-button-lg gr-button-primary w-full mt-4"
-			on:click={submit}>Login</button
-		>
+		<Button size="lg" variant="primary" style={{ full_width: true }}>
+			Login
+		</Button>
 	</div>
 </div>
+
+<style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: var(--color-background-primary);
+		width: var(--size-full);
+	}
+
+	.panel {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-4);
+		border-radius: var(--radius-lg);
+		background: var(--color-background-secondary);
+		padding: var(--size-8);
+		width: var(--size-full);
+	}
+
+	h2 {
+		margin-bottom: var(--size-6);
+		font-weight: var(--weight-semibold);
+		font-size: var(--scale-2);
+	}
+
+	.auth {
+		margin-top: var(--size-4);
+		margin-bottom: var(--size-4);
+	}
+
+	.creds {
+		margin-top: var(--size-4);
+		margin-bottom: var(--size-4);
+		color: var(--color-functional-error-base);
+		font-weight: var(--weight-semibold);
+	}
+</style>

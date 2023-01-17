@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher } from "svelte";
+	import { setContext, createEventDispatcher, tick } from "svelte";
 	import { writable } from "svelte/store";
 
 	interface Tab {
@@ -12,7 +12,7 @@
 	}
 
 	export let visible: boolean = true;
-	export let elem_id: string;
+	export let elem_id: string = "id";
 	export let selected: number | string | object;
 
 	let tabs: Array<Tab> = [];
@@ -45,20 +45,15 @@
 	$: selected !== null && change_tab(selected);
 </script>
 
-<div class="tabs flex flex-col my-4" class:hidden={!visible} id={elem_id}>
-	<div class="flex border-b-2 flex-wrap dark:border-gray-700">
-		{#each tabs as t (t.id)}
+<div class="tabs" class:hide={!visible} id={elem_id}>
+	<div class="tab-nav scroll-hide">
+		{#each tabs as t, i (t.id)}
 			{#if t.id === $selected_tab}
-				<button
-					class="bg-white px-4 pb-2 pt-1.5 rounded-t-lg border-gray-200 -mb-[2px] border-2 border-b-0"
-				>
+				<button class="selected">
 					{t.name}
 				</button>
 			{:else}
-				<button
-					class="px-4 pb-2 pt-1.5 border-transparent text-gray-400 hover:text-gray-700 -mb-[2px] border-2 border-b-0"
-					on:click={() => change_tab(t.id)}
-				>
+				<button on:click={() => change_tab(t.id)}>
 					{t.name}
 				</button>
 			{/if}
@@ -66,3 +61,57 @@
 	</div>
 	<slot />
 </div>
+
+<style>
+	.tabs {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		margin-top: var(--size-4);
+		margin-bottom: var(--size-4);
+	}
+
+	.hide {
+		display: none;
+	}
+
+	.tab-nav {
+		display: flex;
+		position: relative;
+		flex-wrap: wrap;
+		border-bottom: 2px solid var(--color-border-primary);
+		white-space: nowrap;
+	}
+
+	button {
+		margin-bottom: -2px;
+		border: 2px solid transparent;
+		border-color: transparent;
+		border-bottom: none;
+		border-top-right-radius: var(--radius-md);
+		border-top-left-radius: var(--radius-md);
+		padding: var(--size-1) var(--size-4);
+		color: var(--color-text-subdued);
+	}
+
+	button:hover {
+		color: var(--color-text-body);
+	}
+	.selected {
+		border-color: var(--color-border-primary);
+		background-color: var(--color-background-primary);
+		color: var(--color-text-body);
+	}
+
+	.bar {
+		display: block;
+		position: absolute;
+		bottom: -2px;
+		left: 0;
+		z-index: 999;
+		background-color: var(--color-background-primary);
+		width: 100%;
+		height: 2px;
+		content: "";
+	}
+</style>

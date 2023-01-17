@@ -18,10 +18,7 @@
 
 <Block {visible} {elem_id} disable={true}>
 	<StatusTracker {...loading_status} variant="center" />
-	<div
-		class="transition"
-		class:opacity-20={loading_status?.status === "pending"}
-	>
+	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown
 			min_height={loading_status && loading_status.status !== "complete"}
 			{value}
@@ -31,3 +28,13 @@
 		/>
 	</div>
 </Block>
+
+<style>
+	div {
+		transition: 150ms;
+	}
+
+	.pending {
+		opacity: 0.2;
+	}
+</style>

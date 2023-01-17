@@ -15,12 +15,9 @@
 	export let explicit_call: boolean = false;
 	export let visible = true;
 
-	const styles = {
-		dashed: "border-dashed border border-gray-300",
-		solid: "border-solid border",
-		grey: "border-gray-200",
-		green: "border-green-400",
-		none: "!border-0"
+	const color_style = {
+		grey: "var(--color-border-primary)",
+		green: "var(--color-functional-success)"
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
@@ -29,11 +26,11 @@
 
 	$: _parent = parent === "column" || parent == "row" ? parent : "column";
 
-	$: ({ classes } = explicit_call
+	$: ({ styles } = explicit_call
 		? get_styles(style, [])
 		: disable
 		? get_styles({ container: false }, ["container"])
-		: { classes: "" });
+		: { styles: "" });
 	$: size_style =
 		"" +
 		(typeof style.height === "number" ? `height: ${style.height}px; ` : "") +
@@ -44,12 +41,35 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class:!hidden={visible === false}
-	class="gr-block gr-box relative w-full {styles[variant]} {styles[
-		color
-	]} {classes}"
-	class:gr-padded={padding}
-	style={size_style || null}
+	class:hidden={visible === false}
+	class="block"
+	class:padded={padding}
+	style="{styles} {size_style || null}"
+	style:border-style={variant}
+	style:border-color={color_style[color]}
 >
 	<slot />
 </svelte:element>
+
+<style>
+	.block {
+		position: relative;
+		margin: 0;
+		box-shadow: var(--shadow-drop);
+		border-width: 1px;
+		border-radius: var(--radius-lg);
+		background: var(--color-background-tertiary);
+		width: 100%;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+
+	.padded {
+		padding: var(--size-2-5) var(--size-3);
+	}
+
+	.hidden {
+		display: none;
+	}
+</style>
