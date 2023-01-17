@@ -6,8 +6,8 @@ It turns out that the `gradio.Interface` class can actually handle 4 different k
 
 1. **Standard demos**: which have both separate inputs and outputs (e.g. an image classifier or speech-to-text model)
 2. **Output-only demos**: which don't take any input but produce on output (e.g. an unconditional image generation model)
-3. **Input-only demos**: which don't produce any output but do take in some sort of input (e.g. imagine a demo that saves images that you upload to a persistent external database)
-4. **Unified demos**: which have both input and output components, but the input and output components *are the same*. This means that the output produced overrides the input (e.g. think of an autocomplete model)
+3. **Input-only demos**: which don't produce any output but do take in some sort of input (e.g. a demo that saves images that you upload to a persistent external database)
+4. **Unified demos**: which have both input and output components, but the input and output components *are the same*. This means that the output produced overrides the input (e.g. a text autocomplete model)
 
 Depending on the kind of demo, the user interface (UI) looks slightly different:
 
@@ -21,11 +21,17 @@ Let's see to build each kind of demo using the `Interface` class, along with exa
 
 ## Output-only demos
 
-What about demos that only contain outputs? In order to build such a demo, you simply set the value of the `inputs` parameter in `Interface()` to `None`. Here's an example:
+What about demos that only contain outputs? In order to build such a demo, you simply set the value of the `inputs` parameter in `Interface()` to `None`. Here's an example demo of a mock image generation model:
 
 $code_fake_gan_no_input
 $demo_fake_gan_no_input
 
 ## Input-only demos
 
+Similarly, to create a demo that only contains inputs, set the value of `outputs` parameter in `Interface()` to be `None`. Here's an example demo that saves any uploaded image to disk:
+
+$code_save_file_no_output
+$demo_save_file_no_output
+
 ## Unified demos
+
