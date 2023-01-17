@@ -1658,7 +1658,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+            ("You are <strong>cool</strong>", "so are <em>you</em>")
         ]
         assert chatbot.get_config() == {
             "value": [],
