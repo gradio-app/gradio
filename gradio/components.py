@@ -3916,7 +3916,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.render(message), self.md.render(response))
+            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
