@@ -9,7 +9,7 @@ No changes to highlight.
 * Fixes bug where png files were not being recognized when uploadin images by [@abidlabs](https://github.com/abidlabs) in [PR 3002](https://github.com/gradio-app/gradio/pull/3002) 
 
 ## Documentation Changes:
-No changes to highlight.
+* Added a guide on the 4 kinds of Gradio Interfaces by [@yvrjsharma](https://github.com/yvrjsharma) and [@abidlabs](https://github.com/abidlabs) in [PR 3002](https://github.com/gradio-app/gradio/pull/3002) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
