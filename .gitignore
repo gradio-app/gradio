@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 build/
+__tmp/*
 
 # JS build
 gradio/templates/cdn

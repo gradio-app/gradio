@@ -86,22 +86,18 @@
 		bind:duration
 		bind:paused
 		bind:this={video}
-		class="w-full h-full object-contain bg-black"
 		class:mirror
 	>
 		<track kind="captions" />
 	</video>
 
 	<div
-		class="wrap absolute bottom-0 transition duration-500  m-1.5 bg-slate-800 px-1 py-2.5 rounded-md"
-		style="opacity: {duration && show_controls ? 1 : 0}"
+		class="controls"
+		style:opacity={duration && show_controls ? 1 : 0}
 		on:mousemove={video_move}
 	>
-		<div class="flex w-full justify-space h-full items-center px-1.5 ">
-			<span
-				class=" w-6 cursor-pointer text-white flex justify-center"
-				on:click={play_pause}
-			>
+		<div class="inner">
+			<span class="icon" on:click={play_pause}>
 				{#if time === duration}
 					<Undo />
 				{:else if paused}
@@ -111,21 +107,15 @@
 				{/if}
 			</span>
 
-			<span class="font-mono shrink-0 text-xs mx-3 text-white"
-				>{format(time)} / {format(duration)}</span
-			>
+			<span class="time">{format(time)} / {format(duration)}</span>
 			<progress
 				value={time / duration || 0}
 				on:mousemove={handleMove}
 				on:touchmove|preventDefault={handleMove}
 				on:click|stopPropagation|preventDefault={handle_click}
-				class="rounded h-2 w-full mx-3"
 			/>
 
-			<div
-				class="w-6 cursor-pointer text-white"
-				on:click={() => video.requestFullscreen()}
-			>
+			<div class="icon" on:click={() => video.requestFullscreen()}>
 				<Maximise />
 			</div>
 		</div>
@@ -137,6 +127,13 @@
 		text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 	}
 
+	progress {
+		margin-right: var(--size-3);
+		border-radius: var(--radius-md);
+		width: var(--size-full);
+		height: var(--size-2);
+	}
+
 	progress::-webkit-progress-bar {
 		border-radius: 2px;
 		background-color: rgba(255, 255, 255, 0.2);
@@ -144,16 +141,56 @@
 	}
 
 	progress::-webkit-progress-value {
-		/* border-radius: 2px; */
-
 		background-color: rgba(255, 255, 255, 0.9);
+	}
+
+	video {
+		background-color: black;
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
 	}
 
 	.mirror {
 		transform: scaleX(-1);
 	}
 
-	.wrap {
+	.controls {
+		position: absolute;
+		bottom: 0;
+		transition: 500ms;
+		margin: var(--size-2);
+		border-radius: var(--radius-md);
+		background: var(--color-grey-800);
+		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);
+		width: calc(100% - var(--size-2) * 2);
+	}
+
+	.inner {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-right: var(--size-2);
+		padding-left: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.icon {
+		display: flex;
+		justify-content: center;
+		cursor: pointer;
+		width: var(--size-6);
+		color: white;
+	}
+
+	.time {
+		flex-shrink: 0;
+		margin-right: var(--size-3);
+		margin-left: var(--size-3);
+		color: white;
+		font-size: var(--scale-000);
+		font-family: var(--font-mono);
 	}
 </style>

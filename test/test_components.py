@@ -1787,7 +1787,7 @@ class TestModel3D:
         """
         component = gr.components.Model3D(None, label="Model")
         assert {
-            "clearColor": [0.2, 0.2, 0.2, 1.0],
+            "clearColor": [0, 0, 0, 0],
             "value": None,
             "label": "Model",
             "show_label": True,

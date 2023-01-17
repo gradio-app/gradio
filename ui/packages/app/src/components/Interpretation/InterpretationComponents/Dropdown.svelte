@@ -7,12 +7,12 @@
 	export let label: string = "";
 </script>
 
-<div class="input-dropdown">
+<div>
 	<BlockTitle>{label}</BlockTitle>
 	<ul class="dropdown-menu">
 		{#each choices as choice, i}
 			<li
-				class="dropdown-item first:rounded-t transition last:rounded-b py-2 px-3 block whitespace-nowrap cursor-pointer"
+				class="dropdown-item"
 				style={"background-color: " + getSaliencyColor(interpretation[i])}
 			>
 				{choice}
@@ -21,16 +21,29 @@
 	</ul>
 </div>
 
-<style lang="postcss" global>
-	.input-dropdown {
-		.selector {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.dropdown-menu {
-			@apply shadow;
-		}
-		.dropdown-item {
-			@apply bg-white dark:bg-gray-800 hover:font-semibold;
-		}
+<style>
+	.dropdown-menu {
+		box-shadow: var(--shadow-drop);
+	}
+	.dropdown-item {
+		display: block;
+		transition: 150ms;
+		cursor: pointer;
+		background: var(--color-background-primary);
+		padding: var(--size-2) var(--size-3);
+		white-space: nowrap;
+	}
+
+	.dropdown-item:first-child {
+		border-top-right-radius: var(--radius-md);
+		border-top-left-radius: var(--radius-md);
+	}
+	.dropdown-item:last-child {
+		border-bottom-right-radius: var(--radius-md);
+		border-bottom-left-radius: var(--radius-md);
+	}
+
+	.dropdown-item:hover {
+		font-weight: var(--weight-semibold);
 	}
 </style>

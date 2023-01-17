@@ -108,7 +108,8 @@ make_script("${script}");
 export function handle_ce_css(): Plugin {
 	return {
 		enforce: "post",
-		name: "custome-element-css",
+		name: "custom-element-css",
+
 		transform(code, id) {
 			if (id === "vite/preload-helper") {
 				return {
