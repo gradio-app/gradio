@@ -36,7 +36,7 @@
 	}
 </script>
 
-<div id={elem_id} class="relative overflow-hidden" class:!hidden={!visible}>
+<div id={elem_id} class="relative overflow-hidden" class:hide={!visible}>
 	<StatusTracker {...loading_status} />
 	<Table
 		{label}
@@ -50,3 +50,14 @@
 		{datatype}
 	/>
 </div>
+
+<style>
+	div {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.hide {
+		display: none;
+	}
+</style>

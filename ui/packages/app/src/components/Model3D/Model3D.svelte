@@ -2,7 +2,9 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Model3D, Model3DUpload } from "@gradio/model3D";
-	import { Block } from "@gradio/atoms";
+	import { BlockLabel, Block, Empty } from "@gradio/atoms";
+	import UploadText from "../UploadText.svelte";
+	import { File } from "@gradio/icons";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -39,16 +41,23 @@
 		<Model3DUpload
 			{label}
 			{show_label}
+			{clearColor}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change
 			on:clear
-			drop_text={$_("interface.drop_file")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
-		/>
-	{:else if _value}
+		>
+			<UploadText type="file" />
+		</Model3DUpload>
+	{:else if value}
 		<Model3D value={_value} {clearColor} {label} {show_label} />
+	{:else}
+		<!-- Not ideal but some bugs to work out before we can 
+				 make this consistent with other components -->
+
+		<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
+
+		<Empty size="large" unpadded_box={true}><File /></Empty>
 	{/if}
 </Block>

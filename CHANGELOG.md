@@ -19,7 +19,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Full Changelog:
-No changes to highlight.
+* Rewrote frontend using CSS variables for themes by [@pngwn](https://github.com/pngwn) in [PR 2840](https://github.com/gradio-app/gradio/pull/2840)
 
 ## Contributors Shoutout:
 No changes to highlight.

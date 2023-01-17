@@ -47,6 +47,16 @@
 			instance_map[id].props[k] = e.detail[k];
 		}
 	}
+
+	$: {
+		if (instance_map[id].type === "form") {
+			if (children?.every((c) => !c.props.visible)) {
+				props.visible = false;
+			} else {
+				props.visible = true;
+			}
+		}
+	}
 </script>
 
 <svelte:component
