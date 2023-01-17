@@ -11,11 +11,15 @@
 	$: value, dispatch("change");
 </script>
 
-<div
-	class:min-h-[6rem]={min_height}
-	class="output-html"
-	id={elem_id}
-	class:!hidden={!visible}
->
+<div class="prose" class:min={min_height} id={elem_id} class:hide={!visible}>
 	{@html value}
 </div>
+
+<style>
+	.min {
+		min-height: var(--size-24);
+	}
+	.hide {
+		display: none;
+	}
+</style>

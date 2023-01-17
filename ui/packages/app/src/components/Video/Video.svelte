@@ -3,6 +3,7 @@
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import { Video, StaticVideo } from "@gradio/video";
+	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -57,9 +58,6 @@
 			{label}
 			{show_label}
 			{source}
-			drop_text={$_("interface.drop_video")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
 			{mirror_webcam}
 			{include_audio}
 			on:change
@@ -67,6 +65,8 @@
 			on:play
 			on:pause
 			on:upload
-		/>
+		>
+			<UploadText type="video" />
+		</Video>
 	{/if}
 </Block>

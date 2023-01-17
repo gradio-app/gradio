@@ -2,12 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 	import { fly } from "svelte/transition";
 	export let placeholder = "";
-	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
-	export let multiselect: boolean = false;
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
-	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: string | Array<string> | undefined;
@@ -78,19 +75,9 @@
 		}
 	}
 
-	function handleTokenClick(e: any) {
-		e.preventDefault();
-		if (e.target.closest(".token-remove")) {
-			e.stopPropagation();
-			remove(
-				e.target.closest(".token").getElementsByTagName("span")[0].textContent
-			);
-		} else if (e.target.closest(".remove-all")) {
-			value = [];
-			inputValue = "";
-		} else {
-			optionsVisibility(true);
-		}
+	function remove_all() {
+		value = [];
+		inputValue = "";
 	}
 
 	function handleOptionMousedown(e: any) {
@@ -106,24 +93,14 @@
 	}
 </script>
 
-<div class="relative border rounded-md">
-	<div
-		class="items-center flex flex-wrap relative"
-		class:showOptions
-		on:click={handleTokenClick}
-	>
+<div class="wrap">
+	<div class="wrap-inner" class:showOptions>
 		{#if Array.isArray(value)}
 			{#each value as s}
-				<div
-					class="token gr-input-label flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner my-1 mx-1"
-				>
-					<div
-						class:hidden={disabled}
-						class="token-remove items-center bg-gray-400 dark:bg-gray-700 rounded-full fill-white flex justify-center min-w-min p-0.5"
-						title="Remove {s}"
-					>
+				<div on:click|stopPropagation={() => remove(s)} class="token">
+					<span>{s}</span>
+					<div class:hidden={disabled} class="token-remove" title="Remove {s}">
 						<svg
-							class="icon-clear"
 							xmlns="http://www.w3.org/2000/svg"
 							width="16"
 							height="16"
@@ -132,24 +109,25 @@
 							<path d={iconClearPath} />
 						</svg>
 					</div>
-					<span>{s}</span>
 				</div>
 			{/each}
 		{/if}
-		<div class="items-center flex flex-1 min-w-min border-none">
+		<div class="secondary-wrap">
 			<input
-				class="border-none bg-inherit ml-2 text-lg w-full outline-none text-gray-700 dark:text-white disabled:cursor-not-allowed"
+				class="border-none"
 				{disabled}
 				autocomplete="off"
 				bind:value={inputValue}
+				on:focus={() => optionsVisibility(true)}
 				on:blur={handleBlur}
 				on:keyup={handleKeyup}
 				{placeholder}
 			/>
 			<div
 				class:hidden={!value?.length || disabled}
-				class="remove-all items-center bg-gray-400 dark:bg-gray-700 rounded-full fill-white flex justify-center h-5 ml-1 min-w-min disabled:hidden p-0.5"
+				class="token-remove remove-all"
 				title="Remove All"
+				on:click={remove_all}
 			>
 				<svg
 					class="icon-clear"
@@ -162,34 +140,151 @@
 				</svg>
 			</div>
 			<svg
-				class="dropdown-arrow mr-2 min-w-min fill-gray-500 dark:fill-white"
+				class="dropdown-arrow"
 				xmlns="http://www.w3.org/2000/svg"
 				width="18"
 				height="18"
-				viewBox="0 0 18 18"><path d="M5 8l4 4 4-4z" /></svg
+				viewBox="0 0 18 18"
 			>
+				<path d="M5 8l4 4 4-4z" />
+			</svg>
 		</div>
 	</div>
 
 	{#if showOptions && !disabled}
 		<ul
-			class="z-50 shadow ml-0 list-none max-h-32 overflow-auto absolute w-full fill-gray-500 bg-white dark:bg-gray-700 dark:text-white rounded-md"
+			class="options"
 			transition:fly={{ duration: 200, y: 5 }}
 			on:mousedown|preventDefault={handleOptionMousedown}
 		>
 			{#each filtered as choice}
 				<li
-					class="cursor-pointer flex p-2 hover:bg-gray-100 dark:hover:bg-gray-600"
+					class="item"
 					class:selected={value?.includes(choice)}
 					class:active={activeOption === choice}
 					class:bg-gray-100={activeOption === choice}
 					class:dark:bg-gray-600={activeOption === choice}
 					data-value={choice}
 				>
-					<span class:invisible={!value?.includes(choice)} class="pr-1">✓</span>
+					<span
+						class:invisible={!value?.includes(choice)}
+						class="inner-item pr-1"
+					>
+						✓
+					</span>
 					{choice}
 				</li>
 			{/each}
 		</ul>
 	{/if}
 </div>
+
+<style>
+	.wrap {
+		position: relative;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+	}
+
+	.wrap-inner {
+		display: flex;
+		position: relative;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+
+	.token {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		margin: var(--size-1);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--checkbox-label-border-color-base);
+		border-radius: var(--radius-md);
+		background: var(--checkbox-label-background-base);
+		padding: var(--size-1-5) var(--size-3);
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-md);
+	}
+
+	.token > * + * {
+		margin-left: var(--size-2);
+	}
+
+	.token-remove {
+		fill: var(--color-text-body);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-full);
+		background: var(--color-background-tertiary);
+		padding: var(--size-0-5);
+		width: 18px;
+		height: 18px;
+	}
+
+	.secondary-wrap {
+		display: flex;
+		flex: 1 1 0%;
+		align-items: center;
+		border: none;
+		min-width: min-content;
+	}
+
+	input {
+		margin-left: var(--size-2);
+		outline: none;
+		border: none;
+		background: inherit;
+		width: var(--size-full);
+		color: var(--color-text-body);
+		font-size: var(--scale-1);
+	}
+
+	input:disabled {
+		cursor: not-allowed;
+	}
+
+	.remove-all {
+		margin-left: var(--size-1);
+		width: 20px;
+		height: 20px;
+	}
+
+	.dropdown-arrow {
+		fill: var(--color-text-body);
+		margin-right: var(--size-2);
+		width: var(--size-5);
+	}
+
+	.options {
+		position: absolute;
+		z-index: var(--layer-5);
+		margin-left: 0;
+		box-shadow: var(--shadow-drop-lg);
+		border-radius: var(--radius-lg);
+		background: var(--color-background-primary);
+		width: var(--size-full);
+		max-height: var(--size-32);
+		overflow: auto;
+		color: var(--color-text-body);
+		list-style: none;
+	}
+
+	.item {
+		display: flex;
+		cursor: pointer;
+		padding: var(--size-2);
+	}
+
+	.item:hover {
+		background: var(--color-background-secondary);
+	}
+
+	.inner-item {
+		padding-right: var(--size-1);
+	}
+</style>

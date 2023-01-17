@@ -1,68 +1,26 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import { BlockLabel } from "@gradio/atoms";
-	import {
-		display_file_name,
-		download_files,
-		display_file_size
-	} from "./utils";
+	import { BlockLabel, Empty } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
+	import FilePreview from "./FilePreview.svelte";
 
-	export let value: FileData | null;
+	export let value: FileData | FileData[] | null = null;
 	export let label: string;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value}
-	<div
-		class="file-preview overflow-y-scroll w-full max-h-60 flex flex-col justify-between mt-7 mb-7 dark:text-slate-200"
-	>
-		{#if Array.isArray(value)}
-			{#each value as file}
-				<div class="flex flex-row w-full justify-between">
-					<div class="file-name p-2">
-						{display_file_name(file)}
-					</div>
-					<div class="file-size  p-2">
-						{display_file_size(file)}
-					</div>
-					<div class="file-size w-3/12 p-2 hover:underline">
-						<a
-							href={download_files(file)}
-							target={window.__is_colab__ ? "_blank" : null}
-							download={window.__is_colab__ ? null : display_file_name(file)}
-							class="text-indigo-600 hover:underline dark:text-indigo-300"
-							>Download</a
-						>
-					</div>
-				</div>
-			{/each}
-		{:else}
-			<div class="flex flex-row">
-				<div class="file-name w-5/12 p-2">
-					{display_file_name(value)}
-				</div>
-				<div class="file-size w-3/12  p-2">
-					{display_file_size(value)}
-				</div>
-				<div class="file-size w-3/12 p-2 hover:underline">
-					<a
-						href={download_files(value)}
-						target={window.__is_colab__ ? "_blank" : null}
-						download={window.__is_colab__
-							? null
-							: value.orig_name || value.name}
-						class="text-indigo-600 hover:underline dark:text-indigo-300"
-						>Download</a
-					>
-				</div>
-			</div>
-		{/if}
+	<div class="file-preview">
+		<FilePreview {value} />
 	</div>
 {:else}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><File /></div>
-	</div>
+	<Empty size="large" unpadded_box={true}><File /></Empty>
 {/if}
+
+<style>
+	.file-preview {
+		overflow-x: scroll;
+	}
+</style>

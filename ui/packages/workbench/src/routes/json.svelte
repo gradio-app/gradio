@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Block } from "@gradio/atoms";
 	import { JSON } from "@gradio/json";
 
 	const json = {
@@ -27,8 +28,12 @@
 					c: [1, "two", []]
 				}
 			]
-		}
+		},
+		e: null,
+		f: false
 	};
 </script>
 
-<JSON value={json} />
+<Block>
+	<JSON value={json} />
+</Block>

@@ -2,7 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import type { Styles } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
-	import { UploadButton } from "@gradio/uploadbutton";
+	import { UploadButton } from "@gradio/upload-button";
 	import { _ } from "svelte-i18n";
 
 	export let style: Styles = {};

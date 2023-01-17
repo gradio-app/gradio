@@ -2838,6 +2838,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
+
 
 @document()
 class State(IOComponent, SimpleSerializable):
@@ -3960,7 +3963,7 @@ class Model3D(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        self.clear_color = clear_color or [0, 0, 0, 0]
         TempFileManager.__init__(self)
         IOComponent.__init__(
             self,

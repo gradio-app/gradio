@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
+// @ts-ignore
+import custom_media from "postcss-custom-media";
 
 import {
 	inject_ejs,
@@ -8,11 +10,6 @@ import {
 	generate_cdn_entry,
 	handle_ce_css
 } from "./build_plugins";
-
-// this is dupe config, gonna try fix this
-import tailwind from "tailwindcss";
-// @ts-ignore
-import nested from "tailwindcss/nesting/index.js";
 
 const GRADIO_VERSION = process.env.GRADIO_VERSION || "asd_stub_asd";
 const TEST_CDN = !!process.env.TEST_CDN;
@@ -32,6 +29,10 @@ export default defineConfig(({ mode }) => {
 	return {
 		base: is_cdn ? CDN_URL : "./",
 
+		server: {
+			port: 3000
+		},
+
 		build: {
 			sourcemap: true,
 			target: "esnext",
@@ -46,7 +47,21 @@ export default defineConfig(({ mode }) => {
 		},
 		css: {
 			postcss: {
-				plugins: [nested, tailwind]
+				plugins: [
+					custom_media({
+						importFrom: [
+							{
+								customMedia: {
+									"--screen-sm": "(min-width: 640px)",
+									"--screen-md": "(min-width: 768px)",
+									"--screen-lg": "(min-width: 1024px)",
+									"--screen-xl": "(min-width: 1280px)",
+									"--screen-xxl": "(min-width: 1536px)"
+								}
+							}
+						]
+					})
+				]
 			}
 		},
 		plugins: [
@@ -59,7 +74,7 @@ export default defineConfig(({ mode }) => {
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [tailwind, nested] }
+					postcss: { plugins: [custom_media()] }
 				})
 			}),
 			inject_ejs(),

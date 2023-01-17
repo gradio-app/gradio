@@ -3,6 +3,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
+	import UploadText from "../UploadText.svelte";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -49,10 +50,9 @@
 			on:change
 			on:clear
 			on:upload
-			drop_text={$_("interface.drop_file")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
-		/>
+		>
+			<UploadText type="file" />
+		</FileUpload>
 	{:else}
 		<File value={_value} {label} {show_label} />
 	{/if}

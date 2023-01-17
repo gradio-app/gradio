@@ -22,16 +22,18 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@gradio/accordion": "workspace:^0.0.1",
 		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/audio": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
-		"@gradio/carousel": "workspace:^0.0.1",
 		"@gradio/chart": "workspace:^0.0.1",
 		"@gradio/chatbot": "workspace:^0.0.1",
 		"@gradio/file": "workspace:^0.0.1",
 		"@gradio/form": "workspace:^0.0.1",
+		"@gradio/gallery": "workspace:^0.0.1",
 		"@gradio/highlighted-text": "workspace:^0.0.1",
 		"@gradio/html": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1",
 		"@gradio/image": "workspace:^0.0.1",
 		"@gradio/json": "workspace:^0.0.1",
 		"@gradio/label": "workspace:^0.0.1",
@@ -42,7 +44,7 @@
 		"@gradio/tabs": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
-		"@gradio/uploadbutton": "workspace:^0.0.1",
+		"@gradio/upload-button": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1",
 		"svelte": ">=3.44.0 <4.0.0"
 	}

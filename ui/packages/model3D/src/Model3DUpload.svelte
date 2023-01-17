@@ -6,10 +6,7 @@
 	import { File } from "@gradio/icons";
 
 	export let value: null | FileData;
-
-	export let drop_text: string = "Drop a file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
+	export let clearColor: Array<number> = [0, 0, 0, 0];
 	export let label: string = "";
 	export let show_label: boolean;
 
@@ -68,7 +65,8 @@
 		engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
-		scene.clearColor = new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+		scene.clearColor = scene.clearColor = new BABYLON.Color4(...clearColor);
+
 		engine.runRenderLoop(() => {
 			scene.render();
 		});
@@ -109,15 +107,28 @@
 
 {#if value === null}
 	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
-		{drop_text}
-		<br />- {or_text} -<br />
-		{upload_text}
+		<slot />
 	</Upload>
 {:else}
-	<div
-		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-	>
+	<div class="input-model">
 		<ModifyUpload on:clear={handle_clear} absolute />
-		<canvas class="w-full h-full object-contain" bind:this={canvas} />
+		<canvas bind:this={canvas} />
 	</div>
 {/if}
+
+<style>
+	.input-model {
+		display: flex;
+		position: relative;
+		justify-content: center;
+		align-items: center;
+		width: var(--size-full);
+		height: var(--size-64);
+	}
+
+	canvas {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+</style>

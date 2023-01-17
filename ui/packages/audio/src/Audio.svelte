@@ -18,14 +18,11 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
-	export let show_label: boolean;
-	export let name: string;
+	export let show_label: boolean = true;
+	export let name: string = "";
 	export let source: "microphone" | "upload" | "none";
 	export let pending: boolean = false;
 	export let streaming: boolean = false;
-	export let drop_text: string = "Drop an audio file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
 
 	// TODO: make use of this
 	// export let type: "normal" | "numpy" = "normal";
@@ -254,37 +251,27 @@
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
 {#if value === null || streaming}
 	{#if source === "microphone"}
-		<div class="mt-6 p-2">
+		<div class="mic-wrap">
 			{#if recording}
-				<button class="gr-button !bg-red-500/10" on:click={stop}>
-					<span class="flex h-1.5 w-1.5 relative mr-2 ">
-						<span
-							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-						/>
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<button class="stop-button" on:click={stop}>
+					<span class="record-icon">
+						<span class="pinger" />
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap text-red-500">Stop recording</div>
+					Stop recording
 				</button>
 			{:else}
-				<button class="gr-button text-gray-800" on:click={record}>
-					<span class="flex h-1.5 w-1.5 relative mr-2">
-						<span
-							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-						/>
+				<button on:click={record}>
+					<span class="record-icon">
+						<span class="dot" />
 					</span>
-					<div class="whitespace-nowrap">Record from microphone</div>
+					Record from microphone
 				</button>
 			{/if}
 		</div>
 	{:else if source === "upload"}
 		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-			<div class="flex flex-col">
-				{drop_text}
-				<span class="text-gray-300">- {or_text} -</span>
-				{upload_text}
-			</div>
+			<slot />
 		</Upload>
 	{/if}
 {:else}
@@ -297,7 +284,6 @@
 
 	<audio
 		use:loaded
-		class="w-full h-14 p-2"
 		controls
 		bind:this={player}
 		preload="metadata"
@@ -318,3 +304,71 @@
 		/>
 	{/if}
 {/if}
+
+<style>
+	.mic-wrap {
+		margin-top: var(--size-6);
+		padding: var(--size-2);
+	}
+
+	.stop-button {
+		background: rgba(239 68 68 / 0.1);
+		color: var(--color-red-500);
+	}
+
+	button {
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-sm);
+		background: var(--color-background-tertiary);
+		padding: var(--size-0-5) var(--size-2);
+		font-size: var(--scale-00);
+		line-height: var(--line-md);
+		white-space: nowrap;
+	}
+
+	.record-icon {
+		display: flex;
+		position: relative;
+		margin-right: var(--size-2);
+		width: 6px;
+		height: 6px;
+	}
+
+	.dot {
+		display: inline-flex;
+		position: relative;
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		width: 6px;
+		height: 6px;
+	}
+
+	.pinger {
+		display: inline-flex;
+		position: absolute;
+		opacity: 0.9;
+		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+		border-radius: var(--radius-full);
+		background: var(--color-red-500);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	@keyframes ping {
+		75%,
+		100% {
+			transform: scale(2);
+			opacity: 0;
+		}
+	}
+
+	audio {
+		padding: var(--size-2);
+		width: var(--size-full);
+		height: var(--size-14);
+	}
+</style>

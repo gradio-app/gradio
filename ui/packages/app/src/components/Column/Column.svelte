@@ -12,12 +12,44 @@
 
 <div
 	id={elem_id}
-	class="flex flex-col relative col {create_classes(style)}"
-	class:gap-4={style.gap !== false}
-	class:gr-compact={variant === "compact"}
-	class:gr-panel={variant === "panel"}
-	class:!hidden={!visible}
+	class:gap={style.gap !== false}
+	class:compact={variant === "compact"}
+	class:panel={variant === "panel"}
+	class:hide={!visible}
 	style={`min-width: min(${min_width}px, 100%); flex-grow: ${scale}`}
 >
 	<slot />
 </div>
+
+<style>
+	div {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+	}
+
+	div > :global(*),
+	div > :global(.form > *) {
+		width: var(--size-full);
+	}
+
+	.gap {
+		gap: var(--size-4);
+	}
+
+	.hide {
+		display: none;
+	}
+
+	.compact > :global(*),
+	.compact :global(.box) {
+		border-radius: 0;
+	}
+
+	.compact,
+	.panel {
+		border-radius: var(--radius-lg);
+		background: var(--color-background-secondary);
+		padding: var(--size-2);
+	}
+</style>

@@ -5,14 +5,25 @@
 	export let label: string = "";
 </script>
 
-<div class="input-audio">
+<div>
 	<BlockTitle>{label}</BlockTitle>
-	<div class="interpret_range flex">
+	<div class="range">
 		{#each interpretation as interpret_value}
 			<div
-				class="flex-1 h-4"
+				class="item"
 				style={"background-color: " + getSaliencyColor(interpret_value)}
 			/>
 		{/each}
 	</div>
 </div>
+
+<style>
+	.range {
+		display: flex;
+	}
+
+	.item {
+		display: flex;
+		height: var(--size-4);
+	}
+</style>
