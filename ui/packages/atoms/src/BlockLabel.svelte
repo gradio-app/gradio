@@ -27,12 +27,11 @@
 		left: 0;
 		align-items: center;
 		z-index: var(--layer-2);
-		box-shadow: var(--block_label-shadow);
-		border: var(--block_label-border-width) solid
-			var(--block_label-border-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-left: none;
-		border-radius: 0px 0px var(--block_label-border-radius) 0px;
+		border-radius: 0px 0px var(--radius-lg) 0px;
 		background: var(--block_label-background);
 		padding: var(--size-1) var(--size-2);
 		pointer-events: none;

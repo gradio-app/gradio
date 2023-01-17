@@ -13,7 +13,7 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 import numpy as np
 import requests
@@ -261,7 +261,10 @@ def convert_to_16_bit_wav(data):
 
 def decode_base64_to_binary(encoding) -> Tuple[bytes, str | None]:
     extension = get_extension(encoding)
-    data = encoding.split(",")[1]
+    try:
+        data = encoding.split(",")[1]
+    except IndexError:
+        data = ""
     return base64.b64decode(data), extension
 
 
@@ -324,7 +327,7 @@ class TempFileManager:
 
     def __init__(self) -> None:
         # Set stores all the temporary files created by this component.
-        self.temp_files = set()
+        self.temp_files: Set[str] = set()
 
     def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()

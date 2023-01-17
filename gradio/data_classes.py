@@ -1,6 +1,5 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
-
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Union
 

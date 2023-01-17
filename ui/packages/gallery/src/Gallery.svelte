@@ -234,10 +234,9 @@
 		--ring-color: transparent;
 		position: relative;
 		outline: none;
-		box-shadow: var(--shadow-drop);
-		box-shadow: 0 0 0 2px var(--ring-color);
+		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--gallery-thumb-border-color-base);
-		border-radius: var(--gallery-thumb-border-radius);
+		border-radius: var(--radius-sm);
 		background-color: var(--gallery-thumb-background-base);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
@@ -311,7 +310,7 @@
 		z-index: var(--layer-1);
 		border-top: 1px solid var(--gallery-label-border-color-base);
 		border-left: 1px solid var(--gallery-label-border-color-base);
-		border-top-left-radius: var(--gallery-label-border-radius);
+		border-top-left-radius: var(--radius-lg);
 		background: var(--gallery-thumb-background-base);
 		padding: var(--size-1) var(--size-3);
 		max-width: 80%;

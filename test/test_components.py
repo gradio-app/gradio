@@ -554,6 +554,56 @@ class TestRadio:
         assert scores == [-2.0, None, 2.0]
 
 
+class TestDropdown:
+    def test_component_functions(self):
+        """
+        Preprocess, postprocess, serialize, generate_sample, get_config
+        """
+        dropdown_input = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        assert dropdown_input.preprocess("a") == "a"
+        assert dropdown_input.postprocess("a") == "a"
+
+        dropdown_input_multiselect = gr.Dropdown(["a", "b", "c"], multiselect=True)
+        assert dropdown_input_multiselect.preprocess(["a", "c"]) == ["a", "c"]
+        assert dropdown_input_multiselect.postprocess(["a", "c"]) == ["a", "c"]
+        assert dropdown_input_multiselect.serialize(["a", "c"], True) == ["a", "c"]
+        assert isinstance(dropdown_input_multiselect.generate_sample(), str)
+        dropdown_input_multiselect = gr.Dropdown(
+            value=["a", "c"],
+            choices=["a", "b", "c"],
+            label="Select Your Inputs",
+        )
+        assert dropdown_input_multiselect.get_config() == {
+            "choices": ["a", "b", "c"],
+            "value": ["a", "c"],
+            "name": "dropdown",
+            "show_label": True,
+            "label": "Select Your Inputs",
+            "style": {},
+            "elem_id": None,
+            "visible": True,
+            "interactive": None,
+            "root_url": None,
+            "multiselect": None,
+        }
+        with pytest.raises(ValueError):
+            gr.Dropdown(["a"], type="unknown")
+
+        dropdown = gr.Dropdown(choices=["a", "b"], value="c")
+        assert dropdown.get_config()["value"] == "c"
+        assert dropdown.postprocess("a") == "a"
+
+    def test_in_interface(self):
+        """
+        Interface, process
+        """
+        checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
+        iface = gr.Interface(lambda x: "|".join(x), checkboxes_input, "textbox")
+        assert iface(["a", "c"]) == "a|c"
+        assert iface([]) == ""
+        _ = gr.CheckboxGroup(["a", "b", "c"], type="index")
+
+
 class TestImage:
     def test_component_functions(self):
         """
@@ -746,7 +796,6 @@ class TestAudio:
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
-        audio_input = gr.Audio(type="numpy")
 
         # Output functionalities
         y_audio = gr.processing_utils.decode_base64_to_file(
@@ -778,6 +827,15 @@ class TestAudio:
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(y_audio.name)
         assert output1 == output2
+
+    def test_serialize(self):
+        audio_input = gr.Audio()
+        assert audio_input.serialize("test/test_files/audio_sample.wav") == {
+            "data": media_data.BASE64_AUDIO["data"],
+            "is_file": False,
+            "orig_name": "audio_sample.wav",
+            "name": "test/test_files/audio_sample.wav",
+        }
 
     def test_tokenize(self):
         """
@@ -865,6 +923,10 @@ class TestFile:
         assert file_input.preprocess(None) is None
         x_file["is_example"] = True
         assert file_input.preprocess(x_file) is not None
+
+        zero_size_file = {"name": "document.txt", "size": 0, "data": "data:"}
+        temp_file = file_input.preprocess(zero_size_file)
+        assert os.stat(temp_file.name).st_size == 0
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
@@ -1596,7 +1658,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+            ("You are <strong>cool</strong>", "so are <em>you</em>")
         ]
         assert chatbot.get_config() == {
             "value": [],
