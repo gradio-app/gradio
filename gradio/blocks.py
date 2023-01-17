@@ -889,7 +889,7 @@ class Blocks(BlockContext):
             assert isinstance(
                 block, components.IOComponent
             ), f"{block.__class__} Component with id {output_id} not a valid output component."
-            deserialized = block.deserialize(outputs[o])
+            deserialized = block.deserialize(outputs[o], root_url=block.root_url)
             predictions.append(deserialized)
 
         return predictions
