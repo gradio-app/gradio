@@ -2335,6 +2335,7 @@ class File(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(Path(file.name).resolve()))
                 return file
             elif (
                 self.type == "binary" or self.type == "bytes"
@@ -3042,6 +3043,7 @@ class UploadButton(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(Path(file.name).resolve()))
                 return file
             elif self.type == "bytes":
                 if is_file:
