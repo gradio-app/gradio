@@ -13,7 +13,7 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 import numpy as np
 import requests
@@ -327,7 +327,7 @@ class TempFileManager:
 
     def __init__(self) -> None:
         # Set stores all the temporary files created by this component.
-        self.temp_files = set()
+        self.temp_files: Set[str] = set()
 
     def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
