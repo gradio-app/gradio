@@ -1,6 +1,6 @@
 # Blocks and Event Listeners
 
-We took a quick look at Blocks in the Quickstart. Let's dive deeper.
+We took a quick look at Blocks in the [Quickstart](https://gradio.app/quickstart/#blocks-more-flexibility-and-control). Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists. 
 
 ## Blocks Structure
 
@@ -28,7 +28,7 @@ Take a look at the demo below:
 $code_blocks_hello
 $demo_blocks_hello
 
-Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs) for the event listeners for each Component.
+Instead of being triggered by a click, the `welcome` function is triggered by typing in the Textbox `inp`. This is due to the `change()` event listener. Different Components support different event listeners. For example, the `Video` Component supports a `play()` event listener, triggered when a user presses play. See the [Docs](http://gradio.app/docs#components) for the event listeners for each Component.
 
 ## Running Events Continuously
 

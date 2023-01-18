@@ -1,5 +1,7 @@
 # Advanced Interface Features
 
+There's more to cover on the [Interface](https://gradio.app/docs#interface) class. This guide covers all the advanced features: Using [Interpretation](https://gradio.app/docs#interpretation), custom styling, loading from the [Hugging Face Hub](https://hf.co), and using [Parallel](https://gradio.app/docs#parallel) and [Series](https://gradio.app/docs#series). 
+
 ## Interpreting your Predictions
 
 Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
@@ -23,6 +25,8 @@ You can also write your own interpretation function. The demo below adds custom 
 
 $code_gender_sentence_custom_interpretation
 
+Learn more about Interpretation in the [docs](https://gradio.app/docs#interpretation). 
+
 ## Custom Styling
 
 If you'd like to have more fine-grained control over any aspect of your demo, you can also write your own css or pass in a filepath to a css file, with the `css` parameter of the `Interface` class.
@@ -39,7 +43,7 @@ gr.Interface(..., css="body {background-image: url('file=clouds.jpg')}")
 
 ## Loading Hugging Face Models and Spaces
 
-Gradio integrates nicely with the Hugging Face Hub, allowing you to load models and Spaces with just one line of code. To use this, simply use the `load()` method in the `Interface` class. So:
+Gradio integrates nicely with the [Hugging Face Hub](https://hf.co), allowing you to load models and Spaces with just one line of code. To use this, simply use the `load()` method in the `Interface` class. So:
 
 - To load any model from the Hugging Face Hub and create an interface around it, you pass `"model/"` or `"huggingface/"` followed by the model name, like these examples:
 
@@ -88,3 +92,5 @@ gr.Series(generator, translator).launch()  # this demo generates text, then tran
 ```
 
 And of course, you can also mix `Parallel` and `Series` together whenever that makes sense!
+
+Learn more about Parallel and Series in the [docs](https://gradio.app/docs#parallel). 
