@@ -1,0 +1,20 @@
+name: Check for large files
+
+on: push
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Find large files
+      run: |
+        for file in $(git diff-tree -r --no-commit-id --name-only HEAD); do
+          if [ $(du -k "$file" | cut -f1) -gt 5120 ]; then
+            echo "File $file is larger than 5 MB"
+            exit 1
+          fi
+        done
