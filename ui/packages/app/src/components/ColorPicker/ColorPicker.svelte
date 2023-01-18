@@ -28,7 +28,6 @@
 	<StatusTracker {...loading_status} />
 
 	<ColorPicker
-		{style}
 		bind:value
 		{label}
 		{show_label}

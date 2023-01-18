@@ -796,7 +796,6 @@ class TestAudio:
         assert isinstance(audio_input.preprocess(x_wav), str)
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
-        audio_input = gr.Audio(type="numpy")
 
         # Output functionalities
         y_audio = gr.processing_utils.decode_base64_to_file(
@@ -828,6 +827,15 @@ class TestAudio:
         output1 = audio_output.postprocess(y_audio.name)
         output2 = audio_output.postprocess(y_audio.name)
         assert output1 == output2
+
+    def test_serialize(self):
+        audio_input = gr.Audio()
+        assert audio_input.serialize("test/test_files/audio_sample.wav") == {
+            "data": media_data.BASE64_AUDIO["data"],
+            "is_file": False,
+            "orig_name": "audio_sample.wav",
+            "name": "test/test_files/audio_sample.wav",
+        }
 
     def test_tokenize(self):
         """
@@ -1650,7 +1658,7 @@ class TestChatbot:
         """
         chatbot = gr.Chatbot()
         assert chatbot.postprocess([("You are **cool**", "so are *you*")]) == [
-            ("<p>You are <strong>cool</strong></p>\n", "<p>so are <em>you</em></p>\n")
+            ("You are <strong>cool</strong>", "so are <em>you</em>")
         ]
         assert chatbot.get_config() == {
             "value": [],
@@ -1779,7 +1787,7 @@ class TestModel3D:
         """
         component = gr.components.Model3D(None, label="Model")
         assert {
-            "clearColor": [0.2, 0.2, 0.2, 1.0],
+            "clearColor": [0, 0, 0, 0],
             "value": None,
             "label": "Model",
             "show_label": True,

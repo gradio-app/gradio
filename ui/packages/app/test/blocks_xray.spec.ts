@@ -29,7 +29,7 @@ test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_xray");
 	await page.goto("http://localhost:3000");
 
-	const description = await page.locator(".output-markdown");
+	const description = await page.getByTestId("markdown");
 	await expect(description).toContainText("Detect Disease From Scan");
 
 	const checkboxes = await page.getByTestId("checkbox-group");

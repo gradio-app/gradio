@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockLabel } from "@gradio/atoms";
+	import { BlockLabel, Empty } from "@gradio/atoms";
 
 	import { Image } from "@gradio/icons";
 
@@ -17,9 +17,15 @@
 
 <BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 {#if value === null}
-	<div class="h-full min-h-[15rem] flex justify-center items-center">
-		<div class="h-5 dark:text-white opacity-50"><Image /></div>
-	</div>
+	<Empty size="large" unpadded_box={true}><Image /></Empty>
 {:else}
-	<img class="w-full h-full object-contain" src={value} alt="" />
+	<img src={value} alt="" />
 {/if}
+
+<style>
+	img {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+</style>

@@ -1,18 +1,18 @@
 .prose {
-	color: #374151;
 	max-width: 65ch;
+	color: #374151;
 }
 .prose [class~="lead"] {
+	margin-top: 1.2em;
+	margin-bottom: 1.2em;
 	color: #4b5563;
 	font-size: 1.25em;
 	line-height: 1.6;
-	margin-top: 1.2em;
-	margin-bottom: 1.2em;
 }
 .prose a {
 	color: #111827;
-	text-decoration: underline;
 	font-weight: 500;
+	text-decoration: underline;
 }
 .prose strong {
 	color: #111827;
@@ -50,42 +50,42 @@
 	padding-left: 1.75em;
 }
 .prose ol > li::before {
-	content: counter(list-item, var(--list-counter-style, decimal)) ".";
 	position: absolute;
-	font-weight: 400;
-	color: #6b7280;
 	left: 0;
+	content: counter(list-item, var(--list-counter-style, decimal)) ".";
+	color: #6b7280;
+	font-weight: 400;
 }
 .prose ul > li {
 	position: relative;
 	padding-left: 1.75em;
 }
 .prose ul > li::before {
-	content: "";
 	position: absolute;
-	background-color: #d1d5db;
-	border-radius: 50%;
-	width: 0.375em;
-	height: 0.375em;
 	top: calc(0.875em - 0.1875em);
 	left: 0.25em;
+	border-radius: 50%;
+	background-color: #d1d5db;
+	width: 0.375em;
+	height: 0.375em;
+	content: "";
 }
 .prose hr {
-	border-color: #e5e7eb;
-	border-top-width: 1px;
 	margin-top: 3em;
 	margin-bottom: 3em;
+	border-top-width: 1px;
+	border-color: #e5e7eb;
 }
 .prose blockquote {
-	font-weight: 500;
-	font-style: italic;
-	color: #111827;
-	border-left-width: 0.25rem;
-	border-left-color: #e5e7eb;
-	quotes: "\201C""\201D""\2018""\2019";
 	margin-top: 1.6em;
 	margin-bottom: 1.6em;
+	border-left-width: 0.25rem;
+	border-left-color: #e5e7eb;
 	padding-left: 1em;
+	quotes: "\201C""\201D""\2018""\2019";
+	color: #111827;
+	font-style: italic;
+	font-weight: 500;
 }
 .prose blockquote p:first-of-type::before {
 	content: open-quote;
@@ -94,41 +94,41 @@
 	content: close-quote;
 }
 .prose h1 {
+	margin-top: 0;
+	margin-bottom: 0.8888889em;
 	color: #111827;
 	font-weight: 600;
 	font-size: 2.25em;
-	margin-top: 0;
-	margin-bottom: 0.8888889em;
 	line-height: 1.1111111;
 }
 .prose h2 {
+	margin-top: 2em;
+	margin-bottom: 1em;
 	color: #111827;
 	font-weight: 600;
 	font-size: 1.5em;
-	margin-top: 2em;
-	margin-bottom: 1em;
 	line-height: 1.3333333;
 }
 .prose h3 {
+	margin-top: 1.6em;
+	margin-bottom: 0.6em;
 	color: #111827;
 	font-weight: 600;
 	font-size: 1.25em;
-	margin-top: 1.6em;
-	margin-bottom: 0.6em;
 	line-height: 1.6;
 }
 .prose h4 {
-	color: #111827;
-	font-weight: 600;
 	margin-top: 1.5em;
 	margin-bottom: 0.5em;
+	color: #111827;
+	font-weight: 600;
 	line-height: 1.5;
 }
 .prose figure figcaption {
+	margin-top: 0.8571429em;
 	color: #6b7280;
 	font-size: 0.875em;
 	line-height: 1.4285714;
-	margin-top: 0.8571429em;
 }
 .prose code {
 	color: #111827;
@@ -145,29 +145,29 @@
 	color: #111827;
 }
 .prose pre {
-	color: #e5e7eb;
-	background-color: #1f2937;
-	overflow-x: auto;
-	font-size: 0.875em;
-	line-height: 1.7142857;
 	margin-top: 1.7142857em;
 	margin-bottom: 1.7142857em;
 	border-radius: 0.375rem;
+	background-color: #1f2937;
 	padding-top: 0.8571429em;
 	padding-right: 1.1428571em;
 	padding-bottom: 0.8571429em;
 	padding-left: 1.1428571em;
+	overflow-x: auto;
+	color: #e5e7eb;
+	font-size: 0.875em;
+	line-height: 1.7142857;
 }
 .prose pre code {
-	background-color: transparent;
 	border-width: 0;
 	border-radius: 0;
+	background-color: transparent;
 	padding: 0;
-	font-weight: 400;
 	color: inherit;
+	font-weight: 400;
 	font-size: inherit;
-	font-family: inherit;
 	line-height: inherit;
+	font-family: inherit;
 }
 .prose pre code::before {
 	content: none;
@@ -176,19 +176,19 @@
 	content: none;
 }
 .prose table {
-	width: 100%;
-	table-layout: auto;
-	text-align: left;
 	margin-top: 2em;
 	margin-bottom: 2em;
+	width: 100%;
+	table-layout: auto;
 	font-size: 0.875em;
 	line-height: 1.7142857;
+	text-align: left;
 }
 .prose thead {
-	color: #111827;
-	font-weight: 600;
 	border-bottom-width: 1px;
 	border-bottom-color: #d1d5db;
+	color: #111827;
+	font-weight: 600;
 }
 .prose thead th {
 	vertical-align: bottom;
@@ -314,10 +314,10 @@
 	margin-bottom: 1.1428571em;
 }
 .prose-sm [class~="lead"] {
-	font-size: 1.2857143em;
-	line-height: 1.5555556;
 	margin-top: 0.8888889em;
 	margin-bottom: 0.8888889em;
+	font-size: 1.2857143em;
+	line-height: 1.5555556;
 }
 .prose-sm blockquote {
 	margin-top: 1.3333333em;
@@ -325,21 +325,21 @@
 	padding-left: 1.1111111em;
 }
 .prose-sm h1 {
-	font-size: 2.1428571em;
 	margin-top: 0;
 	margin-bottom: 0.8em;
+	font-size: 2.1428571em;
 	line-height: 1.2;
 }
 .prose-sm h2 {
-	font-size: 1.4285714em;
 	margin-top: 1.6em;
 	margin-bottom: 0.8em;
+	font-size: 1.4285714em;
 	line-height: 1.4;
 }
 .prose-sm h3 {
-	font-size: 1.2857143em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.4444444em;
+	font-size: 1.2857143em;
 	line-height: 1.5555556;
 }
 .prose-sm h4 {
@@ -364,9 +364,9 @@
 	margin-bottom: 0;
 }
 .prose-sm figure figcaption {
+	margin-top: 0.6666667em;
 	font-size: 0.8571429em;
 	line-height: 1.3333333;
-	margin-top: 0.6666667em;
 }
 .prose-sm code {
 	font-size: 0.8571429em;
@@ -378,8 +378,6 @@
 	font-size: 0.8888889em;
 }
 .prose-sm pre {
-	font-size: 0.8571429em;
-	line-height: 1.6666667;
 	margin-top: 1.6666667em;
 	margin-bottom: 1.6666667em;
 	border-radius: 0.25rem;
@@ -387,6 +385,8 @@
 	padding-right: 1em;
 	padding-bottom: 0.6666667em;
 	padding-left: 1em;
+	font-size: 0.8571429em;
+	line-height: 1.6666667;
 }
 .prose-sm ol {
 	margin-top: 1.1428571em;
@@ -410,10 +410,10 @@
 	padding-left: 1.5714286em;
 }
 .prose-sm ul > li::before {
-	height: 0.3571429em;
-	width: 0.3571429em;
 	top: calc(0.8571429em - 0.1785714em);
 	left: 0.2142857em;
+	width: 0.3571429em;
+	height: 0.3571429em;
 }
 .prose-sm > ul > li p {
 	margin-top: 0.5714286em;
@@ -496,10 +496,10 @@
 	margin-bottom: 1.3333333em;
 }
 .prose-lg [class~="lead"] {
-	font-size: 1.2222222em;
-	line-height: 1.4545455;
 	margin-top: 1.0909091em;
 	margin-bottom: 1.0909091em;
+	font-size: 1.2222222em;
+	line-height: 1.4545455;
 }
 .prose-lg blockquote {
 	margin-top: 1.6666667em;
@@ -507,21 +507,21 @@
 	padding-left: 1em;
 }
 .prose-lg h1 {
-	font-size: 2.6666667em;
 	margin-top: 0;
 	margin-bottom: 0.8333333em;
+	font-size: 2.6666667em;
 	line-height: 1;
 }
 .prose-lg h2 {
-	font-size: 1.6666667em;
 	margin-top: 1.8666667em;
 	margin-bottom: 1.0666667em;
+	font-size: 1.6666667em;
 	line-height: 1.3333333;
 }
 .prose-lg h3 {
-	font-size: 1.3333333em;
 	margin-top: 1.6666667em;
 	margin-bottom: 0.6666667em;
+	font-size: 1.3333333em;
 	line-height: 1.5;
 }
 .prose-lg h4 {
@@ -546,9 +546,9 @@
 	margin-bottom: 0;
 }
 .prose-lg figure figcaption {
+	margin-top: 1em;
 	font-size: 0.8888889em;
 	line-height: 1.5;
-	margin-top: 1em;
 }
 .prose-lg code {
 	font-size: 0.8888889em;
@@ -560,8 +560,6 @@
 	font-size: 0.875em;
 }
 .prose-lg pre {
-	font-size: 0.8888889em;
-	line-height: 1.75;
 	margin-top: 2em;
 	margin-bottom: 2em;
 	border-radius: 0.375rem;
@@ -569,6 +567,8 @@
 	padding-right: 1.5em;
 	padding-bottom: 1em;
 	padding-left: 1.5em;
+	font-size: 0.8888889em;
+	line-height: 1.75;
 }
 .prose-lg ol {
 	margin-top: 1.3333333em;
@@ -592,10 +592,10 @@
 	padding-left: 1.6666667em;
 }
 .prose-lg ul > li::before {
-	width: 0.3333333em;
-	height: 0.3333333em;
 	top: calc(0.8888889em - 0.1666667em);
 	left: 0.2222222em;
+	width: 0.3333333em;
+	height: 0.3333333em;
 }
 .prose-lg > ul > li p {
 	margin-top: 0.8888889em;
@@ -678,10 +678,10 @@
 	margin-bottom: 1.2em;
 }
 .prose-xl [class~="lead"] {
-	font-size: 1.2em;
-	line-height: 1.5;
 	margin-top: 1em;
 	margin-bottom: 1em;
+	font-size: 1.2em;
+	line-height: 1.5;
 }
 .prose-xl blockquote {
 	margin-top: 1.6em;
@@ -689,21 +689,21 @@
 	padding-left: 1.0666667em;
 }
 .prose-xl h1 {
-	font-size: 2.8em;
 	margin-top: 0;
 	margin-bottom: 0.8571429em;
+	font-size: 2.8em;
 	line-height: 1;
 }
 .prose-xl h2 {
-	font-size: 1.8em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.8888889em;
+	font-size: 1.8em;
 	line-height: 1.1111111;
 }
 .prose-xl h3 {
-	font-size: 1.5em;
 	margin-top: 1.6em;
 	margin-bottom: 0.6666667em;
+	font-size: 1.5em;
 	line-height: 1.3333333;
 }
 .prose-xl h4 {
@@ -728,9 +728,9 @@
 	margin-bottom: 0;
 }
 .prose-xl figure figcaption {
+	margin-top: 1em;
 	font-size: 0.9em;
 	line-height: 1.5555556;
-	margin-top: 1em;
 }
 .prose-xl code {
 	font-size: 0.9em;
@@ -742,8 +742,6 @@
 	font-size: 0.9em;
 }
 .prose-xl pre {
-	font-size: 0.9em;
-	line-height: 1.7777778;
 	margin-top: 2em;
 	margin-bottom: 2em;
 	border-radius: 0.5rem;
@@ -751,6 +749,8 @@
 	padding-right: 1.3333333em;
 	padding-bottom: 1.1111111em;
 	padding-left: 1.3333333em;
+	font-size: 0.9em;
+	line-height: 1.7777778;
 }
 .prose-xl ol {
 	margin-top: 1.2em;
@@ -774,10 +774,10 @@
 	padding-left: 1.8em;
 }
 .prose-xl ul > li::before {
-	width: 0.35em;
-	height: 0.35em;
 	top: calc(0.9em - 0.175em);
 	left: 0.25em;
+	width: 0.35em;
+	height: 0.35em;
 }
 .prose-xl > ul > li p {
 	margin-top: 0.8em;
@@ -860,10 +860,10 @@
 	margin-bottom: 1.3333333em;
 }
 .prose-2xl [class~="lead"] {
-	font-size: 1.25em;
-	line-height: 1.4666667;
 	margin-top: 1.0666667em;
 	margin-bottom: 1.0666667em;
+	font-size: 1.25em;
+	line-height: 1.4666667;
 }
 .prose-2xl blockquote {
 	margin-top: 1.7777778em;
@@ -871,21 +871,21 @@
 	padding-left: 1.1111111em;
 }
 .prose-2xl h1 {
-	font-size: 2.6666667em;
 	margin-top: 0;
 	margin-bottom: 0.875em;
+	font-size: 2.6666667em;
 	line-height: 1;
 }
 .prose-2xl h2 {
-	font-size: 2em;
 	margin-top: 1.5em;
 	margin-bottom: 0.8333333em;
+	font-size: 2em;
 	line-height: 1.0833333;
 }
 .prose-2xl h3 {
-	font-size: 1.5em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.6666667em;
+	font-size: 1.5em;
 	line-height: 1.2222222;
 }
 .prose-2xl h4 {
@@ -910,9 +910,9 @@
 	margin-bottom: 0;
 }
 .prose-2xl figure figcaption {
+	margin-top: 1em;
 	font-size: 0.8333333em;
 	line-height: 1.6;
-	margin-top: 1em;
 }
 .prose-2xl code {
 	font-size: 0.8333333em;
@@ -924,8 +924,6 @@
 	font-size: 0.8888889em;
 }
 .prose-2xl pre {
-	font-size: 0.8333333em;
-	line-height: 1.8;
 	margin-top: 2em;
 	margin-bottom: 2em;
 	border-radius: 0.5rem;
@@ -933,6 +931,8 @@
 	padding-right: 1.6em;
 	padding-bottom: 1.2em;
 	padding-left: 1.6em;
+	font-size: 0.8333333em;
+	line-height: 1.8;
 }
 .prose-2xl ol {
 	margin-top: 1.3333333em;
@@ -956,10 +956,10 @@
 	padding-left: 1.6666667em;
 }
 .prose-2xl ul > li::before {
-	width: 0.3333333em;
-	height: 0.3333333em;
 	top: calc(0.8333333em - 0.1666667em);
 	left: 0.25em;
+	width: 0.3333333em;
+	height: 0.3333333em;
 }
 .prose-2xl > ul > li p {
 	margin-top: 0.8333333em;
@@ -1077,20 +1077,20 @@
 }
 @media (min-width: 640px) {
 	.sm\:prose {
-		color: #374151;
 		max-width: 65ch;
+		color: #374151;
 	}
 	.sm\:prose [class~="lead"] {
+		margin-top: 1.2em;
+		margin-bottom: 1.2em;
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
-		margin-top: 1.2em;
-		margin-bottom: 1.2em;
 	}
 	.sm\:prose a {
 		color: #111827;
-		text-decoration: underline;
 		font-weight: 500;
+		text-decoration: underline;
 	}
 	.sm\:prose strong {
 		color: #111827;
@@ -1128,42 +1128,42 @@
 		padding-left: 1.75em;
 	}
 	.sm\:prose ol > li::before {
-		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
-		font-weight: 400;
-		color: #6b7280;
 		left: 0;
+		content: counter(list-item, var(--list-counter-style, decimal)) ".";
+		color: #6b7280;
+		font-weight: 400;
 	}
 	.sm\:prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
 	.sm\:prose ul > li::before {
-		content: "";
 		position: absolute;
-		background-color: #d1d5db;
-		border-radius: 50%;
-		width: 0.375em;
-		height: 0.375em;
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
+		border-radius: 50%;
+		background-color: #d1d5db;
+		width: 0.375em;
+		height: 0.375em;
+		content: "";
 	}
 	.sm\:prose hr {
-		border-color: #e5e7eb;
-		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
+		border-top-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.sm\:prose blockquote {
-		font-weight: 500;
-		font-style: italic;
-		color: #111827;
-		border-left-width: 0.25rem;
-		border-left-color: #e5e7eb;
-		quotes: "\201C""\201D""\2018""\2019";
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
+		border-left-width: 0.25rem;
+		border-left-color: #e5e7eb;
 		padding-left: 1em;
+		quotes: "\201C""\201D""\2018""\2019";
+		color: #111827;
+		font-style: italic;
+		font-weight: 500;
 	}
 	.sm\:prose blockquote p:first-of-type::before {
 		content: open-quote;
@@ -1172,41 +1172,41 @@
 		content: close-quote;
 	}
 	.sm\:prose h1 {
+		margin-top: 0;
+		margin-bottom: 0.8888889em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
-		margin-top: 0;
-		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
 	.sm\:prose h2 {
+		margin-top: 2em;
+		margin-bottom: 1em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
-		margin-top: 2em;
-		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
 	.sm\:prose h3 {
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
-		margin-top: 1.6em;
-		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
 	.sm\:prose h4 {
-		color: #111827;
-		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
+		color: #111827;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 	.sm\:prose figure figcaption {
+		margin-top: 0.8571429em;
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
-		margin-top: 0.8571429em;
 	}
 	.sm\:prose code {
 		color: #111827;
@@ -1223,29 +1223,29 @@
 		color: #111827;
 	}
 	.sm\:prose pre {
-		color: #e5e7eb;
-		background-color: #1f2937;
-		overflow-x: auto;
-		font-size: 0.875em;
-		line-height: 1.7142857;
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
+		background-color: #1f2937;
 		padding-top: 0.8571429em;
 		padding-right: 1.1428571em;
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
+		overflow-x: auto;
+		color: #e5e7eb;
+		font-size: 0.875em;
+		line-height: 1.7142857;
 	}
 	.sm\:prose pre code {
-		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 0;
-		font-weight: 400;
 		color: inherit;
+		font-weight: 400;
 		font-size: inherit;
-		font-family: inherit;
 		line-height: inherit;
+		font-family: inherit;
 	}
 	.sm\:prose pre code::before {
 		content: none;
@@ -1254,19 +1254,19 @@
 		content: none;
 	}
 	.sm\:prose table {
-		width: 100%;
-		table-layout: auto;
-		text-align: left;
 		margin-top: 2em;
 		margin-bottom: 2em;
+		width: 100%;
+		table-layout: auto;
 		font-size: 0.875em;
 		line-height: 1.7142857;
+		text-align: left;
 	}
 	.sm\:prose thead {
-		color: #111827;
-		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
+		color: #111827;
+		font-weight: 600;
 	}
 	.sm\:prose thead th {
 		vertical-align: bottom;
@@ -1392,10 +1392,10 @@
 		margin-bottom: 1.1428571em;
 	}
 	.sm\:prose-sm [class~="lead"] {
-		font-size: 1.2857143em;
-		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.2857143em;
+		line-height: 1.5555556;
 	}
 	.sm\:prose-sm blockquote {
 		margin-top: 1.3333333em;
@@ -1403,21 +1403,21 @@
 		padding-left: 1.1111111em;
 	}
 	.sm\:prose-sm h1 {
-		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
+		font-size: 2.1428571em;
 		line-height: 1.2;
 	}
 	.sm\:prose-sm h2 {
-		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
+		font-size: 1.4285714em;
 		line-height: 1.4;
 	}
 	.sm\:prose-sm h3 {
-		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
+		font-size: 1.2857143em;
 		line-height: 1.5555556;
 	}
 	.sm\:prose-sm h4 {
@@ -1442,9 +1442,9 @@
 		margin-bottom: 0;
 	}
 	.sm\:prose-sm figure figcaption {
+		margin-top: 0.6666667em;
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
-		margin-top: 0.6666667em;
 	}
 	.sm\:prose-sm code {
 		font-size: 0.8571429em;
@@ -1456,8 +1456,6 @@
 		font-size: 0.8888889em;
 	}
 	.sm\:prose-sm pre {
-		font-size: 0.8571429em;
-		line-height: 1.6666667;
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		border-radius: 0.25rem;
@@ -1465,6 +1463,8 @@
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
+		font-size: 0.8571429em;
+		line-height: 1.6666667;
 	}
 	.sm\:prose-sm ol {
 		margin-top: 1.1428571em;
@@ -1488,10 +1488,10 @@
 		padding-left: 1.5714286em;
 	}
 	.sm\:prose-sm ul > li::before {
-		height: 0.3571429em;
-		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
+		width: 0.3571429em;
+		height: 0.3571429em;
 	}
 	.sm\:prose-sm > ul > li p {
 		margin-top: 0.5714286em;
@@ -1574,10 +1574,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.sm\:prose-lg [class~="lead"] {
-		font-size: 1.2222222em;
-		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
+		font-size: 1.2222222em;
+		line-height: 1.4545455;
 	}
 	.sm\:prose-lg blockquote {
 		margin-top: 1.6666667em;
@@ -1585,21 +1585,21 @@
 		padding-left: 1em;
 	}
 	.sm\:prose-lg h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.sm\:prose-lg h2 {
-		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.6666667em;
 		line-height: 1.3333333;
 	}
 	.sm\:prose-lg h3 {
-		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.3333333em;
 		line-height: 1.5;
 	}
 	.sm\:prose-lg h4 {
@@ -1624,9 +1624,9 @@
 		margin-bottom: 0;
 	}
 	.sm\:prose-lg figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8888889em;
 		line-height: 1.5;
-		margin-top: 1em;
 	}
 	.sm\:prose-lg code {
 		font-size: 0.8888889em;
@@ -1638,8 +1638,6 @@
 		font-size: 0.875em;
 	}
 	.sm\:prose-lg pre {
-		font-size: 0.8888889em;
-		line-height: 1.75;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.375rem;
@@ -1647,6 +1645,8 @@
 		padding-right: 1.5em;
 		padding-bottom: 1em;
 		padding-left: 1.5em;
+		font-size: 0.8888889em;
+		line-height: 1.75;
 	}
 	.sm\:prose-lg ol {
 		margin-top: 1.3333333em;
@@ -1670,10 +1670,10 @@
 		padding-left: 1.6666667em;
 	}
 	.sm\:prose-lg ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.sm\:prose-lg > ul > li p {
 		margin-top: 0.8888889em;
@@ -1756,10 +1756,10 @@
 		margin-bottom: 1.2em;
 	}
 	.sm\:prose-xl [class~="lead"] {
-		font-size: 1.2em;
-		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
+		font-size: 1.2em;
+		line-height: 1.5;
 	}
 	.sm\:prose-xl blockquote {
 		margin-top: 1.6em;
@@ -1767,21 +1767,21 @@
 		padding-left: 1.0666667em;
 	}
 	.sm\:prose-xl h1 {
-		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
+		font-size: 2.8em;
 		line-height: 1;
 	}
 	.sm\:prose-xl h2 {
-		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.8em;
 		line-height: 1.1111111;
 	}
 	.sm\:prose-xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.3333333;
 	}
 	.sm\:prose-xl h4 {
@@ -1806,9 +1806,9 @@
 		margin-bottom: 0;
 	}
 	.sm\:prose-xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.9em;
 		line-height: 1.5555556;
-		margin-top: 1em;
 	}
 	.sm\:prose-xl code {
 		font-size: 0.9em;
@@ -1820,8 +1820,6 @@
 		font-size: 0.9em;
 	}
 	.sm\:prose-xl pre {
-		font-size: 0.9em;
-		line-height: 1.7777778;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -1829,6 +1827,8 @@
 		padding-right: 1.3333333em;
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
+		font-size: 0.9em;
+		line-height: 1.7777778;
 	}
 	.sm\:prose-xl ol {
 		margin-top: 1.2em;
@@ -1852,10 +1852,10 @@
 		padding-left: 1.8em;
 	}
 	.sm\:prose-xl ul > li::before {
-		width: 0.35em;
-		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
+		width: 0.35em;
+		height: 0.35em;
 	}
 	.sm\:prose-xl > ul > li p {
 		margin-top: 0.8em;
@@ -1938,10 +1938,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.sm\:prose-2xl [class~="lead"] {
-		font-size: 1.25em;
-		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.25em;
+		line-height: 1.4666667;
 	}
 	.sm\:prose-2xl blockquote {
 		margin-top: 1.7777778em;
@@ -1949,21 +1949,21 @@
 		padding-left: 1.1111111em;
 	}
 	.sm\:prose-2xl h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.sm\:prose-2xl h2 {
-		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
+		font-size: 2em;
 		line-height: 1.0833333;
 	}
 	.sm\:prose-2xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.2222222;
 	}
 	.sm\:prose-2xl h4 {
@@ -1988,9 +1988,9 @@
 		margin-bottom: 0;
 	}
 	.sm\:prose-2xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8333333em;
 		line-height: 1.6;
-		margin-top: 1em;
 	}
 	.sm\:prose-2xl code {
 		font-size: 0.8333333em;
@@ -2002,8 +2002,6 @@
 		font-size: 0.8888889em;
 	}
 	.sm\:prose-2xl pre {
-		font-size: 0.8333333em;
-		line-height: 1.8;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -2011,6 +2009,8 @@
 		padding-right: 1.6em;
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
+		font-size: 0.8333333em;
+		line-height: 1.8;
 	}
 	.sm\:prose-2xl ol {
 		margin-top: 1.3333333em;
@@ -2034,10 +2034,10 @@
 		padding-left: 1.6666667em;
 	}
 	.sm\:prose-2xl ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.sm\:prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
@@ -2156,20 +2156,20 @@
 }
 @media (min-width: 768px) {
 	.md\:prose {
-		color: #374151;
 		max-width: 65ch;
+		color: #374151;
 	}
 	.md\:prose [class~="lead"] {
+		margin-top: 1.2em;
+		margin-bottom: 1.2em;
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
-		margin-top: 1.2em;
-		margin-bottom: 1.2em;
 	}
 	.md\:prose a {
 		color: #111827;
-		text-decoration: underline;
 		font-weight: 500;
+		text-decoration: underline;
 	}
 	.md\:prose strong {
 		color: #111827;
@@ -2207,42 +2207,42 @@
 		padding-left: 1.75em;
 	}
 	.md\:prose ol > li::before {
-		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
-		font-weight: 400;
-		color: #6b7280;
 		left: 0;
+		content: counter(list-item, var(--list-counter-style, decimal)) ".";
+		color: #6b7280;
+		font-weight: 400;
 	}
 	.md\:prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
 	.md\:prose ul > li::before {
-		content: "";
 		position: absolute;
-		background-color: #d1d5db;
-		border-radius: 50%;
-		width: 0.375em;
-		height: 0.375em;
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
+		border-radius: 50%;
+		background-color: #d1d5db;
+		width: 0.375em;
+		height: 0.375em;
+		content: "";
 	}
 	.md\:prose hr {
-		border-color: #e5e7eb;
-		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
+		border-top-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.md\:prose blockquote {
-		font-weight: 500;
-		font-style: italic;
-		color: #111827;
-		border-left-width: 0.25rem;
-		border-left-color: #e5e7eb;
-		quotes: "\201C""\201D""\2018""\2019";
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
+		border-left-width: 0.25rem;
+		border-left-color: #e5e7eb;
 		padding-left: 1em;
+		quotes: "\201C""\201D""\2018""\2019";
+		color: #111827;
+		font-style: italic;
+		font-weight: 500;
 	}
 	.md\:prose blockquote p:first-of-type::before {
 		content: open-quote;
@@ -2251,41 +2251,41 @@
 		content: close-quote;
 	}
 	.md\:prose h1 {
+		margin-top: 0;
+		margin-bottom: 0.8888889em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
-		margin-top: 0;
-		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
 	.md\:prose h2 {
+		margin-top: 2em;
+		margin-bottom: 1em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
-		margin-top: 2em;
-		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
 	.md\:prose h3 {
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
-		margin-top: 1.6em;
-		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
 	.md\:prose h4 {
-		color: #111827;
-		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
+		color: #111827;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 	.md\:prose figure figcaption {
+		margin-top: 0.8571429em;
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
-		margin-top: 0.8571429em;
 	}
 	.md\:prose code {
 		color: #111827;
@@ -2302,29 +2302,29 @@
 		color: #111827;
 	}
 	.md\:prose pre {
-		color: #e5e7eb;
-		background-color: #1f2937;
-		overflow-x: auto;
-		font-size: 0.875em;
-		line-height: 1.7142857;
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
+		background-color: #1f2937;
 		padding-top: 0.8571429em;
 		padding-right: 1.1428571em;
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
+		overflow-x: auto;
+		color: #e5e7eb;
+		font-size: 0.875em;
+		line-height: 1.7142857;
 	}
 	.md\:prose pre code {
-		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 0;
-		font-weight: 400;
 		color: inherit;
+		font-weight: 400;
 		font-size: inherit;
-		font-family: inherit;
 		line-height: inherit;
+		font-family: inherit;
 	}
 	.md\:prose pre code::before {
 		content: none;
@@ -2333,19 +2333,19 @@
 		content: none;
 	}
 	.md\:prose table {
-		width: 100%;
-		table-layout: auto;
-		text-align: left;
 		margin-top: 2em;
 		margin-bottom: 2em;
+		width: 100%;
+		table-layout: auto;
 		font-size: 0.875em;
 		line-height: 1.7142857;
+		text-align: left;
 	}
 	.md\:prose thead {
-		color: #111827;
-		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
+		color: #111827;
+		font-weight: 600;
 	}
 	.md\:prose thead th {
 		vertical-align: bottom;
@@ -2471,10 +2471,10 @@
 		margin-bottom: 1.1428571em;
 	}
 	.md\:prose-sm [class~="lead"] {
-		font-size: 1.2857143em;
-		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.2857143em;
+		line-height: 1.5555556;
 	}
 	.md\:prose-sm blockquote {
 		margin-top: 1.3333333em;
@@ -2482,21 +2482,21 @@
 		padding-left: 1.1111111em;
 	}
 	.md\:prose-sm h1 {
-		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
+		font-size: 2.1428571em;
 		line-height: 1.2;
 	}
 	.md\:prose-sm h2 {
-		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
+		font-size: 1.4285714em;
 		line-height: 1.4;
 	}
 	.md\:prose-sm h3 {
-		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
+		font-size: 1.2857143em;
 		line-height: 1.5555556;
 	}
 	.md\:prose-sm h4 {
@@ -2521,9 +2521,9 @@
 		margin-bottom: 0;
 	}
 	.md\:prose-sm figure figcaption {
+		margin-top: 0.6666667em;
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
-		margin-top: 0.6666667em;
 	}
 	.md\:prose-sm code {
 		font-size: 0.8571429em;
@@ -2535,8 +2535,6 @@
 		font-size: 0.8888889em;
 	}
 	.md\:prose-sm pre {
-		font-size: 0.8571429em;
-		line-height: 1.6666667;
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		border-radius: 0.25rem;
@@ -2544,6 +2542,8 @@
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
+		font-size: 0.8571429em;
+		line-height: 1.6666667;
 	}
 	.md\:prose-sm ol {
 		margin-top: 1.1428571em;
@@ -2567,10 +2567,10 @@
 		padding-left: 1.5714286em;
 	}
 	.md\:prose-sm ul > li::before {
-		height: 0.3571429em;
-		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
+		width: 0.3571429em;
+		height: 0.3571429em;
 	}
 	.md\:prose-sm > ul > li p {
 		margin-top: 0.5714286em;
@@ -2653,10 +2653,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.md\:prose-lg [class~="lead"] {
-		font-size: 1.2222222em;
-		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
+		font-size: 1.2222222em;
+		line-height: 1.4545455;
 	}
 	.md\:prose-lg blockquote {
 		margin-top: 1.6666667em;
@@ -2664,21 +2664,21 @@
 		padding-left: 1em;
 	}
 	.md\:prose-lg h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.md\:prose-lg h2 {
-		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.6666667em;
 		line-height: 1.3333333;
 	}
 	.md\:prose-lg h3 {
-		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.3333333em;
 		line-height: 1.5;
 	}
 	.md\:prose-lg h4 {
@@ -2703,9 +2703,9 @@
 		margin-bottom: 0;
 	}
 	.md\:prose-lg figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8888889em;
 		line-height: 1.5;
-		margin-top: 1em;
 	}
 	.md\:prose-lg code {
 		font-size: 0.8888889em;
@@ -2717,8 +2717,6 @@
 		font-size: 0.875em;
 	}
 	.md\:prose-lg pre {
-		font-size: 0.8888889em;
-		line-height: 1.75;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.375rem;
@@ -2726,6 +2724,8 @@
 		padding-right: 1.5em;
 		padding-bottom: 1em;
 		padding-left: 1.5em;
+		font-size: 0.8888889em;
+		line-height: 1.75;
 	}
 	.md\:prose-lg ol {
 		margin-top: 1.3333333em;
@@ -2749,10 +2749,10 @@
 		padding-left: 1.6666667em;
 	}
 	.md\:prose-lg ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.md\:prose-lg > ul > li p {
 		margin-top: 0.8888889em;
@@ -2835,10 +2835,10 @@
 		margin-bottom: 1.2em;
 	}
 	.md\:prose-xl [class~="lead"] {
-		font-size: 1.2em;
-		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
+		font-size: 1.2em;
+		line-height: 1.5;
 	}
 	.md\:prose-xl blockquote {
 		margin-top: 1.6em;
@@ -2846,21 +2846,21 @@
 		padding-left: 1.0666667em;
 	}
 	.md\:prose-xl h1 {
-		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
+		font-size: 2.8em;
 		line-height: 1;
 	}
 	.md\:prose-xl h2 {
-		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.8em;
 		line-height: 1.1111111;
 	}
 	.md\:prose-xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.3333333;
 	}
 	.md\:prose-xl h4 {
@@ -2885,9 +2885,9 @@
 		margin-bottom: 0;
 	}
 	.md\:prose-xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.9em;
 		line-height: 1.5555556;
-		margin-top: 1em;
 	}
 	.md\:prose-xl code {
 		font-size: 0.9em;
@@ -2899,8 +2899,6 @@
 		font-size: 0.9em;
 	}
 	.md\:prose-xl pre {
-		font-size: 0.9em;
-		line-height: 1.7777778;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -2908,6 +2906,8 @@
 		padding-right: 1.3333333em;
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
+		font-size: 0.9em;
+		line-height: 1.7777778;
 	}
 	.md\:prose-xl ol {
 		margin-top: 1.2em;
@@ -2931,10 +2931,10 @@
 		padding-left: 1.8em;
 	}
 	.md\:prose-xl ul > li::before {
-		width: 0.35em;
-		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
+		width: 0.35em;
+		height: 0.35em;
 	}
 	.md\:prose-xl > ul > li p {
 		margin-top: 0.8em;
@@ -3017,10 +3017,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.md\:prose-2xl [class~="lead"] {
-		font-size: 1.25em;
-		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.25em;
+		line-height: 1.4666667;
 	}
 	.md\:prose-2xl blockquote {
 		margin-top: 1.7777778em;
@@ -3028,21 +3028,21 @@
 		padding-left: 1.1111111em;
 	}
 	.md\:prose-2xl h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.md\:prose-2xl h2 {
-		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
+		font-size: 2em;
 		line-height: 1.0833333;
 	}
 	.md\:prose-2xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.2222222;
 	}
 	.md\:prose-2xl h4 {
@@ -3067,9 +3067,9 @@
 		margin-bottom: 0;
 	}
 	.md\:prose-2xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8333333em;
 		line-height: 1.6;
-		margin-top: 1em;
 	}
 	.md\:prose-2xl code {
 		font-size: 0.8333333em;
@@ -3081,8 +3081,6 @@
 		font-size: 0.8888889em;
 	}
 	.md\:prose-2xl pre {
-		font-size: 0.8333333em;
-		line-height: 1.8;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -3090,6 +3088,8 @@
 		padding-right: 1.6em;
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
+		font-size: 0.8333333em;
+		line-height: 1.8;
 	}
 	.md\:prose-2xl ol {
 		margin-top: 1.3333333em;
@@ -3113,10 +3113,10 @@
 		padding-left: 1.6666667em;
 	}
 	.md\:prose-2xl ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.md\:prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
@@ -3235,20 +3235,20 @@
 }
 @media (min-width: 1024px) {
 	.lg\:prose {
-		color: #374151;
 		max-width: 65ch;
+		color: #374151;
 	}
 	.lg\:prose [class~="lead"] {
+		margin-top: 1.2em;
+		margin-bottom: 1.2em;
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
-		margin-top: 1.2em;
-		margin-bottom: 1.2em;
 	}
 	.lg\:prose a {
 		color: #111827;
-		text-decoration: underline;
 		font-weight: 500;
+		text-decoration: underline;
 	}
 	.lg\:prose strong {
 		color: #111827;
@@ -3286,42 +3286,42 @@
 		padding-left: 1.75em;
 	}
 	.lg\:prose ol > li::before {
-		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
-		font-weight: 400;
-		color: #6b7280;
 		left: 0;
+		content: counter(list-item, var(--list-counter-style, decimal)) ".";
+		color: #6b7280;
+		font-weight: 400;
 	}
 	.lg\:prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
 	.lg\:prose ul > li::before {
-		content: "";
 		position: absolute;
-		background-color: #d1d5db;
-		border-radius: 50%;
-		width: 0.375em;
-		height: 0.375em;
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
+		border-radius: 50%;
+		background-color: #d1d5db;
+		width: 0.375em;
+		height: 0.375em;
+		content: "";
 	}
 	.lg\:prose hr {
-		border-color: #e5e7eb;
-		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
+		border-top-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.lg\:prose blockquote {
-		font-weight: 500;
-		font-style: italic;
-		color: #111827;
-		border-left-width: 0.25rem;
-		border-left-color: #e5e7eb;
-		quotes: "\201C""\201D""\2018""\2019";
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
+		border-left-width: 0.25rem;
+		border-left-color: #e5e7eb;
 		padding-left: 1em;
+		quotes: "\201C""\201D""\2018""\2019";
+		color: #111827;
+		font-style: italic;
+		font-weight: 500;
 	}
 	.lg\:prose blockquote p:first-of-type::before {
 		content: open-quote;
@@ -3330,41 +3330,41 @@
 		content: close-quote;
 	}
 	.lg\:prose h1 {
+		margin-top: 0;
+		margin-bottom: 0.8888889em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
-		margin-top: 0;
-		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
 	.lg\:prose h2 {
+		margin-top: 2em;
+		margin-bottom: 1em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
-		margin-top: 2em;
-		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
 	.lg\:prose h3 {
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
-		margin-top: 1.6em;
-		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
 	.lg\:prose h4 {
-		color: #111827;
-		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
+		color: #111827;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 	.lg\:prose figure figcaption {
+		margin-top: 0.8571429em;
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
-		margin-top: 0.8571429em;
 	}
 	.lg\:prose code {
 		color: #111827;
@@ -3381,29 +3381,29 @@
 		color: #111827;
 	}
 	.lg\:prose pre {
-		color: #e5e7eb;
-		background-color: #1f2937;
-		overflow-x: auto;
-		font-size: 0.875em;
-		line-height: 1.7142857;
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
+		background-color: #1f2937;
 		padding-top: 0.8571429em;
 		padding-right: 1.1428571em;
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
+		overflow-x: auto;
+		color: #e5e7eb;
+		font-size: 0.875em;
+		line-height: 1.7142857;
 	}
 	.lg\:prose pre code {
-		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 0;
-		font-weight: 400;
 		color: inherit;
+		font-weight: 400;
 		font-size: inherit;
-		font-family: inherit;
 		line-height: inherit;
+		font-family: inherit;
 	}
 	.lg\:prose pre code::before {
 		content: none;
@@ -3412,19 +3412,19 @@
 		content: none;
 	}
 	.lg\:prose table {
-		width: 100%;
-		table-layout: auto;
-		text-align: left;
 		margin-top: 2em;
 		margin-bottom: 2em;
+		width: 100%;
+		table-layout: auto;
 		font-size: 0.875em;
 		line-height: 1.7142857;
+		text-align: left;
 	}
 	.lg\:prose thead {
-		color: #111827;
-		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
+		color: #111827;
+		font-weight: 600;
 	}
 	.lg\:prose thead th {
 		vertical-align: bottom;
@@ -3550,10 +3550,10 @@
 		margin-bottom: 1.1428571em;
 	}
 	.lg\:prose-sm [class~="lead"] {
-		font-size: 1.2857143em;
-		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.2857143em;
+		line-height: 1.5555556;
 	}
 	.lg\:prose-sm blockquote {
 		margin-top: 1.3333333em;
@@ -3561,21 +3561,21 @@
 		padding-left: 1.1111111em;
 	}
 	.lg\:prose-sm h1 {
-		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
+		font-size: 2.1428571em;
 		line-height: 1.2;
 	}
 	.lg\:prose-sm h2 {
-		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
+		font-size: 1.4285714em;
 		line-height: 1.4;
 	}
 	.lg\:prose-sm h3 {
-		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
+		font-size: 1.2857143em;
 		line-height: 1.5555556;
 	}
 	.lg\:prose-sm h4 {
@@ -3600,9 +3600,9 @@
 		margin-bottom: 0;
 	}
 	.lg\:prose-sm figure figcaption {
+		margin-top: 0.6666667em;
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
-		margin-top: 0.6666667em;
 	}
 	.lg\:prose-sm code {
 		font-size: 0.8571429em;
@@ -3614,8 +3614,6 @@
 		font-size: 0.8888889em;
 	}
 	.lg\:prose-sm pre {
-		font-size: 0.8571429em;
-		line-height: 1.6666667;
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		border-radius: 0.25rem;
@@ -3623,6 +3621,8 @@
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
+		font-size: 0.8571429em;
+		line-height: 1.6666667;
 	}
 	.lg\:prose-sm ol {
 		margin-top: 1.1428571em;
@@ -3646,10 +3646,10 @@
 		padding-left: 1.5714286em;
 	}
 	.lg\:prose-sm ul > li::before {
-		height: 0.3571429em;
-		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
+		width: 0.3571429em;
+		height: 0.3571429em;
 	}
 	.lg\:prose-sm > ul > li p {
 		margin-top: 0.5714286em;
@@ -3732,10 +3732,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.lg\:prose-lg [class~="lead"] {
-		font-size: 1.2222222em;
-		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
+		font-size: 1.2222222em;
+		line-height: 1.4545455;
 	}
 	.lg\:prose-lg blockquote {
 		margin-top: 1.6666667em;
@@ -3743,21 +3743,21 @@
 		padding-left: 1em;
 	}
 	.lg\:prose-lg h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.lg\:prose-lg h2 {
-		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.6666667em;
 		line-height: 1.3333333;
 	}
 	.lg\:prose-lg h3 {
-		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.3333333em;
 		line-height: 1.5;
 	}
 	.lg\:prose-lg h4 {
@@ -3782,9 +3782,9 @@
 		margin-bottom: 0;
 	}
 	.lg\:prose-lg figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8888889em;
 		line-height: 1.5;
-		margin-top: 1em;
 	}
 	.lg\:prose-lg code {
 		font-size: 0.8888889em;
@@ -3796,8 +3796,6 @@
 		font-size: 0.875em;
 	}
 	.lg\:prose-lg pre {
-		font-size: 0.8888889em;
-		line-height: 1.75;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.375rem;
@@ -3805,6 +3803,8 @@
 		padding-right: 1.5em;
 		padding-bottom: 1em;
 		padding-left: 1.5em;
+		font-size: 0.8888889em;
+		line-height: 1.75;
 	}
 	.lg\:prose-lg ol {
 		margin-top: 1.3333333em;
@@ -3828,10 +3828,10 @@
 		padding-left: 1.6666667em;
 	}
 	.lg\:prose-lg ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.lg\:prose-lg > ul > li p {
 		margin-top: 0.8888889em;
@@ -3914,10 +3914,10 @@
 		margin-bottom: 1.2em;
 	}
 	.lg\:prose-xl [class~="lead"] {
-		font-size: 1.2em;
-		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
+		font-size: 1.2em;
+		line-height: 1.5;
 	}
 	.lg\:prose-xl blockquote {
 		margin-top: 1.6em;
@@ -3925,21 +3925,21 @@
 		padding-left: 1.0666667em;
 	}
 	.lg\:prose-xl h1 {
-		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
+		font-size: 2.8em;
 		line-height: 1;
 	}
 	.lg\:prose-xl h2 {
-		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.8em;
 		line-height: 1.1111111;
 	}
 	.lg\:prose-xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.3333333;
 	}
 	.lg\:prose-xl h4 {
@@ -3964,9 +3964,9 @@
 		margin-bottom: 0;
 	}
 	.lg\:prose-xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.9em;
 		line-height: 1.5555556;
-		margin-top: 1em;
 	}
 	.lg\:prose-xl code {
 		font-size: 0.9em;
@@ -3978,8 +3978,6 @@
 		font-size: 0.9em;
 	}
 	.lg\:prose-xl pre {
-		font-size: 0.9em;
-		line-height: 1.7777778;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -3987,6 +3985,8 @@
 		padding-right: 1.3333333em;
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
+		font-size: 0.9em;
+		line-height: 1.7777778;
 	}
 	.lg\:prose-xl ol {
 		margin-top: 1.2em;
@@ -4010,10 +4010,10 @@
 		padding-left: 1.8em;
 	}
 	.lg\:prose-xl ul > li::before {
-		width: 0.35em;
-		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
+		width: 0.35em;
+		height: 0.35em;
 	}
 	.lg\:prose-xl > ul > li p {
 		margin-top: 0.8em;
@@ -4096,10 +4096,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.lg\:prose-2xl [class~="lead"] {
-		font-size: 1.25em;
-		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.25em;
+		line-height: 1.4666667;
 	}
 	.lg\:prose-2xl blockquote {
 		margin-top: 1.7777778em;
@@ -4107,21 +4107,21 @@
 		padding-left: 1.1111111em;
 	}
 	.lg\:prose-2xl h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.lg\:prose-2xl h2 {
-		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
+		font-size: 2em;
 		line-height: 1.0833333;
 	}
 	.lg\:prose-2xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.2222222;
 	}
 	.lg\:prose-2xl h4 {
@@ -4146,9 +4146,9 @@
 		margin-bottom: 0;
 	}
 	.lg\:prose-2xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8333333em;
 		line-height: 1.6;
-		margin-top: 1em;
 	}
 	.lg\:prose-2xl code {
 		font-size: 0.8333333em;
@@ -4160,8 +4160,6 @@
 		font-size: 0.8888889em;
 	}
 	.lg\:prose-2xl pre {
-		font-size: 0.8333333em;
-		line-height: 1.8;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -4169,6 +4167,8 @@
 		padding-right: 1.6em;
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
+		font-size: 0.8333333em;
+		line-height: 1.8;
 	}
 	.lg\:prose-2xl ol {
 		margin-top: 1.3333333em;
@@ -4192,10 +4192,10 @@
 		padding-left: 1.6666667em;
 	}
 	.lg\:prose-2xl ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.lg\:prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
@@ -4314,20 +4314,20 @@
 }
 @media (min-width: 1280px) {
 	.xl\:prose {
-		color: #374151;
 		max-width: 65ch;
+		color: #374151;
 	}
 	.xl\:prose [class~="lead"] {
+		margin-top: 1.2em;
+		margin-bottom: 1.2em;
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
-		margin-top: 1.2em;
-		margin-bottom: 1.2em;
 	}
 	.xl\:prose a {
 		color: #111827;
-		text-decoration: underline;
 		font-weight: 500;
+		text-decoration: underline;
 	}
 	.xl\:prose strong {
 		color: #111827;
@@ -4365,42 +4365,42 @@
 		padding-left: 1.75em;
 	}
 	.xl\:prose ol > li::before {
-		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
-		font-weight: 400;
-		color: #6b7280;
 		left: 0;
+		content: counter(list-item, var(--list-counter-style, decimal)) ".";
+		color: #6b7280;
+		font-weight: 400;
 	}
 	.xl\:prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
 	.xl\:prose ul > li::before {
-		content: "";
 		position: absolute;
-		background-color: #d1d5db;
-		border-radius: 50%;
-		width: 0.375em;
-		height: 0.375em;
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
+		border-radius: 50%;
+		background-color: #d1d5db;
+		width: 0.375em;
+		height: 0.375em;
+		content: "";
 	}
 	.xl\:prose hr {
-		border-color: #e5e7eb;
-		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
+		border-top-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.xl\:prose blockquote {
-		font-weight: 500;
-		font-style: italic;
-		color: #111827;
-		border-left-width: 0.25rem;
-		border-left-color: #e5e7eb;
-		quotes: "\201C""\201D""\2018""\2019";
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
+		border-left-width: 0.25rem;
+		border-left-color: #e5e7eb;
 		padding-left: 1em;
+		quotes: "\201C""\201D""\2018""\2019";
+		color: #111827;
+		font-style: italic;
+		font-weight: 500;
 	}
 	.xl\:prose blockquote p:first-of-type::before {
 		content: open-quote;
@@ -4409,41 +4409,41 @@
 		content: close-quote;
 	}
 	.xl\:prose h1 {
+		margin-top: 0;
+		margin-bottom: 0.8888889em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
-		margin-top: 0;
-		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
 	.xl\:prose h2 {
+		margin-top: 2em;
+		margin-bottom: 1em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
-		margin-top: 2em;
-		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
 	.xl\:prose h3 {
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
-		margin-top: 1.6em;
-		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
 	.xl\:prose h4 {
-		color: #111827;
-		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
+		color: #111827;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 	.xl\:prose figure figcaption {
+		margin-top: 0.8571429em;
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
-		margin-top: 0.8571429em;
 	}
 	.xl\:prose code {
 		color: #111827;
@@ -4460,29 +4460,29 @@
 		color: #111827;
 	}
 	.xl\:prose pre {
-		color: #e5e7eb;
-		background-color: #1f2937;
-		overflow-x: auto;
-		font-size: 0.875em;
-		line-height: 1.7142857;
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
+		background-color: #1f2937;
 		padding-top: 0.8571429em;
 		padding-right: 1.1428571em;
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
+		overflow-x: auto;
+		color: #e5e7eb;
+		font-size: 0.875em;
+		line-height: 1.7142857;
 	}
 	.xl\:prose pre code {
-		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 0;
-		font-weight: 400;
 		color: inherit;
+		font-weight: 400;
 		font-size: inherit;
-		font-family: inherit;
 		line-height: inherit;
+		font-family: inherit;
 	}
 	.xl\:prose pre code::before {
 		content: none;
@@ -4491,19 +4491,19 @@
 		content: none;
 	}
 	.xl\:prose table {
-		width: 100%;
-		table-layout: auto;
-		text-align: left;
 		margin-top: 2em;
 		margin-bottom: 2em;
+		width: 100%;
+		table-layout: auto;
 		font-size: 0.875em;
 		line-height: 1.7142857;
+		text-align: left;
 	}
 	.xl\:prose thead {
-		color: #111827;
-		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
+		color: #111827;
+		font-weight: 600;
 	}
 	.xl\:prose thead th {
 		vertical-align: bottom;
@@ -4629,10 +4629,10 @@
 		margin-bottom: 1.1428571em;
 	}
 	.xl\:prose-sm [class~="lead"] {
-		font-size: 1.2857143em;
-		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.2857143em;
+		line-height: 1.5555556;
 	}
 	.xl\:prose-sm blockquote {
 		margin-top: 1.3333333em;
@@ -4640,21 +4640,21 @@
 		padding-left: 1.1111111em;
 	}
 	.xl\:prose-sm h1 {
-		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
+		font-size: 2.1428571em;
 		line-height: 1.2;
 	}
 	.xl\:prose-sm h2 {
-		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
+		font-size: 1.4285714em;
 		line-height: 1.4;
 	}
 	.xl\:prose-sm h3 {
-		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
+		font-size: 1.2857143em;
 		line-height: 1.5555556;
 	}
 	.xl\:prose-sm h4 {
@@ -4679,9 +4679,9 @@
 		margin-bottom: 0;
 	}
 	.xl\:prose-sm figure figcaption {
+		margin-top: 0.6666667em;
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
-		margin-top: 0.6666667em;
 	}
 	.xl\:prose-sm code {
 		font-size: 0.8571429em;
@@ -4693,8 +4693,6 @@
 		font-size: 0.8888889em;
 	}
 	.xl\:prose-sm pre {
-		font-size: 0.8571429em;
-		line-height: 1.6666667;
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		border-radius: 0.25rem;
@@ -4702,6 +4700,8 @@
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
+		font-size: 0.8571429em;
+		line-height: 1.6666667;
 	}
 	.xl\:prose-sm ol {
 		margin-top: 1.1428571em;
@@ -4725,10 +4725,10 @@
 		padding-left: 1.5714286em;
 	}
 	.xl\:prose-sm ul > li::before {
-		height: 0.3571429em;
-		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
+		width: 0.3571429em;
+		height: 0.3571429em;
 	}
 	.xl\:prose-sm > ul > li p {
 		margin-top: 0.5714286em;
@@ -4811,10 +4811,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.xl\:prose-lg [class~="lead"] {
-		font-size: 1.2222222em;
-		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
+		font-size: 1.2222222em;
+		line-height: 1.4545455;
 	}
 	.xl\:prose-lg blockquote {
 		margin-top: 1.6666667em;
@@ -4822,21 +4822,21 @@
 		padding-left: 1em;
 	}
 	.xl\:prose-lg h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.xl\:prose-lg h2 {
-		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.6666667em;
 		line-height: 1.3333333;
 	}
 	.xl\:prose-lg h3 {
-		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.3333333em;
 		line-height: 1.5;
 	}
 	.xl\:prose-lg h4 {
@@ -4861,9 +4861,9 @@
 		margin-bottom: 0;
 	}
 	.xl\:prose-lg figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8888889em;
 		line-height: 1.5;
-		margin-top: 1em;
 	}
 	.xl\:prose-lg code {
 		font-size: 0.8888889em;
@@ -4875,8 +4875,6 @@
 		font-size: 0.875em;
 	}
 	.xl\:prose-lg pre {
-		font-size: 0.8888889em;
-		line-height: 1.75;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.375rem;
@@ -4884,6 +4882,8 @@
 		padding-right: 1.5em;
 		padding-bottom: 1em;
 		padding-left: 1.5em;
+		font-size: 0.8888889em;
+		line-height: 1.75;
 	}
 	.xl\:prose-lg ol {
 		margin-top: 1.3333333em;
@@ -4907,10 +4907,10 @@
 		padding-left: 1.6666667em;
 	}
 	.xl\:prose-lg ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.xl\:prose-lg > ul > li p {
 		margin-top: 0.8888889em;
@@ -4993,10 +4993,10 @@
 		margin-bottom: 1.2em;
 	}
 	.xl\:prose-xl [class~="lead"] {
-		font-size: 1.2em;
-		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
+		font-size: 1.2em;
+		line-height: 1.5;
 	}
 	.xl\:prose-xl blockquote {
 		margin-top: 1.6em;
@@ -5004,21 +5004,21 @@
 		padding-left: 1.0666667em;
 	}
 	.xl\:prose-xl h1 {
-		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
+		font-size: 2.8em;
 		line-height: 1;
 	}
 	.xl\:prose-xl h2 {
-		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.8em;
 		line-height: 1.1111111;
 	}
 	.xl\:prose-xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.3333333;
 	}
 	.xl\:prose-xl h4 {
@@ -5043,9 +5043,9 @@
 		margin-bottom: 0;
 	}
 	.xl\:prose-xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.9em;
 		line-height: 1.5555556;
-		margin-top: 1em;
 	}
 	.xl\:prose-xl code {
 		font-size: 0.9em;
@@ -5057,8 +5057,6 @@
 		font-size: 0.9em;
 	}
 	.xl\:prose-xl pre {
-		font-size: 0.9em;
-		line-height: 1.7777778;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -5066,6 +5064,8 @@
 		padding-right: 1.3333333em;
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
+		font-size: 0.9em;
+		line-height: 1.7777778;
 	}
 	.xl\:prose-xl ol {
 		margin-top: 1.2em;
@@ -5089,10 +5089,10 @@
 		padding-left: 1.8em;
 	}
 	.xl\:prose-xl ul > li::before {
-		width: 0.35em;
-		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
+		width: 0.35em;
+		height: 0.35em;
 	}
 	.xl\:prose-xl > ul > li p {
 		margin-top: 0.8em;
@@ -5175,10 +5175,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.xl\:prose-2xl [class~="lead"] {
-		font-size: 1.25em;
-		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.25em;
+		line-height: 1.4666667;
 	}
 	.xl\:prose-2xl blockquote {
 		margin-top: 1.7777778em;
@@ -5186,21 +5186,21 @@
 		padding-left: 1.1111111em;
 	}
 	.xl\:prose-2xl h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.xl\:prose-2xl h2 {
-		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
+		font-size: 2em;
 		line-height: 1.0833333;
 	}
 	.xl\:prose-2xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.2222222;
 	}
 	.xl\:prose-2xl h4 {
@@ -5225,9 +5225,9 @@
 		margin-bottom: 0;
 	}
 	.xl\:prose-2xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8333333em;
 		line-height: 1.6;
-		margin-top: 1em;
 	}
 	.xl\:prose-2xl code {
 		font-size: 0.8333333em;
@@ -5239,8 +5239,6 @@
 		font-size: 0.8888889em;
 	}
 	.xl\:prose-2xl pre {
-		font-size: 0.8333333em;
-		line-height: 1.8;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -5248,6 +5246,8 @@
 		padding-right: 1.6em;
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
+		font-size: 0.8333333em;
+		line-height: 1.8;
 	}
 	.xl\:prose-2xl ol {
 		margin-top: 1.3333333em;
@@ -5271,10 +5271,10 @@
 		padding-left: 1.6666667em;
 	}
 	.xl\:prose-2xl ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.xl\:prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
@@ -5393,20 +5393,20 @@
 }
 @media (min-width: 1536px) {
 	.\32xl\:prose {
-		color: #374151;
 		max-width: 65ch;
+		color: #374151;
 	}
 	.\32xl\:prose [class~="lead"] {
+		margin-top: 1.2em;
+		margin-bottom: 1.2em;
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
-		margin-top: 1.2em;
-		margin-bottom: 1.2em;
 	}
 	.\32xl\:prose a {
 		color: #111827;
-		text-decoration: underline;
 		font-weight: 500;
+		text-decoration: underline;
 	}
 	.\32xl\:prose strong {
 		color: #111827;
@@ -5444,42 +5444,42 @@
 		padding-left: 1.75em;
 	}
 	.\32xl\:prose ol > li::before {
-		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
-		font-weight: 400;
-		color: #6b7280;
 		left: 0;
+		content: counter(list-item, var(--list-counter-style, decimal)) ".";
+		color: #6b7280;
+		font-weight: 400;
 	}
 	.\32xl\:prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
 	.\32xl\:prose ul > li::before {
-		content: "";
 		position: absolute;
-		background-color: #d1d5db;
-		border-radius: 50%;
-		width: 0.375em;
-		height: 0.375em;
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
+		border-radius: 50%;
+		background-color: #d1d5db;
+		width: 0.375em;
+		height: 0.375em;
+		content: "";
 	}
 	.\32xl\:prose hr {
-		border-color: #e5e7eb;
-		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
+		border-top-width: 1px;
+		border-color: #e5e7eb;
 	}
 	.\32xl\:prose blockquote {
-		font-weight: 500;
-		font-style: italic;
-		color: #111827;
-		border-left-width: 0.25rem;
-		border-left-color: #e5e7eb;
-		quotes: "\201C""\201D""\2018""\2019";
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
+		border-left-width: 0.25rem;
+		border-left-color: #e5e7eb;
 		padding-left: 1em;
+		quotes: "\201C""\201D""\2018""\2019";
+		color: #111827;
+		font-style: italic;
+		font-weight: 500;
 	}
 	.\32xl\:prose blockquote p:first-of-type::before {
 		content: open-quote;
@@ -5488,41 +5488,41 @@
 		content: close-quote;
 	}
 	.\32xl\:prose h1 {
+		margin-top: 0;
+		margin-bottom: 0.8888889em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
-		margin-top: 0;
-		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
 	.\32xl\:prose h2 {
+		margin-top: 2em;
+		margin-bottom: 1em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
-		margin-top: 2em;
-		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
 	.\32xl\:prose h3 {
+		margin-top: 1.6em;
+		margin-bottom: 0.6em;
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
-		margin-top: 1.6em;
-		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
 	.\32xl\:prose h4 {
-		color: #111827;
-		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
+		color: #111827;
+		font-weight: 600;
 		line-height: 1.5;
 	}
 	.\32xl\:prose figure figcaption {
+		margin-top: 0.8571429em;
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
-		margin-top: 0.8571429em;
 	}
 	.\32xl\:prose code {
 		color: #111827;
@@ -5539,29 +5539,29 @@
 		color: #111827;
 	}
 	.\32xl\:prose pre {
-		color: #e5e7eb;
-		background-color: #1f2937;
-		overflow-x: auto;
-		font-size: 0.875em;
-		line-height: 1.7142857;
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
+		background-color: #1f2937;
 		padding-top: 0.8571429em;
 		padding-right: 1.1428571em;
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
+		overflow-x: auto;
+		color: #e5e7eb;
+		font-size: 0.875em;
+		line-height: 1.7142857;
 	}
 	.\32xl\:prose pre code {
-		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
+		background-color: transparent;
 		padding: 0;
-		font-weight: 400;
 		color: inherit;
+		font-weight: 400;
 		font-size: inherit;
-		font-family: inherit;
 		line-height: inherit;
+		font-family: inherit;
 	}
 	.\32xl\:prose pre code::before {
 		content: none;
@@ -5570,19 +5570,19 @@
 		content: none;
 	}
 	.\32xl\:prose table {
-		width: 100%;
-		table-layout: auto;
-		text-align: left;
 		margin-top: 2em;
 		margin-bottom: 2em;
+		width: 100%;
+		table-layout: auto;
 		font-size: 0.875em;
 		line-height: 1.7142857;
+		text-align: left;
 	}
 	.\32xl\:prose thead {
-		color: #111827;
-		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
+		color: #111827;
+		font-weight: 600;
 	}
 	.\32xl\:prose thead th {
 		vertical-align: bottom;
@@ -5708,10 +5708,10 @@
 		margin-bottom: 1.1428571em;
 	}
 	.\32xl\:prose-sm [class~="lead"] {
-		font-size: 1.2857143em;
-		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.2857143em;
+		line-height: 1.5555556;
 	}
 	.\32xl\:prose-sm blockquote {
 		margin-top: 1.3333333em;
@@ -5719,21 +5719,21 @@
 		padding-left: 1.1111111em;
 	}
 	.\32xl\:prose-sm h1 {
-		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
+		font-size: 2.1428571em;
 		line-height: 1.2;
 	}
 	.\32xl\:prose-sm h2 {
-		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
+		font-size: 1.4285714em;
 		line-height: 1.4;
 	}
 	.\32xl\:prose-sm h3 {
-		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
+		font-size: 1.2857143em;
 		line-height: 1.5555556;
 	}
 	.\32xl\:prose-sm h4 {
@@ -5758,9 +5758,9 @@
 		margin-bottom: 0;
 	}
 	.\32xl\:prose-sm figure figcaption {
+		margin-top: 0.6666667em;
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
-		margin-top: 0.6666667em;
 	}
 	.\32xl\:prose-sm code {
 		font-size: 0.8571429em;
@@ -5772,8 +5772,6 @@
 		font-size: 0.8888889em;
 	}
 	.\32xl\:prose-sm pre {
-		font-size: 0.8571429em;
-		line-height: 1.6666667;
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		border-radius: 0.25rem;
@@ -5781,6 +5779,8 @@
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
+		font-size: 0.8571429em;
+		line-height: 1.6666667;
 	}
 	.\32xl\:prose-sm ol {
 		margin-top: 1.1428571em;
@@ -5804,10 +5804,10 @@
 		padding-left: 1.5714286em;
 	}
 	.\32xl\:prose-sm ul > li::before {
-		height: 0.3571429em;
-		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
+		width: 0.3571429em;
+		height: 0.3571429em;
 	}
 	.\32xl\:prose-sm > ul > li p {
 		margin-top: 0.5714286em;
@@ -5890,10 +5890,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.\32xl\:prose-lg [class~="lead"] {
-		font-size: 1.2222222em;
-		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
+		font-size: 1.2222222em;
+		line-height: 1.4545455;
 	}
 	.\32xl\:prose-lg blockquote {
 		margin-top: 1.6666667em;
@@ -5901,21 +5901,21 @@
 		padding-left: 1em;
 	}
 	.\32xl\:prose-lg h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.\32xl\:prose-lg h2 {
-		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.6666667em;
 		line-height: 1.3333333;
 	}
 	.\32xl\:prose-lg h3 {
-		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.3333333em;
 		line-height: 1.5;
 	}
 	.\32xl\:prose-lg h4 {
@@ -5940,9 +5940,9 @@
 		margin-bottom: 0;
 	}
 	.\32xl\:prose-lg figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8888889em;
 		line-height: 1.5;
-		margin-top: 1em;
 	}
 	.\32xl\:prose-lg code {
 		font-size: 0.8888889em;
@@ -5954,8 +5954,6 @@
 		font-size: 0.875em;
 	}
 	.\32xl\:prose-lg pre {
-		font-size: 0.8888889em;
-		line-height: 1.75;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.375rem;
@@ -5963,6 +5961,8 @@
 		padding-right: 1.5em;
 		padding-bottom: 1em;
 		padding-left: 1.5em;
+		font-size: 0.8888889em;
+		line-height: 1.75;
 	}
 	.\32xl\:prose-lg ol {
 		margin-top: 1.3333333em;
@@ -5986,10 +5986,10 @@
 		padding-left: 1.6666667em;
 	}
 	.\32xl\:prose-lg ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.\32xl\:prose-lg > ul > li p {
 		margin-top: 0.8888889em;
@@ -6072,10 +6072,10 @@
 		margin-bottom: 1.2em;
 	}
 	.\32xl\:prose-xl [class~="lead"] {
-		font-size: 1.2em;
-		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
+		font-size: 1.2em;
+		line-height: 1.5;
 	}
 	.\32xl\:prose-xl blockquote {
 		margin-top: 1.6em;
@@ -6083,21 +6083,21 @@
 		padding-left: 1.0666667em;
 	}
 	.\32xl\:prose-xl h1 {
-		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
+		font-size: 2.8em;
 		line-height: 1;
 	}
 	.\32xl\:prose-xl h2 {
-		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
+		font-size: 1.8em;
 		line-height: 1.1111111;
 	}
 	.\32xl\:prose-xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.3333333;
 	}
 	.\32xl\:prose-xl h4 {
@@ -6122,9 +6122,9 @@
 		margin-bottom: 0;
 	}
 	.\32xl\:prose-xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.9em;
 		line-height: 1.5555556;
-		margin-top: 1em;
 	}
 	.\32xl\:prose-xl code {
 		font-size: 0.9em;
@@ -6136,8 +6136,6 @@
 		font-size: 0.9em;
 	}
 	.\32xl\:prose-xl pre {
-		font-size: 0.9em;
-		line-height: 1.7777778;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -6145,6 +6143,8 @@
 		padding-right: 1.3333333em;
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
+		font-size: 0.9em;
+		line-height: 1.7777778;
 	}
 	.\32xl\:prose-xl ol {
 		margin-top: 1.2em;
@@ -6168,10 +6168,10 @@
 		padding-left: 1.8em;
 	}
 	.\32xl\:prose-xl ul > li::before {
-		width: 0.35em;
-		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
+		width: 0.35em;
+		height: 0.35em;
 	}
 	.\32xl\:prose-xl > ul > li p {
 		margin-top: 0.8em;
@@ -6254,10 +6254,10 @@
 		margin-bottom: 1.3333333em;
 	}
 	.\32xl\:prose-2xl [class~="lead"] {
-		font-size: 1.25em;
-		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
+		font-size: 1.25em;
+		line-height: 1.4666667;
 	}
 	.\32xl\:prose-2xl blockquote {
 		margin-top: 1.7777778em;
@@ -6265,21 +6265,21 @@
 		padding-left: 1.1111111em;
 	}
 	.\32xl\:prose-2xl h1 {
-		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
+		font-size: 2.6666667em;
 		line-height: 1;
 	}
 	.\32xl\:prose-2xl h2 {
-		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
+		font-size: 2em;
 		line-height: 1.0833333;
 	}
 	.\32xl\:prose-2xl h3 {
-		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
+		font-size: 1.5em;
 		line-height: 1.2222222;
 	}
 	.\32xl\:prose-2xl h4 {
@@ -6304,9 +6304,9 @@
 		margin-bottom: 0;
 	}
 	.\32xl\:prose-2xl figure figcaption {
+		margin-top: 1em;
 		font-size: 0.8333333em;
 		line-height: 1.6;
-		margin-top: 1em;
 	}
 	.\32xl\:prose-2xl code {
 		font-size: 0.8333333em;
@@ -6318,8 +6318,6 @@
 		font-size: 0.8888889em;
 	}
 	.\32xl\:prose-2xl pre {
-		font-size: 0.8333333em;
-		line-height: 1.8;
 		margin-top: 2em;
 		margin-bottom: 2em;
 		border-radius: 0.5rem;
@@ -6327,6 +6325,8 @@
 		padding-right: 1.6em;
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
+		font-size: 0.8333333em;
+		line-height: 1.8;
 	}
 	.\32xl\:prose-2xl ol {
 		margin-top: 1.3333333em;
@@ -6350,10 +6350,10 @@
 		padding-left: 1.6666667em;
 	}
 	.\32xl\:prose-2xl ul > li::before {
-		width: 0.3333333em;
-		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
+		width: 0.3333333em;
+		height: 0.3333333em;
 	}
 	.\32xl\:prose-2xl > ul > li p {
 		margin-top: 0.8333333em;

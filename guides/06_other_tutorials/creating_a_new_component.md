@@ -230,7 +230,7 @@ Let's see the steps you need to follow to create the frontend of your new compon
 		dispatch("change", val);
 	}
 
-	$: ({ classes } = get_styles(style, ["rounded", "border"]));
+	$: ({ styles } = get_styles(style, ["rounded", "border"]));
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
