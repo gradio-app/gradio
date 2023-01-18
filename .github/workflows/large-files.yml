@@ -11,14 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Check for large files
+      uses: actionsdesk/lfs-warning@v3.2
+      with:
+        filesizelimit: 5MB
 
-    - name: Find large files
-      run: |
-        for file in $(git diff-tree -r --no-commit-id --name-only HEAD); do
-          if [ $(du -k "$file" | cut -f1) -gt 5120 ]; then
-            echo "File $file is larger than 5 MB"
-            exit 1
-          fi
-        done
