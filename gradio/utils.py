@@ -710,7 +710,7 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        return requests.get(possible_url, headers=headers).ok
+        return requests.head(possible_url, headers=headers).ok
     except Exception:
         return False
 
