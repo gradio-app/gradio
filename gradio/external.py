@@ -3,7 +3,6 @@ use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 from __future__ import annotations
 
-import copy
 import json
 import re
 import uuid
