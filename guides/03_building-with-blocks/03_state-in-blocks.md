@@ -1,5 +1,7 @@
 # State in Blocks
 
+We covered [State in Interfaces](https://gradio.app/interface-state), this guide takes a look at state in Blocks, which works mostly the same. 
+
 ## Global State
 
 Global state in Blocks works the same as in Interface. Any variable created outside a function call is a reference shared between all users.
@@ -24,6 +26,8 @@ Let's see how we do each of the 3 steps listed above in this game:
 3. In `guess_letter`, we pass the value of this `State` to `used_letters`, and then return an updated value of this `State` in the return statement.
 
 With more complex apps, you will likely have many State variables storing session state in a single Blocks app.
+
+Learn more about `State` in the [docs](https://gradio.app/docs#state).
 
 
 
