@@ -1,7 +1,5 @@
 # Sharing Your App
 
-This guide will cover how sharing works with Gradio. 
-
 How to share your Gradio app: 
 
 1. [Sharing demos with the share parameter](#sharing-demos)

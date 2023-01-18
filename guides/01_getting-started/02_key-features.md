@@ -1,8 +1,6 @@
 # Key Features
 
-Let's go through some of the most popular features of Gradio! 
-
-Here are Gradio's key features: 
+Let's go through some of the most popular features of Gradio! Here are Gradio's key features: 
 
 1. [Adding example inputs](#example-inputs)
 2. [Passing custom error messages](#errors)
