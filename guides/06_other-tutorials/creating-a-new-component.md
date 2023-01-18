@@ -8,7 +8,13 @@ The purpose of this guide is to illustrate how to add a new component, which you
 
 Make sure you have followed the [CONTRIBUTING.md](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) guide in order to setup your local development environment (both client and server side).
 
-## Step 1 - Create a New Python Class and Import it
+Here's how to create a new component on Gradio: 
+
+1. [Create a New Python Class and Import it](#1-create-a-new-python-class-and-import-it)
+2. [Create a New Svelte Component](#2-create-a-new-svelte-component)
+3. [Create a New Demo](#3-create-a-new-demo)
+
+## 1. Create a New Python Class and Import it
 
 The first thing to do is to create a new class within the [components.py](https://github.com/gradio-app/gradio/blob/main/gradio/components.py) file. This Python class should inherit from a list of base components and should be placed within the file in the correct section with respect to the type of component you want to add (e.g. input, output or static components).
 In general, it is advisable to take an existing component as a reference (e.g. [TextBox](https://github.com/gradio-app/gradio/blob/main/gradio/components.py#L290)), copy its code as a skeleton and then adapt it to the case at hand.
@@ -142,7 +148,7 @@ from gradio.components import (
 
 ```
 
-### Step 1.1 - Writing Unit Test for Python Class
+### 1.1 Writing Unit Test for Python Class
 
 When developing new components, you should also write a suite of unit tests for it. The tests should be placed in the [gradio/test/test_components.py](https://github.com/gradio-app/gradio/blob/main/test/test_components.py) file. Again, as above, take a cue from the tests of other components (e.g. [Textbox](https://github.com/gradio-app/gradio/blob/main/test/test_components.py)) and add as many unit tests as you think are appropriate to test all the different aspects and functionalities of the new component. For example, the following tests were added for the ColorPicker component:
 
@@ -199,7 +205,7 @@ class TestColorPicker(unittest.TestCase):
         self.assertEqual(component.get_config().get("value"), "#000000")
 ```
 
-## Step 2 - Create a New Svelte Component
+## 2. Create a New Svelte Component
 
 Let's see the steps you need to follow to create the frontend of your new component and to map it to its python code:
 - Create a new UI-side Svelte component and figure out where to place it. The options are: create a package for the new component in the [ui/packages folder](https://github.com/gradio-app/gradio/tree/main/ui/packages), if this is completely different from existing components or add the new component to an existing package, such as to the [form package](https://github.com/gradio-app/gradio/tree/main/ui/packages/form). The ColorPicker component for example, was included in the form package because it is similar to components that already exist.
@@ -367,11 +373,11 @@ colorpicker: () => import("./ColorPicker"),
 }
 ```
 
-### Step 2.1 . Writing Unit Test for Svelte Component
+### 2.1 Writing Unit Test for Svelte Component
 
 When developing new components, you should also write a suite of unit tests for it. The tests should be placed in the new component's folder in a file named MyAwesomeComponent.test.ts. Again, as above, take a cue from the tests of other components (e.g. [Textbox.test.ts](https://github.com/gradio-app/gradio/blob/main/ui/packages/app/src/components/Textbox/Textbox.test.ts)) and add as many unit tests as you think are appropriate to test all the different aspects and functionalities of the new component.
 
-### Step 3 - Create a New Demo
+### 3. Create a New Demo
 
 The last step is to create a demo in the [gradio/demo folder](https://github.com/gradio-app/gradio/tree/main/demo), which will use the newly added component. Again, the suggestion is to reference an existing demo. Write the code for the demo in a file called run.py, add the necessary requirements and an image showing the application interface. Finally add a gif showing its usage. 
 You can take a look at the [demo](https://github.com/gradio-app/gradio/tree/main/demo/color_picker) created for the ColorPicker, where an icon and a color selected through the new component is taken as input, and the same icon colored with the selected color is returned as output.
