@@ -4,12 +4,12 @@
 
 ### Extended support for Interface.load! 🏗️
 
-You can now load `text-to-image` and `conversational` pipelines from the hub!
+You can now load `image-to-text` and `conversational` pipelines from the hub!
 
-### text-to-image Demo
+### Image-to-text Demo
 ```python
 io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning",
-                       api_key="<your-api-key>")
+                       api_key="<optional-api-key>")
 io.launch()
 ```
 <img width="1087" alt="image" src="https://user-images.githubusercontent.com/41651716/213260197-dc5d80b4-6e50-4b3a-a764-94980930ac38.png">
@@ -19,7 +19,7 @@ io.launch()
 ### conversational Demo
 ```python
 chatbot = gr.Interface.load("models/microsoft/DialoGPT-medium",
-                           api_key="<your-api-key>")
+                           api_key="<optional-api-key>")
 chatbot.launch()
 ```
 ![chatbot_load](https://user-images.githubusercontent.com/41651716/213260220-3eaa25b7-a38b-48c6-adeb-2718bdf297a2.gif)
