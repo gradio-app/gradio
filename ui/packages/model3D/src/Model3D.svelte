@@ -1,7 +1,12 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
-	import { BlockLabel } from "@gradio/atoms";
-	import { File } from "@gradio/icons";
+	import { BlockLabel, IconButton } from "@gradio/atoms";
+	import { File, Download } from "@gradio/icons";
+	import {
+		display_file_name,
+		download_files,
+		display_file_size
+	} from "./utils";
 
 	export let value: FileData | null;
 	export let clearColor: Array<number> = [0, 0, 0, 0];
@@ -76,13 +81,37 @@
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
+{#if value}
+	<div class="model3D">
+		<div class="download">
+			<a
+				href={download_files(value)}
+				target={window.__is_colab__ ? "_blank" : null}
+				download={window.__is_colab__ ? null : value.orig_name || value.name}
+			>
+				<IconButton Icon={Download} label="Download" />
+			</a>
+		</div>
 
-<canvas bind:this={canvas} />
+		<canvas bind:this={canvas} />
+	</div>
+{/if}
 
 <style>
+	.model3D {
+		display: flex;
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
 	canvas {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
+	}
+	.download {
+		position: absolute;
+		top: 6px;
+		right: 6px;
 	}
 </style>
