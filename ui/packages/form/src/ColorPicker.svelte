@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { get_styles } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
-	import type { Styles } from "@gradio/utils";
 
 	export let value: string = "#000000";
-	export let style: Styles = {};
 	export let label: string;
 	export let disabled = false;
 	export let show_label: boolean = true;
@@ -26,5 +23,14 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
 	<BlockTitle {show_label}>{label}</BlockTitle>
-	<input type="color" class="gr-box-unrounded" bind:value {disabled} />
+	<input type="color" bind:value {disabled} />
 </label>
+
+<style>
+	input {
+		position: relative;
+		background: var(--color-background-tertiary);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+</style>

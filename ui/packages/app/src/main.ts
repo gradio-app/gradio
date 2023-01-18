@@ -5,7 +5,7 @@ import { fn } from "./api";
 
 import type { ComponentMeta, Dependency, LayoutNode } from "./components/types";
 
-import * as t from "@gradio/theme";
+import "@gradio/theme";
 
 let id = -1;
 window.__gradio_loader__ = [];
