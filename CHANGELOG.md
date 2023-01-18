@@ -12,6 +12,9 @@ io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning",
                        api_key="<your-api-key>")
 io.launch()
 ```
+<img width="1087" alt="image" src="https://user-images.githubusercontent.com/41651716/213260197-dc5d80b4-6e50-4b3a-a764-94980930ac38.png">
+
+
 
 ### conversational Demo
 ```python
@@ -19,6 +22,8 @@ chatbot = gr.Interface.load("models/microsoft/DialoGPT-medium",
                            api_key="<your-api-key>")
 chatbot.launch()
 ```
+![chatbot_load](https://user-images.githubusercontent.com/41651716/213260220-3eaa25b7-a38b-48c6-adeb-2718bdf297a2.gif)
+
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://github.com/gradio-app/gradio/pull/3011) 
 
