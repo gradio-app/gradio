@@ -28,6 +28,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://git
 ### Download Button added to Model3D Output Component
 
 No need for an additional file output component to enable model3d file downloads anymore. We now added a download button to the model3d component itself.
+
 <img width="739" alt="Screenshot 2023-01-18 at 3 52 45 PM" src="https://user-images.githubusercontent.com/12725292/213294198-5f4fda35-bde7-450c-864f-d5683e7fa29a.png">
 
 By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3014](https://github.com/gradio-app/gradio/pull/3014) 
