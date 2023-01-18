@@ -35,9 +35,9 @@ from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.tunneling import CURRENT_TUNNELS
-from gradio.theming.utils import Theme, get_theme_css
 from gradio.themes import Default as DefaultTheme
+from gradio.theming.utils import Theme, get_theme_css
+from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
@@ -447,7 +447,7 @@ class Blocks(BlockContext):
 
     def __init__(
         self,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         mode: str = "blocks",
         title: str = "Gradio",
@@ -465,10 +465,15 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
+
+        theme_css = None
         if isinstance(theme, type) and issubclass(theme, Theme):
             theme = theme()
-        self.theme = theme if isinstance(theme, Theme) else DefaultTheme()
-        self.theme_css = get_theme_css(self.theme)
+        if isinstance(theme, str):
+            theme_css = Theme.from_hub(theme)
+
+        self.theme = theme if isinstance(theme, (Theme, str)) else DefaultTheme()
+        self.theme_css = theme_css if theme_css else get_theme_css(theme)
         self.encrypt = False
         self.share = False
         self.enable_queue = None
