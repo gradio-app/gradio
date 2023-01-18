@@ -3,6 +3,7 @@ use the `gr.Blocks.load()` or `gr.Interface.load()` functions."""
 
 from __future__ import annotations
 
+import copy
 import json
 import re
 import uuid
@@ -63,6 +64,32 @@ def load_blocks_from_repo(
     return blocks
 
 
+def chatbot_preprocess(text, state):
+    payload = {
+        "inputs": {"generated_responses": None, "past_user_inputs": None, "text": text}
+    }
+    if state is not None:
+        payload["inputs"]["generated_responses"] = state["conversation"][
+            "generated_responses"
+        ]
+        payload["inputs"]["past_user_inputs"] = state["conversation"][
+            "past_user_inputs"
+        ]
+
+    return payload
+
+
+def chatbot_postprocess(response):
+    response_json = response.json()
+    chatbot_value = list(
+        zip(
+            response_json["conversation"]["past_user_inputs"],
+            response_json["conversation"]["generated_responses"],
+        )
+    )
+    return chatbot_value, response_json
+
+
 def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs):
     model_url = "https://huggingface.co/{}".format(model_name)
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
@@ -76,7 +103,7 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
         response.status_code == 200
     ), f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
     p = response.json().get("pipeline_tag")
-
+    state = gradio.State()
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
@@ -101,6 +128,12 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "preprocess": to_binary,
             "postprocess": lambda r: r.json()["text"],
         },
+        "conversational": {
+            "inputs": [components.Textbox(), state],
+            "outputs": [components.Chatbot(), state],
+            "preprocess": chatbot_preprocess,
+            "postprocess": chatbot_postprocess,
+        },
         "feature-extraction": {
             # example model: julien-c/distilbert-feature-extraction
             "inputs": components.Textbox(label="Input"),
@@ -124,6 +157,12 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),
+        },
+        "image-to-text": {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(),
+            "preprocess": to_binary,
+            "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "question-answering": {
             # Example: deepset/xlm-roberta-base-squad2
@@ -311,7 +350,12 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
     }
 
     kwargs = dict(interface_info, **kwargs)
-    kwargs["_api_mode"] = True  # So interface doesn't run pre/postprocess.
+
+    # So interface doesn't run pre/postprocess
+    # except for conversational interfaces which
+    # are stateful
+    kwargs["_api_mode"] = p != "conversational"
+
     interface = gradio.Interface(**kwargs)
     return interface
 
