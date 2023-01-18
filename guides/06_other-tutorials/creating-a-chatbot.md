@@ -17,9 +17,15 @@ Chatbots are *stateful*, meaning that the model's prediction can change dependin
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use a pretrained chatbot model, also install `transformers` and `torch`.
+Make sure you have the `gradio` Python package already [installed](/quickstart). To use a pretrained chatbot model, also install `transformers` and `torch`. 
 
-## Step 1 — Setting up the Chatbot Model
+Let's get started! Here's how to build your own chatbot: 
+
+1. [Set up the Chatbot Model](#1-set-up-the-chatbot-model)
+2. [Define a `predict` function](#2-define-a-predict-function)
+3. [Create a Gradio Interface](#3-create-a-gradio-interface)
+
+## 1. Set up the Chatbot Model
 
 First, you will need to have a chatbot model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will use a pretrained chatbot model, `DialoGPT`, and its tokenizer from the [Hugging Face Hub](https://huggingface.co/microsoft/DialoGPT-medium), but you can replace this with your own model. 
 
@@ -33,7 +39,7 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 ```
 
-## Step 2 — Defining a `predict` function
+## 2. Define a `predict` function
 
 Next, you will need to define a function that takes in the *user input* as well as the previous *chat history* to generate a response.
 
@@ -66,7 +72,7 @@ Then, the function tokenizes the input and concatenates it with the tokens corre
 * `response`: which is a list of tuples of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
 * `history` variable, which is the token representation of all of the user and bot responses. In stateful Gradio demos, we *must* return the updated state at the end of the function. 
 
-## Step 3 — Creating a Gradio Interface
+## 3. Create a Gradio Interface
 
 Now that we have our predictive function set up, we can create a Gradio Interface around it. 
 
@@ -93,7 +99,7 @@ This produces the following interface, which you can try right here in your brow
 
 And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
-* Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
+* Gradio's [Quickstart guide](https://gradio.app/quickstart/)
 * The final [chatbot demo](https://huggingface.co/spaces/abidlabs/chatbot-stylized) and [complete code](https://huggingface.co/spaces/abidlabs/chatbot-stylized/tree/main) (on Hugging Face Spaces)
 
 

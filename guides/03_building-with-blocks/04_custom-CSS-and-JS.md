@@ -1,5 +1,7 @@
 # Custom JS and CSS
 
+This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners. 
+
 ## Custom CSS
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.

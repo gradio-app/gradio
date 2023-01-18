@@ -1,5 +1,7 @@
 # Reactive Interfaces
 
+This guide covers how to get Gradio interfaces to refresh automatically or continuously stream data.
+
 ## Live Interfaces
 
 You can make interfaces automatically refresh by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input changes.

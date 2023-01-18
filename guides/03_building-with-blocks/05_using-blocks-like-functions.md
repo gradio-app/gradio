@@ -2,7 +2,7 @@
 Tags: TRANSLATION, HUB, SPACES
 
 
-**Prerequisite**: This Guide builds on the Blocks Introduction. Make sure to [read that guide first](/introduction_to_blocks).
+**Prerequisite**: This Guide builds on the Blocks Introduction. Make sure to [read that guide first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control).
 
 ## Introduction
 

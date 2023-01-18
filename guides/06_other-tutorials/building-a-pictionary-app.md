@@ -11,13 +11,17 @@ Such models are perfect to use with Gradio's *sketchpad* input, so in this tutor
 
 <iframe src="https://abidlabs-draw2.hf.space" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-Let's get started!
+Let's get started! This guide covers how to build a pictionary app (step-by-step): 
+
+1. [Set up the Sketch Recognition Model](#1-set-up-the-sketch-recognition-model)
+2. [Define a `predict` function](#2-define-a-predict-function)
+3. [Create a Gradio Interface](#3-create-a-gradio-interface)
 
 ### Prerequisites
 
 Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained sketchpad model, also install `torch`.
 
-## Step 1 — Setting up the Sketch Recognition Model
+## 1. Set up the Sketch Recognition Model
 
 First, you will need a sketch recognition model. Since many researchers have already trained their own models on the Quick Draw dataset, we will use a pretrained model in this tutorial. Our model is a light 1.5 MB  model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin). 
 
@@ -47,7 +51,7 @@ model.load_state_dict(state_dict, strict=False)
 model.eval()
 ```
 
-## Step 2 — Defining a `predict` function
+## 2. Define a `predict` function
 
 Next, you will need to define a function that takes in the *user input*, which in this case is a sketched image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/class_names.txt).
 
@@ -76,7 +80,7 @@ Then, the function converts the image to a PyTorch `tensor`, passes it through t
 
 * `confidences`: the top five predictions, as a dictionary whose keys are class labels and whose values are confidence probabilities
 
-## Step 3 — Creating a Gradio Interface
+## 3. Create a Gradio Interface
 
 Now that we have our predictive function set up, we can create a Gradio Interface around it. 
 
