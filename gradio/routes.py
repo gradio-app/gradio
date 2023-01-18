@@ -288,8 +288,8 @@ class App(FastAPI):
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file_deprecated(path: str, request: fastapi.Request):
-            return file(path, request)
+        async def file_deprecated(path: str, request: fastapi.Request):
+            return await file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")
