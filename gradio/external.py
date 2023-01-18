@@ -103,7 +103,6 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
         response.status_code == 200
     ), f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `api_key` parameter."
     p = response.json().get("pipeline_tag")
-    state = gradio.State()
     pipelines = {
         "audio-classification": {
             # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
@@ -129,8 +128,8 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "postprocess": lambda r: r.json()["text"],
         },
         "conversational": {
-            "inputs": [components.Textbox(), state],
-            "outputs": [components.Chatbot(), state],
+            "inputs": [components.Textbox(), components.State()],
+            "outputs": [components.Chatbot(), components.State()],
             "preprocess": chatbot_preprocess,
             "postprocess": chatbot_postprocess,
         },
