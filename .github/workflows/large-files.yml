@@ -1,9 +1,6 @@
 name: Check for large files
 
 on:
-  push:
-    branches:
-      - "main"
   pull_request:
 
 jobs:
@@ -11,8 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check for large files
-      uses: actionsdesk/lfs-warning@v3.2
-      with:
-        filesizelimit: 5MB
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}    
+      - name: Check for large files
+        uses: actionsdesk/lfs-warning@v3.2
+        with:
+          filesizelimit: 5MB
 
