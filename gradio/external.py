@@ -127,8 +127,8 @@ def from_model(model_name: str, api_key: str | None, alias: str | None, **kwargs
             "postprocess": lambda r: r.json()["text"],
         },
         "conversational": {
-            "inputs": [components.Textbox(), components.State()],
-            "outputs": [components.Chatbot(), components.State()],
+            "inputs": [components.Textbox(), components.State()],  # type: ignore
+            "outputs": [components.Chatbot(), components.State()],  # type: ignore
             "preprocess": chatbot_preprocess,
             "postprocess": chatbot_postprocess,
         },
