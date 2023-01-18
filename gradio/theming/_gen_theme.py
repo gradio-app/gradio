@@ -14,7 +14,7 @@ from gradio.theming.utils import Theme
 with open(output_themes_file, "w") as f:
     f.write(FILE_HEADER)
 
-PATH_RE = r'^(([a-z]+|[0-9])+\.)+([a-z]+|[0-9]+)$'
+PATH_RE = r"^(([a-z]+|[0-9])+\.)+([a-z]+|[0-9]+)$"
 for file in os.listdir(configs):
     with open(os.path.join(configs, file)) as f:
         theme = json.load(f)
@@ -23,6 +23,7 @@ for file in os.listdir(configs):
         f.write(f"class {file.split('.')[0]}(Theme):\n")
 
         css_dict = {}
+
         def walk(obj, parents, suffix=None):
             if len(parents) == 0:
                 global css_dict
