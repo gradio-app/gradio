@@ -6,7 +6,8 @@ on:
 jobs:
   check-files:
     runs-on: ubuntu-latest
-
+    if: "! github.event.pull_request.head.repo.fork "
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v2
