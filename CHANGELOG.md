@@ -1,7 +1,26 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### Extended support for Interface.load! 🏗️
+
+You can now load `text-to-image` and `conversational` pipelines from the hub!
+
+### text-to-image Demo
+```python
+io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning",
+                       api_key="<your-api-key>")
+io.launch()
+```
+
+### conversational Demo
+```python
+chatbot = gr.Interface.load("models/microsoft/DialoGPT-medium",
+                           api_key="<your-api-key>")
+chatbot.launch()
+```
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://github.com/gradio-app/gradio/pull/3011) 
 
 ## Bug Fixes:
 * Fixes bug where interpretation event was not configured correctly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2993](https://github.com/gradio-app/gradio/pull/2993) 
