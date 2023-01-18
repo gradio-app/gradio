@@ -50,3 +50,15 @@
 	]}
 	color_map={{ "+": "orange", "-": "purple" }}
 />
+
+<h2 class="my-2">Scores with legend</h2>
+<HighlightedText
+	show_legend={true}
+	value={[
+		["one", 0],
+		["two", -1],
+		["three", 0.3],
+		["two", -0.3],
+		["three", 1]
+	]}
+/>

@@ -2335,6 +2335,7 @@ class File(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(Path(file.name).resolve()))
                 return file
             elif (
                 self.type == "binary" or self.type == "bytes"
@@ -2838,6 +2839,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
+
 
 @document()
 class State(IOComponent, SimpleSerializable):
@@ -3039,6 +3043,7 @@ class UploadButton(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(Path(file.name).resolve()))
                 return file
             elif self.type == "bytes":
                 if is_file:
@@ -3775,7 +3780,11 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         return Component.style(self, container=container, **kwargs)
 
     def deserialize(
-        self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
+        self,
+        x: Any,
+        save_dir: str = "",
+        encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> None | str:
         if x is None:
             return None
@@ -3787,7 +3796,9 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
                 img_data, caption = img_data
             else:
                 caption = None
-            name = FileSerializable.deserialize(self, img_data, gallery_path)
+            name = FileSerializable.deserialize(
+                self, img_data, gallery_path, root_url=root_url
+            )
             captions[name] = caption
             captions_file = gallery_path / "captions.json"
             with captions_file.open("w") as captions_json:
@@ -3905,7 +3916,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.render(message), self.md.render(response))
+            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
@@ -3960,7 +3971,7 @@ class Model3D(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        self.clear_color = clear_color or [0, 0, 0, 0]
         TempFileManager.__init__(self)
         IOComponent.__init__(
             self,
