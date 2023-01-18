@@ -668,6 +668,12 @@ class TestImage:
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
+    @pytest.mark.flaky
+    def test_serialize_url(self):
+        img = "https://gradio.app/assets/img/header-image.jpg"
+        expected = processing_utils.encode_url_or_file_to_base64(img)
+        assert gr.Image().serialize(img) == expected
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret

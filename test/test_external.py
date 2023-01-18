@@ -228,6 +228,28 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    def test_image_to_text(self):
+        io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning")
+        try:
+            output = io("gradio/test_data/lion.jpg")
+            assert isinstance(output, str)
+        except TooManyRequestsError:
+            pass
+
+    def test_conversational(self):
+        io = gr.Interface.load("models/microsoft/DialoGPT-medium")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        assert app.state_holder == {}
+        response = client.post(
+            "/api/predict/",
+            json={"session_hash": "foo", "data": ["Hi!", None], "fn_index": 0},
+        )
+        output = response.json()
+        assert isinstance(output["data"], list)
+        assert isinstance(output["data"][0], list)
+        assert isinstance(app.state_holder["foo"], dict)
+
     def test_speech_recognition_model(self):
         io = gr.Interface.load("models/facebook/wav2vec2-base-960h")
         try:

@@ -1,7 +1,31 @@
 # Upcoming Release 
 
 ## New Features:
-No changes to highlight.
+
+### Extended support for Interface.load! 🏗️
+
+You can now load `image-to-text` and `conversational` pipelines from the hub!
+
+### Image-to-text Demo
+```python
+io = gr.Interface.load("models/nlpconnect/vit-gpt2-image-captioning",
+                       api_key="<optional-api-key>")
+io.launch()
+```
+<img width="1087" alt="image" src="https://user-images.githubusercontent.com/41651716/213260197-dc5d80b4-6e50-4b3a-a764-94980930ac38.png">
+
+
+
+### conversational Demo
+```python
+chatbot = gr.Interface.load("models/microsoft/DialoGPT-medium",
+                           api_key="<optional-api-key>")
+chatbot.launch()
+```
+![chatbot_load](https://user-images.githubusercontent.com/41651716/213260220-3eaa25b7-a38b-48c6-adeb-2718bdf297a2.gif)
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://github.com/gradio-app/gradio/pull/3011) 
 
 ## Bug Fixes:
 * Fixes bug where interpretation event was not configured correctly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2993](https://github.com/gradio-app/gradio/pull/2993) 
@@ -12,8 +36,11 @@ No changes to highlight.
 * Fixes bug where png files were not being recognized when uploading images by [@abidlabs](https://github.com/abidlabs) in [PR 3002](https://github.com/gradio-app/gradio/pull/3002) 
 * Fixes bug where temporary uploaded files were not being added to temp sets by [@abidlabs](https://github.com/abidlabs) in [PR 3005](https://github.com/gradio-app/gradio/pull/3005)
 * Fixes issue where markdown support in chatbot breaks older demos [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3006](https://github.com/gradio-app/gradio/pull/3006) 
+* Fixes the `/file/` route that was broken in a recent change in [PR 3010](https://github.com/gradio-app/gradio/pull/3010) 
+* Fix bug where the Image component could not serialize image urls by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2957](https://github.com/gradio-app/gradio/pull/2957)  
 
 ## Documentation Changes:
+* SEO improvements to guides by[@aliabd](https://github.com/aliabd) in [PR 2915](https://github.com/gradio-app/gradio/pull/2915)
 * Use `gr.LinePlot` for the `blocks_kinematics` demo by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2998](https://github.com/gradio-app/gradio/pull/2998)  
 
 ## Testing and Infrastructure Changes:

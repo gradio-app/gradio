@@ -13,7 +13,7 @@ This guide will show you how to build a demo for your 3D image model in a few li
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started).
+Make sure you have the `gradio` Python package already [installed](https://gradio.app/quickstart).
 
 
 ## Taking a Look at the Code

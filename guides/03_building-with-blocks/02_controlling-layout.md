@@ -22,6 +22,8 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
+Learn more about Rows in the [docs](https://gradio.app/docs/#row). 
+
 ## Columns and Nesting
 
 Components within a Column will be placed vertically atop each other. Since the vertical layout is the default layout for Blocks apps anyway, to be useful, Columns are usually  nested within Rows. For example:
@@ -32,6 +34,8 @@ $demo_rows_and_columns
 See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width. 
 
 Columns have a `min_width` parameter as well (320 pixels by default). This prevents adjacent columns from becoming too narrow on mobile screens.
+
+Learn more about Columns in the [docs](https://gradio.app/docs/#column). 
 
 ## Tabs and Accordions
 
@@ -44,6 +48,7 @@ $demo_blocks_flipper
 
 Also note the `gradio.Accordion('label')` in this example. The Accordion is a layout that can be toggled open or closed. Like `Tabs`, it is a layout element that can selectively hide or show content. Any components that are defined inside of a `with gradio.Accordion('label'):` will be hidden or shown when the accordion's toggle icon is clicked.
 
+Learn more about [Tabs](https://gradio.app/docs/#tab) and [Accordions](https://gradio.app/docs/#accordion) in the docs.
 
 ## Visibility
 

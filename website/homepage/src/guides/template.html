@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with title=pretty_name, url="https://gradio.app/" + name, image="https://www.gradio.app/assets/img/meta-image.png", description="A Step-by-Step Gradio Tutorial" %}
+    {% with title=pretty_name, url="https://gradio.app/" + name, image="https://www.gradio.app/assets/img/meta-image.png", description="A Step-by-Step Gradio Tutorial", canonical="https://gradio.app/" + name %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
