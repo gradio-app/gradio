@@ -32,7 +32,7 @@ def format_name(guide_name):
         guide_name = guide_name[guide_name.index("_") + 1 :]
     if guide_name.lower().endswith(".md"):
         guide_name = guide_name[:-3]
-    pretty_guide_name = " ".join([word[0].upper() + word[1:] for word in guide_name.split("_")])
+    pretty_guide_name = " ".join([word[0].upper() + word[1:] for word in guide_name.split("-")])
     return index, guide_name, pretty_guide_name
 
 
