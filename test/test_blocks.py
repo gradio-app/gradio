@@ -287,6 +287,42 @@ class TestBlocksMethods:
 
         assert block.css == css
 
+    @pytest.mark.asyncio
+    async def test_restart_after_close(self):
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "freddy"
+
+        io.close()
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_completed":
+                    completed = True
+            assert msg["output"]["data"][0] == "Victor"
+
 
 class TestComponentsInBlocks:
     def test_slider_random_value_config(self):

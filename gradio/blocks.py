@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import copy
 import getpass
 import inspect
@@ -43,7 +42,7 @@ from gradio.utils import (
     component_or_layout_class,
     delete_none,
     get_cancel_function,
-    get_continuous_fn, synchronize_async,
+    get_continuous_fn,
 )
 
 set_documentation_group("blocks")
@@ -75,7 +74,6 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
-        self.queue_task = None
 
         if render:
             self.render()
@@ -1624,6 +1622,9 @@ class Blocks(BlockContext):
                 self._queue.close()
             self.server.close()
             self.is_running = False
+            # So that the startup events (starting the queue)
+            # happen the next time the app is launched
+            self.app.startup_events_triggered = False
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
         except (AttributeError, OSError):  # can't close if not running
@@ -1667,6 +1668,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            # So that processing can resume in case the queue was stopped
             self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
 
