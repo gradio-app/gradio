@@ -2,11 +2,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download } from "@gradio/icons";
-	import {
-		display_file_name,
-		download_files,
-		display_file_size
-	} from "./utils";
+	import { download_files } from "./utils";
 
 	export let value: FileData | null;
 	export let clearColor: Array<number> = [0, 0, 0, 0];

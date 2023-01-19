@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Download } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 	import {
 		display_file_name,
 		download_files,
@@ -27,7 +29,7 @@
 						target={window.__is_colab__ ? "_blank" : null}
 						download={window.__is_colab__ ? null : file.orig_name || file.name}
 					>
-						Download
+						<IconButton Icon={Download} label="Download" />
 					</a>
 				</td>
 			</tr>
