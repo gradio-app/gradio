@@ -334,9 +334,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 "The `huggingface_hub` package must be version 0.6.0 or higher"
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
             )            
-        repo_name = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
+        repo_id = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
         path_to_dataset_repo = huggingface_hub.create_repo(
-            repo_id=repo_name,
+            repo_id=repo_id,
             token=self.hf_token,
             private=self.dataset_private,
             repo_type="dataset",
@@ -463,9 +463,9 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 "The `huggingface_hub` package must be version 0.6.0 or higher"
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
             )    
-        repo_name = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
+        repo_id = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
         path_to_dataset_repo = huggingface_hub.create_repo(
-            repo_id=repo_name,
+            repo_id=repo_id,
             token=self.hf_token,
             private=self.dataset_private,
             repo_type="dataset",
