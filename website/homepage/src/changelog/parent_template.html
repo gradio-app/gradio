@@ -28,10 +28,11 @@
     </div>
     <script src="/assets/prism.js"></script>
     <script>window.__gradio_mode__ = "website";</script>
-    <script type="module" src="/assets/index.js"></script>
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    <script>{% include 'templates/load_latest_stable.js' %}</script>
+
     <script>
       let mainNavLinks = document.querySelectorAll(".side-navigation a");
       window.addEventListener("scroll", event => {

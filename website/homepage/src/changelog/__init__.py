@@ -43,11 +43,11 @@ def render_md():
     return versions
 
 
-def build(output_dir, jinja_env):
+def build(output_dir, jinja_env, latest_gradio_stable):
     versions = render_md()
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("changelog/parent_template.html")
-    output = template.render(versions=versions)
+    output = template.render(versions=versions, latest_gradio_stable=latest_gradio_stable)
     output_folder = os.path.join(output_dir, "changelog")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
