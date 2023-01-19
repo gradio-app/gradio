@@ -32,8 +32,8 @@ version = version.strip()
 
 gradio_wheel_url = args.url + f"gradio-{version}-py3-none-any.whl"
 
-index.build(BUILD_DIR, jinja_env)
-guides.build(BUILD_DIR, jinja_env)
+index.build(BUILD_DIR, jinja_env, latest_gradio_stable)
+guides.build(BUILD_DIR, jinja_env, latest_gradio_stable)
 docs.build(BUILD_DIR, jinja_env, gradio_wheel_url, latest_gradio_stable)
-demos.build(BUILD_DIR, jinja_env)
-changelog.build(BUILD_DIR, jinja_env)
+demos.build(BUILD_DIR, jinja_env, latest_gradio_stable)
+changelog.build(BUILD_DIR, jinja_env, latest_gradio_stable)
