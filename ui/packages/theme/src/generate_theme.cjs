@@ -693,14 +693,7 @@ function generate_theme() {
 		dark_css += `\t${key}: ${dark_props[key]};\n`;
 	}
 
-	const css = `:root, :host {
-${light_css}
-}
-
-.dark {
-${dark_css}	
-}
-`;
+	const css = ``;
 
 	fs.writeFileSync(path.join(__dirname, "theme.css"), css);
 }

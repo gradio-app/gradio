@@ -1,5 +1,12 @@
+from __future__ import annotations
+
+
 class Theme:
-    pass
+    def _color(self, color: str, number: int=500):
+        return f"var(--color-{color}-{number})"
+
+    def _use(self, property):
+        return f"var(--{property.replace('_', '-')})"
 
 def get_theme_css(theme: Theme):
     css = ":root {"
