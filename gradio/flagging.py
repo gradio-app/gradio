@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import csv
 import datetime
+from distutils.version import StrictVersion
 import io
 import json
 import os
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
+import pkg_resources
 from typing import TYPE_CHECKING, Any, List
 
 import gradio as gr
@@ -326,8 +328,15 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
             )
+        hh_version = pkg_resources.get_distribution("huggingface_hub").version
+        if StrictVersion(hh_version) < StrictVersion("0.6.0"):
+            raise ImportError(
+                "The `huggingface_hub` package must be version 0.6.0 or higher"
+                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+            )            
+        repo_name = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
         path_to_dataset_repo = huggingface_hub.create_repo(
-            name=self.dataset_name,
+            repo_id=repo_name,
             token=self.hf_token,
             private=self.dataset_private,
             repo_type="dataset",
@@ -409,7 +418,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
 
     def __init__(
         self,
-        hf_foken: str,
+        hf_token: str,
         dataset_name: str,
         organization: str | None = None,
         private: bool = False,
@@ -428,7 +437,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         verbose (bool): Whether to print out the status of the dataset
             creation.
         """
-        self.hf_foken = hf_foken
+        self.hf_token = hf_token
         self.dataset_name = dataset_name
         self.organization_name = organization
         self.dataset_private = private
@@ -448,9 +457,16 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 "Package `huggingface_hub` not found is needed "
                 "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
             )
+        hh_version = pkg_resources.get_distribution("huggingface_hub").version
+        if StrictVersion(hh_version) < StrictVersion("0.6.0"):
+            raise ImportError(
+                "The `huggingface_hub` package must be version 0.6.0 or higher"
+                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+            )    
+        repo_name = huggingface_hub.get_full_repo_name(self.dataset_name, token=self.hf_token)        
         path_to_dataset_repo = huggingface_hub.create_repo(
-            name=self.dataset_name,
-            token=self.hf_foken,
+            repo_id=repo_name,
+            token=self.hf_token,
             private=self.dataset_private,
             repo_type="dataset",
             exist_ok=True,
@@ -462,7 +478,7 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
         self.repo = huggingface_hub.Repository(
             local_dir=str(self.dataset_dir),
             clone_from=path_to_dataset_repo,
-            use_auth_token=self.hf_foken,
+            use_auth_token=self.hf_token,
         )
         self.repo.git_pull(lfs=True)
 
