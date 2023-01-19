@@ -71,7 +71,7 @@
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
   {% endif %}
-  {% if (is_component or obj['name'].lower() in ["examples", "progress", "make_"]) %}
+  {% if (is_component or obj['name'].lower() in ["examples", "progress"]) %}
     {% if obj['name'].lower() != "state" %}
       <div class="embedded-component">
         {% if version=="main" %}
