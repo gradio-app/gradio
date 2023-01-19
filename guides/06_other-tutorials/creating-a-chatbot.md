@@ -21,9 +21,12 @@ Make sure you have the `gradio` Python package already [installed](/quickstart).
 
 Let's get started! Here's how to build your own chatbot: 
 
-1. [Set up the Chatbot Model](#1-set-up-the-chatbot-model)
-2. [Define a `predict` function](#2-define-a-predict-function)
-3. [Create a Gradio Interface](#3-create-a-gradio-interface)
+- [How to Create a Chatbot](#how-to-create-a-chatbot)
+  - [Introduction](#introduction)
+    - [Prerequisites](#prerequisites)
+  - [1. Set up the Chatbot Model](#1-set-up-the-chatbot-model)
+  - [2. Define a `predict` function](#2-define-a-predict-function)
+  - [3. Create a Gradio Demo using Blocks](#3-create-a-gradio-demo-using-blocks)
 
 ## 1. Set up the Chatbot Model
 
@@ -72,9 +75,9 @@ Then, the function tokenizes the input and concatenates it with the tokens corre
 * `response`: which is a list of tuples of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
 * `history` variable, which is the token representation of all of the user and bot responses. In stateful Gradio demos, we *must* return the updated state at the end of the function. 
 
-## 3. Create a Gradio Interface
+## 3. Create a Gradio Demo using Blocks
 
-Now that we have our predictive function set up, we can create a Gradio Interface around it. 
+Now that we have our predictive function set up, we can create a Gradio demo around it. 
 
 In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
 
@@ -83,16 +86,21 @@ The function also returns two values. We will display the list of responses usin
 Note that the `"state"` input and output components are not displayed. 
 
 ```python
-import gradio as gr
-
-gr.Interface(fn=predict,
-             inputs=["text", "state"],
-             outputs=["chatbot", "state"]).launch()
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    state = gr.State([])
+    
+    with gr.Row():
+        txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter").style(container=False)
+            
+    txt.submit(predict, [txt, state], [chatbot, state])
+            
+demo.launch()
 ```
 
-This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
+This produces the following demo, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
 
-<iframe src="https://abidlabs-chatbot-stylized.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://dawood-chatbot-guide.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 ----------
