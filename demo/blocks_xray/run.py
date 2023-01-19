@@ -3,10 +3,7 @@ import random
 import time
 
 # 1. Default
-# theme = gr.themes.Default()
-
-# 2. Solid
-theme = gr.themes.Solid()
+theme = gr.themes.Default(primary_hue="blue")
 
 # 3. Custom
 # theme = gr.themes.DefaultTheme()
@@ -22,7 +19,7 @@ def ct_model(diseases, img):
     time.sleep(3)
     return [{disease: 0.1 for disease in diseases}]
 
-with gr.Blocks(theme=theme) as demo:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
 # Detect Disease From Scan
