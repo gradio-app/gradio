@@ -113,7 +113,7 @@ for guide_folder in guide_folders:
         absolute_index += 1
 
 
-def build_guides(output_dir, jinja_env):
+def build_guides(output_dir, jinja_env, latest_gradio_stable):
     shutil.copytree(GUIDE_ASSETS_DIR, os.path.join(output_dir, "assets", "guides"))
     for guide in guides:
         with open(TEMP_TEMPLATE, "w") as temp_html:
@@ -144,6 +144,7 @@ def build_guides(output_dir, jinja_env):
             guides_by_category=guides_by_category,
             prev_guide=prev_guide[0] if len(prev_guide) else None,
             next_guide=next_guide[0] if len(next_guide) else None,
+            latest_gradio_stable=latest_gradio_stable
         )
         with open(output_file, "w") as index_html:
             index_html.write(output)
@@ -163,6 +164,6 @@ def build_gallery(output_dir, jinja_env):
     with open(output_file, "w") as index_html:
         index_html.write(output)
 
-def build(output_dir, jinja_env):
-    build_guides(output_dir, jinja_env)
+def build(output_dir, jinja_env, latest_gradio_stable):
+    build_guides(output_dir, jinja_env, latest_gradio_stable)
     build_gallery(output_dir, jinja_env)
