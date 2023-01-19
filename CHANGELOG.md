@@ -46,7 +46,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://git
 * Use `gr.LinePlot` for the `blocks_kinematics` demo by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2998](https://github.com/gradio-app/gradio/pull/2998)  
 
 ## Testing and Infrastructure Changes:
-No changes to highlight.
+* Adds a GitHub action to test if any large files (> 5MB) are present by [@abidlabs](https://github.com/abidlabs) in [PR 3013](https://github.com/gradio-app/gradio/pull/3013)  
 
 ## Breaking Changes:
 No changes to highlight.
