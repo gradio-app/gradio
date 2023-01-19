@@ -256,7 +256,7 @@
 		{/if}
 
 		{#if !timer}
-			<p class="timer">Loading...</p>
+			<p class="loading">Loading...</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
@@ -306,6 +306,7 @@
 		border-radius: var(--radius-lg);
 		background-color: var(--color-background-tertiary);
 		max-height: var(--size-screen-h);
+		overflow: hidden;
 		pointer-events: none;
 	}
 
@@ -346,6 +347,9 @@
 		}
 	}
 
+	.loading {
+		color: var(--color-text-body);
+	}
 	.eta-bar {
 		position: absolute;
 		top: 0;
@@ -413,10 +417,6 @@
 		font-size: var(--scale-000);
 		font-family: var(--font-mono);
 		text-align: center;
-	}
-
-	.timer {
-		transform: translateY(var(--size-16));
 	}
 
 	.error {

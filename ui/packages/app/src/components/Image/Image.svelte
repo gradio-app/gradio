@@ -41,6 +41,7 @@
 	padding={false}
 	{elem_id}
 	style={{ height: style.height, width: style.width }}
+	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}

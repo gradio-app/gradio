@@ -112,10 +112,7 @@ async function handle_config(
 	let config;
 
 	try {
-		let [_config] = await Promise.all([
-			get_config(source),
-			BUILD_MODE === "dev" ? Promise.resolve : mount_css(ENTRY_CSS, target)
-		]);
+		let _config = await get_config(source);
 		config = _config;
 	} catch (e) {
 		console.error(e);
@@ -223,13 +220,15 @@ function create_custom_element() {
 				}
 			});
 
-			this.root.append(this.wrapper);
 			if (window.__gradio_mode__ !== "website") {
 				this.theme = handle_darkmode(this.wrapper);
 			}
 		}
 
 		async connectedCallback() {
+			await mount_css(ENTRY_CSS, this.root);
+			this.root.append(this.wrapper);
+
 			const event = new CustomEvent("domchange", {
 				bubbles: true,
 				cancelable: false,
