@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import copy
 import getpass
 import inspect
@@ -42,7 +43,7 @@ from gradio.utils import (
     component_or_layout_class,
     delete_none,
     get_cancel_function,
-    get_continuous_fn,
+    get_continuous_fn, synchronize_async,
 )
 
 set_documentation_group("blocks")
@@ -74,6 +75,7 @@ class Block:
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
+        self.queue_task = None
 
         if render:
             self.render()
@@ -1665,6 +1667,7 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):

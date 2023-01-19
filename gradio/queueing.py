@@ -72,6 +72,7 @@ class Queue:
             run_coro_in_background(self.notify_clients)
 
     def close(self):
+        print("Stopped")
         self.stopped = True
 
     def resume(self):
@@ -111,6 +112,9 @@ class Queue:
         return events, batch
 
     async def start_processing(self) -> None:
+        print("Starting processing!")
+        if self.stopped:
+            print("Stopped")
         while not self.stopped:
             if not self.event_queue:
                 await asyncio.sleep(self.sleep_when_free)
@@ -124,9 +128,12 @@ class Queue:
                 events, batch = self.get_events_in_batch()
 
             if events:
+                print("Events!")
                 self.active_jobs[self.active_jobs.index(None)] = events
                 task = run_coro_in_background(self.process_events, events, batch)
+                print("process")
                 run_coro_in_background(self.broadcast_live_estimations)
+                print("Background")
                 set_task_name(task, events[0].session_hash, events[0].fn_index, batch)
 
     async def start_progress_tracking(self) -> None:
@@ -186,6 +193,7 @@ class Queue:
         if self.max_size is not None and queue_len >= self.max_size:
             return None
         self.event_queue.append(event)
+        print("Appended!")
         return queue_len
 
     async def clean_event(self, event: Event) -> None:
@@ -311,7 +319,7 @@ class Queue:
                 if event.data
             ]
             data.batched = True
-
+        print("right before request")
         response = await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",
@@ -319,6 +327,8 @@ class Queue:
             headers={"Authorization": f"Bearer {self.access_token}"},
             cookies={"access-token": token} if token is not None else None,
         )
+        print("after request")
+        print(response.status)
         return response
 
     async def process_events(self, events: List[Event], batch: bool) -> None:

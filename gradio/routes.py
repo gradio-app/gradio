@@ -460,7 +460,7 @@ class App(FastAPI):
                 estimation = blocks._queue.get_estimation()
                 await blocks._queue.send_estimation(event, estimation, rank)
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(6)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
 
