@@ -4,7 +4,6 @@ import json
 import os
 import unittest.mock as mock
 import warnings
-from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -544,7 +543,7 @@ class TestAbspath:
     def test_abspath_no_symlink(self):
         resolved_path = str(abspath("../gradio/gradio/test_data/lion.JPG"))
         assert resolved_path.endswith(".jpg")
-        assert not ".." in resolved_path
+        assert ".." not in resolved_path
 
     @mock.patch(
         "pathlib.Path.is_symlink", return_value=True
