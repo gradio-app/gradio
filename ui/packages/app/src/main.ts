@@ -357,8 +357,7 @@ function darkmode(target: HTMLDivElement): string {
 	return "dark";
 }
 
-// dev mode or if inside an iframe
-if (BUILD_MODE === "dev" || window.location !== window.parent.location) {
+if (BUILD_MODE === "dev") {
 	window.scoped_css_attach = (link) => {
 		document.head.append(link);
 	};
