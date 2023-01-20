@@ -4,6 +4,7 @@ import json
 import os
 import unittest.mock as mock
 import warnings
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -19,6 +20,7 @@ from gradio.test_data.blocks_configs import (
 )
 from gradio.utils import (
     AsyncRequest,
+    abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
@@ -536,3 +538,18 @@ class TestAppendUniqueSuffix:
 )
 def test_strip_invalid_filename_characters(orig_filename, new_filename):
     assert strip_invalid_filename_characters(orig_filename) == new_filename
+
+
+class TestAbspath:
+    def test_abspath_no_symlink(self):
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.JPG"))
+        assert resolved_path.endswith(".jpg")
+        assert not ".." in resolved_path
+
+    @mock.patch(
+        "pathlib.Path.is_symlink", return_value=True
+    )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
+    def test_abspath_symlink(self, mock_islink):
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.JPG"))
+        assert resolved_path.endswith(".JPG")
+        assert ".." in resolved_path
