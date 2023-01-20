@@ -72,7 +72,7 @@
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
-		border-bottom-left-radius: var(--radius-lg);
+		border-top-right-radius: inherit;
 		border-bottom-left-radius: var(--radius-lg);
 		background: var(--block_label-background);
 		overflow: hidden;

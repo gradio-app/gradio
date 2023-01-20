@@ -121,7 +121,7 @@
 		--ring-color: transparent;
 		margin-top: var(--size-0-5);
 		margin-bottom: var(--size-0-5);
-		box-shadow: 0 0 0 3px var(--ring-color);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color);
 		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-sm);
 		background: var(--input-background-base);
