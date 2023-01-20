@@ -541,12 +541,12 @@ def test_strip_invalid_filename_characters(orig_filename, new_filename):
 
 class TestAbspath:
     def test_abspath_no_symlink(self):
-        resolved_path = str(abspath("gradio/test_data/lion.JPG"))
-        assert resolved_path.endswith(".jpg")
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
+        assert ".." not in resolved_path
 
     @mock.patch(
         "pathlib.Path.is_symlink", return_value=True
     )  # Have to patch since Windows doesn't allow creation of sym links without administrative privileges
     def test_abspath_symlink(self, mock_islink):
-        resolved_path = str(abspath("gradio/test_data/lion.JPG"))
-        assert resolved_path.endswith(".JPG")
+        resolved_path = str(abspath("../gradio/gradio/test_data/lion.jpg"))
+        assert ".." in resolved_path
