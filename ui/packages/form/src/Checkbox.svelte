@@ -47,7 +47,7 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--shadow-drop);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--checkbox-border-color-base);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-base);
