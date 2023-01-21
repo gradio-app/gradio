@@ -278,13 +278,13 @@ class Examples:
         """
         if Path(self.cached_file).exists():
             print(
-                f"Using cache from '{Path(self.cached_folder).resolve()}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
+                f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache."
             )
         else:
             if Context.root_block is None:
                 raise ValueError("Cannot cache examples if not in a Blocks context")
 
-            print(f"Caching examples at: '{Path(self.cached_file).resolve()}'")
+            print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger()
 
             # create a fake dependency to process the examples and get the predictions
