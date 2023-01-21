@@ -5,7 +5,7 @@ def chat(message, history):
     history = history or []
     message = message.lower()
     if message.startswith("how many"):
-        response = random.randint(1, 10)
+        response = str(random.randint(1, 10))
     elif message.startswith("how"):
         response = random.choice(["Great", "Good", "Okay", "Bad"])
     elif message.startswith("where"):

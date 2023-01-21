@@ -35,7 +35,8 @@
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--input-shadow);
 		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-lg);
 		background-color: var(--input-background-base);

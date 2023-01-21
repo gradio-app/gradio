@@ -101,6 +101,6 @@
 	}
 
 	.margin {
-		margin: var(--size-12);
+		margin: var(--size-4);
 	}
 </style>
