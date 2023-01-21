@@ -850,3 +850,11 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
+
+
+def abspath(path: str | Path) -> Path:
+    """Returns absolute path of a str or Path path, but does not resolve symlinks."""
+    if Path(path).is_symlink():
+        return Path.cwd() / path
+    else:
+        return Path(path).resolve()
