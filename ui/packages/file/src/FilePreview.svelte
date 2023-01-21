@@ -29,7 +29,7 @@
 						target={window.__is_colab__ ? "_blank" : null}
 						download={window.__is_colab__ ? null : file.orig_name || file.name}
 					>
-						<IconButton Icon={Download} label="Download" />
+						Download
 					</a>
 				</td>
 			</tr>
