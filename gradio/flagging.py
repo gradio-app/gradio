@@ -330,11 +330,14 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'."
             )
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
-        if StrictVersion(hh_version) < StrictVersion("0.6.0"):
-            raise ImportError(
-                "The `huggingface_hub` package must be version 0.6.0 or higher"
-                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-            )
+        try:
+            if StrictVersion(hh_version) < StrictVersion("0.6.0"):
+                raise ImportError(
+                    "The `huggingface_hub` package must be version 0.6.0 or higher"
+                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+                )
+        except ValueError:
+            pass
         repo_id = huggingface_hub.get_full_repo_name(
             self.dataset_name, token=self.hf_token
         )
@@ -461,11 +464,14 @@ class HuggingFaceDatasetJSONSaver(FlaggingCallback):
                 "for HuggingFaceDatasetJSONSaver. Try 'pip install huggingface_hub'."
             )
         hh_version = pkg_resources.get_distribution("huggingface_hub").version
-        if StrictVersion(hh_version) < StrictVersion("0.6.0"):
-            raise ImportError(
-                "The `huggingface_hub` package must be version 0.6.0 or higher"
-                "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
-            )
+        try:
+            if StrictVersion(hh_version) < StrictVersion("0.6.0"):
+                raise ImportError(
+                    "The `huggingface_hub` package must be version 0.6.0 or higher"
+                    "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub --upgrade'."
+                )
+        except ValueError:
+            pass
         repo_id = huggingface_hub.get_full_repo_name(
             self.dataset_name, token=self.hf_token
         )
