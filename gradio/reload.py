@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import gradio
-from gradio import networking
+from gradio import networking, utils
 
 
 def run_in_reload_mode():
@@ -24,7 +24,7 @@ def run_in_reload_mode():
         demo_name = args[1]
 
     original_path = args[0]
-    abs_original_path = Path(original_path).resolve()
+    abs_original_path = utils.abspath(original_path)
     path = os.path.normpath(original_path)
     path = path.replace("/", ".")
     path = path.replace("\\", ".")

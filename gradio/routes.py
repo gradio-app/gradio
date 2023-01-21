@@ -13,7 +13,6 @@ import secrets
 import traceback
 from collections import defaultdict
 from copy import deepcopy
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
@@ -258,12 +257,12 @@ class App(FastAPI):
         @app.head("/file={path:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
         async def file(path: str, request: fastapi.Request):
-            abs_path = str(Path(path).resolve())
+            abs_path = str(utils.abspath(path))
             blocks = app.get_blocks()
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            in_app_dir = Path(app.cwd).resolve() in Path(path).resolve().parents
-            created_by_app = str(Path(path).resolve()) in set().union(
+            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path).parents
+            created_by_app = str(utils.abspath(path)) in set().union(
                 *blocks.temp_file_sets
             )
             if in_app_dir or created_by_app:
