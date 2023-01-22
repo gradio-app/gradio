@@ -27,6 +27,7 @@ Let's get started! Here's how to build your own chatbot:
   - [1. Set up the Chatbot Model](#1-set-up-the-chatbot-model)
   - [2. Define a `predict` function](#2-define-a-predict-function)
   - [3. Create a Gradio Demo using Blocks](#3-create-a-gradio-demo-using-blocks)
+  - [4. Chatbot Markdown Support](#4-chatbot-markdown-support)
 
 ## 1. Set up the Chatbot Model
 
@@ -104,6 +105,56 @@ This produces the following demo, which you can try right here in your browser (
 
 
 ----------
+
+## 4. Chatbot Markdown Support
+
+
+The `gr.Chatbot` also supports a subset of markdown including bold, italics, code, and images. Let's take a look at how we can use the markdown support to allow a user to submit images to the chatbot component.
+
+```python
+def add_image(state, image):
+    state = state + [(f"![](/file={image.name})", "Cool pic!")]
+    return state, state
+```
+
+
+Notice the `add_image` function takes in both the `state` and `image` and appends the user submitted image to `state` by using markdown. 
+
+
+```python
+import gradio as gr
+
+def add_text(state, text):
+    state = state + [(text, text + "?")]
+    return state, state
+
+def add_image(state, image):
+    state = state + [(f"![](/file={image.name})", "Cool pic!")]
+    return state, state
+
+
+with gr.Blocks(css="#chatbot .overflow-y-auto{height:500px}") as demo:
+    chatbot = gr.Chatbot(elem_id="chatbot")
+    state = gr.State([])
+    
+    with gr.Row():
+        with gr.Column(scale=0.85):
+            txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter, or upload an image").style(container=False)
+        with gr.Column(scale=0.15, min_width=0):
+            btn = gr.UploadButton("🖼️", file_types=["image"])
+            
+    txt.submit(add_text, [state, txt], [state, chatbot])
+    txt.submit(lambda :"", None, txt)
+    btn.upload(add_image, [state, btn], [state, chatbot])
+            
+demo.launch()
+```
+
+This is the code for a chatbot with a textbox for a user to submit text and an image upload button to submit images. The rest of the demo code is creating an interface using blocks; basically adding a couple more components compared to section 3.
+
+This code will produce a demo like the one below:
+
+<iframe src="https://dawood-chatbot-guide-multimodal.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
