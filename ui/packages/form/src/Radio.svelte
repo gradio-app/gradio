@@ -71,7 +71,7 @@
 		--ring-color: transparent;
 		position: relative;
 		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
-			var(--input-shadow);
+			var(--shadow-inset);
 		border: 1px solid var(--checkbox-border-color-base);
 		border-radius: var(--radius-full);
 		background-color: var(--checkbox-background-base);
