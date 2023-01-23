@@ -14,8 +14,6 @@ io.launch()
 ```
 <img width="1087" alt="image" src="https://user-images.githubusercontent.com/41651716/213260197-dc5d80b4-6e50-4b3a-a764-94980930ac38.png">
 
-
-
 ### conversational Demo
 ```python
 chatbot = gr.Interface.load("models/microsoft/DialoGPT-medium",
@@ -26,6 +24,14 @@ chatbot.launch()
 
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3011](https://github.com/gradio-app/gradio/pull/3011) 
+
+### Download Button added to Model3D Output Component
+
+No need for an additional file output component to enable model3d file downloads anymore. We now added a download button to the model3d component itself.
+
+<img width="739" alt="Screenshot 2023-01-18 at 3 52 45 PM" src="https://user-images.githubusercontent.com/12725292/213294198-5f4fda35-bde7-450c-864f-d5683e7fa29a.png">
+
+By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3014](https://github.com/gradio-app/gradio/pull/3014) 
 
 ## Bug Fixes:
 * Fixes bug where interpretation event was not configured correctly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2993](https://github.com/gradio-app/gradio/pull/2993) 
