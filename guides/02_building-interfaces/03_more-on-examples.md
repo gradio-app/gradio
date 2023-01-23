@@ -1,8 +1,10 @@
-# More on Examples & Flagging
+# More on Examples
+
+This guide covers what more you can do with Examples: Loading examples from a directory, providing partial examples, and caching. If Examples is new to you, check out the intro in the [Key Features](../key-features/#example-inputs) guide. 
 
 ## Providing Examples
 
-As covered in the Quickstart, adding examples to an Interface is as easy as providing a list of lists to the `examples`
+As covered in the [Key Features](../key-features/#example-inputs) guide, adding examples to an Interface is as easy as providing a list of lists to the `examples`
 keyword argument. 
 Each sublist is a data sample, where each element corresponds to an input of the prediction function.
 The inputs must be ordered in the same order as the prediction function expects them.

@@ -710,7 +710,10 @@ def append_unique_suffix(name: str, list_of_names: List[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        return requests.get(possible_url, headers=headers).ok
+        head_request = requests.head(possible_url, headers=headers)
+        if head_request.status_code == 405:
+            return requests.get(possible_url, headers=headers).ok
+        return head_request.ok
     except Exception:
         return False
 
@@ -847,3 +850,11 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
+
+
+def abspath(path: str | Path) -> Path:
+    """Returns absolute path of a str or Path path, but does not resolve symlinks."""
+    if Path(path).is_symlink():
+        return Path.cwd() / path
+    else:
+        return Path(path).resolve()

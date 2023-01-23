@@ -1,5 +1,7 @@
 # Interface State
 
+This guide covers how State is handled in Gradio. Learn the difference between Global and Session states, and how to use both.
+
 ## Global State
 
 Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model. 

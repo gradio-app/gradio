@@ -43,6 +43,7 @@ class TestSimpleFlagging:
 
 class TestHuggingFaceDatasetSaver:
     def test_saver_setup(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         flagger = flagging.HuggingFaceDatasetSaver("test", "test")
@@ -51,6 +52,7 @@ class TestHuggingFaceDatasetSaver:
         huggingface_hub.create_repo.assert_called_once()
 
     def test_saver_flag(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -71,6 +73,7 @@ class TestHuggingFaceDatasetSaver:
 
 class TestHuggingFaceDatasetJSONSaver:
     def test_saver_setup(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         flagger = flagging.HuggingFaceDatasetJSONSaver("test", "test")
@@ -79,6 +82,7 @@ class TestHuggingFaceDatasetJSONSaver:
         huggingface_hub.create_repo.assert_called_once()
 
     def test_saver_flag(self):
+        huggingface_hub.get_full_repo_name = MagicMock(return_value="test/test")
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
         with tempfile.TemporaryDirectory() as tmpdirname:
