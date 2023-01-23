@@ -14,7 +14,6 @@
 	}>();
 
 	$: if (!multiselect) {
-		console.log("here");
 		dispatch("change", value);
 	}
 </script>
