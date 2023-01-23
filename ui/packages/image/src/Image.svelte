@@ -103,11 +103,12 @@
 		container_height = element.getBoundingClientRect().height;
 	}
 
-	async function handle_mask_clear() {
+	async function handle_sketch_clear() {
 		sketch.clear();
 		await tick();
 		value = null;
 		static_image = undefined;
+		dispatch("clear");
 	}
 
 	let img_height = 0;
@@ -214,7 +215,7 @@
 					/>
 					<ModifySketch
 						on:undo={() => sketch.undo()}
-						on:clear={handle_mask_clear}
+						on:clear={handle_sketch_clear}
 					/>
 					{#if tool === "color-sketch" || tool === "sketch"}
 						<SketchSettings
@@ -238,7 +239,7 @@
 	{:else if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
-			on:clear={() => sketch.clear()}
+			on:clear={handle_sketch_clear}
 		/>
 		{#if tool === "color-sketch"}
 			<SketchSettings
@@ -314,7 +315,7 @@
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
-				on:clear={handle_mask_clear}
+				on:clear={handle_sketch_clear}
 			/>
 			{#if tool === "color-sketch" || tool === "sketch"}
 				<SketchSettings
