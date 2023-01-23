@@ -57,7 +57,8 @@ const foundation_light = {
 	shadow: {
 		drop: "rgba(0,0,0,0.05) 0px 1px 2px 0px",
 		"drop-lg": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
-		inset: "rgba(0,0,0,0.05) 0px 2px 4px 0px inset"
+		inset: "rgba(0,0,0,0.05) 0px 2px 4px 0px inset",
+		spread: "3px"
 	}
 };
 
@@ -112,6 +113,9 @@ const foundation_dark = {
 				subdued: "var(--color-green-300)"
 			}
 		}
+	},
+	shadow: {
+		spread: "1px"
 	}
 };
 

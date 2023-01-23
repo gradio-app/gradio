@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with title="Changelog", url="https://gradio.app/changelog", image="https://www.gradio.app/assets/img/meta-image.png", description="Gradio Changelog and Release Notes" %}
+    {% with title="Changelog", url="https://gradio.app/changelog", image="https://www.gradio.app/assets/img/meta-image.png", description="Gradio Changelog and Release Notes", canonical="https://gradio.app/changelog" %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
@@ -28,10 +28,11 @@
     </div>
     <script src="/assets/prism.js"></script>
     <script>window.__gradio_mode__ = "website";</script>
-    <script type="module" src="/assets/index.js"></script>
     {% include 'templates/footer.html' %}
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    <script>{% include 'templates/load_latest_stable.js' %}</script>
+
     <script>
       let mainNavLinks = document.querySelectorAll(".side-navigation a");
       window.addEventListener("scroll", event => {

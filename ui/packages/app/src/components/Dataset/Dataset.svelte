@@ -19,7 +19,7 @@
 
 	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
-	$: gallery = headers.length < 1;
+	$: gallery = headers.length < 2;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: Array<Array<any>>;
@@ -217,6 +217,7 @@
 	}
 
 	.button:hover {
+		border-color: var(--dataset-dataframe-border-hover);
 		background: var(--dataset-gallery-background-hover);
 	}
 

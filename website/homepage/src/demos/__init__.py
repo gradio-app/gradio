@@ -144,10 +144,10 @@ for category in demos_by_category:
         demo["code"] = code
         demo["text"] = description
 
-def build(output_dir, jinja_env):
+def build(output_dir, jinja_env, latest_gradio_stable):
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("demos/template.html")
-    output = template.render(demos_by_category=demos_by_category)
+    output = template.render(demos_by_category=demos_by_category, latest_gradio_stable=latest_gradio_stable)
     output_folder = os.path.join(output_dir, "demos")
     os.makedirs(output_folder)
     output_file = os.path.join(output_folder, "index.html")
