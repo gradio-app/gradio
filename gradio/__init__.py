@@ -5,6 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
+import gradio.themes as themes
 from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
@@ -81,6 +82,7 @@ from gradio.templates import (
     TextArea,
     Webcam,
 )
+
 
 current_pkg_version = (
     (pkgutil.get_data(__name__, "version.txt") or b"").decode("ascii").strip()

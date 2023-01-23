@@ -100,7 +100,7 @@ class Theme:
 
 
 def get_theme_css(theme: Theme):
-    css = ":root {"
+    css = ":host {"
     dark_css = ".dark {"
     theme_attr = [attr for attr in dir(theme) if attr not in dir(Theme)]
     for attr in theme_attr:
