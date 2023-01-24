@@ -7,22 +7,18 @@
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
-	function handle_change(
-		evt: Event & {
-			currentTarget: EventTarget & HTMLInputElement;
-		}
-	) {
-		value = evt.currentTarget.checked;
+	function handle_change(value: boolean) {
 		dispatch("change", value);
 	}
+
+	$: handle_change(value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class:disabled>
 	<input
-		on:change={(evt) => handle_change(evt)}
+		bind:checked={value}
 		{disabled}
-		checked={value}
 		type="checkbox"
 		name="test"
 		data-testid="checkbox"
