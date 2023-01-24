@@ -17,9 +17,8 @@
 		const formData = new FormData();
 		formData.append("username", username);
 		formData.append("password", password);
-		const route = "login"; //is_space ? "login_space" : "login";
 
-		let response = await fetch(root + route, {
+		let response = await fetch(root + "login", {
 			method: "POST",
 			body: formData
 		});
@@ -38,6 +37,12 @@
 		<h2>Login</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
+		{/if}
+		{#if is_space}
+			<p class="auth">
+				If you are visiting a HuggingFace Space in Incognito mode, you must
+				enable third party cookies.
+			</p>
 		{/if}
 		{#if incorrect_credentials}
 			<p class="creds">Incorrect Credentials</p>
@@ -87,6 +92,7 @@
 
 	.panel {
 		display: flex;
+		flex-direction: column;
 		flex-wrap: wrap;
 		gap: var(--size-4);
 		border-radius: var(--radius-lg);
@@ -96,14 +102,16 @@
 	}
 
 	h2 {
-		margin-bottom: var(--size-6);
+		margin-bottom: var(--size-3);
+		color: var(--color-text-body);
 		font-weight: var(--weight-semibold);
 		font-size: var(--scale-2);
 	}
 
 	.auth {
-		margin-top: var(--size-4);
-		margin-bottom: var(--size-4);
+		margin-top: var(--size-1);
+		margin-bottom: var(--size-1);
+		color: var(--color-text-body);
 	}
 
 	.creds {
