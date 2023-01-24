@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MultiSelect from "./MultiSelect.svelte";
+	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
@@ -7,6 +8,14 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+
+	const dispatch = createEventDispatcher<{
+		change: string | Array<string>;
+	}>();
+
+	$: if (!multiselect) {
+		dispatch("change", value);
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -19,7 +28,7 @@
 	</select> -->
 
 	{#if !multiselect}
-		<select bind:value on:change {disabled}>
+		<select bind:value {disabled}>
 			{#each choices as choice}
 				<option>{choice}</option>
 			{/each}

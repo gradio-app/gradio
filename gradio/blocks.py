@@ -1627,6 +1627,9 @@ class Blocks(BlockContext):
                 self._queue.close()
             self.server.close()
             self.is_running = False
+            # So that the startup events (starting the queue)
+            # happen the next time the app is launched
+            self.app.startup_events_triggered = False
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
         except (AttributeError, OSError):  # can't close if not running
@@ -1670,6 +1673,8 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            # So that processing can resume in case the queue was stopped
+            self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):
