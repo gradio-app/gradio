@@ -7,22 +7,18 @@
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
-	function handle_change(
-		evt: Event & {
-			currentTarget: EventTarget & HTMLInputElement;
-		}
-	) {
-		value = evt.currentTarget.checked;
+	function handle_change(value: boolean) {
 		dispatch("change", value);
 	}
+
+	$: handle_change(value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class:disabled>
 	<input
-		on:change={(evt) => handle_change(evt)}
+		bind:checked={value}
 		{disabled}
-		checked={value}
 		type="checkbox"
 		name="test"
 		data-testid="checkbox"
@@ -47,7 +43,7 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--shadow-drop);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color), var(--shadow-drop);
 		border: 1px solid var(--checkbox-border-color-base);
 		border-radius: var(--checkbox-border-radius);
 		background-color: var(--checkbox-background-base);

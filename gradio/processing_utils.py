@@ -378,7 +378,7 @@ class TempFileManager:
 
         temp_file_path = self.get_temp_file_path(file_path)
         f.name = str(temp_dir / temp_file_path)
-        full_temp_file_path = str(Path(f.name).resolve())
+        full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
@@ -394,7 +394,7 @@ class TempFileManager:
 
         temp_file_path = self.get_temp_url_path(url)
         f.name = str(temp_dir / temp_file_path)
-        full_temp_file_path = str(Path(f.name).resolve())
+        full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r:

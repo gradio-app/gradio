@@ -191,7 +191,7 @@
 		{#if variant === "default" && show_eta_bar}
 			<div
 				class="eta-bar"
-				style:transform="translateX({(eta_level || 0) * 100}%)"
+				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
 			/>
 		{/if}
 		<div
@@ -256,7 +256,7 @@
 		{/if}
 
 		{#if !timer}
-			<p class="timer">Loading...</p>
+			<p class="loading">Loading...</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
@@ -306,6 +306,7 @@
 		border-radius: var(--radius-lg);
 		background-color: var(--color-background-tertiary);
 		max-height: var(--size-screen-h);
+		overflow: hidden;
 		pointer-events: none;
 	}
 
@@ -346,6 +347,10 @@
 		}
 	}
 
+	.loading {
+		z-index: var(--layer-2);
+		color: var(--color-text-body);
+	}
 	.eta-bar {
 		position: absolute;
 		top: 0;
@@ -356,7 +361,6 @@
 		opacity: 0.8;
 		z-index: var(--layer-1);
 		transition: 10ms;
-		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
 		background: var(--color-background-secondary);
 	}
 	.progress-bar-wrap {
@@ -413,10 +417,6 @@
 		font-size: var(--scale-000);
 		font-family: var(--font-mono);
 		text-align: center;
-	}
-
-	.timer {
-		transform: translateY(var(--size-16));
 	}
 
 	.error {

@@ -460,6 +460,7 @@ class AsyncRequest:
         validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
+        client: httpx.AsyncClient | None = None,
         **kwargs,
     ):
         """
@@ -482,6 +483,7 @@ class AsyncRequest:
         self._validated_data = None
         # Create request
         self._request = self._create_request(method, url, **kwargs)
+        self.client_ = client or self.client
 
     def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
         """
@@ -503,9 +505,7 @@ class AsyncRequest:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await AsyncRequest.client.send(
-                self._request
-            )
+            self._response: httpx.Response = await self.client_.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:
@@ -850,3 +850,11 @@ def tex2svg(formula, *args):
     svg_code = re.sub(r"<metadata>.*<\/metadata>", "", svg_code, flags=re.DOTALL)
     copy_code = f"<span style='font-size: 0px'>{formula}</span>"
     return f"{copy_code}{svg_code}"
+
+
+def abspath(path: str | Path) -> Path:
+    """Returns absolute path of a str or Path path, but does not resolve symlinks."""
+    if Path(path).is_symlink():
+        return Path.cwd() / path
+    else:
+        return Path(path).resolve()
