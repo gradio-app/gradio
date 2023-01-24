@@ -109,36 +109,54 @@ io.integrate(comet_ml=experiment)
 
 The last line in this snippet will log the URL of the Gradio Appication to your Comet Experiment. You can find the URL in the Text Tab of your Experiment.
 
-<>
+https://user-images.githubusercontent.com/7529846/214328034-09369d4d-8b94-4c4a-aa3c-25e3ed8394c4.mp4
 
-Add the Gradio Panel to your Experiment to interact with your application from within your Comet Experiment.
+Add the Gradio Panel to your Experiment to interact with your application from within your Comet Experiment
 
-<>
+https://user-images.githubusercontent.com/7529846/214328194-95987f83-c180-4929-9bed-c8a0d3563ed7.mp4
+
 
 ## 2. Embedding Gradio Applications directly into your Comet Projects
 
+<iframe src="https://youtu.be/KZnpH7msPq0?t=7" frameborder="0"
+      allowfullscreen width="560" height="315"></iframe>
+
 If you are permanently hosting your Gradio application, you can embed the UI using the Gradio Panel Extended custom Panel.
 
-<iframe src="https://youtu.be/KZnpH7msPq0?t=7" frameborder="0"
-      allowfullscreen width="560" height="315" ></iframe>
+Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. 
 
-Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. Next, search for Gradio Panel Extended in the Public Panels section and click `Add`.
+<img width="800" alt="adding-panels" src="https://user-images.githubusercontent.com/7529846/214329314-70a3ff3d-27fb-408c-a4d1-4b58892a3854.jpeg">
+
+Next, search for Gradio Panel Extended in the Public Panels section and click `Add`.
+
+<img width="800" alt="gradio-panel-extended" src="https://user-images.githubusercontent.com/7529846/214325577-43226119-0292-46be-a62a-0c7a80646ebb.png">
+
+Once you have added your Panel, click Edit to access to the Panel Options page and paste it the URL of your Gradio application. 
+
+<img width="800" alt="Edit-Gradio-Panel-URL" src="https://user-images.githubusercontent.com/7529846/214334843-870fe726-0aa1-4b21-bbc6-0c48f56c48d8.png">
+
 
 ## 3. Embedding Hugging Face Spaces directly into your Comet Projects
 
+<iframe src="https://youtu.be/KZnpH7msPq0?t=108" frameborder="0"
+      allowfullscreen width="560" height="315"></iframe>
+
 You can also embed Gradio Applications that are hosted on Hugging Faces spaces into your Comet Projects using the Hugging Face Spaces Panel.
 
-<iframe src="https://youtu.be/KZnpH7msPq0?t=108" frameborder="0"
-      allowfullscreen width="560" height="315" ></iframe>
+Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. Next, search for the Hugging Face Spaces Panel in the Public Panels section and click `Add`.
 
-Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. Next, search for Gradio Panel Extended in the Public Panels section and click `Add`.
+<img width="800" alt="huggingface-spaces-panel" src="https://user-images.githubusercontent.com/7529846/214325606-99aa3af3-b284-4026-b423-d3d238797e12.png">
+
+Once you have added your Panel, click Edit to access to the Panel Options page and paste in the path of your Hugging Face e.g. `pytorch/ResNet` 
+
+<img width="800" alt="Edit-HF-Space" src="https://user-images.githubusercontent.com/7529846/214335868-c6f25dee-13db-4388-bcf5-65194f850b02.png">
 
 ## 4. Logging Model Inferences to Comet
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Logging_Model_Inferences_with_Comet_and_Gradio.ipynb)
 
 <iframe src="https://youtu.be/KZnpH7msPq0?t=177" frameborder="0"
-      allowfullscreen width="560" height="315" ></iframe>
+      allowfullscreen width="560" height="315"></iframe>
 
 In the previous examples, we demonstrated the various ways in which you can interact with a Gradio application through the Comet UI. Additonally,  you can also log model inferences, such as SHAP plots, from Gradio application to Comet Experiments.
 
@@ -234,7 +252,7 @@ with gr.Blocks() as demo:
 
 Inferences from this snippet will be saved in the HTML tab of your experiment.
 
-<>
+https://user-images.githubusercontent.com/7529846/214328610-466e5c81-4814-49b9-887c-065aca14dd30.mp4
 
 ## Conclusion
 
