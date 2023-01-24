@@ -17,8 +17,9 @@
 		const formData = new FormData();
 		formData.append("username", username);
 		formData.append("password", password);
+		const route = is_space ? "login_space" : "login";
 
-		let response = await fetch(root + (is_space ? "login_space" : "login"), {
+		let response = await fetch(root + route, {
 			method: "POST",
 			body: formData
 		});

@@ -208,6 +208,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
+                    "is_space": app.get_blocks().is_space,
                 }
 
             try:
