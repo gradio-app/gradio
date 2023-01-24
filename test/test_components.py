@@ -942,6 +942,12 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_file_type_must_be_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received str"
+        ):
+            gr.File(file_types=".json")
+
     def test_in_interface_as_input(self):
         """
         Interface, process

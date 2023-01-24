@@ -2250,6 +2250,10 @@ class File(
         """
         self.file_count = file_count
         self.file_types = file_types
+        if file_types is not None and not isinstance(file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+            )
         valid_types = [
             "file",
             "binary",
