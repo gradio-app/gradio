@@ -17,7 +17,7 @@
 		const formData = new FormData();
 		formData.append("username", username);
 		formData.append("password", password);
-		const route = is_space ? "login_space" : "login";
+		const route = "login"; //is_space ? "login_space" : "login";
 
 		let response = await fetch(root + route, {
 			method: "POST",
@@ -27,7 +27,7 @@
 			incorrect_credentials = true;
 			username = "";
 			password = "";
-		} else {
+		} else if (response.status == 200) {
 			location.reload();
 		}
 	};
