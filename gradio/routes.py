@@ -173,6 +173,8 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
+        @app.post("/login_space")
+        @app.post("/login_space/")
         def login(form_data: OAuth2PasswordRequestForm = Depends()):
             username, password = form_data.username, form_data.password
             if app.auth is None:

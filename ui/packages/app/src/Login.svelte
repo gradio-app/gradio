@@ -6,6 +6,7 @@
 	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
+	export let is_space: boolean;
 
 	window.__gradio_loader__[id].$set({ status: "complete" });
 	let username = "";
@@ -17,7 +18,7 @@
 		formData.append("username", username);
 		formData.append("password", password);
 
-		let response = await fetch(root + "login", {
+		let response = await fetch(root + (is_space ? "login_space" : "login"), {
 			method: "POST",
 			body: formData
 		});
