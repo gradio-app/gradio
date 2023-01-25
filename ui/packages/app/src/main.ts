@@ -12,6 +12,7 @@ window.__gradio_loader__ = [];
 
 declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
+declare let GRADIO_VERSION: string;
 
 const ENTRY_CSS = "__ENTRY_CSS__";
 const FONTS = "__FONTS_CSS__";
@@ -202,8 +203,9 @@ function create_custom_element() {
 				this.root.append(link);
 			};
 
+			console.log(GRADIO_VERSION);
 			this.wrapper = document.createElement("div");
-			this.wrapper.classList.add("gradio-container");
+			this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
 
 			this.wrapper.style.position = "relative";
 			this.wrapper.style.width = "100%";
@@ -288,7 +290,8 @@ function create_custom_element() {
 
 async function unscoped_mount() {
 	const target = document.querySelector("#root")! as HTMLDivElement;
-	target.classList.add("gradio-container");
+	console.log(`gradio-container-${GRADIO_VERSION}`);
+	target.classList.add(`gradio-container-${GRADIO_VERSION}`);
 	if (window.__gradio_mode__ !== "website") {
 		handle_darkmode(target);
 	}

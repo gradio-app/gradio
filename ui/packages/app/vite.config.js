@@ -4,6 +4,19 @@ import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
 
+import prefixer from "postcss-prefix-selector";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+// import * as url from "url";
+// const __filename = url.fileURLToPath(import.meta.url);
+// const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+
+const version_path = join(__dirname, "..", "..", "..", "gradio", "version.txt");
+const version = readFileSync(version_path, { encoding: "utf-8" })
+	.trim()
+	.replace(/\./g, "-");
+
 import {
 	inject_ejs,
 	patch_dynamic_import,
@@ -44,11 +57,20 @@ export default defineConfig(({ mode }) => {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
-				: JSON.stringify("http://localhost:7860/")
+				: JSON.stringify("http://localhost:7860/"),
+			GRADIO_VERSION: JSON.stringify(version)
 		},
 		css: {
 			postcss: {
 				plugins: [
+					// prefixer({
+					// 	prefix: `.gradio-container-${version}`,
+					// 	transform(prefix, selector, prefixedSelector) {
+					// 		return selector.indexOf("svelte") > -1
+					// 			? selector
+					// 			: prefixedSelector;
+					// 	}
+					// }),
 					custom_media({
 						importFrom: [
 							{

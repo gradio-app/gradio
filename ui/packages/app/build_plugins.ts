@@ -112,24 +112,10 @@ export function handle_ce_css(): Plugin {
 
 		transform(code, id) {
 			if (id === "vite/preload-helper") {
-				const _code = code
-					.replace(
-						"document.head.appendChild(link);",
-						"window.scoped_css_attach(link)"
-					)
-					.replace("if (dep in seen)", "if (false)")
-					.replace(
-						'if (document.querySelector(`link[href="${dep}"]${cssSelector}`))',
-						"if (false)"
-					);
-
-				const x = _code.indexOf(
-					'if (document.querySelector(`link[href="${dep}"]${cssSelector}`))'
+				const _code = code.replace(
+					"document.head.appendChild(link);",
+					"window.scoped_css_attach(link)"
 				);
-				console.log("\nFOUND IT");
-
-				console.log(x);
-				console.log("\n=====\n");
 
 				return {
 					code: _code
