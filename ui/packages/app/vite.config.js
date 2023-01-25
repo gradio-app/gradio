@@ -3,7 +3,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
-
+// @ts-ignore
 import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -61,6 +61,7 @@ export default defineConfig(({ mode }) => {
 				plugins: [
 					prefixer({
 						prefix: `.gradio-container-${version}`,
+						// @ts-ignore
 						transform(prefix, selector, prefixedSelector, fileName) {
 							if (selector.indexOf("gradio-container") > -1) {
 								return prefix;
