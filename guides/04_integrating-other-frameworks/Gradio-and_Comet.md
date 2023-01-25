@@ -133,6 +133,9 @@ Next, search for Gradio Panel Extended in the Public Panels section and click `A
 
 Once you have added your Panel, click `Edit` to access to the Panel Options page and paste in the URL of your Gradio application.
 
+![Edit-Gradio-Panel-Options](https://user-images.githubusercontent.com/7529846/214573001-23814b5a-ca65-4ace-a8a5-b27cdda70f7a.gif)
+
+
 <img width="800" alt="Edit-Gradio-Panel-URL" src="https://user-images.githubusercontent.com/7529846/214334843-870fe726-0aa1-4b21-bbc6-0c48f56c48d8.png">
 
 
