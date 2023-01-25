@@ -5,7 +5,7 @@ Contributed by the Comet team
 
 ## Introduction
 
-In this guide we will walk through some of the ways you can use Gradio with Comet. We will cover the basics of using Comet with Gradio as well as showcase some of the ways that you can leverage some of Gradio's advanced features such as Embeddings and State to build some amazing model evaluation workflows.
+In this guide we will demonstrate some of the ways you can use Gradio with Comet. We will cover the basics of using Comet with Gradio and show you some of the ways that you can leverage Gradio's advanced features such as [Embedding with iFrames](https://www.gradio.app/sharing-your-app/#embedding-with-iframes) and [State](https://www.gradio.app/docs/#state) to build some amazing model evaluation workflows.
 
 Here is a list of the topics covered in this guide.
 
@@ -17,7 +17,7 @@ Here is a list of the topics covered in this guide.
 
 ## What is Comet?
 
-[Comet]() is an MLOps Platform that is designed to help Data Scientists and Teams build better models faster! Comet provides tooling to Track, Explain, Manage, and Monitor your models in a single place! It works with Jupyter Notebooks and Scripts and most importantly it's 100% free!
+[Comet](https://www.comet.com?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) is an MLOps Platform that is designed to help Data Scientists and Teams build better models faster! Comet provides tooling to Track, Explain, Manage, and Monitor your models in a single place! It works with Jupyter Notebooks and Scripts and most importantly it's 100% free!
 
 
 ## Setup
@@ -28,7 +28,7 @@ First, install the dependencies needed to run these examples
 pip install comet_ml torch torchvision transformers gradio shap requests Pillow
 ```
 
-Next, you will need to [sign up for a Comet Account](). Once you have your account set up, [grab your API Key](https://www.comet.com/docs/v2/guides/getting-started/quickstart/#get-an-api-key) and configure your Comet credentials
+Next, you will need to [sign up for a Comet Account](https://www.comet.com/signup?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs). Once you have your account set up, [grab your API Key](https://www.comet.com/docs/v2/guides/getting-started/quickstart/#get-an-api-key?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs) and configure your Comet credentials
 
 If you're running these examples as a script, you can either export your credentials as environment variables
 
@@ -38,7 +38,7 @@ export COMET_WORKSPACE="<Your Workspace Name>"
 export COMET_PROJECT_NAME="<Your Project Name>"
 ```
 
-or them in a `.comet.config` file in your working directory.
+or set them in a `.comet.config` file in your working directory. You file should be formatted in the following way.
 
 ```shell
 [comet]
@@ -47,7 +47,7 @@ workspace=<Your Workspace Name>
 project_name=<Your Project Name>
 ```
 
-If you're using the provided Colab Notebooks to run these examples, please run the cell with the following snippet before starting the Gradio UI. Running this cell allows you to interactively add your API key to the notebook.
+If you are using the provided Colab Notebooks to run these examples, please run the cell with the following snippet before starting the Gradio UI. Running this cell allows you to interactively add your API key to the notebook.
 
 ```python
 import comet_ml
@@ -111,7 +111,7 @@ The last line in this snippet will log the URL of the Gradio Appication to your 
 
 https://user-images.githubusercontent.com/7529846/214328034-09369d4d-8b94-4c4a-aa3c-25e3ed8394c4.mp4
 
-Add the Gradio Panel to your Experiment to interact with your application from within your Comet Experiment
+Add the Gradio Panel to your Experiment to interact with your application.
 
 https://user-images.githubusercontent.com/7529846/214328194-95987f83-c180-4929-9bed-c8a0d3563ed7.mp4
 
@@ -123,7 +123,7 @@ https://user-images.githubusercontent.com/7529846/214328194-95987f83-c180-4929-9
 
 If you are permanently hosting your Gradio application, you can embed the UI using the Gradio Panel Extended custom Panel.
 
-Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. 
+Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page.
 
 <img width="800" alt="adding-panels" src="https://user-images.githubusercontent.com/7529846/214329314-70a3ff3d-27fb-408c-a4d1-4b58892a3854.jpeg">
 
@@ -131,7 +131,7 @@ Next, search for Gradio Panel Extended in the Public Panels section and click `A
 
 <img width="800" alt="gradio-panel-extended" src="https://user-images.githubusercontent.com/7529846/214325577-43226119-0292-46be-a62a-0c7a80646ebb.png">
 
-Once you have added your Panel, click Edit to access to the Panel Options page and paste it the URL of your Gradio application. 
+Once you have added your Panel, click `Edit` to access to the Panel Options page and paste in the URL of your Gradio application.
 
 <img width="800" alt="Edit-Gradio-Panel-URL" src="https://user-images.githubusercontent.com/7529846/214334843-870fe726-0aa1-4b21-bbc6-0c48f56c48d8.png">
 
@@ -141,26 +141,27 @@ Once you have added your Panel, click Edit to access to the Panel Options page a
 <iframe src="https://youtu.be/KZnpH7msPq0?t=108" frameborder="0"
       allowfullscreen width="560" height="315"></iframe>
 
-You can also embed Gradio Applications that are hosted on Hugging Faces spaces into your Comet Projects using the Hugging Face Spaces Panel.
+You can also embed Gradio Applications that are hosted on Hugging Faces Spaces into your Comet Projects using the Hugging Face Spaces Panel.
 
 Go to your Comet Project page, and head over to the Panels tab. Click the `+ Add` button to bring up the Panels search page. Next, search for the Hugging Face Spaces Panel in the Public Panels section and click `Add`.
 
 <img width="800" alt="huggingface-spaces-panel" src="https://user-images.githubusercontent.com/7529846/214325606-99aa3af3-b284-4026-b423-d3d238797e12.png">
 
-Once you have added your Panel, click Edit to access to the Panel Options page and paste in the path of your Hugging Face e.g. `pytorch/ResNet` 
+Once you have added your Panel, click Edit to access to the Panel Options page and paste in the path of your Hugging Face Space e.g. `pytorch/ResNet`
 
 <img width="800" alt="Edit-HF-Space" src="https://user-images.githubusercontent.com/7529846/214335868-c6f25dee-13db-4388-bcf5-65194f850b02.png">
 
 ## 4. Logging Model Inferences to Comet
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Logging_Model_Inferences_with_Comet_and_Gradio.ipynb)
-
 <iframe src="https://youtu.be/KZnpH7msPq0?t=177" frameborder="0"
       allowfullscreen width="560" height="315"></iframe>
 
-In the previous examples, we demonstrated the various ways in which you can interact with a Gradio application through the Comet UI. Additonally,  you can also log model inferences, such as SHAP plots, from Gradio application to Comet Experiments.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/comet-examples/blob/master/integrations/model-evaluation/gradio/notebooks/Logging_Model_Inferences_with_Comet_and_Gradio.ipynb)
 
-In the following snippet, we're going to log inferences from a Text Generation model to Comet. We can persist an Experiment object for logging across multiple inference calls using Gradio's [State](https://www.gradio.app/docs/#state) object. This will allow you to log multiple inferences from a model to a single Experiment.
+
+In the previous examples, we demonstrated the various ways in which you can interact with a Gradio application through the Comet UI. Additionally,  you can also log model inferences, such as SHAP plots, from your Gradio application to Comet.
+
+In the following snippet, we're going to log inferences from a Text Generation model. We can persist an Experiment across multiple inference calls using Gradio's [State](https://www.gradio.app/docs/#state) object. This will allow you to log multiple inferences from a model to a single Experiment.
 
 ```python
 import comet_ml
@@ -263,3 +264,7 @@ We hope you found this guide useful and that it provides some inspiration to hel
 * Create an account on Hugging Face [here](https://huggingface.co/join).
 * Add Gradio Demo under your username, see this [course](https://huggingface.co/course/chapter9/4?fw=pt) for setting up Gradio Demo on Hugging Face.
 * Request to join the Comet organization [here](https://huggingface.co/Comet).
+
+## Additional Resources
+
+* [Comet Documentation](https://www.comet.com/docs/v2/?utm_source=gradio&utm_medium=referral&utm_campaign=gradio-integration&utm_content=gradio-docs)
