@@ -109,14 +109,14 @@
 	}
 
 	.sm {
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		padding: var(--size-1) var(--size-3);
 		font-weight: var(--weight-regular);
 		font-size: var(--scale-00);
 	}
 
 	.lg {
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		padding: var(--size-2) var(--size-4);
 		font-weight: var(--weight-bold);
 		font-size: var(--scale-0);
