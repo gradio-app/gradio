@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { Download } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 	import {
 		display_file_name,
 		download_files,
