@@ -69,6 +69,8 @@ No changes to highlight.
 
 ## Full Changelog:
 * Rewrote frontend using CSS variables for themes by [@pngwn](https://github.com/pngwn) in [PR 2840](https://github.com/gradio-app/gradio/pull/2840)
+* Moved telemetry requests to run on background threads by [@abidlabs](https://github.com/abidlabs) in [PR 3054](https://github.com/gradio-app/gradio/pull/3054)  
+
 
 ## Contributors Shoutout:
 No changes to highlight.

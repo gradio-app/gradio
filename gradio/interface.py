@@ -389,7 +389,6 @@ class Interface(Blocks):
                 "inputs": inputs,
                 "outputs": outputs,
                 "live": live,
-                "ip_address": self.ip_address,
                 "interpretation": interpretation,
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
