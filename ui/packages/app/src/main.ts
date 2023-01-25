@@ -187,7 +187,7 @@ function create_custom_element() {
 	FONTS.map((f) => mount_css(f, document.head));
 
 	class GradioApp extends HTMLElement {
-		root: ShadowRoot;
+		root: HTMLElement;
 		wrapper: HTMLDivElement;
 		_id: number;
 		theme: string;
@@ -196,14 +196,8 @@ function create_custom_element() {
 			super();
 
 			this._id = ++id;
+			this.root = this;
 
-			this.root = this.attachShadow({ mode: "open" });
-
-			window.scoped_css_attach = (link) => {
-				this.root.append(link);
-			};
-
-			console.log(GRADIO_VERSION);
 			this.wrapper = document.createElement("div");
 			this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
 
@@ -228,7 +222,7 @@ function create_custom_element() {
 		}
 
 		async connectedCallback() {
-			await mount_css(ENTRY_CSS, this.root);
+			await mount_css(ENTRY_CSS, document.head);
 			this.root.append(this.wrapper);
 
 			const event = new CustomEvent("domchange", {
@@ -288,28 +282,6 @@ function create_custom_element() {
 	customElements.define("gradio-app", GradioApp);
 }
 
-async function unscoped_mount() {
-	const target = document.querySelector("#root")! as HTMLDivElement;
-	console.log(`gradio-container-${GRADIO_VERSION}`);
-	target.classList.add(`gradio-container-${GRADIO_VERSION}`);
-	if (window.__gradio_mode__ !== "website") {
-		handle_darkmode(target);
-	}
-
-	window.__gradio_loader__[0] = new Loader({
-		target: target,
-		props: {
-			status: "pending",
-			timer: false,
-			queue_position: null,
-			queue_size: null
-		}
-	});
-
-	const config = await handle_config(target, null);
-	mount_app({ ...config, control_page_title: true }, false, target, 0);
-}
-
 function handle_darkmode(target: HTMLDivElement): string {
 	let url = new URL(window.location.toString());
 	let theme = "light";
@@ -360,11 +332,4 @@ function darkmode(target: HTMLDivElement): string {
 	return "dark";
 }
 
-if (BUILD_MODE === "dev") {
-	window.scoped_css_attach = (link) => {
-		document.head.append(link);
-	};
-	unscoped_mount();
-} else {
-	create_custom_element();
-}
+create_custom_element();

@@ -49,8 +49,8 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			// minify: production,
-			minify: false,
+			minify: production,
+			// minify: false,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
@@ -63,14 +63,22 @@ export default defineConfig(({ mode }) => {
 		css: {
 			postcss: {
 				plugins: [
-					// prefixer({
-					// 	prefix: `.gradio-container-${version}`,
-					// 	transform(prefix, selector, prefixedSelector) {
-					// 		return selector.indexOf("svelte") > -1
-					// 			? selector
-					// 			: prefixedSelector;
-					// 	}
-					// }),
+					prefixer({
+						prefix: `.gradio-container-${version}`,
+						transform(prefix, selector, prefixedSelector, fileName) {
+							if (selector.indexOf("gradio-container") > -1) {
+								return prefix;
+							} else if (
+								selector.indexOf(":root") > -1 ||
+								selector.indexOf("dark") > -1 ||
+								fileName.indexOf(".svelte") > -1
+							) {
+								return selector;
+							} else {
+								return prefixedSelector;
+							}
+						}
+					}),
 					custom_media({
 						importFrom: [
 							{
@@ -97,7 +105,9 @@ export default defineConfig(({ mode }) => {
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [custom_media()] }
+					postcss: {
+						plugins: [custom_media()]
+					}
 				})
 			}),
 			inject_ejs(),
