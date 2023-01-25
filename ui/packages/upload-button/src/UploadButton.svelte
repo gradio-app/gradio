@@ -74,7 +74,7 @@
 </script>
 
 <input
-	class="hidden-upload"
+	class="hide"
 	accept={accept_file_types}
 	type="file"
 	bind:this={hidden_upload}
@@ -96,7 +96,7 @@
 </Button>
 
 <style>
-	.hidden-upload {
+	.hide {
 		display: none;
 	}
 </style>
