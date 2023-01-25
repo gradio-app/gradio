@@ -166,7 +166,7 @@ const theme_light = {
 	},
 	checkbox: {
 		border: {
-			radius: "var(--radius-sm)",
+			radius: "var(--rounded)",
 			color: {
 				base: "var(--color-grey-300)",
 				hover: "var(--color-grey-300)",
@@ -317,7 +317,7 @@ const theme_light = {
 	},
 	chatbot: {
 		border: {
-			radius: "var(--radius-3xl)",
+			radius: "var(--rounded-xxl)",
 			width: "0"
 		},
 		// do we do this via theme or constructor?

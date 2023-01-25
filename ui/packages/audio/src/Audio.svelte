@@ -322,7 +322,7 @@
 		align-items: center;
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background: var(--color-background-tertiary);
 		padding: var(--size-0-5) var(--size-2);
 		font-size: var(--scale-00);
@@ -341,7 +341,7 @@
 	.dot {
 		display: inline-flex;
 		position: relative;
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background: var(--color-red-500);
 		width: 6px;
 		height: 6px;
@@ -352,7 +352,7 @@
 		position: absolute;
 		opacity: 0.9;
 		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background: var(--color-red-500);
 		width: var(--size-full);
 		height: var(--size-full);

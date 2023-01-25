@@ -24,7 +24,7 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		background: var(--dataset-gallery-background-base);
+		background: var(--color-background-primary);
 		padding: var(--size-1) var(--size-2);
 		font-size: var(--scale-00);
 		text-align: left;
@@ -32,6 +32,6 @@
 
 	.gallery:hover,
 	.selected.gallery {
-		background: var(--dataset-gallery-background-hover);
+		background: var(--color-focus-ring);
 	}
 </style>

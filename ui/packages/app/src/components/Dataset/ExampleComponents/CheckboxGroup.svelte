@@ -17,14 +17,14 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
-		border-radius: var(--radius-lg);
-		background: var(--dataset-gallery-background-base);
+		border-radius: var(--rounded-lg);
+		background: var(--color-background-primary);
 		padding: var(--size-1) var(--size-2);
 		text-align: left;
 	}
 
 	.gallery:hover,
 	.selected.gallery {
-		background: var(--dataset-gallery-background-hover);
+		background: var(--color-focus-ring);
 	}
 </style>

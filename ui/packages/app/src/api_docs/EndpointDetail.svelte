@@ -41,7 +41,7 @@
 	.post {
 		margin-right: var(--size-2);
 		border: 1px solid var(--docs-pill-border);
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background: var(--docs-pill-background);
 		padding-right: var(--size-1);
 		padding-left: var(--size-1);

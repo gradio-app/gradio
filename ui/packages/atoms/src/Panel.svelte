@@ -7,7 +7,7 @@
 		display: flex;
 		flex-direction: column;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-xl);
+		border-radius: var(--rounded-xl);
 		background: var(--color-background-secondary);
 		padding: var(--size-4);
 	}
