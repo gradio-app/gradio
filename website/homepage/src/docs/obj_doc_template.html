@@ -71,14 +71,16 @@
 -->{% endfor %}<!--  
 -->···<span>)</span></code></pre></div>
   {% endif %}
-  {% if is_component %}
-    <div class="embedded-component">
-      {% if version=="main" %}
-        <gradio-app space="gradio/{{ obj['name'].lower() }}_component_main" />
-      {% else %}
-        <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
-      {% endif %}
-    </div>
+  {% if (is_component or obj['name'].lower() in ["examples", "progress"]) %}
+    {% if obj['name'].lower() != "state" %}
+      <div class="embedded-component">
+        {% if version=="main" %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component_main" />
+        {% else %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
+        {% endif %}
+      </div>
+    {% endif %}
   {% endif %}
   <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
   <br>
