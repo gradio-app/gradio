@@ -21,11 +21,6 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
-	<!-- <select bind:value {disabled}>
-		{#each choices as choice}
-			<option>{choice}</option>
-		{/each}
-	</select> -->
 
 	{#if !multiselect}
 		<select bind:value {disabled}>
@@ -45,7 +40,7 @@
 		position: relative;
 		outline: none !important;
 		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
-			var(--input-shadow);
+			var(--shadow-inset);
 		border: 1px solid var(--input-border-color-base);
 		border-radius: var(--radius-lg);
 		background-color: var(--input-background-base);
