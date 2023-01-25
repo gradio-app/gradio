@@ -38,7 +38,7 @@
 	});
 
 	function change_tab(id: object | string | number) {
-		selected = id
+		selected = id;
 		$selected_tab = id;
 		dispatch("change");
 	}
