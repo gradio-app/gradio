@@ -46,7 +46,6 @@
 		{#each value as message, i}
 			<div
 				data-testid="user"
-				class:latest={i === value.length - 1}
 				class="message user"
 				style={"background-color:" + _colors[0]}
 			>
@@ -54,7 +53,6 @@
 			</div>
 			<div
 				data-testid="bot"
-				class:latest={i === value.length - 1}
 				class="message bot"
 				style={"background-color:" + _colors[1]}
 			>
@@ -88,24 +86,24 @@
 	.message {
 		border-width: var(--internal-border-width);
 		border-style: solid;
-		border-radius: var(--rounded-xl);
+		border-radius: var(--rounded-xxl);
 		padding: var(--size-2) var(--size-3);
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
 	}
 
 	.user {
-		border-color: var(--chatbot-user-border-color-base);
+		border-color: var(--color-accent-base);
 		border-bottom-right-radius: 0;
 		background: var(--color-accent-light);
-		color: var(--chatbot-user-text-color-base);
+		color: "white";
 	}
 
 	.bot {
 		place-self: start;
-		border-color: var(--chatbot-bot-border-color-base);
+		border-color: var(--color-border-primary);
 		border-bottom-left-radius: 0;
-		background: var(--chatbot-bot-background-base);
-		color: var(--chatbot-bot-text-color-base);
+		background: var(--color-background-secondary);
+		color: var(--color-text-body);
 	}
 </style>

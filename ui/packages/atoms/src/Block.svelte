@@ -59,7 +59,7 @@
 		margin: 0;
 		box-shadow: var(--shadow-drop);
 		border-width: 1px;
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--color-background-tertiary);
 		width: 100%;
 		color: var(--color-text-body);

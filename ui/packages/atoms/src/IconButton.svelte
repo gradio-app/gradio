@@ -15,7 +15,7 @@
 		z-index: var(--layer-1);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--icon_button-border-color-base);
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background: var(--color-background-primary);
 		width: var(--size-5);
 		height: var(--size-5);

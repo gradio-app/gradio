@@ -187,7 +187,7 @@ function mount_app(
 
 function create_custom_element() {
 	//@ts-ignore
-	FONTS.map((f) => mount_css(f, document.head));
+	// FONTS.map((f) => mount_css(f, document.head));
 
 	class GradioApp extends HTMLElement {
 		root: ShadowRoot;

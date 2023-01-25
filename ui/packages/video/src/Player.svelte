@@ -129,7 +129,7 @@
 
 	progress {
 		margin-right: var(--size-3);
-		border-radius: var(--radius-md);
+		border-radius: var(--rounded);
 		width: var(--size-full);
 		height: var(--size-2);
 	}
@@ -160,7 +160,7 @@
 		bottom: 0;
 		transition: 500ms;
 		margin: var(--size-2);
-		border-radius: var(--radius-md);
+		border-radius: var(--rounded);
 		background: var(--color-grey-800);
 		padding: var(--size-2) var(--size-1);
 		width: calc(100% - 0.375rem * 2);

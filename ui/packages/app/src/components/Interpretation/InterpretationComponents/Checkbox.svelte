@@ -58,7 +58,7 @@
 		display: flex;
 		gap: var(--size-1);
 		cursor: pointer;
-		border-radius: var(--radius-md);
+		border-radius: var(--rounded);
 		padding: var(--size-2) var(--size-3);
 	}
 

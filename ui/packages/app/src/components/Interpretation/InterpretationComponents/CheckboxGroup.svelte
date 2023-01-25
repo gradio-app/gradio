@@ -67,7 +67,7 @@
 		transition: 150ms;
 		cursor: pointer;
 		box-shadow: var(--shadow-drop);
-		border-radius: var(--radius-md);
+		border-radius: var(--rounded);
 		background: var(--color-background-primary);
 		padding: var(--size-2) var(--size-3);
 		font-weight: var(--weight-semibold);

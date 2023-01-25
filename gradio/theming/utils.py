@@ -6,13 +6,11 @@ class Theme:
         return f"var(--color-{color}-{number})"
 
     def _use(self, property):
-        # assert property in self.__dict__
-        if not property in self.__dict__:
-            print("property not found: ", property)
+        assert property in self.__dict__ and not property.endswith("_dark")
         return f"var(--{property.replace('_', '-')})"
 
 def get_theme_css(theme: Theme):
-    css = ":root {\n"
+    css = ":host {\n"
     dark_css = ".dark {\n"
     theme_attr = [attr for attr in dir(theme) if attr not in dir(Theme)]
     for attr in theme_attr:

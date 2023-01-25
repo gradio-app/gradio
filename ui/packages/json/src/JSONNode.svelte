@@ -94,7 +94,7 @@
 
 	.expand-array {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background-color: vSar(--color-background-secondary);
 		padding: 0 var(--size-1);
 		color: var(--color-text-body);

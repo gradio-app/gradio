@@ -95,18 +95,18 @@
 	}
 
 	td {
-		border: 1px solid var(--dataset-dataframe-border-base);
+		border: 1px solid var(--color-border-tertiary);
 		padding: var(--size-2);
 		font-size: var(--scale-000);
 		font-family: var(--font-mono);
 	}
 
 	.table.selected td {
-		border-color: var(--dataset-dataframe-border-hover);
+		border-color: var(--color-border-tertiary);
 	}
 
 	.gallery.selected td {
-		border-color: var(--dataset-dataframe-border-hover);
+		border-color: var(--color-border-tertiary);
 	}
 
 	td:first-child {
@@ -136,23 +136,23 @@
 
 	/* i dont know what i've done here but it is what it is */
 	.odd {
-		--gradient-to: var(--table-even-background);
+		--gradient-to: var(--row-even-background);
 	}
 
 	.even {
-		--gradient-to: var(--table-odd-background);
+		--gradient-to: var(--row-odd-background);
 	}
 
 	.button {
-		--gradient-to: var(--dataset-gallery-background-base);
+		--gradient-to: var(--color-background-primary);
 	}
 
 	.selected .even,
 	.selected .odd {
-		--gradient-to: var(--dataset-table-background-hover);
+		--gradient-to: var(--color-focus-ring);
 	}
 
 	.selected .button {
-		--gradient-to: var(--dataset-gallery-background-hover);
+		--gradient-to: var(--color-focus-ring);
 	}
 </style>
