@@ -8,10 +8,6 @@ import prefixer from "postcss-prefix-selector";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-// import * as url from "url";
-// const __filename = url.fileURLToPath(import.meta.url);
-// const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-
 const version_path = join(__dirname, "..", "..", "..", "gradio", "version.txt");
 const version = readFileSync(version_path, { encoding: "utf-8" })
 	.trim()
