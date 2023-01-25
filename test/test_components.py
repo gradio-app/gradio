@@ -989,6 +989,12 @@ class TestUploadButton:
         input2 = upload_input.preprocess(x_file)
         assert input1.name == input2.name
 
+    def test_raises_if_file_types_is_not_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received int"
+        ):
+            gr.UploadButton(file_types=2)
+
 
 class TestDataframe:
     def test_component_functions(self):
