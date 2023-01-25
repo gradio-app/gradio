@@ -86,9 +86,9 @@
 	}
 
 	.message {
-		border-width: var(--chatbot-border-width);
+		border-width: var(--internal-border-width);
 		border-style: solid;
-		border-radius: var(--chatbot-border-radius);
+		border-radius: var(--rounded-xl);
 		padding: var(--size-2) var(--size-3);
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
@@ -97,14 +97,8 @@
 	.user {
 		border-color: var(--chatbot-user-border-color-base);
 		border-bottom-right-radius: 0;
-		background: var(--chatbot-user-background-base);
+		background: var(--color-accent-light);
 		color: var(--chatbot-user-text-color-base);
-	}
-
-	.user.latest {
-		border-color: var(--chatbot-user-border-color-latest);
-		background: var(--chatbot-user-background-latest);
-		color: var(--chatbot-user-text-color-latest);
 	}
 
 	.bot {
@@ -113,11 +107,5 @@
 		border-bottom-left-radius: 0;
 		background: var(--chatbot-bot-background-base);
 		color: var(--chatbot-bot-text-color-base);
-	}
-
-	.bot.latest {
-		border-color: var(--chatbot-bot-border-color-latest);
-		background: var(--chatbot-bot-background-latest);
-		color: var(--chatbot-bot-text-color-latest);
 	}
 </style>

@@ -40,12 +40,12 @@
 
 	.post {
 		margin-right: var(--size-2);
-		border: 1px solid var(--api-pill-border);
+		border: 1px solid var(--docs-pill-border);
 		border-radius: var(--radius-sm);
-		background: var(--api-pill-background);
+		background: var(--docs-pill-background);
 		padding-right: var(--size-1);
 		padding-left: var(--size-1);
-		color: var(--api-pill-text);
+		color: var(--docs-pill-text);
 		font-weight: var(--weight-semibold);
 		font-size: var(--scale-00);
 	}

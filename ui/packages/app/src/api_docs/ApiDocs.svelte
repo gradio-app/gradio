@@ -170,7 +170,7 @@
 
 	.endpoint {
 		border-radius: var(--radius-md);
-		background: var(--api-background);
+		background: var(--docs-background);
 		padding: var(--size-6);
 	}
 </style>

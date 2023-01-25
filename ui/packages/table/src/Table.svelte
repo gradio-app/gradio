@@ -791,7 +791,7 @@
 	}
 
 	.editing {
-		background: var(--table-background-edit);
+		background: var(--color-focus-ring);
 	}
 
 	.cell-wrap {

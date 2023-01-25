@@ -5,7 +5,7 @@ const path = require("path");
 const foundation_light = {
 	color: {
 		focus: {
-			primary: "var(--color-blue-300)",
+			primary: "var(--color-blue-300)", 
 			secondary: "var(--color-blue-500)",
 			ring: "rgb(191 219 254 / 0.5)"
 		},

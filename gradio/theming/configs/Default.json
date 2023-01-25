@@ -56,7 +56,8 @@
         "shadow": {
             "drop": "rgba(0,0,0,0.05) 0px 1px 2px 0px",
             "drop-lg": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
-            "inset": "rgba(0,0,0,0.05) 0px 2px 4px 0px inset"
+            "inset": "rgba(0,0,0,0.05) 0px 2px 4px 0px inset",
+            "spread": "3px"
         },
         "api": {
             "background": "linear-gradient(to bottom, rgba(255, 216, 180, 0.2), transparent)",
@@ -390,6 +391,9 @@
                 }
             }
         },
+        "shadow": {
+            "spread": "1px"
+        },
         "api": {
             "background": "linear-gradient(to bottom, rgba(255, 216, 180, 0.05), transparent)",
             "pill": {
@@ -427,7 +431,9 @@
         },
         "icon_button": {
             "icon": {
-                "color": { "base": "color.text.label", "hover": "color.text.label"
+                "color": {
+                    "base": "color.text.label",
+                    "hover": "color.text.label"
                 }
             },
             "background": {
@@ -503,7 +509,10 @@
                     }
                 },
                 "text": {
-                    "color": { "base": "white", "hover": "white", "focus": "white"
+                    "color": {
+                        "base": "white",
+                        "hover": "white",
+                        "focus": "white"
                     }
                 },
                 "background": {
@@ -521,7 +530,10 @@
                     }
                 },
                 "text": {
-                    "color": { "base": "white", "hover": "white", "focus": "white"
+                    "color": {
+                        "base": "white",
+                        "hover": "white",
+                        "focus": "white"
                     }
                 },
                 "background": {
@@ -604,21 +616,33 @@
         "chatbot": {
             "border": {
                 "border": {
-                    "color": { "base": "transparent", "latest": "transparent"
+                    "color": {
+                        "base": "transparent",
+                        "latest": "transparent"
                     }
                 }
             },
             "user": {
-                "background": { "base": "", "latest": ""
+                "background": {
+                    "base": "",
+                    "latest": ""
                 },
-                "text": { "color": { "base": "white", "latest": "white"
+                "text": {
+                    "color": {
+                        "base": "white",
+                        "latest": "white"
                     }
                 }
             },
             "bot": {
-                "background": { "base": "", "latest": ""
+                "background": {
+                    "base": "",
+                    "latest": ""
                 },
-                "text": { "color": { "base": "white", "latest": "white"
+                "text": {
+                    "color": {
+                        "base": "white",
+                        "latest": "white"
                     }
                 }
             }
@@ -644,7 +668,6 @@
             "gallery": {
                 "background": {
                     "base": "var(--color-background-primary)",
-    
                     "hover": "var(--color-grey-800)"
                 }
             },
