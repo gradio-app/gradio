@@ -257,6 +257,11 @@ Gradio is built with many wonderful open-source libraries, please support them a
 [<img src="readme_files/pnpm.svg" alt="pnpm" height=40>](https://pnpm.io)
 [<img src="readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
 
+
+##Translations
+
+Contribute translations via inlang https://inlang.com/editor/github.com/jannesblobel/gradio
+
 ## License
 
 Gradio is licensed under the Apache License 2.0 found in the [LICENSE](LICENSE) file in the root directory of this repository.
@@ -273,6 +278,8 @@ Also check out the paper *[Gradio: Hassle-Free Sharing and Testing of ML Models 
   year = {2019},
 }
 ```
+
+
 
 ## See Also
 
