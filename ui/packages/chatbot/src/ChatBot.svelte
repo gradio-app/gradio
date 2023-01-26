@@ -88,9 +88,9 @@
 		border-style: solid;
 		border-radius: var(--rounded-xxl);
 		padding: var(--size-2) var(--size-3);
+		color: white;
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
-		color: white;
 	}
 
 	.user {

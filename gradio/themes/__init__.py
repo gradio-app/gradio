@@ -1,1 +1,1 @@
-from .default import Default
+from .default import Default  # noqa: F401
