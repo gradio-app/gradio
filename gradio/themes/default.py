@@ -1,4 +1,4 @@
-from gradio.theming.utils import Theme
+from .utils import Theme
 
 
 class Default(Theme):
