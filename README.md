@@ -258,9 +258,13 @@ Gradio is built with many wonderful open-source libraries, please support them a
 [<img src="readme_files/tailwind.svg" alt="tailwind" height=40>](https://tailwindcss.com)
 
 
-##Translations
 
-Contribute translations via inlang https://inlang.com/editor/github.com/jannesblobel/gradio
+### Want to translate gmpublisher to your language?
+
+1. Create an empty JSON in https://github.com/gradio-app/gradio/ui/packages/app/src/lang/. 
+2. Update the [inlang.config.js](./inlang.config.js) file to include the new language. 
+3. Open https://inlang.com/editor/github.com/gradio-app/gradio
+
 
 ## License
 
