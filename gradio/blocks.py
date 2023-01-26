@@ -496,7 +496,6 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.ip_address = ""
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -515,10 +514,8 @@ class Blocks(BlockContext):
         self.progress_tracking = None
 
         if self.analytics_enabled:
-            self.ip_address = utils.get_local_ip_address()
             data = {
                 "mode": self.mode,
-                "ip_address": self.ip_address,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
@@ -1451,7 +1448,7 @@ class Blocks(BlockContext):
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
-                    utils.error_analytics(self.ip_address, "Not able to set up tunnel")
+                    utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1534,7 +1531,6 @@ class Blocks(BlockContext):
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
-                "ip_address": self.ip_address,
                 "enable_queue": self.enable_queue,
                 "show_tips": self.show_tips,
                 "server_name": server_name,
@@ -1622,6 +1618,9 @@ class Blocks(BlockContext):
                 self._queue.close()
             self.server.close()
             self.is_running = False
+            # So that the startup events (starting the queue)
+            # happen the next time the app is launched
+            self.app.startup_events_triggered = False
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
         except (AttributeError, OSError):  # can't close if not running
@@ -1665,6 +1664,8 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            # So that processing can resume in case the queue was stopped
+            self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):
