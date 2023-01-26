@@ -456,7 +456,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: Theme to use, loaded from gradio.themes such as gradio.themes.MonochromeTheme.
+            theme: Theme to use, loaded from gradio.themes.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.

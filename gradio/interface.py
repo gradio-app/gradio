@@ -34,6 +34,7 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
+from gradio.theming.utils import Theme
 
 set_documentation_group("interface")
 
@@ -136,7 +137,7 @@ class Interface(Blocks):
         description: str | None = None,
         article: str | None = None,
         thumbnail: str | None = None,
-        theme: str = "default",
+        theme: Theme | None = None,
         css: str | None = None,
         allow_flagging: str | None = None,
         flagging_options: List[str] | None = None,
@@ -163,7 +164,7 @@ class Interface(Blocks):
             description: a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
             thumbnail: path or url to image to use as display image when the web demo is shared on social media.
-            theme: Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
+            theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
             allow_flagging: one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
@@ -800,7 +801,7 @@ class TabbedInterface(Blocks):
         interface_list: List[Interface],
         tab_names: List[str] | None = None,
         title: str | None = None,
-        theme: str = "default",
+        theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         css: str | None = None,
     ):
@@ -809,7 +810,7 @@ class TabbedInterface(Blocks):
             interface_list: a list of interfaces to be rendered in tabs.
             tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
-            theme: which theme to use - right now, only "default" is supported.
+            theme: Theme to use, loaded from gradio.themes.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             css: custom css or path to custom css file to apply to entire Blocks
         Returns:
