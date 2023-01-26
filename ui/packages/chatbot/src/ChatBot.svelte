@@ -90,13 +90,13 @@
 		padding: var(--size-2) var(--size-3);
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
+		color: white;
 	}
 
 	.user {
 		border-color: var(--color-accent-base);
 		border-bottom-right-radius: 0;
 		background: var(--color-accent-soft);
-		color: "white";
 	}
 
 	.bot {
@@ -104,6 +104,5 @@
 		border-color: var(--color-border-primary);
 		border-bottom-left-radius: 0;
 		background: var(--color-background-secondary);
-		color: var(--color-text-body);
 	}
 </style>
