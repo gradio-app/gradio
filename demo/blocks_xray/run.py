@@ -2,13 +2,6 @@ import gradio as gr
 import random
 import time
 
-# 1. Default
-theme = gr.themes.Default(primary_hue="blue")
-
-# 3. Custom
-# theme = gr.themes.DefaultTheme()
-# theme.primary_color = "#ff0000"
-
 
 def xray_model(diseases, img):
     time.sleep(4)
@@ -36,7 +29,7 @@ With this model you can lorem ipsum
         with gr.Row():
             xray_scan = gr.Image()
             xray_results = gr.JSON()
-        xray_run = gr.Button("Run", variant="primary")
+        xray_run = gr.Button("Run")
         xray_run.click(
             xray_model,
             inputs=[disease, xray_scan],
