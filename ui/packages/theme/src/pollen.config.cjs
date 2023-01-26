@@ -101,7 +101,7 @@ module.exports = defineConfig((pollen) => {
 				"orange-950": "#3C1F00",
 				yellow: "#eab308",
 				"yellow-10": "#FFFEF8",
-				"yellow-50": "#fffbeb",				
+				"yellow-50": "#fffbeb",
 				"yellow-100": "#fff9c2",
 				"yellow-200": "#fef08a",
 				"yellow-300": "#fde047",
@@ -111,7 +111,7 @@ module.exports = defineConfig((pollen) => {
 				"yellow-700": "#a16207",
 				"yellow-800": "#854d0e",
 				"yellow-900": "#713f12",
-				"yellow-950": "#633112",
+				"yellow-950": "#633112"
 			}
 		}
 	};

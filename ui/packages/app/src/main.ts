@@ -128,7 +128,7 @@ async function handle_config(
 	let link = document.createElement("link");
 	link.rel = "stylesheet";
 	link.href = config.root + "theme.css";
-	window.scoped_css_attach(link)
+	window.scoped_css_attach(link);
 	if (config.dev_mode) {
 		reload_check(config.root);
 	}
@@ -203,7 +203,7 @@ function create_custom_element() {
 			this.root = this.attachShadow({ mode: "open" });
 
 			window.scoped_css_attach = (link) => {
-				console.log("link", link)
+				console.log("link", link);
 				this.root.append(link);
 			};
 
