@@ -133,7 +133,7 @@ class TestBlocksMethods:
         config = demo.get_config_file()
         print("---", config, "---", XRAY_CONFIG, "---")
         print("theme" in str(config), "theme" in str(XRAY_CONFIG))
-        
+
         assert assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, config)
         assert config["show_api"] is True
         _ = demo.launch(prevent_thread_lock=True, show_api=False)
