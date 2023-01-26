@@ -34,7 +34,7 @@ from gradio.events import Changeable, Streamable
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
-from gradio.theming.utils import Theme
+from gradio.themes.utils import Theme
 
 set_documentation_group("interface")
 
