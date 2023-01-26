@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
 		base: is_cdn ? CDN_URL : "./",
 
 		server: {
-			port: 3000
+			port: 9876
 		},
 
 		build: {

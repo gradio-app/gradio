@@ -59,7 +59,7 @@ async function get_source_config(source: string): Promise<Config> {
 }
 
 async function get_config(source: string | null) {
-	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
+	if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
 		let config = await fetch(BACKEND_URL + "config");
 		const result = await config.json();
 		return result;
