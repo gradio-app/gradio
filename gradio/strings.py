@@ -1,4 +1,6 @@
 import json
+import threading
+from typing import Dict
 
 import requests
 
@@ -30,12 +32,17 @@ en = {
     ],
 }
 
-try:
-    updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
-    en.update(updated_messaging)
-except (
-    requests.ConnectionError,
-    requests.exceptions.ReadTimeout,
-    json.decoder.JSONDecodeError,
-):  # Use default messaging
-    pass
+
+def get_updated_messaging(en: Dict):
+    try:
+        updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
+        en.update(updated_messaging)
+    except (
+        requests.ConnectionError,
+        requests.exceptions.ReadTimeout,
+        json.decoder.JSONDecodeError,
+    ):  # Use default messaging
+        pass
+
+
+threading.Thread(target=get_updated_messaging, args=(en,)).start()
