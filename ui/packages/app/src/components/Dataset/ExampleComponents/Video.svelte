@@ -46,7 +46,7 @@
 
 	video:hover,
 	video.selected {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-accent-soft);
 	}
 	.table {
 		width: var(--size-20);

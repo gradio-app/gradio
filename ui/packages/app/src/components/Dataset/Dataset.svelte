@@ -265,7 +265,7 @@
 	}
 
 	.tr-body:hover {
-		background: var(--color-focus-ring);
+		background: var(--row-focus);
 	}
 
 	.tr-body > * + * {
@@ -275,7 +275,7 @@
 	}
 
 	.tr-body:hover > * + * {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-accent-soft);
 	}
 
 	td {

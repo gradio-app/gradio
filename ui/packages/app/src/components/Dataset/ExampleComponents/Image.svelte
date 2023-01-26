@@ -20,7 +20,7 @@
 
 	img:hover,
 	img.selected {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-accent-soft);
 	}
 
 	.table {

@@ -88,6 +88,7 @@
 	}
 
 	input[type="range"] {
+		accent-color: var(--input-accent);
 		width: 100%;
 	}
 
