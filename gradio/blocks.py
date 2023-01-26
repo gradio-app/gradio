@@ -465,9 +465,12 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-        if isinstance(theme, type) and issubclass(theme, Theme):
-            theme = theme()
-        self.theme = theme if isinstance(theme, Theme) else DefaultTheme()
+        if theme is None:
+            theme = DefaultTheme()
+        elif not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
+        self.theme = theme
         self.theme_css = self.theme._get_theme_css()
         self.encrypt = False
         self.share = False
