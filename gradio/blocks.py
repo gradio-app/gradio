@@ -522,7 +522,6 @@ class Blocks(BlockContext):
             data = {
                 "mode": self.mode,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
@@ -1047,7 +1046,6 @@ class Blocks(BlockContext):
             "mode": self.mode,
             "dev_mode": self.dev_mode,
             "components": [],
-            "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,

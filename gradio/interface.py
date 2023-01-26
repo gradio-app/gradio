@@ -393,7 +393,6 @@ class Interface(Blocks):
                 "interpretation": interpretation,
                 "allow_flagging": allow_flagging,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),

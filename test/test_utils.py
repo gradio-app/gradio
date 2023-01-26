@@ -184,7 +184,6 @@ class TestAssertConfigsEquivalent:
                     },
                 },
             ],
-            "theme": "default",
             "css": None,
             "enable_queue": False,
             "layout": {"id": 0, "children": [{"id": 1}, {"id": 2}, {"id": 3}]},
