@@ -577,7 +577,7 @@ class Blocks(BlockContext):
                     with block:
                         iterate_over_children(children)
 
-        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+        with Blocks() as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
