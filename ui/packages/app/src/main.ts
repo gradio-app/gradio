@@ -199,6 +199,7 @@ function create_custom_element() {
 			this.root = this;
 
 			this.wrapper = document.createElement("div");
+			this.wrapper.classList.add("gradio-container");
 			this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
 
 			this.wrapper.style.position = "relative";
