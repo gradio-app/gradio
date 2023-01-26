@@ -33,7 +33,7 @@
 		border-left: none;
 		border-top-left-radius: calc(var(--rounded-lg) - 1px);
 		border-bottom-right-radius: var(--rounded-lg);
-		background: var(--block_label-background);
+		background: var(--block-label-background);
 		padding: var(--size-1) var(--size-2);
 		pointer-events: none;
 		color: var(--color-text-label);

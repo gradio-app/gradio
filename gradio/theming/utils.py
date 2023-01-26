@@ -10,11 +10,13 @@ class Theme:
         return f"var(--{property.replace('_', '-')})"
 
 def get_theme_css(theme: Theme):
-    css = ":host {\n"
-    dark_css = ".dark {\n"
-    theme_attr = [attr for attr in dir(theme) if attr not in dir(Theme)]
+    css = ":host, :root {\n"
+    dark_css = ".dark > * {\n"
+    theme_attr = [attr for attr in dir(theme) if attr not in dir(Theme) or attr.startswith("_")]
     for attr in theme_attr:
         val = getattr(theme, attr)
+        if val is None:
+            continue
         attr = attr.replace("_", "-")
         if attr.endswith("-dark"):
             attr = attr[:-5]

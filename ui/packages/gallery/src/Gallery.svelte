@@ -245,9 +245,9 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--color-accent-light);
+		--ring-color: var(--color-accent-soft);
 		filter: brightness(1.1);
-		border-color: var(--color-accent-light);
+		border-color: var(--color-accent-soft);
 	}
 
 	.thumbnail-item:focus {

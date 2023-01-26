@@ -214,7 +214,7 @@ class App(FastAPI):
                 )
                 return templates.TemplateResponse(
                     template,
-                    {"request": request, "config": config, "theme": blocks.theme},
+                    {"request": request, "config": config},
                 )
             except TemplateNotFound:
                 if blocks.share:

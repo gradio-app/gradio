@@ -95,7 +95,7 @@
 	.user {
 		border-color: var(--color-accent-base);
 		border-bottom-right-radius: 0;
-		background: var(--color-accent-light);
+		background: var(--color-accent-soft);
 		color: "white";
 	}
 
