@@ -70,7 +70,9 @@ class Default(Theme):
         self.color_functional_error_subdued = self._color("red", 300)
         self.color_functional_error_subdued_dark = self._color("red", 300)
         self.color_functional_error_background = f"linear-gradient(to right,{self._color('red', 100)},{self.color_background_secondary})"
-        self.color_functional_error_background_dark = self._use("color_background_primary")
+        self.color_functional_error_background_dark = self._use(
+            "color_background_primary"
+        )
         self.color_functional_info_base = self._color("yellow", 500)
         self.color_functional_info_subdued = self._color("yellow", 300)
         self.color_functional_success_base = self._color("green", 500)
@@ -78,7 +80,9 @@ class Default(Theme):
 
         # Shadow
         self.shadow_drop = "rgba(0,0,0,0.05) 0px 1px 2px 0px"
-        self.shadow_drop_lg = "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
+        self.shadow_drop_lg = (
+            "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
+        )
         self.shadow_inset = "rgba(0,0,0,0.05) 0px 2px 4px 0px inset"
         self.shadow_spread = "3px"
         self.shadow_spread_dark = "1px"
@@ -128,13 +132,19 @@ class Default(Theme):
         self.checkbox_label_border_color_hover_dark = self._use("color_border_primary")
         self.checkbox_label_border_color_focus = self._use("color_focus_secondary")
         self.checkbox_label_border_color_focus_dark = self._use("color_focus_secondary")
-        self.checkbox_label_background_base = f"linear-gradient(to top, {self._color('grey', 50)}, white)"
+        self.checkbox_label_background_base = (
+            f"linear-gradient(to top, {self._color('grey', 50)}, white)"
+        )
         self.checkbox_label_background_base_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
-        self.checkbox_label_background_hover = f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+        self.checkbox_label_background_hover = (
+            f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+        )
         self.checkbox_label_background_hover_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
-        self.checkbox_label_background_focus = f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+        self.checkbox_label_background_focus = (
+            f"linear-gradient(to top, {self._color('grey', 100)}, white)"
+        )
         self.checkbox_label_background_focus_dark = f"linear-gradient(to top, {self._color('grey', 900)}, {self._color('grey', 800)})"
-        self.row_even_background = 'white'
+        self.row_even_background = "white"
         self.row_even_background_dark = self._color(neutral_hue, 950)
         self.row_odd_background = self._color(neutral_hue, 50)
         self.row_odd_background_dark = self._color(neutral_hue, 900)
@@ -208,11 +218,11 @@ class Default(Theme):
         self.button_plain_text_color_hover_dark = self._use("color_text_body")
         self.button_plain_text_color_focus = self._use("color_text_body")
         self.button_plain_text_color_focus_dark = self._use("color_text_body")
-        self.button_plain_background_base = 'white'
+        self.button_plain_background_base = "white"
         self.button_plain_background_base_dark = self._color(neutral_hue, 700)
-        self.button_plain_background_hover = 'white'
+        self.button_plain_background_hover = "white"
         self.button_plain_background_hover_dark = self._color(neutral_hue, 700)
-        self.button_plain_background_focus = 'white'
+        self.button_plain_background_focus = "white"
         self.button_plain_background_focus_dark = self._color(neutral_hue, 700)
 
         # Docs

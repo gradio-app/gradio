@@ -35,9 +35,9 @@ from gradio.deprecation import check_deprecated_parameters
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.tunneling import CURRENT_TUNNELS
-from gradio.theming.utils import Theme, get_theme_css
 from gradio.themes import Default as DefaultTheme
+from gradio.theming.utils import Theme, get_theme_css
+from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,

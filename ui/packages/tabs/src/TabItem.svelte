@@ -36,8 +36,8 @@
 		position: relative;
 		border: 2px solid var(--color-border-primary);
 		border-top: none;
-		padding: var(--size-2);
 		border-bottom-right-radius: var(--rounded);
 		border-bottom-left-radius: var(--rounded);
+		padding: var(--size-2);
 	}
 </style>
