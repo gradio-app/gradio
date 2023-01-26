@@ -108,7 +108,6 @@
 		await tick();
 		value = null;
 		static_image = undefined;
-		dispatch("clear");
 	}
 
 	let img_height = 0;
@@ -256,6 +255,7 @@
 			bind:brush_color
 			bind:this={sketch}
 			on:change={handle_save}
+			on:clear={handle_sketch_clear}
 			{mode}
 			width={img_width || max_width}
 			height={img_height || max_height}
