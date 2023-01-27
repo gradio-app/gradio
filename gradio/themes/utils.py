@@ -11,7 +11,7 @@ class Theme:
 
     def _get_theme_css(self):
         css = ":host, :root {\n"
-        dark_css = ".dark > * {\n"
+        dark_css = ".dark {\n"
         theme_attr = [
             attr for attr in dir(self) if attr not in dir(Theme) or attr.startswith("_")
         ]

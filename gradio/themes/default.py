@@ -227,7 +227,7 @@ class Default(Theme):
 
         # Docs
         self.docs_background = f"linear-gradient(to bottom, {self._color(primary_hue, 10)}, {self._use('color_background_primary')})"
-        self.docs_background_dark = f"linear-gradient(to bottom, {self._color(primary_hue, 900)}, {self._use('color_background_primary')})"
+        self.docs_background_dark = f"linear-gradient(to bottom, {self._color(neutral_hue, 900)}, {self._use('color_background_primary')})"
         self.docs_pill_background = self._color(primary_hue, 100)
         self.docs_pill_background_dark = self._color(primary_hue, 400)
         self.docs_pill_border = self._color(primary_hue, 200)
