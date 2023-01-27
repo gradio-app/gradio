@@ -9,7 +9,7 @@ import huggingface_hub
 import requests
 from huggingface_hub import CommitOperationAdd
 
-from gradio.theming.readme_content import README_CONTENT
+from gradio.themes.readme_content import README_CONTENT
 
 
 class Theme:
@@ -50,7 +50,7 @@ class Theme:
         description: str | None = None,
     ):
         from gradio import __version__
-        from gradio.theming import app
+        from gradio.themes import app
 
         huggingface_hub.create_repo(
             f"{author}/{repo_name}",
