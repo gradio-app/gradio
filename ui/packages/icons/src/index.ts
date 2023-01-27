@@ -22,3 +22,4 @@ export { default as TextHighlight } from "./TextHighlight.svelte";
 export { default as Tree } from "./Tree.svelte";
 export { default as Undo } from "./Undo.svelte";
 export { default as Video } from "./Video.svelte";
+export { default as Download } from "./Download.svelte";

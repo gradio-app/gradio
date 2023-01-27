@@ -35,12 +35,12 @@
 	}
 
 	.dropdown-item:first-child {
-		border-top-right-radius: var(--radius-md);
-		border-top-left-radius: var(--radius-md);
+		border-top-right-radius: var(--rounded);
+		border-top-left-radius: var(--rounded);
 	}
 	.dropdown-item:last-child {
-		border-bottom-right-radius: var(--radius-md);
-		border-bottom-left-radius: var(--radius-md);
+		border-bottom-right-radius: var(--rounded);
+		border-bottom-left-radius: var(--rounded);
 	}
 
 	.dropdown-item:hover {

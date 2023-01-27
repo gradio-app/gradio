@@ -40,13 +40,13 @@
 	video {
 		flex: none;
 		border: 2px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		max-width: none;
 	}
 
 	video:hover,
 	video.selected {
-		border-color: var(--color-accent-light);
+		border-color: var(--color-accent-soft);
 	}
 	.table {
 		width: var(--size-20);

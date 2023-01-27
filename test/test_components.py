@@ -668,6 +668,12 @@ class TestImage:
         image_output = gr.Image(type="numpy")
         assert image_output.postprocess(y_img).startswith("data:image/png;base64,")
 
+    @pytest.mark.flaky
+    def test_serialize_url(self):
+        img = "https://gradio.app/assets/img/header-image.jpg"
+        expected = processing_utils.encode_url_or_file_to_base64(img)
+        assert gr.Image().serialize(img) == expected
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -936,6 +942,12 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_file_type_must_be_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received str"
+        ):
+            gr.File(file_types=".json")
+
     def test_in_interface_as_input(self):
         """
         Interface, process
@@ -976,6 +988,12 @@ class TestUploadButton:
         input1 = upload_input.preprocess(x_file)
         input2 = upload_input.preprocess(x_file)
         assert input1.name == input2.name
+
+    def test_raises_if_file_types_is_not_list(self):
+        with pytest.raises(
+            ValueError, match="Parameter file_types must be a list. Received int"
+        ):
+            gr.UploadButton(file_types=2)
 
 
 class TestDataframe:

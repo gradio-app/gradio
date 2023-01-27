@@ -235,9 +235,9 @@
 		position: relative;
 		outline: none;
 		box-shadow: 0 0 0 2px var(--ring-color), var(--shadow-drop);
-		border: 1px solid var(--gallery-thumb-border-color-base);
-		border-radius: var(--radius-sm);
-		background-color: var(--gallery-thumb-background-base);
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--rounded);
+		background-color: var(--color-background-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -245,14 +245,14 @@
 	}
 
 	.thumbnail-item:hover {
-		--ring-color: var(--gallery-thumb-border-color-hover);
+		--ring-color: var(--color-accent-soft);
 		filter: brightness(1.1);
-		border-color: var(--gallery-thumb-border-color-hover);
+		border-color: var(--color-accent-soft);
 	}
 
 	.thumbnail-item:focus {
-		--ring-color: var(--gallery-thumb-border-color-focus);
-		border-color: var(--gallery-thumb-border-color-focus);
+		--ring-color: var(--color-focus-secondary);
+		border-color: var(--color-focus-secondary);
 	}
 
 	.thumbnail-small {
@@ -264,14 +264,14 @@
 	}
 
 	.thumbnail-small.selected {
-		--ring-color: var(--gallery-thumb-border-color-selected);
+		--ring-color: var(--color-accent-base);
 		transform: scale(1);
-		border-color: var(--gallery-thumb-border-color-selected);
+		border-color: var(--color-accent-base);
 	}
 
 	.thumbnail-small.selected:focus {
-		--ring-color: var(--gallery-thumb-border-color-focus) !important;
-		border-color: var(--gallery-thumb-border-color-focus) !important;
+		--ring-color: var(--color-focus-secondary) !important;
+		border-color: var(--color-focus-secondary) !important;
 	}
 
 	.thumbnail-small > img {
@@ -308,10 +308,10 @@
 		right: 0;
 		bottom: 0;
 		z-index: var(--layer-1);
-		border-top: 1px solid var(--gallery-label-border-color-base);
-		border-left: 1px solid var(--gallery-label-border-color-base);
-		border-top-left-radius: var(--radius-lg);
-		background: var(--gallery-thumb-background-base);
+		border-top: 1px solid var(--color-border-primary);
+		border-left: 1px solid var(--color-border-primary);
+		border-top-left-radius: var(--rounded-lg);
+		background: var(--color-background-secondary);
 		padding: var(--size-1) var(--size-3);
 		max-width: 80%;
 		overflow: hidden;

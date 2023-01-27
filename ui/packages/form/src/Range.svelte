@@ -65,9 +65,10 @@
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
 		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--input-background-base);
 		padding: var(--size-2) var(--size-2);
 		height: var(--size-6);
@@ -88,6 +89,7 @@
 
 	input[type="range"] {
 		width: 100%;
+		accent-color: var(--input-accent);
 	}
 
 	input[disabled] {

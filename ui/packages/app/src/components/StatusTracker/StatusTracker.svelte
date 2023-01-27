@@ -191,7 +191,7 @@
 		{#if variant === "default" && show_eta_bar}
 			<div
 				class="eta-bar"
-				style:transform="translateX({(eta_level || 0) * 100}%)"
+				style:transform="translateX({(eta_level || 0) * 100 - 100}%)"
 			/>
 		{/if}
 		<div
@@ -256,7 +256,7 @@
 		{/if}
 
 		{#if !timer}
-			<p class="timer">Loading...</p>
+			<p class="loading">Loading...</p>
 		{/if}
 	{:else if status === "error"}
 		<span class="error">Error</span>
@@ -303,9 +303,10 @@
 		justify-content: center;
 		align-items: center;
 		z-index: var(--layer-5);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background-color: var(--color-background-tertiary);
 		max-height: var(--size-screen-h);
+		overflow: hidden;
 		pointer-events: none;
 	}
 
@@ -346,6 +347,10 @@
 		}
 	}
 
+	.loading {
+		z-index: var(--layer-2);
+		color: var(--color-text-body);
+	}
 	.eta-bar {
 		position: absolute;
 		top: 0;
@@ -356,19 +361,18 @@
 		opacity: 0.8;
 		z-index: var(--layer-1);
 		transition: 10ms;
-		box-shadow: 2px 0px 2px 2px rgba(0, 0, 0, 0.2);
 		background: var(--color-background-secondary);
 	}
 	.progress-bar-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background: var(--color-background-primary);
 		width: 55.5%;
 		height: var(--size-4);
 	}
 	.progress-bar {
 		transform-origin: left;
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background-color: var(--color-accent-base);
 		width: var(--size-full);
 		height: var(--size-full);
@@ -415,13 +419,9 @@
 		text-align: center;
 	}
 
-	.timer {
-		transform: translateY(var(--size-16));
-	}
-
 	.error {
 		box-shadow: var(--shadow-drop);
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background-color: var(--color-background-primary);
 		background: rgba(255, 0, 0, 0.2);
 		padding-right: var(--size-4);
@@ -454,7 +454,7 @@
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg-xl);
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--color-background-secondary);
 		background: var(--color-functional-error-background);
 		padding: var(--size-4) var(--size-6);
@@ -480,7 +480,7 @@
 		flex-shrink: 0;
 		justify-content: center;
 		align-items: center;
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background: var(--color-red-600);
 		padding: var(--size-2);
 		padding-left: calc(var(--size-2) - 1px);

@@ -183,7 +183,7 @@
 	.wrap {
 		position: relative;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 	}
 
 	.wrap-inner {
@@ -200,7 +200,7 @@
 		margin: var(--size-1);
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-md);
+		border-radius: var(--rounded);
 		background: var(--checkbox-label-background-base);
 		padding: var(--size-1-5) var(--size-3);
 		color: var(--color-text-body);
@@ -219,7 +219,7 @@
 		align-items: center;
 		cursor: pointer;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background: var(--color-background-tertiary);
 		padding: var(--size-0-5);
 		width: 18px;
@@ -265,7 +265,7 @@
 		z-index: var(--layer-5);
 		margin-left: 0;
 		box-shadow: var(--shadow-drop-lg);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--color-background-primary);
 		width: var(--size-full);
 		max-height: var(--size-32);

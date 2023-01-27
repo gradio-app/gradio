@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with title=pretty_name, url="https://gradio.app/" + name, image="https://www.gradio.app/assets/img/meta-image.png", description="A Step-by-Step Gradio Tutorial" %}
+    {% with title=pretty_name, url="https://gradio.app/" + name, image="https://www.gradio.app/assets/img/meta-image.png", description="A Step-by-Step Gradio Tutorial", canonical="https://gradio.app/" + name %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
@@ -72,7 +72,6 @@
     </div>
     <script src="/assets/prism.js"></script>
     <script>window.__gradio_mode__ = "website";</script>
-    <script type="module" src="/assets/index.js"></script>
     {% include 'templates/footer.html' %}
     <script>
       let sidebar = document.querySelector(".side-navigation")
@@ -101,5 +100,6 @@
     <script>{% include 'templates/links-nav.js' %}</script>
     <script>{% include 'templates/add_anchors.js' %}</script>
     <script>{% include 'templates/add_copy.js' %}</script>
+    <script>{% include 'templates/load_latest_stable.js' %}</script>
   </body>
 </html>

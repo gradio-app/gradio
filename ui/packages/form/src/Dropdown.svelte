@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MultiSelect from "./MultiSelect.svelte";
+	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
@@ -7,19 +8,22 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+
+	const dispatch = createEventDispatcher<{
+		change: string | Array<string>;
+	}>();
+
+	$: if (!multiselect) {
+		dispatch("change", value);
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
-	<!-- <select bind:value {disabled}>
-		{#each choices as choice}
-			<option>{choice}</option>
-		{/each}
-	</select> -->
 
 	{#if !multiselect}
-		<select bind:value on:change {disabled}>
+		<select bind:value {disabled}>
 			{#each choices as choice}
 				<option>{choice}</option>
 			{/each}
@@ -35,9 +39,10 @@
 		display: block;
 		position: relative;
 		outline: none !important;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
 		border: 1px solid var(--input-border-color-base);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background-color: var(--input-background-base);
 		padding: var(--size-2-5);
 		width: 100%;
