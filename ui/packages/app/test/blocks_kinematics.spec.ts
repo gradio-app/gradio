@@ -28,7 +28,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_kinematics");
 	await mock_api(page, [[25, 45]]);
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	await Promise.all([
 		page.click("button:has-text('Run')"),

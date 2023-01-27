@@ -385,7 +385,7 @@ You can take a look at the [demo](https://github.com/gradio-app/gradio/tree/main
 To test the application:
 
 - run on a terminal `python path/demo/run.py` which starts the backend at the address [http://localhost:7860](http://localhost:7860);
-- in another terminal, from the ui folder, run `pnpm dev` to start the frontend at [http://localhost:3000](http://localhost:3000) with hot reload functionalities.
+- in another terminal, from the ui folder, run `pnpm dev` to start the frontend at [http://localhost:9876](http://localhost:9876) with hot reload functionalities.
 
 ## Conclusion
 

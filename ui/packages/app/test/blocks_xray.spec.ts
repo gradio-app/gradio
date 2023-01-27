@@ -27,7 +27,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_xray");
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	const description = await page.getByTestId("markdown");
 	await expect(description).toContainText("Detect Disease From Scan");
@@ -56,7 +56,7 @@ test("can run an api request and display the data", async ({ page }) => {
 		]
 	]);
 
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	await page.getByLabel("Covid").check();
 	await page.getByLabel("Lung Cancer").check();
