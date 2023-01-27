@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"dev": "vite",
+		"dev": "vite --port 9876",
 		"build:cdn": "vite build --mode production:cdn --emptyOutDir",
 		"build:website": "vite build --mode production:website --emptyOutDir",
 		"build:local": "vite build --mode production:local --emptyOutDir",
