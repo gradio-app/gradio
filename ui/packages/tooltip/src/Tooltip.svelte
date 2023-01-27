@@ -25,7 +25,7 @@
 		position: absolute;
 		justify-content: center;
 		align-items: center;
-		border-radius: var(--radius-sm);
+		border-radius: var(--rounded);
 		background-color: rgba(0, 0, 0, 0.8);
 		padding: var(--size-1) 0.4rem;
 		color: white;
@@ -35,7 +35,7 @@
 	span {
 		display: inline-block;
 		margin-right: var(--size-1);
-		border-radius: var(--radius-xs);
+		border-radius: var(--rounded-sm);
 		width: var(--size-3);
 		height: var(--size-3);
 	}

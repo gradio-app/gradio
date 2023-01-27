@@ -659,7 +659,7 @@
 		position: relative;
 		transition: 150ms;
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		overflow-x: scroll;
 		overflow-y: hidden;
 	}
@@ -717,11 +717,11 @@
 	}
 
 	th:first-child {
-		border-top-left-radius: var(--radius-lg);
+		border-top-left-radius: var(--rounded-lg);
 	}
 
 	th:last-child {
-		border-top-right-radius: var(--radius-lg);
+		border-top-right-radius: var(--rounded-lg);
 	}
 
 	th:focus-within,
@@ -730,15 +730,15 @@
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--rounded-lg);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-lg);
+		border-bottom-right-radius: var(--rounded-lg);
 	}
 
 	tr th {
-		background: var(--table-even-background);
+		background: var(--row-even-background);
 	}
 
 	th svg {
@@ -779,11 +779,11 @@
 	}
 
 	tbody > tr:nth-child(even) {
-		background: var(--table-even-background);
+		background: var(--row-even-background);
 	}
 
 	tbody > tr:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--row-odd-background);
 	}
 
 	tbody > tr:nth-child(odd):focus {
@@ -791,7 +791,7 @@
 	}
 
 	.editing {
-		background: var(--table-background-edit);
+		background: var(--color-focus-ring);
 	}
 
 	.cell-wrap {

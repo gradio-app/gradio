@@ -1,0 +1,82 @@
+name: gradio-backend
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+
+concurrency:
+  group: backend-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
+  cancel-in-progress: false
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: ["not flaky", "flaky"]
+        python-version: ["3.9", "3.7"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Cache python deps
+      id: cache-python
+      uses: actions/cache@v3
+      with:
+        path: ./venv
+        key: pythondeps-${{ matrix.python-version }}-${{ github.ref }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 7
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: pnpm
+        cache-dependency-path: ui/pnpm-lock.yaml
+    - name: Install pip
+      run: python -m pip install build requests virtualenv
+    - name: Install Gradio + Python Deps
+      run: |
+        python -m virtualenv venv
+        . venv/bin/activate
+        bash scripts/install_gradio.sh
+        bash scripts/install_test_requirements.sh
+    - name: Lint
+      run: |
+        . venv/bin/activate
+        bash scripts/lint_backend.sh
+    - name: Typecheck
+      run: |
+        . venv/bin/activate
+        bash scripts/type_check_backend.sh
+    - name: Build frontend
+      run: |
+        cd ui
+        pnpm i --frozen-lockfile
+        pnpm build
+        cd ..
+    - name: Install ffmpeg
+      uses: FedericoCarboni/setup-ffmpeg@v2
+    - name: Create coverage dir
+      run: mkdir test-reports
+    - name: Run tests
+      run: |
+        . venv/bin/activate
+        coverage run -m pytest -m "${{ matrix.test-type }}"
+        coverage xml
+    - uses: codecov/codecov-action@v3
+      with:
+        #token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+        files: coverage.xml # optional
+        #flags: unittests # optional
+        #name: codecov-umbrella # optional
+        #fail_ci_if_error: true # optional (default = false)
+        #verbose: true # optional (default = false)

@@ -48,7 +48,7 @@
 		cursor: pointer;
 		box-shadow: var(--shadow-drop);
 		border: 1px solid var(--checkbox-label-border-color-base);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--checkbox-label-background-base);
 		padding: var(--size-1-5) var(--size-3);
 		color: var(--color-text-body);
@@ -70,9 +70,10 @@
 	input {
 		--ring-color: transparent;
 		position: relative;
-		box-shadow: 0 0 0 3px var(--ring-color), var(--input-shadow);
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
 		border: 1px solid var(--checkbox-border-color-base);
-		border-radius: var(--radius-full);
+		border-radius: var(--rounded-full);
 		background-color: var(--checkbox-background-base);
 		font-size: var(--scale-00);
 		line-height: var(--line-sm);

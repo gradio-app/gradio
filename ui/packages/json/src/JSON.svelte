@@ -72,9 +72,9 @@
 		border: 1px solid var(--color-border-primary);
 		border-top: none;
 		border-right: none;
-		border-bottom-left-radius: var(--radius-lg);
-		border-bottom-left-radius: var(--radius-lg);
-		background: var(--block_label-background);
+		border-top-right-radius: inherit;
+		border-bottom-left-radius: var(--rounded-lg);
+		background: var(--block-label-background);
 		overflow: hidden;
 		color: var(--color-text-label);
 		font: var(--font-sans);
@@ -88,7 +88,7 @@
 	.copy-success {
 		display: block;
 		position: absolute;
-		background: var(--block_label-background);
+		background: var(--block-label-background);
 		padding: var(--size-1) var(--size-2);
 		width: var(--size-full);
 		color: var(--color-functional-success);

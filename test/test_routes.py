@@ -203,6 +203,9 @@ class TestRoutes:
         file_response = client.get(f"/file={created_file}")
         assert file_response.is_success
 
+        backwards_compatible_file_response = client.get(f"/file/{created_file}")
+        assert backwards_compatible_file_response.is_success
+
         file_response_with_full_range = client.get(
             f"/file={created_file}", headers={"Range": "bytes=0-"}
         )

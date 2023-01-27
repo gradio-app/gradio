@@ -8,6 +8,7 @@ from collections import deque
 from typing import Any, Deque, Dict, List, Tuple
 
 import fastapi
+import httpx
 
 from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
@@ -63,8 +64,12 @@ class Queue:
         self.max_size = max_size
         self.blocks_dependencies = blocks_dependencies
         self.access_token = ""
+        self.queue_client = None
 
     async def start(self, progress_tracking=False):
+        # So that the client is attached to the running event loop
+        self.queue_client = httpx.AsyncClient()
+
         run_coro_in_background(self.start_processing)
         if progress_tracking:
             run_coro_in_background(self.start_progress_tracking)
@@ -311,13 +316,13 @@ class Queue:
                 if event.data
             ]
             data.batched = True
-
         response = await AsyncRequest(
             method=AsyncRequest.Method.POST,
             url=f"{self.server_path}api/predict",
             json=dict(data),
             headers={"Authorization": f"Bearer {self.access_token}"},
             cookies={"access-token": token} if token is not None else None,
+            client=self.queue_client,
         )
         return response
 
@@ -443,4 +448,5 @@ class Queue:
                 "session_hash": session_hash,
                 "fn_index": fn_index,
             },
+            client=self.queue_client,
         )

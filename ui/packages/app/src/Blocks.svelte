@@ -400,8 +400,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 
@@ -575,8 +574,8 @@
 
 	@media (--screen-md) {
 		.api-docs-wrap {
-			border-top-left-radius: var(--radius-lg);
-			border-bottom-left-radius: var(--radius-lg);
+			border-top-left-radius: var(--rounded-lg);
+			border-bottom-left-radius: var(--rounded-lg);
 			width: 950px;
 		}
 	}

@@ -19,7 +19,7 @@
 
 	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
-	$: gallery = headers.length < 1;
+	$: gallery = headers.length < 2;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: Array<Array<any>>;
@@ -211,18 +211,19 @@
 
 	.button {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		overflow: hidden;
 		overflow: hidden;
 	}
 
 	.button:hover {
-		background: var(--dataset-gallery-background-hover);
+		border-color: var(--color-border-tertiary);
+		background: var(--color-focus-ring);
 	}
 
 	.table-wrap {
 		border: 1px solid var(--color-border-primary);
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		width: var(--size-full);
 		table-layout: auto;
 		overflow-x: auto;
@@ -241,7 +242,7 @@
 	.tr-head > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--dataset-table-border-base);
+		border-color: var(--color-border-primary);
 	}
 
 	th {
@@ -251,8 +252,8 @@
 
 	.tr-body {
 		cursor: pointer;
-		border-bottom: 1px solid var(--dataset-table-border-base);
-		background: var(--table-even-background);
+		border-bottom: 1px solid var(--color-border-primary);
+		background: var(--row-even-background);
 	}
 
 	.tr-body:last-child {
@@ -260,21 +261,21 @@
 	}
 
 	.tr-body:nth-child(odd) {
-		background: var(--table-odd-background);
+		background: var(--row-odd-background);
 	}
 
 	.tr-body:hover {
-		background: var(--dataset-table-background-hover);
+		background: var(--row-focus);
 	}
 
 	.tr-body > * + * {
 		border-right-width: 0px;
 		border-left-width: 1px;
-		border-color: var(--dataset-table-border-base);
+		border-color: var(--color-border-primary);
 	}
 
 	.tr-body:hover > * + * {
-		border-color: var(--dataset-table-border-hover);
+		border-color: var(--color-accent-soft);
 	}
 
 	td {

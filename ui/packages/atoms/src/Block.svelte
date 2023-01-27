@@ -14,6 +14,7 @@
 	export let disable: boolean = false;
 	export let explicit_call: boolean = false;
 	export let visible = true;
+	export let allow_overflow = true;
 
 	const color_style = {
 		grey: "var(--color-border-primary)",
@@ -47,6 +48,7 @@
 	style="{styles} {size_style || null}"
 	style:border-style={variant}
 	style:border-color={color_style[color]}
+	style:overflow={allow_overflow ? "visible" : "hidden"}
 >
 	<slot />
 </svelte:element>
@@ -57,7 +59,7 @@
 		margin: 0;
 		box-shadow: var(--shadow-drop);
 		border-width: 1px;
-		border-radius: var(--radius-lg);
+		border-radius: var(--rounded-lg);
 		background: var(--color-background-tertiary);
 		width: 100%;
 		color: var(--color-text-body);

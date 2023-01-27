@@ -456,7 +456,7 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-            theme: Theme to use, loaded from gradio.themes such as gradio.themes.MonochromeTheme.
+            theme: Theme to use, loaded from gradio.themes.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: a human-friendly name for the kind of Blocks or Interface being created.
             title: The tab title to display when this is opened in a browser window.
@@ -465,13 +465,14 @@ class Blocks(BlockContext):
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.limiter = None
         self.save_to = None
-
         theme_css = None
-        if isinstance(theme, type) and issubclass(theme, Theme):
-            theme = theme()
-        if isinstance(theme, str):
+        if theme is None:
+            theme = DefaultTheme()
+        elif isinstance(theme, str):
             theme_css = Theme.from_hub(theme)
-
+        elif not isinstance(theme, Theme):
+            warnings.warn("Theme should be a class loaded from gradio.themes")
+            theme = DefaultTheme()
         self.theme = theme if isinstance(theme, (Theme, str)) else DefaultTheme()
         self.theme_css = theme_css if theme_css else get_theme_css(theme)
         self.encrypt = False
@@ -506,7 +507,6 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.ip_address = ""
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -525,12 +525,9 @@ class Blocks(BlockContext):
         self.progress_tracking = None
 
         if self.analytics_enabled:
-            self.ip_address = utils.get_local_ip_address()
             data = {
                 "mode": self.mode,
-                "ip_address": self.ip_address,
                 "custom_css": self.css is not None,
-                "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
                 .decode("ascii")
                 .strip(),
@@ -586,7 +583,7 @@ class Blocks(BlockContext):
                     with block:
                         iterate_over_children(children)
 
-        with Blocks(theme=config["theme"], css=config["theme"]) as blocks:
+        with Blocks() as blocks:
             # ID 0 should be the root Blocks component
             original_mapping[0] = Context.root_block or blocks
 
@@ -1055,7 +1052,6 @@ class Blocks(BlockContext):
             "mode": self.mode,
             "dev_mode": self.dev_mode,
             "components": [],
-            "theme": self.theme,
             "css": self.css,
             "title": self.title or "Gradio",
             "is_space": self.is_space,
@@ -1461,7 +1457,7 @@ class Blocks(BlockContext):
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
-                    utils.error_analytics(self.ip_address, "Not able to set up tunnel")
+                    utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1544,7 +1540,6 @@ class Blocks(BlockContext):
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
-                "ip_address": self.ip_address,
                 "enable_queue": self.enable_queue,
                 "show_tips": self.show_tips,
                 "server_name": server_name,
@@ -1632,6 +1627,9 @@ class Blocks(BlockContext):
                 self._queue.close()
             self.server.close()
             self.is_running = False
+            # So that the startup events (starting the queue)
+            # happen the next time the app is launched
+            self.app.startup_events_triggered = False
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
         except (AttributeError, OSError):  # can't close if not running
@@ -1675,6 +1673,8 @@ class Blocks(BlockContext):
 
         if self.enable_queue:
             utils.run_coro_in_background(self._queue.start, (self.progress_tracking,))
+            # So that processing can resume in case the queue was stopped
+            self._queue.stopped = False
         utils.run_coro_in_background(self.create_limiter)
 
     def queue_enabled_for_fn(self, fn_index: int):

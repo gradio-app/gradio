@@ -168,6 +168,7 @@ class TestQueueProcessEvents:
                 "session_hash": mock_event.session_hash,
                 "fn_index": mock_event.fn_index,
             },
+            client=None,
         )
 
     @pytest.mark.asyncio
@@ -305,6 +306,7 @@ class TestQueueProcessEvents:
                 "session_hash": mock_event.session_hash,
                 "fn_index": mock_event.fn_index,
             },
+            client=None,
         )
 
 

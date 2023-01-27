@@ -1,0 +1,21 @@
+name: Check for large files
+
+on:
+  pull_request:
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}    
+      - name: Check for large files
+        uses: actionsdesk/lfs-warning@v3.2
+        with:
+          filesizelimit: 5MB
+

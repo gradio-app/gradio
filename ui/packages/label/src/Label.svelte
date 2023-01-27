@@ -69,12 +69,8 @@
 
 	.bar {
 		margin-bottom: var(--size-1);
-		border-radius: var(--radius-md);
-		background: linear-gradient(
-			to right,
-			var(--label-gradient-from),
-			var(--label-gradient-to)
-		);
+		border-radius: var(--rounded);
+		background: var(--color-stat-background);
 		height: var(--size-1);
 	}
 
