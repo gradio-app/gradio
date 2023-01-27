@@ -243,6 +243,7 @@ function create_custom_element() {
 
 			const host = this.getAttribute("host");
 			const space = this.getAttribute("space");
+			const src = this.getAttribute("src");
 
 			const source = host
 				? `https://${host}`
@@ -252,7 +253,10 @@ function create_custom_element() {
 							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
 						).json()
 				  ).host
-				: this.getAttribute("src");
+				: src;
+
+			const is_embed =
+				!!space || (source && new URL(source).host.endsWith("hf.space"));
 
 			const control_page_title = this.getAttribute("control_page_title");
 			const initial_height = this.getAttribute("initial_height");
@@ -277,7 +281,7 @@ function create_custom_element() {
 					this.wrapper,
 					this._id,
 					_autoscroll,
-					!!space
+					is_embed
 				);
 			}
 		}
