@@ -11,8 +11,8 @@ export default async function global_setup() {
 	const serve = sirv(template);
 	const app = polka()
 		.use(serve)
-		.listen("3000", () => {
-			console.log(`> Running on localhost: 3000`);
+		.listen("9876", () => {
+			console.log(`> Running on localhost: 9876`);
 		});
 
 	return () => {
