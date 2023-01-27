@@ -63,6 +63,7 @@ class Block:
         elem_id: str | None = None,
         visible: bool = True,
         root_url: str | None = None,  # URL that is prepended to all file paths
+        access_token: str | None = None, # Used for loading from private Spaces
         _skip_init_processing: bool = False,  # Used for loading from Spaces
         **kwargs,
     ):
@@ -71,6 +72,7 @@ class Block:
         self.visible = visible
         self.elem_id = elem_id
         self.root_url = root_url
+        self.access_token = access_token
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None
@@ -526,7 +528,7 @@ class Blocks(BlockContext):
 
     @classmethod
     def from_config(
-        cls, config: dict, fns: List[Callable], root_url: str | None = None
+        cls, config: dict, fns: List[Callable], root_url: str | None = None, access_token: str | None = None
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions.
@@ -535,6 +537,7 @@ class Blocks(BlockContext):
         config: a dictionary containing the configuration of the Blocks.
         fns: a list of functions that are used in the Blocks. Must be in the same order as the dependencies in the config.
         root_url: an optional root url to use for the components in the Blocks. Allows serving files from an external URL.
+        access_token: an optional access token to use for loading private Spaces
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
@@ -556,6 +559,8 @@ class Blocks(BlockContext):
             block = cls(**block_config["props"], _skip_init_processing=True)
             if style and isinstance(block, components.IOComponent):
                 block.style(**style)
+            if access_token:
+                block.access_token = access_token                
             return block
 
         def iterate_over_children(children_list):

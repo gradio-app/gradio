@@ -9,6 +9,7 @@ import json
 import mimetypes
 import os
 import posixpath
+import requests
 import secrets
 import traceback
 from collections import defaultdict
@@ -27,6 +28,7 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
+    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -254,12 +256,17 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
-        @app.head("/auth-file/{block_id:int}/path={path:path}", dependencies=[Depends(login_check)])
-        @app.get("/auth-file/{block_id:int}/path={path:path}", dependencies=[Depends(login_check)])
+        @app.head("/auth-file/{block_id:int}/file={path:path}", dependencies=[Depends(login_check)])
+        @app.get("/auth-file/{block_id:int}/file={path:path}", dependencies=[Depends(login_check)])
         async def auth_file(block_id: int, path: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            if utils.validate_url(path):
-                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
+            block = blocks.blocks[block_id]
+            print(block.access_token)
+            print(utils.validate_url(path))
+            if block.access_token and utils.validate_url(path):
+                headers = {"Authorization": f"Bearer {block.access_token}"}
+                r = requests.get(path, headers=headers)
+                return Response(content=r.content, media_type=r.headers["Content-Type"])
             else:
                 return await file(path=path, request=request)
 

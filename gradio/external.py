@@ -454,7 +454,7 @@ def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Bl
             fns.append(fn)
         else:
             fns.append(None)
-    return gradio.Blocks.from_config(config, fns, iframe_url)
+    return gradio.Blocks.from_config(config, fns, iframe_url, api_key)
 
 
 def from_spaces_interface(
