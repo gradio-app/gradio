@@ -28,7 +28,11 @@
 	let prevValue: string[] | FileData[] | null = null;
 	let selected_image: number | null = null;
 	$: if (prevValue !== value) {
-		selected_image = null;
+		// so that gallery preserves selected image after update
+		selected_image =
+			selected_image !== null && value !== null && selected_image < value.length
+				? selected_image
+				: null;
 		prevValue = value;
 	}
 
