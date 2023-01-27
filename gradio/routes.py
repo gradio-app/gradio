@@ -254,6 +254,15 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
+        @app.head("/auth-file/{block_id:int}/path={path:path}", dependencies=[Depends(login_check)])
+        @app.get("/auth-file/{block_id:int}/path={path:path}", dependencies=[Depends(login_check)])
+        async def auth_file(block_id: int, path: str, request: fastapi.Request):
+            blocks = app.get_blocks()
+            if utils.validate_url(path):
+                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
+            else:
+                return await file(path=path, request=request)
+
         @app.head("/file={path:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
         async def file(path: str, request: fastapi.Request):
@@ -287,6 +296,7 @@ class App(FastAPI):
                     f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
+        @app.head("/file/{path:path}", dependencies=[Depends(login_check)])
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)
