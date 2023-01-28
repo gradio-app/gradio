@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import tempfile
 from unittest.mock import patch
 
 import numpy as np
@@ -179,6 +180,21 @@ class TestRoutes:
         )
         output = dict(response.json())
         assert output["data"] == ["testtest", None]
+
+    def test_get_file_allowed_by_file_directories(self):
+        allowed_file = tempfile.NamedTemporaryFile(mode="w")
+        allowed_file.write(media_data.BASE64_IMAGE)
+        allowed_file.flush()
+
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True,
+            file_directories=[os.path.dirname(allowed_file.name)],
+        )
+        client = TestClient(app)
+
+        file_response = client.get(f"/file={allowed_file.name}")
+        assert file_response.status_code == 200
+        assert len(file_response.text) == len(media_data.BASE64_IMAGE)
 
     def test_get_file_created_by_app(self):
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
