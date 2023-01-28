@@ -2,7 +2,7 @@ const { defineConfig } = require("pollen-css/utils");
 
 module.exports = defineConfig((pollen) => {
 	return {
-		selector: ":host, :root",
+		selector: ":root",
 		output: "./src/pollen.css",
 		modules: {
 			line: {

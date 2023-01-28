@@ -110,17 +110,6 @@ export function handle_ce_css(): Plugin {
 		enforce: "post",
 		name: "custom-element-css",
 
-		transform(code, id) {
-			if (id === "vite/preload-helper") {
-				return {
-					code: code.replace(
-						"document.head.appendChild(link);",
-						"window.scoped_css_attach(link)"
-					)
-				};
-			}
-		},
-
 		writeBundle(config, bundle) {
 			let file_to_insert = {
 				filename: "",
