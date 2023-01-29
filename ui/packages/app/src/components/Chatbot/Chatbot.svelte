@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { ChatBot } from "@gradio/chatbot";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import { Chat } from "@gradio/icons";

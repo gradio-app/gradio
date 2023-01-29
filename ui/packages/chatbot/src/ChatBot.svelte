@@ -18,7 +18,14 @@
 	});
 
 	afterUpdate(() => {
-		if (autoscroll) div.scrollTo(0, div.scrollHeight);
+		if (autoscroll) {
+			div.scrollTo(0, div.scrollHeight);
+			div.querySelectorAll("img").forEach(n => {
+				n.addEventListener("load", () => {
+					div.scrollTo(0, div.scrollHeight);
+				});
+			})
+		}
 	});
 
 	$: value && dispatch("change");
