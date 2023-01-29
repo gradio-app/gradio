@@ -3,7 +3,7 @@
 	import { colors } from "@gradio/theme";
 	import type { Styles } from "@gradio/utils";
 
-	export let value: Array<[string, string]>;
+	export let value: Array<[string, string]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
 
@@ -12,6 +12,7 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
+	$: _value = value || [];
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
@@ -51,10 +52,10 @@
 
 <div class="wrap" bind:this={div}>
 	<div class="message-wrap">
-		{#each value as message, i}
+		{#each _value as message, i}
 			<div
 				data-testid="user"
-				class:latest={i === value.length - 1}
+				class:latest={i === _value.length - 1}
 				class="message user"
 				style={"background-color:" + _colors[0]}
 			>
@@ -62,7 +63,7 @@
 			</div>
 			<div
 				data-testid="bot"
-				class:latest={i === value.length - 1}
+				class:latest={i === _value.length - 1}
 				class="message bot"
 				style={"background-color:" + _colors[1]}
 			>
