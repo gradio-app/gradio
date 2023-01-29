@@ -20,11 +20,11 @@
 	afterUpdate(() => {
 		if (autoscroll) {
 			div.scrollTo(0, div.scrollHeight);
-			div.querySelectorAll("img").forEach(n => {
+			div.querySelectorAll("img").forEach((n) => {
 				n.addEventListener("load", () => {
 					div.scrollTo(0, div.scrollHeight);
 				});
-			})
+			});
 		}
 	});
 
