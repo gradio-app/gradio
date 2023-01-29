@@ -73,6 +73,9 @@ class Default(Theme):
         self.color_functional_error_background_dark = self._use(
             "color_background_primary"
         )
+        self.color_functional_error_border = self._color("red", 200)
+        self.color_functional_error_border_dark = self._use("color_border_primary")
+
         self.color_functional_info_base = self._color("yellow", 500)
         self.color_functional_info_subdued = self._color("yellow", 300)
         self.color_functional_success_base = self._color("green", 500)
@@ -112,8 +115,8 @@ class Default(Theme):
         self.input_background_focus_dark = self._use("color_focus_secondary")
         self.input_accent = None
         self.checkbox_border_radius = self._use("rounded")
-        self.checkbox_border_color_base = self._use("color_background_tertiary")
-        self.checkbox_border_color_base_dark = self._use("color_background_tertiary")
+        self.checkbox_border_color_base = self._use("color_border_tertiary")
+        self.checkbox_border_color_base_dark = self._use("color_border_tertiary")
         self.checkbox_border_color_hover = self._color(neutral_hue, 300)
         self.checkbox_border_color_hover_dark = self._use("color_focus_primary")
         self.checkbox_border_color_focus = self._color(secondary_hue, 500)
@@ -157,34 +160,70 @@ class Default(Theme):
         self.button_shadow_active = self._use("shadow_inset")
         self.button_primary_border_color_base = self._color(primary_hue, 200)
         self.button_primary_border_color_base_dark = self._color(primary_hue, 600)
-        self.button_primary_border_color_hover = self._use("button_primary_border_color_base")
-        self.button_primary_border_color_hover_dark = self._use("button_primary_border_color_base")
-        self.button_primary_border_color_focus = self._use("button_primary_border_color_base")
-        self.button_primary_border_color_focus_dark = self._use("button_primary_border_color_base")
+        self.button_primary_border_color_hover = self._use(
+            "button_primary_border_color_base"
+        )
+        self.button_primary_border_color_hover_dark = self._use(
+            "button_primary_border_color_base"
+        )
+        self.button_primary_border_color_focus = self._use(
+            "button_primary_border_color_base"
+        )
+        self.button_primary_border_color_focus_dark = self._use(
+            "button_primary_border_color_base"
+        )
         self.button_primary_text_color_base = self._color(primary_hue, 600)
         self.button_primary_text_color_base_dark = "white"
-        self.button_primary_text_color_hover = self._use("button_primary_text_color_base")
-        self.button_primary_text_color_hover_dark = self._use("button_primary_text_color_base")
-        self.button_primary_text_color_focus = self._use("button_primary_text_color_base")
-        self.button_primary_text_color_focus_dark = self._use("button_primary_text_color_base")
+        self.button_primary_text_color_hover = self._use(
+            "button_primary_text_color_base"
+        )
+        self.button_primary_text_color_hover_dark = self._use(
+            "button_primary_text_color_base"
+        )
+        self.button_primary_text_color_focus = self._use(
+            "button_primary_text_color_base"
+        )
+        self.button_primary_text_color_focus_dark = self._use(
+            "button_primary_text_color_base"
+        )
         self.button_primary_background_base = f"linear-gradient(to bottom right, {self._color(primary_hue, 100)}, {self._color(primary_hue, 200)})"
         self.button_primary_background_base_dark = f"linear-gradient(to bottom right, {self._color(primary_hue, 700)}, {self._color(primary_hue, 700)})"
         self.button_primary_background_hover = self._color(primary_hue, 100)
         self.button_primary_background_hover_dark = f"linear-gradient(to bottom right, {self._color(primary_hue, 700)}, {self._color(primary_hue, 600)})"
-        self.button_primary_background_focus = self._use("button_primary_background_base")
-        self.button_primary_background_focus_dark = self._use("button_primary_background_base")
+        self.button_primary_background_focus = self._use(
+            "button_primary_background_base"
+        )
+        self.button_primary_background_focus_dark = self._use(
+            "button_primary_background_base"
+        )
         self.button_secondary_border_color_base = self._color(neutral_hue, 200)
         self.button_secondary_border_color_base_dark = self._color(neutral_hue, 600)
-        self.button_secondary_border_color_hover = self._use("button_secondary_border_color_base")
-        self.button_secondary_border_color_hover_dark = self._use("button_secondary_border_color_base")
-        self.button_secondary_border_color_focus = self._use("button_secondary_border_color_base")
-        self.button_secondary_border_color_focus_dark = self._use("button_secondary_border_color_base")
+        self.button_secondary_border_color_hover = self._use(
+            "button_secondary_border_color_base"
+        )
+        self.button_secondary_border_color_hover_dark = self._use(
+            "button_secondary_border_color_base"
+        )
+        self.button_secondary_border_color_focus = self._use(
+            "button_secondary_border_color_base"
+        )
+        self.button_secondary_border_color_focus_dark = self._use(
+            "button_secondary_border_color_base"
+        )
         self.button_secondary_text_color_base = self._color("grey", 700)
         self.button_secondary_text_color_base_dark = "white"
-        self.button_secondary_text_color_hover = self._use("button_secondary_text_color_base")
-        self.button_secondary_text_color_hover_dark = self._use("button_secondary_text_color_base")
-        self.button_secondary_text_color_focus = self._use("button_secondary_text_color_base")
-        self.button_secondary_text_color_focus_dark = self._use("button_secondary_text_color_base")
+        self.button_secondary_text_color_hover = self._use(
+            "button_secondary_text_color_base"
+        )
+        self.button_secondary_text_color_hover_dark = self._use(
+            "button_secondary_text_color_base"
+        )
+        self.button_secondary_text_color_focus = self._use(
+            "button_secondary_text_color_base"
+        )
+        self.button_secondary_text_color_focus_dark = self._use(
+            "button_secondary_text_color_base"
+        )
         self.button_secondary_background_base = f"linear-gradient(to bottom right, {self._color(neutral_hue, 100)}, {self._color(neutral_hue, 200)})"
         self.button_secondary_background_base_dark = f"linear-gradient(to bottom right, {self._color(neutral_hue, 600)}, {self._color(neutral_hue, 700)})"
         self.button_secondary_background_hover = f"linear-gradient(to bottom right, {self._color(neutral_hue, 100)}, {self._color(neutral_hue, 100)})"
@@ -193,16 +232,28 @@ class Default(Theme):
         self.button_secondary_background_focus_dark = f"linear-gradient(to bottom right, {self._color(neutral_hue, 600)}, {self._color(neutral_hue, 600)})"
         self.button_cancel_border_color_base = self._color("red", 200)
         self.button_cancel_border_color_base_dark = self._color("red", 600)
-        self.button_cancel_border_color_hover = self._use("button_cancel_border_color_base")
-        self.button_cancel_border_color_hover_dark = self._use("button_cancel_border_color_base")
-        self.button_cancel_border_color_focus = self._use("button_cancel_border_color_base")
-        self.button_cancel_border_color_focus_dark = self._use("button_cancel_border_color_base")
+        self.button_cancel_border_color_hover = self._use(
+            "button_cancel_border_color_base"
+        )
+        self.button_cancel_border_color_hover_dark = self._use(
+            "button_cancel_border_color_base"
+        )
+        self.button_cancel_border_color_focus = self._use(
+            "button_cancel_border_color_base"
+        )
+        self.button_cancel_border_color_focus_dark = self._use(
+            "button_cancel_border_color_base"
+        )
         self.button_cancel_text_color_base = self._color("red", 600)
         self.button_cancel_text_color_base_dark = "white"
         self.button_cancel_text_color_hover = self._use("button_cancel_text_color_base")
-        self.button_cancel_text_color_hover_dark = self._use("button_cancel_text_color_base")
+        self.button_cancel_text_color_hover_dark = self._use(
+            "button_cancel_text_color_base"
+        )
         self.button_cancel_text_color_focus = self._use("button_cancel_text_color_base")
-        self.button_cancel_text_color_focus_dark = self._use("button_cancel_text_color_base")
+        self.button_cancel_text_color_focus_dark = self._use(
+            "button_cancel_text_color_base"
+        )
         self.button_cancel_background_base = f"linear-gradient(to bottom right, {self._color('red', 100)}, {self._color('red', 200)})"
         self.button_cancel_background_base_dark = f"linear-gradient(to bottom right, {self._color('red', 700)}, {self._color('red', 700)})"
         self.button_cancel_background_hover = f"linear-gradient(to bottom right, {self._color('red', 100)}, {self._color('red', 100)})"
@@ -224,9 +275,13 @@ class Default(Theme):
         self.button_plain_background_base = "white"
         self.button_plain_background_base_dark = self._color(neutral_hue, 700)
         self.button_plain_background_hover = self._use("button_plain_background_base")
-        self.button_plain_background_hover_dark = self._use("button_plain_background_base")
+        self.button_plain_background_hover_dark = self._use(
+            "button_plain_background_base"
+        )
         self.button_plain_background_focus = self._use("button_plain_background_base")
-        self.button_plain_background_focus_dark = self._use("button_plain_background_base")
+        self.button_plain_background_focus_dark = self._use(
+            "button_plain_background_base"
+        )
 
         # Docs
         self.docs_background = f"linear-gradient(to bottom, {self._color(primary_hue, 10)}, {self._use('color_background_primary')})"

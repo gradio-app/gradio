@@ -453,7 +453,7 @@
 		margin: var(--size-6) var(--size-4);
 		margin: auto;
 		box-shadow: var(--shadow-drop-lg-xl);
-		border: 1px solid var(--color-border-primary);
+		border: 1px solid var(--color-functional-error-border);
 		border-radius: var(--rounded-lg);
 		background: var(--color-background-secondary);
 		background: var(--color-functional-error-background);
