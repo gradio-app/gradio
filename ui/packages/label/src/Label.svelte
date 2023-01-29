@@ -74,13 +74,6 @@
 		height: var(--size-1);
 	}
 
-	.confidence-set:hover .bar {
-		background: linear-gradient(
-			to right,
-			var(--color-orange-500),
-			var(--label-gradient-to)
-		);
-	}
 	.label {
 		display: flex;
 		align-items: baseline;

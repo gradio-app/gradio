@@ -26,13 +26,16 @@
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		box-shadow: var(--shadow-drop);
+		box-shadow: var(--button-shadow);
 		padding: var(--size-0-5) var(--size-2);
 		text-align: center;
 	}
 
 	button:hover {
-		box-shadow: var(--shadow-drop-lg);
+		box-shadow: var(--button-shadow-hover);
+	}
+	button:active {
+		box-shadow: var(--button-shadow-active);
 	}
 
 	.hide {
@@ -44,7 +47,6 @@
 		background: var(--button-plain-background-base);
 		color: var(--button-plain-text-color-base);
 	}
-
 	.plain:hover {
 		border: 1px solid var(--button-plain-border-color-hover);
 		background: var(--button-plain-background-hover);
@@ -55,6 +57,7 @@
 		background: var(--button-plain-background-focus);
 		color: var(--button-plain-text-color-focus);
 	}
+
 	.primary {
 		border: 1px solid var(--button-primary-border-color-base);
 		background: var(--button-primary-background-base);
@@ -65,7 +68,6 @@
 		background: var(--button-primary-background-hover);
 		color: var(--button-primary-text-color-hover);
 	}
-
 	.primary:focus {
 		border-color: var(--button-primary-border-color-focus);
 		background: var(--button-primary-background-focus);
@@ -77,13 +79,11 @@
 		background: var(--button-secondary-background-base);
 		color: var(--button-secondary-text-color-base);
 	}
-
 	.secondary:hover {
 		border-color: var(--button-secondary-border-color-hover);
 		background: var(--button-secondary-background-hover);
 		color: var(--button-secondary-text-color-hover);
 	}
-
 	.secondary:focus {
 		border-color: var(--button-secondary-border-color-focus);
 		background: var(--button-secondary-background-focus);
@@ -95,13 +95,11 @@
 		background: var(--button-cancel-background-base);
 		color: var(--button-cancel-text-color-base);
 	}
-
 	.stop:hover {
 		border-color: var(--button-cancel-border-color-hover);
 		background: var(--button-cancel-background-hover);
 		color: var(--button-cancel-text-color-hover);
 	}
-
 	.stop:focus {
 		border-color: var(--button-cancel-border-color-focus);
 		background: var(--button-cancel-background-focus);
