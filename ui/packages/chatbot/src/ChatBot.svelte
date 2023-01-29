@@ -5,6 +5,7 @@
 
 	export let value: Array<[string, string]>;
 	export let style: Styles = {};
+	export let pending_message: boolean = false;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -61,6 +62,19 @@
 				{@html message[1]}
 			</div>
 		{/each}
+		{#if pending_message}
+			<div
+				data-testid="bot"
+				class="message user pending"
+				style={"background-color:" + _colors[0]}
+			>
+				<div class="dot-flashing" />
+				&nbsp;
+				<div class="dot-flashing" />
+				&nbsp;
+				<div class="dot-flashing" />
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -119,5 +133,38 @@
 		border-color: var(--chatbot-bot-border-color-latest);
 		background: var(--chatbot-bot-background-latest);
 		color: var(--chatbot-bot-text-color-latest);
+	}
+
+	.pending {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 2px;
+	}
+	.dot-flashing {
+		animation: dot-flashing 1s infinite linear alternate;
+		border-radius: 5px;
+		background-color: white;
+		width: 5px;
+		height: 5px;
+		color: white;
+	}
+	.dot-flashing:nth-child(2) {
+		animation-delay: 0.33s;
+	}
+	.dot-flashing:nth-child(3) {
+		animation-delay: 0.66s;
+	}
+
+	@keyframes dot-flashing {
+		0% {
+			opacity: 0.8;
+		}
+		50% {
+			opacity: 0.5;
+		}
+		100% {
+			opacity: 0.8;
+		}
 	}
 </style>
