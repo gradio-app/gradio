@@ -2,8 +2,24 @@ import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
+<<<<<<< HEAD
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+=======
+def chat(message, history):
+    history = history or []
+    message = message.lower()
+    if message.startswith("how many"):
+        response = str(random.randint(1, 10))
+    elif message.startswith("how"):
+        response = random.choice(["Great", "Good", "Okay", "Bad"])
+    elif message.startswith("where"):
+        response = random.choice(["Here", "There", "Somewhere"])
+    else:
+        response = "I don't know"
+    history.append((message, response))
+    return history, history
+>>>>>>> main
 
 
 def predict(input, history=[]):
