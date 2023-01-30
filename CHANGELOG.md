@@ -4,7 +4,7 @@
 No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixed image rotation bug on iOS by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3091)
 
 ## Documentation Changes:
 No changes to highlight.
