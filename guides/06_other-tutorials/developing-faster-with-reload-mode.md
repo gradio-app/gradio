@@ -54,6 +54,10 @@ The important part here is the line that says `Watching...` What's happening her
 
 As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
+⚠️ It is customary to configure the behavior of your gradio app via the `launch()` or `queue()` methods. For example, setting `auth`, or `show_error` in `launch()`. If this is the case, make sure that these methods are
+called **outside** of the `if __name__ == "__main__":` block, otherwise the `gradio` command will not know the 
+value of these parameters.
+
 ## Jupyter Notebook Magic 🔮
 
 What about if you use Jupyter Notebooks (or Colab Notebooks, etc.) to develop code? We got something for you too!
