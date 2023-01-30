@@ -6,6 +6,7 @@
 	export let id: number;
 	export let auth_message: string | null;
 	export let app_mode: boolean;
+	export let is_space: boolean;
 
 	window.__gradio_loader__[id].$set({ status: "complete" });
 	let username = "";
@@ -25,7 +26,7 @@
 			incorrect_credentials = true;
 			username = "";
 			password = "";
-		} else {
+		} else if (response.status == 200) {
 			location.reload();
 		}
 	};
@@ -36,6 +37,12 @@
 		<h2>Login</h2>
 		{#if auth_message}
 			<p class="auth">{auth_message}</p>
+		{/if}
+		{#if is_space}
+			<p class="auth">
+				If you are visiting a HuggingFace Space in Incognito mode, you must
+				enable third party cookies.
+			</p>
 		{/if}
 		{#if incorrect_credentials}
 			<p class="creds">Incorrect Credentials</p>
@@ -62,7 +69,12 @@
 			/>
 		</Form>
 
-		<Button size="lg" variant="primary" style={{ full_width: true }}>
+		<Button
+			size="lg"
+			variant="primary"
+			style={{ full_width: true }}
+			on:click={submit}
+		>
 			Login
 		</Button>
 	</div>
@@ -80,6 +92,7 @@
 
 	.panel {
 		display: flex;
+		flex-direction: column;
 		flex-wrap: wrap;
 		gap: var(--size-4);
 		border-radius: var(--radius-lg);
@@ -89,14 +102,16 @@
 	}
 
 	h2 {
-		margin-bottom: var(--size-6);
+		margin-bottom: var(--size-3);
+		color: var(--color-text-body);
 		font-weight: var(--weight-semibold);
 		font-size: var(--scale-2);
 	}
 
 	.auth {
-		margin-top: var(--size-4);
-		margin-bottom: var(--size-4);
+		margin-top: var(--size-1);
+		margin-bottom: var(--size-1);
+		color: var(--color-text-body);
 	}
 
 	.creds {
