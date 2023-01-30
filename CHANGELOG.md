@@ -930,7 +930,7 @@ demo.queue().launch()
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Explained how to set up `queue` and `auth` when working with reload mode by by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3089) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
