@@ -14,7 +14,7 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fix bug where examples were not rendered correctly for demos created with Blocks api that had multiple input compinents by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3090](https://github.com/gradio-app/gradio/pull/3090)  
 
 ## Documentation Changes:
 No changes to highlight.
