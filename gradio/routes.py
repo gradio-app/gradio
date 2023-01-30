@@ -184,8 +184,14 @@ class App(FastAPI):
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-                response.set_cookie(key="access-token", value=token, httponly=True)
+                response = JSONResponse(content={"success": True})
+                response.set_cookie(
+                    key="access-token",
+                    value=token,
+                    httponly=True,
+                    samesite="none",
+                    secure=True,
+                )
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
@@ -206,6 +212,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
+                    "is_space": app.get_blocks().is_space,
                 }
 
             try:

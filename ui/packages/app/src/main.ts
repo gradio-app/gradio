@@ -151,6 +151,7 @@ function mount_app(
 			props: {
 				auth_message: config.auth_message,
 				root: config.root,
+				is_space: config.is_space,
 				id,
 				app_mode
 			}
