@@ -1,6 +1,6 @@
 # How to Create a Chatbot
 
-Related spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
+Related spaces: https://huggingface.co/spaces/dawood/chatbot-guide, https://huggingface.co/spaces/dawood/chatbot-guide-multimodal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
 Tags: NLP, TEXT, HTML
 
 ## Introduction
@@ -11,7 +11,7 @@ Using `gradio`, you can easily build a demo of your chatbot model and share that
 
 This tutorial will show how to take a pretrained chatbot model and deploy it with a Gradio interface in 4 steps. The live chatbot interface that we create will look something like this (try it!):
 
-<iframe src="https://abidlabs-chatbot-stylized.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://dawood-chatbot-guide.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Chatbots are *stateful*, meaning that the model's prediction can change depending on how the user has previously interacted with the model. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
 
@@ -159,6 +159,5 @@ This code will produce a demo like the one below:
 And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
 * Gradio's [Quickstart guide](https://gradio.app/quickstart/)
-* The final [chatbot demo](https://huggingface.co/spaces/abidlabs/chatbot-stylized) and [complete code](https://huggingface.co/spaces/abidlabs/chatbot-stylized/tree/main) (on Hugging Face Spaces)
-
-
+* The first chatbot demo [chatbot demo](https://huggingface.co/spaces/dawood/chatbot-guide) and [complete code](https://huggingface.co/spaces/dawood/chatbot-guide/blob/main/app.py) (on Hugging Face Spaces)
+* The final chatbot with markdown support [chatbot demo](https://huggingface.co/spaces/dawood/chatbot-guide-multimodal) and [complete code](https://huggingface.co/spaces/dawood/chatbot-guide-multimodal/blob/main/app.py) (on Hugging Face Spaces)
