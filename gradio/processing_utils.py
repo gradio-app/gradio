@@ -54,7 +54,6 @@ def decode_base64_to_image(encoding: str) -> Image.Image:
     image_encoded = content.split(",")[1]
     img = Image.open(BytesIO(base64.b64decode(image_encoded)))
     if hasattr(ImageOps, "exif_transpose"):
-        print("HERE")
         img = ImageOps.exif_transpose(img)
     return img
 
