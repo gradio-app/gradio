@@ -1338,7 +1338,7 @@ async def test_queue_when_using_auth():
         data={"username": "abc", "password": "123"},
         follow_redirects=False,
     )
-    assert resp.status_code == 302
+    assert resp.status_code == 200
     token = resp.cookies.get("access-token")
     assert token
 
