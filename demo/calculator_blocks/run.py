@@ -15,7 +15,7 @@ def calculator(num1, operation, num2):
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            num_1 = gr.Number(value=6)
+            num_1 = gr.Number(value=4)
             operation = gr.Radio(["add", "subtract", "multiply", "divide"])
             num_2 = gr.Number(value=0)
             submit_btn = gr.Button(value="Calculate")
@@ -29,7 +29,5 @@ with gr.Blocks() as demo:
                                      [0, "subtract", 1.2]],
                            inputs=[num_1, operation, num_2])
 
-demo.queue().launch(auth=("foo", "foo"), auth_message="Please log in.")
-
-# if __name__ == "__main__":
-#     demo.launch()
+if __name__ == "__main__":
+    demo.launch()
