@@ -1,8 +1,8 @@
 # The 4 Kinds of Gradio Interfaces
 
-So far, we've always assumed that in order to build an Gradio demo, you need both inputs and outputs. But this isn't always the case for machine learning demos: for example, *unconditional image generation models* don't take any input but produce an image as the output. 
+So far, we've always assumed that in order to build an Gradio demo, you need both inputs and outputs. But this isn't always the case for machine learning demos: for example, *unconditional image generation models* don't take any input but produce an image as the output.
 
-It turns out that the `gradio.Interface` class can actually handle 4 different kinds of demos: 
+It turns out that the `gradio.Interface` class can actually handle 4 different kinds of demos:
 
 1. **Standard demos**: which have both separate inputs and outputs (e.g. an image classifier or speech-to-text model)
 2. **Output-only demos**: which don't take any input but produce on output (e.g. an unconditional image generation model)
@@ -18,6 +18,12 @@ Let's see to build each kind of demo using the `Interface` class, along with exa
 
 
 ## Standard demos
+
+To create a demo that has both the input and the output components, you simply need to set the values of the `inputs` and `outputs` parameter in `Interface()`. Here's an example demo of a mock image classification model:
+
+$code_standard_demos_image_classification
+$demo_standard_demos_image_classification
+
 
 ## Output-only demos
 
@@ -35,3 +41,7 @@ $demo_save_file_no_output
 
 ## Unified demos
 
+A demo that has a single component as both the input and the output. It can simply be created by setting the values of the `inputs` and `outputs` parameter as the same component. Here's an example demo of a text generation model:
+
+$code_unified_demo_text_generation
+$demo_unified_demo_text_generation
