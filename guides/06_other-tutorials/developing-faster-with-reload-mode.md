@@ -56,7 +56,8 @@ As a small aside, this auto-reloading happens if you change your `app.py` source
 
 ⚠️ It is customary to configure the behavior of your gradio app via the `launch()` or `queue()` methods. For example, setting `auth`, or `show_error` in `launch()`. If this is the case, make sure that these methods are
 called **outside** of the `if __name__ == "__main__":` block, otherwise the `gradio` command will not know the 
-value of these parameters.
+value of these parameters. You may have to manually reload the web browser page yourself, but it will reflect
+the latest changes of your `app.py` file!
 
 ## Jupyter Notebook Magic 🔮
 
