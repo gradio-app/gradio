@@ -38,6 +38,8 @@ By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3014](https://github.
 Authentication on spaces works now! Third party cookies must be enabled on your browser to be able
 to log in. Some browsers disable third party cookies by default (Safari, Chrome Incognito). 
 
+![auth_spaces](https://user-images.githubusercontent.com/41651716/215528417-09538933-0576-4d1d-b3b9-1e877ab01905.gif)
+
 
 ## Bug Fixes:
 * Fixes bug where interpretation event was not configured correctly by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 2993](https://github.com/gradio-app/gradio/pull/2993) 
