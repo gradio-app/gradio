@@ -28,7 +28,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_inputs");
 	await mock_api(page, [["hi dawood"]]);
-	await page.goto("http://localhost:3000");
+	await page.goto("http://localhost:9876");
 
 	const textboxes = await page.getByLabel("Input");
 

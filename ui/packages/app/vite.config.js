@@ -3,6 +3,15 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 // @ts-ignore
 import custom_media from "postcss-custom-media";
+// @ts-ignore
+import prefixer from "postcss-prefix-selector";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+const version_path = join(__dirname, "..", "..", "..", "gradio", "version.txt");
+const version = readFileSync(version_path, { encoding: "utf-8" })
+	.trim()
+	.replace(/\./g, "-");
 
 import {
 	inject_ejs,
@@ -30,24 +39,43 @@ export default defineConfig(({ mode }) => {
 		base: is_cdn ? CDN_URL : "./",
 
 		server: {
-			port: 3000
+			port: 9876
 		},
 
 		build: {
 			sourcemap: true,
 			target: "esnext",
 			minify: production,
+			// minify: false,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
 			BACKEND_URL: production
 				? JSON.stringify("")
-				: JSON.stringify("http://localhost:7860/")
+				: JSON.stringify("http://localhost:7860/"),
+			GRADIO_VERSION: JSON.stringify(version)
 		},
 		css: {
 			postcss: {
 				plugins: [
+					prefixer({
+						prefix: `.gradio-container-${version}`,
+						// @ts-ignore
+						transform(prefix, selector, prefixedSelector, fileName) {
+							if (selector.indexOf("gradio-container") > -1) {
+								return prefix;
+							} else if (
+								selector.indexOf(":root") > -1 ||
+								selector.indexOf("dark") > -1 ||
+								fileName.indexOf(".svelte") > -1
+							) {
+								return selector;
+							} else {
+								return prefixedSelector;
+							}
+						}
+					}),
 					custom_media({
 						importFrom: [
 							{
@@ -74,7 +102,9 @@ export default defineConfig(({ mode }) => {
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [custom_media()] }
+					postcss: {
+						plugins: [custom_media()]
+					}
 				})
 			}),
 			inject_ejs(),
