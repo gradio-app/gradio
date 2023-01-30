@@ -206,6 +206,9 @@
 			lines = _lines;
 		}
 
+		if (lines.length == 0) {
+			dispatch("clear");
+		}
 		trigger_on_change();
 	}
 
