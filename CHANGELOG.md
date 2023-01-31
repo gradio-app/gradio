@@ -1,10 +1,20 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### iOS image rotation fixed 🔄
+
+Previously photos uploaded via iOS would be rotated after processing. This has been fixed by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3091)
+
+#### Before
+![image](https://user-images.githubusercontent.com/41651716/215846507-a36e9d05-1ac2-4867-8ab3-ce045a9415d9.png)
+
+#### After
+![image](https://user-images.githubusercontent.com/41651716/215846554-e41773ed-70f0-491a-9952-6a18babf91ef.png)
+
 
 ## Bug Fixes:
-* Fixed image rotation bug on iOS by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3091)
+No changes to highlight.
 
 ## Documentation Changes:
 No changes to highlight.
