@@ -189,6 +189,10 @@ def colab_check() -> bool:
     return is_colab
 
 
+def kaggle_check() -> bool:
+    return bool(os.environ.get('KAGGLE_KERNEL_RUN_TYPE') or os.environ.get('GFOOTBALL_DATA_DIR'))
+
+
 def ipython_check() -> bool:
     """
     Check if interface is launching from iPython (not colab)
