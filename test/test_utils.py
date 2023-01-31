@@ -29,6 +29,7 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
+    kaggle_check,
     launch_analytics,
     readme_to_html,
     sanitize_list_for_csv,
@@ -102,6 +103,31 @@ class TestUtils:
 
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+
+    def test_kaggle_check_false(self):
+        assert not kaggle_check()
+
+    def test_kaggle_check_true_when_run_type_set(self):
+        with mock.patch.dict(
+            os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_true_when_both_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
+            clear=True,
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_false_when_neither_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
+            clear=True,
+        ):
+            assert not kaggle_check()
 
 
 class TestIPAddress:
