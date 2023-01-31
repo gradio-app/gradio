@@ -12,6 +12,13 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 #### After
 ![image](https://user-images.githubusercontent.com/41651716/215846554-e41773ed-70f0-491a-9952-6a18babf91ef.png)
 
+### Run on Kaggle kernels 🧪
+
+A share link will automatically be created when running on Kaggle kernels (notebooks) so that
+the front-end is properly displayed. 
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3101](https://github.com/gradio-app/gradio/pull/3101)
 
 ## Bug Fixes:
 - Fix change event listener for JSON, HighlightedText, Chatbot by [@aliabid94](https://github.com/aliabid94) in [PR 3095](https://github.com/gradio-app/gradio/pull/3095)
