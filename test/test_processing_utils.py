@@ -73,6 +73,14 @@ class TestImagePreprocessing:
 
         assert decoded_image.info == input_img.info
 
+    @patch("PIL.Image.Image.getexif", return_value={274: 3})
+    @patch("PIL.ImageOps.exif_transpose")
+    def test_base64_to_image_does_rotation(self, mock_rotate, mock_exif):
+        input_img = Image.open("gradio/test_data/test_image.png")
+        base64 = processing_utils.encode_pil_to_base64(input_img)
+        processing_utils.decode_base64_to_image(base64)
+        mock_rotate.assert_called_once()
+
     def test_resize_and_crop(self):
         img = Image.open("gradio/test_data/test_image.png")
         new_img = processing_utils.resize_and_crop(img, (20, 20))

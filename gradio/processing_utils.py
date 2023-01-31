@@ -52,7 +52,12 @@ def to_binary(x: str | Dict) -> bytes:
 def decode_base64_to_image(encoding: str) -> Image.Image:
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
-    return Image.open(BytesIO(base64.b64decode(image_encoded)))
+    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
+    exif = img.getexif()
+    # 274 is the code for image rotation and 1 means "correct orientation"
+    if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+        img = ImageOps.exif_transpose(img)
+    return img
 
 
 def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
