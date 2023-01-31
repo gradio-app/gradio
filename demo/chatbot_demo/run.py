@@ -2,30 +2,11 @@ import gradio as gr
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-<<<<<<< HEAD
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
-=======
-def chat(message, history):
-    history = history or []
-    message = message.lower()
-    if message.startswith("how many"):
-        response = str(random.randint(1, 10))
-    elif message.startswith("how"):
-        response = random.choice(["Great", "Good", "Okay", "Bad"])
-    elif message.startswith("where"):
-        response = random.choice(["Here", "There", "Somewhere"])
-    else:
-        response = "I don't know"
-    history.append((message, response))
-    return history, history
->>>>>>> main
-
 
 def predict(input, history=[]):
     # tokenize the new input sentence
-    print(input)
-    print(tokenizer.eos_token)
     new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
 
     # append the new user input tokens to the chat history
@@ -42,7 +23,7 @@ def predict(input, history=[]):
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     state = gr.State([])
-    
+
     with gr.Row():
         txt = gr.Textbox(show_label=False, placeholder="Enter text and press enter").style(container=False)
             
