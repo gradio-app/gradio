@@ -2,7 +2,7 @@ aiohttp
 altair>=4.2.0
 fastapi
 ffmpy
-markdown-it-py[linkify,plugins]
+markdown-it-py[linkify,plugins]>=2.0.0
 markupsafe
 matplotlib
 numpy
