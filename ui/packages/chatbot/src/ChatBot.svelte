@@ -112,9 +112,9 @@
 		border-style: solid;
 		border-radius: var(--chatbot-border-radius);
 		padding: var(--size-2) var(--size-3);
+		max-width: 75%;
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
-		max-width: 75%;
 		overflow-wrap: break-word;
 	}
 
