@@ -123,6 +123,9 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
+For authentication to work properly, third party cookies must be enabled in your browser.
+This is not the case by default for Safari, Chrome Incognito Mode.
+
 ## Accessing the Network Request Directly
 
 When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
