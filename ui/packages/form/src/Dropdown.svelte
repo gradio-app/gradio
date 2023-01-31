@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MultiSelect from "./MultiSelect.svelte";
+	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	export let label: string;
 	export let value: string | Array<string> | undefined = undefined;
@@ -7,31 +8,60 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let show_label: boolean;
+
+	const dispatch = createEventDispatcher<{
+		change: string | Array<string>;
+	}>();
+
+	$: if (!multiselect) {
+		dispatch("change", value);
+	}
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
+
 	{#if !multiselect}
-		<select
-			class="gr-box gr-input w-full disabled:cursor-not-allowed"
-			bind:value
-			on:change
-			{disabled}
-		>
+		<select bind:value {disabled}>
 			{#each choices as choice}
 				<option>{choice}</option>
 			{/each}
 		</select>
 	{:else}
-		<MultiSelect
-			bind:value
-			{choices}
-			{multiselect}
-			{label}
-			{show_label}
-			on:change
-			{disabled}
-		/>
+		<MultiSelect bind:value {choices} on:change {disabled} />
 	{/if}
 </label>
+
+<style>
+	select {
+		--ring-color: transparent;
+		display: block;
+		position: relative;
+		outline: none !important;
+		box-shadow: 0 0 0 var(--shadow-spread) var(--ring-color),
+			var(--shadow-inset);
+		border: 1px solid var(--input-border-color-base);
+		border-radius: var(--radius-lg);
+		background-color: var(--input-background-base);
+		padding: var(--size-2-5);
+		width: 100%;
+		color: var(--color-text-body);
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+
+	select:focus {
+		--ring-color: var(--color-focus-ring);
+		border-color: var(--input-border-color-focus);
+	}
+
+	select::placeholder {
+		color: var(--color-text-placeholder);
+	}
+
+	select[disabled] {
+		cursor: not-allowed;
+		box-shadow: none;
+	}
+</style>

@@ -22,9 +22,6 @@
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" | "sketch" = "editor";
 
-	export let drop_text: string = "Drop an image file";
-	export let or_text: string = "or";
-	export let upload_text: string = "click to upload";
 	export let streaming: boolean = false;
 	export let pending: boolean = false;
 	export let mirror_webcam: boolean;
@@ -106,7 +103,7 @@
 		container_height = element.getBoundingClientRect().height;
 	}
 
-	async function handle_mask_clear() {
+	async function handle_sketch_clear() {
 		sketch.clear();
 		await tick();
 		value = null;
@@ -158,8 +155,7 @@
 />
 
 <div
-	class:bg-gray-200={value}
-	class:h-60={source !== "webcam" ||
+	class:fixed-height={source !== "webcam" ||
 		tool === "sketch" ||
 		tool === "color-sketch"}
 	data-testid="image"
@@ -175,11 +171,7 @@
 			disable_click={!!value}
 		>
 			{#if (value === null && !static_image) || streaming}
-				<div class="flex flex-col">
-					{drop_text}
-					<span class="text-gray-300">- {or_text} -</span>
-					{upload_text}
-				</div>
+				<slot />
 			{:else if tool === "select"}
 				<Cropper image={value} on:crop={handle_save} />
 				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
@@ -191,7 +183,6 @@
 				/>
 
 				<img
-					class="w-full h-full object-contain"
 					src={value}
 					alt=""
 					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
@@ -200,11 +191,11 @@
 				{#key static_image}
 					<img
 						bind:this={value_img}
-						class="absolute w-full h-full object-contain"
+						class="absolute-img"
 						src={static_image || value?.image || value}
 						alt=""
 						on:load={handle_image_load}
-						class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+						class:webcam={source === "webcam" && mirror_webcam}
 					/>
 				{/key}
 				{#if img_width > 0}
@@ -223,7 +214,7 @@
 					/>
 					<ModifySketch
 						on:undo={() => sketch.undo()}
-						on:clear={handle_mask_clear}
+						on:clear={handle_sketch_clear}
 					/>
 					{#if tool === "color-sketch" || tool === "sketch"}
 						<SketchSettings
@@ -238,17 +229,16 @@
 				{/if}
 			{:else}
 				<img
-					class="w-full h-full object-contain"
 					src={value.image || value}
 					alt=""
-					class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+					class:webcam={source === "webcam" && mirror_webcam}
 				/>
 			{/if}
 		</Upload>
 	{:else if source === "canvas"}
 		<ModifySketch
 			on:undo={() => sketch.undo()}
-			on:clear={() => sketch.clear()}
+			on:clear={handle_sketch_clear}
 		/>
 		{#if tool === "color-sketch"}
 			<SketchSettings
@@ -265,6 +255,7 @@
 			bind:brush_color
 			bind:this={sketch}
 			on:change={handle_save}
+			on:clear={handle_sketch_clear}
 			{mode}
 			width={img_width || max_width}
 			height={img_height || max_height}
@@ -293,20 +284,19 @@
 		/>
 
 		<img
-			class="w-full h-full object-contain"
 			src={value}
 			alt=""
-			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+			class:webcam={source === "webcam" && mirror_webcam}
 		/>
 	{:else if (tool === "sketch" || tool === "color-sketch") && (value !== null || static_image)}
 		{#key static_image}
 			<img
 				bind:this={value_img}
-				class="absolute w-full h-full object-contain"
+				class="absolute-img"
 				src={static_image || value?.image || value}
 				alt=""
 				on:load={handle_image_load}
-				class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+				class:webcam={source === "webcam" && mirror_webcam}
 			/>
 		{/key}
 		{#if img_width > 0}
@@ -325,7 +315,7 @@
 			/>
 			<ModifySketch
 				on:undo={() => sketch.undo()}
-				on:clear={handle_mask_clear}
+				on:clear={handle_sketch_clear}
 			/>
 			{#if tool === "color-sketch" || tool === "sketch"}
 				<SketchSettings
@@ -340,10 +330,29 @@
 		{/if}
 	{:else}
 		<img
-			class="w-full h-full object-contain"
 			src={value.image || value}
 			alt=""
-			class:scale-x-[-1]={source === "webcam" && mirror_webcam}
+			class:webcam={source === "webcam" && mirror_webcam}
 		/>
 	{/if}
 </div>
+
+<style>
+	.fixed-height {
+		height: var(--size-60);
+	}
+
+	img {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: contain;
+	}
+
+	.absolute-img {
+		position: absolute;
+	}
+
+	.webcam {
+		transform: scaleX(-1);
+	}
+</style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { get_styles } from "@gradio/utils";
+	import { Button } from "@gradio/button";
 	import type { Styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "./types";
@@ -12,8 +12,6 @@
 	export let file_count: string;
 	export let file_types: Array<string> = ["file"];
 	export let include_file_metadata = true;
-
-	$: ({ classes } = get_styles(style, ["full_width"]));
 
 	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
@@ -76,7 +74,7 @@
 </script>
 
 <input
-	class="hidden-upload hidden"
+	class="hide"
 	accept={accept_file_types}
 	type="file"
 	bind:this={hidden_upload}
@@ -86,12 +84,19 @@
 	mozdirectory={file_count === "directory" || undefined}
 />
 
-<button
+<Button
+	{size}
+	variant="plain"
+	{elem_id}
+	{visible}
 	on:click={openFileUpload}
-	class:!hidden={!visible}
-	class="gr-button gr-button-{size}
-		{classes}"
-	id={elem_id}
+	{style}
 >
 	<slot />
-</button>
+</Button>
+
+<style>
+	.hide {
+		display: none;
+	}
+</style>

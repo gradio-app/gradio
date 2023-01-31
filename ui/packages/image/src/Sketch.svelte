@@ -206,6 +206,9 @@
 			lines = _lines;
 		}
 
+		if (lines.length == 0) {
+			dispatch("clear");
+		}
 		trigger_on_change();
 	}
 
@@ -529,24 +532,20 @@
 </script>
 
 <div
-	class="touch-none relative h-full w-full"
+	class="wrap"
 	bind:this={canvas_container}
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}
 >
 	{#if line_count === 0}
-		<div
-			transition:fade={{ duration: 50 }}
-			class="absolute inset-0 flex items-center justify-center z-40 pointer-events-none touch-none text-gray-400 md:text-xl"
-		>
+		<div transition:fade={{ duration: 50 }} class="start-prompt">
 			Start drawing
 		</div>
 	{/if}
 	{#each canvas_types as { name, zIndex }}
 		<canvas
 			key={name}
-			class="inset-0 m-auto hover:cursor-none"
-			style=" display:block;position:absolute; z-index:{zIndex};"
+			style=" z-index:{zIndex};"
 			bind:this={canvas[name]}
 			on:mousedown={name === "interface" ? handle_draw_start : undefined}
 			on:mousemove={name === "interface" ? handle_draw_move : undefined}
@@ -561,3 +560,41 @@
 		/>
 	{/each}
 </div>
+
+<style>
+	canvas {
+		display: block;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+		margin: auto;
+	}
+
+	canvas:hover {
+		cursor: none;
+	}
+
+	.wrap {
+		position: relative;
+		width: var(--size-full);
+		height: var(--size-full);
+		touch-action: none;
+	}
+
+	.start-prompt {
+		display: flex;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+		justify-content: center;
+		align-items: center;
+		z-index: var(--layer-4);
+		touch-action: none;
+		pointer-events: none;
+		color: var(--color-text-subdued);
+	}
+</style>

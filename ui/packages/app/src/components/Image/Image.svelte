@@ -6,6 +6,7 @@
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
+	import UploadText from "../UploadText.svelte";
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
@@ -40,6 +41,7 @@
 	padding={false}
 	{elem_id}
 	style={{ height: style.height, width: style.width }}
+	allow_overflow={false}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
@@ -64,10 +66,9 @@
 			{show_label}
 			{pending}
 			{streaming}
-			drop_text={$_("interface.drop_image")}
-			or_text={$_("or")}
-			upload_text={$_("interface.click_to_upload")}
 			{mirror_webcam}
-		/>
+		>
+			<UploadText type="image" />
+		</Image>
 	{/if}
 </Block>

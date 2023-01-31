@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import urllib.parse
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict
@@ -23,6 +24,7 @@ class Serializable(ABC):
         x: Any,
         save_dir: str | Path | None = None,
         encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ):
         """
         Convert data from serialized format for a browser to human-readable format.
@@ -48,6 +50,7 @@ class SimpleSerializable(Serializable):
         x: Any,
         save_dir: str | Path | None = None,
         encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ):
         """
         Convert data from serialized format to human-readable format. For SimpleSerializable components, this is a no-op.
@@ -55,6 +58,7 @@ class SimpleSerializable(Serializable):
             x: Input data to deserialize
             save_dir: Ignored
             encryption_key: Ignored
+            root_url: Ignored
         """
         return x
 
@@ -76,8 +80,10 @@ class ImgSerializable(Serializable):
         """
         if x is None or x == "":
             return None
+        is_url = utils.validate_url(x)
+        path = x if is_url else Path(load_dir) / x
         return processing_utils.encode_url_or_file_to_base64(
-            Path(load_dir) / x, encryption_key=encryption_key
+            path, encryption_key=encryption_key
         )
 
     def deserialize(
@@ -85,6 +91,7 @@ class ImgSerializable(Serializable):
         x: str | None,
         save_dir: str | Path | None = None,
         encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -93,6 +100,7 @@ class ImgSerializable(Serializable):
             x: Base64 representation of image to deserialize into a string filepath
             save_dir: Path to directory to save the deserialized image to
             encryption_key: Used to decrypt the file
+            root_url: Ignored
         """
         if x is None or x == "":
             return None
@@ -119,7 +127,7 @@ class FileSerializable(Serializable):
         """
         if x is None or x == "":
             return None
-        filename = Path(load_dir) / x
+        filename = str(Path(load_dir) / x)
         return {
             "name": filename,
             "data": processing_utils.encode_url_or_file_to_base64(
@@ -134,6 +142,7 @@ class FileSerializable(Serializable):
         x: str | Dict | None,
         save_dir: Path | str | None = None,
         encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> str | None:
         """
         Convert from serialized representation of a file (base64) to a human-friendly
@@ -142,6 +151,7 @@ class FileSerializable(Serializable):
             x: Base64 representation of file to deserialize into a string filepath
             save_dir: Path to directory to save the deserialized file to
             encryption_key: Used to decrypt the file
+            root_url: If this component is loaded from an external Space, this is the URL of the Space
         """
         if x is None:
             return None
@@ -153,6 +163,8 @@ class FileSerializable(Serializable):
             ).name
         elif isinstance(x, dict):
             if x.get("is_file", False):
+                if root_url is not None:
+                    x["name"] = urllib.parse.urljoin(root_url, "file=" + x["name"])
                 if utils.validate_url(x["name"]):
                     file_name = x["name"]
                 else:
@@ -194,6 +206,7 @@ class JSONSerializable(Serializable):
         x: str | Dict,
         save_dir: str | Path | None = None,
         encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> str | None:
         """
         Convert from serialized representation (json string) to a human-friendly
@@ -202,6 +215,7 @@ class JSONSerializable(Serializable):
             x: Json string
             save_dir: Path to save the deserialized json file to
             encryption_key: Ignored
+            root_url: Ignored
         """
         if x is None:
             return None

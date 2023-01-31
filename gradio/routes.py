@@ -13,7 +13,6 @@ import secrets
 import traceback
 from collections import defaultdict
 from copy import deepcopy
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
@@ -185,8 +184,14 @@ class App(FastAPI):
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
-                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-                response.set_cookie(key="access-token", value=token, httponly=True)
+                response = JSONResponse(content={"success": True})
+                response.set_cookie(
+                    key="access-token",
+                    value=token,
+                    httponly=True,
+                    samesite="none",
+                    secure=True,
+                )
                 return response
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
@@ -207,6 +212,7 @@ class App(FastAPI):
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
+                    "is_space": app.get_blocks().is_space,
                 }
 
             try:
@@ -255,14 +261,15 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
+        @app.head("/file={path:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path:path}", dependencies=[Depends(login_check)])
         async def file(path: str, request: fastapi.Request):
-            abs_path = str(Path(path).resolve())
+            abs_path = str(utils.abspath(path))
             blocks = app.get_blocks()
             if utils.validate_url(path):
                 return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            in_app_dir = Path(app.cwd).resolve() in Path(path).resolve().parents
-            created_by_app = str(Path(path).resolve()) in set().union(
+            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path).parents
+            created_by_app = str(utils.abspath(path)) in set().union(
                 *blocks.temp_file_sets
             )
             if in_app_dir or created_by_app:
@@ -288,8 +295,8 @@ class App(FastAPI):
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
-        def file_deprecated(path: str, request: fastapi.Request):
-            return file(path, request)
+        async def file_deprecated(path: str, request: fastapi.Request):
+            return await file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")
@@ -460,7 +467,7 @@ class App(FastAPI):
                 estimation = blocks._queue.get_estimation()
                 await blocks._queue.send_estimation(event, estimation, rank)
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(1)
                 if websocket.application_state == WebSocketState.DISCONNECTED:
                     return
 

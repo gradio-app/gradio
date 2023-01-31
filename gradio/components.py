@@ -1678,7 +1678,7 @@ class Image(
         )
 
     def as_example(self, input_data: str | None) -> str:
-        return "" if input_data is None else str(Path(input_data).resolve())
+        return "" if input_data is None else str(utils.abspath(input_data))
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -2152,7 +2152,7 @@ class Audio(
             sample_rate, data = y
             file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
             processing_utils.audio_to_file(sample_rate, data, file.name)
-            file_path = str(Path(file.name).resolve())
+            file_path = str(utils.abspath(file.name))
             self.temp_files.add(file_path)
         else:
             file_path = self.make_temp_copy_if_needed(y)
@@ -2250,6 +2250,10 @@ class File(
         """
         self.file_count = file_count
         self.file_types = file_types
+        if file_types is not None and not isinstance(file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+            )
         valid_types = [
             "file",
             "binary",
@@ -2335,6 +2339,7 @@ class File(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(utils.abspath(file.name)))
                 return file
             elif (
                 self.type == "binary" or self.type == "bytes"
@@ -2838,6 +2843,9 @@ class Timeseries(Changeable, IOComponent, JSONSerializable):
             **kwargs,
         )
 
+    def as_example(self, input_data: str | None) -> str:
+        return Path(input_data).name if input_data else ""
+
 
 @document()
 class State(IOComponent, SimpleSerializable):
@@ -2978,6 +2986,10 @@ class UploadButton(
         """
         self.type = type
         self.file_count = file_count
+        if file_types is not None and not isinstance(file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+            )
         self.file_types = file_types
         self.label = label
         TempFileManager.__init__(self)
@@ -3039,6 +3051,7 @@ class UploadButton(
                         data, file_path=file_name
                     )
                     file.orig_name = file_name  # type: ignore
+                    self.temp_files.add(str(utils.abspath(file.name)))
                 return file
             elif self.type == "bytes":
                 if is_file:
@@ -3729,11 +3742,11 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
                 img, caption = img
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_array_to_file(img)
-                file_path = str(Path(file.name).resolve())
+                file_path = str(utils.abspath(file.name))
                 self.temp_files.add(file_path)
             elif isinstance(img, _Image.Image):
                 file = processing_utils.save_pil_to_file(img)
-                file_path = str(Path(file.name).resolve())
+                file_path = str(utils.abspath(file.name))
                 self.temp_files.add(file_path)
             elif isinstance(img, str):
                 if utils.validate_url(img):
@@ -3775,7 +3788,11 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
         return Component.style(self, container=container, **kwargs)
 
     def deserialize(
-        self, x: Any, save_dir: str = "", encryption_key: bytes | None = None
+        self,
+        x: Any,
+        save_dir: str = "",
+        encryption_key: bytes | None = None,
+        root_url: str | None = None,
     ) -> None | str:
         if x is None:
             return None
@@ -3787,12 +3804,14 @@ class Gallery(IOComponent, TempFileManager, FileSerializable):
                 img_data, caption = img_data
             else:
                 caption = None
-            name = FileSerializable.deserialize(self, img_data, gallery_path)
+            name = FileSerializable.deserialize(
+                self, img_data, gallery_path, root_url=root_url
+            )
             captions[name] = caption
             captions_file = gallery_path / "captions.json"
             with captions_file.open("w") as captions_json:
                 json.dump(captions, captions_json)
-        return str(gallery_path.resolve())
+        return str(utils.abspath(gallery_path))
 
     def serialize(self, x: Any, load_dir: str = "", called_directly: bool = False):
         files = []
@@ -3905,7 +3924,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.render(message), self.md.render(response))
+            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):
@@ -3960,7 +3979,7 @@ class Model3D(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
         """
-        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
+        self.clear_color = clear_color or [0, 0, 0, 0]
         TempFileManager.__init__(self)
         IOComponent.__init__(
             self,

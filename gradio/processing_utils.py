@@ -13,7 +13,7 @@ import urllib.request
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 import numpy as np
 import requests
@@ -52,7 +52,12 @@ def to_binary(x: str | Dict) -> bytes:
 def decode_base64_to_image(encoding: str) -> Image.Image:
     content = encoding.split(";")[1]
     image_encoded = content.split(",")[1]
-    return Image.open(BytesIO(base64.b64decode(image_encoded)))
+    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
+    exif = img.getexif()
+    # 274 is the code for image rotation and 1 means "correct orientation"
+    if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
+        img = ImageOps.exif_transpose(img)
+    return img
 
 
 def encode_url_or_file_to_base64(path: str | Path, encryption_key: bytes | None = None):
@@ -327,7 +332,7 @@ class TempFileManager:
 
     def __init__(self) -> None:
         # Set stores all the temporary files created by this component.
-        self.temp_files = set()
+        self.temp_files: Set[str] = set()
 
     def hash_file(self, file_path: str, chunk_num_blocks: int = 128) -> str:
         sha1 = hashlib.sha1()
@@ -378,7 +383,7 @@ class TempFileManager:
 
         temp_file_path = self.get_temp_file_path(file_path)
         f.name = str(temp_dir / temp_file_path)
-        full_temp_file_path = str(Path(f.name).resolve())
+        full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
             shutil.copy2(file_path, full_temp_file_path)
@@ -394,7 +399,7 @@ class TempFileManager:
 
         temp_file_path = self.get_temp_url_path(url)
         f.name = str(temp_dir / temp_file_path)
-        full_temp_file_path = str(Path(f.name).resolve())
+        full_temp_file_path = str(utils.abspath(f.name))
 
         if not Path(full_temp_file_path).exists():
             with requests.get(url, stream=True) as r:

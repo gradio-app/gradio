@@ -17,7 +17,7 @@ type PartialRecord<K extends keyof any, T> = {
 };
 
 type ProcessedStyles = PartialRecord<keyof Styles, string> & {
-	classes: string;
+	styles: string;
 };
 
 const get_style = <T extends keyof Styles>(styles: Styles, key: T) => {
@@ -36,7 +36,7 @@ export function get_styles(
 		return acc;
 	}, {} as ProcessedStyles);
 
-	processed_styles.classes = ` ${Object.values(processed_styles)
+	processed_styles.styles = ` ${Object.values(processed_styles)
 		.join(" ")
 		.replace(/\s+/g, " ")
 		.trim()} `;
@@ -52,12 +52,12 @@ const style_handlers: StyleHandlers = {
 	container(container_visible) {
 		return container_visible
 			? ""
-			: `!p-0 !m-0 !border-0 !shadow-none !overflow-visible !bg-transparent`;
+			: `padding: 0; margin: 0; border-width: 0; box-shadow: none; overflow: visible; background: transparent;`;
 	},
 	label_container(visible) {
 		return visible
 			? ""
-			: `!border-0 !shadow-none !overflow-visible !bg-transparent`;
+			: `border-width: 0; box-shadow: none; overflow: visible; background: transparent;`;
 	},
 	grid(grid) {
 		let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
@@ -71,19 +71,21 @@ const style_handlers: StyleHandlers = {
 			.join(" ");
 	},
 	height(height) {
-		return height === "auto" ? "auto" : "";
+		return height === "auto" ? "height: auto;" : "";
 	},
 	full_width(full_width) {
-		return full_width ? "w-full grow" : "grow-0";
+		return full_width
+			? "width: var(--size-full); flex-grow: 1;"
+			: "flex-grow: 0;";
 	},
 	equal_height(equal_height) {
-		return equal_height ? "items-stretch" : "unequal-height";
+		return equal_height ? "align-items: stretch;" : "align-items: flex-start;";
 	},
 	visible(visible) {
-		return visible ? "" : "!hidden";
+		return visible ? "" : "display:hidden;";
 	},
 	item_container(visible) {
-		return visible ? "" : "!border-none";
+		return visible ? "" : "border-width:0;";
 	}
 } as const;
 

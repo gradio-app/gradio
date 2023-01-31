@@ -18,12 +18,21 @@
 
 	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
-	let gallery = headers.length === 1;
+	$: gallery = headers.length < 2;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: Array<Array<any>>;
 	let page_count: number;
 	let visible_pages: Array<number> = [];
+
+	let current_hover = -1;
+
+	function handle_mouseenter(i: number) {
+		current_hover = i;
+	}
+	function handle_mouseleave() {
+		current_hover = -1;
+	}
 
 	$: {
 		if (paginate) {
@@ -61,60 +70,57 @@
 	);
 </script>
 
-<div
-	id={elem_id}
-	class="mt-4 inline-block max-w-full text-gray-700 w-full"
-	class:!hidden={!visible}
->
-	<div class="text-xs mb-2 flex items-center text-gray-500">
+<div id={elem_id} class="wrap" class:hide={!visible}>
+	<div class="label">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			xmlns:xlink="http://www.w3.org/1999/xlink"
 			aria-hidden="true"
 			role="img"
-			class="mr-1"
 			width="1em"
 			height="1em"
 			preserveAspectRatio="xMidYMid meet"
 			viewBox="0 0 32 32"
-			><path
+		>
+			<path
 				fill="currentColor"
 				d="M10 6h18v2H10zm0 18h18v2H10zm0-9h18v2H10zm-6 0h2v2H4zm0-9h2v2H4zm0 18h2v2H4z"
-			/></svg
-		>
+			/>
+		</svg>
 		{label}
 	</div>
 	{#if gallery}
-		<div class="gr-samples-gallery">
+		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				<!-- {@const x = component_map[]} -->
-
 				<button
-					class="group rounded-lg"
+					class="button"
 					on:click={() => {
 						value = i + page * samples_per_page;
 						dispatch("click", value);
 					}}
+					on:mouseenter={() => handle_mouseenter(i)}
+					on:mouseleave={() => handle_mouseleave()}
 				>
 					{#if Object.keys(component_map).includes(components[0]) && component_map[components[0]]}
 						<svelte:component
 							this={component_meta[0][0].component}
 							value={sample_row[0]}
 							{samples_dir}
+							type="gallery"
+							selected={current_hover === i}
+							index={i}
 						/>
 					{/if}
 				</button>
 			{/each}
 		</div>
 	{:else}
-		<div class="overflow-x-auto border table-auto rounded-lg w-full text-sm">
-			<table class="gr-samples-table">
+		<div class="table-wrap">
+			<table>
 				<thead>
-					<tr
-						class="border-b dark:border-gray-800 divide-x dark:divide-gray-800 shadow-sm"
-					>
+					<tr class="tr-head">
 						{#each headers as header}
-							<th class="p-2 whitespace-nowrap min-w-lg text-left">
+							<th>
 								{header}
 							</th>
 						{/each}
@@ -123,16 +129,25 @@
 				<tbody>
 					{#each component_meta as sample_row, i}
 						<tr
-							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
+							class="tr-body"
 							on:click={() => {
 								value = i + page * samples_per_page;
 								dispatch("click", value);
 							}}
+							on:mouseenter={() => handle_mouseenter(i)}
+							on:mouseleave={() => handle_mouseleave()}
 						>
 							{#each sample_row as { value, component }, j}
 								{#if components[j] !== undefined && component_map[components[j]] !== undefined}
-									<td class="p-2">
-										<svelte:component this={component} {value} {samples_dir} />
+									<td>
+										<svelte:component
+											this={component}
+											{value}
+											{samples_dir}
+											type="table"
+											selected={current_hover === i}
+											index={i}
+										/>
 									</td>
 								{/if}
 							{/each}
@@ -144,14 +159,14 @@
 	{/if}
 </div>
 {#if paginate}
-	<div class="flex gap-2 items-center justify-center text-sm">
+	<div class="paginate">
 		Pages:
 		{#each visible_pages as visible_page}
 			{#if visible_page === -1}
 				<div>...</div>
 			{:else}
 				<button
-					class:font-bold={page === visible_page}
+					class:current-page={page === visible_page}
 					on:click={() => (page = visible_page)}
 				>
 					{visible_page + 1}
@@ -160,3 +175,121 @@
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.wrap {
+		display: inline-block;
+		margin-top: var(--size-4);
+		width: var(--size-full);
+		max-width: var(--size-full);
+		color: var(--color-text-body);
+	}
+
+	.hide {
+		display: none;
+	}
+
+	.label {
+		display: flex;
+		align-items: center;
+		margin-bottom: var(--size-2);
+		color: var(--color-text-label);
+		font-size: var(--scale-000);
+		line-height: var(--line-sm);
+	}
+
+	svg {
+		margin-right: var(--size-1);
+	}
+
+	.gallery {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--size-2);
+	}
+
+	.button {
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		overflow: hidden;
+	}
+
+	.button:hover {
+		border-color: var(--dataset-dataframe-border-hover);
+		background: var(--dataset-gallery-background-hover);
+	}
+
+	.table-wrap {
+		border: 1px solid var(--color-border-primary);
+		border-radius: var(--radius-lg);
+		width: var(--size-full);
+		table-layout: auto;
+		overflow-x: auto;
+		font-size: var(--scale-00);
+		line-height: var(--line-sm);
+	}
+	table {
+		width: var(--size-full);
+	}
+
+	.tr-head {
+		box-shadow: var(--shadow-drop-lg);
+		border-bottom: 1px solid var(--color-border-primary);
+	}
+
+	.tr-head > * + * {
+		border-right-width: 0px;
+		border-left-width: 1px;
+		border-color: var(--dataset-table-border-base);
+	}
+
+	th {
+		padding: var(--size-2);
+		white-space: nowrap;
+	}
+
+	.tr-body {
+		cursor: pointer;
+		border-bottom: 1px solid var(--dataset-table-border-base);
+		background: var(--table-even-background);
+	}
+
+	.tr-body:last-child {
+		border: none;
+	}
+
+	.tr-body:nth-child(odd) {
+		background: var(--table-odd-background);
+	}
+
+	.tr-body:hover {
+		background: var(--dataset-table-background-hover);
+	}
+
+	.tr-body > * + * {
+		border-right-width: 0px;
+		border-left-width: 1px;
+		border-color: var(--dataset-table-border-base);
+	}
+
+	.tr-body:hover > * + * {
+		border-color: var(--dataset-table-border-hover);
+	}
+
+	td {
+		padding: var(--size-2);
+	}
+
+	.paginate {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: var(--size-2);
+		font-size: var(--scale-000);
+	}
+
+	button.current-page {
+		font-weight: var(--weight-bold);
+	}
+</style>

@@ -83,6 +83,7 @@ def fn(
         df2,  # Timeseries
     )
 
+
 demo = gr.Interface(
     fn,
     inputs=[
@@ -92,9 +93,7 @@ demo = gr.Interface(
         gr.Slider(10, 20, value=15, label="Slider: 10 - 20"),
         gr.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
         gr.Checkbox(label="Checkbox"),
-        gr.CheckboxGroup(
-            label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]
-        ),
+        gr.CheckboxGroup(label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]),
         gr.Radio(label="Radio", choices=CHOICES, value=CHOICES[2]),
         gr.Dropdown(label="Dropdown", choices=CHOICES),
         gr.Image(label="Image"),
@@ -144,7 +143,7 @@ demo = gr.Interface(
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/cantina.wav"),
             os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
-            [[1, 2, 3], [3, 4, 5]],
+            [[1, 2, 3, 4], [4, 5, 6, 7], [8, 9, 1, 2], [3, 4, 5, 6]],
             os.path.join(os.path.dirname(__file__), "files/time.csv"),
         ]
     ]
@@ -153,7 +152,7 @@ demo = gr.Interface(
     title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
-    cache_examples=True
+    cache_examples=True,
 )
 
 if __name__ == "__main__":
