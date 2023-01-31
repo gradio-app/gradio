@@ -116,14 +116,6 @@ export function handle_ce_css(): Plugin {
 				source: ""
 			};
 
-			console.log("===");
-			console.log(
-				!config.dir ||
-					!bundle["index.html"] ||
-					bundle["index.html"].type !== "asset"
-			);
-			console.log("===");
-
 			if (
 				!config.dir ||
 				!bundle["index.html"] ||
