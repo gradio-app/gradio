@@ -12,12 +12,21 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 #### After
 ![image](https://user-images.githubusercontent.com/41651716/215846554-e41773ed-70f0-491a-9952-6a18babf91ef.png)
 
+### Run on Kaggle kernels 🧪
+
+A share link will automatically be created when running on Kaggle kernels (notebooks) so that
+the front-end is properly displayed. 
+
+![image](https://user-images.githubusercontent.com/41651716/216104254-2cf55599-449c-436c-b57e-40f6a83f9eee.png)
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3101](https://github.com/gradio-app/gradio/pull/3101)
 
 ## Bug Fixes:
 * Fix bug where examples were not rendered correctly for demos created with Blocks api that had multiple input compinents by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3090](https://github.com/gradio-app/gradio/pull/3090)  
+- Fix change event listener for JSON, HighlightedText, Chatbot by [@aliabid94](https://github.com/aliabid94) in [PR 3095](https://github.com/gradio-app/gradio/pull/3095)
 
 ## Documentation Changes:
-No changes to highlight.
+- Fix a broken link in the Quick Start guide, by [@cakiki](https://github.com/cakiki) in [PR 3109](https://github.com/gradio-app/gradio/pull/3109)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
