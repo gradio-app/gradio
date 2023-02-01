@@ -3,6 +3,7 @@ Defines helper methods useful for setting up ports, launching servers, and
 creating tunnels.
 """
 from __future__ import annotations
+import json
 
 import os
 import socket
@@ -13,6 +14,7 @@ from typing import TYPE_CHECKING, Tuple
 
 import requests
 import uvicorn
+from uvicorn.supervisors import ChangeReload
 
 from gradio.routes import App
 from gradio.tunneling import Tunnel
@@ -37,6 +39,10 @@ class Server(uvicorn.Server):
         self.thread.start()
         while not self.started:
             time.sleep(1e-3)
+    
+    def run_reload_in_thread(self):
+        sock = self.config.bind_socket()
+        ChangeReload(self.config, target=self.run, sockets=[sock]).run()
 
     def close(self):
         self.should_exit = True
@@ -141,7 +147,18 @@ def start_server(
 
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
-    config = uvicorn.Config(
+    
+    # log_level = 'warning'
+    # reload_config = {}
+    start = True
+    if os.getenv("GRADIO_RELOAD_CONFIG"):
+        start = False
+
+    #     reload_config = json.loads(os.getenv("GRADIO_RELOAD_CONFIG"))
+    #     log_level = 'debug'
+    #     start = False
+
+    config = dict(
         app=app,
         port=port,
         host=server_name,
@@ -151,8 +168,9 @@ def start_server(
         ssl_keyfile_password=ssl_keyfile_password,
         ws_max_size=1024 * 1024 * 1024,  # Setting max websocket size to be 1 GB
     )
-    server = Server(config=config)
-    server.run_in_thread()
+    server = Server(config=uvicorn.Config(**config))
+    if start:
+        server.run_in_thread()
     return server_name, port, path_to_local_server, app, server
 
 
