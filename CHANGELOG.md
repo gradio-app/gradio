@@ -14,7 +14,7 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 
 
 ## Bug Fixes:
-No changes to highlight.
+- Fix change event listener for JSON, HighlightedText, Chatbot by [@aliabid94](https://github.com/aliabid94) in [PR 3095](https://github.com/gradio-app/gradio/pull/3095)
 
 ## Documentation Changes:
 No changes to highlight.

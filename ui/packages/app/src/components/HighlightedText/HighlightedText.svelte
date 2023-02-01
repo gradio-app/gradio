@@ -10,6 +10,7 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: Array<[string, string | number]>;
+	let old_value: Array<[string, string | number]>;
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string;
@@ -23,7 +24,12 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	$: value, dispatch("change");
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
