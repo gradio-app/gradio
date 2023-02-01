@@ -4,6 +4,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string, string]> | null;
+	let old_value: Array<[string, string]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
 
@@ -29,7 +30,12 @@
 		}
 	});
 
-	$: value && dispatch("change");
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 
 	$: _colors = get_colors();
 
