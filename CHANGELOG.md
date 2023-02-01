@@ -14,7 +14,8 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 
 
 ## Bug Fixes:
-No changes to highlight.
+- Fixed `Gallery.style(grid=...)` by by [@aliabd](https://github.com/aliabd) in [PR ](https://github.com/gradio-app/gradio/pull/)
+
 
 ## Documentation Changes:
 No changes to highlight.
