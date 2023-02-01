@@ -296,27 +296,27 @@
 		grid-template-columns: var(--grid-cols);
 		gap: var(--size-2);
 	}
-	@media (min-width: 640px) {
+	@media (--screen-sm) {
 		.grid-container {
 			grid-template-columns: var(--sm-grid-cols);
 		}
 	}
-	@media (min-width: 768px) {
+	@media (--screen-md) {
 		.grid-container {
 			grid-template-columns: var(--md-grid-cols);
 		}
 	}
-	@media (min-width: 1024px) {
+	@media (--screen-lg) {
 		.grid-container {
 			grid-template-columns: var(--lg-grid-cols);
 		}
 	}
-	@media (min-width: 1280px) {
+	@media (--screen-xl) {
 		.grid-container {
 			grid-template-columns: var(--xl-grid-cols);
 		}
 	}
-	@media (min-width: 1536px) {
+	@media (--screen-xxl) {
 		.grid-container {
 			grid-template-columns: var(--2xl-grid-cols);
 		}
