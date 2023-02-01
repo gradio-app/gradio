@@ -17,6 +17,7 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 A share link will automatically be created when running on Kaggle kernels (notebooks) so that
 the front-end is properly displayed. 
 
+![image](https://user-images.githubusercontent.com/41651716/216104254-2cf55599-449c-436c-b57e-40f6a83f9eee.png)
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3101](https://github.com/gradio-app/gradio/pull/3101)
 
