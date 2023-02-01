@@ -77,6 +77,8 @@ fetch("https://pypi.org/pypi/gradio/json"
 });
 </script>
 
+_Note: While Gradio's CSS will never impact the embedding page, the embedding page can affect the style of the embedded Gradio app. Make sure that any CSS in the parent page isn't so general that it could also apply to the embedded Gradio app and cause the styling to break. Element selectors such as `header { ... }` and `footer { ... }` will be the most likely to cause issues._
+
 ### Embedding with IFrames
 
 To embed with IFrames instead, simply add this element:
@@ -120,6 +122,9 @@ def same_auth(username, password):
     return username == password
 demo.launch(auth=same_auth)
 ```
+
+For authentication to work properly, third party cookies must be enabled in your browser.
+This is not the case by default for Safari, Chrome Incognito Mode.
 
 ## Accessing the Network Request Directly
 

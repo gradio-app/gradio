@@ -496,7 +496,6 @@ class Blocks(BlockContext):
         self.height = None
         self.api_open = True
 
-        self.ip_address = ""
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
@@ -515,10 +514,8 @@ class Blocks(BlockContext):
         self.progress_tracking = None
 
         if self.analytics_enabled:
-            self.ip_address = utils.get_local_ip_address()
             data = {
                 "mode": self.mode,
-                "ip_address": self.ip_address,
                 "custom_css": self.css is not None,
                 "theme": self.theme,
                 "version": (pkgutil.get_data(__name__, "version.txt") or b"")
@@ -1386,6 +1383,7 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
+            self.is_kaggle = utils.kaggle_check()
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
@@ -1408,7 +1406,7 @@ class Blocks(BlockContext):
             share
             if share is not None
             else True
-            if self.is_colab and self.enable_queue
+            if (self.is_colab and self.enable_queue) or self.is_kaggle
             else False
         )
 
@@ -1451,7 +1449,7 @@ class Blocks(BlockContext):
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
-                    utils.error_analytics(self.ip_address, "Not able to set up tunnel")
+                    utils.error_analytics("Not able to set up tunnel")
                 self.share_url = None
                 self.share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
@@ -1534,7 +1532,6 @@ class Blocks(BlockContext):
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
                 "share_url": self.share_url,
-                "ip_address": self.ip_address,
                 "enable_queue": self.enable_queue,
                 "show_tips": self.show_tips,
                 "server_name": server_name,

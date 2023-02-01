@@ -12,6 +12,7 @@ window.__gradio_loader__ = [];
 
 declare let BACKEND_URL: string;
 declare let BUILD_MODE: string;
+declare let GRADIO_VERSION: string;
 
 const ENTRY_CSS = "__ENTRY_CSS__";
 const FONTS = "__FONTS_CSS__";
@@ -59,7 +60,7 @@ async function get_source_config(source: string): Promise<Config> {
 }
 
 async function get_config(source: string | null) {
-	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
+	if (BUILD_MODE === "dev" || location.origin === "http://localhost:9876") {
 		let config = await fetch(BACKEND_URL + "config");
 		const result = await config.json();
 		return result;
@@ -150,6 +151,7 @@ function mount_app(
 			props: {
 				auth_message: config.auth_message,
 				root: config.root,
+				is_space: config.is_space,
 				id,
 				app_mode
 			}
@@ -183,10 +185,10 @@ function mount_app(
 
 function create_custom_element() {
 	//@ts-ignore
-	FONTS.map((f) => mount_css(f, document.head));
+	typeof FONTS !== "string" && FONTS.map((f) => mount_css(f, document.head));
 
 	class GradioApp extends HTMLElement {
-		root: ShadowRoot;
+		root: HTMLElement;
 		wrapper: HTMLDivElement;
 		_id: number;
 		theme: string;
@@ -195,15 +197,11 @@ function create_custom_element() {
 			super();
 
 			this._id = ++id;
-
-			this.root = this.attachShadow({ mode: "open" });
-
-			window.scoped_css_attach = (link) => {
-				this.root.append(link);
-			};
+			this.root = this;
 
 			this.wrapper = document.createElement("div");
 			this.wrapper.classList.add("gradio-container");
+			this.wrapper.classList.add(`gradio-container-${GRADIO_VERSION}`);
 
 			this.wrapper.style.position = "relative";
 			this.wrapper.style.width = "100%";
@@ -226,7 +224,7 @@ function create_custom_element() {
 		}
 
 		async connectedCallback() {
-			await mount_css(ENTRY_CSS, this.root);
+			await mount_css(ENTRY_CSS, document.head);
 			this.root.append(this.wrapper);
 
 			const event = new CustomEvent("domchange", {
@@ -243,6 +241,7 @@ function create_custom_element() {
 
 			const host = this.getAttribute("host");
 			const space = this.getAttribute("space");
+			const src = this.getAttribute("src");
 
 			const source = host
 				? `https://${host}`
@@ -252,7 +251,10 @@ function create_custom_element() {
 							await fetch(`https://huggingface.co/api/spaces/${space}/host`)
 						).json()
 				  ).host
-				: this.getAttribute("src");
+				: src;
+
+			const is_embed =
+				!!space || (source && new URL(source).host.endsWith("hf.space"));
 
 			const control_page_title = this.getAttribute("control_page_title");
 			const initial_height = this.getAttribute("initial_height");
@@ -277,34 +279,13 @@ function create_custom_element() {
 					this.wrapper,
 					this._id,
 					_autoscroll,
-					!!space
+					is_embed
 				);
 			}
 		}
 	}
 
 	customElements.define("gradio-app", GradioApp);
-}
-
-async function unscoped_mount() {
-	const target = document.querySelector("#root")! as HTMLDivElement;
-	target.classList.add("gradio-container");
-	if (window.__gradio_mode__ !== "website") {
-		handle_darkmode(target);
-	}
-
-	window.__gradio_loader__[0] = new Loader({
-		target: target,
-		props: {
-			status: "pending",
-			timer: false,
-			queue_position: null,
-			queue_size: null
-		}
-	});
-
-	const config = await handle_config(target, null);
-	mount_app({ ...config, control_page_title: true }, false, target, 0);
 }
 
 function handle_darkmode(target: HTMLDivElement): string {
@@ -357,11 +338,4 @@ function darkmode(target: HTMLDivElement): string {
 	return "dark";
 }
 
-if (BUILD_MODE === "dev") {
-	window.scoped_css_attach = (link) => {
-		document.head.append(link);
-	};
-	unscoped_mount();
-} else {
-	create_custom_element();
-}
+create_custom_element();
