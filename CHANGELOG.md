@@ -14,7 +14,7 @@ Previously photos uploaded via iOS would be rotated after processing. This has b
 
 
 ## Bug Fixes:
-No changes to highlight.
+* Fixes URL resolution on Windows by [@abidlabs](https://github.com/abidlabs) in [PR 3108](https://github.com/gradio-app/gradio/pull/3108) 
 
 ## Documentation Changes:
 No changes to highlight.
