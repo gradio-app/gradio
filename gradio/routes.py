@@ -266,7 +266,9 @@ class App(FastAPI):
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if utils.validate_url(path_or_url):
-                return RedirectResponse(url=path_or_url, status_code=status.HTTP_302_FOUND)
+                return RedirectResponse(
+                    url=path_or_url, status_code=status.HTTP_302_FOUND
+                )
             abs_path = str(utils.abspath(path_or_url))
             in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
             created_by_app = str(utils.abspath(path_or_url)) in set().union(
