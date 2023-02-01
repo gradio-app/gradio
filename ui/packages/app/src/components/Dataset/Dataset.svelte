@@ -18,7 +18,7 @@
 
 	let samples_dir: string = (root_url ?? root) + "file=";
 	let page = 0;
-	$: gallery = headers.length < 2;
+	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
 
 	let selected_samples: Array<Array<any>>;
