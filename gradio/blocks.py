@@ -1394,6 +1394,7 @@ class Blocks(BlockContext):
 
             # Cannot run async functions in background other than app's scope.
             # Workaround by triggering the app endpoint
+            
             requests.get(f"{self.local_url}startup-events")
 
             if self.enable_queue:

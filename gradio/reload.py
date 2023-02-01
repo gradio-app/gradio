@@ -8,7 +8,10 @@ $ gradio app.py my_demo, to use variable names other than "demo"
 import inspect
 import os
 import sys
+import json
 from pathlib import Path
+
+import uvicorn
 
 import gradio
 from gradio import networking, utils
@@ -39,21 +42,27 @@ def run_in_reload_mode():
     print(
         f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
     )
-    command = f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning "
+
+    reload_dirs = []
     message = "Watching:"
 
     message_change_count = 0
     if str(gradio_folder).strip():
-        command += f'--reload-dir "{gradio_folder}" '
+        reload_dirs.append(str(gradio_folder))
         message += f" '{gradio_folder}'"
         message_change_count += 1
 
     abs_parent = abs_original_path.parent
     if str(abs_parent).strip():
-        command += f'--reload-dir "{abs_parent}"'
+        reload_dirs.append(str(abs_parent))
         if message_change_count == 1:
             message += ","
         message += f" '{abs_parent}'"
 
     print(message + "\n")
-    os.system(command)
+    config = {'reload_dirs': reload_dirs, 'reload': True, "app": f"{filename}:{demo_name}.app"}
+    os.system(f"GRADIO_RELOAD_CONFIG='{json.dumps(config)}' python {original_path}")
+    #breakpoint()
+    sys.path.append('/home/freddy/sources/scratch')
+    uvicorn.run(app=f"{filename}:{demo_name}.app", reload=True, reload_dirs=reload_dirs, log_level="debug",
+                port=port)
