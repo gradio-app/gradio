@@ -168,67 +168,28 @@
         </section>
 
 
-        <div class="fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-2 py-2 w-4/6 hidden -ml-4 inset-0 h-full overflow-y-auto mobile-nav" id="mobile-nav">
-          <button type="button" class="absolute z-10 top-4 right-4 w-4 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300" tabindex="0" onclick="document.getElementById('mobile-nav').classList.add('hidden');">
+        <div class="fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 w-5/6 hidden -ml-4 inset-0 h-full overflow-y-auto mobile-nav" id="mobile-nav">
+          <button type="button" class="absolute z-10 top-4 right-4 w-4 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4" tabindex="0" onclick="document.getElementById('mobile-nav').classList.add('hidden');">
             <svg viewBox="0 0 10 10" class="w-2.5 h-2.5 overflow-visible"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
           </button>
           <nav id="nav" class="lg:text-sm lg:leading-6 relative">
-            <a class="link px-4 mb-2 block" href="#building_demos">Building Demos</a>
-          <a class="thin-link px-4 block" href="#interface">Interface</a>
-          <div class="sub-links hidden" hash="#interface">
-            {% with obj=find_cls("Interface") %}
-              {% if "fns" in obj and obj["fns"]|length %}
-                {% for fn in obj["fns"] %}
-                  <a class="thinner-link px-4 pl-8 block"
-                    href="#interface-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-          </div>
-          <a class="thin-link px-4 block" href="#flagging">Flagging</a>
-          <div class="sub-links hidden" hash="#flagging">
-            {% for flagging_callback in docs["flagging"] %}
-              {% with obj=flagging_callback %}
-                <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
-              {% endwith %}
+            <a class="link px-4 pb-1 mb-2 block" href="#building_demos">Building Demos</a>
+            <a class="thin-link px-4 pb-1 block" href="#interface">Interface</a>
+            <a class="thin-link px-4 pb-1 block" href="#flagging">Flagging</a>
+            <a class="thin-link px-4 pb-1 block" href="#combining-interfaces">Combining Interfaces</a>
+            <a class="thin-link px-4 pb-1 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+            <a class="thin-link px-4 pb-1 block" href="#block-layouts">Block Layouts</a>
+            <a class="link px-4 my-2 pb-1 block" href="#components">Components</a>
+            {% for component in docs["component"] %}
+              <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
             {% endfor %}
-          </div>
-          <a class="thin-link px-4 block" href="#combining-interfaces">Combining Interfaces</a>
-          <div class="sub-links hidden" hash="#combining-interfaces">
-            <a class="thinner-link px-4 pl-8 block" href="#tabbedinterface">TabbedInterface</a>
-            <a class="thinner-link px-4 pl-8 block" href="#parallel">Parallel</a>
-            <a class="thinner-link px-4 pl-8 block" href="#series">Series</a>
-          </div>
-          <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
-          <div class="sub-links hidden" hash="#blocks">
-            {% with obj=find_cls("Blocks") %}
-              {% if "fns" in obj and obj["fns"]|length %}
-                {% for fn in obj["fns"] %}
-                  <a class="thinner-link px-4 pl-8 block"
-                    href="#blocks-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-          </div>
-          <a class="thin-link px-4 block" href="#block-layouts">Block Layouts</a>
-          <div class="sub-links hidden" hash="#block-layouts">
-            {% for layout in docs["layout"] %}
-              {% with obj=layout %}
-                <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
-              {% endwith %}
-            {% endfor %}
-          </div>
-          <a class="link px-4 my-2 block" href="#components">Components</a>
-          {% for component in docs["component"] %}
-            <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
-          {% endfor %}
-          <a class="link px-4 my-2 block" href="#helpers">Helpers
+            <a class="link pb-1 px-4 my-2 block" href="#helpers">Helpers
             {% for component in docs["helpers"] %}
-              <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+              <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
             {% endfor %}
-            <a class="link px-4 my-2 block" href="#routes">Routes
+            <a class="link px-4 pb-1 my-2 block" href="#routes">Routes
               {% for component in docs["routes"] %}
-                <a class="px-4 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
+                <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
               {% endfor %}
           </nav>
           </div>
