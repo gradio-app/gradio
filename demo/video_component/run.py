@@ -15,7 +15,7 @@ c = os.path.join(os.path.dirname(__file__), "files/b.mp4")  # Video
 # demo.launch()
 
 
-gr.Interface(
+demo = gr.Interface(
     fn=lambda x: x,
     inputs=gr.Video(type="file"),
     outputs=gr.Video(),
@@ -24,4 +24,7 @@ gr.Interface(
         [b],
         [c],
     ],
-).launch()
+)
+
+if __name__ == "__main__":
+    demo.launch()
