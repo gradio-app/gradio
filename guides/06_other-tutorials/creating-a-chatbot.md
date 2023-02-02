@@ -21,13 +21,10 @@ Make sure you have the `gradio` Python package already [installed](/quickstart).
 
 Let's get started! Here's how to build your own chatbot: 
 
-- [How to Create a Chatbot](#how-to-create-a-chatbot)
-  - [Introduction](#introduction)
-    - [Prerequisites](#prerequisites)
-  - [1. Set up the Chatbot Model](#1-set-up-the-chatbot-model)
-  - [2. Define a `predict` function](#2-define-a-predict-function)
-  - [3. Create a Gradio Demo using Blocks](#3-create-a-gradio-demo-using-blocks)
-  - [4. Chatbot Markdown Support](#4-chatbot-markdown-support)
+  [1. Set up the Chatbot Model](#1-set-up-the-chatbot-model)
+  [2. Define a `predict` function](#2-define-a-predict-function)
+  [3. Create a Gradio Demo using Blocks](#3-create-a-gradio-demo-using-blocks)
+  [4. Chatbot Markdown Support](#4-chatbot-markdown-support)
 
 ## 1. Set up the Chatbot Model
 
@@ -154,7 +151,7 @@ This is the code for a chatbot with a textbox for a user to submit text and an i
 
 This code will produce a demo like the one below:
 
-<iframe src="https://dawood-chatbot-guide-multimodal.hf.space" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://dawood-chatbot-guide-multimodal.hf.space" frameBorder="0" height="650" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
