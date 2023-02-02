@@ -68,14 +68,24 @@
 		return `${minutes}:${_seconds}`;
 	}
 
-	async function _load() {
-		await tick();
-		video.currentTime = 9999;
-		// paused = true;
+	function checkforVideo() {
+		//Every 500ms, check if the video element has loaded
+		var b = setInterval(async () => {
+			if (video.readyState >= 3) {
+				await tick();
+				video.currentTime = 9999;
+				paused = true;
 
-		setTimeout(async () => {
-			video.currentTime = 0.0;
-		}, 50);
+				setTimeout(async () => {
+					video.currentTime = 0.0;
+				}, 50);
+				clearInterval(b);
+			}
+		}, 25);
+	}
+
+	async function _load() {
+		checkforVideo();
 	}
 
 	$: src && _load();
