@@ -479,6 +479,7 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
+        @app.on_event("startup")
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
