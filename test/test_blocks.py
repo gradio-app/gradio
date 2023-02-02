@@ -16,12 +16,14 @@ from unittest.mock import patch
 
 import mlflow
 import pytest
+import uvicorn
 import wandb
 import websockets
 from fastapi.testclient import TestClient
 
 import gradio as gr
 from gradio.exceptions import DuplicateBlockError
+from gradio.networking import Server, get_first_available_port
 from gradio.test_data.blocks_configs import XRAY_CONFIG
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
@@ -322,6 +324,39 @@ class TestBlocksMethods:
                 if msg["msg"] == "process_completed":
                     completed = True
             assert msg["output"]["data"][0] == "Victor"
+
+    @pytest.mark.asyncio
+    async def test_run_without_launching(self):
+        """Test that we can start the app and use queue without calling .launch().
+
+        This is essentially what the 'gradio' reload mode does
+        """
+
+        port = get_first_available_port(7860, 7870)
+
+        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
+
+        config = uvicorn.Config(app=io.app, port=port, log_level="warning")
+
+        server = Server(config=config)
+        server.run_in_thread()
+
+        try:
+            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
+                completed = False
+                while not completed:
+                    msg = json.loads(await ws.recv())
+                    if msg["msg"] == "send_data":
+                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
+                    if msg["msg"] == "send_hash":
+                        await ws.send(
+                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
+                        )
+                    if msg["msg"] == "process_completed":
+                        completed = True
+                assert msg["output"]["data"][0] == "Victor"
+        finally:
+            server.close()
 
 
 class TestComponentsInBlocks:
