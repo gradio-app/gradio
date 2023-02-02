@@ -14,7 +14,7 @@ Depending on the kind of demo, the user interface (UI) looks slightly different:
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/interfaces4.png)
 
 
-Let's see to build each kind of demo using the `Interface` class, along with examples:
+Let's see how to build each kind of demo using the `Interface` class, along with examples:
 
 
 ## Standard demos
