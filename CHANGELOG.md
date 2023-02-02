@@ -27,6 +27,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3101](https://git
 
 ## Documentation Changes:
 - Fix a broken link in the Quick Start guide, by [@cakiki](https://github.com/cakiki) in [PR 3109](https://github.com/gradio-app/gradio/pull/3109)
+- Better docs navigation on mobile by [@aliabd](https://github.com/aliabd) in [PR 3112](https://github.com/gradio-app/gradio/pull/3112)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
