@@ -7,7 +7,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+- Added a guide on the 4 kinds of Gradio Interfaces by [@yvrjsharma](https://github.com/yvrjsharma) and [@abidlabs](https://github.com/abidlabs) in [PR 3003](https://github.com/gradio-app/gradio/pull/3003) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
