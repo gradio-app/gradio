@@ -261,15 +261,17 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
-        @app.head("/file={path:path}", dependencies=[Depends(login_check)])
-        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
-        async def file(path: str, request: fastapi.Request):
-            abs_path = str(utils.abspath(path))
+        @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            if utils.validate_url(path):
-                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path).parents
-            created_by_app = str(utils.abspath(path)) in set().union(
+            if utils.validate_url(path_or_url):
+                return RedirectResponse(
+                    url=path_or_url, status_code=status.HTTP_302_FOUND
+                )
+            abs_path = str(utils.abspath(path_or_url))
+            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
+            created_by_app = str(utils.abspath(path_or_url)) in set().union(
                 *blocks.temp_file_sets
             )
             if in_app_dir or created_by_app:
@@ -291,7 +293,7 @@ class App(FastAPI):
 
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
+                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
