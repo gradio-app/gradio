@@ -32,7 +32,7 @@ def fake_diffusion(steps):
         yield image, gr.Image.update(visible=False)
     
     time.sleep(1)
-    image = "https://fastly.picsum.photos/id/13/200/300.jpg?hmac=UHtWCvsKxIfcA_gIse7Rc6MH6nI3OGl0dzaCSSsYqas" 
+    image = "https://fastly.picsum.photos/id/237/600/600.jpg?hmac=KGSiyZ1y0xEcvk6vZQwzHW4bpTWEoXsMnRK6qbyBSAU" 
     images.append(image)
     gif_path = create_gif(images)
     

@@ -8,7 +8,7 @@ def fake_diffusion(steps):
         time.sleep(1)
         image = np.random.random((600, 600, 3))
         yield image
-    image = "https://fastly.picsum.photos/id/13/200/300.jpg?hmac=UHtWCvsKxIfcA_gIse7Rc6MH6nI3OGl0dzaCSSsYqas"
+    image = "https://fastly.picsum.photos/id/237/600/600.jpg?hmac=KGSiyZ1y0xEcvk6vZQwzHW4bpTWEoXsMnRK6qbyBSAU"
     yield image
 
 
