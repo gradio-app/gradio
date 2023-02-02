@@ -19,7 +19,7 @@ Let's see how to build each kind of demo using the `Interface` class, along with
 
 ## Standard demos
 
-To create a demo that has both the input and the output components, you simply need to set the values of the `inputs` and `outputs` parameter in `Interface()`. Here's an example demo of a mock image classification model:
+To create a demo that has both the input and the output components, you simply need to set the values of the `inputs` and `outputs` parameter in `Interface()`. Here's an example demo of a simple image filter:
 
 $code_sepia_filter
 $demo_sepia_filter
