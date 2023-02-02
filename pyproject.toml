@@ -21,6 +21,7 @@ keywords = ["machine learning", "reproducibility", "visualization"]
 
 [project.scripts]
 gradio = "gradio.reload:run_in_reload_mode"
+upload_theme = "gradio.themes.upload_theme:main"
 
 [project.urls]
 Homepage = "https://github.com/gradio-app/gradio"

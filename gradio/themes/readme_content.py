@@ -17,10 +17,6 @@ license: apache-2.0
 
 {description}
 
-## Preview
-
-{preview_str}
-
 
 ## Contributions
 
