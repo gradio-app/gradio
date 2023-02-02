@@ -12,6 +12,7 @@ import pkgutil
 import random
 import re
 import sys
+import threading
 import time
 import typing
 import warnings
@@ -84,58 +85,83 @@ def version_check():
 
 
 def get_local_ip_address() -> str:
-    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it."""
-    try:
-        ip_address = requests.get(
-            "https://checkip.amazonaws.com/", timeout=3
-        ).text.strip()
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        ip_address = "No internet connection"
+    """Gets the public IP address or returns the string "No internet connection" if unable to obtain it. Does not make a new request if the IP address has already been obtained."""
+    if Context.ip_address is None:
+        try:
+            ip_address = requests.get(
+                "https://checkip.amazonaws.com/", timeout=3
+            ).text.strip()
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            ip_address = "No internet connection"
+        Context.ip_address = ip_address
+    else:
+        ip_address = Context.ip_address
     return ip_address
 
 
 def initiated_analytics(data: Dict[str, Any]) -> None:
-    try:
-        requests.post(
-            analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
-        )
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        pass  # do not push analytics if no network
+    data.update({"ip_address": get_local_ip_address()})
+
+    def initiated_analytics_thread(data: Dict[str, Any]) -> None:
+        try:
+            requests.post(
+                analytics_url + "gradio-initiated-analytics/", data=data, timeout=3
+            )
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
+
+    threading.Thread(target=initiated_analytics_thread, args=(data,)).start()
 
 
 def launch_analytics(data: Dict[str, Any]) -> None:
-    try:
-        requests.post(
-            analytics_url + "gradio-launched-analytics/", data=data, timeout=3
-        )
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        pass  # do not push analytics if no network
+    data.update({"ip_address": get_local_ip_address()})
+
+    def launch_analytics_thread(data: Dict[str, Any]) -> None:
+        try:
+            requests.post(
+                analytics_url + "gradio-launched-analytics/", data=data, timeout=3
+            )
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
+
+    threading.Thread(target=launch_analytics_thread, args=(data,)).start()
 
 
 def integration_analytics(data: Dict[str, Any]) -> None:
-    try:
-        requests.post(
-            analytics_url + "gradio-integration-analytics/", data=data, timeout=3
-        )
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        pass  # do not push analytics if no network
+    data.update({"ip_address": get_local_ip_address()})
+
+    def integration_analytics_thread(data: Dict[str, Any]) -> None:
+        try:
+            requests.post(
+                analytics_url + "gradio-integration-analytics/", data=data, timeout=3
+            )
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
+
+    threading.Thread(target=integration_analytics_thread, args=(data,)).start()
 
 
-def error_analytics(ip_address: str, message: str) -> None:
+def error_analytics(message: str) -> None:
     """
     Send error analytics if there is network
     :param ip_address: IP address where error occurred
     :param message: Details about error
     """
-    data = {"ip_address": ip_address, "error": message}
-    try:
-        requests.post(analytics_url + "gradio-error-analytics/", data=data, timeout=3)
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        pass  # do not push analytics if no network
+    data = {"ip_address": get_local_ip_address(), "error": message}
+
+    def error_analytics_thread(data: Dict[str, Any]) -> None:
+        try:
+            requests.post(
+                analytics_url + "gradio-error-analytics/", data=data, timeout=3
+            )
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
+
+    threading.Thread(target=error_analytics_thread, args=(data,)).start()
 
 
-async def log_feature_analytics(ip_address: str, feature: str) -> None:
-    data = {"ip_address": ip_address, "feature": feature}
+async def log_feature_analytics(feature: str) -> None:
+    data = {"ip_address": get_local_ip_address(), "feature": feature}
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
@@ -161,6 +187,12 @@ def colab_check() -> bool:
     except (ImportError, NameError):
         pass
     return is_colab
+
+
+def kaggle_check() -> bool:
+    return bool(
+        os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or os.environ.get("GFOOTBALL_DATA_DIR")
+    )
 
 
 def ipython_check() -> bool:
@@ -460,6 +492,7 @@ class AsyncRequest:
         validation_function: Union[Callable, None] = None,
         exception_type: Type[Exception] = Exception,
         raise_for_status: bool = False,
+        client: httpx.AsyncClient | None = None,
         **kwargs,
     ):
         """
@@ -482,6 +515,7 @@ class AsyncRequest:
         self._validated_data = None
         # Create request
         self._request = self._create_request(method, url, **kwargs)
+        self.client_ = client or self.client
 
     def __await__(self) -> Generator[None, Any, "AsyncRequest"]:
         """
@@ -503,9 +537,7 @@ class AsyncRequest:
         """
         try:
             # Send the request and get the response.
-            self._response: httpx.Response = await AsyncRequest.client.send(
-                self._request
-            )
+            self._response: httpx.Response = await self.client_.send(self._request)
             # Raise for _status
             self._status = self._response.status_code
             if self._raise_for_status:

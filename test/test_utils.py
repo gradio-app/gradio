@@ -12,6 +12,7 @@ from httpx import AsyncClient, Response
 from pydantic import BaseModel
 from typing_extensions import Literal
 
+from gradio.context import Context
 from gradio.test_data.blocks_configs import (
     XRAY_CONFIG,
     XRAY_CONFIG_DIFF_IDS,
@@ -28,6 +29,7 @@ from gradio.utils import (
     format_ner_list,
     get_local_ip_address,
     ipython_check,
+    kaggle_check,
     launch_analytics,
     readme_to_html,
     sanitize_list_for_csv,
@@ -65,12 +67,12 @@ class TestUtils:
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
         mock_post.side_effect = requests.ConnectionError()
-        error_analytics("placeholder", "placeholder")
+        error_analytics("placeholder")
         mock_post.assert_called()
 
     @mock.patch("requests.post")
     def test_error_analytics_successful(self, mock_post):
-        error_analytics("placeholder", "placeholder")
+        error_analytics("placeholder")
         mock_post.assert_called()
 
     @mock.patch("requests.post")
@@ -102,10 +104,36 @@ class TestUtils:
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
 
+    def test_kaggle_check_false(self):
+        assert not kaggle_check()
+
+    def test_kaggle_check_true_when_run_type_set(self):
+        with mock.patch.dict(
+            os.environ, {"KAGGLE_KERNEL_RUN_TYPE": "Interactive"}, clear=True
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_true_when_both_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "Interactive", "GFOOTBALL_DATA_DIR": "./"},
+            clear=True,
+        ):
+            assert kaggle_check()
+
+    def test_kaggle_check_false_when_neither_set(self):
+        with mock.patch.dict(
+            os.environ,
+            {"KAGGLE_KERNEL_RUN_TYPE": "", "GFOOTBALL_DATA_DIR": ""},
+            clear=True,
+        ):
+            assert not kaggle_check()
+
 
 class TestIPAddress:
     @pytest.mark.flaky
     def test_get_ip(self):
+        Context.ip_address = None
         ip = get_local_ip_address()
         if ip == "No internet connection":
             return
@@ -113,6 +141,7 @@ class TestIPAddress:
 
     @mock.patch("requests.get")
     def test_get_ip_without_internet(self, mock_get):
+        Context.ip_address = None
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
         assert ip == "No internet connection"

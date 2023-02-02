@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { ChatBot } from "@gradio/chatbot";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import type { Styles } from "@gradio/utils";
 	import { Chat } from "@gradio/icons";
@@ -18,11 +17,10 @@
 		style.color_map = color_map;
 	}
 
-	export let loading_status: LoadingStatus;
+	export let loading_status: LoadingStatus | undefined;
 </script>
 
 <Block padding={false} {elem_id} {visible}>
-	<StatusTracker {...loading_status} />
 	{#if show_label}
 		<BlockLabel
 			{show_label}
@@ -31,5 +29,10 @@
 			disable={typeof style.container === "boolean" && !style.container}
 		/>
 	{/if}
-	<ChatBot {style} {value} on:change />
+	<ChatBot
+		{style}
+		{value}
+		pending_message={loading_status?.status === "pending"}
+		on:change
+	/>
 </Block>

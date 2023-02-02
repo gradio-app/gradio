@@ -12,13 +12,19 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: any;
+	let old_value: any;
 	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let style: Styles = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	$: value, dispatch("change");
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block

@@ -115,7 +115,7 @@ const foundation_dark = {
 		}
 	},
 	shadow: {
-		spread: "1px"
+		spread: "2px"
 	}
 };
 
