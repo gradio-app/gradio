@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
@@ -13,6 +14,8 @@
 	export let elem_id: string = "";
 	export let visible: boolean = true;
 	export let value: FileData | null | string = null;
+	let old_value: FileData | null | string = null;
+
 	export let label: string;
 	export let source: string;
 	export let root: string;
@@ -29,6 +32,18 @@
 	$: _value = normalise_file(value, root_url ?? root);
 
 	let dragging = false;
+
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
+
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
@@ -45,7 +60,7 @@
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {show_label} />
+		<StaticVideo value={_value} {label} {show_label} on:play on:pause />
 	{:else}
 		<Video
 			value={_value}
@@ -61,7 +76,6 @@
 			{source}
 			{mirror_webcam}
 			{include_audio}
-			on:change
 			on:clear
 			on:play
 			on:pause

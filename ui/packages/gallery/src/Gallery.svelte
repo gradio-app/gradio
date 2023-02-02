@@ -293,7 +293,33 @@
 
 	.grid-container {
 		display: grid;
+		grid-template-columns: var(--grid-cols);
 		gap: var(--size-2);
+	}
+	@media (--screen-sm) {
+		.grid-container {
+			grid-template-columns: var(--sm-grid-cols);
+		}
+	}
+	@media (--screen-md) {
+		.grid-container {
+			grid-template-columns: var(--md-grid-cols);
+		}
+	}
+	@media (--screen-lg) {
+		.grid-container {
+			grid-template-columns: var(--lg-grid-cols);
+		}
+	}
+	@media (--screen-xl) {
+		.grid-container {
+			grid-template-columns: var(--xl-grid-cols);
+		}
+	}
+	@media (--screen-xxl) {
+		.grid-container {
+			grid-template-columns: var(--2xl-grid-cols);
+		}
 	}
 
 	.thumbnail-lg > img {
