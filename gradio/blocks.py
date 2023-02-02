@@ -36,7 +36,7 @@ from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import DuplicateBlockError, InvalidApiName
 from gradio.helpers import create_tracker, skip, special_args
 from gradio.themes import Default as DefaultTheme
-from gradio.theming.utils import Theme, get_theme_css
+from gradio.themes.utils import Theme
 from gradio.tunneling import CURRENT_TUNNELS
 from gradio.utils import (
     TupleNoPrint,
@@ -469,12 +469,12 @@ class Blocks(BlockContext):
         if theme is None:
             theme = DefaultTheme()
         elif isinstance(theme, str):
-            theme_css = Theme.from_hub(theme)
+            theme = Theme.from_hub(theme)
         elif not isinstance(theme, Theme):
             warnings.warn("Theme should be a class loaded from gradio.themes")
             theme = DefaultTheme()
         self.theme = theme if isinstance(theme, (Theme, str)) else DefaultTheme()
-        self.theme_css = theme_css if theme_css else get_theme_css(theme)
+        self.theme_css = theme._get_theme_css()
         self.encrypt = False
         self.share = False
         self.enable_queue = None
