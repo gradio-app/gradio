@@ -60,13 +60,15 @@ const style_handlers: StyleHandlers = {
 			: `border-width: 0; box-shadow: none; overflow: visible; background: transparent;`;
 	},
 	grid(grid) {
-		let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
+		let grid_map = ["", "sm-", "md-", "lg-", "xl-", "2xl-"];
 		let _grid = Array.isArray(grid) ? grid : [grid];
 
 		return [0, 0, 0, 0, 0, 0]
 			.map(
 				(_, i) =>
-					`${grid_map[i]}grid-cols-${_grid?.[i] || _grid?.[_grid?.length - 1]}`
+					`--${grid_map[i]}grid-cols: var(--grid-${
+						_grid?.[i] || _grid?.[_grid?.length - 1]
+					});`
 			)
 			.join(" ");
 	},
