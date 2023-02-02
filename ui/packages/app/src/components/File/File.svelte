@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { File, FileUpload } from "@gradio/file";
 	import type { FileData } from "@gradio/upload";
-	import { normalise_file } from "@gradio/upload";
+	import { normalise_files } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
 
@@ -12,7 +13,9 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: null | FileData = null;
+	export let value: null | FileData | Array<FileData>;
+	let old_value: null | FileData | Array<FileData>;
+
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;
@@ -23,10 +26,22 @@
 
 	export let loading_status: LoadingStatus;
 
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root_url ?? root);
+	let _value: null | FileData | Array<FileData>;
+	$: _value = normalise_files(value, root_url ?? root);
 
 	let dragging = false;
+
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
+
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+
+			dispatch("change");
+		}
+	}
 </script>
 
 <Block
@@ -47,7 +62,6 @@
 			{file_types}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			on:change
 			on:clear
 			on:upload
 		>
