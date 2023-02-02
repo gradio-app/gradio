@@ -39,9 +39,16 @@
 		time = (duration * (clientX - left)) / (right - left);
 	}
 
-	function play_pause() {
-		if (paused) video.play();
-		else video.pause();
+	async function play_pause() {
+		const isPlaying =
+			video.currentTime > 0 &&
+			!video.paused &&
+			!video.ended &&
+			video.readyState > video.HAVE_CURRENT_DATA;
+
+		if (!isPlaying) {
+			await video.play();
+		} else video.pause();
 	}
 
 	function handle_click(e: MouseEvent) {
@@ -64,6 +71,7 @@
 	async function _load() {
 		await tick();
 		video.currentTime = 9999;
+		// paused = true;
 
 		setTimeout(async () => {
 			video.currentTime = 0.0;
