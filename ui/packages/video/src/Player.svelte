@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
@@ -39,9 +39,16 @@
 		time = (duration * (clientX - left)) / (right - left);
 	}
 
-	function play_pause() {
-		if (paused) video.play();
-		else video.pause();
+	async function play_pause() {
+		const isPlaying =
+			video.currentTime > 0 &&
+			!video.paused &&
+			!video.ended &&
+			video.readyState > video.HAVE_CURRENT_DATA;
+
+		if (!isPlaying) {
+			await video.play();
+		} else video.pause();
 	}
 
 	function handle_click(e: MouseEvent) {
@@ -61,20 +68,53 @@
 		return `${minutes}:${_seconds}`;
 	}
 
-	async function _load() {
+	async function checkforVideo() {
+		transition = "0s";
 		await tick();
-		video.currentTime = 9999;
+		wrap_opacity = 0.8;
+		opacity = 0;
+		await tick();
 
-		setTimeout(async () => {
-			video.currentTime = 0.0;
-		}, 50);
+		var b = setInterval(async () => {
+			if (video.readyState >= 1) {
+				height = (video.videoHeight / video.videoWidth) * width;
+			}
+			if (video.readyState >= 3) {
+				video.currentTime = 9999;
+				paused = true;
+				transition = "0.2s";
+
+				setTimeout(async () => {
+					video.currentTime = 0.0;
+					opacity = 1;
+					wrap_opacity = 1;
+				}, 50);
+				clearInterval(b);
+			}
+		}, 15);
+	}
+
+	async function _load() {
+		checkforVideo();
 	}
 
 	$: src && _load();
+
+	let height: number;
+	let width: number;
+	let opacity: number = 0;
+	let wrap_opacity: number = 0;
+	let transition: string = "0.5s";
 </script>
 
-<div>
+<div
+	style:opacity={wrap_opacity}
+	class="wrap"
+	style:height={`${src && height}px` || `auto`}
+>
 	<video
+		bind:clientHeight={height}
+		bind:clientWidth={width}
 		{src}
 		preload="auto"
 		on:mousemove={video_move}
@@ -87,14 +127,17 @@
 		bind:paused
 		bind:this={video}
 		class:mirror
+		style:opacity
+		style:transition
 	>
 		<track kind="captions" />
 	</video>
 
 	<div
 		class="controls"
-		style:opacity={duration && show_controls ? 1 : 0}
+		style:opacity={opacity === 1 && duration && show_controls ? 1 : 0}
 		on:mousemove={video_move}
+		style:transition
 	>
 		<div class="inner">
 			<span class="icon" on:click={play_pause}>
@@ -192,5 +235,8 @@
 		color: white;
 		font-size: var(--scale-000);
 		font-family: var(--font-mono);
+	}
+	.wrap {
+		background-color: var(--color-background-secondary);
 	}
 </style>

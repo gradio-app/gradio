@@ -8,13 +8,18 @@
 	export let samples_dir: string;
 	let video: HTMLVideoElement;
 
-	onMount(() => {
+	async function init() {
 		video.muted = true;
 		video.playsInline = true;
 		video.controls = false;
 		video.setAttribute("muted", "");
-		video.play();
+
+		await video.play();
 		video.pause();
+	}
+
+	onMount(() => {
+		init();
 	});
 </script>
 

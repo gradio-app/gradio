@@ -34,6 +34,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "stt_or_tts",
         "stream_audio",
         "stream_frames",
+        "video_component",
         "zip_files",
     ]
     for demo in demos_to_copy:
