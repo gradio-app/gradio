@@ -313,7 +313,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"][0] == None
+        assert output["data"][0] is None
 
         response = client.post(
             "/api/predict/",
