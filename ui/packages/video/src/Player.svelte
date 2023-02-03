@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 
 	export let src: string;
@@ -68,20 +68,25 @@
 		return `${minutes}:${_seconds}`;
 	}
 
-	function checkforVideo() {
-		//Every 500ms, check if the video element has loaded
+	async function checkforVideo() {
+		opacity = 0;
+		await tick();
+
 		var b = setInterval(async () => {
+			if (video.readyState >= 1) {
+				height = (video.videoHeight / video.videoWidth) * width;
+			}
 			if (video.readyState >= 3) {
-				await tick();
 				video.currentTime = 9999;
 				paused = true;
 
 				setTimeout(async () => {
 					video.currentTime = 0.0;
-				}, 50);
+					opacity = 1;
+				}, 15);
 				clearInterval(b);
 			}
-		}, 25);
+		}, 15);
 	}
 
 	async function _load() {
@@ -89,10 +94,16 @@
 	}
 
 	$: src && _load();
+
+	let height: number;
+	let width: number;
+	let opacity: number = 0;
 </script>
 
-<div>
+<div style:height={`${src && height}px` || `auto`}>
 	<video
+		bind:clientHeight={height}
+		bind:clientWidth={width}
 		{src}
 		preload="auto"
 		on:mousemove={video_move}
@@ -105,6 +116,7 @@
 		bind:paused
 		bind:this={video}
 		class:mirror
+		style:opacity
 	>
 		<track kind="captions" />
 	</video>
