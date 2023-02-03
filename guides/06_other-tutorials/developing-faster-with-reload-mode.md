@@ -54,6 +54,8 @@ The important part here is the line that says `Watching...` What's happening her
 
 As a small aside, this auto-reloading happens if you change your `app.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
 
+⚠️ The `gradio` command will not detect the parameters passed to the `launch()` methods. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
+
 ## Jupyter Notebook Magic 🔮
 
 What about if you use Jupyter Notebooks (or Colab Notebooks, etc.) to develop code? We got something for you too!
