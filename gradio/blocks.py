@@ -1232,6 +1232,7 @@ class Blocks(BlockContext):
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
+        self.app = routes.App.create_app(self)
         return self
 
     def launch(
