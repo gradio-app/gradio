@@ -32,7 +32,7 @@ def fake_diffusion(steps):
         yield image, gr.Image.update(visible=False)
     
     time.sleep(1)
-    image = "https://i.picsum.photos/id/867/600/600.jpg?hmac=qE7QFJwLmlE_WKI7zMH6SgH5iY5fx8ec6ZJQBwKRT44" 
+    image = "https://gradio-builds.s3.amazonaws.com/diffusion_image/cute_dog.jpg" 
     images.append(image)
     gif_path = create_gif(images)
     
