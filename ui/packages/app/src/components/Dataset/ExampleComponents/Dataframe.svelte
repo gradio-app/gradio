@@ -43,6 +43,9 @@
 				} catch (e) {
 					console.error(e);
 				}
+			}).catch((e) => {
+				loaded_value = value
+				loaded = true;
 			});
 	}
 </script>
@@ -55,6 +58,9 @@
 		on:mouseenter={() => (hovered = true)}
 		on:mouseleave={() => (hovered = false)}
 	>
+	{#if typeof loaded_value === "string"}
+		{loaded_value}
+	{:else}
 		<table class="">
 			{#each loaded_value.slice(0, 3) as row, i}
 				<tr>
@@ -75,6 +81,7 @@
 				/>
 			{/if}
 		</table>
+	{/if}
 	</div>
 {/if}
 
