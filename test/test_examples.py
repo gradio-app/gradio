@@ -295,6 +295,27 @@ class TestProcessExamples:
         prediction = await io.examples_handler.load_from_cache(0)
         assert prediction == ["hel", "3"]
 
+    @pytest.mark.asyncio
+    async def test_caching_with_non_io_component(self):
+        def predict(name):
+            return name, gr.update(visible=True)
+
+        with gr.Blocks():
+            t1 = gr.Textbox()
+            with gr.Column(visible=False) as c:
+                t2 = gr.Textbox()
+
+            examples = gr.Examples(
+                [["John"], ["Mary"]],
+                fn=predict,
+                inputs=[t1],
+                outputs=[t2, c],
+                cache_examples=True,
+            )
+
+        prediction = await examples.load_from_cache(0)
+        assert prediction == ["John", {"visible": True, "__type__": "update"}]
+
     def test_end_to_end(self):
         def concatenate(str1, str2):
             return str1 + str2

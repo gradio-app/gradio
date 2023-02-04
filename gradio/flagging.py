@@ -201,7 +201,7 @@ class CSVLogger(FlaggingCallback):
         log_filepath = Path(flagging_dir) / "log.csv"
         is_new = not Path(log_filepath).exists()
         headers = [
-            component.label or f"component {idx}"
+            getattr(component, "label", None) or f"component {idx}"
             for idx, component in enumerate(self.components)
         ] + [
             "flag",
@@ -212,7 +212,7 @@ class CSVLogger(FlaggingCallback):
         csv_data = []
         for idx, (component, sample) in enumerate(zip(self.components, flag_data)):
             save_dir = Path(flagging_dir) / utils.strip_invalid_filename_characters(
-                component.label or f"component {idx}"
+                getattr(component, "label", None) or f"component {idx}"
             )
             if utils.is_update(sample):
                 csv_data.append(str(sample))
