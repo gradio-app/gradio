@@ -15,7 +15,7 @@ export function normalise_file(
 			normalise_file(x, root);
 		}
 	} else if (file.is_file) {
-		file.data = root + "file=" + file.name;
+		file.data = "file=" + root + file.name;
 	}
 	return file;
 }
@@ -35,7 +35,7 @@ export function normalise_files(
 			normalise_file(x, root);
 		}
 	} else if (file.is_file) {
-		file.data = root + "file=" + file.name;
+		file.data = "file=" + root +  file.name;
 	}
 	return file;
 }

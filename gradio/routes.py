@@ -28,7 +28,6 @@ from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
     PlainTextResponse,
-    Response,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
@@ -88,8 +87,8 @@ def toorjson(value):
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
-client = httpx.AsyncClient()
 
+client = httpx.AsyncClient()
 
 ###########
 # Auth
@@ -266,6 +265,8 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
+        @app.head("/proxy={url_path:path}", dependencies=[Depends(login_check)])
+        @app.get("/proxy={url_path:path}", dependencies=[Depends(login_check)])
         async def _reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             url = httpx.URL(path=url_path)
@@ -286,7 +287,9 @@ class App(FastAPI):
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if utils.validate_url(path_or_url):
-                return await _reverse_proxy(path_or_url)
+                return RedirectResponse(
+                    url=path_or_url, status_code=status.HTTP_302_FOUND
+                )
             abs_path = str(utils.abspath(path_or_url))
             in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
             created_by_app = str(utils.abspath(path_or_url)) in set().union(
@@ -314,7 +317,6 @@ class App(FastAPI):
                     f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
-        @app.head("/file/{path:path}", dependencies=[Depends(login_check)])
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
             return await file(path, request)

@@ -1678,7 +1678,7 @@ class Image(
         )
 
     def as_example(self, input_data: str | None) -> str:
-        return "" if input_data is None else str(utils.abspath(input_data))
+        return input_data or ""
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
