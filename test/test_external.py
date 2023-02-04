@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 import gradio
 import gradio as gr
 from gradio import media_data, utils
+from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import (
     TooManyRequestsError,
@@ -293,10 +294,31 @@ class TestLoadInterface:
             "spaces/gradio-tests/not-actually-private-space", api_key=api_key
         )
         try:
-            output = io("abc")
+            output = io("abc", None)
             assert output == "abc"
         except TooManyRequestsError:
             pass
+
+    def test_multiple_spaces_one_private(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        with gr.Blocks():
+            gr.Interface.load(
+                "spaces/gradio-tests/not-actually-private-space", api_key=api_key
+            )
+            gr.Interface.load(
+                "spaces/gradio/test-loading-examples",
+            )
+        assert Context.access_token == api_key
+
+    def test_loading_files_via_proxy_works(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.Interface.load(
+            "spaces/gradio-tests/test-loading-examples-private", api_key=api_key
+        )
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        test_client = TestClient(app)
+        r = test_client.get("/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=/tmp/tmprahzj703/Bunnyual53t2x.obj")
+        assert r.status_code == 200
 
 
 class TestLoadInterfaceWithExamples:
