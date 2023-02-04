@@ -39,7 +39,11 @@ export function normalise_files(
 			normalise_file(x, root);
 		}
 	} else if (file.is_file) {
-		file.data = "file=" + root + file.name;
+		if (root == null) {
+			file.data = "file=" + file.name;
+		} else {
+			file.data = "proxy=" + root + "file=" + file.name;
+		}
 	}
 	return file;
 }
