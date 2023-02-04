@@ -4,12 +4,12 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import httpx
 import inspect
 import json
 import mimetypes
 import os
 import posixpath
-import requests
 import secrets
 import traceback
 from collections import defaultdict
@@ -33,8 +33,9 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
+from starlette.background import BackgroundTask
 
 import gradio
 import gradio.ranged_response as ranged_response
@@ -86,6 +87,7 @@ def toorjson(value):
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
+client = httpx.AsyncClient()
 
 
 ###########
@@ -263,14 +265,24 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
+        async def _reverse_proxy(url_path: str):
+            # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
+            url = httpx.URL(path=url_path)
+            rp_req = client.build_request("GET", url, headers=None)
+            rp_resp = await client.send(rp_req, stream=True)
+            return StreamingResponse(
+                rp_resp.aiter_raw(),
+                status_code=rp_resp.status_code,
+                headers=rp_resp.headers,  # type: ignore
+                background=BackgroundTask(rp_resp.aclose),
+            )
+
         @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if utils.validate_url(path_or_url):
-                return RedirectResponse(
-                    url=path_or_url, status_code=status.HTTP_302_FOUND
-                )
+                return await _reverse_proxy(path_or_url)
             abs_path = str(utils.abspath(path_or_url))
             in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
             created_by_app = str(utils.abspath(path_or_url)) in set().union(
