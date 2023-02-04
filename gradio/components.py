@@ -1681,9 +1681,9 @@ class Image(
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
             return ""
-        elif os.path.isabs(
-            input_data
-        ):  # This is not the same as Path.is_absolute() when the path is a Windows path and the current OS is not Windows, or vice versa. Relevant when loading Spaces externally.
+        elif (
+            self.root_url
+        ):  # If an externally hosted image, don't convert to absolute path
             return input_data
         return str(utils.abspath(input_data))
 
@@ -4981,6 +4981,8 @@ class Dataset(Clickable, Component):
             [isinstance(c, IOComponent) for c in self.components]
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        for component in self.components:
+            component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
