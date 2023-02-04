@@ -43,8 +43,9 @@
 				} catch (e) {
 					console.error(e);
 				}
-			}).catch((e) => {
-				loaded_value = value
+			})
+			.catch((e) => {
+				loaded_value = value;
 				loaded = true;
 			});
 	}
@@ -58,30 +59,30 @@
 		on:mouseenter={() => (hovered = true)}
 		on:mouseleave={() => (hovered = false)}
 	>
-	{#if typeof loaded_value === "string"}
-		{loaded_value}
-	{:else}
-		<table class="">
-			{#each loaded_value.slice(0, 3) as row, i}
-				<tr>
-					{#each row.slice(0, 3) as cell, j}
-						<td>{cell}</td>
-					{/each}
-					{#if row.length > 3}
-						<td>…</td>
-					{/if}
-				</tr>
-			{/each}
-			{#if value.length > 3}
-				<div
-					class="overlay"
-					class:odd={index % 2 != 0}
-					class:even={index % 2 == 0}
-					class:button={type === "gallery"}
-				/>
-			{/if}
-		</table>
-	{/if}
+		{#if typeof loaded_value === "string"}
+			{loaded_value}
+		{:else}
+			<table class="">
+				{#each loaded_value.slice(0, 3) as row, i}
+					<tr>
+						{#each row.slice(0, 3) as cell, j}
+							<td>{cell}</td>
+						{/each}
+						{#if row.length > 3}
+							<td>…</td>
+						{/if}
+					</tr>
+				{/each}
+				{#if value.length > 3}
+					<div
+						class="overlay"
+						class:odd={index % 2 != 0}
+						class:even={index % 2 == 0}
+						class:button={type === "gallery"}
+					/>
+				{/if}
+			</table>
+		{/if}
 	</div>
 {/if}
 
