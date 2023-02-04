@@ -526,7 +526,10 @@ class Blocks(BlockContext):
 
     @classmethod
     def from_config(
-        cls, config: dict, fns: List[Callable], root_url: str | None = None,
+        cls,
+        config: dict,
+        fns: List[Callable],
+        root_url: str | None = None,
     ) -> Blocks:
         """
         Factory method that creates a Blocks from a config and list of functions.

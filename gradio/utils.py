@@ -453,7 +453,7 @@ class AsyncRequest:
         (2) Exceptions are handled silently during the request call, which provides the ability to inspect each one
         request call individually in the case where there are multiple asynchronous request calls and some of them fail.
         (3) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
-    
+
     AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
     information about executed request call.
 

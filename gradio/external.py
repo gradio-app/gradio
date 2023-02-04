@@ -14,6 +14,7 @@ import requests
 
 import gradio
 from gradio import components, utils
+from gradio.context import Context
 from gradio.exceptions import TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
@@ -58,6 +59,13 @@ def load_blocks_from_repo(
     assert src.lower() in factory_methods, "parameter: src must be one of {}".format(
         factory_methods.keys()
     )
+
+    if api_key is not None:
+        if Context.access_token is not None and Context.access_token != api_key:
+            warnings.warn(
+                """You are loading a model/Space with a different access token than the one you used to load a previous model/Space. This is not recommended, as it may cause unexpected behavior."""
+            )
+        Context.access_token = api_key
 
     blocks: gradio.Blocks = factory_methods[src](name, api_key, alias, **kwargs)
     return blocks
@@ -454,7 +462,7 @@ def from_spaces_blocks(config: Dict, api_key: str | None, iframe_url: str) -> Bl
             fns.append(fn)
         else:
             fns.append(None)
-    return gradio.Blocks.from_config(config, fns, iframe_url, api_key)
+    return gradio.Blocks.from_config(config, fns, iframe_url)
 
 
 def from_spaces_interface(

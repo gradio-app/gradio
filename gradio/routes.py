@@ -4,7 +4,6 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
-import httpx
 import inspect
 import json
 import mimetypes
@@ -18,6 +17,7 @@ from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urlparse
 
 import fastapi
+import httpx
 import markupsafe
 import orjson
 import pkg_resources
@@ -33,13 +33,14 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
+from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 from starlette.websockets import WebSocketState
-from starlette.background import BackgroundTask
 
 import gradio
 import gradio.ranged_response as ranged_response
 from gradio import utils
+from gradio.context import Context
 from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
@@ -268,7 +269,10 @@ class App(FastAPI):
         async def _reverse_proxy(url_path: str):
             # Adapted from: https://github.com/tiangolo/fastapi/issues/1788
             url = httpx.URL(path=url_path)
-            rp_req = client.build_request("GET", url, headers=None)
+            headers = {}
+            if Context.access_token is not None:
+                headers["Authorization"] = f"Bearer {Context.access_token}"
+            rp_req = client.build_request("GET", url, headers=headers)
             rp_resp = await client.send(rp_req, stream=True)
             return StreamingResponse(
                 rp_resp.aiter_raw(),
