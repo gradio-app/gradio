@@ -1681,7 +1681,9 @@ class Image(
     def as_example(self, input_data: str | None) -> str:
         if input_data is None:
             return ""
-        elif os.path.isabs(input_data):  # This is not the same as Path.is_absolute() when the path is a Windows path and the current OS is not Windows, or vice versa. Relevant when loading Spaces externally.
+        elif os.path.isabs(
+            input_data
+        ):  # This is not the same as Path.is_absolute() when the path is a Windows path and the current OS is not Windows, or vice versa. Relevant when loading Spaces externally.
             return input_data
         return str(utils.abspath(input_data))
 
