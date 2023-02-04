@@ -1237,6 +1237,7 @@ class Blocks(BlockContext):
             blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
+        self.app = routes.App.create_app(self)
         return self
 
     def launch(
@@ -1388,6 +1389,7 @@ class Blocks(BlockContext):
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
+            self.is_kaggle = utils.kaggle_check()
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
@@ -1410,7 +1412,7 @@ class Blocks(BlockContext):
             share
             if share is not None
             else True
-            if self.is_colab and self.enable_queue
+            if (self.is_colab and self.enable_queue) or self.is_kaggle
             else False
         )
 

@@ -4,6 +4,7 @@
 	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<[string, string]> | null;
+	let old_value: Array<[string, string]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
 
@@ -29,7 +30,12 @@
 		}
 	});
 
-	$: value && dispatch("change");
+	$: {
+		if (value !== old_value) {
+			old_value = value;
+			dispatch("change");
+		}
+	}
 
 	$: _colors = get_colors();
 
@@ -112,8 +118,10 @@
 		border-style: solid;
 		border-radius: var(--chatbot-border-radius);
 		padding: var(--size-2) var(--size-3);
+		max-width: 75%;
 		font-size: var(--scale-00);
 		line-height: var(--line-xs);
+		overflow-wrap: break-word;
 	}
 
 	.user {

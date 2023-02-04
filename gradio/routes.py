@@ -263,29 +263,17 @@ class App(FastAPI):
             else:
                 return FileResponse(blocks.favicon_path)
 
-        @app.head("/auth-file/{block_id:int}/file={path:path}", dependencies=[Depends(login_check)])
-        @app.get("/auth-file/{block_id:int}/file={path:path}", dependencies=[Depends(login_check)])
-        async def auth_file(block_id: int, path: str, request: fastapi.Request):
+        @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
+        async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            block = blocks.blocks[block_id]
-            print(block.access_token)
-            print(utils.validate_url(path))
-            if block.access_token and utils.validate_url(path):
-                headers = {"Authorization": f"Bearer {block.access_token}"}
-                r = requests.get(path, headers=headers)
-                return Response(content=r.content, media_type=r.headers["Content-Type"])
-            else:
-                return await file(path=path, request=request)
-
-        @app.head("/file={path:path}", dependencies=[Depends(login_check)])
-        @app.get("/file={path:path}", dependencies=[Depends(login_check)])
-        async def file(path: str, request: fastapi.Request):
-            abs_path = str(utils.abspath(path))
-            blocks = app.get_blocks()
-            if utils.validate_url(path):
-                return RedirectResponse(url=path, status_code=status.HTTP_302_FOUND)
-            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path).parents
-            created_by_app = str(utils.abspath(path)) in set().union(
+            if utils.validate_url(path_or_url):
+                return RedirectResponse(
+                    url=path_or_url, status_code=status.HTTP_302_FOUND
+                )
+            abs_path = str(utils.abspath(path_or_url))
+            in_app_dir = utils.abspath(app.cwd) in utils.abspath(path_or_url).parents
+            created_by_app = str(utils.abspath(path_or_url)) in set().union(
                 *blocks.temp_file_sets
             )
             if in_app_dir or created_by_app:
@@ -307,7 +295,7 @@ class App(FastAPI):
 
             else:
                 raise ValueError(
-                    f"File cannot be fetched: {path}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
+                    f"File cannot be fetched: {path_or_url}. All files must contained within the Gradio python app working directory, or be a temp file created by the Gradio python app."
                 )
 
         @app.head("/file/{path:path}", dependencies=[Depends(login_check)])
@@ -496,6 +484,7 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
+        @app.on_event("startup")
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
