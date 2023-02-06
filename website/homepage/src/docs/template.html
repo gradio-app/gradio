@@ -71,10 +71,15 @@
   </nav>
 </div>
 <main class="container mx-auto px-4 flex gap-4">
-  <div class="navigation pb-4 h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
-       style="width: 16.666667%;
-              min-width: 16.666667%;">
-    <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10">
+
+  <section class="top-0 fixed -ml-4 flex items-center p-4 hidden rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden" id="menu-bar">
+    <button type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300" onclick="document.getElementById('mobile-nav').classList.remove('hidden')">
+      <svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    </button>
+  </section>
+  
+  <div class="navigation mobile-nav overflow-y-auto hidden fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:h-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-2/12" id="mobile-nav">
+    <div class="w-full sticky top-0 bg-gradient-to-r from-white to-gray-50 z-10 hidden lg:block">
       <input id="search"
              type="search"
              class="w-4/5 m-4 rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
@@ -83,6 +88,9 @@
              onkeyup="search(this.value);"
              onsearch="search(this.value);"/>
     </div>
+    <button type="button" class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4 lg:hidden" tabindex="0" onclick="document.getElementById('mobile-nav').classList.add('hidden');">
+      <svg viewBox="0 0 10 10" class="overflow-visible" style="width: 10px"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    </button>
     <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
     <a class="thin-link px-4 block" href="#interface">Interface</a>
     <div class="sub-links hidden" hash="#interface">
@@ -159,46 +167,7 @@
               <pre class="language-bash" style="width: 97%"><code class="language-bash">pip install {{ gradio_wheel_url }}</code></pre>
             </div>
           </div>
-        {% endif %}
-
-        <section class="top-0 fixed -ml-4 flex items-center p-4 hidden rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden" id="menu-bar">
-          <button type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300" onclick="document.getElementById('mobile-nav').classList.remove('hidden')">
-            <svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-          </button>
-        </section>
-
-
-        <div class="fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 w-5/6 hidden -ml-4 inset-0 h-full overflow-y-auto mobile-nav" id="mobile-nav">
-          <button type="button" class="absolute z-10 top-4 right-4 w-4 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4" tabindex="0" onclick="document.getElementById('mobile-nav').classList.add('hidden');">
-            <svg viewBox="0 0 10 10" class="overflow-visible" style="width: 10px"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-          </button>
-          <nav id="nav" class="lg:text-sm lg:leading-6 relative">
-            <a class="link px-4 pb-1 mb-2 block" href="#building_demos">Building Demos</a>
-            <a class="thin-link px-4 pb-1 block" href="#interface">Interface</a>
-            <a class="thin-link px-4 pb-1 block" href="#flagging">Flagging</a>
-            <a class="thin-link px-4 pb-1 block" href="#combining-interfaces">Combining Interfaces</a>
-            <a class="thin-link px-4 pb-1 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
-            <a class="thin-link px-4 pb-1 block" href="#block-layouts">Block Layouts</a>
-            <a class="link px-4 my-2 pb-1 block" href="#components">Components</a>
-            {% for component in docs["component"] %}
-              <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
-            {% endfor %}
-            <a class="link pb-1 px-4 my-2 block" href="#helpers">Helpers
-            {% for component in docs["helpers"] %}
-              <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
-            {% endfor %}
-            <a class="link px-4 pb-1 my-2 block" href="#routes">Routes
-              {% for component in docs["routes"] %}
-                <a class="px-4 pb-1 block thin-link" href="#{{ component['name'].lower() }}">{{ component['name'] }}</a>
-              {% endfor %}
-          </nav>
-          </div>
-                 
-          
-
-
-
-
+        {% endif %}          
 
         <section id="building_demos" class="pt-2 flex flex-col gap-10 mb-8">
           <section class="pt-2">
