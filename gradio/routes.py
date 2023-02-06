@@ -295,7 +295,14 @@ class App(FastAPI):
             created_by_app = str(utils.abspath(path_or_url)) in set().union(
                 *blocks.temp_file_sets
             )
-            if in_app_dir or created_by_app:
+            in_file_dir = any(
+                (
+                    utils.abspath(dir) in utils.abspath(path_or_url).parents
+                    for dir in blocks.file_directories
+                )
+            )
+
+            if in_app_dir or created_by_app or in_file_dir:
                 range_val = request.headers.get("Range", "").strip()
                 if range_val.startswith("bytes=") and "-" in range_val:
                     range_val = range_val[6:]
