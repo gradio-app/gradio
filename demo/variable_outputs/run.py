@@ -7,7 +7,7 @@ def variable_outputs(k):
     return [gr.Textbox.update(visible=True)]*k + [gr.Textbox.update(visible=False)]*(max_textboxes-k)
 
 with gr.Blocks() as demo:
-    s = gr.Slider(1, max_textboxes, step=1, label="How many textboxes to show:")
+    s = gr.Slider(1, max_textboxes, value=max_textboxes, step=1, label="How many textboxes to show:")
     textboxes = []
     for i in range(max_textboxes):
         t = gr.Textbox(f"Textbox {i}")
