@@ -13,6 +13,18 @@ properly!
 
 By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3089) 
 
+
+### Allow serving files from additional directories
+
+```python
+demo = gr.Interface(...)
+demo.launch(
+  file_directories=["/var/lib/demo/path/to/resources"]
+)
+```
+
+By [@maxaudron](https://github.com/maxaudron) in [PR 3075](https://github.com/gradio-app/gradio/pull/3075) 
+
 ## Bug Fixes:
 - Fixes URL resolution on Windows by [@abidlabs](https://github.com/abidlabs) in [PR 3108](https://github.com/gradio-app/gradio/pull/3108) 
 - Example caching now works with components without a label attribute (e.g. `Column`) by [@abidlabs](https://github.com/abidlabs) in [PR 3123](https://github.com/gradio-app/gradio/pull/3123) 
