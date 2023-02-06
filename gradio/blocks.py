@@ -1291,7 +1291,7 @@ class Blocks(BlockContext):
             ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True. If the queue is enabled, then api_open parameter of .queue() will determine if the api docs are shown, independent of the value of show_api.
-            file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio script). Must be absolute paths. Warning: these files are exposed to all users of your app.
+            file_directories: List of directories that gradio is allowed to serve files from (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: any files in these directories or its children are potentially accessible to all users of your app.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo

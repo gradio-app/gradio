@@ -182,9 +182,17 @@ class TestRoutes:
         assert output["data"] == ["testtest", None]
 
     def test_get_file_allowed_by_file_directories(self):
-        allowed_file = tempfile.NamedTemporaryFile(mode="w")
+        allowed_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         allowed_file.write(media_data.BASE64_IMAGE)
         allowed_file.flush()
+
+        app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        with pytest.raises(ValueError):
+            file_response = client.get(f"/file={allowed_file.name}")
 
         app, _, _ = gr.Interface(lambda s: s.name, gr.File(), gr.File()).launch(
             prevent_thread_lock=True,
