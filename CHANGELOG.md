@@ -2,6 +2,18 @@
 
 ## New Features:
 
+### Revamped Stop Button for Interfaces 🛑
+
+If your Interface function is a generator, there used to be a separate `Stop` button displayed next
+to the `Submit` button.
+
+We've revamed the `Submit` button so that it turns into a `Stop` button during the generation process.
+Clicking on the `Stop` button will cancel the generation and turn it back to a `Submit` button. 
+The `Stop` button will automatically turn back to a `Submit` button at the end of the generation if you don't use it!
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3124](https://github.com/gradio-app/gradio/pull/3124) 
+
+
 ### Queue now works with reload mode!
 
 You can now call `queue` on your `demo` outside of the `if __name__ == "__main__"` block and

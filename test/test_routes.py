@@ -277,7 +277,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["a"]
+        assert output["data"][0] == "a"
 
         response = client.post(
             "/api/predict/",
@@ -285,7 +285,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["b"]
+        assert output["data"][0] == "b"
 
         response = client.post(
             "/api/predict/",
@@ -293,7 +293,7 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["c"]
+        assert output["data"][0] == "c"
 
         response = client.post(
             "/api/predict/",
@@ -301,7 +301,11 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == [None]
+        assert output["data"] == [
+            {"__type__": "update"},
+            {"__type__": "update", "visible": True},
+            {"__type__": "update", "visible": False},
+        ]
 
         response = client.post(
             "/api/predict/",
@@ -309,7 +313,15 @@ class TestGeneratorRoutes:
             headers={"Authorization": f"Bearer {app.queue_token}"},
         )
         output = dict(response.json())
-        assert output["data"] == ["a"]
+        assert output["data"][0] is None
+
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["abc"], "fn_index": 0, "session_hash": "11"},
+            headers={"Authorization": f"Bearer {app.queue_token}"},
+        )
+        output = dict(response.json())
+        assert output["data"][0] == "a"
 
 
 class TestApp:

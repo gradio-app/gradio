@@ -1039,6 +1039,51 @@ class TestCancel:
                 cancel.click(None, None, None, cancels=[click])
             demo.queue().launch(prevent_thread_lock=True)
 
+    @pytest.mark.asyncio
+    async def test_cancel_button_for_interfaces(self):
+        def generate(x):
+            for i in range(4):
+                yield i
+                time.sleep(0.2)
+
+        io = gr.Interface(generate, gr.Textbox(), gr.Textbox()).queue()
+        stop_btn_id = next(
+            i for i, k in io.blocks.items() if getattr(k, "value", None) == "Stop"
+        )
+        assert not io.blocks[stop_btn_id].visible
+
+        io.launch(prevent_thread_lock=True)
+
+        async with websockets.connect(
+            f"{io.local_url.replace('http', 'ws')}queue/join"
+        ) as ws:
+            completed = False
+            checked_iteration = False
+            while not completed:
+                msg = json.loads(await ws.recv())
+                if msg["msg"] == "send_data":
+                    await ws.send(json.dumps({"data": ["freddy"], "fn_index": 0}))
+                if msg["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
+                if msg["msg"] == "process_generating" and isinstance(
+                    msg["output"]["data"][0], str
+                ):
+                    checked_iteration = True
+                    assert msg["output"]["data"][1:] == [
+                        {"visible": False, "__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                    ]
+                if msg["msg"] == "process_completed":
+                    assert msg["output"]["data"] == [
+                        {"__type__": "update"},
+                        {"visible": True, "__type__": "update"},
+                        {"visible": False, "__type__": "update"},
+                    ]
+                    completed = True
+            assert checked_iteration
+
+        io.close()
+
 
 class TestEvery:
     def test_raise_exception_if_parameters_invalid(self):
