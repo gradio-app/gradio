@@ -13,11 +13,11 @@ with gr.Blocks() as demo:
         btn2 = gr.Button("Button 2")
 ```
 
-To make every element in a Row have the same height, use the `equal_height` argument.
+To make every element in a Row have the same height, use the `equal_height` argument of the `style` method.
 
 ```python
 with gr.Blocks() as demo:
-    with gr.Row(equal_height=True):
+    with gr.Row().style(equal_height=True):
         textbox = gr.Textbox()
         btn2 = gr.Button("Button 2")
 ```
@@ -56,6 +56,14 @@ Both Components and Layout elements have a `visible` argument that can set initi
 
 $code_blocks_form
 $demo_blocks_form
+
+By adjusting the visibility of components in a dynamic way, it is possible to create 
+machine learning demos that support *variable numbers of outputs*. Here's a simple example
+where the number of output textboxes is controlled by an input slider:
+
+$code_variable_outputs
+$demo_variable_outputs
+
 
 ## Defining and Rendering Components Separately
 

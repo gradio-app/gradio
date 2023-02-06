@@ -2,6 +2,18 @@
 
 ## New Features:
 
+### Revamped Stop Button for Interfaces 🛑
+
+If your Interface function is a generator, there used to be a separate `Stop` button displayed next
+to the `Submit` button.
+
+We've revamed the `Submit` button so that it turns into a `Stop` button during the generation process.
+Clicking on the `Stop` button will cancel the generation and turn it back to a `Submit` button. 
+The `Stop` button will automatically turn back to a `Submit` button at the end of the generation if you don't use it!
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3124](https://github.com/gradio-app/gradio/pull/3124) 
+
+
 ### Queue now works with reload mode!
 
 You can now call `queue` on your `demo` outside of the `if __name__ == "__main__"` block and
@@ -34,7 +46,9 @@ By [@maxaudron](https://github.com/maxaudron) in [PR 3075](https://github.com/gr
 
 ## Documentation Changes:
 - Added a guide on the 4 kinds of Gradio Interfaces by [@yvrjsharma](https://github.com/yvrjsharma) and [@abidlabs](https://github.com/abidlabs) in [PR 3003](https://github.com/gradio-app/gradio/pull/3003) 
-* Explained that the parameters in `launch` will not be respected when using reload mode, e.g. `gradio` command by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3089) 
+- Explained that the parameters in `launch` will not be respected when using reload mode, e.g. `gradio` command  by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3089](https://github.com/gradio-app/gradio/pull/3089) 
+- Added a demo to show how to set up variable numbers of outputs in Gradio by  [@abidlabs](https://github.com/abidlabs) in [PR 3127](https://github.com/gradio-app/gradio/pull/3127) 
+- Updated docs to reflect that the `equal_height` parameter should be passed to the `.style()` method of `gr.Row()` by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3125](https://github.com/gradio-app/gradio/pull/3125) 
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
