@@ -57,6 +57,14 @@ Both Components and Layout elements have a `visible` argument that can set initi
 $code_blocks_form
 $demo_blocks_form
 
+By adjusting the visibility of components in a dynamic way, it is possible to create 
+machine learning demos that support *variable numbers of outputs*. Here's a simple example
+where the number of output textboxes is controlled by an input slider:
+
+$code_variable_outputs
+$demo_variable_outputs
+
+
 ## Defining and Rendering Components Separately
 
 In some cases, you might want to define components before you actually render them in your UI. For instance, you might want to show an examples section using `gr.Examples` above the corresponding `gr.Textbox` input. Since `gr.Examples` requires as a parameter the input component object, you will need to first define the input component, but then render it later, after you have defined the `gr.Examples` object.
