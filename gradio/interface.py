@@ -647,18 +647,28 @@ class Interface(Blocks):
             extra_output = []
             if stop_btn:
 
+                # Wrap the original function to show/hide the "Stop" button
                 def fn(*args):
-                    for output in self.fn(*args):
-                        if len(self.output_components) == 1 and not self.batch:
-                            output = [output]
-                        output = [o for o in output]
-                        yield output + [
-                            Button.update(visible=False),
-                            Button.update(visible=True),
-                        ]
-                    yield [
-                        {"__type__": "generic_update"} for _ in self.output_components
-                    ] + [Button.update(visible=True), Button.update(visible=False)]
+                    # The main idea here is to call the original function
+                    # and append some updates to keep the "Submit" button
+                    # hidden and the "Stop" button visible
+                    # The 'finally' block hides the "Stop" button and
+                    # shows the "submit" button. Having a 'finally' block
+                    # will make sure the UI is "reset" even if there is an exception
+                    try:
+                        for output in self.fn(*args):
+                            if len(self.output_components) == 1 and not self.batch:
+                                output = [output]
+                            output = [o for o in output]
+                            yield output + [
+                                Button.update(visible=False),
+                                Button.update(visible=True),
+                            ]
+                    finally:
+                        yield [
+                            {"__type__": "generic_update"}
+                            for _ in self.output_components
+                        ] + [Button.update(visible=True), Button.update(visible=False)]
 
                 extra_output = [submit_btn, stop_btn]
             pred = submit_btn.click(
