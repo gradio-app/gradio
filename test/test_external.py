@@ -294,7 +294,7 @@ class TestLoadInterface:
             "spaces/gradio-tests/not-actually-private-space", api_key=api_key
         )
         try:
-            output = io("abc", None)
+            output = io("abc")
             assert output == "abc"
         except TooManyRequestsError:
             pass
