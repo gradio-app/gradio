@@ -195,6 +195,17 @@ def kaggle_check() -> bool:
     )
 
 
+def sagemaker_check() -> bool:
+    try:
+        import boto3  # type: ignore
+
+        client = boto3.client("sts")
+        response = client.get_caller_identity()
+        return "sagemaker" in response["Arn"].lower()
+    except:
+        return False
+
+
 def ipython_check() -> bool:
     """
     Check if interface is launching from iPython (not colab)
@@ -448,12 +459,12 @@ def async_iteration(iterator):
 class AsyncRequest:
     """
     The AsyncRequest class is a low-level API that allow you to create asynchronous HTTP requests without a context manager.
-    Compared to making calls by using httpx directly, AsyncRequest offers more flexibility and control over:
+    Compared to making calls by using httpx directly, AsyncRequest offers several advantages:
         (1) Includes response validation functionality both using validation models and functions.
-        (2) Since we're still using httpx.Request class by wrapping it, we have all it's functionalities.
-        (3) Exceptions are handled silently during the request call, which gives us the ability to inspect each one
-        individually in the case of multiple asynchronous request calls and some of them failing.
-        (4) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
+        (2) Exceptions are handled silently during the request call, which provides the ability to inspect each one
+        request call individually in the case where there are multiple asynchronous request calls and some of them fail.
+        (3) Provides HTTP request types with AsyncRequest.Method Enum class for ease of usage
+
     AsyncRequest also offers some util functions such as has_exception, is_valid and status to inspect get detailed
     information about executed request call.
 
