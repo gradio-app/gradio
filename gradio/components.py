@@ -1678,7 +1678,13 @@ class Image(
         )
 
     def as_example(self, input_data: str | None) -> str:
-        return "" if input_data is None else str(utils.abspath(input_data))
+        if input_data is None:
+            return ""
+        elif (
+            self.root_url
+        ):  # If an externally hosted image, don't convert to absolute path
+            return input_data
+        return str(utils.abspath(input_data))
 
 
 @document("change", "clear", "play", "pause", "stop", "style")
@@ -4974,6 +4980,8 @@ class Dataset(Clickable, Component):
             [isinstance(c, IOComponent) for c in self.components]
         ), "All components in a `Dataset` must be subclasses of `IOComponent`"
         self.components = [c for c in self.components if isinstance(c, IOComponent)]
+        for component in self.components:
+            component.root_url = self.root_url
 
         self.samples = [[]] if samples is None else samples
         for example in self.samples:

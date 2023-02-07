@@ -319,3 +319,12 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert pathlib.Path(playable_vid).suffix == ".avi"
+
+
+def test_download_private_file():
+    url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
+    access_token = "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"  # Intentionally revealing this key for testing purposes
+    file = processing_utils.download_tmp_copy_of_file(
+        url_path=url_path, access_token=access_token
+    )
+    assert file.name.endswith(".jpg")

@@ -34,7 +34,7 @@
 	export let loading_status: LoadingStatus;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root_url ?? root);
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging: boolean;
 </script>
