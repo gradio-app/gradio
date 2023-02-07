@@ -24,6 +24,8 @@ backcall==0.2.0
     # via ipython
 black==22.6.0
     # via -r requirements.in
+boto3==1.26.65    
+    # via -r requirements.in
 certifi==2022.6.15
     # via
     #   dulwich

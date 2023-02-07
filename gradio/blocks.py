@@ -1394,6 +1394,8 @@ class Blocks(BlockContext):
             self.is_running = True
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
+            self.is_sagemaker = utils.sagemaker_check()
+
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
@@ -1412,13 +1414,29 @@ class Blocks(BlockContext):
                     raise ValueError("Cannot queue with encryption enabled.")
         utils.launch_counter()
 
-        self.share = (
-            share
-            if share is not None
-            else True
-            if (self.is_colab and self.enable_queue) or self.is_kaggle
-            else False
-        )
+        if share is None:
+            if self.is_colab and self.enable_queue:
+                if not quiet:
+                    print(
+                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_kaggle:
+                if not quiet:
+                    print(
+                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            elif self.is_sagemaker:
+                if not quiet:
+                    print(
+                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
+            else:
+                self.share = False
+        else:
+            self.share = share
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
