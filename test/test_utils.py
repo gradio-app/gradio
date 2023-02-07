@@ -2,7 +2,9 @@ import copy
 import ipaddress
 import json
 import os
+import sys
 import unittest.mock as mock
+from unittest.mock import MagicMock
 import warnings
 
 import pytest
@@ -32,6 +34,7 @@ from gradio.utils import (
     kaggle_check,
     launch_analytics,
     readme_to_html,
+    sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
     strip_invalid_filename_characters,
@@ -103,6 +106,20 @@ class TestUtils:
 
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+
+    def test_sagemaker_check_false(self):
+        assert not sagemaker_check()
+
+    def test_sagemaker_check_false_if_boto3_not_installed(self):
+        with mock.patch.dict(sys.modules, {'boto3': None}, clear=True):
+            assert not sagemaker_check()
+
+    @mock.patch('boto3.session.Session.client')
+    def test_sagemaker_check_true(self, mock_client):
+        mock_client().get_caller_identity = MagicMock(return_value={
+            'Arn': 'arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker'            
+        })
+        assert sagemaker_check()
 
     def test_kaggle_check_false(self):
         assert not kaggle_check()
