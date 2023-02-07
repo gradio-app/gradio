@@ -159,24 +159,24 @@
 			</table>
 		</div>
 	{/if}
+	{#if paginate}
+		<div class="paginate">
+			Pages:
+			{#each visible_pages as visible_page}
+				{#if visible_page === -1}
+					<div>...</div>
+				{:else}
+					<button
+						class:current-page={page === visible_page}
+						on:click={() => (page = visible_page)}
+					>
+						{visible_page + 1}
+					</button>
+				{/if}
+			{/each}
+		</div>
+	{/if}
 </div>
-{#if paginate}
-	<div class="paginate">
-		Pages:
-		{#each visible_pages as visible_page}
-			{#if visible_page === -1}
-				<div>...</div>
-			{:else}
-				<button
-					class:current-page={page === visible_page}
-					on:click={() => (page = visible_page)}
-				>
-					{visible_page + 1}
-				</button>
-			{/if}
-		{/each}
-	</div>
-{/if}
 
 <style>
 	.wrap {
@@ -288,6 +288,8 @@
 		justify-content: center;
 		align-items: center;
 		gap: var(--size-2);
+		margin-top: var(--size-2);
+		color: var(--color-text-label);
 		font-size: var(--scale-000);
 	}
 
