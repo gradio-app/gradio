@@ -26,9 +26,6 @@
 	const iconClearPath =
 		"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z";
 
-	const iconCheckMarkPath =
-		"M 2.328125 4.222656 L 27.734375 4.222656 L 27.734375 24.542969 L 2.328125 24.542969 Z M 2.328125 4.222656";
-
 	function add(option: string) {
 		if (Array.isArray(value)) {
 			value.push(option);
@@ -52,10 +49,6 @@
 		}
 	}
 
-	function handleBlur(e: any) {
-		optionsVisibility(false);
-	}
-
 	function handleKeyup(e: any) {
 		if (e.key === "Enter") {
 			if (Array.isArray(value) && activeOption != undefined) {
@@ -75,9 +68,10 @@
 		}
 	}
 
-	function remove_all() {
+	function remove_all(e: any) {
 		value = [];
 		inputValue = "";
+		e.preventDefault();
 	}
 
 	function handleOptionMousedown(e: any) {
@@ -97,7 +91,7 @@
 	<div class="wrap-inner" class:showOptions>
 		{#if Array.isArray(value)}
 			{#each value as s}
-				<div on:click|stopPropagation={() => remove(s)} class="token">
+				<div on:click|preventDefault={() => remove(s)} class="token">
 					<span>{s}</span>
 					<div class:hidden={disabled} class="token-remove" title="Remove {s}">
 						<svg
@@ -119,12 +113,12 @@
 				autocomplete="off"
 				bind:value={inputValue}
 				on:focus={() => optionsVisibility(true)}
-				on:blur={handleBlur}
+				on:blur={() => optionsVisibility(false)}
 				on:keyup={handleKeyup}
 				{placeholder}
 			/>
 			<div
-				class:hidden={!value?.length || disabled}
+				class:hide={!value?.length || disabled}
 				class="token-remove remove-all"
 				title="Remove All"
 				on:click={remove_all}
@@ -166,10 +160,7 @@
 					class:dark:bg-gray-600={activeOption === choice}
 					data-value={choice}
 				>
-					<span
-						class:invisible={!value?.includes(choice)}
-						class="inner-item pr-1"
-					>
+					<span class:hide={!value?.includes(choice)} class="inner-item pr-1">
 						✓
 					</span>
 					{choice}
@@ -284,7 +275,15 @@
 		background: var(--color-background-secondary);
 	}
 
+	.active {
+		background: var(--color-background-secondary);
+	}
+
 	.inner-item {
 		padding-right: var(--size-1);
+	}
+
+	.hide {
+		visibility: hidden;
 	}
 </style>
