@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from gradio import Interface, media_data, processing_utils
+from gradio import media_data, processing_utils
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
