@@ -27,6 +27,7 @@
 	export let mirror_webcam: boolean;
 
 	let sketch: Sketch;
+	let cropper: Cropper;
 
 	if (
 		value &&
@@ -146,6 +147,17 @@
 			static_image = undefined;
 		}
 	}
+
+	$: {
+		if (cropper) {
+			if (value) {
+				cropper.image = value;
+				cropper.create();
+			} else {
+				cropper.destroy();
+			}
+		}
+	}
 </script>
 
 <BlockLabel
@@ -173,7 +185,7 @@
 			{#if (value === null && !static_image) || streaming}
 				<slot />
 			{:else if tool === "select"}
-				<Cropper image={value} on:crop={handle_save} />
+				<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
 				<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 			{:else if tool === "editor"}
 				<ModifyUpload
@@ -274,7 +286,7 @@
 			/>
 		{/if}
 	{:else if tool === "select"}
-		<Cropper image={value} on:crop={handle_save} />
+		<Cropper bind:this={cropper} image={value} on:crop={handle_save} />
 		<ModifyUpload on:clear={(e) => (handle_clear(e), (tool = "editor"))} />
 	{:else if tool === "editor"}
 		<ModifyUpload
