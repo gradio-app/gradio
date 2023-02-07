@@ -195,6 +195,16 @@ def kaggle_check() -> bool:
     )
 
 
+def sagemaker_check() -> bool:
+    try:
+        import boto3
+        client = boto3.client("sts")
+        response = client.get_caller_identity()        
+        return "sagemaker" in response["Arn"].lower()
+    except:
+        return False
+
+
 def ipython_check() -> bool:
     """
     Check if interface is launching from iPython (not colab)
