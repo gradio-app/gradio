@@ -197,7 +197,7 @@ def kaggle_check() -> bool:
 
 def sagemaker_check() -> bool:
     try:
-        import boto3
+        import boto3  # type: ignore
 
         client = boto3.client("sts")
         response = client.get_caller_identity()
