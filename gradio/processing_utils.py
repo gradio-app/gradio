@@ -415,25 +415,15 @@ def download_tmp_copy_of_file(
 ) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    if access_token:
-        headers = {"Authorization": "Bearer " + access_token}
-    else:
-        headers = {}
-    file_name = Path(url_path).name
-    prefix, extension = file_name, None
-    if "." in file_name:
-        prefix = file_name[0 : file_name.index(".")]
-        extension = file_name[file_name.index(".") + 1 :]
-    prefix = utils.strip_invalid_filename_characters(prefix)
-    if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
-    else:
-        file_obj = tempfile.NamedTemporaryFile(
-            delete=False,
-            prefix=prefix,
-            suffix="." + extension,
-            dir=dir,
-        )
+    headers = {"Authorization": "Bearer " + access_token} if access_token else {}
+    prefix = Path(url_path).stem
+    suffix = Path(url_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
     with requests.get(url_path, headers=headers, stream=True) as r:
         with open(file_obj.name, "wb") as f:
             shutil.copyfileobj(r.raw, f)
@@ -445,21 +435,14 @@ def create_tmp_copy_of_file(
 ) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
-    file_name = Path(file_path).name
-    prefix, extension = file_name, None
-    if "." in file_name:
-        prefix = file_name[0 : file_name.index(".")]
-        extension = file_name[file_name.index(".") + 1 :]
-    prefix = utils.strip_invalid_filename_characters(prefix)
-    if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
-    else:
-        file_obj = tempfile.NamedTemporaryFile(
-            delete=False,
-            prefix=prefix,
-            suffix="." + extension,
-            dir=dir,
-        )
+    prefix = Path(file_path).stem
+    suffix = Path(file_path).suffix
+    file_obj = tempfile.NamedTemporaryFile(
+        delete=False,
+        prefix=prefix,
+        suffix=suffix,
+        dir=dir,
+    )
     shutil.copy2(file_path, file_obj.name)
     return file_obj
 

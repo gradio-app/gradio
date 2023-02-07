@@ -299,6 +299,17 @@ class TestLoadInterface:
         except TooManyRequestsError:
             pass
 
+    def test_private_space_audio(self):
+        api_key = "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"  # Intentionally revealing this key for testing purposes
+        io = gr.Interface.load(
+            "spaces/gradio-tests/not-actually-private-space-audio", api_key=api_key
+        )
+        try:
+            output = io(media_data.BASE64_AUDIO["name"])
+            assert output.endswith(".wav")
+        except TooManyRequestsError:
+            pass
+
     def test_multiple_spaces_one_private(self):
         api_key = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
