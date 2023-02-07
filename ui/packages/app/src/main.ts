@@ -243,6 +243,12 @@ function create_custom_element() {
 			const space = this.getAttribute("space");
 			const src = this.getAttribute("src");
 
+			const x = await (
+				await fetch(`https://huggingface.co/api/spaces/${space}`)
+			).json();
+
+			console.log({ SPACE_DETAILS: x });
+
 			const source = host
 				? `https://${host}`
 				: space
