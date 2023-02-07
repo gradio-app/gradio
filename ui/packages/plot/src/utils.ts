@@ -1,30 +1,30 @@
 import type { Config as VegaConfig } from "vega";
 
-const light = "#e2e8f0";
-const dark = "#111827";
+const dark = "#e2e8f0";
+const light = "#111827";
 
 export function create_config(darkmode: boolean): VegaConfig {
 	return {
 		axis: {
 			labelFont: "sans-serif",
-			labelColor: dark,
+			labelColor: darkmode ? dark : light,
 			titleFont: "sans-serif",
-			titleColor: dark,
+			titleColor: darkmode ? dark : light,
 			tickColor: "#aaa",
 			gridColor: "#aaa",
 			titleFontWeight: "normal",
 			labelFontWeight: "normal"
 		},
 		legend: {
-			labelColor: dark,
+			labelColor: darkmode ? dark : light,
 			labelFont: "sans-serif",
-			titleColor: dark,
+			titleColor: darkmode ? dark : light,
 			titleFont: "sans-serif",
 			titleFontWeight: "normal",
 			labelFontWeight: "normal"
 		},
 		title: {
-			color: dark,
+			color: darkmode ? dark : light,
 			font: "sans-serif",
 			fontWeight: "normal"
 		}
