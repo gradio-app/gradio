@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from gradio import processing_utils, utils
+from gradio.context import Context
 
 
 class Serializable(ABC):
@@ -164,9 +165,11 @@ class FileSerializable(Serializable):
         elif isinstance(x, dict):
             if x.get("is_file", False):
                 if root_url is not None:
-                    x["name"] = urllib.parse.urljoin(root_url, "file=" + x["name"])
-                if utils.validate_url(x["name"]):
-                    file_name = x["name"]
+                    file_name = processing_utils.download_tmp_copy_of_file(
+                        root_url + "file=" + x["name"],
+                        access_token=Context.access_token,
+                        dir=save_dir,
+                    ).name
                 else:
                     file_name = processing_utils.create_tmp_copy_of_file(
                         x["name"], dir=save_dir

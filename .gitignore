@@ -22,6 +22,7 @@ gradio/templates/frontend
 gradio/launches.json
 flagged/
 gradio_cached_examples/
+tmp.zip
 
 # Tests
 .coverage

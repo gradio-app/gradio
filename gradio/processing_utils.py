@@ -410,7 +410,39 @@ class TempFileManager:
         return full_temp_file_path
 
 
-def create_tmp_copy_of_file(file_path, dir=None):
+def download_tmp_copy_of_file(
+    url_path: str, access_token: str | None = None, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+    if access_token:
+        headers = {"Authorization": "Bearer " + access_token}
+    else:
+        headers = {}
+    file_name = Path(url_path).name
+    prefix, extension = file_name, None
+    if "." in file_name:
+        prefix = file_name[0 : file_name.index(".")]
+        extension = file_name[file_name.index(".") + 1 :]
+    prefix = utils.strip_invalid_filename_characters(prefix)
+    if extension is None:
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, dir=dir)
+    else:
+        file_obj = tempfile.NamedTemporaryFile(
+            delete=False,
+            prefix=prefix,
+            suffix="." + extension,
+            dir=dir,
+        )
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        with open(file_obj.name, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    return file_obj
+
+
+def create_tmp_copy_of_file(
+    file_path: str, dir: str | None = None
+) -> tempfile._TemporaryFileWrapper:
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     file_name = Path(file_path).name
