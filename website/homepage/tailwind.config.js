@@ -27,6 +27,9 @@ module.exports = {
           900: '#5C2D00',
         },
       },
+      minWidth: {
+        '2/12': '16.666667%',
+      },
     },
   },
   mode: 'jit',
