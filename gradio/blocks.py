@@ -1392,7 +1392,7 @@ class Blocks(BlockContext):
             self.is_colab = utils.colab_check()
             self.is_kaggle = utils.kaggle_check()
             self.is_sagemaker = utils.sagemaker_check()
-            
+
             self.protocol = (
                 "https"
                 if self.local_url.startswith("https") or self.is_colab
@@ -1412,18 +1412,24 @@ class Blocks(BlockContext):
         utils.launch_counter()
 
         if share is None:
-            if (self.is_colab and self.enable_queue):
+            if self.is_colab and self.enable_queue:
                 if not quiet:
-                    print("Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n")
+                    print(
+                        "Setting queue=True in a Colab notebook requires sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
                 self.share = True
             elif self.is_kaggle:
                 if not quiet:
-                    print("Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n")
+                    print(
+                        "Kaggle notebooks require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
                 self.share = True
             elif self.is_sagemaker:
                 if not quiet:
-                    print("Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n")
-                self.share = True 
+                    print(
+                        "Sagemaker notebooks may require sharing enabled. Setting `share=True` (you can turn this off by setting `share=False` in `launch()` explicitly).\n"
+                    )
+                self.share = True
             else:
                 self.share = False
         else:

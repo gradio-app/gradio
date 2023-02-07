@@ -4,8 +4,8 @@ import json
 import os
 import sys
 import unittest.mock as mock
-from unittest.mock import MagicMock
 import warnings
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -111,14 +111,16 @@ class TestUtils:
         assert not sagemaker_check()
 
     def test_sagemaker_check_false_if_boto3_not_installed(self):
-        with mock.patch.dict(sys.modules, {'boto3': None}, clear=True):
+        with mock.patch.dict(sys.modules, {"boto3": None}, clear=True):
             assert not sagemaker_check()
 
-    @mock.patch('boto3.session.Session.client')
+    @mock.patch("boto3.session.Session.client")
     def test_sagemaker_check_true(self, mock_client):
-        mock_client().get_caller_identity = MagicMock(return_value={
-            'Arn': 'arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker'            
-        })
+        mock_client().get_caller_identity = MagicMock(
+            return_value={
+                "Arn": "arn:aws:sts::67364438:assumed-role/SageMaker-Datascients/SageMaker"
+            }
+        )
         assert sagemaker_check()
 
     def test_kaggle_check_false(self):
