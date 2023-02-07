@@ -13,7 +13,7 @@ with gr.Blocks(css=css) as demo:
         title="Stock Prices",
         tooltip=["date", "price", "symbol"],
         height=300,
-        width=500,
+        width=300,
         show_label=False,
     ).style(
         container=False,
