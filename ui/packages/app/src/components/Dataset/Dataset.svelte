@@ -16,7 +16,9 @@
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
-	let samples_dir: string = (root_url ?? root) + "file=";
+	let samples_dir: string = root_url
+		? "proxy=" + root_url + "file="
+		: root + "file=";
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;

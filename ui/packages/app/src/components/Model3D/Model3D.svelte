@@ -23,7 +23,7 @@
 	export let show_label: boolean;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value, root_url ?? root);
+	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
 </script>
