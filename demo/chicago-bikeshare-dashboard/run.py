@@ -66,9 +66,6 @@ def get_most_popular_stations():
         height=300,
         width=300
     )
-    # ax.set_xticklabels(df["station"], rotation=45, ha="right", rotation_mode="anchor")
-    # ax.tick_params(axis="x", labelsize=8)
-
 
 
 with gr.Blocks() as demo:
