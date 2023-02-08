@@ -184,19 +184,4 @@ def url_ok(url: str) -> bool:
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
     return False
-
-
-def restart_share_link_if_down(
-    blocks: Blocks,
-    ping_interval: int = 1,
-):
-    while True:
-        print("--")
-        share_url = blocks.share_url
-        assert share_url is not None, "This Gradio app does not have a share link."
-        if utils.validate_url(share_url):
-            pass
-        else:
-            print("Disconnected from Gradio API Server...")
-        time.sleep(ping_interval)
             
