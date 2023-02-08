@@ -7,7 +7,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-No changes to highlight.
+* Sort components in docs by alphabetic order by [@aliabd](https://github.com/aliabd) in [PR 3152](https://github.com/gradio-app/gradio/pull/3152)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
