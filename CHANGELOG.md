@@ -7,7 +7,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Documentation Changes:
-* Changes to W&B guide by [@aliabd](https://github.com/aliabd) in  [PR 3153](https://github.com/gradio-app/gradio/pull/3153)
+* Changes to W&B guide by [@scottire](https://github.com/scottire) in  [PR 3153](https://github.com/gradio-app/gradio/pull/3153)
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
