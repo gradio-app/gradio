@@ -7,6 +7,7 @@ import json
 import os
 import pkgutil
 import random
+import secrets
 import sys
 import time
 import threading
@@ -72,6 +73,7 @@ class Block:
         self.visible = visible
         self.elem_id = elem_id
         self.root_url = root_url
+        self.share_token = secrets.token_urlsafe(32)
         self._skip_init_processing = _skip_init_processing
         self._style = {}
         self.parent: BlockContext | None = None

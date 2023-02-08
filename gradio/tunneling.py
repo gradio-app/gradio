@@ -11,13 +11,14 @@ CURRENT_TUNNELS: List["Tunnel"] = []
 
 
 class Tunnel:
-    def __init__(self, remote_host, remote_port, local_host, local_port):
+    def __init__(self, remote_host, remote_port, local_host, local_port, share_token):
         self.proc = None
         self.url = None
         self.remote_host = remote_host
         self.remote_port = remote_port
         self.local_host = local_host
         self.local_port = local_port
+        self.share_token = share_token
 
     @staticmethod
     def download_binary():
@@ -84,6 +85,8 @@ class Tunnel:
             "--server_addr",
             f"{self.remote_host}:{self.remote_port}",
             "--disable_log_color",
+            "--token",
+            self.share_token,
         ]
 
         self.proc = subprocess.Popen(
