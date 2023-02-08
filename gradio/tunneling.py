@@ -88,7 +88,7 @@ class Tunnel:
             "--token",
             self.share_token,
         ]
-
+        print("Command:", " ".join(command))
         self.proc = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
