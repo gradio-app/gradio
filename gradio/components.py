@@ -4591,8 +4591,8 @@ class LinePlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
         """
@@ -4907,25 +4907,23 @@ class BarPlot(Plot):
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
-            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
-            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
+            group: The column with which to split the overall plot into smaller subplots.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
-            stroke_dash_legend_title: The title given to the stroke_dash legend. By default, uses the value of the stroke_dash parameter.
+            group_title: The title used toUse an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
-            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: Unique id used for custom css targetting.
         """
@@ -4988,7 +4986,7 @@ class BarPlot(Plot):
         show_label: bool = True,
         visible: bool = True,
     ):
-        """Update an existing plot component.
+        """Update an existing BarPlot component.
 
         If updating any of the plot properties (color, size, etc) the value, x, and y parameters must be specified.
 
@@ -4997,23 +4995,21 @@ class BarPlot(Plot):
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
-            stroke_dash: The column to determine the symbol used to draw the line, e.g. dashed lines, dashed lines with points.
-            overlay_point: Whether to draw a point on the line for each (x, y) coordinate pair.
+            vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
+            group: The column with which to split the overall plot into smaller subplots.
             title: The title to display on top of the chart.
             tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
-            stroke_dash_legend_title: The title given to the stroke legend. By default, uses the value of stroke parameter.
-            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
-            stroke_dash_legend_position: The position of the stoke_dash legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation
+            group_title: The title used toUse an empty string to omit.
+            color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
-            x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
-            label: The (optional) label to display in the top left corner of the plot.
+            label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
         """

@@ -17,6 +17,7 @@ def bar_plot_fn(display):
             y="b",
             title="Simple Bar Plot with made up data",
             tooltip=['a', 'b'],
+            y_lim=[20, 100]
         )
     elif display == "stacked":
         return gr.BarPlot.update(
@@ -25,7 +26,7 @@ def bar_plot_fn(display):
             y="yield",
             color="site",
             title="Barley Yield Data",
-            tooltip=['variety', "yield", "site"]
+            tooltip=['variety', "yield"]
         )
     elif display == "grouped":
         return gr.BarPlot.update(
@@ -47,7 +48,8 @@ def bar_plot_fn(display):
             y_title="Variable B",
             title="Simple Bar Plot with made up data",
             tooltip=['a', 'b'],
-            vertical=False
+            vertical=False,
+            y_lim=[20, 100]
         )
     elif display == "stacked-horizontal":
         return gr.BarPlot.update(
