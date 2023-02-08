@@ -10,6 +10,7 @@ from gradio.components import (
     HTML,
     JSON,
     Audio,
+    BarPlot,
     Button,
     Carousel,
     Chatbot,
@@ -48,7 +49,6 @@ from gradio.components import (
     Variable,
     Video,
     component,
-    BarPlot
 )
 from gradio.exceptions import Error
 from gradio.flagging import (

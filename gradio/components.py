@@ -4371,11 +4371,11 @@ class ScatterPlot(Plot):
             color_legend_position,
             size_legend_position,
             shape_legend_position,
-            interactive,
             height,
             width,
             x_lim,
             y_lim,
+            interactive,
         ]
         if any(properties):
             if not isinstance(value, pd.DataFrame):
@@ -4890,7 +4890,6 @@ class BarPlot(Plot):
         color_legend_title: str | None = None,
         group_title: str | None = None,
         color_legend_position: str | None = None,
-        group_title_position: str | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: List[int] | None = None,
@@ -4943,7 +4942,6 @@ class BarPlot(Plot):
         self.color_legend_title = color_legend_title
         self.group_title = group_title
         self.color_legend_position = color_legend_position
-        self.group_title_position = group_title_position
         self.y_lim = y_lim
         self.caption = caption
         self.interactive_chart = interactive
@@ -4981,7 +4979,6 @@ class BarPlot(Plot):
         color_legend_title: str | None = None,
         group_title: str | None = None,
         color_legend_position: str | None = None,
-        group_title_position: str | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: List[int] | None = None,
@@ -5033,7 +5030,6 @@ class BarPlot(Plot):
             color_legend_title,
             group_title,
             color_legend_position,
-            group_title_position,
             height,
             width,
             y_lim,
@@ -5052,7 +5048,7 @@ class BarPlot(Plot):
                     "must be specified. Please pass valid values for x an y to "
                     "gr.BarPlot.update."
                 )
-            chart = LinePlot.create_plot(value, *properties)
+            chart = BarPlot.create_plot(value, *properties)
             value = {"type": "altair", "plot": chart.to_json(), "chart": "bar"}
 
         updated_config = {
@@ -5080,7 +5076,6 @@ class BarPlot(Plot):
         color_legend_title: str | None = None,
         group_title: str | None = None,
         color_legend_position: str | None = None,
-        group_title_position: str | None = None,
         height: int | None = None,
         width: int | None = None,
         y_lim: List[int] | None = None,
@@ -5088,23 +5083,37 @@ class BarPlot(Plot):
     ):
         """Helper for creating the scatter plot."""
         interactive = True if interactive is None else interactive
-        orientation = {"column": alt.Column(field=group, title=group_title or group)} if group else {} # type: ignore
-        
-        {"column": group} if group else {"column": None}
+        orientation = (
+            dict(field=group, title=group_title if group_title is not None else group)
+            if group
+            else {}
+        )
+
+        x_title = x_title or x
+        y_title = y_title or y
+
         # If horizontal, switch x and y
         if not vertical:
             y, x = x, y
+            x = f"sum({x}):Q"
             y_title, x_title = x_title, y_title
-            orientation = {"row": alt.Column(field=group, title=group_title or group)} if group else {} # type: ignore
+            orientation = {"row": alt.Row(**orientation)} if orientation else {}  # type: ignore
+            x_lim = y_lim
+            y_lim = None
+        else:
+            y = f"sum({y}):Q"
+            x_lim = None
+            orientation = {"column": alt.Column(**orientation)} if orientation else {}  # type: ignore
 
         encodings = dict(
             x=alt.X(
                 x,  # type: ignore
-                title=x_title or x,  # type: ignore
+                title=x_title,  # type: ignore
+                scale=AltairPlot.create_scale(x_lim),  # type: ignore
             ),
             y=alt.Y(
-                f"sum({y}):Q",  # type: ignore
-                title=y_title or y,  # type: ignore
+                y,  # type: ignore
+                title=y_title,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
             **orientation,
@@ -5138,8 +5147,8 @@ class BarPlot(Plot):
             .encode(**encodings)
             .properties(background="transparent", **properties)
         )
-        # if interactive:
-        #     chart = chart.interactive()
+        if interactive:
+            chart = chart.interactive()
 
         return chart
 
@@ -5163,7 +5172,6 @@ class BarPlot(Plot):
             color_legend_title=self.color_legend_title,
             color_legend_position=self.color_legend_position,
             group_title=self.group_title,
-            group_title_position=self.group_title_position,
             y_lim=self.y_lim,
             interactive=self.interactive_chart,
             height=self.height,

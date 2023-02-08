@@ -58,12 +58,16 @@
 						);
 					}
 				});
+				break;
 			case "bar":
+				console.log("In Bar");
+				console.log(spec);
 				if (spec.encoding.color) {
 					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
 							(e, i) => get_color(i)
 						);
 				}
+				break;
 			default:
 				break;
 		}
