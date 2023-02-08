@@ -1,7 +1,31 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### New `gr.BarPlot` component! 📊
+
+Create interactive bar plots from a high-level interface with `gr.BarPlot`. 
+No need to remember matplotlib syntax anymore!
+
+Example usage:
+
+```python
+gr.BarPlot.update(
+    barley,
+    x="year",
+    y="yield",
+    color="year",
+    group="site",
+    title="Barley Yield by Year and Site",
+    group_title="",
+    tooltip=["yield", "site", "year"],
+    vertical=False
+    )
+```
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://github.com/gradio-app/gradio/pull/3157)
+
 
 ## Bug Fixes:
 No changes to highlight.
