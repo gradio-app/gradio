@@ -107,7 +107,6 @@ class App(FastAPI):
         self.state_holder = {}
         self.iterators = defaultdict(dict)
         self.lock = asyncio.Lock()
-        self.share_token = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         super().__init__(**kwargs)
