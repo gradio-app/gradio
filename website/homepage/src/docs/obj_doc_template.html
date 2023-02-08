@@ -23,6 +23,9 @@
 
         >{{ demo_name }}</button>
         {% endfor %}
+        <button type="button" class="absolute right-0 top-0 w-14 flex items-center text-grey-600 hover:text-slate-600 py-8 px-5 bg-white" tabindex="0" onclick="this.parentElement.parentElement.parentElement.classList.add('hidden');">
+          <svg viewBox="0 0 10 10" class="overflow-visible text-gray-500 w-full"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+        </button>
       </div>
       {% for demo_name, demo_code in obj["demos"] %}
       <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
