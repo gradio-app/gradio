@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Tuple
 import requests
 import uvicorn
 
-from gradio import utils
 from gradio.routes import App
 from gradio.tunneling import Tunnel
 
@@ -163,7 +162,9 @@ def setup_tunnel(local_host: str, local_port: int, share_token: str) -> str:
         try:
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-            tunnel = Tunnel(remote_host, remote_port, local_host, local_port, share_token)
+            tunnel = Tunnel(
+                remote_host, remote_port, local_host, local_port, share_token
+            )
             address = tunnel.start_tunnel()
             return address
         except Exception as e:
@@ -184,4 +185,3 @@ def url_ok(url: str) -> bool:
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
     return False
-            
