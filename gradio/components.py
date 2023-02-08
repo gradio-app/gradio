@@ -5103,7 +5103,7 @@ class BarPlot(Plot):
                 title=x_title or x,  # type: ignore
             ),
             y=alt.Y(
-                y,  # type: ignore
+                f"sum({y}):Q",  # type: ignore
                 title=y_title or y,  # type: ignore
                 scale=AltairPlot.create_scale(y_lim),  # type: ignore
             ),
@@ -5138,8 +5138,8 @@ class BarPlot(Plot):
             .encode(**encodings)
             .properties(background="transparent", **properties)
         )
-        if interactive:
-            chart = chart.interactive()
+        # if interactive:
+        #     chart = chart.interactive()
 
         return chart
 

@@ -58,6 +58,12 @@
 						);
 					}
 				});
+			case "bar":
+				if (spec.encoding.color) {
+					spec.encoding.color.scale.range = spec.encoding.color.scale.range.map(
+							(e, i) => get_color(i)
+						);
+				}
 			default:
 				break;
 		}
