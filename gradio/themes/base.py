@@ -6,9 +6,9 @@ class Default(Theme):
     def __init__(
         self,
         *,
-        primary_hue: Color = colors.orange,
-        secondary_hue: Color = colors.blue,
-        neutral_hue: Color = colors.gray,
+        primary_hue: Color,
+        secondary_hue: Color,
+        neutral_hue: Color,
     ):
         # Core values
         self.color_accent_base = self._color(primary_hue, 500)

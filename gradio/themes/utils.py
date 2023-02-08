@@ -1,5 +1,19 @@
 from __future__ import annotations
 
+class Color:
+    def __init__(self, c10, c50, c100, c200, c300, c400, c500, c600, c700, c800, c900, c950):
+        self.c10 = c10
+        self.c50 = c50
+        self.c100 = c100
+        self.c200 = c200
+        self.c300 = c300
+        self.c400 = c400
+        self.c500 = c500
+        self.c600 = c600
+        self.c700 = c700
+        self.c800 = c800
+        self.c900 = c900
+        self.c950 = c950
 
 class Theme:
     def _color(self, color: str, number: int = 500):
