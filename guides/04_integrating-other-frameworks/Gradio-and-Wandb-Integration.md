@@ -255,6 +255,29 @@ Let's get started!
     &lt;gradio-app space="akhaliq/JoJoGAN"&gt; &lt;gradio-app&gt;
     ```
 
+
+7. (Optional) Embed W&B plots in your Gradio App
+
+    It's also possible to embed W&B plots within Gradio apps. To do so, you can create a W&B Report of your plots and 
+    embed them within your Gradio app within a `gr.HTML` block. 
+
+    The Report will need to be public and you will need to wrap the URL within an iFrame like this: 
+    ```python
+    
+    import gradio as gr
+    
+    def wandb_report(url):
+        iframe = f'&lt;iframe src={url} style="border:none;height:1024px;width:100%"&gt;'
+        return gr.HTML(iframe)
+    
+    with gr.Blocks() as demo:
+        report_url = 'https://wandb.ai/_scott/pytorch-sweeps-demo/reports/loss-22-10-07-16-00-17---VmlldzoyNzU2NzAx'
+        report = wandb_report(report_url)
+    
+    demo.launch(share=True)
+    ```
+
+
 ## Conclusion
 
 We hope you enjoyed this brief demo of embedding a Gradio demo to a W&B report! Thanks for making it to the end. To recap:
