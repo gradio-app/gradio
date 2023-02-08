@@ -10,7 +10,6 @@ import random
 import secrets
 import sys
 import time
-import threading
 import warnings
 import webbrowser
 from abc import abstractmethod
@@ -1473,9 +1472,8 @@ class Blocks(BlockContext):
             try:
                 if self.share_url is None:
                     self.share_url = networking.setup_tunnel(
-                        self.server_name, self.server_port
+                        self.server_name, self.server_port, self.share_token
                     )
-                threading.Thread(target=networking.restart_share_link_if_down, args=(self,)).start()
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
