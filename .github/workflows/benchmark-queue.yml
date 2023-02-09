@@ -36,6 +36,7 @@ jobs:
           bash scripts/install_gradio.sh
       - name: Run benchmarking script
         run: |
+        . venv/bin/activate
           python scripts/benchmark_queue.py data-this-pr.json
       - name: Get PR Number
         run: |

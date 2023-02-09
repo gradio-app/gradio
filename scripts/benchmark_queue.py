@@ -66,7 +66,7 @@ async def get_prediction(host):
                 return {"fn_to_hit": name, "duration": end - start}
 
 
-async def main(host, n_results=1000):
+async def main(host, n_results=20):
     results = []
     while len(results) < n_results:
         batch_results = await asyncio.gather(*[get_prediction(host) for _ in range(20)])
