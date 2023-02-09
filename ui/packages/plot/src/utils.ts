@@ -26,7 +26,8 @@ export function create_config(darkmode: boolean): VegaConfig {
 		title: {
 			color: darkmode ? dark : light,
 			font: "sans-serif",
-			fontWeight: "normal"
+			fontWeight: "normal",
+			anchor: "middle"
 		}
 	};
 }
