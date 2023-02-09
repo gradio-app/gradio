@@ -5,6 +5,72 @@ import numpy as np
 
 import gradio as gr
 
+css = """
+:root {
+    --accent-lighter: #DDEEF2;
+    --accent-light: #4D9DCE;
+    --accent-base: #1C5B92;
+    --accent-dark:#154876;
+    --accent-darker: #0E385E;
+
+    --start-color: var(--accent-light);
+    --mid-color: var(--accent-base);
+    --end-color: var(--accent-dark);
+
+    --color-background-primary: var(--accent-light);
+    --color-background-secondary: var(--accent-base);
+  
+    --color-background-tertiary: linear-gradient(45deg, 
+                                    var(--start-color),
+                                    var(--mid-color), 
+                                    var(--end-color)
+                                 );;
+
+    --button-primary-background-base: var(--accent-dark);
+    --button-primary-background-hover: var(--accent-base);
+    --button-primary-background-focus: var(--accent-light);
+
+    --color-border-primary:   var(--accent-darker);
+    --color-border-secondary: var(--accent-dark);
+    --color-border-highlight: var(--accent-dark);
+
+    --input-background-base:  var(--accent-darker);
+    --input-background-hover: var(--accent-light);
+    --input-background-focus: var(--accent-dark);
+
+    --block_label-background: var(--start-color);
+
+    --color-text-body: var(--accent-lighter);
+    --color-text-label: var(--accent-lighter);
+
+    --color-border-primary: var(--accent-base);
+    --color-border-secondary: var(--accent-light);
+    --color-border-highlight: var(--accent-dark);
+
+    --checkbox-label-background-base: var(--accent-dark);
+    --checkbox-label-background-focus: var(--accent-darker);
+    --checkbox-label-background-hover: var(--accent-darker);
+
+    --color-orange-200: var(--accent-lighter);
+    --color-orange-400: var(--accent-light);
+    --color-orange-600: var(--accent-dark);
+    --color-orange-700: var(--accent-dark);
+    --color-orange-900: var(--accent-darker);
+
+    --color-gray-50: var(--accent-lighter);
+    --color-gray-400: var(--accent-base);
+    --color-gray-600: var(--accent-dark);
+    --color-gray-700: var(--accent-dark);
+    --color-gray-900: var(--accent-darker);
+
+    }
+
+
+# .dark {
+#     --color-background-primary: teal;
+# }
+"""
+
 CHOICES = ["foo", "bar", "baz"]
 JSONOBJ = """{"items":{"item":[{"id": "0001","type": null,"is_good": false,"ppu": 0.55,"batters":{"batter":[{ "id": "1001", "type": "Regular" },{ "id": "1002", "type": "Chocolate" },{ "id": "1003", "type": "Blueberry" },{ "id": "1004", "type": "Devil's Food" }]},"topping":[{ "id": "5001", "type": "None" },{ "id": "5002", "type": "Glazed" },{ "id": "5005", "type": "Sugar" },{ "id": "5007", "type": "Powdered Sugar" },{ "id": "5006", "type": "Chocolate with Sprinkles" },{ "id": "5003", "type": "Chocolate" },{ "id": "5004", "type": "Maple" }]}]}}"""
 
@@ -86,6 +152,7 @@ def fn(
 
 demo = gr.Interface(
     fn,
+    css=css,
     inputs=[
         gr.Textbox(value="Lorem ipsum", label="Textbox"),
         gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
