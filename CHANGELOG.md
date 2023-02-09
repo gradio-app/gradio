@@ -1,7 +1,38 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
+
+### New `gr.BarPlot` component! 📊
+
+Create interactive bar plots from a high-level interface with `gr.BarPlot`. 
+No need to remember matplotlib syntax anymore!
+
+Example usage:
+
+```python
+import gradio as gr
+import pandas as pd
+
+simple = pd.DataFrame({
+    'a': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+    'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]
+})
+
+with gr.Blocks() as demo:
+    gr.BarPlot(
+        simple,
+        x="a",
+        y="b",
+        title="Simple Bar Plot with made up data",
+        tooltip=['a', 'b'],
+    )
+
+demo.launch()
+```
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://github.com/gradio-app/gradio/pull/3157)
+
 
 ## Bug Fixes:
 No changes to highlight.
