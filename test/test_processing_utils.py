@@ -62,7 +62,7 @@ class TestImagePreprocessing:
         img.info = {}  # Strip metadata
         output_base64 = processing_utils.encode_pil_to_base64(img)
         assert output_base64 == deepcopy(media_data.ARRAY_TO_BASE64_IMAGE)
-        
+
     def test_save_pil_to_file_keeps_pnginfo(self):
         input_img = Image.open("gradio/test_data/test_image.png")
         input_img = input_img.convert("RGB")

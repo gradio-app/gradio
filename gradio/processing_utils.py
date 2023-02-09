@@ -146,9 +146,7 @@ def save_pil_to_file(pil_image, dir=None):
 
 def encode_pil_to_base64(pil_image):
     with BytesIO() as output_bytes:
-        pil_image.save(
-            output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image)
-        )
+        pil_image.save(output_bytes, "PNG", pnginfo=get_pil_metadata(pil_image))
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
