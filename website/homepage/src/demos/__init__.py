@@ -60,9 +60,8 @@ demos_by_category = [
                 "dir": "animeganv2", 
             },
             {
-                "name": "Image Generation with Stable Diffusion", 
-                "dir": "stable-diffusion", 
-                "external_space": "stabilityai/stable-diffusion"
+                "name": "Image Generation (Fake GAN)", 
+                "dir": "fake_gan", 
             },
             {
                 "name": "Iterative Output",
