@@ -41,6 +41,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: data
-          path: data-this-pr.json          
-          path: data-main.json          
-          path: metadata.json
+          path: |
+            data-this-pr.json          
+            data-main.json          
+            metadata.json
