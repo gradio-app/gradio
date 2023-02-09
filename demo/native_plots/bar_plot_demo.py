@@ -26,6 +26,7 @@ def bar_plot_fn(display):
             y="yield",
             color="site",
             title="Barley Yield Data",
+            tooltip=['variety', 'site']
         )
     elif display == "grouped":
         return gr.BarPlot.update(
@@ -58,6 +59,7 @@ def bar_plot_fn(display):
             color="site",
             title="Barley Yield Data",
             vertical=False,
+            tooltip=['variety', 'site']
         )
     elif display == "grouped-horizontal":
         return gr.BarPlot.update(

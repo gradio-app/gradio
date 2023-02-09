@@ -10,21 +10,21 @@ No need to remember matplotlib syntax anymore!
 Example usage:
 
 ```python
-from vega_datasets import data
+import gradio as gr
+import pandas as pd
 
-barley = data.barley()
+simple = pd.DataFrame({
+    'a': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+    'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]
+})
 
 with gr.Blocks() as demo:
-    gr.BarPlot.(
-        barley,
-        x="year",
-        y="yield",
-        color="year",
-        group="site",
-        title="Barley Yield by Year and Site",
-        group_title="",
-        tooltip=["yield", "site", "year"],
-        vertical=False
+    gr.BarPlot(
+        simple,
+        x="a",
+        y="b",
+        title="Simple Bar Plot with made up data",
+        tooltip=['a', 'b'],
     )
 
 demo.launch()
