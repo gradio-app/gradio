@@ -4906,15 +4906,15 @@ class BarPlot(Plot):
             value: The pandas dataframe containing the data to display in a scatter plot.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
-            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            color: The column to determine the bar color. Must be categorical (discrete values).
             vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
             group: The column with which to split the overall plot into smaller subplots.
             title: The title to display on top of the chart.
-            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
-            group_title: The title used toUse an empty string to omit.
+            group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
@@ -4994,15 +4994,15 @@ class BarPlot(Plot):
             value: The pandas dataframe containing the data to display in a scatter plot.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
-            color: The column to determine the point color. If the column contains numeric data, gradio will interpolate the column data so that small values correspond to light colors and large values correspond to dark values.
+            color: The column to determine the bar color. Must be categorical (discrete values).
             vertical: If True, the bars will be displayed vertically. If False, the x and y axis will be switched, displaying the bars horizontally. Default is True.
             group: The column with which to split the overall plot into smaller subplots.
             title: The title to display on top of the chart.
-            tooltip: The column (or list of columns) to display on the tooltip when a user hovers a point on the plot.
+            tooltip: The column (or list of columns) to display on the tooltip when a user hovers over a bar.
             x_title: The title given to the x axis. By default, uses the value of the x parameter.
             y_title: The title given to the y axis. By default, uses the value of the y parameter.
             color_legend_title: The title given to the color legend. By default, uses the value of color parameter.
-            group_title: The title used toUse an empty string to omit.
+            group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot in pixels.
             width: The width of the plot in pixels.
