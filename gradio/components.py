@@ -3858,8 +3858,9 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
 
     def __init__(
         self,
-        value: List[Tuple[str, str]] | Callable | None = None,
+        value: List[Tuple[str | None, str | None]] | Callable | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
+        starts_with: str = "user",
         *,
         label: str | None = None,
         every: float | None = None,
@@ -3871,6 +3872,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            starts_with: Determines whether the chatbot starts with a user message or a bot message. Must be either "user" or "bot". Default is "user".
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -3882,6 +3884,11 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
+        if starts_with not in ["user", "bot"]:
+            raise ValueError(
+                f"Invalid value for parameter `starts_with`: {starts_with}. Please choose from 'user' or 'bot'."
+            )
+        self.starts_with = starts_with
         self.md = MarkdownIt()
 
         IOComponent.__init__(
@@ -3899,6 +3906,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         return {
             "value": self.value,
             "color_map": self.color_map,
+            "starts_with": self.starts_with,
             **IOComponent.get_config(self),
         }
 
@@ -3920,7 +3928,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         }
         return updated_config
 
-    def postprocess(self, y: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    def postprocess(self, y: List[Tuple[str | None, str | None]]) -> List[Tuple[str | None, str | None]]:
         """
         Parameters:
             y: List of tuples representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.
@@ -3930,7 +3938,7 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         if y is None:
             return []
         for i, (message, response) in enumerate(y):
-            y[i] = (self.md.renderInline(message), self.md.renderInline(response))
+            y[i] = (None if message == None else self.md.renderInline(message), None if response == None else self.md.renderInline(response))
         return y
 
     def style(self, *, color_map: Tuple[str, str] | None = None, **kwargs):

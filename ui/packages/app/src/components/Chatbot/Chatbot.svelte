@@ -7,11 +7,12 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: Array<[string, string]> = [];
+	export let value: Array<[string | null, string | null]> = [];
 	export let style: Styles = {};
 	export let label: string;
 	export let show_label: boolean = true;
 	export let color_map: Record<string, string> = {};
+	export let starts_with: "user" | "bot" = "user";
 
 	$: if (!style.color_map && Object.keys(color_map).length) {
 		style.color_map = color_map;
@@ -32,6 +33,7 @@
 	<ChatBot
 		{style}
 		{value}
+		{starts_with}
 		pending_message={loading_status?.status === "pending"}
 		on:change
 	/>

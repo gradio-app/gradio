@@ -1,10 +1,13 @@
 # Upcoming Release
 
 ## New Features:
-No changes to highlight.
 
 ## Bug Fixes:
-No changes to highlight.
+- Adds `starts_with` param in `gr.Chatbot()` to specify whether the messages start with the "bot" or "user". Also allows ability to pass in `None` value to chatbot initial value ex:
+```python
+gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)], starts_with="bot")
+```
+By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR ](https://github.com/gradio-app/gradio/pull/)
 
 ## Documentation Changes:
 * Sort components in docs by alphabetic order by [@aliabd](https://github.com/aliabd) in [PR 3152](https://github.com/gradio-app/gradio/pull/3152)
@@ -67,7 +70,7 @@ By [@maxaudron](https://github.com/maxaudron) in [PR 3075](https://github.com/gr
 - Ensure the Video component correctly resets the UI state whe a new video source is loaded and reduce choppiness of UI by [@pngwn](https://github.com/abidlabs) in [PR 3117](https://github.com/gradio-app/gradio/pull/3117)
 - Fixes loading private Spaces by [@abidlabs](https://github.com/abidlabs) in [PR 3068](https://github.com/gradio-app/gradio/pull/3068) 
 - Added a warning when attempting to launch an `Interface` via the `%%blocks` jupyter notebook magic command by [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3126](https://github.com/gradio-app/gradio/pull/3126)
-- Fixes bug where interactive output image cannot be set when in edit mode by [@dawoodkhan82](https://github.com/freddyaboulton) in [PR 3135](https://github.com/gradio-app/gradio/pull/3135)
+- Fixes bug where interactive output image cannot be set when in edit mode by [@dawoodkhan82](https://github.com/@dawoodkhan82) in [PR 3135](https://github.com/gradio-app/gradio/pull/3135)
 - A share link will automatically be created when running on Sagemaker notebooks so that the front-end is properly displayed by [@abidlabs](https://github.com/abidlabs) in [PR 3137](https://github.com/gradio-app/gradio/pull/3137) 
 - Fixes a few dropdown component issues; hide checkmark next to options as expected, and keyboard hover is visible by [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3145]https://github.com/gradio-app/gradio/pull/3145)
 - Fixed bug where example pagination buttons were not visible in dark mode or displayed under the examples table. By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3144](https://github.com/gradio-app/gradio/pull/3144) 

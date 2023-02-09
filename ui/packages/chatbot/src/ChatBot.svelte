@@ -3,10 +3,11 @@
 	import { colors } from "@gradio/theme";
 	import type { Styles } from "@gradio/utils";
 
-	export let value: Array<[string, string]> | null;
-	let old_value: Array<[string, string]> | null;
+	export let value: Array<[string | null, string | null]> | null;
+	let old_value: Array<[string | null, string | null]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
+	export let starts_with: "user" | "bot" = "user";
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -60,17 +61,19 @@
 	<div class="message-wrap">
 		{#each _value as message, i}
 			<div
-				data-testid="user"
+				data-testid={starts_with}
 				class:latest={i === _value.length - 1}
-				class="message user"
+				class="message {starts_with}"
+				class:hide={message[0] === undefined}
 				style={"background-color:" + _colors[0]}
 			>
 				{@html message[0]}
 			</div>
 			<div
-				data-testid="bot"
+				data-testid={starts_with === "user" ? "bot" : "user"}
 				class:latest={i === _value.length - 1}
-				class="message bot"
+				class="message {starts_with === 'user' ? 'bot' : 'user'}"
+				class:hide={message[1] === undefined}
 				style={"background-color:" + _colors[1]}
 			>
 				{@html message[1]}
@@ -182,5 +185,9 @@
 		100% {
 			opacity: 0.8;
 		}
+	}
+
+	.hide {
+		visibility: hidden;
 	}
 </style>

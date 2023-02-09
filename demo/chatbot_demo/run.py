@@ -21,7 +21,7 @@ def predict(input, history=[]):
     return response, history
 
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
+    chatbot = gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)], starts_with="bot")
     state = gr.State([])
 
     with gr.Row():
