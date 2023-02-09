@@ -3,11 +3,12 @@
 ## New Features:
 
 ## Bug Fixes:
-- Adds `starts_with` param in `gr.Chatbot()` to specify whether the messages start with the "bot" or "user". Also allows ability to pass in `None` value to chatbot initial value ex:
+- Adds ability to add a single message from the bot or user side.
+
 ```python
 gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)], starts_with="bot")
 ```
-By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR ](https://github.com/gradio-app/gradio/pull/)
+By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3165](https://github.com/gradio-app/gradio/pull/3165)
 
 ## Documentation Changes:
 * Sort components in docs by alphabetic order by [@aliabd](https://github.com/aliabd) in [PR 3152](https://github.com/gradio-app/gradio/pull/3152)
