@@ -24,7 +24,6 @@
 			content="{{ config['simple_description'] or '' }}"
 		/>
 		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
-
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag() {
@@ -34,6 +33,7 @@
 			gtag("config", "UA-156449732-1");
 			window.__gradio_mode__ = "app";
 		</script>
+		<script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.4/dist/tweakpane.min.js"></script>
 
 		%gradio_config%
 
@@ -69,6 +69,38 @@
 				});
 				document.body.style.padding = "0";
 			}
+		</script>
+		<script>
+			const PARAMS = {
+				"accent-lighter": "#DDEEF2",
+				"accent-light": "#4D9DCE",
+				"accent-base": "#1C5B92",
+				"accent-dark": "#154876",
+				"accent-darker": "#0E385E"
+			};
+
+			const pane = new Tweakpane.Pane();
+
+			for (const key in PARAMS) {
+				pane.addInput(PARAMS, key);
+			}
+
+			pane.on("change", (ev) => {
+				function injectStyle(obj) {
+					let css = ":root {";
+					for (const key in obj) {
+						css += `--${key}: ${obj[key]};`;
+					}
+					css += "}";
+
+					const style = document.createElement("style");
+					style.innerHTML = css;
+					const container = document.querySelector("gradio-app");
+					container.appendChild(style);
+				}
+
+				injectStyle({ [ev.presetKey]: ev.value });
+			});
 		</script>
 	</body>
 </html>
