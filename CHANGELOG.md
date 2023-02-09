@@ -10,17 +10,24 @@ No need to remember matplotlib syntax anymore!
 Example usage:
 
 ```python
-gr.BarPlot.update(
-    barley,
-    x="year",
-    y="yield",
-    color="year",
-    group="site",
-    title="Barley Yield by Year and Site",
-    group_title="",
-    tooltip=["yield", "site", "year"],
-    vertical=False
+from vega_datasets import data
+
+barley = data.barley()
+
+with gr.Blocks() as demo:
+    gr.BarPlot.(
+        barley,
+        x="year",
+        y="yield",
+        color="year",
+        group="site",
+        title="Barley Yield by Year and Site",
+        group_title="",
+        tooltip=["yield", "site", "year"],
+        vertical=False
     )
+
+demo.launch()
 ```
 
 
