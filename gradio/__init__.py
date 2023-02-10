@@ -10,6 +10,7 @@ from gradio.components import (
     HTML,
     JSON,
     Audio,
+    BarPlot,
     Button,
     Carousel,
     Chatbot,

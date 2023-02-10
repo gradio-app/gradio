@@ -9,6 +9,7 @@ TEMPLATE_FILE = os.path.join(DIR, "template.html")
 DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 
 docs = generate_documentation()
+docs["component"].sort(key=lambda x: x["name"])
 
 
 def add_component_shortcuts():
