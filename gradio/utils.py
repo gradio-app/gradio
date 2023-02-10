@@ -43,6 +43,7 @@ import matplotlib.pyplot as plt
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
+
 import gradio
 from gradio.context import Context
 from gradio.strings import en
@@ -50,6 +51,7 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
     from gradio.components import Component
+    from gradio.data_classes import PredictBody
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -901,3 +903,19 @@ def abspath(path: str | Path) -> Path:
         return Path.cwd() / path
     else:
         return Path(path).resolve()
+
+
+def incorporate_binary_files(
+    body: PredictBody,
+    input_components: List[Component],
+    binary_files_per_input_index: Dict[int, List[str]],
+):
+    for input_index, binary_files in binary_files_per_input_index.items():
+        input_component = input_components[input_index]
+        assert hasattr(
+            input_component, "incorporate_binary_files"
+        ), "Binary files received for a component that doesn't support them."
+        body.data[input_index] = input_component.incorporate_binary_files(
+            body.data[input_index], binary_files
+        )
+    return body

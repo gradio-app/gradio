@@ -248,7 +248,6 @@
 			text_values = inputs.map((id) => instance_map[id].props.value);
 			binary_values = inputs.map((_) => null);
 		}
-		console.log([text_values, binary_values]);
 		return [text_values, binary_values];
 	};
 

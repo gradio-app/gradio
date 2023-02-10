@@ -55,7 +55,7 @@ from gradio.data_classes import PredictBody, ResetBody
 from gradio.documentation import document, set_documentation_group
 from gradio.exceptions import Error
 from gradio.queueing import Estimation, Event
-from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name
+from gradio.utils import cancel_tasks, run_coro_in_background, set_task_name, incorporate_binary_files
 
 mimetypes.init()
 
@@ -476,7 +476,7 @@ class App(FastAPI):
             payload = json.loads(payload)
             body = PredictBody(**payload)
             input_id_per_file: List[int] = json.loads(input_id_per_file)
-            binary_files_per_input_index: Dict[int, str] = {}
+            binary_files_per_input_index: Dict[int, List[str]] = {}
             for input_id, input_file in zip(input_id_per_file, binary_files):
                 output_file_obj = tempfile.NamedTemporaryFile(delete=False)
                 async with aiofiles.open(output_file_obj.name, "wb") as output_file:
@@ -490,14 +490,7 @@ class App(FastAPI):
                 app.blocks.blocks[block_id]
                 for block_id in app.blocks.dependencies[fn_index]["inputs"]
             ]
-            for input_index, binary_files in binary_files_per_input_index.items():
-                input_component = input_components[input_index]
-                assert hasattr(
-                    input_component, "incorporate_binary_files"
-                ), "Binary files received for a component that doesn't support them."
-                body.data[input_index] = input_component.incorporate_binary_files(
-                    body.data[input_index], binary_files
-                )
+            body = incorporate_binary_files(body, input_components, binary_files_per_input_index)
 
             return await predict(api_name, body, request, username)
 

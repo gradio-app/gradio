@@ -40,25 +40,31 @@ interface PostResponse {
 const QUEUE_FULL_MSG = "This application is too busy. Keep trying!";
 const BROKEN_CONNECTION_MSG = "Connection errored out.";
 
-const create_form_from_payload = (body: Payload) => {
-	const formData = new FormData();
-	let { binary_data, ...text_body } = body;
-	formData.append("payload", JSON.stringify(text_body));
+const flatten_binary_data = (body: Payload["binary_data"]): [Array<File>, Array<number>] => {
+	let binary_files: Array<File> = [];
 	let input_id_per_file: Array<number> = [];
-	body.binary_data?.forEach((x, i) => {
+	body?.forEach((x, i) => {
 		if (x) {
 			if (Array.isArray(x)) {
 				x.forEach((y) => {
-					formData.append("binary_files", y, y.name);
+					binary_files.push(y)
 					input_id_per_file.push(i);
 				});
 			}
 			else {
-				formData.append("binary_files", x, x.name);
+				binary_files.push(x);
 				input_id_per_file.push(i);
 			}
 		}
 	});
+	return [binary_files, input_id_per_file];
+}
+const create_form_from_payload = (body: Payload) => {
+	const formData = new FormData();
+	let { binary_data, ...text_body } = body;
+	formData.append("payload", JSON.stringify(text_body));
+	let [binary_files, input_id_per_file] = flatten_binary_data(body.binary_data);
+	binary_files.forEach((x) => formData.append("binary_files", x, x.name));
 	formData.append("input_id_per_file", JSON.stringify(input_id_per_file));
 	return formData;
 }
@@ -196,10 +202,13 @@ export const fn =
 					switch (data.msg) {
 						case "send_data":
 							if (payload_has_binary_data(payload)) {
-								let formdata = create_form_from_payload(payload)
-								
-
+								let [binary_files, input_id_per_file] = flatten_binary_data(payload.binary_data);
+								send_message(fn_index, { ...payload, input_id_per_file });
+								for (let binary_file of binary_files) {
+									send_message(fn_index, binary_file);
+								}
 							} else {
+								delete payload.binary_data;
 								send_message(fn_index, payload);
 							}
 							break;

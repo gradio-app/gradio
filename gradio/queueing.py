@@ -5,14 +5,23 @@ import copy
 import sys
 import time
 from collections import deque
-from typing import Any, Deque, Dict, List, Tuple
+from typing import Any, Deque, Dict, List, Tuple, TYPE_CHECKING
 
 import fastapi
 import httpx
+import tempfile
 
 from gradio.data_classes import Estimation, PredictBody, Progress, ProgressUnit
 from gradio.helpers import TrackedIterable
-from gradio.utils import AsyncRequest, run_coro_in_background, set_task_name
+from gradio.utils import (
+    AsyncRequest,
+    run_coro_in_background,
+    set_task_name,
+    incorporate_binary_files,
+)
+
+if TYPE_CHECKING:
+    from gradio.blocks import Blocks
 
 
 class Event:
@@ -31,9 +40,18 @@ class Event:
         self.token: str | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
+        self.binary_files_per_input_index: Dict[int, List[str]] = {}
 
     async def disconnect(self, code: int = 1000):
         await self.websocket.close(code=code)
+
+    def store_binary_file(self, input_id: int, data: bytes):
+        file = tempfile.NamedTemporaryFile(delete=False)
+        with open(file.name, "wb") as f:
+            f.write(data)
+        if input_id not in self.binary_files_per_input_index:
+            self.binary_files_per_input_index[input_id] = []
+        self.binary_files_per_input_index[input_id].append(file.name)
 
 
 class Queue:
@@ -43,7 +61,7 @@ class Queue:
         concurrency_count: int,
         update_intervals: float,
         max_size: int | None,
-        blocks_dependencies: List,
+        blocks: Blocks,
     ):
         self.event_queue: Deque[Event] = deque()
         self.events_pending_reconnection = []
@@ -62,7 +80,7 @@ class Queue:
         self.sleep_when_free = 0.05
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
-        self.blocks_dependencies = blocks_dependencies
+        self.blocks = blocks
         self.access_token = ""
         self.queue_client = None
 
@@ -103,10 +121,10 @@ class Queue:
         events = [first_event]
 
         event_fn_index = first_event.fn_index
-        batch = self.blocks_dependencies[event_fn_index]["batch"]
+        batch = self.blocks.dependencies[event_fn_index]["batch"]
 
         if batch:
-            batch_size = self.blocks_dependencies[event_fn_index]["max_batch_size"]
+            batch_size = self.blocks.dependencies[event_fn_index]["max_batch_size"]
             rest_of_batch = [
                 event for event in self.event_queue if event.fn_index == event_fn_index
             ][: batch_size - 1]
@@ -217,6 +235,14 @@ class Queue:
             if not client_awake:
                 return False
             event.data = await self.get_message(event)
+            if event.data is None:
+                return False
+            if event.data.input_id_per_file:
+                for input_id in event.data.input_id_per_file:
+                    binary_file = await self.get_bytes(event)
+                    if binary_file is None:
+                        return False
+                    event.store_binary_file(input_id, binary_file)
         return True
 
     async def notify_clients(self) -> None:
@@ -307,6 +333,15 @@ class Queue:
             data.request = self.get_request_params(events[0].websocket)
         except ValueError:
             pass
+        for event in events:
+            if event.binary_files_per_input_index:
+                input_components = [
+                    self.blocks.blocks[block_id]
+                    for block_id in self.blocks.dependencies[event.fn_index]["inputs"]
+                ]
+                event.data = incorporate_binary_files(
+                    event.data, input_components, event.binary_files_per_input_index
+                )
 
         if batch:
             data.data = list(zip(*[event.data.data for event in events if event.data]))
@@ -436,6 +471,14 @@ class Queue:
         try:
             data = await event.websocket.receive_json()
             return PredictBody(**data)
+        except:
+            await self.clean_event(event)
+            return None
+
+    async def get_bytes(self, event) -> bytes | None:
+        try:
+            data = await event.websocket.receive_bytes()
+            return data
         except:
             await self.clean_event(event)
             return None
