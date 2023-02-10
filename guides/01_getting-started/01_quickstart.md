@@ -26,6 +26,16 @@ $code_hello_world
 
 $demo_hello_world
 
+## Local Development
+
+When developing locally, you can run Gradio apps from a Python script or a Jupyter Notebook. To run a Gradio app from a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development.
+
+```bash
+gradio app.py
+```
+
+Note: you can also do `python app.py`, but it won't provide the automatic reload mechanism.
+
 ## The `Interface` Class
 
 You'll notice that in order to make the demo, we created a `gradio.Interface`. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
