@@ -967,6 +967,7 @@ class Blocks(BlockContext):
         request: routes.Request | List[routes.Request] | None = None,
         iterators: Dict[int, Any] | None = None,
         event_id: str | None = None,
+        binary_files: List[str] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,

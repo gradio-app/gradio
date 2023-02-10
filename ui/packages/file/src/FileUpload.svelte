@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/upload";
+	import type { BinaryFileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
 	import FilePreview from "./FilePreview.svelte";
 
-	export let value: null | FileData | Array<FileData>;
+	export let value: null | BinaryFileData | Array<BinaryFileData>;
 
 	export let label: string;
 	export let show_label: boolean = true;
 	export let file_count: string = "single";
 	export let file_types: string[] | null = null;
 
-	async function handle_upload({ detail }: CustomEvent<FileData>) {
+	async function handle_upload({ detail }: CustomEvent<BinaryFileData | Array<BinaryFileData>>) {
 		value = detail;
 		await tick();
 		dispatch("change", value);
@@ -28,10 +28,10 @@
 	}
 
 	const dispatch = createEventDispatcher<{
-		change: FileData | null;
+		change: Array<BinaryFileData> | BinaryFileData | null;
 		clear: undefined;
 		drag: boolean;
-		upload: FileData;
+		upload: Array<BinaryFileData> | BinaryFileData;
 		error: string;
 	}>();
 
@@ -59,6 +59,7 @@
 	<Upload
 		on:load={handle_upload}
 		filetype={accept_file_types}
+		parse_to_data_url={false}
 		{file_count}
 		bind:dragging
 	>

@@ -13,6 +13,7 @@ export interface ComponentMeta {
 	instance: SvelteComponentDev;
 	component: ComponentType<SvelteComponentDev>;
 	documentation?: Documentation;
+	extract_binary?: (arg0: any) => [any, any];
 	children?: Array<ComponentMeta>;
 	value?: any;
 }

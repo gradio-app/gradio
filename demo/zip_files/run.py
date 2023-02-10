@@ -5,6 +5,7 @@ import gradio as gr
 
 
 def zip_files(files):
+    print([f.name for f in files])
     with ZipFile("tmp.zip", "w") as zipObj:
         for idx, file in enumerate(files):
             zipObj.write(file.name, "file" + str(idx))
@@ -12,7 +13,7 @@ def zip_files(files):
 
 demo = gr.Interface(
     zip_files,
-    gr.File(file_count="multiple", file_types=["text", ".json", ".csv"]),
+    gr.File(file_count="multiple"),
     "file",
     examples=[[[os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
     os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
