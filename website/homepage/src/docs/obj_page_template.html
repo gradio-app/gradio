@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% with title="Gradio " + obj["name"] + " Docs", url="https://gradio.app/docs/" + obj["name"].lower() , image="/assets/img/meta-image.png", description= obj["description"], canonical="https://gradio.app/docs" + canonical_suffix + obj["name"].lower() %}
+      {% include "templates/meta.html" %}
+    {% endwith %}
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/prism.css">
+  </head>
+  <body>
+    <div class="container mx-auto flex flex-wrap justify-between flex-row relative items-center px-4 py-5 gap-6 text-lg z-50">
+      <div class="flex flex-row items-center">
+        <a href="/">
+          <img src="/assets/gradio.svg">
+        </a>
+        <div class="pl-2 pr-1 py-1 w-fit text-gray-600 font-semibold">
+          <select id="toggle"
+                  onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);"
+                  class="form-select appearance-none block px-3 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded-full transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none w-max"
+                  style="width: 135%; padding-top: 0.125rem; padding-bottom: 0.125rem">
+            <option value="/docs" {% if version=='pip' %}selected{% endif %}>
+              v{{ gradio_version }}
+            </option>
+            <option value="/docs/main" {% if version=='main' %}selected{% endif %}>
+              main
+            </option>
+          </select>
+        </div>
+      </div>
+      <svg class="h-8 w-8 lg:hidden"
+           viewBox="-10 -10 20 20"
+           onclick="document.querySelector(&quot;nav&quot;).classList.toggle(&quot;hidden&quot;),document.querySelector(&quot;nav&quot;).classList.toggle(&quot;flex&quot;)">
+        <rect x="-7" y="-6" width="14" height="2"></rect>
+        <rect x="-7" y="-1" width="14" height="2"></rect>
+        <rect x="-7" y="4" width="14" height="2"></rect>
+      </svg>
+      <nav class="hidden w-full flex-col gap-3 lg:flex lg:w-auto lg:flex-row lg:gap-8">
+        <a class="thin-link flex items-center gap-3" href="/quickstart"><span>⚡</span> <span>Quickstart</span>
+      </a>
+      <a class="thin-link flex items-center gap-3" href="/docs"><span>✍️</span> <span>Docs</span>
+    </a>
+    <a class="thin-link flex items-center gap-3" href="/guides"><span>💡</span> <span>Guides</span></a>
+    <a class="thin-link flex items-center gap-3" href="/demos"><span>🎢</span> <span>Demos</span></a>
+    <div class="group relative flex cursor-pointer items-center gap-3"
+         onclick="document.querySelector(&quot;.help-menu&quot;).classList.toggle(&quot;flex&quot;),document.querySelector(&quot;.help-menu&quot;).classList.toggle(&quot;hidden&quot;)">
+      <span>🖐</span> <span>Community</span>
+      <svg class="h-4 w-4"
+           xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 20 20">
+        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path>
+      </svg>
+      <div class="help-menu absolute top-6 hidden w-52 flex-col bg-white shadow group-hover:flex sm:right-0">
+        <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+           href="https://github.com/gradio-app/gradio/issues/new/choose"
+           target="_blank">File an Issue</a>
+        <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+           href="https://discuss.huggingface.co/c/gradio/26"
+           target="_blank">Discuss</a>
+        <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+           target="_blank"
+           href="https://discord.gg/feTf9x3ZSB">Discord</a>
+        <a class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
+           target="_blank"
+           href="https://gradio.curated.co/">Newsletter</a>
+      </div>
+    </div>
+    <a class="thin-link flex items-center gap-3"
+       href="https://github.com/gradio-app/gradio">
+      <img src="/assets/img/github-black.svg" class="w-6">
+    </a>
+  </nav>
+</div>
+<main class="container mx-auto px-4 flex gap-4">
+
+  <section class="top-0 fixed -ml-4 flex items-center p-4 hidden rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden" id="menu-bar">
+    <button type="button" class="text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300" onclick="document.getElementById('mobile-nav').classList.remove('hidden')">
+      <svg width="24" height="24"><path d="M5 6h14M5 12h14M5 18h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    </button>
+  </section>
+  
+  <div class="navigation mobile-nav overflow-y-auto hidden fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:h-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12 lg:min-w-2/12" id="mobile-nav">
+    
+    <button type="button" class="absolute z-10 top-4 right-4 w-2/12 h-4 flex items-center justify-center text-grey-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 p-4 lg:hidden" tabindex="0" onclick="document.getElementById('mobile-nav').classList.add('hidden');">
+      <svg viewBox="0 0 10 10" class="overflow-visible" style="width: 10px"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    </button>
+
+    <a class="thin-link font-lg px-4 my-3 block" href="/docs">&#8592; Back to Full Docs</a>
+
+    <a class="font-semibold px-4 mb-2 block">Building Demos</a>
+    <a class="thin-link px-4 block" href="/docs/interface/">Interface</a>
+    <div class="sub-links hidden" hash="#interface">
+      {% with obj=find_cls("Interface") %}
+        {% if "fns" in obj and obj["fns"]|length %}
+          {% for fn in obj["fns"] %}
+            <a class="thinner-link px-4 pl-8 block"
+               href="#interface-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+    <a class="thin-link px-4 block" href="/docs/flagging/">Flagging</a>
+    <div class="sub-links hidden" hash="#flagging">
+      {% for flagging_callback in docs["flagging"] %}
+        {% with obj=flagging_callback %}
+          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <a class="thin-link px-4 block" href="/docs/combining-interfaces/">Combining Interfaces</a>
+    <div class="sub-links hidden" hash="#combining-interfaces">
+      <a class="thinner-link px-4 pl-8 block" href="#tabbedinterface">TabbedInterface</a>
+      <a class="thinner-link px-4 pl-8 block" href="#parallel">Parallel</a>
+      <a class="thinner-link px-4 pl-8 block" href="#series">Series</a>
+    </div>
+    <a class="thin-link px-4 block" href="/docs/blocks/">Blocks<sup class="text-orange-500">NEW</sup></a>
+    <div class="sub-links hidden" hash="#blocks">
+      {% with obj=find_cls("Blocks") %}
+        {% if "fns" in obj and obj["fns"]|length %}
+          {% for fn in obj["fns"] %}
+            <a class="thinner-link px-4 pl-8 block"
+               href="#blocks-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+    <a class="thin-link px-4 block" href="/docs/block-layouts/">Block Layouts</a>
+    <div class="sub-links hidden" hash="#block-layouts">
+      {% for layout in docs["layout"] %}
+        {% with obj=layout %}
+          <a class="thinner-link px-4 pl-8 block" href="#{{ obj['name'].lower()}}">{{ obj["name"] }}</a>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <a class="font-semibold px-4 my-2 block">Components</a>
+    {% for component in docs["component"] %}
+      <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
+    {% endfor %}
+    <a class="font-semibold px-4 my-2 block">Helpers</a>
+      {% for component in docs["helpers"] %}
+        <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
+      {% endfor %}
+      <a class="font-semibold px-4 my-2 block">Routes</a>
+        {% for component in docs["routes"] %}
+          <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
+        {% endfor %}
+      </div>
+      <div class="flex flex-col w-full min-w-full	lg:w-10/12 lg:min-w-0">
+        <div>
+          <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left">
+            New to Gradio? Start here: <a class="link" href="/quickstart">Getting Started</a>
+          </p>
+          <p class="bg-gradient-to-r from-green-100 to-green-50 border border-green-200 px-4 py-1 rounded-full text-green-800 mb-1 w-fit float-left sm:float-right">
+            See the <a class="link" href="/changelog">Release History</a>
+          </p>
+        </div>
+        {% if version == 'main' %}
+          <div class="bg-gray-100 border border-gray-200 text-gray-800 px-4 py-1 mr-2 mt-4 rounded-lg">
+            <p class="my-2 text-lg">
+              To install Gradio from the latest commit to the main branch, run the following command:
+            </p>
+            <div class="codeblock bg-gray-50">
+              <pre class="language-bash" style="width: 97%"><code class="language-bash">pip install {{ gradio_wheel_url }}</code></pre>
+            </div>
+          </div>
+        {% endif %} 
+        <div class="flex justify-between mt-4">
+            {% if prev_obj is not none %}
+              <a href="/docs/{{ prev_obj['name'].lower() }}"
+                 class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
+                <div class="text-lg"><span class="text-orange-500">&#8592;</span> {{ prev_obj['name'] }}</div>
+              </a>
+            {% else %}
+              <div></div>
+            {% endif %}
+            {% if next_obj is not none %}
+              <a href="/docs/{{ next_obj['name'].lower() }}"
+                 class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
+                <div class="text-lg">{{ next_obj['name'] }} <span class="text-orange-500">&#8594;</span></div>
+              </a>
+            {% else %}
+              <div></div>
+            {% endif %}
+        </div>
+
+
+{% if parent != "gradio" %}
+<div class="obj" id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}">
+{% else %}
+<div class="obj" id="{{ obj['name'].lower() }}">
+{% endif %}
+
+{% if version == "main" %}
+{% set gradio_js = '/assets/index.js' %}
+{% else %}
+{% set gradio_js = 'https://gradio.s3-us-west-2.amazonaws.com/' + gradio_version + '/gradio.js' %}
+{% endif %}
+
+
+  <div class="flex flex-row items-center justify-between">
+    {% if parent != "gradio"%}
+      <h3 id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}-header"
+      class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
+    {% else %}
+      <h3 id="{{ obj['name'].lower() }}-header"
+      class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
+    {% endif %}
+
+    {% if obj['demos'] %}
+    <button 
+      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
+      onclick="location.href='#examples'"
+    >
+      Try Examples
+    </button>
+    {% endif %}
+  </div>
+  {% if obj['override_signature'] %}
+  <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
+  {% else %}
+  <div class="codeblock"><pre><code class="lang-python">{{ parent }}{% if obj["name"] != "__call__" %}.<span>{{ obj["name"] }}{% endif %}(</span><!--
+-->{% for param in obj["parameters"] %}<!--
+  -->{% if "kwargs" not in param and "default" not in param and param["name"] != "self" %}<!--
+    -->{{ param["name"] }}, <!--
+  -->{% endif %}<!--
+-->{% endfor %}<!--  
+-->···<span>)</span></code></pre></div>
+  {% endif %}
+  {% if (is_component or obj['name'].lower() in ["examples", "progress"]) %}
+    {% if obj['name'].lower() != "state" %}
+      <div class="embedded-component">
+        {% if version=="main" %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component_main" />
+        {% else %}
+          <gradio-app space="gradio/{{ obj['name'].lower() }}_component" />
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+  <p class="mt-8 mb-2 text-lg">{{ obj["description"] }}</p>
+  <br>
+  {% if is_component %}
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As input: </span> {{ obj["tags"]["preprocessing"] }}</p>
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">As output:</span> {{ obj["tags"]["postprocessing"] }}</p>
+  {% if "examples-format" in obj["tags"]  %}
+  <p class="mb-2 text-lg text-gray-500"> <span class="text-orange-500">Format expected for examples:</span> {{ obj["tags"]["examples-format"] }}</p>
+  {% endif %}
+  {% if obj["events"]|length > 0 %}
+  <p class="text-lg text-gray-500"><span class="text-orange-500">Supported events:</span> <em>{{ obj["events"] }}</em></p>
+  {% endif %}
+  {% endif %}
+  
+  {% if obj["example"] %}
+    <h4 class="mt-4 p-3 font-semibold">Example Usage</h4>
+    <div class="codeblock">
+      <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
+    </div>
+    {% if obj["demos"] %}
+      <button 
+      class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
+      onclick="location.href='#examples'"
+    >
+      More Examples →
+    </button>
+
+    {% endif %}
+
+    {% elif obj["demos"] %}
+
+    <div class="container relative">
+      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">{{ obj["demos"][0][1] }}</code></pre></div>
+      <div class="absolute top-16" style="left: 44%;">
+          <button 
+          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
+          onclick="location.href='#examples'"
+        >
+          Try Examples
+        </button>
+      </div>
+    </div>
+
+    
+    {% endif %}
+
+  {% if (obj["parameters"]|length > 0 and obj["parameters"][0]["name"] != "self") or obj["parameters"]|length > 1 %}
+  <table class="table-fixed w-full mt-6 leading-loose">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Parameter</th>
+        <th class="p-3 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y">
+      {% for param in obj["parameters"] %}
+        {% if param["name"] != "self" %}
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5 break-words">
+              <code class="block">
+                {{ param["name"] }}
+              </code>
+              <p class="text-gray-500 italic">{{ param["annotation"] }}</p>
+              {% if "default" in param %}
+              <p class="text-gray-500 font-semibold">default: {{ param["default"] }}</p>
+              {% elif "kwargs" not in param %}
+              <p class="text-orange-600 font-semibold italic">required</p>
+              {% endif %}
+            </td>
+            <td class="p-3 text-gray-700 break-words">
+              <p>{{ param["doc"] or "" }}</p>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {%endif%}
+  
+  {% if is_component and obj["string_shortcuts"] %}
+  <table class="mb-4 table-fixed w-full mt-6">
+    <thead class="text-left">
+      <tr>
+        <th class="p-3 font-semibold w-2/5">Class</th>
+        <th class="p-3 font-semibold">Interface String Shortcut</th>
+        <th class="p-3 font-semibold">Initialization</th>
+      </tr>
+    </thead>
+    <tbody class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+    {% for name, shortcut, settings in obj["string_shortcuts"] %}
+        <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+          <td class="p-3 w-2/5 break-words" >
+            <p><code class="lang-python">gradio.{{ name }}</code></p>
+          </td>
+          <td class="p-3 w-2/5 break-words">
+            <p>"{{ shortcut }}"</p>
+          </td>
+          <td class="p-3 text-gray-700 break-words">
+            {{ settings }}
+          </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if "fns" in obj and obj["fns"]|length %}
+    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
+      <div class="flex flex-col gap-8 pl-12">
+        {% for fn in obj["fns"] %}
+          {% with obj=fn, is_class=False, is_component=False, parent=parent + "." + obj["name"] %}
+            {% include "docs/obj_doc_template.html" %}
+          {% endwith %}
+        {% endfor %}
+      <div class="ml-12"> </div>
+    </div>
+  {% endif %}
+
+  {% if obj["demos"] %}
+
+  <div class="category mb-8" id="examples">
+    <h2 class="mb-4 text-2xl font-thin block">✨ {{ obj["name"] }} Examples</h2>
+    <div>
+      <div class="demo-window overflow-y-auto h-full w-full my-4">
+        <div class="relative mx-auto my-auto rounded-md bg-white" style="top: 5%; height: 90%">
+          <div class="flex overflow-auto pt-4">
+            {% for demo_name, _ in obj["demos"] %}
+            <button
+              class="demo-btn px-4 py-2 text-lg {% if (loop.index==1) %}selected-demo-tab{% endif %} min-w-max text-gray-600 hover:text-orange-500"
+              name="{{ demo_name }}" onclick="show_demo('{{ demo_name }}')">{{ demo_name }}</button>
+            {% endfor %}
+          </div>
+          {% for demo_name, demo_code in obj["demos"] %}
+          <div class="demo-content px-4 {% if not (loop.index==1) %}hidden{% endif %} {% if (loop.index==1) %}selected-demo-window{% endif %}" name="{{ demo_name }}">
+            <div class="codeblock">
+              <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{{ demo_name }}/run.ipynb" target="_blank" style="right:30px">
+                <img src="https://colab.research.google.com/assets/colab-badge.svg">
+              </a>
+              <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre>
+            </div>
+            {% if version=="main" %}
+                <gradio-app space="gradio/{{ demo_name }}_main" />
+            {% else %}
+                <gradio-app space="gradio/{{ demo_name }}" />      
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+
+  {% if is_class %}
+   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
+      {% if obj["guides"] %}
+        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {% for guide in obj["guides"] %}
+          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/{{ guide.name }}">
+            <div class="flex flex-col p-4 h-min">
+              <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
+      {% endif %}
+  {% endif %}
+</div>
+<div class="flex justify-between mt-4 mb-5">
+    {% if prev_obj is not none %}
+        <a href="/docs/{{ prev_obj['name'].lower() }}"
+            class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline">
+        <div class="text-lg"><span class="text-orange-500">&#8592;</span> {{ prev_obj['name'] }}</div>
+        </a>
+    {% else %}
+        <div></div>
+    {% endif %}
+    {% if next_obj is not none %}
+        <a href="/docs/{{ next_obj['name'].lower() }}"
+            class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline">
+        <div class="text-lg">{{ next_obj['name'] }} <span class="text-orange-500">&#8594;</span></div>
+        </a>
+    {% else %}
+        <div></div>
+    {% endif %}
+</div>
+</main>
+<script>
+  let isMobile = window.matchMedia("only screen and (max-width: 480px)").matches;
+
+  function loadJS(FILE_URL) {
+    let scriptEle = document.createElement("script");
+    scriptEle.setAttribute("src", FILE_URL);
+    scriptEle.setAttribute("type", "module");
+    document.body.appendChild(scriptEle);
+  }
+
+  {% if version=='main' %}
+
+  if (!isMobile) {
+    loadJS('/assets/index.js');
+  }
+
+  {% else %}
+
+  if (!isMobile) {
+    loadJS('https://gradio.s3-us-west-2.amazonaws.com/{{ gradio_version }}/gradio.js');
+  }
+
+  {% endif %}
+</script>
+<script src="/assets/prism.js"></script>
+<script>
+  window.__gradio_mode__ = "website";
+</script>
+{% include 'templates/footer.html' %}
+<script>{% include 'templates/guide-color.js' %}</script>
+<script>{% include 'templates/add_anchors.js' %}</script>
+<script>{% include 'templates/add_copy.js' %}</script>
+
+<script>
+    let mainNavLinks = document.querySelectorAll(".navigation a");
+    let mainNavLinksMobile = document.querySelectorAll("#mobile-nav a");
+    let menuBar = document.querySelector("#menu-bar");
+    let mobileNav = document.querySelector("#mobile-nav");
+
+    mainNavLinksMobile.forEach(link => {    
+        link.onclick = function() {
+          mobileNav.classList.add("hidden");
+        }
+      });
+
+      window.addEventListener("scroll", event => {
+      menuBar.classList.remove("hidden");
+      });
+    
+
+      document.querySelectorAll(".navigation a ").forEach(e => {
+        if (e.href == window.location.href) {
+            e.classList.add("current-nav-link");
+        }
+      });
+
+      document.querySelectorAll(".navigation .sub-links ").forEach(e => {
+        if (e.getAttribute("hash") == "#{{ obj['name'].lower() }}") {
+            e.classList.remove("hidden");
+        }
+      });
+
+
+  function load_gradio(FILE_URL) {
+        console.log(FILE_URL);
+        var len = Array.from(document.querySelectorAll('script')).filter(e => e.getAttribute('src') == FILE_URL).length;
+        if (len === 0) {
+          let scriptEle = document.createElement("script");
+          scriptEle.setAttribute("src", FILE_URL);
+          scriptEle.setAttribute("type", "module");
+          document.body.appendChild(scriptEle);
+        }
+      }
+   load_gradio('{{ gradio_js }}')
+
+   const show_demo = (demo) => {
+      document.querySelectorAll(`.demo-btn.selected-demo-tab`).forEach(n => n.classList.remove('selected-demo-tab'));
+      document.querySelector(`.demo-btn[name=${demo}]`).classList.add('selected-demo-tab');
+      document.querySelectorAll(`.demo-content`).forEach((n) => {
+        n.classList.add('hidden'); 
+        n.classList.remove('selected-demo-window');
+      });
+      document.querySelectorAll(`.demo-content[name=${demo}]`).forEach((n) => {
+        n.classList.remove('hidden');
+        n.classList.add('selected-demo-window');
+      });
+    }
+    window.onclick = function(event) {
+      if (event.target.classList.contains('demo-window')) {
+        document.querySelectorAll('.demo-window').forEach(n => n.classList.add('hidden'));
+      }
+    }
+</script>
+
+</body>
+</html>
