@@ -2346,7 +2346,6 @@ class File(
             if self.type == "file":
                 if is_file:
                     temp_file_path = self.make_temp_copy_if_needed(file_name)
-                    print(file_name + " -> " + temp_file_path)
                     file = tempfile.NamedTemporaryFile(delete=False)
                     file.name = temp_file_path
                     file.orig_name = file_name  # type: ignore

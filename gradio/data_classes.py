@@ -17,7 +17,7 @@ class PredictBody(BaseModel):
     request: Optional[
         Union[Dict, List[Dict]]
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
-
+    input_id_per_file: Optional[List[int]] = None
 
 class ResetBody(BaseModel):
     session_hash: str

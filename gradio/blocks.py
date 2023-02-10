@@ -1235,7 +1235,7 @@ class Blocks(BlockContext):
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
-            blocks_dependencies=self.dependencies,
+            blocks=self,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
