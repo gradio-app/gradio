@@ -55,6 +55,7 @@ With this model you can lorem ipsum
         inputs=[ct_results, xray_results],
         outputs=[],
     )
+    gr.File()
 
 if __name__ == "__main__":
     demo.launch()

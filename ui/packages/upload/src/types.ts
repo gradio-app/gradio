@@ -5,3 +5,7 @@ export interface FileData {
 	data: string;
 	is_file?: boolean;
 }
+
+export interface BinaryFileData extends FileData {
+	blob: Blob;
+}

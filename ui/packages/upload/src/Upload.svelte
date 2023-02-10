@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "./types";
+	import type { FileData, BinaryFileData } from "./types";
 
 	export let filetype: string | null = null;
 	export let include_file_metadata = true;
@@ -10,6 +10,7 @@
 	export let flex: boolean = true;
 	export let file_count: string = "single";
 	export let disable_click = false;
+	export let parse_to_data_url = true;
 
 	let hidden_upload: HTMLInputElement;
 
@@ -25,7 +26,17 @@
 		hidden_upload.click();
 	};
 
-	const loadFiles = (files: FileList) => {
+	const blobToBase64 = (blob: File): Promise<string> => {
+		const reader = new FileReader();
+		reader.readAsDataURL(blob);
+		return new Promise((resolve) => {
+			reader.onloadend = () => {
+				resolve(reader.result as string);
+			};
+		});
+	};
+
+	const loadFiles = async (files: FileList) => {
 		let _files: Array<File> = Array.from(files);
 		if (!files.length || !window.FileReader) {
 			return;
@@ -33,41 +44,55 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: Array<FileData | string> = [];
-		_files.forEach((f, i) => {
-			let ReaderObj = new FileReader();
-			ReaderObj.readAsDataURL(f);
-			ReaderObj.onloadend = function () {
-				all_file_data[i] = include_file_metadata
-					? {
-							name: f.name,
-							size: f.size,
-							data: this.result as string
-					  }
-					: (this.result as string);
-				if (
-					all_file_data.filter((x) => x !== undefined).length === files.length
-				) {
-					dispatch(
-						"load",
-						file_count == "single" ? all_file_data[0] : all_file_data
-					);
-				}
-			};
-		});
+
+		if (include_file_metadata) {
+			var file_metadata: Array<{ name: string; size: number }> = _files.map(
+				(f) => ({
+					name: f.name,
+					size: f.size
+				})
+			);
+		}
+		var load_file_data = [];
+		var file_data: Array<string> | Array<File> = [];
+		if (parse_to_data_url) {
+			file_data = await Promise.all(_files.map((f) => blobToBase64(f)));
+		} else {
+			file_data = _files;
+		}
+		if (include_file_metadata) {
+			if (parse_to_data_url) {
+				load_file_data = file_data.map((data, i) => ({
+					data,
+					...file_metadata[i]
+				}));
+			} else {
+				load_file_data = file_data.map((data, i) => ({
+					data: "",
+					blob: data,
+					...file_metadata[i]
+				}));
+			}
+		} else {
+			load_file_data = file_data;
+		}
+		dispatch(
+			"load",
+			file_count === "single" ? load_file_data[0] : load_file_data
+		);
 	};
 
-	const loadFilesFromUpload = (e: Event) => {
+	const loadFilesFromUpload = async (e: Event) => {
 		const target = e.target as HTMLInputElement;
 
 		if (!target.files) return;
-		loadFiles(target.files);
+		await loadFiles(target.files);
 	};
 
-	const loadFilesFromDrop = (e: DragEvent) => {
+	const loadFilesFromDrop = async (e: DragEvent) => {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-		loadFiles(e.dataTransfer.files);
+		await loadFiles(e.dataTransfer.files);
 	};
 </script>
 

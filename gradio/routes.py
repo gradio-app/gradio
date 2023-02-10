@@ -4,6 +4,7 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import aiofiles
 import inspect
 import json
 import mimetypes
@@ -21,7 +22,17 @@ import httpx
 import markupsafe
 import orjson
 import pkg_resources
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, status
+import tempfile
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    status,
+    Form,
+    File,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -341,7 +352,7 @@ class App(FastAPI):
         async def run_predict(
             body: PredictBody,
             request: Request | List[Request],
-            fn_index_inferred: int,
+            fn_index: int,
             username: str = Depends(get_current_user),
         ):
             if hasattr(body, "session_hash"):
@@ -367,12 +378,12 @@ class App(FastAPI):
             event_id = getattr(body, "event_id", None)
             raw_input = body.data
             fn_index = body.fn_index
-            batch = app.get_blocks().dependencies[fn_index_inferred]["batch"]
+            batch = app.get_blocks().dependencies[fn_index]["batch"]
             if not (body.batched) and batch:
                 raw_input = [raw_input]
             try:
                 output = await app.get_blocks().process_api(
-                    fn_index=fn_index_inferred,
+                    fn_index=fn_index,
                     inputs=raw_input,
                     request=request,
                     state=session_state,
@@ -399,6 +410,14 @@ class App(FastAPI):
                 output["data"] = output["data"][0]
             return output
 
+        def get_inferred_fn_index(body, api_name):
+            if body.fn_index is not None:
+                return body.fn_index
+            for i, fn in enumerate(app.get_blocks().dependencies):
+                if fn["api_name"] == api_name:
+                    return i
+            return None
+
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
@@ -410,23 +429,14 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            fn_index_inferred = None
-            if body.fn_index is None:
-                for i, fn in enumerate(app.get_blocks().dependencies):
-                    if fn["api_name"] == api_name:
-                        fn_index_inferred = i
-                        break
-                if fn_index_inferred is None:
-                    return JSONResponse(
-                        content={
-                            "error": f"This app has no endpoint /api/{api_name}/."
-                        },
-                        status_code=500,
-                    )
-            else:
-                fn_index_inferred = body.fn_index
+            fn_index = get_inferred_fn_index(body, api_name)
+            if fn_index is None:
+                return JSONResponse(
+                    content={"error": f"This app has no endpoint /api/{api_name}/."},
+                    status_code=500,
+                )
             if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
+                fn_index
             ):
                 if f"Bearer {app.queue_token}" != request.headers.get("Authorization"):
                     raise HTTPException(
@@ -436,7 +446,7 @@ class App(FastAPI):
 
             # If this fn_index cancels jobs, then the only input we need is the
             # current session hash
-            if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
+            if app.get_blocks().dependencies[fn_index]["cancels"]:
                 body.data = [body.session_hash]
             if body.request:
                 if body.batched:
@@ -448,11 +458,48 @@ class App(FastAPI):
                 gr_request = Request(request)
             result = await run_predict(
                 body=body,
-                fn_index_inferred=fn_index_inferred,
+                fn_index=fn_index,
                 username=username,
                 request=gr_request,
             )
             return result
+
+        @app.post("/run/binary/{api_name}", dependencies=[Depends(login_check)])
+        async def predict_binary(
+            api_name: str,
+            request: fastapi.Request,
+            payload: str = Form(...),
+            binary_files: List[UploadFile] = File(...),
+            input_id_per_file: str = Form(...),
+            username: str = Depends(get_current_user),
+        ):
+            payload = json.loads(payload)
+            body = PredictBody(**payload)
+            input_id_per_file: List[int] = json.loads(input_id_per_file)
+            binary_files_per_input_index: Dict[int, str] = {}
+            for input_id, input_file in zip(input_id_per_file, binary_files):
+                output_file_obj = tempfile.NamedTemporaryFile(delete=False)
+                async with aiofiles.open(output_file_obj.name, "wb") as output_file:
+                    while content := await input_file.read(1024):
+                        await output_file.write(content)
+                if input_id not in binary_files_per_input_index:
+                    binary_files_per_input_index[input_id] = []
+                binary_files_per_input_index[input_id].append(output_file_obj.name)
+            fn_index = get_inferred_fn_index(body, api_name)
+            input_components = [
+                app.blocks.blocks[block_id]
+                for block_id in app.blocks.dependencies[fn_index]["inputs"]
+            ]
+            for input_index, binary_files in binary_files_per_input_index.items():
+                input_component = input_components[input_index]
+                assert hasattr(
+                    input_component, "incorporate_binary_files"
+                ), "Binary files received for a component that doesn't support them."
+                body.data[input_index] = input_component.incorporate_binary_files(
+                    body.data[input_index], binary_files
+                )
+
+            return await predict(api_name, body, request, username)
 
         @app.websocket("/queue/join")
         async def join_queue(

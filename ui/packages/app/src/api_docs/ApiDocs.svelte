@@ -68,7 +68,7 @@
 			return;
 		}
 		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
+			`${root}run/`, dependency.api_name || "predict",
 			{
 				data: inputs
 			}
