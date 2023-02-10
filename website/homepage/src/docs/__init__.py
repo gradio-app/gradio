@@ -11,7 +11,6 @@ DEMOS_DIR = os.path.join(GRADIO_DIR, "demo")
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
 
-
 def add_component_shortcuts():
     for component in docs["component"]:
         if not getattr(component["class"], "allow_string_shortcut", True):
@@ -139,6 +138,38 @@ def find_cls(target_cls):
     raise ValueError("Class not found")
 
 
+def build_page(obj, prev_obj, next_obj, jinja_env, url, gradio_version, gradio_wheel_url, is_component):
+    if obj["name"] == "Flagging": 
+        template = jinja_env.get_template("docs/flagging_page_template.html")
+    elif obj["name"] == "Combining-Interfaces":
+        template = jinja_env.get_template("docs/combining_page_template.html")
+    elif obj["name"] == "Block-Layouts":
+        template = jinja_env.get_template("docs/layout_page_template.html")
+    else:
+        template = jinja_env.get_template("docs/obj_page_template.html")
+    output = template.render(
+            obj=obj,
+            is_class=True,
+            parent="gradio",
+            is_component=is_component,
+            prev_obj=prev_obj,
+            next_obj=next_obj,
+            docs=docs,
+            ordered_events=ordered_events,
+            find_cls=find_cls,
+            version="pip",
+            gradio_version=gradio_version,
+            gradio_wheel_url=gradio_wheel_url,
+            canonical_suffix=""
+        )
+    name = obj["name"].lower()
+    os.makedirs(os.path.join(url, name))
+    output_folder = os.path.join(url, name)
+    output_file = os.path.join(output_folder, "index.html")
+    with open(output_file, "w") as index_html:
+        index_html.write(output)
+    
+    
 def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     os.makedirs(output_dir, exist_ok=True)
     template = jinja_env.get_template("docs/template.html")
@@ -164,6 +195,46 @@ def build(output_dir, jinja_env, gradio_wheel_url, gradio_version):
     with open(version_docs_file, "w") as index_html:
         index_html.write(output)
 
+    flagging_obj = {
+        "name": "Flagging",
+        "description": """A Gradio Interface includes a 'Flag' button that appears
+              underneath the output. By default, clicking on the Flag button sends the input and output
+              data back to the machine where the gradio demo is running, and saves it to a CSV log file.
+              But this default behavior can be changed. To set what happens when the Flag button is clicked,
+              you pass an instance of a subclass of <em>FlaggingCallback</em> to the <em>flagging_callback</em> parameter
+              in the <em>Interface</em> constructor. You can use one of the <em>FlaggingCallback</em> subclasses
+              that are listed below, or you can create your own, which lets you do whatever
+              you want with the data that is being flagged."""
+    }
+    combining_interfaces_obj = {
+        "name": "Combining-Interfaces",
+        "description": """Once you have created several Interfaces, we provide several classes that let you
+              start combining them together. For example, you can chain them in <em>Series</em>
+              or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly.
+              You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>."""
+    }
+    block_layouts_obj = {
+        "name": "Block-Layouts",
+        "description": """Customize the layout of your Blocks UI with the layout classes below."""
+    }
+
+    documented_obj = [(find_cls("Interface"), False), (flagging_obj, False), (combining_interfaces_obj, False), (find_cls("Blocks"), False), (block_layouts_obj, False)]
+    documented_obj.extend([(c, True) for c in docs["component"]])
+    documented_obj.extend([(c, False) for c in docs["helpers"]])
+    documented_obj.extend([(c, False) for c in docs["routes"]])
+
+    for index, obj in enumerate(documented_obj):
+        if index == 0: 
+            prev_obj, next_obj = None, documented_obj[1][0]
+        elif index == len(documented_obj) - 1:
+            prev_obj, next_obj = documented_obj[-2][0], None
+        else: 
+            prev_obj, next_obj = documented_obj[index-1][0], documented_obj[index+1][0]
+        build_page(obj=obj[0], jinja_env=jinja_env, url=output_folder, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url, prev_obj=prev_obj, next_obj=next_obj, is_component=obj[1])
+
+    
+    # build_page(obj=flagging_obj, jinja_env=jinja_env, url=output_folder, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url, prev_obj=find_cls("Interface"), next_obj=combining_interfaces_obj, is_component=False)
+    # build_page(obj=combining_interfaces_obj, jinja_env=jinja_env, url=output_folder, gradio_version=gradio_version, gradio_wheel_url=gradio_wheel_url, prev_obj=flagging_obj, next_obj=find_cls("Blocks"), is_component=False)
 
 def build_pip_template(version, jinja_env):
     docs_files = os.listdir("src/docs")
