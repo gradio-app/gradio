@@ -93,16 +93,6 @@
     </button>
     <a class="link current-nav-link px-4 mb-2 block" href="#building_demos">Building Demos</a>
     <a class="thin-link px-4 block" href="#interface">Interface</a>
-    <div class="sub-links hidden" hash="#interface">
-      {% with obj=find_cls("Interface") %}
-        {% if "fns" in obj and obj["fns"]|length %}
-          {% for fn in obj["fns"] %}
-            <a class="thinner-link px-4 pl-8 block"
-               href="#interface-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-    </div>
     <a class="thin-link px-4 block" href="#flagging">Flagging</a>
     <div class="sub-links hidden" hash="#flagging">
       {% for flagging_callback in docs["flagging"] %}
@@ -118,16 +108,6 @@
       <a class="thinner-link px-4 pl-8 block" href="#series">Series</a>
     </div>
     <a class="thin-link px-4 block" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
-    <div class="sub-links hidden" hash="#blocks">
-      {% with obj=find_cls("Blocks") %}
-        {% if "fns" in obj and obj["fns"]|length %}
-          {% for fn in obj["fns"] %}
-            <a class="thinner-link px-4 pl-8 block"
-               href="#blocks-{{ fn['name'].lower()}}">{{ fn["name"] }}</a>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-    </div>
     <a class="thin-link px-4 block" href="#block-layouts">Block Layouts</a>
     <div class="sub-links hidden" hash="#block-layouts">
       {% for layout in docs["layout"] %}
@@ -183,6 +163,12 @@
             <h3 class="text-4xl font-light my-4" id="flagging">
               Flagging
             </h3>
+            <button 
+              class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 mb-2 mx-2 ml-auto"
+              onclick="location.href='/docs/flagging'"
+              >
+                See Full Flagging Docs →
+              </button>
             <p class="mt-8 mb-12 text-lg">
               A Gradio Interface includes a "Flag" button that appears
               underneath the output. By default, clicking on the Flag button sends the input and output
@@ -195,16 +181,30 @@
             </p>
             <div class="flex flex-col gap-10">
               {% for flagging_callback in docs["flagging"] %}
-                {% with obj=flagging_callback, is_class=True, parent="gradio" %}
+                {% with obj=flagging_callback, is_class=True, parent="gradio", nopage=True %}
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}
-            </div>
+              </div>
+              <button 
+              class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-5 mx-2"
+              onclick="location.href='/docs/flagging'"
+            >
+              See Full Flagging Docs →
+            </button>
           </section>
           <section id="combining-interfaces" class="pt-2">
             <h3 class="text-4xl font-light my-4">
               Combining Interfaces
             </h3>
+            {% if not nopage %}
+            <button 
+              class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 mb-2 mx-2 ml-auto"
+              onclick="location.href='/docs/combining-interfaces'"
+              >
+                See Full Combining Interfaces Docs →
+              </button>
+          {% endif %}
             <p class="mt-8 mb-12 text-lg">
               Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
@@ -212,17 +212,23 @@
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.
             </p>
             <div class="flex flex-col gap-10">
-              {% with obj=find_cls("TabbedInterface"), parent="gradio" %}
+              {% with obj=find_cls("TabbedInterface"), parent="gradio", nopage=True %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
-              {% with obj=find_cls("Parallel"), is_class=True, parent="gradio" %}
+              {% with obj=find_cls("Parallel"), is_class=True, parent="gradio", nopage=True  %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
-              {% with obj=find_cls("Series"), is_class=True, parent="gradio" %}
+              {% with obj=find_cls("Series"), is_class=True, parent="gradio", nopage=True  %}
                 {% include "docs/obj_doc_template.html" %}
               {% endwith %}
             </div>
-          </section>
+            <button 
+            class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-5 mx-2"
+            onclick="location.href='/docs/combining-interfaces'"
+          >
+            See Full Combining Interfaces Docs →
+          </button>
+        </section>
           <section id="blocks" class="pt-2 mb-8">
             <div class="flex flex-col gap-10">
               {% with obj=find_cls("Blocks"), is_class=True, parent="gradio" %}
@@ -234,17 +240,31 @@
             <h3 class="text-3xl font-light my-4">
               Block Layouts
             </h3>
+            {% if not nopage %}
+            <button 
+              class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 mb-2 mx-2 ml-auto"
+              onclick="location.href='/docs/block-layouts'"
+              >
+                See Full Block Layouts Docs →
+              </button>
+          {% endif %}
             <p class="mb-12">
               Customize the layout of your Blocks UI with the layout classes below.
             </p>
             <div class="flex flex-col gap-10">
               {% for layout in docs["layout"] %}
-                {% with obj=layout, is_class=True, parent="gradio" %}
+                {% with obj=layout, is_class=True, parent="gradio", nopage=True %}
                   {% include "docs/obj_doc_template.html" %}
                 {% endwith %}
               {% endfor %}
             </div>
-          </section>
+            <button 
+            class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-5 mx-2"
+            onclick="location.href='/docs/block-layouts'"
+          >
+            See Full Block Layouts Docs →
+          </button>
+        </section>
         </section>
         <section id="components" class="pt-2 flex flex-col gap-10 mb-8">
           <div>

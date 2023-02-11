@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    {% with title="Gradio " + obj["name"] + " Docs", url="https://gradio.app/docs/" + obj["name"].lower() , image="/assets/img/meta-image.png", description= obj["description"], canonical="https://gradio.app/docs" + canonical_suffix + obj["name"].lower() %}
+    {% with title="Gradio " + obj["name"] + " Docs", url="https://gradio.app/docs/" + obj["name"].lower() , image="/assets/img/meta-image.png", description= obj["description"].strip(), canonical="https://gradio.app/docs" + canonical_suffix + obj["name"].lower() %}
       {% include "templates/meta.html" %}
     {% endwith %}
     <link rel="stylesheet" href="/style.css">
@@ -86,7 +86,7 @@
 
     <a class="thin-link font-lg px-4 my-3 block" href="/docs">&#8592; Back to Full Docs</a>
 
-    <a class="font-semibold px-4 mb-2 block">Building Demos</a>
+    <a class="link px-4 mb-2 block" href="/docs/building_demos/">Building Demos</a>
     <a class="thin-link px-4 block" href="/docs/interface/">Interface</a>
     <div class="sub-links hidden" hash="#interface">
       {% with obj=find_cls("Interface") %}
@@ -131,15 +131,15 @@
         {% endwith %}
       {% endfor %}
     </div>
-    <a class="font-semibold px-4 my-2 block">Components</a>
+    <a class="link px-4 my-2 block" href="/docs/components/">Components</a>
     {% for component in docs["component"] %}
       <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
     {% endfor %}
-    <a class="font-semibold px-4 my-2 block">Helpers</a>
+    <a class="link px-4 my-2 block" href="/docs/helpers/">Helpers
       {% for component in docs["helpers"] %}
         <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
       {% endfor %}
-      <a class="font-semibold px-4 my-2 block">Routes</a>
+      <a class="link px-4 my-2 block" href="/docs/routes/">Routes
         {% for component in docs["routes"] %}
           <a class="px-4 block thin-link" href="/docs/{{ component['name'].lower() }}/">{{ component['name'] }}</a>
         {% endfor %}
@@ -210,7 +210,7 @@
       class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
       onclick="location.href='#examples'"
     >
-      Try Examples
+      Try Examples &#8595;
     </button>
     {% endif %}
   </div>
@@ -259,24 +259,20 @@
       class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
       onclick="location.href='#examples'"
     >
-      More Examples →
+      More Examples &#8595;
     </button>
 
     {% endif %}
 
     {% elif obj["demos"] %}
 
-    <div class="container relative">
-      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">{{ obj["demos"][0][1] }}</code></pre></div>
-      <div class="absolute top-16" style="left: 44%;">
-          <button 
-          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="location.href='#examples'"
-        >
-          Try Examples
-        </button>
-      </div>
-    </div>
+    <button 
+    class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
+    onclick="location.href='#examples'"
+  >
+    Try Examples &#8595;
+  </button>
+
 
     
     {% endif %}
@@ -344,7 +340,7 @@
     <h4 class="mt-4 p-3 font-semibold">Methods</h4>
       <div class="flex flex-col gap-8 pl-12">
         {% for fn in obj["fns"] %}
-          {% with obj=fn, is_class=False, is_component=False, parent=parent + "." + obj["name"] %}
+          {% with obj=fn, is_class=False, is_component=False, parent=parent + "." + obj["name"], nopage=True %}
             {% include "docs/obj_doc_template.html" %}
           {% endwith %}
         {% endfor %}
