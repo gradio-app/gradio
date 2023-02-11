@@ -2,6 +2,38 @@
 
 ## New Features:
 
+### New `gr.BarPlot` component! 📊
+
+Create interactive bar plots from a high-level interface with `gr.BarPlot`. 
+No need to remember matplotlib syntax anymore!
+
+Example usage:
+
+```python
+import gradio as gr
+import pandas as pd
+
+simple = pd.DataFrame({
+    'a': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+    'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]
+})
+
+with gr.Blocks() as demo:
+    gr.BarPlot(
+        simple,
+        x="a",
+        y="b",
+        title="Simple Bar Plot with made up data",
+        tooltip=['a', 'b'],
+    )
+
+demo.launch()
+```
+
+
+By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://github.com/gradio-app/gradio/pull/3157)
+
+
 ## Bug Fixes:
 - Adds ability to add a single message from the bot or user side.
 
@@ -13,6 +45,9 @@ By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3165](https://github.
 ## Documentation Changes:
 * Sort components in docs by alphabetic order by [@aliabd](https://github.com/aliabd) in [PR 3152](https://github.com/gradio-app/gradio/pull/3152)
 * Changes to W&B guide by [@scottire](https://github.com/scottire) in  [PR 3153](https://github.com/gradio-app/gradio/pull/3153)
+* Keep pnginfo metadata for gallery by [@wfng92](https://github.com/wfng92) in [PR 3150](https://github.com/gradio-app/gradio/pull/3150)
+* Fixed typos in gradio events function documentation by [@vidalmaxime](https://github.com/vidalmaxime) in [PR 3168](https://github.com/gradio-app/gradio/pull/3168)
+
 
 ## Testing and Infrastructure Changes:
 No changes to highlight.
