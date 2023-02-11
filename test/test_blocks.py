@@ -418,7 +418,7 @@ class TestComponentsInBlocks:
         io_components = [
             c()
             for c in io_components
-            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot]
+            if c not in [gr.State, gr.Button, gr.ScatterPlot, gr.LinePlot, gr.BarPlot]
         ]
         with gr.Blocks() as demo:
             for component in io_components:
