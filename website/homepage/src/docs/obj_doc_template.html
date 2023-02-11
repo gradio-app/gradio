@@ -4,47 +4,6 @@
 <div class="obj" id="{{ obj['name'].lower() }}">
 {% endif %}
 
-{% if version == "main" %}
-{% set gradio_js = '/assets/index.js' %}
-{% else %}
-{% set gradio_js = 'https://gradio.s3-us-west-2.amazonaws.com/' + gradio_version + '/gradio.js' %}
-{% endif %}
-
-
-  {% if obj['demos'] %}
-  <div class="demo-window fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" style="z-index: 100">
-    <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white overflow-auto" style="top: 5%; height: 90%">
-      <div class="flex overflow-x-scroll">
-        {% for demo_name, _ in obj["demos"] %}
-        <button 
-          class="demo-btn {% if loop.index == 1 %}selected-demo{% endif %} px-4 py-2 text-lg text-gray-600 hover:text-orange-500" 
-          name="{{ demo_name }}"
-          onclick="show_demo('{{ obj['name'].lower() }}', '{{ demo_name }}')"
-
-        >{{ demo_name }}</button>
-        {% endfor %}
-        <button type="button" class="absolute right-0 top-0 w-14 flex items-center text-grey-600 hover:text-slate-600 py-8 px-5 bg-white" tabindex="0" onclick="this.parentElement.parentElement.parentElement.classList.add('hidden');">
-          <svg viewBox="0 0 10 10" class="overflow-visible text-gray-500 w-full"><path d="M0 0L10 10M10 0L0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
-        </button>
-      </div>
-      {% for demo_name, demo_code in obj["demos"] %}
-      <div class="demo-content {% if loop.index != 1 %}hidden{% endif %}" name="{{ demo_name }}">
-        <div class="codeblock">
-          <a class ="clipboard-button" href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{{demo_name}}/run.ipynb" target="_blank" style="right:30px">
-            <img src="https://colab.research.google.com/assets/colab-badge.svg">
-          </a>
-          <pre class=" max-h-80 overflow-auto"><code class="lang-python">{{ demo_code }}</code></pre>
-        </div>
-        {% if version=="main" %}
-          <gradio-app space="gradio/{{ demo_name }}_main" />
-        {% else %}
-          <gradio-app space="gradio/{{ demo_name }}" />      
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
   <div class="flex flex-row items-center justify-between">
     {% if parent != "gradio"%}
       <h3 id="{{ parent[7:].lower() + '-' + obj['name'].lower() }}-header"
@@ -53,16 +12,15 @@
       <h3 id="{{ obj['name'].lower() }}-header"
       class="text-3xl font-light py-4">{{ obj['name'] }}</h3>
     {% endif %}
-
-    {% if obj['demos'] %}
-    <button 
-      class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2 ml-auto"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
-    >
-      Try Examples
-    </button>
-    {% endif %}
   </div>
+  {% if not nopage %}
+    <button 
+      class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 mb-2 mx-2 ml-auto"
+      onclick="location.href='/docs/{{ obj['name'].lower() }}'"
+      >
+        See Full {{ obj['name'] }} Docs →
+      </button>
+  {% endif %}
   {% if obj['override_signature'] %}
   <div class="codeblock"><pre><code class="lang-python">{{ obj['override_signature'] }}</code></pre></div>
   {% else %}
@@ -103,32 +61,9 @@
     <div class="codeblock">
       <pre><code class="lang-python">{{ obj["example"] }}</code></pre>
     </div>
-    {% if obj["demos"] %}
-      <button 
-      class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-2 mx-2"
-      onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
-    >
-      More Examples →
-    </button>
 
     {% endif %}
-
-    {% elif obj["demos"] %}
-
-    <div class="container relative">
-      <div class="overflow-clip pointer-events-none opacity-30"><pre class="overflow-clip max-h-48"><code class="overflow-clip lang-python">{{ obj["demos"][0][1] }}</code></pre></div>
-      <div class="absolute top-16" style="left: 44%;">
-          <button 
-          class="h-2/4 rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-3 mx-2"
-          onclick="this.closest('.obj').querySelector('.demo-window').classList.remove('hidden'); load_gradio('{{ gradio_js }}');"
-        >
-          Try Examples
-        </button>
-      </div>
-    </div>
-
     
-    {% endif %}
 
   {% if (obj["parameters"]|length > 0 and obj["parameters"][0]["name"] != "self") or obj["parameters"]|length > 1 %}
   <table class="table-fixed w-full mt-6 leading-loose">
@@ -189,33 +124,15 @@
     </tbody>
   </table>
   {% endif %}
-  {% if "fns" in obj and obj["fns"]|length %}
-    <h4 class="mt-4 p-3 font-semibold">Methods</h4>
-      <div class="flex flex-col gap-8 pl-12">
-        {% for fn in obj["fns"] %}
-          {% with obj=fn, is_class=False, is_component=False, parent=parent + "." + obj["name"] %}
-            {% include "docs/obj_doc_template.html" %}
-          {% endwith %}
-        {% endfor %}
-      <div class="ml-12"> </div>
-    </div>
-  {% endif %}
-  {% if is_class %}
-   <h4 class="mt-4 mb-2 font-semibold">Step-by-step Guides</h4>
-      {% if obj["guides"] %}
-        <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {% for guide in obj["guides"] %}
-          <a class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4 bg-gradient-to-r" target="_blank" href="/{{ guide.name }}">
-            <div class="flex flex-col p-4 h-min">
-              <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
-            </div>
-          </a>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/main/guides">contribute</a> a guide about <span class="font-semibold">{{ obj["name"] }}</span></p>
-      {% endif %}
-  {% endif %}
+  {% if not nopage  %}
+  <button 
+  class="rounded-full bg-orange-500 hover:bg-orange-400 transition-colors text-white py-1 px-3 my-5 mx-2"
+  onclick="location.href='/docs/{{ obj['name'].lower() }}'"
+>
+  See Full {{ obj['name'] }} Docs →
+</button>
+{% endif %}
+
 </div>
 
 <script>

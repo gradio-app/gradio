@@ -200,13 +200,13 @@
       You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.
     </p>
     <div class="flex flex-col gap-10">
-      {% with obj=find_cls("TabbedInterface"), parent="gradio" %}
+      {% with obj=find_cls("TabbedInterface"), parent="gradio", nopage=True %}
         {% include "docs/obj_doc_template.html" %}
       {% endwith %}
-      {% with obj=find_cls("Parallel"), is_class=True, parent="gradio" %}
+      {% with obj=find_cls("Parallel"), is_class=True, parent="gradio", nopage=True %}
         {% include "docs/obj_doc_template.html" %}
       {% endwith %}
-      {% with obj=find_cls("Series"), is_class=True, parent="gradio" %}
+      {% with obj=find_cls("Series"), is_class=True, parent="gradio", nopage=True %}
         {% include "docs/obj_doc_template.html" %}
       {% endwith %}
     </div>

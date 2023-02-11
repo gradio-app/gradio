@@ -205,7 +205,7 @@
     </p>
     <div class="flex flex-col gap-10">
       {% for flagging_callback in docs["flagging"] %}
-        {% with obj=flagging_callback, is_class=True, parent="gradio" %}
+        {% with obj=flagging_callback, is_class=True, parent="gradio", nopage=True %}
           {% include "docs/obj_doc_template.html" %}
         {% endwith %}
       {% endfor %}
