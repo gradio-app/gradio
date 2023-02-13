@@ -39,7 +39,7 @@ def create_examples(
     inputs: IOComponent | List[IOComponent],
     outputs: IOComponent | List[IOComponent] | None = None,
     fn: Callable | None = None,
-    cache_examples: bool = False,
+    cache_examples: bool | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: str | None = None,
@@ -88,7 +88,7 @@ class Examples:
         inputs: IOComponent | List[IOComponent],
         outputs: IOComponent | List[IOComponent] | None = None,
         fn: Callable | None = None,
-        cache_examples: bool = False,
+        cache_examples: bool | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
         label: str | None = "Examples",
@@ -105,7 +105,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
-            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided
+            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` need to be provided. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
@@ -118,6 +118,11 @@ class Examples:
             warnings.warn(
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
+
+        if os.getenv("SYSTEM") == "spaces" and cache_examples is None:
+            cache_examples = True
+        else:
+            cache_examples = cache_examples or False
 
         if cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
