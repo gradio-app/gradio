@@ -336,23 +336,15 @@ def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     return output
 
 
-def delete_none(_dict: T, skip_value: bool = False) -> T:
+def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
     """
-    Delete None values recursively from all of the dictionaries, tuples, lists, sets.
-    Credit: https://stackoverflow.com/a/66127889/5209347
+    Delete keys whose values are None from a dictionary
     """
-    if isinstance(_dict, dict):
-        for key, value in list(_dict.items()):
-            if skip_value and key == "value":
-                continue
-            if isinstance(value, (list, dict, tuple, set)):
-                _dict[key] = delete_none(value)
-            elif value is None or key is None:
-                del _dict[key]
-
-    elif isinstance(_dict, (list, set, tuple)):
-        _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
-
+    for key, value in list(_dict.items()):
+        if skip_value and key == "value":
+            continue
+        elif value is None:
+            del _dict[key]
     return _dict
 
 
