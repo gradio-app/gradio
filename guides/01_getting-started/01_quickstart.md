@@ -26,9 +26,7 @@ $code_hello_world
 
 $demo_hello_world
 
-## Local Development
-
-When developing locally, you can run Gradio apps from a Python script or a Jupyter Notebook. To run a Gradio app from a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development.
+When developing locally, if you want to run the code as a Python script, you can use the Gradio CLI to launch the application **in reload mode**, which will provide seamless and fast development. Learn more about reloading in the [Auto-Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
 
 ```bash
 gradio app.py
