@@ -2273,6 +2273,10 @@ class File(
             warnings.warn(
                 "The `bytes` type is deprecated and may not work as expected. Please use `binary` instead."
             )
+        if file_count == "directory" and file_types is not None:
+            warnings.warn(
+                "The `file_types` parameter is ignored when `file_count` is 'directory'."
+            )
         self.type = type
         self.test_input = None
         TempFileManager.__init__(self)
