@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 import gradio
 import gradio as gr
-from gradio import media_data, utils
+from gradio import media_data
 from gradio.context import Context
 from gradio.exceptions import InvalidApiName
 from gradio.external import (
@@ -441,9 +441,7 @@ def check_dataset(config, readme_examples):
         assert not any([c for c in config["components"] if c["type"] == "dataset"])
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
-        assert dataset["props"]["samples"] == [
-            [cols_to_rows(readme_examples)[1]]
-        ]
+        assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]
 
 
 def test_load_blocks_with_default_values():
