@@ -48,6 +48,7 @@ No changes to highlight.
 No changes to highlight.
 
 ## Breaking Changes:
+No changes to highlight.
 
 ## Full Changelog:
 * Fix demos page css and add close demos button by [@aliabd](https://github.com/aliabd) in [PR 3151](https://github.com/gradio-app/gradio/pull/3151)
