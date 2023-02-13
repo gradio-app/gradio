@@ -38,9 +38,12 @@
 	export let id: number = 0;
 	export let autoscroll: boolean = false;
 	export let show_api: boolean = true;
+	export let show_footer: boolean = true;
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme: string;
+
+	console.log(components, layout, dependencies);
 
 	let loading_status = create_loading_status_store();
 
@@ -196,18 +199,14 @@
 		_component_map.set(c.type, _c);
 	});
 
-	let ready = false;
+	export let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
 		walk_layout(layout)
 			.then(async () => {
 				ready = true;
-
-				await tick();
-				window.__gradio_loader__[id].$set({ status: "complete" });
 			})
 			.catch((e) => {
 				console.error(e);
-				window.__gradio_loader__[id].$set({ status: "error" });
 			});
 	});
 
@@ -400,7 +399,8 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
 	{/if}
 </svelte:head>
 
@@ -423,28 +423,31 @@
 			/>
 		{/if}
 	</div>
-	<footer>
-		{#if show_api}
-			<button
-				on:click={() => {
-					set_api_docs_visible(!api_docs_visible);
-				}}
-				class="show-api"
+
+	{#if show_footer}
+		<footer>
+			{#if show_api}
+				<button
+					on:click={() => {
+						set_api_docs_visible(!api_docs_visible);
+					}}
+					class="show-api"
+				>
+					Use via API <img src={api_logo} alt="" />
+				</button>
+				<div>·</div>
+			{/if}
+			<a
+				href="https://gradio.app"
+				class="built-with"
+				target="_blank"
+				rel="noreferrer"
 			>
-				Use via API <img src={api_logo} alt="" />
-			</button>
-			<div>·</div>
-		{/if}
-		<a
-			href="https://gradio.app"
-			class="built-with"
-			target="_blank"
-			rel="noreferrer"
-		>
-			Built with Gradio
-			<img src={logo} alt="logo" />
-		</a>
-	</footer>
+				Built with Gradio
+				<img src={logo} alt="logo" />
+			</a>
+		</footer>
+	{/if}
 </div>
 
 {#if api_docs_visible && ready}
@@ -473,40 +476,6 @@
 		display: flex;
 		flex-direction: column;
 		width: var(--size-full);
-	}
-
-	.contain {
-		margin-right: auto;
-		margin-left: auto;
-		background: var(--color-background-primary);
-		padding: var(--size-6) var(--size-4);
-		width: 100%;
-	}
-
-	@media (--screen-sm) {
-		.contain {
-			max-width: 640px;
-		}
-	}
-	@media (--screen-md) {
-		.contain {
-			max-width: 768px;
-		}
-	}
-	@media (--screen-lg) {
-		.contain {
-			max-width: 1024px;
-		}
-	}
-	@media (--screen-xl) {
-		.contain {
-			max-width: 1280px;
-		}
-	}
-	@media (--screen-xxl) {
-		.contain {
-			max-width: 1536px;
-		}
 	}
 
 	footer {
