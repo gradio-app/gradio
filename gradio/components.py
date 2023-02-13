@@ -2313,15 +2313,6 @@ class File(
             "__type__": "update",
         }
         return IOComponent.add_interactive_to_config(updated_config, interactive)
-    
-    def incorporate_binary_files(self, value: List[Dict[str, Any]] | Dict[str, Any], binary_files: List[str]):
-        if not isinstance(value, list):
-            value = [value]
-        assert len(value) == len(binary_files), "Number of file metadata and binary files do not match"
-        for file_metadata, binary_filename in zip(value, binary_files):
-            file_metadata["name"] = binary_filename
-            file_metadata["is_file"] = True
-        return value
 
     def preprocess(
         self, x: List[Dict[str, Any]] | None

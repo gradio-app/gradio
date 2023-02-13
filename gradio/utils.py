@@ -43,7 +43,6 @@ import matplotlib.pyplot as plt
 import requests
 from pydantic import BaseModel, Json, parse_obj_as
 
-
 import gradio
 from gradio.context import Context
 from gradio.strings import en
@@ -51,7 +50,6 @@ from gradio.strings import en
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext
     from gradio.components import Component
-    from gradio.data_classes import PredictBody
 
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
@@ -338,23 +336,15 @@ def format_ner_list(input_string: str, ner_groups: List[Dict[str, str | int]]):
     return output
 
 
-def delete_none(_dict: T, skip_value: bool = False) -> T:
+def delete_none(_dict: Dict, skip_value: bool = False) -> Dict:
     """
-    Delete None values recursively from all of the dictionaries, tuples, lists, sets.
-    Credit: https://stackoverflow.com/a/66127889/5209347
+    Delete keys whose values are None from a dictionary
     """
-    if isinstance(_dict, dict):
-        for key, value in list(_dict.items()):
-            if skip_value and key == "value":
-                continue
-            if isinstance(value, (list, dict, tuple, set)):
-                _dict[key] = delete_none(value)
-            elif value is None or key is None:
-                del _dict[key]
-
-    elif isinstance(_dict, (list, set, tuple)):
-        _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
-
+    for key, value in list(_dict.items()):
+        if skip_value and key == "value":
+            continue
+        elif value is None:
+            del _dict[key]
     return _dict
 
 
@@ -903,19 +893,3 @@ def abspath(path: str | Path) -> Path:
         return Path.cwd() / path
     else:
         return Path(path).resolve()
-
-
-def incorporate_binary_files(
-    body: PredictBody,
-    input_components: List[Component],
-    binary_files_per_input_index: Dict[int, List[str]],
-):
-    for input_index, binary_files in binary_files_per_input_index.items():
-        input_component = input_components[input_index]
-        assert hasattr(
-            input_component, "incorporate_binary_files"
-        ), "Binary files received for a component that doesn't support them."
-        body.data[input_index] = input_component.incorporate_binary_files(
-            body.data[input_index], binary_files
-        )
-    return body

@@ -967,7 +967,6 @@ class Blocks(BlockContext):
         request: routes.Request | List[routes.Request] | None = None,
         iterators: Dict[int, Any] | None = None,
         event_id: str | None = None,
-        binary_files: List[str] | None = None,
     ) -> Dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1235,7 +1234,7 @@ class Blocks(BlockContext):
             concurrency_count=concurrency_count,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
-            blocks=self,
+            blocks_dependencies=self.dependencies,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)

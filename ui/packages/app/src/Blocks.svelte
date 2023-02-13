@@ -141,7 +141,6 @@
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
 		modes?: Array<string>;
-		extract_binary: ComponentMeta["extract_binary"];
 		document?: (arg0: Record<string, unknown>) => Documentation;
 	};
 
@@ -184,9 +183,6 @@
 		if (_component.modes && _component.modes.length > 1) {
 			instance.has_modes = true;
 		}
-		if (_component.extract_binary) {
-			instance.extract_binary = _component.extract_binary;
-		}
 
 		if (node.children) {
 			instance.children = node.children.map((v) => instance_map[v.id]);
@@ -224,32 +220,6 @@
 	}
 
 	let handled_dependencies: Array<number[]> = [];
-
-	const extract_values_into_text_and_binary = (
-		inputs: Array<any>
-	): [Array<any>, Array<any>] => {
-		let text_values: Array<any> = [];
-		let binary_values: Array<any> = [];
-		if (inputs.some((id) => instance_map[id].extract_binary)) {
-			inputs.forEach((id) => {
-				let extract_binary = instance_map[id].extract_binary;
-				if (extract_binary) {
-					let [text_value, binary_value] = extract_binary(
-						instance_map[id].props.value
-					);
-					text_values.push(text_value);
-					binary_values.push(binary_value);
-				} else {
-					text_values.push(instance_map[id].props.value);
-					binary_values.push(null);
-				}
-			});
-		} else {
-			text_values = inputs.map((id) => instance_map[id].props.value);
-			binary_values = inputs.map((_) => null);
-		}
-		return [text_values, binary_values];
-	};
 
 	async function handle_mount() {
 		await tick();
@@ -290,16 +260,13 @@
 					outputs.every((v) => instance_map?.[v].instance) &&
 					inputs.every((v) => instance_map?.[v].instance)
 				) {
-					let [text_data, binary_data] =
-						extract_values_into_text_and_binary(inputs);
 					const req = fn({
 						action: "predict",
 						backend_fn,
 						frontend_fn,
 						payload: {
 							fn_index: i,
-							data: text_data,
-							binary_data: binary_data
+							data: inputs.map((id) => instance_map[id].props.value)
 						},
 						queue: queue === null ? enable_queue : queue,
 						queue_callback: handle_update,
@@ -345,8 +312,7 @@
 							if (loading_status.get_status_for_fn(i) === "pending") {
 								return;
 							}
-							let [text_data, binary_data] =
-								extract_values_into_text_and_binary(inputs);
+
 							// page events
 							const req = fn({
 								action: "predict",
@@ -354,8 +320,7 @@
 								frontend_fn,
 								payload: {
 									fn_index: i,
-									data: text_data,
-									binary_data: binary_data
+									data: inputs.map((id) => instance_map[id].props.value)
 								},
 								output_data: outputs.map((id) => instance_map[id].props.value),
 								queue: queue === null ? enable_queue : queue,
@@ -435,8 +400,7 @@
 		<script
 			async
 			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
 

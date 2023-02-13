@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { File as FileComponent, FileUpload } from "@gradio/file";
-	import type { BinaryFileData } from "@gradio/upload";
+	import { File, FileUpload } from "@gradio/file";
+	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
@@ -13,8 +13,8 @@
 
 	export let elem_id: string = "";
 	export let visible: boolean = true;
-	export let value: null | BinaryFileData | Array<BinaryFileData>;
-	let old_value: null | BinaryFileData | Array<BinaryFileData>;
+	export let value: null | FileData | Array<FileData>;
+	let old_value: null | FileData | Array<FileData>;
 
 	export let mode: "static" | "dynamic";
 	export let root: string;
@@ -26,7 +26,7 @@
 
 	export let loading_status: LoadingStatus;
 
-	let _value: null | BinaryFileData | Array<BinaryFileData>;
+	let _value: null | FileData | Array<FileData>;
 	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
@@ -38,6 +38,7 @@
 	$: {
 		if (value !== old_value) {
 			old_value = value;
+
 			dispatch("change");
 		}
 	}
@@ -67,6 +68,6 @@
 			<UploadText type="file" />
 		</FileUpload>
 	{:else}
-		<FileComponent value={_value} {label} {show_label} />
+		<File value={_value} {label} {show_label} />
 	{/if}
 </Block>
