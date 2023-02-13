@@ -7,7 +7,6 @@
 	let old_value: Array<[string | null, string | null]> | null;
 	export let style: Styles = {};
 	export let pending_message: boolean = false;
-	export let starts_with: "user" | "bot" = "user";
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -61,19 +60,19 @@
 	<div class="message-wrap">
 		{#each _value as message, i}
 			<div
-				data-testid={starts_with}
+				data-testid="user"
 				class:latest={i === _value.length - 1}
-				class="message {starts_with}"
-				class:hide={message[0] === undefined}
+				class="message user"
+				class:hide={message[0] === null}
 				style={"background-color:" + _colors[0]}
 			>
 				{@html message[0]}
 			</div>
 			<div
-				data-testid={starts_with === "user" ? "bot" : "user"}
+				data-testid="bot"
 				class:latest={i === _value.length - 1}
-				class="message {starts_with === 'user' ? 'bot' : 'user'}"
-				class:hide={message[1] === undefined}
+				class="message bot"
+				class:hide={message[1] === null}
 				style={"background-color:" + _colors[1]}
 			>
 				{@html message[1]}

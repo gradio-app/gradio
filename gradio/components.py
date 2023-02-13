@@ -3853,14 +3853,13 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses as strings of HTML.
 
-    Demos: chatbot_demo
+    Demos: chatbot_demo, chatbot_multimodal
     """
 
     def __init__(
         self,
         value: List[Tuple[str | None, str | None]] | Callable | None = None,
         color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
-        starts_with: str = "user",
         *,
         label: str | None = None,
         every: float | None = None,
@@ -3872,7 +3871,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            starts_with: Determines whether the chatbot starts with a user message or a bot message. Must be either "user" or "bot". Default is "user".
             label: component name in interface.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -3884,11 +3882,11 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
-        if starts_with not in ["user", "bot"]:
-            raise ValueError(
-                f"Invalid value for parameter `starts_with`: {starts_with}. Please choose from 'user' or 'bot'."
-            )
-        self.starts_with = starts_with
+        # if starts_with not in ["user", "bot"]:
+        #     raise ValueError(
+        #         f"Invalid value for parameter `starts_with`: {starts_with}. Please choose from 'user' or 'bot'."
+        #     )
+        # self.starts_with = starts_with
         self.md = MarkdownIt()
 
         IOComponent.__init__(
@@ -3906,7 +3904,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
         return {
             "value": self.value,
             "color_map": self.color_map,
-            "starts_with": self.starts_with,
             **IOComponent.get_config(self),
         }
 
