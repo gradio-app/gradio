@@ -294,7 +294,16 @@ class TestDeleteNone:
                 None: 123,
             },
         }
-        truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
+        truth = {
+            "a": 12,
+            "b": 34,
+            "k": {
+                "d": 34,
+                "t": None,
+                "m": [{"k": 23, "t": None}, [None, 1, 2, 3], {1, 2, None}],
+                None: 123,
+            },
+        }
         assert delete_none(input) == truth
 
 
