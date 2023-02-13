@@ -329,7 +329,7 @@ class TestLoadInterface:
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=/tmp/tmprahzj703/Bunnyual53t2x.obj"
+            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=/tmp/tmpdd31pyri/Bunnyp0c5zw__.obj"
         )
         assert r.status_code == 200
 
@@ -442,7 +442,7 @@ def check_dataset(config, readme_examples):
     else:
         dataset = next(c for c in config["components"] if c["type"] == "dataset")
         assert dataset["props"]["samples"] == [
-            [utils.delete_none(cols_to_rows(readme_examples)[1])]
+            [cols_to_rows(readme_examples)[1]]
         ]
 
 
