@@ -15,7 +15,7 @@ import requests
 import gradio
 from gradio import components, utils
 from gradio.context import Context
-from gradio.exceptions import TooManyRequestsError, Error
+from gradio.exceptions import Error, TooManyRequestsError
 from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,

@@ -938,7 +938,9 @@ class Blocks(BlockContext):
                     output.append(None)
                     continue
             except (IndexError, KeyError):
-                raise ValueError(f"Number of output components does not match number of values returned from from function {block_fn.name}")
+                raise ValueError(
+                    f"Number of output components does not match number of values returned from from function {block_fn.name}"
+                )
             block = self.blocks[output_id]
             if getattr(block, "stateful", False):
                 if not utils.is_update(predictions[i]):
@@ -959,7 +961,7 @@ class Blocks(BlockContext):
                     ), f"{block.__class__} Component with id {output_id} not a valid output component."
                     prediction_value = block.postprocess(prediction_value)
                 output.append(prediction_value)
-        
+
         return output
 
     async def process_api(

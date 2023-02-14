@@ -538,10 +538,10 @@ class TestBlocksPostprocessing:
             textbox1 = gr.Textbox()
             textbox2 = gr.Textbox()
             button = gr.Button()
-            button.click(lambda x:x, textbox1, [textbox1, textbox2])
+            button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(ValueError):
             demo.postprocess_data(fn_index=0, predictions=["test"], state={})
-                    
+
 
 class TestCallFunction:
     @pytest.mark.asyncio
