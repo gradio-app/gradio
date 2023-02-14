@@ -519,7 +519,10 @@ class App(FastAPI):
             for input_file in files:
                 output_file_obj = tempfile.NamedTemporaryFile(delete=False)
                 async with aiofiles.open(output_file_obj.name, "wb") as output_file:
-                    while content := await input_file.read(1024):
+                    while True:
+                        content = await input_file.read(1024)
+                        if not content:
+                            break
                         await output_file.write(content)
                 output_files.append(output_file_obj.name)
             return output_files
