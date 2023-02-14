@@ -46,7 +46,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://git
 * Fixed typos in gradio events function documentation by [@vidalmaxime](https://github.com/vidalmaxime) in [PR 3168](https://github.com/gradio-app/gradio/pull/3168)
 
 ## Testing and Infrastructure Changes:
-No changes to highlight.
+* Adds a GitHub action to benchmark the queue by [@abidlabs](https://github.com/abidlabs) in [PR 3164](https://github.com/gradio-app/gradio/pull/3164) 
 
 ## Breaking Changes:
 No changes to highlight.
