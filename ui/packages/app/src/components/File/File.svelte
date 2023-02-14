@@ -38,19 +38,19 @@
 	}>();
 
 	$: {
-		if (value !== old_value) {
-			old_value = value;
-			if (value === null) {
+		if (_value !== old_value) {
+			old_value = _value;
+			if (_value === null) {
 				dispatch("change");
 				pending_upload = false;
 			} else {
-				let files = (Array.isArray(value) ? value : [value]).map(
+				let files = (Array.isArray(_value) ? _value : [_value]).map(
 					(file_data) => file_data.blob!
 				);
-				let upload_value = value;
+				let upload_value = _value;
 				pending_upload = true;
 				upload_files(root, files).then((response) => {
-					if (upload_value !== value) {
+					if (upload_value !== _value) {
 						// value has changed since upload started
 						return;
 					}
@@ -60,13 +60,15 @@
 						loading_status.status = "error";
 						loading_status.message = response.error;
 					} else {
-						(Array.isArray(value) ? value : [value]).forEach((file_data, i) => {
-							if (response.files) {
-								file_data.orig_name = file_data.name;
-								file_data.name = response.files[i];
-								file_data.is_file = true;
+						(Array.isArray(_value) ? _value : [_value]).forEach(
+							(file_data, i) => {
+								if (response.files) {
+									file_data.orig_name = file_data.name;
+									file_data.name = response.files[i];
+									file_data.is_file = true;
+								}
 							}
-						});
+						);
 					}
 				});
 			}
