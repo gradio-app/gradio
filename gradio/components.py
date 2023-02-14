@@ -2996,6 +2996,10 @@ class UploadButton(
         """
         self.type = type
         self.file_count = file_count
+        if file_count == "directory" and file_types is not None:
+            warnings.warn(
+                "The `file_types` parameter is ignored when `file_count` is 'directory'."
+            )        
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
@@ -3006,6 +3010,7 @@ class UploadButton(
         IOComponent.__init__(
             self, label=label, visible=visible, elem_id=elem_id, value=value, **kwargs
         )
+        
 
     def get_config(self):
         return {
