@@ -3882,11 +3882,6 @@ class Chatbot(Changeable, IOComponent, JSONSerializable):
                 "The 'color_map' parameter has been moved from the constructor to `Chatbot.style()` ",
             )
         self.color_map = color_map
-        # if starts_with not in ["user", "bot"]:
-        #     raise ValueError(
-        #         f"Invalid value for parameter `starts_with`: {starts_with}. Please choose from 'user' or 'bot'."
-        #     )
-        # self.starts_with = starts_with
         self.md = MarkdownIt()
 
         IOComponent.__init__(

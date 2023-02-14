@@ -38,7 +38,7 @@ By [@freddyaboulton](https://github.com/freddyaboulton) in [PR 3157](https://git
 - Adds ability to add a single message from the bot or user side.
 
 ```python
-gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)], starts_with="bot")
+gr.Chatbot([("Hi, I'm DialoGPT. Try asking me a question.", None)])
 ```
 By [@dawoodkhan82](https://github.com/dawoodkhan82) in [PR 3165](https://github.com/gradio-app/gradio/pull/3165)
 * Fixes `gr.utils.delete_none` to only remove props whose values are `None` from the config by [@abidlabs](https://github.com/abidlabs) in [PR 3188](https://github.com/gradio-app/gradio/pull/3188) 

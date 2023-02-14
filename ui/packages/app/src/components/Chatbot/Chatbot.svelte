@@ -20,7 +20,7 @@
 	export let loading_status: LoadingStatus | undefined;
 </script>
 
-<Block padding={false} {elem_id} {visible}>
+<Block {elem_id} {visible}>
 	{#if show_label}
 		<BlockLabel
 			{show_label}
