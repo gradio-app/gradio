@@ -4,6 +4,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { UploadButton } from "@gradio/upload-button";
 	import { upload_files } from "../../api";
+	import { blobToBase64 } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
 
 	export let style: Styles = {};
@@ -18,8 +19,10 @@
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
 		await tick();
-		upload_files(root, [detail.blob!]).then((response) => {
-			if (!response.error) {
+		upload_files(root, [detail.blob!]).then(async (response) => {
+			if (response.error) {
+				detail.data = await blobToBase64(detail.blob!);
+			} else {
 				detail.orig_name = detail.name;
 				detail.name = response.files![0];
 				detail.is_file = true;

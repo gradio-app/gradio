@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { File as FileComponent, FileUpload } from "@gradio/file";
-	import type { FileData } from "@gradio/upload";
+	import { blobToBase64, FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
 	import UploadText from "../UploadText.svelte";
@@ -57,8 +57,11 @@
 
 					pending_upload = false;
 					if (response.error) {
-						loading_status.status = "error";
-						loading_status.message = response.error;
+						(Array.isArray(_value) ? _value : [_value]).forEach(
+							async (file_data, i) => {
+								file_data.data = await blobToBase64(file_data.blob!);
+							}
+						);
 					} else {
 						(Array.isArray(_value) ? _value : [_value]).forEach(
 							(file_data, i) => {
@@ -70,6 +73,7 @@
 							}
 						);
 					}
+					dispatch("change");
 				});
 			}
 		}
